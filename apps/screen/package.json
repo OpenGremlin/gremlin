@@ -7,20 +7,27 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@gremlin/shared-types": "workspace:*",
+    "motion": "^12.34.3",
     "react": "^19",
-    "react-dom": "^19",
-    "@gremlin/shared-types": "workspace:*"
+    "react-dom": "^19"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4",
+    "jsdom": "25",
+    "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^6",
-    "tailwindcss": "^4",
-    "@tailwindcss/vite": "^4"
+    "vitest": "^4.0.18"
   }
 }

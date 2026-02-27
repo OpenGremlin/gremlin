@@ -11,11 +11,12 @@
     "clean": "rm -rf .expo"
   },
   "dependencies": {
+    "@babel/runtime": "^7.28.6",
+    "@gremlin/shared-types": "workspace:*",
     "expo": "~52.0.0",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
-    "react-native": "0.76.6",
-    "@gremlin/shared-types": "workspace:*"
+    "react-native": "0.76.6"
   },
   "devDependencies": {
     "@types/react": "~18.3.0",
