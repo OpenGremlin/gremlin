@@ -1,0 +1,23 @@
+{
+  "name": "@gremlin/infra",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff",
+    "clean": "rm -rf dist cdk.out"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2",
+    "constructs": "^10"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "aws-cdk": "^2",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

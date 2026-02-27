@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Gremlin",
+    "slug": "gremlin-phone",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "gremlin",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "com.gremlin.phone"
+    },
+    "android": {
+      "package": "com.gremlin.phone"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "gremlin",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "clean": "turbo clean",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
+    "turbo": "^2"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
