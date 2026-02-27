@@ -8,3 +8,4 @@ dist/
 cdk.out/
 *.docx
 ~$*
+.DS_Store
