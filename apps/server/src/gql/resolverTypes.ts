@@ -1,4 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql';
+import { AgentModel } from './schema/Agent/resolvers.js';
+import { FeedItemModel } from './schema/Feed/resolvers.js';
 import { Context } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -21,9 +23,16 @@ export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  portraitId: Scalars['String']['output'];
   soul: Scalars['String']['output'];
   status: AgentStatus;
+};
+
+
+export type AgentImageUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type AgentJob = {
@@ -64,8 +73,15 @@ export type FeedItem = {
   category: FeedCategory;
   completedAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  imageUrl: Scalars['String']['output'];
+  portraitId: Scalars['String']['output'];
   summary: Scalars['String']['output'];
   title: Scalars['String']['output'];
+};
+
+
+export type FeedItemImageUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Integration = {
@@ -265,14 +281,15 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Agent: ResolverTypeWrapper<Agent>;
+  Agent: ResolverTypeWrapper<AgentModel>;
   AgentJob: ResolverTypeWrapper<AgentJob>;
   AgentStatus: AgentStatus;
   AuthMethod: AuthMethod;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
-  FeedItem: ResolverTypeWrapper<FeedItem>;
+  FeedItem: ResolverTypeWrapper<FeedItemModel>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Integration: ResolverTypeWrapper<Integration>;
   JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -284,11 +301,12 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Agent: Agent;
+  Agent: AgentModel;
   AgentJob: AgentJob;
   Boolean: Scalars['Boolean']['output'];
-  FeedItem: FeedItem;
+  FeedItem: FeedItemModel;
   ID: Scalars['ID']['output'];
+  Int: Scalars['Int']['output'];
   Integration: Integration;
   Mutation: Record<PropertyKey, never>;
   Permission: Permission;
@@ -300,7 +318,9 @@ export type ResolversParentTypes = {
 export type AgentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['AgentStatus'], ParentType, ContextType>;
 };
@@ -322,6 +342,8 @@ export type FeedItemResolvers<ContextType = Context, ParentType extends Resolver
   category?: Resolver<ResolversTypes['FeedCategory'], ParentType, ContextType>;
   completedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<FeedItemImageUrlArgs>>;
+  portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

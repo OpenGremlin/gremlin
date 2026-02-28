@@ -9,6 +9,8 @@ export const agentTypeDefs = /* GraphQL */ `
     id: ID!
     name: String!
     avatar: String!
+    portraitId: String!
+    imageUrl(width: Int): String!
     soul: String!
     status: AgentStatus!
   }

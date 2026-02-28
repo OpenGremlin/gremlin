@@ -2,19 +2,10 @@ import { useParams } from "react-router-dom";
 import type { AgentJob } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { BackButton } from "../../shared/BackButton";
+import { formatDate } from "../../shared/formatDate";
+import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { AGENT_JOB_QUERY } from "../../queries";
-
-function formatDate(date: string | null): string {
-  if (!date) return "Never";
-  return new Date(date).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,33 +14,14 @@ export function JobDetailPage() {
     { id },
   );
 
-  if (loading) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
-      </div>
-    );
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} backButton />;
   }
 
   const job = data?.agentJob ?? null;
 
   if (!job) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="mt-4 text-neutral-400">Job not found.</p>
-      </div>
-    );
+    return <NotFound label="Job not found." />;
   }
 
   return (

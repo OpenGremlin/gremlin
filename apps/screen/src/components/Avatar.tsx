@@ -92,30 +92,30 @@ function SootBody({ state }: { state: AvatarState }) {
   );
 }
 
-function Limbs({ state }: { state: AvatarState }) {
-  const limbs = [
-    // Bottom legs — the classic soot sprite feature
-    { angle: 190, isLeg: true },
-    { angle: 210, isLeg: true },
-    { angle: 230, isLeg: true },
-    { angle: 250, isLeg: true },
-    { angle: 270, isLeg: true },
-    { angle: 290, isLeg: true },
-    { angle: 310, isLeg: true },
-    { angle: 330, isLeg: true },
-    { angle: 350, isLeg: true },
-    // Top arms — shorter, wispier
-    { angle: 15, isLeg: false },
-    { angle: 50, isLeg: false },
-    { angle: 80, isLeg: false },
-    { angle: 100, isLeg: false },
-    { angle: 130, isLeg: false },
-    { angle: 165, isLeg: false },
-  ];
+const LIMBS = [
+  // Bottom legs — the classic soot sprite feature
+  { angle: 190, isLeg: true },
+  { angle: 210, isLeg: true },
+  { angle: 230, isLeg: true },
+  { angle: 250, isLeg: true },
+  { angle: 270, isLeg: true },
+  { angle: 290, isLeg: true },
+  { angle: 310, isLeg: true },
+  { angle: 330, isLeg: true },
+  { angle: 350, isLeg: true },
+  // Top arms — shorter, wispier
+  { angle: 15, isLeg: false },
+  { angle: 50, isLeg: false },
+  { angle: 80, isLeg: false },
+  { angle: 100, isLeg: false },
+  { angle: 130, isLeg: false },
+  { angle: 165, isLeg: false },
+] as const;
 
+function Limbs({ state }: { state: AvatarState }) {
   return (
     <>
-      {limbs.map((limb, i) => (
+      {LIMBS.map((limb, i) => (
         <Limb
           key={`limb-${limb.angle}`}
           angle={limb.angle}

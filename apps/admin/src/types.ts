@@ -1,11 +1,14 @@
 /** Agent avatar state — reuses shared type */
 export type { AvatarState } from "@gremlin/shared-types";
+import type { AvatarState } from "@gremlin/shared-types";
 
 /** A completed job shown in the feed */
 export interface FeedItem {
   id: string;
   agentName: string;
-  avatarState: "dormant" | "attentive" | "active" | "waiting";
+  avatarState: AvatarState;
+  portraitId: string;
+  imageUrl: string;
   title: string;
   summary: string;
   /** Markdown body for detail view */
@@ -50,6 +53,8 @@ export interface Agent {
   id: string;
   name: string;
   avatar: string;
+  portraitId: string;
+  imageUrl: string;
   soul: string;
   status: "active" | "idle" | "error";
 }

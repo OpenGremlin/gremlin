@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import type { FeedItem } from "../../types";
-import { Avatar } from "../../shared/Avatar";
 import { Badge } from "../../shared/Badge";
 
 function timeAgo(dateStr: string): string {
@@ -23,7 +22,18 @@ export function FeedCard({ item }: { item: FeedItem }) {
       className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
     >
       <div className="flex gap-3">
-        <Avatar name={item.agentName} />
+        <div className="w-10 h-10 rounded-full bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
+          <img
+            src={item.imageUrl}
+            alt={item.agentName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+              (e.target as HTMLImageElement).parentElement!.textContent =
+                item.agentName[0];
+            }}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm text-neutral-400 truncate">

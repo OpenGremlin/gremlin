@@ -10,6 +10,8 @@ export const feedTypeDefs = /* GraphQL */ `
     id: ID!
     agentName: String!
     avatarState: String!
+    portraitId: String!
+    imageUrl(width: Int): String!
     title: String!
     summary: String!
     body: String!

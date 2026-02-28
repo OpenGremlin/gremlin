@@ -1,22 +1,11 @@
 import { Link } from "react-router-dom";
 import type { AgentJob } from "../../types";
 import { Badge } from "../../shared/Badge";
+import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { AGENT_JOBS_QUERY } from "../../queries";
-
-function formatNextRun(nextRun: string | null): string {
-  if (!nextRun) return "Not scheduled";
-  const date = new Date(nextRun);
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
 
 export function SchedulerPage() {
   const { data, loading, error } =
@@ -44,7 +33,7 @@ export function SchedulerPage() {
               <Badge label={job.status} />
             </div>
             <p className="text-xs text-neutral-400">
-              Next: {formatNextRun(job.nextRun)}
+              Next: {formatDate(job.nextRun, "Not scheduled")}
             </p>
           </Link>
         ))}

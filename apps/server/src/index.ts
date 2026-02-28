@@ -16,7 +16,10 @@ import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 
 const PORT = Number(process.env.PORT || 3001);
+const userByRequest = new WeakMap<Request, AuthUser>();
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
+const MEDIA_CDN_URL =
+  process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`;
 const app = express();
 
 const yoga = createYoga({
@@ -47,7 +50,8 @@ const yoga = createYoga({
         }
 
         try {
-          await verifyToken(header.slice(7));
+          const user = await verifyToken(header.slice(7));
+          userByRequest.set(request, user);
         } catch (err) {
           console.error("Auth failed:", err);
           endResponse(
@@ -62,11 +66,13 @@ const yoga = createYoga({
   ],
   context: async ({ request }: { request: Request }) => {
     if (SKIP_AUTH) {
-      return { user: { sub: "local", email: "local@dev" } as AuthUser };
+      return {
+        user: { sub: "local", email: "local@dev" } as AuthUser,
+        mediaCdnUrl: MEDIA_CDN_URL,
+      };
     }
-    const token = request.headers.get("authorization")?.slice(7) ?? "";
-    const user = await verifyToken(token);
-    return { user };
+    const user = userByRequest.get(request)!;
+    return { user, mediaCdnUrl: MEDIA_CDN_URL };
   },
   graphiql: SKIP_AUTH,
 });
@@ -80,6 +86,12 @@ const server = createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server, path: "/ws" });
+
+// Serve media assets locally (in production CloudFront handles this)
+if (!process.env.MEDIA_CDN_URL) {
+  const mediaAssets = path.resolve(__dirname, "../../../apps/media-server/assets");
+  app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
+}
 
 // Health check
 app.get("/api/health", (_req, res) => {
@@ -137,11 +149,16 @@ server.listen(PORT, () => {
   console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
 });
 
-process.on("SIGTERM", () => {
-  wss.close();
-  server.close();
-});
-process.on("SIGINT", () => {
-  wss.close();
-  server.close();
-});
+function shutdown() {
+  for (const client of wss.clients) {
+    client.terminate();
+  }
+  wss.close(() => {
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

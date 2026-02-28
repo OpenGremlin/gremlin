@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import type { Skill } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { BackButton } from "../../shared/BackButton";
+import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { SKILL_QUERY } from "../../queries";
 
@@ -12,33 +13,14 @@ export function SkillDetailPage() {
     { id },
   );
 
-  if (loading) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
-      </div>
-    );
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} backButton />;
   }
 
   const skill = data?.skill ?? null;
 
   if (!skill) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-400 mt-4">Skill not found.</p>
-      </div>
-    );
+    return <NotFound label="Skill not found." />;
   }
 
   return (

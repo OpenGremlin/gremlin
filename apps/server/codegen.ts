@@ -8,6 +8,10 @@ const config: CodegenConfig = {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
         contextType: "./context.js#Context",
+        mappers: {
+          Agent: "./schema/Agent/resolvers.js#AgentModel",
+          FeedItem: "./schema/Feed/resolvers.js#FeedItemModel",
+        },
       },
     },
   },

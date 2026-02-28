@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
 import type { Integration } from "../../types";
 import { BackButton } from "../../shared/BackButton";
+import { formatDate } from "../../shared/formatDate";
+import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { INTEGRATION_QUERY } from "../../queries";
 
@@ -10,33 +12,14 @@ export function IntegrationDetailPage() {
     integration: Integration | null;
   }>(INTEGRATION_QUERY, { id });
 
-  if (loading) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
-      </div>
-    );
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} backButton />;
   }
 
   const integration = data?.integration ?? null;
 
   if (!integration) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-400 mt-4">Integration not found.</p>
-      </div>
-    );
+    return <NotFound label="Integration not found." />;
   }
 
   return (
@@ -53,12 +36,7 @@ export function IntegrationDetailPage() {
             {integration.account}
           </p>
           <p className="text-xs text-neutral-500 mt-0.5">
-            Connected{" "}
-            {new Date(integration.connectedAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            Connected {formatDate(integration.connectedAt)}
           </p>
         </div>
       </div>

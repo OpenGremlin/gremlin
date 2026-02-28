@@ -28,7 +28,7 @@ export function AgentsPage() {
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
                 <img
-                  src={agent.avatar}
+                  src={agent.imageUrl}
                   alt={agent.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {

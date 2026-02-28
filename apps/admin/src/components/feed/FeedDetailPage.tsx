@@ -1,21 +1,11 @@
 import { useParams } from "react-router-dom";
 import type { FeedItem } from "../../types";
 import { BackButton } from "../../shared/BackButton";
-import { Avatar } from "../../shared/Avatar";
 import { Badge } from "../../shared/Badge";
+import { formatDate } from "../../shared/formatDate";
+import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { FEED_ITEM_QUERY } from "../../queries";
-
-function formatTimestamp(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 export function FeedDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,33 +14,14 @@ export function FeedDetailPage() {
     { id },
   );
 
-  if (loading) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
-      </div>
-    );
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} backButton />;
   }
 
   const item = data?.feedItem ?? null;
 
   if (!item) {
-    return (
-      <div className="px-4 pt-6">
-        <BackButton />
-        <p className="text-neutral-400 mt-4">Feed item not found.</p>
-      </div>
-    );
+    return <NotFound label="Feed item not found." />;
   }
 
   return (
@@ -59,13 +30,24 @@ export function FeedDetailPage() {
         <BackButton />
 
         <div className="flex items-center gap-3 mt-6">
-          <Avatar name={item.agentName} />
+          <div className="w-10 h-10 rounded-full bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
+            <img
+              src={item.imageUrl}
+              alt={item.agentName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+                (e.target as HTMLImageElement).parentElement!.textContent =
+                  item.agentName[0];
+              }}
+            />
+          </div>
           <div>
             <span className="text-sm font-medium text-neutral-100">
               {item.agentName}
             </span>
             <p className="text-xs text-neutral-500">
-              {formatTimestamp(item.completedAt)}
+              {formatDate(item.completedAt)}
             </p>
           </div>
         </div>
