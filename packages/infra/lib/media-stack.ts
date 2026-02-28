@@ -13,6 +13,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 
 export class MediaStack extends cdk.Stack {
+  readonly cdnUrl: string;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -76,8 +78,10 @@ export class MediaStack extends cdk.Stack {
       },
     });
 
+    this.cdnUrl = `https://${distribution.distributionDomainName}`;
+
     new cdk.CfnOutput(this, "CdnUrl", {
-      value: `https://${distribution.distributionDomainName}`,
+      value: this.cdnUrl,
     });
     new cdk.CfnOutput(this, "BucketName", {
       value: bucket.bucketName,

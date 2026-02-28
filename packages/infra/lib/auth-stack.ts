@@ -1,0 +1,75 @@
+import * as cdk from "aws-cdk-lib";
+import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import type { Construct } from "constructs";
+
+export class AuthStack extends cdk.Stack {
+  readonly userPoolId: string;
+  readonly userPoolClientId: string;
+  readonly cognitoDomain: string;
+
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const userPool = new cognito.UserPool(this, "AdminUsers", {
+      selfSignUpEnabled: false,
+      signInAliases: { email: true },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const googleOAuthSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "GoogleOAuth",
+      "gremlin/google-oauth",
+    );
+
+    const googleProvider = new cognito.UserPoolIdentityProviderGoogle(
+      this,
+      "Google",
+      {
+        userPool,
+        clientId: googleOAuthSecret
+          .secretValueFromJson("clientId")
+          .unsafeUnwrap(),
+        clientSecretValue:
+          googleOAuthSecret.secretValueFromJson("clientSecret"),
+        scopes: ["email", "openid", "profile"],
+        attributeMapping: {
+          email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+        },
+      },
+    );
+
+    const userPoolDomain = userPool.addDomain("Domain", {
+      cognitoDomain: { domainPrefix: "gremlin-admin" },
+    });
+
+    const cognitoDomainName = `${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`;
+
+    const userPoolClient = userPool.addClient("AdminApp", {
+      supportedIdentityProviders: [
+        cognito.UserPoolClientIdentityProvider.GOOGLE,
+      ],
+      oAuth: {
+        flows: { implicitCodeGrant: true },
+        scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL],
+        callbackUrls: ["http://localhost:5173"],
+      },
+    });
+    userPoolClient.node.addDependency(googleProvider);
+
+    this.userPoolId = userPool.userPoolId;
+    this.userPoolClientId = userPoolClient.userPoolClientId;
+    this.cognitoDomain = cognitoDomainName;
+
+    new cdk.CfnOutput(this, "UserPoolId", {
+      value: userPool.userPoolId,
+    });
+    new cdk.CfnOutput(this, "CognitoClientId", {
+      value: userPoolClient.userPoolClientId,
+    });
+    new cdk.CfnOutput(this, "CognitoDomain", {
+      value: cognitoDomainName,
+    });
+  }
+}

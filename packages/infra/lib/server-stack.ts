@@ -15,6 +15,7 @@ export interface ServerStackProps extends cdk.StackProps {
   tablePrefix: string;
   userPoolId: string;
   userPoolClientId: string;
+  mediaCdnUrl: string;
 }
 
 export class ServerStack extends cdk.Stack {
@@ -73,6 +74,7 @@ export class ServerStack extends cdk.Stack {
         AWS_REGION: this.region,
         COGNITO_USER_POOL_ID: props.userPoolId,
         COGNITO_CLIENT_ID: props.userPoolClientId,
+        MEDIA_CDN_URL: props.mediaCdnUrl,
       },
     });
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { AdminStack } from "../lib/admin-stack.js";
+import { AuthStack } from "../lib/auth-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
@@ -12,15 +13,26 @@ const env = {
 
 const app = new cdk.App();
 
+// 1. Foundation — no dependencies
 const db = new DatabaseStack(app, "GremlinDatabaseStack", { env });
-const admin = new AdminStack(app, "GremlinAdminStack", { env });
+const auth = new AuthStack(app, "GremlinAuthStack", { env });
+const media = new MediaStack(app, "GremlinMediaStack", { env });
 
+// 2. Server — depends on Database, Auth, Media
 new ServerStack(app, "GremlinServerStack", {
   env,
   tables: db.tables,
   tablePrefix: db.tablePrefix,
-  userPoolId: admin.userPoolId,
-  userPoolClientId: admin.userPoolClientId,
+  userPoolId: auth.userPoolId,
+  userPoolClientId: auth.userPoolClientId,
+  mediaCdnUrl: media.cdnUrl,
 });
 
-new MediaStack(app, "GremlinMediaStack", { env });
+// 3. Admin — depends on Auth, Media
+new AdminStack(app, "GremlinAdminStack", {
+  env,
+  userPoolId: auth.userPoolId,
+  userPoolClientId: auth.userPoolClientId,
+  cognitoDomain: auth.cognitoDomain,
+  mediaCdnUrl: media.cdnUrl,
+});
