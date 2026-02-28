@@ -46,6 +46,7 @@ export class MediaStack extends cdk.Stack {
         ),
       ],
       destinationBucket: bucket,
+      memoryLimit: 512,
     });
 
     bucket.grantRead(handler);

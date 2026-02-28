@@ -1,8 +1,10 @@
 import { useParams } from "react-router-dom";
+import type { FeedItem } from "../../types";
 import { BackButton } from "../../shared/BackButton";
 import { Avatar } from "../../shared/Avatar";
 import { Badge } from "../../shared/Badge";
-import { mockFeedItems } from "./FeedPage";
+import { useQuery } from "../../useQuery";
+import { FEED_ITEM_QUERY } from "../../queries";
 
 function formatTimestamp(dateStr: string): string {
   const date = new Date(dateStr);
@@ -17,15 +19,36 @@ function formatTimestamp(dateStr: string): string {
 
 export function FeedDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const item = mockFeedItems.find((f) => f.id === id);
+  const { data, loading, error } = useQuery<{ feedItem: FeedItem | null }>(
+    FEED_ITEM_QUERY,
+    { id },
+  );
+
+  if (loading) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
+      </div>
+    );
+  }
+
+  const item = data?.feedItem ?? null;
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-neutral-950 p-4">
+      <div className="px-4 pt-6">
         <BackButton />
-        <p className="text-neutral-400 mt-8 text-center">
-          Feed item not found.
-        </p>
+        <p className="text-neutral-400 mt-4">Feed item not found.</p>
       </div>
     );
   }

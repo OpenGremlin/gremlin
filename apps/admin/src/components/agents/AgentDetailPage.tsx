@@ -1,11 +1,36 @@
 import { useParams } from "react-router-dom";
+import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { BackButton } from "../../shared/BackButton";
-import { agents } from "./AgentsPage";
+import { useQuery } from "../../useQuery";
+import { AGENT_QUERY } from "../../queries";
 
 export function AgentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const agent = agents.find((a) => a.id === id);
+  const { data, loading, error } = useQuery<{ agent: Agent | null }>(
+    AGENT_QUERY,
+    { id },
+  );
+
+  if (loading) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
+      </div>
+    );
+  }
+
+  const agent = data?.agent ?? null;
 
   if (!agent) {
     return (

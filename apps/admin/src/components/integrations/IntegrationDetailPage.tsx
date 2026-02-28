@@ -1,10 +1,34 @@
 import { useParams } from "react-router-dom";
+import type { Integration } from "../../types";
 import { BackButton } from "../../shared/BackButton";
-import { integrations } from "./IntegrationsPage";
+import { useQuery } from "../../useQuery";
+import { INTEGRATION_QUERY } from "../../queries";
 
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const integration = integrations.find((i) => i.id === id);
+  const { data, loading, error } = useQuery<{
+    integration: Integration | null;
+  }>(INTEGRATION_QUERY, { id });
+
+  if (loading) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-neutral-500 mt-4 text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 pt-6">
+        <BackButton />
+        <p className="text-red-400 mt-4 text-sm">Error: {error}</p>
+      </div>
+    );
+  }
+
+  const integration = data?.integration ?? null;
 
   if (!integration) {
     return (
