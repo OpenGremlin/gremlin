@@ -199,6 +199,9 @@ importers:
       '@graphql-codegen/typescript-resolvers':
         specifier: ^5.1.6
         version: 5.1.6(graphql@16.13.0)
+      '@graphql-tools/utils':
+        specifier: ^11.0.0
+        version: 11.0.0(graphql@16.13.0)
       '@types/express':
         specifier: ^4
         version: 4.17.25
