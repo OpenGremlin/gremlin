@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   clearToken,
   extractTokenFromHash,
@@ -10,17 +10,18 @@ import {
 import { LoginPage } from "./components/LoginPage";
 import { RouterApp } from "./components/RouterApp";
 
-export function App() {
-  const [token, setTokenState] = useState<string | null>(getToken);
+function getInitialToken(): string | null {
+  const hash = extractTokenFromHash();
+  if (hash) {
+    setToken(hash);
+    window.history.replaceState(null, "", window.location.pathname);
+    return hash;
+  }
+  return getToken();
+}
 
-  useEffect(() => {
-    const t = extractTokenFromHash();
-    if (t) {
-      setToken(t);
-      setTokenState(t);
-      window.history.replaceState(null, "", window.location.pathname);
-    }
-  }, []);
+export function App() {
+  const [token] = useState(getInitialToken);
 
   if (!isAuthEnabled()) {
     return <RouterApp />;

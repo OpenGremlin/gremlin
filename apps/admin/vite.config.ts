@@ -5,12 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: "../..",
-  server: {
-    proxy: {
-      "/graphql": "http://localhost:3001",
-    },
-  },
-  test: {
+test: {
     environment: "jsdom",
     setupFiles: "./src/test-setup.ts",
   },

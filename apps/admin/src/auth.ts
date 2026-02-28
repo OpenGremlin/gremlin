@@ -1,6 +1,6 @@
 const runtimeConfig = (window as unknown as Record<string, unknown>)
   .__GREMLIN_CONFIG__ as
-  | { cognitoDomain?: string; cognitoClientId?: string }
+  | { cognitoDomain?: string; cognitoClientId?: string; apiUrl?: string }
   | undefined;
 
 const COGNITO_DOMAIN =
@@ -11,6 +11,10 @@ const COGNITO_CLIENT_ID =
   (import.meta.env.VITE_COGNITO_CLIENT_ID as string);
 const REDIRECT_URI =
   (import.meta.env.VITE_REDIRECT_URI as string) || window.location.origin;
+const API_URL =
+  runtimeConfig?.apiUrl ||
+  (import.meta.env.VITE_API_URL as string) ||
+  "";
 
 const TOKEN_KEY = "gremlin_admin_token";
 
@@ -55,7 +59,7 @@ export async function gql<T>(
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
-  const res = await fetch("/graphql", {
+  const res = await fetch(`${API_URL}/graphql`, {
     method: "POST",
     headers,
     body: JSON.stringify({ query, variables }),
