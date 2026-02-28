@@ -9,3 +9,4 @@ cdk.out/
 *.docx
 ~$*
 .DS_Store
+/reference

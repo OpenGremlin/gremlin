@@ -18,6 +18,12 @@
     "indentStyle": "space",
     "indentWidth": 2
   },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  },
   "files": {
     "includes": ["apps/**", "packages/**", "!**/dist", "!**/cdk.out"],
     "ignoreUnknown": true
