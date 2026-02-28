@@ -24,10 +24,16 @@ const yoga = createYoga({
     typeDefs: mergedTypeDefs,
     resolvers: mergedResolvers,
   }),
+  cors: {
+    origin: process.env.ADMIN_ORIGIN ?? "http://localhost:5173",
+    credentials: true,
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  },
   plugins: [
     {
       async onRequest({ request, fetchAPI, endResponse }) {
-        if (SKIP_AUTH) return;
+        if (SKIP_AUTH || request.method === "OPTIONS") return;
 
         const header = request.headers.get("authorization");
         if (!header?.startsWith("Bearer ")) {
@@ -42,7 +48,8 @@ const yoga = createYoga({
 
         try {
           await verifyToken(header.slice(7));
-        } catch {
+        } catch (err) {
+          console.error("Auth failed:", err);
           endResponse(
             fetchAPI.Response.json(
               { errors: [{ message: "Unauthorized" }] },
@@ -128,4 +135,13 @@ wss.on("connection", (ws) => {
 server.listen(PORT, () => {
   console.log(`Gremlin server running at http://localhost:${PORT}`);
   console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
+});
+
+process.on("SIGTERM", () => {
+  wss.close();
+  server.close();
+});
+process.on("SIGINT", () => {
+  wss.close();
+  server.close();
 });
