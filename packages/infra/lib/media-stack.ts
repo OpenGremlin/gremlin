@@ -6,6 +6,7 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import type { Construct } from "constructs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +35,15 @@ export class MediaStack extends cdk.Stack {
       bundling: {
         nodeModules: ["sharp"],
       },
+    });
+
+    new s3deploy.BucketDeployment(this, "DeployAssets", {
+      sources: [
+        s3deploy.Source.asset(
+          path.join(REPO_ROOT, "apps/media-server/assets"),
+        ),
+      ],
+      destinationBucket: bucket,
     });
 
     bucket.grantRead(handler);
