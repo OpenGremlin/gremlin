@@ -36,6 +36,14 @@ export class MediaStack extends cdk.Stack {
       },
       bundling: {
         nodeModules: ["sharp"],
+        forceDockerBundling: true,
+        commandHooks: {
+          beforeBundling: () => [],
+          beforeInstall: () => [],
+          afterBundling: (inputDir: string, outputDir: string) => [
+            `cd ${outputDir} && npm install --cpu=arm64 --os=linux sharp`,
+          ],
+        },
       },
     });
 
