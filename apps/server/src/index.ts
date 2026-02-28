@@ -1,11 +1,32 @@
 import { createServer } from "node:http";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import type { LayoutStateMessage } from "@gremlin/shared-types";
 import express from "express";
+import { createYoga } from "graphql-yoga";
 import { WebSocket, WebSocketServer } from "ws";
+import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
+import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const app = express();
-const server = createServer(app);
+
+const yoga = createYoga({
+  schema: makeExecutableSchema({
+    typeDefs: mergedTypeDefs,
+    resolvers: mergedResolvers,
+  }),
+  context: () => ({}),
+  graphiql: true,
+});
+
+const server = createServer((req, res) => {
+  if (req.url?.startsWith("/graphql")) {
+    yoga(req, res);
+    return;
+  }
+  app(req, res);
+});
+
 const wss = new WebSocketServer({ server, path: "/ws" });
 
 // Health check
