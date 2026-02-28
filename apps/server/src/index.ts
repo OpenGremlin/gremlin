@@ -4,10 +4,12 @@ import type { LayoutStateMessage } from "@gremlin/shared-types";
 import express from "express";
 import { createYoga } from "graphql-yoga";
 import { WebSocket, WebSocketServer } from "ws";
+import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 
 const PORT = Number(process.env.PORT || 3001);
+const SKIP_AUTH = process.env.SKIP_AUTH === "true";
 const app = express();
 
 const yoga = createYoga({
@@ -15,8 +17,44 @@ const yoga = createYoga({
     typeDefs: mergedTypeDefs,
     resolvers: mergedResolvers,
   }),
-  context: () => ({}),
-  graphiql: true,
+  plugins: [
+    {
+      async onRequest({ request, fetchAPI, endResponse }) {
+        if (SKIP_AUTH) return;
+
+        const header = request.headers.get("authorization");
+        if (!header?.startsWith("Bearer ")) {
+          endResponse(
+            fetchAPI.Response.json(
+              { errors: [{ message: "Unauthorized" }] },
+              { status: 401 },
+            ),
+          );
+          return;
+        }
+
+        try {
+          await verifyToken(header.slice(7));
+        } catch {
+          endResponse(
+            fetchAPI.Response.json(
+              { errors: [{ message: "Unauthorized" }] },
+              { status: 401 },
+            ),
+          );
+        }
+      },
+    },
+  ],
+  context: async ({ request }: { request: Request }) => {
+    if (SKIP_AUTH) {
+      return { user: { sub: "local", email: "local@dev" } as AuthUser };
+    }
+    const token = request.headers.get("authorization")?.slice(7) ?? "";
+    const user = await verifyToken(token);
+    return { user };
+  },
+  graphiql: SKIP_AUTH,
 });
 
 const server = createServer((req, res) => {

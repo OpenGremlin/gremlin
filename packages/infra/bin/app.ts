@@ -12,11 +12,12 @@ const env = {
 const app = new cdk.App();
 
 const db = new DatabaseStack(app, "GremlinDatabaseStack", { env });
+const admin = new AdminStack(app, "GremlinAdminStack", { env });
 
 new ServerStack(app, "GremlinServerStack", {
   env,
   tables: db.tables,
   tablePrefix: db.tablePrefix,
+  userPoolId: admin.userPoolId,
+  userPoolClientId: admin.userPoolClientId,
 });
-
-new AdminStack(app, "GremlinAdminStack", { env });

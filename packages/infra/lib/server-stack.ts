@@ -13,6 +13,8 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 export interface ServerStackProps extends cdk.StackProps {
   tables: dynamodb.ITable[];
   tablePrefix: string;
+  userPoolId: string;
+  userPoolClientId: string;
 }
 
 export class ServerStack extends cdk.Stack {
@@ -69,6 +71,8 @@ export class ServerStack extends cdk.Stack {
         TABLE_PREFIX: props.tablePrefix,
         NODE_ENV: "production",
         AWS_REGION: this.region,
+        COGNITO_USER_POOL_ID: props.userPoolId,
+        COGNITO_CLIENT_ID: props.userPoolClientId,
       },
     });
 

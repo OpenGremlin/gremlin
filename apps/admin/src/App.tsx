@@ -1,30 +1,58 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { TabShell } from "./components/TabShell";
-import { FeedDetailPage } from "./components/feed/FeedDetailPage";
-import { FeedPage } from "./components/feed/FeedPage";
-import { IntegrationDetailPage } from "./components/integrations/IntegrationDetailPage";
-import { IntegrationsPage } from "./components/integrations/IntegrationsPage";
-import { JobDetailPage } from "./components/scheduler/JobDetailPage";
-import { SchedulerPage } from "./components/scheduler/SchedulerPage";
-import { SkillDetailPage } from "./components/skills/SkillDetailPage";
-import { SkillsPage } from "./components/skills/SkillsPage";
+import { useEffect, useState } from "react";
+import {
+  clearToken,
+  extractTokenFromHash,
+  getLogoutUrl,
+  getToken,
+  isAuthEnabled,
+  setToken,
+} from "./auth";
+import { LoginPage } from "./components/LoginPage";
+import { RouterApp } from "./components/RouterApp";
 
 export function App() {
+  const [token, setTokenState] = useState<string | null>(getToken);
+
+  useEffect(() => {
+    const t = extractTokenFromHash();
+    if (t) {
+      setToken(t);
+      setTokenState(t);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
+  if (!isAuthEnabled()) {
+    return <RouterApp />;
+  }
+
+  if (!token) {
+    return <LoginPage />;
+  }
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<TabShell />}>
-          <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<FeedPage />} />
-          <Route path="feed/:id" element={<FeedDetailPage />} />
-          <Route path="scheduler" element={<SchedulerPage />} />
-          <Route path="scheduler/:id" element={<JobDetailPage />} />
-          <Route path="integrations" element={<IntegrationsPage />} />
-          <Route path="integrations/:id" element={<IntegrationDetailPage />} />
-          <Route path="skills" element={<SkillsPage />} />
-          <Route path="skills/:id" element={<SkillDetailPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+      <div style={{ position: "fixed", top: 12, right: 16, zIndex: 100 }}>
+        <button
+          type="button"
+          onClick={() => {
+            clearToken();
+            window.location.href = getLogoutUrl();
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid #444",
+            color: "#888",
+            padding: "4px 12px",
+            borderRadius: 4,
+            cursor: "pointer",
+            fontSize: 12,
+          }}
+        >
+          Sign out
+        </button>
+      </div>
+      <RouterApp />
+    </>
   );
 }
