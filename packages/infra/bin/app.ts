@@ -2,6 +2,7 @@
 import * as cdk from "aws-cdk-lib";
 import { AdminStack } from "../lib/admin-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
+import { MediaStack } from "../lib/media-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
 
 const env = {
@@ -21,3 +22,5 @@ new ServerStack(app, "GremlinServerStack", {
   userPoolId: admin.userPoolId,
   userPoolClientId: admin.userPoolClientId,
 });
+
+new MediaStack(app, "GremlinMediaStack", { env });
