@@ -45,6 +45,15 @@ export interface Permission {
   enabled: boolean;
 }
 
+/** An agent persona */
+export interface Agent {
+  id: string;
+  name: string;
+  avatar: string;
+  soul: string;
+  status: "active" | "idle" | "error";
+}
+
 /** An installed agent skill */
 export interface Skill {
   id: string;

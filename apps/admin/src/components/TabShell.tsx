@@ -5,6 +5,7 @@ const tabs = [
   { to: "/scheduler", label: "Scheduler", icon: SchedulerIcon },
   { to: "/integrations", label: "Integrations", icon: IntegrationsIcon },
   { to: "/skills", label: "Skills", icon: SkillsIcon },
+  { to: "/agents", label: "Agents", icon: AgentsIcon },
 ];
 
 export function TabShell() {
@@ -91,6 +92,20 @@ function SkillsIcon() {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AgentsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M3.5 17c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   );

@@ -5,6 +5,8 @@ import { IntegrationDetailPage } from "../integrations/IntegrationDetailPage";
 import { IntegrationsPage } from "../integrations/IntegrationsPage";
 import { SchedulerPage } from "../scheduler/SchedulerPage";
 import { JobDetailPage } from "../scheduler/JobDetailPage";
+import { AgentDetailPage } from "../agents/AgentDetailPage";
+import { AgentsPage } from "../agents/AgentsPage";
 import { SkillDetailPage } from "../skills/SkillDetailPage";
 import { SkillsPage } from "../skills/SkillsPage";
 import { TabShell } from "../TabShell";
@@ -26,6 +28,8 @@ export function RouterApp() {
           />
           <Route path="skills" element={<SkillsPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
+          <Route path="agents" element={<AgentsPage />} />
+          <Route path="agents/:id" element={<AgentDetailPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
