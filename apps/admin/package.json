@@ -1,0 +1,33 @@
+{
+  "name": "@gremlin/admin",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@gremlin/shared-types": "workspace:*",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-router-dom": "^7.13.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "jsdom": "25",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^6",
+    "vitest": "^4.0.18"
+  }
+}
