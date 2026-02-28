@@ -6,8 +6,8 @@
     "build": "tsc",
     "cdk": "cdk",
     "synth": "cdk synth",
-    "deploy": "cdk deploy",
-    "diff": "cdk diff",
+    "deploy": "cdk deploy --all",
+    "diff": "cdk diff --all",
     "clean": "rm -rf dist cdk.out"
   },
   "dependencies": {

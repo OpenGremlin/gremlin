@@ -1,0 +1,8 @@
+node_modules
+**/node_modules
+**/dist
+**/cdk.out
+**/.turbo
+.git
+reference
+docs
