@@ -17,6 +17,15 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type Agent = {
+  __typename?: 'Agent';
+  avatar: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  soul: Scalars['String']['output'];
+  status: AgentStatus;
+};
+
 export type AgentJob = {
   __typename?: 'AgentJob';
   description: Scalars['String']['output'];
@@ -27,6 +36,12 @@ export type AgentJob = {
   recurrence: Scalars['String']['output'];
   status: JobStatus;
 };
+
+export enum AgentStatus {
+  Active = 'ACTIVE',
+  Error = 'ERROR',
+  Idle = 'IDLE'
+}
 
 export enum AuthMethod {
   ApiKey = 'API_KEY',
@@ -78,6 +93,7 @@ export type Mutation = {
   installSkill?: Maybe<Skill>;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
+  updateAgentStatus?: Maybe<Agent>;
   updateJobStatus?: Maybe<AgentJob>;
 };
 
@@ -99,6 +115,12 @@ export type MutationUninstallSkillArgs = {
 };
 
 
+export type MutationUpdateAgentStatusArgs = {
+  id: Scalars['ID']['input'];
+  status: AgentStatus;
+};
+
+
 export type MutationUpdateJobStatusArgs = {
   id: Scalars['ID']['input'];
   status: JobStatus;
@@ -114,8 +136,10 @@ export type Permission = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
+  agents: Array<Agent>;
   feedItem?: Maybe<FeedItem>;
   feedItems: Array<FeedItem>;
   integration?: Maybe<Integration>;
@@ -123,6 +147,11 @@ export type Query = {
   searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
+};
+
+
+export type QueryAgentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -236,7 +265,9 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  Agent: ResolverTypeWrapper<Agent>;
   AgentJob: ResolverTypeWrapper<AgentJob>;
+  AgentStatus: AgentStatus;
   AuthMethod: AuthMethod;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
@@ -253,6 +284,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  Agent: Agent;
   AgentJob: AgentJob;
   Boolean: Scalars['Boolean']['output'];
   FeedItem: FeedItem;
@@ -263,6 +295,14 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   Skill: Skill;
   String: Scalars['String']['output'];
+};
+
+export type AgentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
+  avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['AgentStatus'], ParentType, ContextType>;
 };
 
 export type AgentJobResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
@@ -302,6 +342,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
+  updateAgentStatus?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentStatusArgs, 'id' | 'status'>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
 };
 
@@ -313,8 +354,10 @@ export type PermissionResolvers<ContextType = Context, ParentType extends Resolv
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
+  agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   feedItem?: Resolver<Maybe<ResolversTypes['FeedItem']>, ParentType, ContextType, RequireFields<QueryFeedItemArgs, 'id'>>;
   feedItems?: Resolver<Array<ResolversTypes['FeedItem']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
@@ -337,6 +380,7 @@ export type SkillResolvers<ContextType = Context, ParentType extends ResolversPa
 };
 
 export type Resolvers<ContextType = Context> = {
+  Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
   FeedItem?: FeedItemResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;

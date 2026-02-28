@@ -1,4 +1,8 @@
-import type { FeedItem, QueryResolvers } from "../../resolverTypes.js";
+import {
+  FeedCategory,
+  type FeedItem,
+  type QueryResolvers,
+} from "../../resolverTypes.js";
 
 const mockFeedItems: FeedItem[] = [
   {
@@ -8,7 +12,7 @@ const mockFeedItems: FeedItem[] = [
     title: "Morning news digest",
     summary: "Compiled top stories from 12 sources",
     body: "## Headlines\n- Tech earnings beat expectations\n- New climate report released",
-    category: "RESEARCH",
+    category: FeedCategory.Research,
     completedAt: "2026-02-28T08:00:00Z",
   },
   {
@@ -18,7 +22,7 @@ const mockFeedItems: FeedItem[] = [
     title: "Weekly backup complete",
     summary: "All documents synced to cloud storage",
     body: "Backed up 342 files across 5 directories.",
-    category: "TASK",
+    category: FeedCategory.Task,
     completedAt: "2026-02-27T22:00:00Z",
   },
   {
@@ -28,7 +32,7 @@ const mockFeedItems: FeedItem[] = [
     title: "Uptime check passed",
     summary: "All monitored services healthy",
     body: "Response times within normal range. No anomalies detected.",
-    category: "MONITOR",
+    category: FeedCategory.Monitor,
     completedAt: "2026-02-28T06:30:00Z",
   },
 ];

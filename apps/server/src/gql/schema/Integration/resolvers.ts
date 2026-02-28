@@ -1,7 +1,8 @@
-import type {
-  Integration,
-  MutationResolvers,
-  QueryResolvers,
+import {
+  AuthMethod,
+  type Integration,
+  type MutationResolvers,
+  type QueryResolvers,
 } from "../../resolverTypes.js";
 
 const mockIntegrations: Integration[] = [
@@ -12,7 +13,7 @@ const mockIntegrations: Integration[] = [
     description: "Source code hosting and CI/CD",
     account: "marvinli",
     connectedAt: "2026-01-15T10:00:00Z",
-    authMethod: "OAUTH",
+    authMethod: AuthMethod.Oauth,
     permissions: [
       { scope: "repo:read", label: "Read repositories", enabled: true },
       { scope: "repo:write", label: "Write repositories", enabled: true },
@@ -26,7 +27,7 @@ const mockIntegrations: Integration[] = [
     description: "Team messaging and notifications",
     account: "workspace-gremlin",
     connectedAt: "2026-02-01T14:30:00Z",
-    authMethod: "TOKEN",
+    authMethod: AuthMethod.Token,
     permissions: [
       { scope: "chat:write", label: "Send messages", enabled: true },
       { scope: "channels:read", label: "Read channels", enabled: true },
@@ -39,7 +40,7 @@ const mockIntegrations: Integration[] = [
     description: "Calendar and scheduling",
     account: "marvin@example.com",
     connectedAt: "2026-01-20T09:00:00Z",
-    authMethod: "OAUTH",
+    authMethod: AuthMethod.Oauth,
     permissions: [
       { scope: "calendar:read", label: "Read events", enabled: true },
       { scope: "calendar:write", label: "Create events", enabled: false },
