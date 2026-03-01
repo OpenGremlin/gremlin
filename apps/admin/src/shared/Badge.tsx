@@ -10,6 +10,7 @@ const variants: Record<string, string> = {
   report: "bg-orange-500/15 text-orange-400",
   active: "bg-green-500/15 text-green-400",
   scheduled: "bg-orange-500/15 text-orange-400",
+  blocked: "bg-red-500/15 text-red-400",
   installed: "bg-green-500/15 text-green-400",
   available: "bg-indigo-500/15 text-indigo-400",
 };

@@ -49,7 +49,8 @@ export interface Agent {
   portraitId: string;
   imageUrl: string;
   soul: string;
-  status: "ACTIVE" | "SCHEDULED" | "IDLE";
+  status: "ACTIVE" | "SCHEDULED" | "IDLE" | "BLOCKED";
+  statusReason: string | null;
 }
 
 /** A notification from an agent */

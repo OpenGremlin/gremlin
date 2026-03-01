@@ -172,6 +172,9 @@ export function AgentChatPage() {
         <div className="mt-0.5">
           <Badge label={agent.status} />
         </div>
+        {agent.statusReason && (
+          <p className="text-xs text-red-400/80 mt-1">{agent.statusReason}</p>
+        )}
       </div>
 
       {/* Log area */}

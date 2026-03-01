@@ -30,6 +30,7 @@ export type Agent = {
   portraitId: Scalars['String']['output'];
   soul: Scalars['String']['output'];
   status: AgentStatus;
+  statusReason?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -50,6 +51,7 @@ export type AgentJob = {
 
 export enum AgentStatus {
   Active = 'ACTIVE',
+  Blocked = 'BLOCKED',
   Idle = 'IDLE',
   Scheduled = 'SCHEDULED'
 }

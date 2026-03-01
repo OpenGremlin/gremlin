@@ -41,6 +41,10 @@ body {
   outline-color: rgb(251, 146, 60);
 }
 
+.avatar-ring-blocked {
+  outline-color: rgb(239, 68, 68);
+}
+
 .avatar-ring-idle {
   outline-color: rgb(115, 115, 115);
 }

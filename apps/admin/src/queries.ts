@@ -1,6 +1,6 @@
-export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl(width: 100) soul status } }`;
+export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
 
-export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status } }`;
+export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
 
 export const FEED_ITEMS_QUERY = `query { feedItems { id agent { id name status imageUrl(width: 100) } title summary category completedAt } }`;
 

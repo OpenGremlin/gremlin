@@ -28,7 +28,9 @@ export function AgentAvatar({
           ? "avatar-ring-active"
           : status === "SCHEDULED"
             ? "avatar-ring-scheduled"
-            : "avatar-ring-idle"
+            : status === "BLOCKED"
+              ? "avatar-ring-blocked"
+              : "avatar-ring-idle"
       }`
     : "";
 

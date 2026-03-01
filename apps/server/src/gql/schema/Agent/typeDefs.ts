@@ -3,6 +3,7 @@ export const agentTypeDefs = /* GraphQL */ `
     ACTIVE
     SCHEDULED
     IDLE
+    BLOCKED
   }
 
   type Agent {
@@ -13,6 +14,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageUrl(width: Int): String!
     soul: String!
     status: AgentStatus!
+    statusReason: String
   }
 
   extend type Query {
