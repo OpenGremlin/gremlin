@@ -1,47 +1,41 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { gql } from "../../../../auth";
 import { TASK_UPDATED_SUBSCRIPTION } from "../../../../queries";
 import { useSubscription } from "../../../../useSubscription";
 
 const TASK_STATUS_QUERY = `query($id: ID!) { task(id: $id) { status message } }`;
 
-const NOOP = () => {};
+interface TaskState {
+  status: string;
+  message: string | null;
+}
 
 /**
  * Fetches initial task status, then subscribes to live updates.
  */
 export function useTaskStatus(taskId: string | null) {
-  const [status, setStatus] = useState<string | undefined>();
-  const [message, setMessage] = useState<string | null>(null);
+  const [state, setState] = useState<TaskState | null>(null);
 
-  // Fetch initial status
   useEffect(() => {
     if (!taskId) return;
-    gql<{ task: { status: string; message: string | null } | null }>(
-      TASK_STATUS_QUERY,
-      { id: taskId },
-    ).then((data) => {
-      if (data.task) {
-        setStatus(data.task.status);
-        setMessage(data.task.message);
-      }
-    });
+    let cancelled = false;
+    gql<{ task: TaskState | null }>(TASK_STATUS_QUERY, { id: taskId })
+      .then((data) => {
+        if (!cancelled && data.task) {
+          setState(data.task);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [taskId]);
 
-  // Subscribe to live updates
-  const handler = useCallback(
-    (data: { taskUpdated: { status: string; message: string | null } }) => {
-      setStatus(data.taskUpdated.status);
-      setMessage(data.taskUpdated.message);
-    },
-    [],
-  );
-
-  useSubscription(
+  useSubscription<{ taskUpdated: TaskState }>(
     taskId ? TASK_UPDATED_SUBSCRIPTION : "",
     { taskId: taskId ?? "" },
-    taskId ? handler : NOOP,
+    (data) => setState(data.taskUpdated),
   );
 
-  return { status, message };
+  return state;
 }

@@ -52,9 +52,9 @@ function DelegateTaskCard({
   createdAt: string;
   onTaskClick?: (taskId: string) => void;
 }) {
-  const { status, message } = useTaskStatus(taskId);
+  const task = useTaskStatus(taskId);
   const clickable = !!(taskId && onTaskClick);
-  const active = status ? ACTIVE_STATUSES.has(status) : false;
+  const active = task ? ACTIVE_STATUSES.has(task.status) : false;
 
   return (
     <div id={id} className="py-1 px-2">
@@ -80,15 +80,15 @@ function DelegateTaskCard({
           {active ? (
             <>
               <Loader2 size={10} className="animate-spin" />
-              {message || "Working..."}
+              {task?.message || "Working..."}
             </>
-          ) : status === "COMPLETED" ? (
+          ) : task?.status === "COMPLETED" ? (
             <>
               <CheckCircle size={10} className="text-green-500" />
-              {message || "Completed"}
+              {task.message || "Completed"}
             </>
           ) : (
-            message || "Delegated task"
+            task?.message || "Delegated task"
           )}
         </p>
       </div>
