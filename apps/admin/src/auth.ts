@@ -45,6 +45,7 @@ export function clearToken(): void {
 }
 
 export function isAuthEnabled(): boolean {
+  if (import.meta.env.VITE_SKIP_AUTH === "true") return false;
   return !!COGNITO_DOMAIN;
 }
 

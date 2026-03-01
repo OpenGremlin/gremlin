@@ -48,7 +48,7 @@ export type AgentJob = {
 
 export enum AgentStatus {
   Active = 'ACTIVE',
-  Error = 'ERROR',
+  Scheduled = 'SCHEDULED',
   Idle = 'IDLE'
 }
 
@@ -67,21 +67,13 @@ export enum FeedCategory {
 
 export type FeedItem = {
   __typename?: 'FeedItem';
-  agentName: Scalars['String']['output'];
-  avatarState: Scalars['String']['output'];
+  agent: Agent;
   body: Scalars['String']['output'];
   category: FeedCategory;
   completedAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  imageUrl: Scalars['String']['output'];
-  portraitId: Scalars['String']['output'];
   summary: Scalars['String']['output'];
   title: Scalars['String']['output'];
-};
-
-
-export type FeedItemImageUrlArgs = {
-  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Integration = {
@@ -336,14 +328,11 @@ export type AgentJobResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type FeedItemResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeedItem'] = ResolversParentTypes['FeedItem']> = {
-  agentName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  avatarState?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   category?: Resolver<ResolversTypes['FeedCategory'], ParentType, ContextType>;
   completedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<FeedItemImageUrlArgs>>;
-  portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

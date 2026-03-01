@@ -3,13 +3,11 @@ import {
   type FeedItemResolvers,
   type QueryResolvers,
 } from "../../resolverTypes.js";
+import { findAgent } from "../Agent/resolvers.js";
 
 export interface FeedItemModel {
   id: string;
-  agentName: string;
-  avatarState: string;
-  portraitId: string;
-  avatar: string;
+  agentId: string;
   title: string;
   summary: string;
   body: string;
@@ -20,10 +18,7 @@ export interface FeedItemModel {
 const mockFeedItems: FeedItemModel[] = [
   {
     id: "1",
-    agentName: "Scout",
-    avatarState: "active",
-    portraitId: "avatar:preset:Kai",
-    avatar: "/avatars/Kai.png",
+    agentId: "clawd",
     title: "Morning news digest",
     summary: "Compiled top stories from 12 sources",
     body: "## Headlines\n- Tech earnings beat expectations\n- New climate report released",
@@ -32,10 +27,7 @@ const mockFeedItems: FeedItemModel[] = [
   },
   {
     id: "2",
-    agentName: "Archivist",
-    avatarState: "dormant",
-    portraitId: "avatar:preset:Reginald",
-    avatar: "/avatars/Reginald.png",
+    agentId: "moss",
     title: "Weekly backup complete",
     summary: "All documents synced to cloud storage",
     body: "Backed up 342 files across 5 directories.",
@@ -44,10 +36,7 @@ const mockFeedItems: FeedItemModel[] = [
   },
   {
     id: "3",
-    agentName: "Sentinel",
-    avatarState: "attentive",
-    portraitId: "avatar:preset:Stjarni",
-    avatar: "/avatars/Stjarni.png",
+    agentId: "nyx",
     title: "Uptime check passed",
     summary: "All monitored services healthy",
     body: "Response times within normal range. No anomalies detected.",
@@ -61,13 +50,13 @@ const feedItems: QueryResolvers["feedItems"] = () => mockFeedItems;
 const feedItem: QueryResolvers["feedItem"] = (_parent, { id }) =>
   mockFeedItems.find((item) => item.id === id) ?? null;
 
-const imageUrl: FeedItemResolvers["imageUrl"] = (parent, args, ctx) => {
-  const base = ctx.mediaCdnUrl.replace(/\/$/, "");
-  const widthParam = args.width ? `?width=${args.width}` : "";
-  return `${base}${parent.avatar}${widthParam}`;
+const agent: FeedItemResolvers["agent"] = (parent) => {
+  const a = findAgent(parent.agentId);
+  if (!a) throw new Error(`Agent ${parent.agentId} not found`);
+  return a;
 };
 
 export const feedResolvers = {
   Query: { feedItems, feedItem },
-  FeedItem: { imageUrl },
+  FeedItem: { agent },
 };

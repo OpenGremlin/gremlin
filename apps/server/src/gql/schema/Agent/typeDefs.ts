@@ -1,8 +1,8 @@
 export const agentTypeDefs = /* GraphQL */ `
   enum AgentStatus {
     ACTIVE
+    SCHEDULED
     IDLE
-    ERROR
   }
 
   type Agent {

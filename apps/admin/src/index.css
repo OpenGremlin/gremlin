@@ -6,3 +6,28 @@ body {
   color: #e5e5e5;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+@keyframes strobe-green {
+  0%, 100% { outline-color: rgba(34, 197, 94, 0.3); }
+  50% { outline-color: rgba(34, 197, 94, 1); }
+}
+
+.avatar-ring {
+  outline-style: solid;
+  outline-width: 2.5px;
+  outline-offset: 0px;
+  border-radius: 9999px;
+}
+
+.avatar-ring-active {
+  outline-color: rgba(34, 197, 94, 1);
+  animation: strobe-green 2s ease-in-out infinite;
+}
+
+.avatar-ring-scheduled {
+  outline-color: rgb(251, 146, 60);
+}
+
+.avatar-ring-idle {
+  outline-color: rgb(115, 115, 115);
+}

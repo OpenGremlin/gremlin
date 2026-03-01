@@ -29,17 +29,27 @@ export function AgentDetailPage() {
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden text-lg text-neutral-400 font-medium">
-            <img
-              src={agent.imageUrl}
-              alt={agent.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-                (e.target as HTMLImageElement).parentElement!.textContent =
-                  agent.name[0];
-              }}
-            />
+          <div
+            className={`w-16 h-16 shrink-0 flex items-center justify-center avatar-ring ${
+              agent.status === "ACTIVE"
+                ? "avatar-ring-active"
+                : agent.status === "SCHEDULED"
+                  ? "avatar-ring-scheduled"
+                  : "avatar-ring-idle"
+            }`}
+          >
+            <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-lg text-neutral-400 font-medium">
+              <img
+                src={agent.imageUrl}
+                alt={agent.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                  (e.target as HTMLImageElement).parentElement!.textContent =
+                    agent.name[0];
+                }}
+              />
+            </div>
           </div>
           <div>
             <h1 className="text-xl font-semibold text-neutral-100">

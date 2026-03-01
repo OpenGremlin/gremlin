@@ -2,9 +2,9 @@ export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl
 
 export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status } }`;
 
-export const FEED_ITEMS_QUERY = `query { feedItems { id agentName avatarState portraitId imageUrl(width: 100) title summary category completedAt } }`;
+export const FEED_ITEMS_QUERY = `query { feedItems { id agent { id name status imageUrl(width: 100) } title summary category completedAt } }`;
 
-export const FEED_ITEM_QUERY = `query($id: ID!) { feedItem(id: $id) { id agentName avatarState portraitId imageUrl(width: 100) title summary body category completedAt } }`;
+export const FEED_ITEM_QUERY = `query($id: ID!) { feedItem(id: $id) { id agent { id name status imageUrl(width: 100) } title summary body category completedAt } }`;
 
 export const SKILLS_QUERY = `query { skills { id name description version installed } }`;
 

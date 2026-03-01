@@ -26,18 +26,28 @@ export function AgentsPage() {
             className="bg-neutral-900 rounded-xl p-4 block transition-colors hover:bg-neutral-800/60"
           >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-neutral-800 shrink-0 flex items-center justify-center overflow-hidden">
-                <img
-                  src={agent.imageUrl}
-                  alt={agent.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                    (
-                      e.target as HTMLImageElement
-                    ).parentElement!.textContent = agent.name[0];
-                  }}
-                />
+              <div
+                className={`w-12 h-12 shrink-0 flex items-center justify-center avatar-ring ${
+                  agent.status === "ACTIVE"
+                    ? "avatar-ring-active"
+                    : agent.status === "SCHEDULED"
+                      ? "avatar-ring-scheduled"
+                      : "avatar-ring-idle"
+                }`}
+              >
+                <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium">
+                  <img
+                    src={agent.imageUrl}
+                    alt={agent.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                      (
+                        e.target as HTMLImageElement
+                      ).parentElement!.textContent = agent.name[0];
+                    }}
+                  />
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">

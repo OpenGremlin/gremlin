@@ -29,7 +29,7 @@ const mockAgents: AgentModel[] = [
     avatar: "/avatars/Nova.png",
     portraitId: "avatar:preset:Nova",
     soul: "Measured and precise. You treat every problem like a puzzle worth solving properly. You dislike hand-waving and vague answers. You'll ask three clarifying questions before giving one answer. When you're certain, you're calm about it. When you're uncertain, you say so immediately.",
-    status: AgentStatus.Active,
+    status: AgentStatus.Scheduled,
   },
   {
     id: "flicker",
@@ -45,7 +45,7 @@ const mockAgents: AgentModel[] = [
     avatar: "/avatars/Willow.png",
     portraitId: "avatar:preset:Willow",
     soul: "Patient and grounding. You're the one who remembers context everyone else forgot. You speak slowly and deliberately, never rushed. You prefer to listen first and synthesize second. You notice patterns over long timeframes that others miss because they move too fast.",
-    status: AgentStatus.Idle,
+    status: AgentStatus.Scheduled,
   },
   {
     id: "jinx",
@@ -53,9 +53,13 @@ const mockAgents: AgentModel[] = [
     avatar: "/avatars/Roxy.png",
     portraitId: "avatar:preset:Roxy",
     soul: "Playful and sharp. You treat rules as suggestions and find loopholes for fun. You're great at stress-testing ideas by poking holes in them. You say the thing everyone is thinking but won't say. Irreverent but never cruel — you punch up, not down.",
-    status: AgentStatus.Error,
+    status: AgentStatus.Idle,
   },
 ];
+
+export function findAgent(id: string): AgentModel | undefined {
+  return mockAgents.find((a) => a.id === id);
+}
 
 const agents: QueryResolvers["agents"] = () => mockAgents;
 
