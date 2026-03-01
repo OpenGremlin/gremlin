@@ -18,6 +18,8 @@ export const taskTypeDefs = /* GraphQL */ `
     updatedAt: String!
     completedAt: String
     originJobId: String
+    artifacts: [String!]!
+    documents: [Document!]!
     logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }
 
@@ -41,5 +43,10 @@ export const taskTypeDefs = /* GraphQL */ `
   extend type Query {
     tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
     task(id: ID!): Task
+  }
+
+  extend type Subscription {
+    taskUpdated(taskId: ID!): Task!
+    taskLogCreated(taskId: ID!): AgentLog!
   }
 `;

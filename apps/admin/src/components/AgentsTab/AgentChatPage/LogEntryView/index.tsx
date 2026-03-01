@@ -1,4 +1,4 @@
-import { Code } from "lucide-react";
+import { Code, ExternalLink } from "lucide-react";
 import type { ChatMessage } from "../useChatMessages";
 
 function formatTime(iso: string): string {
@@ -6,7 +6,13 @@ function formatTime(iso: string): string {
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-export function LogEntryView({ entry }: { entry: ChatMessage }) {
+export function LogEntryView({
+  entry,
+  onTaskClick,
+}: {
+  entry: ChatMessage;
+  onTaskClick?: (taskId: string) => void;
+}) {
   switch (entry.role) {
     case "SYSTEM":
       return (
@@ -45,13 +51,55 @@ export function LogEntryView({ entry }: { entry: ChatMessage }) {
     case "TOOL": {
       let label = "tool";
       let content = entry.content;
+      let parsed: { name?: string; input?: Record<string, unknown> } | null =
+        null;
       try {
-        const parsed = JSON.parse(entry.content);
-        label = parsed.name || "tool";
-        content = JSON.stringify(parsed.input ?? parsed, null, 2);
+        parsed = JSON.parse(entry.content);
+        label = parsed!.name || "tool";
+        content = JSON.stringify(parsed!.input ?? parsed, null, 2);
       } catch {
         // use raw content
       }
+
+      // Render delegateTask as a tappable task card
+      if (parsed?.name === "delegateTask" && onTaskClick) {
+        const taskTitle =
+          (parsed.input?.title as string) || "Untitled task";
+        // Try to extract taskId from the content (it's in the tool result)
+        let taskId: string | null = null;
+        try {
+          const result = JSON.parse(entry.content);
+          taskId = result.input?.taskId as string ?? null;
+        } catch {
+          // ignore
+        }
+        return (
+          <div id={entry.id} className="py-1 px-2">
+            <button
+              type="button"
+              onClick={() => taskId && onTaskClick(taskId)}
+              className="w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 hover:border-indigo-600/60 transition-colors group"
+            >
+              <div className="flex items-center gap-2">
+                <ExternalLink
+                  size={14}
+                  className="text-indigo-400 shrink-0"
+                />
+                <span className="text-sm text-indigo-200 font-medium flex-1 truncate">
+                  {taskTitle}
+                </span>
+                <span className="text-[10px] text-neutral-600">
+                  {formatTime(entry.createdAt)}
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 mt-1 ml-[22px]">
+                Delegated task
+              </p>
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div id={entry.id} className="py-1 px-2">
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden">

@@ -13,6 +13,7 @@ import { useQuery } from "../../useQuery";
 import { AgentsTab } from "../AgentsTab";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
+import { TaskThreadPage } from "../AgentsTab/TaskThreadPage";
 import { FeedTab } from "../FeedTab";
 import { FeedDetailPage } from "../FeedTab/FeedDetailPage";
 import { SchedulerTab } from "../SchedulerTab";
@@ -92,6 +93,7 @@ export function RouterApp() {
           <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />
+          <Route path="agents/:id/tasks/:taskId" element={<TaskThreadPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

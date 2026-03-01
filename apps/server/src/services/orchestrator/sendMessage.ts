@@ -3,6 +3,7 @@ import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
 import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
+import { delegateTaskTool, defaultTools } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(
@@ -69,6 +70,7 @@ async function runMainLaneAgent(
     taskId: null,
     systemPrompt: renderSystemPrompt({ name: agent.name, soul: agent.soul }),
     messages,
+    tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
   });
 
   // Fire-and-forget compaction

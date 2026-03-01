@@ -20,7 +20,9 @@ export async function createDocument(
     updatedAt: now,
   };
 
-  await ctx.resources.ddb.entities.Document.build(PutItemCommand).item(item).send();
+  await ctx.resources.ddb.entities.Document.build(PutItemCommand)
+    .item(item)
+    .send();
 
   return item;
 }

@@ -2,7 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
-import { defaultTools } from "./tools.js";
+import { defaultTools, delegateTaskTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
@@ -36,7 +36,7 @@ export async function runMainLane(
     taskId: null,
     systemPrompt: renderSystemPrompt({ name: agent.name, soul: agent.soul }),
     messages,
-    tools: defaultTools,
+    tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
   });
 
   // Fire-and-forget compaction

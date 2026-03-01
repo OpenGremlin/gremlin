@@ -9,23 +9,9 @@ import type { Task } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
 
-interface LogNode {
-  id: string;
-  role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
-  content: string;
-  taskId: string | null;
-  createdAt: string;
-}
-
-interface TaskWithLogs extends Task {
-  logs: {
-    edges: { node: LogNode }[];
-  };
-}
-
 export function FeedDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ task: TaskWithLogs | null }>(
+  const { data, loading, error } = useQuery<{ task: Task | null }>(
     TASK_QUERY,
     { id },
   );
@@ -41,7 +27,7 @@ export function FeedDetailPage() {
   }
 
   const { agent } = item;
-  const logs = item.logs.edges.map((e) => e.node);
+  const logs = item.logs?.edges.map((e) => e.node) ?? [];
 
   return (
     <div className="min-h-screen bg-neutral-950">

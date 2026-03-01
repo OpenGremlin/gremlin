@@ -2,7 +2,12 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { renderTaskSystemPrompt } from "../prompts/renderTaskSystemPrompt.js";
-import { defaultTools } from "./tools.js";
+import {
+  defaultTools,
+  updateTaskStatusTool,
+  createDocumentTool,
+  updateDocumentTool,
+} from "./tools.js";
 import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -53,7 +58,12 @@ export async function runTaskLane(
       taskId,
     }),
     messages,
-    tools: defaultTools,
+    tools: {
+      ...defaultTools,
+      updateTaskStatus: updateTaskStatusTool(ctx, taskId),
+      createDocument: createDocumentTool(ctx, taskId),
+      updateDocument: updateDocumentTool(ctx),
+    },
   });
 
   // Fire-and-forget compaction

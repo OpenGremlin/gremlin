@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import { AGENT_QUERY, SEND_MESSAGE_MUTATION } from "../../../queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -12,6 +12,7 @@ import { useChatMessages } from "./useChatMessages";
 
 export function AgentChatPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data, loading, error } = useQuery<{ agent: Agent | null }>(
     AGENT_QUERY,
     { id },
@@ -96,9 +97,17 @@ export function AgentChatPage() {
             Loading...
           </div>
         )}
-        {messages.map((msg) => (
-          <LogEntryView key={msg.id} entry={msg} />
-        ))}
+        {messages
+          .filter((msg) => !msg.taskId || msg.role === "TOOL")
+          .map((msg) => (
+            <LogEntryView
+              key={msg.id}
+              entry={msg}
+              onTaskClick={(taskId) =>
+                navigate(`/agents/${id}/tasks/${taskId}`)
+              }
+            />
+          ))}
         {isAgentActive && (
           <div className="flex justify-start py-1">
             <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">

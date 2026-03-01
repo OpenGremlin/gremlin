@@ -100,4 +100,93 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
   });
 }
 
+export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
+  return tool({
+    description:
+      "Delegate a task to run in the background. Use this when the user's request involves work that can be done asynchronously (e.g., writing a document, research). The task runs in a separate thread and the user can check on it later.",
+    inputSchema: z.object({
+      title: z.string().describe("Short title for the task"),
+      prompt: z.string().describe("Detailed instructions for the task"),
+    }),
+    execute: async ({ title, prompt }) => {
+      const task = await ctx.services.tasks.createTask(ctx, {
+        agentId,
+        title,
+      });
+
+      // Fire-and-forget the task lane
+      ctx.services.orchestrator
+        .runTaskLane(ctx, task.id, prompt)
+        .catch((err) => console.error("delegateTask runTaskLane failed:", err));
+
+      return { taskId: task.id, title };
+    },
+  });
+}
+
+export function updateTaskStatusTool(ctx: ServiceContext, taskId: string) {
+  return tool({
+    description:
+      "Update the status of the current task. Call this with COMPLETED when you are done with the task.",
+    inputSchema: z.object({
+      status: z
+        .enum(["RUNNING", "WAITING", "COMPLETED", "FAILED", "ABANDONED"])
+        .describe("The new task status"),
+      statusReason: z
+        .string()
+        .optional()
+        .describe("Optional reason for the status change"),
+    }),
+    execute: async ({ status, statusReason }) => {
+      await ctx.services.tasks.updateTaskStatus(
+        ctx,
+        taskId,
+        status,
+        statusReason,
+      );
+      return { taskId, status, statusReason };
+    },
+  });
+}
+
+export function createDocumentTool(ctx: ServiceContext, taskId: string) {
+  return tool({
+    description:
+      "Create a new document artifact attached to this task. Use this for any substantial written output (stories, reports, plans, etc.).",
+    inputSchema: z.object({
+      title: z.string().describe("Document title"),
+      body: z.string().describe("Document body in markdown"),
+    }),
+    execute: async ({ title, body }) => {
+      const doc = await ctx.services.documents.createDocument(ctx, {
+        title,
+        body,
+      });
+      await ctx.services.tasks.addTaskArtifact(ctx, taskId, doc.id);
+      return { id: doc.id, title };
+    },
+  });
+}
+
+export function updateDocumentTool(ctx: ServiceContext) {
+  return tool({
+    description:
+      "Update an existing document. Use this to revise or expand a document you previously created.",
+    inputSchema: z.object({
+      id: z.string().describe("The document ID to update"),
+      title: z.string().optional().describe("New title (optional)"),
+      body: z.string().optional().describe("New body in markdown (optional)"),
+    }),
+    execute: async ({ id, title, body }) => {
+      const doc = await ctx.services.documents.getDocument(ctx, id);
+      if (!doc) throw new Error(`Document ${id} not found`);
+      await ctx.services.documents.updateDocument(ctx, id, {
+        title: title ?? doc.title,
+        body: body ?? doc.body,
+      });
+      return { id, title: title ?? doc.title };
+    },
+  });
+}
+
 export const defaultTools = { webSearch, sendEmail, checkInbox };
