@@ -13,4 +13,8 @@ export const taskFollowUpTypeDefs = /* GraphQL */ `
     activeFollowUps: [TaskFollowUp!]!
     taskFollowUps(taskId: ID!): [TaskFollowUp!]!
   }
+
+  extend type Mutation {
+    deactivateFollowUp(id: ID!): TaskFollowUp
+  }
 `;

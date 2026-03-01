@@ -2,6 +2,14 @@ export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl
 
 export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
 
+export const UPDATE_AGENT = `mutation($id: ID!, $input: UpdateAgentInput!) { updateAgent(id: $id, input: $input) { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
+
+export const INSTALL_SKILL = `mutation($id: ID!) { installSkill(id: $id) { id name description version author installed category homepage requiredEnv } }`;
+
+export const UNINSTALL_SKILL = `mutation($id: ID!) { uninstallSkill(id: $id) { id name description version author installed category homepage requiredEnv } }`;
+
+export const TOGGLE_PERMISSION = `mutation($integrationId: ID!, $scope: String!, $enabled: Boolean!) { togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) { id service icon description account connectedAt authMethod permissions { scope label enabled } } }`;
+
 export const TASKS_QUERY = `query($first: Int, $after: String, $last: Int, $before: String) {
   tasks(first: $first, after: $after, last: $last, before: $before) {
     edges { cursor node { id agent { id name status imageUrl(width: 100) } title status createdAt } }
@@ -19,6 +27,8 @@ export const TASK_QUERY = `query($id: ID!) {
     createdAt
     updatedAt
     completedAt
+    artifacts
+    documents { id title body createdAt updatedAt }
     logs(last: 50) {
       edges { node { id role content taskId createdAt } }
       pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
@@ -67,4 +77,20 @@ export const SEND_MESSAGE_MUTATION = `mutation($agentId: ID!, $content: String!,
 
 export const AGENT_LOG_SUBSCRIPTION = `subscription($agentId: ID!) {
   agentLogCreated(agentId: $agentId) { id role content taskId createdAt }
+}`;
+
+export const TASK_LOG_SUBSCRIPTION = `subscription($taskId: ID!) {
+  taskLogCreated(taskId: $taskId) { id role content taskId createdAt }
+}`;
+
+export const TASK_UPDATED_SUBSCRIPTION = `subscription($taskId: ID!) {
+  taskUpdated(taskId: $taskId) { id title status statusReason updatedAt completedAt artifacts documents { id title body updatedAt } }
+}`;
+
+export const DOCUMENT_QUERY = `query($id: ID!) {
+  document(id: $id) { id title body createdAt updatedAt }
+}`;
+
+export const DOCUMENT_UPDATED_SUBSCRIPTION = `subscription($id: ID!) {
+  documentUpdated(id: $id) { id title body updatedAt }
 }`;

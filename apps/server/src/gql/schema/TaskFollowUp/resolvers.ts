@@ -1,6 +1,7 @@
 import type {
-  TaskFollowUpResolvers,
+  MutationResolvers,
   QueryResolvers,
+  TaskFollowUpResolvers,
 } from "../../resolverTypes.js";
 
 const activeFollowUps: QueryResolvers["activeFollowUps"] = (
@@ -14,6 +15,15 @@ const taskFollowUps: QueryResolvers["taskFollowUps"] = (
   { taskId },
   ctx,
 ) => ctx.services.taskFollowUps.getTaskFollowUps(ctx, taskId);
+
+const deactivateFollowUp: MutationResolvers["deactivateFollowUp"] = async (
+  _parent,
+  { id },
+  ctx,
+) => {
+  await ctx.services.taskFollowUps.deactivateFollowUp(ctx, id);
+  return null;
+};
 
 const task: TaskFollowUpResolvers["task"] = async (parent, _args, ctx) => {
   const t = await ctx.services.tasks.getTask(ctx, parent.taskId);
@@ -29,5 +39,6 @@ const agent: TaskFollowUpResolvers["agent"] = async (parent, _args, ctx) => {
 
 export const taskFollowUpResolvers = {
   Query: { activeFollowUps, taskFollowUps },
+  Mutation: { deactivateFollowUp },
   TaskFollowUp: { task, agent },
 };

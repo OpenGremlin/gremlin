@@ -1,4 +1,5 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
+import type { DocumentItem } from "../../resources/ddb/schema/document.js";
 import type { ServiceContext } from "../context.js";
 
 export async function updateDocument(
@@ -8,7 +9,7 @@ export async function updateDocument(
     title: string;
     body: string;
   },
-) {
+): Promise<DocumentItem> {
   const now = new Date().toISOString();
 
   const doc = await ctx.services.documents.getDocument(ctx, id);
@@ -24,4 +25,15 @@ export async function updateDocument(
     })
     .options({ returnValues: "NONE" })
     .send();
+
+  const updated = {
+    ...doc,
+    title: input.title,
+    body: input.body,
+    updatedAt: now,
+  };
+
+  ctx.resources.pubsub.publish(`documentUpdated:${id}`, updated);
+
+  return updated;
 }

@@ -1,14 +1,49 @@
+/** A document artifact created by an agent */
+export interface Document {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A chat log entry */
+export interface AgentLogEntry {
+  id: string;
+  role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
+  content: string;
+  taskId: string | null;
+  createdAt: string;
+}
+
 /** A task created by an agent */
 export interface Task {
   id: string;
   agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   title: string;
-  status: "pending" | "running" | "waiting" | "completed" | "failed" | "abandoned";
+  status:
+    | "pending"
+    | "running"
+    | "waiting"
+    | "completed"
+    | "failed"
+    | "abandoned";
   statusReason: string | null;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
   originJobId: string | null;
+  artifacts: string[];
+  documents: Document[];
+  logs?: {
+    edges: { cursor?: string; node: AgentLogEntry }[];
+    pageInfo?: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor: string | null;
+      endCursor: string | null;
+    };
+  };
 }
 
 /** A scheduled agent job */

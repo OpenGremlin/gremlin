@@ -1,9 +1,10 @@
-import { Pencil } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
+import { gql } from "../../../auth";
 import { preloadImages } from "../../../preloadImages";
-import { AGENT_QUERY, AVATARS_QUERY } from "../../../queries";
+import { AGENT_QUERY, AVATARS_QUERY, UPDATE_AGENT } from "../../../queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { BackButton } from "../../../shared/BackButton";
@@ -27,14 +28,16 @@ export function AgentConfigPage() {
   );
   const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   const {
     register,
+    handleSubmit,
     setValue,
     reset,
-    formState: { isDirty },
+    formState: { isDirty, isSubmitting },
   } = useForm<AgentFormValues>();
 
   const agent = data?.agent ?? null;
@@ -67,13 +70,32 @@ export function AgentConfigPage() {
 
   const displayImageUrl = selectedImageUrl || agent.imageUrl;
 
+  async function onSubmit(values: AgentFormValues) {
+    const result = await gql<{ updateAgent: Agent }>(UPDATE_AGENT, {
+      id,
+      input: {
+        name: values.name,
+        soul: values.soul,
+        avatar: values.avatar,
+      },
+    });
+    reset({
+      name: result.updateAgent.name,
+      soul: result.updateAgent.soul,
+      avatar: result.updateAgent.avatar,
+    });
+    setSelectedImageUrl(null);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
   return (
     <div className="px-4 pt-6 pb-8">
       <BackButton to={`/agents/${agent.id}`} label="Chat" />
 
       <form
         className="mt-4 flex flex-col gap-4"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <div className="flex items-center gap-3">
           <button
@@ -112,14 +134,23 @@ export function AgentConfigPage() {
           />
         </div>
 
-        {isDirty && (
-          <button
-            type="submit"
-            className="self-start px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors"
-          >
-            Save
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="self-start px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? "Saving\u2026" : "Save"}
+            </button>
+          )}
+          {saved && (
+            <span className="flex items-center gap-1 text-xs text-green-400">
+              <Check size={14} />
+              Saved
+            </span>
+          )}
+        </div>
       </form>
 
       {pickerOpen && (

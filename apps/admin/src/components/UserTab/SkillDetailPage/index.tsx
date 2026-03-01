@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { SKILL_QUERY } from "../../../queries";
+import { gql } from "../../../auth";
+import { INSTALL_SKILL, SKILL_QUERY, UNINSTALL_SKILL } from "../../../queries";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -12,15 +14,37 @@ export function SkillDetailPage() {
     SKILL_QUERY,
     { id },
   );
+  const [toggling, setToggling] = useState(false);
+  const [localSkill, setLocalSkill] = useState<Skill | null>(null);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const skill = data?.skill ?? null;
+  const skill = localSkill ?? data?.skill ?? null;
 
   if (!skill) {
     return <NotFound label="Skill not found." />;
+  }
+
+  async function handleToggle() {
+    if (!skill) return;
+    setToggling(true);
+    try {
+      if (skill.installed) {
+        const result = await gql<{ uninstallSkill: Skill }>(UNINSTALL_SKILL, {
+          id,
+        });
+        setLocalSkill(result.uninstallSkill);
+      } else {
+        const result = await gql<{ installSkill: Skill }>(INSTALL_SKILL, {
+          id,
+        });
+        setLocalSkill(result.installSkill);
+      }
+    } finally {
+      setToggling(false);
+    }
   }
 
   return (
@@ -59,13 +83,21 @@ export function SkillDetailPage() {
 
         <button
           type="button"
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+          disabled={toggling}
+          onClick={handleToggle}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${
             skill.installed
               ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
               : "bg-indigo-600 text-white hover:bg-indigo-500"
           }`}
         >
-          {skill.installed ? "Uninstall" : "Install"}
+          {toggling
+            ? skill.installed
+              ? "Uninstalling\u2026"
+              : "Installing\u2026"
+            : skill.installed
+              ? "Uninstall"
+              : "Install"}
         </button>
       </div>
     </div>

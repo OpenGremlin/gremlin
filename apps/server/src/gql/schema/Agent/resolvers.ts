@@ -10,6 +10,12 @@ const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
 const agent: QueryResolvers["agent"] = (_parent, { id }, ctx) =>
   ctx.services.agents.getAgent(ctx, id);
 
+const updateAgent: MutationResolvers["updateAgent"] = (
+  _parent,
+  { id, input },
+  ctx,
+) => ctx.services.agents.updateAgent(ctx, id, input);
+
 const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
   _parent,
   { id, status },
@@ -21,6 +27,6 @@ const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
 
 export const agentResolvers = {
   Query: { agents, agent },
-  Mutation: { updateAgentStatus },
+  Mutation: { updateAgent, updateAgentStatus },
   Agent: { imageUrl },
 };

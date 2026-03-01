@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { INTEGRATION_QUERY } from "../../../queries";
+import { gql } from "../../../auth";
+import { INTEGRATION_QUERY, TOGGLE_PERMISSION } from "../../../queries";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -11,15 +13,32 @@ export function IntegrationDetailPage() {
   const { data, loading, error } = useQuery<{
     integration: Integration | null;
   }>(INTEGRATION_QUERY, { id });
+  const [localIntegration, setLocalIntegration] = useState<Integration | null>(
+    null,
+  );
+  const [togglingScope, setTogglingScope] = useState<string | null>(null);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const integration = data?.integration ?? null;
+  const integration = localIntegration ?? data?.integration ?? null;
 
   if (!integration) {
     return <NotFound label="Integration not found." />;
+  }
+
+  async function handleToggle(scope: string, currentEnabled: boolean) {
+    setTogglingScope(scope);
+    try {
+      const result = await gql<{ togglePermission: Integration }>(
+        TOGGLE_PERMISSION,
+        { integrationId: id, scope, enabled: !currentEnabled },
+      );
+      setLocalIntegration(result.togglePermission);
+    } finally {
+      setTogglingScope(null);
+    }
   }
 
   return (
@@ -47,9 +66,12 @@ export function IntegrationDetailPage() {
         </h2>
         <div className="flex flex-col gap-2">
           {integration.permissions.map((perm) => (
-            <div
+            <button
               key={perm.scope}
-              className="flex items-center justify-between bg-neutral-900 rounded-xl p-4"
+              type="button"
+              disabled={togglingScope === perm.scope}
+              onClick={() => handleToggle(perm.scope, perm.enabled)}
+              className="flex items-center justify-between bg-neutral-900 rounded-xl p-4 hover:bg-neutral-800 transition-colors disabled:opacity-50 text-left"
             >
               <span className="text-sm text-neutral-100">{perm.label}</span>
               <span className="flex items-center gap-1.5 text-xs">
@@ -62,7 +84,7 @@ export function IntegrationDetailPage() {
                   {perm.enabled ? "Enabled" : "Disabled"}
                 </span>
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
