@@ -67,16 +67,17 @@ function DelegateTaskCard({
         }
         className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
       >
-        <div className="flex items-center gap-2">
-          <ExternalLink size={14} className="text-indigo-400 shrink-0" />
-          <span className="text-sm text-indigo-200 font-medium flex-1 truncate">
-            {taskTitle}
-          </span>
-          <span className="text-[10px] text-neutral-600">
-            {formatTime(createdAt)}
-          </span>
-        </div>
-        <div className="text-xs text-neutral-500 mt-1 ml-[22px] min-h-[3.5rem] flex items-start gap-1.5">
+        <div className="flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-indigo-200 font-medium truncate">
+                {taskTitle}
+              </span>
+              <span className="text-[10px] text-neutral-600 shrink-0">
+                {formatTime(createdAt)}
+              </span>
+            </div>
+            <div className="text-xs text-neutral-500 mt-1 min-h-[3.5rem] flex items-start gap-1.5">
           {active ? (
             <>
               <Loader2 size={14} className="animate-spin shrink-0 mt-0.5" />
@@ -90,6 +91,9 @@ function DelegateTaskCard({
           ) : (
             <span>{task?.message || "Delegated task"}</span>
           )}
+            </div>
+          </div>
+          <ExternalLink size={14} className="text-indigo-400 shrink-0 mt-0.5" />
         </div>
       </div>
     </div>
