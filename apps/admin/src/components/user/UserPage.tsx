@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, NavLink, useParams } from "react-router-dom";
@@ -99,6 +99,14 @@ function NotificationCard({
               </button>
             </div>
           )}
+
+          <Link
+            to={chatLink}
+            className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-indigo-400 transition-colors mt-3 float-right"
+          >
+            Go to conversation
+            <MessageSquare size={12} />
+          </Link>
         </div>
       </div>
     </div>
