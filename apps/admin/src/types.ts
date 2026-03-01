@@ -31,7 +31,7 @@ export interface Task {
     | "completed"
     | "failed"
     | "abandoned";
-  statusReason: string | null;
+  message: string | null;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;

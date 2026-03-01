@@ -76,10 +76,6 @@ export function useChatMessages(agentId: string) {
     useCallback(
       (data) => {
         const msg = data.agentLogCreated;
-
-        // Skip task-scoped messages — they belong in the task thread
-        if (msg.taskId) return;
-
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev;
           return [...prev, msg];

@@ -59,8 +59,8 @@ export function FeedDetailPage() {
 
         <div className="mt-2 flex items-center gap-2">
           <Badge label={item.status} />
-          {item.statusReason && (
-            <span className="text-xs text-neutral-500">{item.statusReason}</span>
+          {item.message && (
+            <span className="text-xs text-neutral-500">{item.message}</span>
           )}
         </div>
 

@@ -23,6 +23,7 @@ export function useSubscription<T>(
   const serializedVars = JSON.stringify(variables);
 
   useEffect(() => {
+    if (!query) return;
     const controller = new AbortController();
 
     async function connect() {

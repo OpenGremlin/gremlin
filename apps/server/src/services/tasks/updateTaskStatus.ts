@@ -13,7 +13,7 @@ export async function updateTaskStatus(
   ctx: ServiceContext,
   taskId: string,
   status: TaskStatus,
-  statusReason?: string,
+  message?: string,
 ) {
   const now = new Date().toISOString();
   const isTerminal = status === "COMPLETED" || status === "FAILED" || status === "ABANDONED";
@@ -27,7 +27,7 @@ export async function updateTaskStatus(
       agentId: task.agentId,
       createdAt: task.createdAt,
       status,
-      statusReason: statusReason ?? null,
+      message: message ?? null,
       updatedAt: now,
       ...(isTerminal ? { completedAt: now } : {}),
     })
@@ -37,7 +37,7 @@ export async function updateTaskStatus(
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, {
     ...task,
     status,
-    statusReason: statusReason ?? null,
+    message: message ?? null,
     updatedAt: now,
     ...(isTerminal ? { completedAt: now } : {}),
   });

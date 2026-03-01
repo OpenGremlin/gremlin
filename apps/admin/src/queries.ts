@@ -23,7 +23,7 @@ export const TASK_QUERY = `query($id: ID!) {
     agent { id name status imageUrl(width: 100) }
     title
     status
-    statusReason
+    message
     createdAt
     updatedAt
     completedAt
@@ -84,7 +84,7 @@ export const TASK_LOG_SUBSCRIPTION = `subscription($taskId: ID!) {
 }`;
 
 export const TASK_UPDATED_SUBSCRIPTION = `subscription($taskId: ID!) {
-  taskUpdated(taskId: $taskId) { id title status statusReason updatedAt completedAt artifacts documents { id title body updatedAt } }
+  taskUpdated(taskId: $taskId) { id title status message updatedAt completedAt artifacts documents { id title body updatedAt } }
 }`;
 
 export const DOCUMENT_QUERY = `query($id: ID!) {

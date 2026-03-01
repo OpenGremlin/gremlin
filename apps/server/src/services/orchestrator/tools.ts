@@ -127,24 +127,25 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
 export function updateTaskStatusTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Update the status of the current task. Call this with COMPLETED when you are done with the task.",
+      "Update the status of the current task. You MUST call this tool every time you make meaningful progress — not just at the end. Include a short, human-readable message summarizing what you just did or are about to do. Call with COMPLETED when you are done.",
     inputSchema: z.object({
       status: z
         .enum(["RUNNING", "WAITING", "COMPLETED", "FAILED", "ABANDONED"])
         .describe("The new task status"),
-      statusReason: z
+      message: z
         .string()
-        .optional()
-        .describe("Optional reason for the status change"),
+        .describe(
+          "REQUIRED. A short (1-2 sentence) human-readable status update. Examples: 'Researching chipmunk behavior for the story', 'Finished the first draft, polishing now', 'Story complete — 1,200 words with three characters'.",
+        ),
     }),
-    execute: async ({ status, statusReason }) => {
+    execute: async ({ status, message }) => {
       await ctx.services.tasks.updateTaskStatus(
         ctx,
         taskId,
         status,
-        statusReason,
+        message,
       );
-      return { taskId, status, statusReason };
+      return { taskId, status, message };
     },
   });
 }

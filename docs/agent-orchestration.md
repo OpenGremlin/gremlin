@@ -54,7 +54,7 @@ Query a task sub-thread: `GSI1PK = LOG_TASK#<taskId>`, sorted by `createdAt`.
 | `agentId` | string | The agent executing this task |
 | `title` | string | Human-readable task name (e.g., "Negotiate car price") |
 | `status` | `"pending" \| "running" \| "waiting" \| "completed" \| "failed" \| "abandoned"` | Current lifecycle state |
-| `statusReason` | string? | Why the task is in its current state (e.g., "Waiting for dealer email reply") |
+| `message` | string? | Short human-readable status update (e.g., "Waiting for dealer email reply") |
 | `createdAt` | string (ISO 8601) | When the task was spawned |
 | `updatedAt` | string (ISO 8601) | Last status change |
 | `completedAt` | string? (ISO 8601) | When the task reached a terminal state |
@@ -115,7 +115,7 @@ Agent begins task work (status: running)
 Agent sends email, needs to wait
     ├── AgentLog in task thread: "Email sent to dealer. Will check for reply in 15 minutes."
     ├── Writes TaskFollowUp (scheduledAt: now + 15min, active: true)
-    ├── Updates Task (status: waiting, statusReason: "Waiting for dealer reply")
+    ├── Updates Task (status: waiting, message: "Waiting for dealer reply")
     │
     ▼
 Agent turn ENDS — main lane is free

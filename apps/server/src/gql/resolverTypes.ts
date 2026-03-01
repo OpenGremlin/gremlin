@@ -451,9 +451,9 @@ export type Task = {
   documents: Array<Document>;
   id: Scalars['ID']['output'];
   logs: AgentLogConnection;
+  message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
   status: TaskStatus;
-  statusReason?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -850,9 +850,9 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   originJobId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['TaskStatus'], ParentType, ContextType>;
-  statusReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

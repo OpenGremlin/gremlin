@@ -15,7 +15,7 @@ export const TaskEntity = new Entity({
     agentId: string().key(),
     title: string(),
     status: string(),
-    statusReason: anyOf(string(), nul()),
+    message: anyOf(string(), nul()),
     createdAt: string().key(),
     updatedAt: string(),
     completedAt: anyOf(string(), nul()),

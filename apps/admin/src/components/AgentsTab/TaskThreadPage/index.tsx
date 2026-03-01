@@ -104,8 +104,8 @@ export function TaskThreadPage() {
           </h1>
           <Badge label={task.status} />
         </div>
-        {task.statusReason && (
-          <p className="text-xs text-neutral-500 ml-6">{task.statusReason}</p>
+        {task.message && (
+          <p className="text-xs text-neutral-500 ml-6">{task.message}</p>
         )}
       </div>
 

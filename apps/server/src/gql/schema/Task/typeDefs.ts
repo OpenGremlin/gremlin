@@ -13,7 +13,7 @@ export const taskTypeDefs = /* GraphQL */ `
     agent: Agent!
     title: String!
     status: TaskStatus!
-    statusReason: String
+    message: String
     createdAt: String!
     updatedAt: String!
     completedAt: String

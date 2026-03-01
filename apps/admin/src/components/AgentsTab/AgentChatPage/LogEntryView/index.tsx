@@ -1,5 +1,6 @@
-import { Code, ExternalLink } from "lucide-react";
+import { CheckCircle, Code, ExternalLink, Loader2 } from "lucide-react";
 import type { ChatMessage } from "../useChatMessages";
+import { useTaskStatus } from "./useTaskStatus";
 
 function safeParseJson(s: string | null): Record<string, unknown> | null {
   if (!s) return null;
@@ -34,6 +35,65 @@ function resolveToolFields(entry: ChatMessage) {
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
+
+function DelegateTaskCard({
+  id,
+  taskId,
+  taskTitle,
+  createdAt,
+  onTaskClick,
+}: {
+  id: string;
+  taskId: string | null;
+  taskTitle: string;
+  createdAt: string;
+  onTaskClick?: (taskId: string) => void;
+}) {
+  const { status, message } = useTaskStatus(taskId);
+  const clickable = !!(taskId && onTaskClick);
+  const active = status ? ACTIVE_STATUSES.has(status) : false;
+
+  return (
+    <div id={id} className="py-1 px-2">
+      <div
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onClick={() => clickable && onTaskClick(taskId!)}
+        onKeyDown={(e) =>
+          clickable && e.key === "Enter" && onTaskClick(taskId!)
+        }
+        className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
+      >
+        <div className="flex items-center gap-2">
+          <ExternalLink size={14} className="text-indigo-400 shrink-0" />
+          <span className="text-sm text-indigo-200 font-medium flex-1 truncate">
+            {taskTitle}
+          </span>
+          <span className="text-[10px] text-neutral-600">
+            {formatTime(createdAt)}
+          </span>
+        </div>
+        <p className="text-xs text-neutral-500 mt-1 ml-[22px] flex items-center gap-1.5">
+          {active ? (
+            <>
+              <Loader2 size={10} className="animate-spin" />
+              {message || "Working..."}
+            </>
+          ) : status === "COMPLETED" ? (
+            <>
+              <CheckCircle size={10} className="text-green-500" />
+              {message || "Completed"}
+            </>
+          ) : (
+            message || "Delegated task"
+          )}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function LogEntryView({
@@ -80,47 +140,22 @@ export function LogEntryView({
       );
     case "TOOL": {
       const tool = resolveToolFields(entry);
+
+      if (tool.name === "delegateTask") {
+        return (
+          <DelegateTaskCard
+            id={entry.id}
+            taskId={(tool.result?.taskId as string) ?? null}
+            taskTitle={(tool.input?.title as string) ?? "Untitled task"}
+            createdAt={entry.createdAt}
+            onTaskClick={onTaskClick}
+          />
+        );
+      }
+
       const formattedInput = tool.input
         ? JSON.stringify(tool.input, null, 2)
         : entry.content;
-
-      // Render delegateTask as a tappable task card
-      if (tool.name === "delegateTask") {
-        const taskTitle = (tool.input?.title as string) ?? "Untitled task";
-        const taskId = (tool.result?.taskId as string) ?? null;
-        const clickable = !!(taskId && onTaskClick);
-        return (
-          <div id={entry.id} className="py-1 px-2">
-            <div
-              role={clickable ? "button" : undefined}
-              tabIndex={clickable ? 0 : undefined}
-              onClick={() => clickable && onTaskClick(taskId)}
-              onKeyDown={(e) =>
-                clickable &&
-                e.key === "Enter" &&
-                onTaskClick(taskId)
-              }
-              className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
-            >
-              <div className="flex items-center gap-2">
-                <ExternalLink
-                  size={14}
-                  className="text-indigo-400 shrink-0"
-                />
-                <span className="text-sm text-indigo-200 font-medium flex-1 truncate">
-                  {taskTitle}
-                </span>
-                <span className="text-[10px] text-neutral-600">
-                  {formatTime(entry.createdAt)}
-                </span>
-              </div>
-              <p className="text-xs text-neutral-500 mt-1 ml-[22px]">
-                Delegated task
-              </p>
-            </div>
-          </div>
-        );
-      }
 
       return (
         <div id={entry.id} className="py-1 px-2">
