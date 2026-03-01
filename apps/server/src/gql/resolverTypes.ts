@@ -155,6 +155,7 @@ export type Mutation = {
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   resolveNotification?: Maybe<Notification>;
+  sendMessage: AgentLog;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -177,6 +178,13 @@ export type MutationInstallSkillArgs = {
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSendMessageArgs = {
+  agentId: Scalars['ID']['input'];
+  content: Scalars['String']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -386,6 +394,17 @@ export enum StatusCategory {
   Task = 'TASK'
 }
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  _empty?: Maybe<Scalars['String']['output']>;
+  agentLogCreated: AgentLog;
+};
+
+
+export type SubscriptionAgentLogCreatedArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
 export type Task = {
   __typename?: 'Task';
   agent: Agent;
@@ -542,6 +561,7 @@ export type ResolversTypes = {
   Status: ResolverTypeWrapper<StatusItem>;
   StatusCategory: StatusCategory;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Task: ResolverTypeWrapper<TaskItem>;
   TaskFollowUp: ResolverTypeWrapper<TaskFollowUpItem>;
   TaskStatus: TaskStatus;
@@ -573,6 +593,7 @@ export type ResolversParentTypes = {
   Skill: SkillItem;
   Status: StatusItem;
   String: Scalars['String']['output'];
+  Subscription: Record<PropertyKey, never>;
   Task: TaskItem;
   TaskFollowUp: TaskFollowUpItem;
   UpdateAgentJobInput: UpdateAgentJobInput;
@@ -660,6 +681,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
+  sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -744,6 +766,11 @@ export type StatusResolvers<ContextType = GremlinContext, ParentType extends Res
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type SubscriptionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  agentLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "agentLogCreated", ParentType, ContextType, RequireFields<SubscriptionAgentLogCreatedArgs, 'agentId'>>;
+};
+
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -786,6 +813,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
   Status?: StatusResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   Task?: TaskResolvers<ContextType>;
   TaskFollowUp?: TaskFollowUpResolvers<ContextType>;
 };

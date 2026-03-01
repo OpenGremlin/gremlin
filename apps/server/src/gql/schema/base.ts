@@ -6,4 +6,8 @@ export const baseTypeDefs = /* GraphQL */ `
   type Mutation {
     _empty: String
   }
+
+  type Subscription {
+    _empty: String
+  }
 `;

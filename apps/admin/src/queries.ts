@@ -31,3 +31,20 @@ export const DISMISS_NOTIFICATION = `mutation($id: ID!) { dismissNotification(id
 export const INTEGRATIONS_QUERY = `query { integrations { id service icon account } }`;
 
 export const INTEGRATION_QUERY = `query($id: ID!) { integration(id: $id) { id service icon description account connectedAt authMethod permissions { scope label enabled } } }`;
+
+export const AGENT_LOGS_QUERY = `query($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {
+  agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {
+    edges { cursor node { id role content taskId createdAt } }
+    pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+  }
+}`;
+
+export const SEND_MESSAGE_MUTATION = `mutation($agentId: ID!, $content: String!, $taskId: String) {
+  sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {
+    id role content taskId createdAt
+  }
+}`;
+
+export const AGENT_LOG_SUBSCRIPTION = `subscription($agentId: ID!) {
+  agentLogCreated(agentId: $agentId) { id role content taskId createdAt }
+}`;

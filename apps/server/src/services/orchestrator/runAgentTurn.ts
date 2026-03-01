@@ -12,15 +12,15 @@ export async function runAgentTurn(
     taskId: string | null;
     systemPrompt: string;
     messages: ModelMessage[];
-    tools: Record<string, Tool>;
+    tools?: Record<string, Tool>;
   },
 ): Promise<string> {
+  const hasTools = opts.tools && Object.keys(opts.tools).length > 0;
   const result = await generateText({
     model: getModel(),
     system: opts.systemPrompt,
     messages: opts.messages,
-    tools: opts.tools,
-    stopWhen: stepCountIs(MAX_STEPS),
+    ...(hasTools ? { tools: opts.tools, stopWhen: stepCountIs(MAX_STEPS) } : {}),
   });
 
   // Log each step's tool calls

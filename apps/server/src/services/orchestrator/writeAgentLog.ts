@@ -1,4 +1,4 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
 export async function writeAgentLog(
@@ -13,16 +13,42 @@ export async function writeAgentLog(
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
 
-  await ctx.resources.ddb.entities.AgentLog.build(PutItemCommand)
-    .item({
-      id,
-      agentId: entry.agentId,
-      taskId: entry.taskId,
-      role: entry.role,
-      content: entry.content,
-      createdAt: now,
-    })
-    .send();
+  const item = {
+    id,
+    agentId: entry.agentId,
+    taskId: entry.taskId,
+    role: entry.role,
+    content: entry.content,
+    createdAt: now,
+  };
+
+  // Write directly via document client so we can include GSI attributes.
+  // DynamoDB Toolbox v2's computeKey doesn't project GSI keys into the item.
+  const table = ctx.resources.ddb.table;
+  await table.getDocumentClient().send(
+    new PutCommand({
+      TableName: table.getName(),
+      Item: {
+        ...item,
+        _et: "AgentLog",
+        pk: "AGENT_LOG",
+        sk: `AGENT_LOG#${id}`,
+        gsi1pk: entry.taskId
+          ? `LOG_TASK#${entry.taskId}`
+          : `LOG_AGENT#${entry.agentId}`,
+        gsi1sk: now,
+      },
+    }),
+  );
+
+  // Publish to pubsub for real-time subscriptions
+  ctx.resources.pubsub.publish(`agentLogCreated:${entry.agentId}`, item);
+  if (entry.taskId) {
+    ctx.resources.pubsub.publish(
+      `agentLogCreated:task:${entry.taskId}`,
+      item,
+    );
+  }
 
   return { id, createdAt: now };
 }

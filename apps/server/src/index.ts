@@ -35,7 +35,7 @@ const yoga = createYoga({
   cors: {
     origin: process.env.ADMIN_ORIGIN ?? "http://localhost:5173",
     credentials: true,
-    methods: ["POST", "OPTIONS"],
+    methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
   plugins: [
@@ -164,3 +164,4 @@ function shutdown() {
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
+

@@ -1,8 +1,12 @@
+import { pipe, filter } from "@graphql-yoga/subscription";
+import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
 import type {
   AgentLogResolvers,
   AgentLogEdgeResolvers,
+  MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
+import type { GremlinContext } from "../../context.js";
 
 const agentLogs: QueryResolvers["agentLogs"] = (
   _parent,
@@ -22,10 +26,35 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
+const role: AgentLogResolvers["role"] = (parent) =>
+  parent.role.toUpperCase() as "AGENT" | "USER" | "SYSTEM" | "TOOL";
+
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
+
+const sendMessage: MutationResolvers["sendMessage"] = async (
+  _parent,
+  { agentId, content, taskId },
+  ctx,
+) => ctx.services.orchestrator.sendMessage(ctx, agentId, content, taskId);
+
+const agentLogCreated = {
+  subscribe: (
+    _parent: unknown,
+    { agentId }: { agentId: string },
+    ctx: GremlinContext,
+  ) => {
+    return pipe(
+      ctx.resources.pubsub.subscribe(`agentLogCreated:${agentId}`),
+      filter((payload: AgentLogItem) => payload.agentId === agentId),
+    );
+  },
+  resolve: (payload: AgentLogItem) => payload,
+};
 
 export const agentLogResolvers = {
   Query: { agentLogs, taskLogs },
-  AgentLog: { agent },
+  Mutation: { sendMessage },
+  Subscription: { agentLogCreated },
+  AgentLog: { agent, role },
   AgentLogEdge: { node },
 };

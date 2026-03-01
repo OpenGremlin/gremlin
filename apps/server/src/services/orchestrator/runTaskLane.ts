@@ -1,5 +1,5 @@
-import type { ModelMessage } from "ai";
 import type { ServiceContext } from "../context.js";
+import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { defaultTools } from "./tools.js";
 import { updateTaskStatus } from "./updateTaskStatus.js";
@@ -23,16 +23,6 @@ export async function runTaskLane(
   // Mark task as running
   await updateTaskStatus(ctx, taskId, "running");
 
-  // Build conversation history from task thread logs
-  const connection = await ctx.services.agentLogs.getTaskLogs(ctx, taskId);
-  const messages: ModelMessage[] = connection.edges.map(({ node }) => ({
-    role: node.role === "agent" ? "assistant" : "user",
-    content: node.content,
-  }));
-
-  // Add the resume/continuation prompt
-  messages.push({ role: "user", content: prompt });
-
   // Log the prompt as a system message in the task thread
   await writeAgentLog(ctx, {
     agentId: task.agentId,
@@ -40,6 +30,17 @@ export async function runTaskLane(
     role: "system",
     content: prompt,
   });
+
+  // Build conversation history with compaction support
+  const { messages, totalLogCount } = await buildContextMessages(ctx, {
+    agentId: task.agentId,
+    taskId,
+  });
+
+  // Ensure the prompt is included (DDB eventual consistency may miss it)
+  if (messages.length === 0 || messages[messages.length - 1].content !== prompt) {
+    messages.push({ role: "user", content: prompt });
+  }
 
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
@@ -54,6 +55,14 @@ export async function runTaskLane(
     messages,
     tools: defaultTools,
   });
+
+  // Fire-and-forget compaction
+  maybeCompact(ctx, {
+    agentId: task.agentId,
+    taskId,
+    messages,
+    totalLogCount,
+  }).catch((err) => console.error("compaction failed:", err));
 
   return response;
 }

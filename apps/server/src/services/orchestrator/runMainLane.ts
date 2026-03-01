@@ -1,5 +1,5 @@
-import type { ModelMessage } from "ai";
 import type { ServiceContext } from "../context.js";
+import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { defaultTools } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -24,12 +24,11 @@ export async function runMainLane(
     content: userMessage,
   });
 
-  // Build conversation history from main thread logs
-  const connection = await ctx.services.agentLogs.getAgentLogs(ctx, agentId);
-  const messages: ModelMessage[] = connection.edges.map(({ node }) => ({
-    role: node.role === "agent" ? "assistant" : "user",
-    content: node.content,
-  }));
+  // Build conversation history with compaction support
+  const { messages, totalLogCount } = await buildContextMessages(ctx, {
+    agentId,
+    taskId: null,
+  });
 
   const response = await runAgentTurn(ctx, {
     agentId,
@@ -38,6 +37,11 @@ export async function runMainLane(
     messages,
     tools: defaultTools,
   });
+
+  // Fire-and-forget compaction
+  maybeCompact(ctx, { agentId, taskId: null, messages, totalLogCount }).catch(
+    (err) => console.error("compaction failed:", err),
+  );
 
   return response;
 }
