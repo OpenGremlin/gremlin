@@ -72,7 +72,7 @@ const yoga = createYoga({
         mediaCdnUrl: MEDIA_CDN_URL,
       };
     }
-    const user = userByRequest.get(request)!;
+    const user = userByRequest.get(request) as AuthUser;
     return { user, mediaCdnUrl: MEDIA_CDN_URL };
   },
   graphiql: SKIP_AUTH,
@@ -90,7 +90,10 @@ const wss = new WebSocketServer({ server, path: "/ws" });
 
 // Serve media assets locally (in production CloudFront handles this)
 if (!process.env.MEDIA_CDN_URL) {
-  const mediaAssets = path.resolve(__dirname, "../../../apps/media-server/assets");
+  const mediaAssets = path.resolve(
+    __dirname,
+    "../../../apps/media-server/assets",
+  );
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
 }
 

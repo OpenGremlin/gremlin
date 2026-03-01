@@ -1,16 +1,16 @@
-import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { Pencil, X } from "lucide-react";
-import type { Agent } from "../../types";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useParams } from "react-router-dom";
+import { preloadImages } from "../../preloadImages";
+import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
+import { AutoTextarea } from "../../shared/AutoTextarea";
 import { BackButton } from "../../shared/BackButton";
 import { Badge } from "../../shared/Badge";
-import { QueryResult, NotFound } from "../../shared/QueryResult";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
+import type { Agent } from "../../types";
 import { useQuery } from "../../useQuery";
-import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
-import { preloadImages } from "../../preloadImages";
-import { AutoTextarea } from "../../shared/AutoTextarea";
 
 interface Avatar {
   id: string;
@@ -89,7 +89,12 @@ export function AgentConfigPage() {
             onClick={() => setPickerOpen(true)}
             className="relative group shrink-0"
           >
-            <AgentAvatar src={displayImageUrl} name={agent.name} status={agent.status} size="lg" />
+            <AgentAvatar
+              src={displayImageUrl}
+              name={agent.name}
+              status={agent.status}
+              size="lg"
+            />
             <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
               <Pencil size={12} className="text-neutral-200" />
             </div>
@@ -104,8 +109,11 @@ export function AgentConfigPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-neutral-500">Soul</label>
+          <label htmlFor="soul-field" className="text-xs text-neutral-500">
+            Soul
+          </label>
           <AutoTextarea
+            id="soul-field"
             {...register("soul")}
             minRows={3}
             className="w-full bg-neutral-900 text-sm text-neutral-300 leading-relaxed rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
@@ -151,14 +159,21 @@ function AvatarPicker({
 }) {
   return (
     <div
+      role="dialog"
+      aria-label="Choose Avatar"
       className="fixed inset-0 z-50 flex items-end justify-center"
-      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
     >
-      <div className="absolute inset-0 bg-black/60" />
-      <div
-        className="relative w-full max-w-lg bg-neutral-900 rounded-t-2xl max-h-[70vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60"
+        aria-label="Close"
+        onClick={onClose}
+        tabIndex={-1}
+      />
+      <div className="relative w-full max-w-lg bg-neutral-900 rounded-t-2xl max-h-[70vh] flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
           <h2 className="text-sm font-semibold text-neutral-100">
             Choose Avatar

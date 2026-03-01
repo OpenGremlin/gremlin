@@ -12,9 +12,7 @@ const COGNITO_CLIENT_ID =
 const REDIRECT_URI =
   (import.meta.env.VITE_REDIRECT_URI as string) || window.location.origin;
 const API_URL =
-  runtimeConfig?.apiUrl ||
-  (import.meta.env.VITE_API_URL as string) ||
-  "";
+  runtimeConfig?.apiUrl || (import.meta.env.VITE_API_URL as string) || "";
 
 const TOKEN_KEY = "gremlin_admin_token";
 

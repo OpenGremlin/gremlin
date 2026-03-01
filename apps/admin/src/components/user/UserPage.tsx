@@ -78,6 +78,7 @@ function NotificationCard({
             <div className="flex items-center gap-2 flex-wrap">
               {notification.actions.map((action) => (
                 <button
+                  type="button"
                   key={action.id}
                   onClick={() => onAction(notification.id, action.id)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
@@ -90,6 +91,7 @@ function NotificationCard({
                 </button>
               ))}
               <button
+                type="button"
                 onClick={() => onDismiss(notification.id)}
                 className="text-xs text-neutral-500 hover:text-neutral-400 transition-colors ml-1"
               >
@@ -286,24 +288,36 @@ function ProfileContent() {
       className="flex flex-col gap-4 px-4 pb-6"
     >
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Username</label>
+        <label htmlFor="profile-name" className="text-xs text-neutral-500">
+          Username
+        </label>
         <input
+          id="profile-name"
           {...register("name")}
           className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Display Name</label>
+        <label
+          htmlFor="profile-displayName"
+          className="text-xs text-neutral-500"
+        >
+          Display Name
+        </label>
         <input
+          id="profile-displayName"
           {...register("displayName")}
           className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">About</label>
+        <label htmlFor="profile-about" className="text-xs text-neutral-500">
+          About
+        </label>
         <AutoTextarea
+          id="profile-about"
           {...register("about")}
           minRows={3}
           className="w-full bg-neutral-900 text-sm text-neutral-300 leading-relaxed rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
@@ -311,8 +325,11 @@ function ProfileContent() {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-neutral-500">Website</label>
+        <label htmlFor="profile-website" className="text-xs text-neutral-500">
+          Website
+        </label>
         <input
+          id="profile-website"
           {...register("website")}
           type="url"
           placeholder="https://"
@@ -349,6 +366,7 @@ export function UserPage() {
       <div className="flex gap-2 px-4 pt-4 pb-4 overflow-x-auto scrollbar-hide">
         {pills.map((pill) => (
           <button
+            type="button"
             key={pill}
             onClick={() => setActive(pill)}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${

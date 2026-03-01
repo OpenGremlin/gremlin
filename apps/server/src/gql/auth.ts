@@ -19,7 +19,12 @@ function getConfig() {
       new URL(`${cachedIssuer}/.well-known/jwks.json`),
     );
   }
-  return { issuer: cachedIssuer, clientId: cachedClientId!, jwks: jwks! };
+  // cachedClientId and jwks are guaranteed set after the if-block above
+  return {
+    issuer: cachedIssuer,
+    clientId: cachedClientId as string,
+    jwks: jwks as ReturnType<typeof jose.createRemoteJWKSet>,
+  };
 }
 
 export async function verifyToken(token: string): Promise<AuthUser> {
@@ -28,7 +33,6 @@ export async function verifyToken(token: string): Promise<AuthUser> {
     issuer,
     audience: clientId,
   });
-  const email =
-    (payload.email as string | undefined)?.toLowerCase() ?? "";
+  const email = (payload.email as string | undefined)?.toLowerCase() ?? "";
   return { sub: payload.sub as string, email };
 }

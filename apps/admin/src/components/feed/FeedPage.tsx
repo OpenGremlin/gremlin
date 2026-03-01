@@ -1,12 +1,13 @@
-import type { FeedItem } from "../../types";
-import { QueryResult } from "../../shared/QueryResult";
-import { FeedCard } from "./FeedCard";
-import { useQuery } from "../../useQuery";
 import { FEED_ITEMS_QUERY } from "../../queries";
+import { QueryResult } from "../../shared/QueryResult";
+import type { FeedItem } from "../../types";
+import { useQuery } from "../../useQuery";
+import { FeedCard } from "./FeedCard";
 
 export function FeedPage() {
-  const { data, loading, error } =
-    useQuery<{ feedItems: FeedItem[] }>(FEED_ITEMS_QUERY);
+  const { data, loading, error } = useQuery<{ feedItems: FeedItem[] }>(
+    FEED_ITEMS_QUERY,
+  );
 
   const feedItems = data?.feedItems ?? [];
 

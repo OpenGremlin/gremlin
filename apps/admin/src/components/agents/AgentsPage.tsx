@@ -1,16 +1,15 @@
-import { Link } from "react-router-dom";
 import { Settings } from "lucide-react";
-import type { Agent } from "../../types";
+import { Link } from "react-router-dom";
+import { AGENTS_QUERY } from "../../queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
+import type { Agent } from "../../types";
 import { useQuery } from "../../useQuery";
-import { AGENTS_QUERY } from "../../queries";
 
 export function AgentsPage() {
-  const { data, loading, error } =
-    useQuery<{ agents: Agent[] }>(AGENTS_QUERY);
+  const { data, loading, error } = useQuery<{ agents: Agent[] }>(AGENTS_QUERY);
 
   const agents = data?.agents ?? [];
 
@@ -26,8 +25,16 @@ export function AgentsPage() {
             key={agent.id}
             className="bg-neutral-900 rounded-xl p-4 flex items-start gap-3"
           >
-            <Link to={`/agents/${agent.id}`} className="flex-1 min-w-0 flex items-start gap-3">
-              <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="md" />
+            <Link
+              to={`/agents/${agent.id}`}
+              className="flex-1 min-w-0 flex items-start gap-3"
+            >
+              <AgentAvatar
+                src={agent.imageUrl}
+                name={agent.name}
+                status={agent.status}
+                size="md"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-medium text-neutral-100">

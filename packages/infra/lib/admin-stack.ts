@@ -34,8 +34,7 @@ export class AdminStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, "AdminCdn", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
-        viewerProtocolPolicy:
-          cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
       defaultRootObject: "index.html",

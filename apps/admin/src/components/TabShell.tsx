@@ -1,12 +1,13 @@
-import { NavLink, Outlet } from "react-router-dom";
 import { AlignLeft, Calendar, Star, User } from "lucide-react";
+import { NavLink, Outlet } from "react-router-dom";
+import { NOTIFICATIONS_QUERY } from "../queries";
 import type { Notification } from "../types";
 import { useQuery } from "../useQuery";
-import { NOTIFICATIONS_QUERY } from "../queries";
 
 export function TabShell() {
-  const { data } =
-    useQuery<{ notifications: Notification[] }>(NOTIFICATIONS_QUERY);
+  const { data } = useQuery<{ notifications: Notification[] }>(
+    NOTIFICATIONS_QUERY,
+  );
   const pendingCount =
     data?.notifications?.filter((n) => n.status === "PENDING").length ?? 0;
 

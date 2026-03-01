@@ -1,15 +1,16 @@
 import { Link } from "react-router-dom";
-import type { AgentJob } from "../../types";
+import { AGENT_JOBS_QUERY } from "../../queries";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
+import type { AgentJob } from "../../types";
 import { useQuery } from "../../useQuery";
-import { AGENT_JOBS_QUERY } from "../../queries";
 
 export function SchedulerPage() {
-  const { data, loading, error } =
-    useQuery<{ agentJobs: AgentJob[] }>(AGENT_JOBS_QUERY);
+  const { data, loading, error } = useQuery<{ agentJobs: AgentJob[] }>(
+    AGENT_JOBS_QUERY,
+  );
 
   const jobs = data?.agentJobs ?? [];
 

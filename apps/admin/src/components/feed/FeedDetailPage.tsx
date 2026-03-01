@@ -1,13 +1,13 @@
 import Markdown from "react-markdown";
-import { useParams, Link } from "react-router-dom";
-import type { FeedItem } from "../../types";
+import { Link, useParams } from "react-router-dom";
+import { FEED_ITEM_QUERY } from "../../queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { BackButton } from "../../shared/BackButton";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
-import { QueryResult, NotFound } from "../../shared/QueryResult";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
+import type { FeedItem } from "../../types";
 import { useQuery } from "../../useQuery";
-import { FEED_ITEM_QUERY } from "../../queries";
 
 export function FeedDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +35,12 @@ export function FeedDetailPage() {
 
         <div className="flex items-center gap-3 mt-6">
           <Link to={`/agents/${agent.id}`}>
-            <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="md" />
+            <AgentAvatar
+              src={agent.imageUrl}
+              name={agent.name}
+              status={agent.status}
+              size="md"
+            />
           </Link>
           <div>
             <span className="text-sm font-medium text-neutral-100">

@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import type { FeedItem } from "../../types";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { timeAgo } from "../../shared/formatDate";
+import type { FeedItem } from "../../types";
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const { agent } = item;
@@ -20,7 +20,12 @@ export function FeedCard({ item }: { item: FeedItem }) {
             navigate(`/agents/${agent.id}`);
           }}
         >
-          <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="sm" />
+          <AgentAvatar
+            src={agent.imageUrl}
+            name={agent.name}
+            status={agent.status}
+            size="sm"
+          />
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">

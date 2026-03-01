@@ -3,7 +3,7 @@ import type { APIGatewayProxyResultV2 } from "aws-lambda";
 import sharp from "sharp";
 
 const s3 = new S3Client({});
-const BUCKET = process.env.BUCKET_NAME!;
+const BUCKET = process.env.BUCKET_NAME ?? "";
 
 const ALLOWED_FORMATS = ["jpeg", "png", "webp", "avif"] as const;
 type ImageFormat = (typeof ALLOWED_FORMATS)[number];
@@ -13,13 +13,19 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function parseParams(query: Record<string, string | undefined>) {
-  const width = query.width ? clamp(parseInt(query.width, 10), 1, 3000) : undefined;
-  const height = query.height ? clamp(parseInt(query.height, 10), 1, 3000) : undefined;
-  const quality = query.quality ? clamp(parseInt(query.quality, 10), 1, 100) : 80;
+  const width = query.width
+    ? clamp(parseInt(query.width, 10), 1, 3000)
+    : undefined;
+  const height = query.height
+    ? clamp(parseInt(query.height, 10), 1, 3000)
+    : undefined;
+  const quality = query.quality
+    ? clamp(parseInt(query.quality, 10), 1, 100)
+    : 80;
   const format = query.format as ImageFormat | undefined;
 
-  if (width !== undefined && isNaN(width)) return null;
-  if (height !== undefined && isNaN(height)) return null;
+  if (width !== undefined && Number.isNaN(width)) return null;
+  if (height !== undefined && Number.isNaN(height)) return null;
   if (format && !ALLOWED_FORMATS.includes(format)) return null;
 
   return { width, height, quality, format };

@@ -40,7 +40,7 @@ export class MediaStack extends cdk.Stack {
         commandHooks: {
           beforeBundling: () => [],
           beforeInstall: () => [],
-          afterBundling: (inputDir: string, outputDir: string) => [
+          afterBundling: (_inputDir: string, outputDir: string) => [
             `cd ${outputDir} && npm install --cpu=arm64 --os=linux sharp`,
           ],
         },
@@ -49,9 +49,7 @@ export class MediaStack extends cdk.Stack {
 
     new s3deploy.BucketDeployment(this, "DeployAssets", {
       sources: [
-        s3deploy.Source.asset(
-          path.join(REPO_ROOT, "apps/media-server/assets"),
-        ),
+        s3deploy.Source.asset(path.join(REPO_ROOT, "apps/media-server/assets")),
       ],
       destinationBucket: bucket,
       memoryLimit: 512,
@@ -80,8 +78,7 @@ export class MediaStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, "CDN", {
       defaultBehavior: {
         origin: new origins.FunctionUrlOrigin(fnUrl),
-        viewerProtocolPolicy:
-          cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
       },

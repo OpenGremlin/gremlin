@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import type { AgentJob } from "../../types";
-import { Badge } from "../../shared/Badge";
-import { BackButton } from "../../shared/BackButton";
-import { formatDate } from "../../shared/formatDate";
-import { QueryResult, NotFound } from "../../shared/QueryResult";
-import { useQuery } from "../../useQuery";
 import { AGENT_JOB_QUERY } from "../../queries";
+import { BackButton } from "../../shared/BackButton";
+import { Badge } from "../../shared/Badge";
+import { formatDate } from "../../shared/formatDate";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
+import type { AgentJob } from "../../types";
+import { useQuery } from "../../useQuery";
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,10 +51,12 @@ export function JobDetailPage() {
 
       <div className="mt-6 flex flex-col gap-2 text-xs text-neutral-400">
         <p>
-          Last run: <span className="text-neutral-300">{formatDate(job.lastRun)}</span>
+          Last run:{" "}
+          <span className="text-neutral-300">{formatDate(job.lastRun)}</span>
         </p>
         <p>
-          Next run: <span className="text-neutral-300">{formatDate(job.nextRun)}</span>
+          Next run:{" "}
+          <span className="text-neutral-300">{formatDate(job.nextRun)}</span>
         </p>
       </div>
     </div>

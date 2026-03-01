@@ -1,10 +1,16 @@
-import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const className =
   "flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-200 transition-colors";
 
-export function BackButton({ to, label = "Back" }: { to?: string; label?: string }) {
+export function BackButton({
+  to,
+  label = "Back",
+}: {
+  to?: string;
+  label?: string;
+}) {
   const navigate = useNavigate();
 
   if (to) {
@@ -17,11 +23,7 @@ export function BackButton({ to, label = "Back" }: { to?: string; label?: string
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => navigate(-1)}
-      className={className}
-    >
+    <button type="button" onClick={() => navigate(-1)} className={className}>
       <ChevronLeft size={16} className="shrink-0" />
       {label}
     </button>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { gql } from "./auth";
 
 export function useQuery<T>(
@@ -9,12 +9,18 @@ export function useQuery<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const serializedVars = JSON.stringify(variables);
+  const stableVars = useMemo(
+    () => JSON.parse(serializedVars) as Record<string, unknown> | undefined,
+    [serializedVars],
+  );
+
   useEffect(() => {
     let cancelled = false;
     setData(null);
     setLoading(true);
     setError(null);
-    gql<T>(query, variables)
+    gql<T>(query, stableVars)
       .then((result) => {
         if (!cancelled) setData(result);
       })
@@ -28,8 +34,7 @@ export function useQuery<T>(
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, JSON.stringify(variables)]);
+  }, [query, stableVars]);
 
   return { data, loading, error };
 }

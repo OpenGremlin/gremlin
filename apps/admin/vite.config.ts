@@ -9,7 +9,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-test: {
+  test: {
     environment: "jsdom",
     setupFiles: "./src/test-setup.ts",
   },

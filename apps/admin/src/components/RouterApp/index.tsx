@@ -1,15 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { FeedDetailPage } from "../feed/FeedDetailPage";
-import { FeedPage } from "../feed/FeedPage";
-import { IntegrationDetailPage } from "../integrations/IntegrationDetailPage";
-import { SchedulerPage } from "../scheduler/SchedulerPage";
-import { JobDetailPage } from "../scheduler/JobDetailPage";
 import { AgentChatPage } from "../agents/AgentChatPage";
 import { AgentConfigPage } from "../agents/AgentConfigPage";
 import { AgentsPage } from "../agents/AgentsPage";
+import { FeedDetailPage } from "../feed/FeedDetailPage";
+import { FeedPage } from "../feed/FeedPage";
+import { IntegrationDetailPage } from "../integrations/IntegrationDetailPage";
+import { JobDetailPage } from "../scheduler/JobDetailPage";
+import { SchedulerPage } from "../scheduler/SchedulerPage";
 import { SkillDetailPage } from "../skills/SkillDetailPage";
-import { UserPage } from "../user/UserPage";
 import { TabShell } from "../TabShell";
+import { UserPage } from "../user/UserPage";
 
 export function RouterApp() {
   return (
@@ -22,10 +22,7 @@ export function RouterApp() {
           <Route path="scheduler" element={<SchedulerPage />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
           <Route path="user" element={<UserPage />} />
-          <Route
-            path="integrations/:id"
-            element={<IntegrationDetailPage />}
-          />
+          <Route path="integrations/:id" element={<IntegrationDetailPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
           <Route path="agents" element={<AgentsPage />} />
           <Route path="agents/:id" element={<AgentChatPage />} />

@@ -2,7 +2,12 @@ import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import type { Construct } from "constructs";
 
-const TABLE_NAMES = ["feed-items", "agent-jobs", "integrations", "skills"] as const;
+const TABLE_NAMES = [
+  "feed-items",
+  "agent-jobs",
+  "integrations",
+  "skills",
+] as const;
 
 export class DatabaseStack extends cdk.Stack {
   readonly tables: dynamodb.ITable[];
