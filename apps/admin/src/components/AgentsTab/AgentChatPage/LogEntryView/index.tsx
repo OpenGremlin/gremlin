@@ -65,7 +65,7 @@ function DelegateTaskCard({
         onKeyDown={(e) =>
           clickable && e.key === "Enter" && onTaskClick(taskId!)
         }
-        className={`max-w-[80%] text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
+        className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
       >
         <div className="flex items-center gap-2">
           <ExternalLink size={14} className="text-indigo-400 shrink-0" />
