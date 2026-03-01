@@ -1,21 +1,32 @@
-import { useParams, Link } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
-import { Code, ArrowRight } from "lucide-react";
-import type { Agent } from "../../types";
+import { ArrowRight, Code } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { AGENT_QUERY } from "../../queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
-import { QueryResult, NotFound } from "../../shared/QueryResult";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
+import type { Agent } from "../../types";
 import { useQuery } from "../../useQuery";
-import { AGENT_QUERY } from "../../queries";
 
 type LogEntry =
   | { id: string; type: "user"; text: string; timestamp: string }
   | { id: string; type: "agent"; text: string; timestamp: string }
   | { id: string; type: "status"; text: string; timestamp: string }
-  | { id: string; type: "tool"; label: string; content: string; timestamp: string };
+  | {
+      id: string;
+      type: "tool";
+      label: string;
+      content: string;
+      timestamp: string;
+    };
 
 const MOCK_LOG: LogEntry[] = [
-  { id: "turn-1", type: "status", text: "Agent became ACTIVE", timestamp: "9:00 AM" },
+  {
+    id: "turn-1",
+    type: "status",
+    text: "Agent became ACTIVE",
+    timestamp: "9:00 AM",
+  },
   {
     id: "turn-2",
     type: "user",
@@ -54,7 +65,12 @@ const MOCK_LOG: LogEntry[] = [
     text: 'How about: "Thanks for trying us out, Alice! 🙌 Let us know if you have any questions — we\'re here to help!"',
     timestamp: "9:03 AM",
   },
-  { id: "turn-8", type: "status", text: "Agent became IDLE", timestamp: "9:15 AM" },
+  {
+    id: "turn-8",
+    type: "status",
+    text: "Agent became IDLE",
+    timestamp: "9:15 AM",
+  },
 ];
 
 function LogEntryView({ entry }: { entry: LogEntry }) {
@@ -143,7 +159,12 @@ export function AgentChatPage() {
       {/* Header */}
       <div className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
         <Link to={`/agents/${agent.id}/config`}>
-          <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="lg" />
+          <AgentAvatar
+            src={agent.imageUrl}
+            name={agent.name}
+            status={agent.status}
+            size="lg"
+          />
         </Link>
         <h1 className="text-sm font-semibold text-neutral-100 mt-2">
           {agent.name}

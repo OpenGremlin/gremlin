@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
 import { Check } from "lucide-react";
-import type { Integration, Notification, Skill } from "../../types";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { gql } from "../../auth";
-import { AgentAvatar } from "../../shared/AgentAvatar";
-import { AutoTextarea } from "../../shared/AutoTextarea";
-import { Badge } from "../../shared/Badge";
-import { QueryResult } from "../../shared/QueryResult";
-import { timeAgo } from "../../shared/formatDate";
-import { useQuery } from "../../useQuery";
 import {
+  DISMISS_NOTIFICATION,
   INTEGRATIONS_QUERY,
   NOTIFICATIONS_QUERY,
   PROFILE_QUERY,
-  UPDATE_PROFILE,
   RESOLVE_NOTIFICATION,
-  DISMISS_NOTIFICATION,
   SKILLS_QUERY,
+  UPDATE_PROFILE,
 } from "../../queries";
+import { AgentAvatar } from "../../shared/AgentAvatar";
+import { AutoTextarea } from "../../shared/AutoTextarea";
+import { Badge } from "../../shared/Badge";
+import { timeAgo } from "../../shared/formatDate";
+import { QueryResult } from "../../shared/QueryResult";
+import type { Integration, Notification, Skill } from "../../types";
+import { useQuery } from "../../useQuery";
 
 const pills = ["Notifications", "Integrations", "Skills", "Profile"] as const;
 type Pill = (typeof pills)[number];
@@ -37,18 +37,25 @@ function NotificationCard({
     (a) => a.id === notification.resolvedAction,
   )?.label;
 
+  const chatLink = `/agents/${notification.agent.id}${notification.turnId ? `#${notification.turnId}` : ""}`;
+
   return (
     <div
       className={`bg-neutral-900 rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
     >
       <div className="flex items-start gap-3">
-        <Link to={`/agents/${notification.agent.id}`} className="mt-0.5">
-          <AgentAvatar src={notification.agent.imageUrl} name={notification.agent.name} status={notification.agent.status} size="xs" />
+        <Link to={chatLink} className="mt-0.5">
+          <AgentAvatar
+            src={notification.agent.imageUrl}
+            name={notification.agent.name}
+            status={notification.agent.status}
+            size="xs"
+          />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <Link
-              to={`/agents/${notification.agent.id}`}
+              to={chatLink}
               className="text-sm font-medium text-neutral-100 hover:text-indigo-400 transition-colors"
             >
               {notification.agent.name}
@@ -65,7 +72,7 @@ function NotificationCard({
             <span className="text-xs text-neutral-500">
               {notification.status === "DISMISSED"
                 ? "Dismissed"
-                : resolvedLabel ?? "Resolved"}
+                : (resolvedLabel ?? "Resolved")}
             </span>
           ) : (
             <div className="flex items-center gap-2 flex-wrap">
@@ -140,8 +147,9 @@ function NotificationsContent() {
 }
 
 function IntegrationsContent() {
-  const { data, loading, error } =
-    useQuery<{ integrations: Integration[] }>(INTEGRATIONS_QUERY);
+  const { data, loading, error } = useQuery<{ integrations: Integration[] }>(
+    INTEGRATIONS_QUERY,
+  );
 
   const integrations = data?.integrations ?? [];
 
@@ -171,8 +179,7 @@ function IntegrationsContent() {
 
 function SkillsContent() {
   const [query, setQuery] = useState("");
-  const { data, loading, error } =
-    useQuery<{ skills: Skill[] }>(SKILLS_QUERY);
+  const { data, loading, error } = useQuery<{ skills: Skill[] }>(SKILLS_QUERY);
 
   const skills = data?.skills ?? [];
   const filtered = skills.filter((s) =>
@@ -226,7 +233,12 @@ interface ProfileFormValues {
 
 function ProfileContent() {
   const { data, loading, error } = useQuery<{
-    profile: { name: string; displayName: string; about: string; website: string | null };
+    profile: {
+      name: string;
+      displayName: string;
+      about: string;
+      website: string | null;
+    };
   }>(PROFILE_QUERY);
   const [saved, setSaved] = useState(false);
 

@@ -41,7 +41,7 @@ const mockNotifications: NotificationModel[] = [
     type: NotificationType.Approval,
     turnId: "turn-3",
     message:
-      'I found 3 outdated dependencies in the project. Should I open a PR to update them?',
+      "I found 3 outdated dependencies in the project. Should I open a PR to update them?",
     actions: [
       { id: "approve", label: "Go ahead", style: "primary" },
       { id: "reject", label: "Skip", style: "secondary" },
@@ -98,8 +98,7 @@ const mockNotifications: NotificationModel[] = [
   },
 ];
 
-const notifications: QueryResolvers["notifications"] = () =>
-  mockNotifications;
+const notifications: QueryResolvers["notifications"] = () => mockNotifications;
 
 const resolveNotification: MutationResolvers["resolveNotification"] = (
   _parent,
