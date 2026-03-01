@@ -9,9 +9,12 @@ export function useQuery<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const serializedVars = JSON.stringify(variables);
+  const serializedVars = variables ? JSON.stringify(variables) : undefined;
   const stableVars = useMemo(
-    () => JSON.parse(serializedVars) as Record<string, unknown> | undefined,
+    () =>
+      serializedVars
+        ? (JSON.parse(serializedVars) as Record<string, unknown>)
+        : undefined,
     [serializedVars],
   );
 
