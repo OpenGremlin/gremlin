@@ -1,12 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
-import { BackButton } from "../../shared/BackButton";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { AGENT_QUERY } from "../../queries";
 
-export function AgentDetailPage() {
+export function AgentConfigPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useQuery<{ agent: Agent | null }>(
     AGENT_QUERY,
@@ -25,7 +24,27 @@ export function AgentDetailPage() {
 
   return (
     <div className="px-4 pt-6 pb-8">
-      <BackButton />
+      <Link
+        to={`/agents/${agent.id}`}
+        className="flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          className="shrink-0"
+        >
+          <path
+            d="M10 12L6 8L10 4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Chat
+      </Link>
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">

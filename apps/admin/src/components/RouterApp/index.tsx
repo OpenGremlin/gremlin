@@ -5,7 +5,8 @@ import { IntegrationDetailPage } from "../integrations/IntegrationDetailPage";
 import { IntegrationsPage } from "../integrations/IntegrationsPage";
 import { SchedulerPage } from "../scheduler/SchedulerPage";
 import { JobDetailPage } from "../scheduler/JobDetailPage";
-import { AgentDetailPage } from "../agents/AgentDetailPage";
+import { AgentChatPage } from "../agents/AgentChatPage";
+import { AgentConfigPage } from "../agents/AgentConfigPage";
 import { AgentsPage } from "../agents/AgentsPage";
 import { SkillDetailPage } from "../skills/SkillDetailPage";
 import { SkillsPage } from "../skills/SkillsPage";
@@ -29,7 +30,8 @@ export function RouterApp() {
           <Route path="skills" element={<SkillsPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
           <Route path="agents" element={<AgentsPage />} />
-          <Route path="agents/:id" element={<AgentDetailPage />} />
+          <Route path="agents/:id" element={<AgentChatPage />} />
+          <Route path="agents/:id/config" element={<AgentConfigPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

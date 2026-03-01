@@ -20,12 +20,11 @@ export function AgentsPage() {
 
       <div className="flex flex-col gap-3 px-4 pb-4">
         {agents.map((agent) => (
-          <Link
+          <div
             key={agent.id}
-            to={`/agents/${agent.id}`}
-            className="bg-neutral-900 rounded-xl p-4 block transition-colors hover:bg-neutral-800/60"
+            className="bg-neutral-900 rounded-xl p-4 flex items-start gap-3"
           >
-            <div className="flex items-start gap-3">
+            <Link to={`/agents/${agent.id}`} className="flex-1 min-w-0 flex items-start gap-3">
               <div
                 className={`w-12 h-12 shrink-0 flex items-center justify-center avatar-ring ${
                   agent.status === "ACTIVE"
@@ -50,7 +49,7 @@ export function AgentsPage() {
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-medium text-neutral-100">
                     {agent.name}
                   </h3>
@@ -60,8 +59,28 @@ export function AgentsPage() {
                   {agent.soul}
                 </p>
               </div>
-            </div>
-          </Link>
+            </Link>
+            <Link
+              to={`/agents/${agent.id}/config`}
+              className="shrink-0 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-300 transition-colors rounded-lg hover:bg-neutral-800"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M6.86 2.57a1.25 1.25 0 0 1 2.28 0l.4.88a1.25 1.25 0 0 0 1.16.73l.96.02a1.25 1.25 0 0 1 1.14 1.97l-.56.78a1.25 1.25 0 0 0 0 1.38l.56.78a1.25 1.25 0 0 1-1.14 1.97l-.96.02a1.25 1.25 0 0 0-1.16.73l-.4.88a1.25 1.25 0 0 1-2.28 0l-.4-.88a1.25 1.25 0 0 0-1.16-.73l-.96-.02a1.25 1.25 0 0 1-1.14-1.97l.56-.78a1.25 1.25 0 0 0 0-1.38l-.56-.78A1.25 1.25 0 0 1 4.34 4.2l.96-.02a1.25 1.25 0 0 0 1.16-.73l.4-.88ZM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          </div>
         ))}
       </div>
     </div>
