@@ -24,10 +24,10 @@ export async function runTaskLane(
   await updateTaskStatus(ctx, taskId, "running");
 
   // Build conversation history from task thread logs
-  const logs = await ctx.services.agentLogs.getTaskLogs(ctx, taskId);
-  const messages: ModelMessage[] = logs.map((log) => ({
-    role: log.role === "agent" ? "assistant" : "user",
-    content: log.content,
+  const connection = await ctx.services.agentLogs.getTaskLogs(ctx, taskId);
+  const messages: ModelMessage[] = connection.edges.map(({ node }) => ({
+    role: node.role === "agent" ? "assistant" : "user",
+    content: node.content,
   }));
 
   // Add the resume/continuation prompt

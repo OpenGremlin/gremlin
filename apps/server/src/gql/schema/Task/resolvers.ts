@@ -12,8 +12,8 @@ const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
-const logs: TaskResolvers["logs"] = (parent, _args, ctx) =>
-  ctx.services.agentLogs.getTaskLogs(ctx, parent.id);
+const logs: TaskResolvers["logs"] = (parent, { first, after, last, before }, ctx) =>
+  ctx.services.agentLogs.getTaskLogs(ctx, parent.id, { first, after, last, before });
 
 export const taskResolvers = {
   Query: { tasks, task },

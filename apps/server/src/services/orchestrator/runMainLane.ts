@@ -25,10 +25,10 @@ export async function runMainLane(
   });
 
   // Build conversation history from main thread logs
-  const logs = await ctx.services.agentLogs.getAgentLogs(ctx, agentId);
-  const messages: ModelMessage[] = logs.map((log) => ({
-    role: log.role === "agent" ? "assistant" : "user",
-    content: log.content,
+  const connection = await ctx.services.agentLogs.getAgentLogs(ctx, agentId);
+  const messages: ModelMessage[] = connection.edges.map(({ node }) => ({
+    role: node.role === "agent" ? "assistant" : "user",
+    content: node.content,
   }));
 
   const response = await runAgentTurn(ctx, {

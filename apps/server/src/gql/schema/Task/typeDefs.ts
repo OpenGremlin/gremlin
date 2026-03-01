@@ -18,7 +18,7 @@ export const taskTypeDefs = /* GraphQL */ `
     updatedAt: String!
     completedAt: String
     originJobId: String
-    logs: [AgentLog!]!
+    logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }
 
   extend type Query {

@@ -12,6 +12,11 @@ const config: CodegenConfig = {
           Agent: "../resources/ddb/schema/agent.js#AgentItem",
           AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
           AgentLog: "../resources/ddb/schema/agentLog.js#AgentLogItem",
+          AgentLogConnection:
+            "../services/agentLogs/pagination.js#AgentLogConnectionModel",
+          AgentLogEdge: "../services/agentLogs/pagination.js#AgentLogEdgeModel",
+          AgentLogPageInfo:
+            "../services/agentLogs/pagination.js#PageInfoModel",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           Status: "../resources/ddb/schema/status.js#StatusItem",
           Integration:
