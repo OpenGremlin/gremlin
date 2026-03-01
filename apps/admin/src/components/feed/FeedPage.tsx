@@ -1,5 +1,4 @@
 import type { FeedItem } from "../../types";
-import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import { FeedCard } from "./FeedCard";
 import { useQuery } from "../../useQuery";
@@ -13,8 +12,6 @@ export function FeedPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950">
-      <PageHeader title="Feed" />
-
       <QueryResult loading={loading} error={error} />
 
       <div className="flex flex-col gap-3 px-4 pb-24">

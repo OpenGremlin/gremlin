@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 
 const tabs = [
-  { to: "/feed", label: "Feed", icon: FeedIcon },
+  { to: "/feed", label: "Home", icon: FeedIcon },
   { to: "/scheduler", label: "Scheduler", icon: SchedulerIcon },
   { to: "/integrations", label: "Integrations", icon: IntegrationsIcon },
   { to: "/skills", label: "Skills", icon: SkillsIcon },
