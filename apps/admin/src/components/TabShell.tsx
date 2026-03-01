@@ -4,18 +4,18 @@ import type { Notification } from "../types";
 import { useQuery } from "../useQuery";
 import { NOTIFICATIONS_QUERY } from "../queries";
 
-const tabs = [
-  { to: "/feed", label: "Home", icon: AlignLeft },
-  { to: "/scheduler", label: "Scheduler", icon: Calendar },
-  { to: "/agents", label: "Agents", icon: Star },
-  { to: "/user", label: "User", icon: User },
-];
-
 export function TabShell() {
   const { data } =
     useQuery<{ notifications: Notification[] }>(NOTIFICATIONS_QUERY);
   const pendingCount =
     data?.notifications?.filter((n) => n.status === "PENDING").length ?? 0;
+
+  const tabs = [
+    { to: "/feed", label: "Home", icon: AlignLeft, badge: 0 },
+    { to: "/scheduler", label: "Scheduler", icon: Calendar, badge: 0 },
+    { to: "/agents", label: "Agents", icon: Star, badge: 0 },
+    { to: "/user", label: "User", icon: User, badge: pendingCount },
+  ];
 
   return (
     <div className="flex flex-col h-dvh bg-neutral-950 max-w-lg mx-auto">
@@ -35,9 +35,9 @@ export function TabShell() {
           >
             <span className="relative">
               <tab.icon size={20} />
-              {tab.to === "/user" && pendingCount > 0 && (
+              {tab.badge > 0 && (
                 <span className="absolute -top-1 -right-1.5 bg-indigo-500 text-white text-[9px] font-bold leading-none min-w-[14px] h-[14px] flex items-center justify-center rounded-full px-0.5">
-                  {pendingCount}
+                  {tab.badge}
                 </span>
               )}
             </span>

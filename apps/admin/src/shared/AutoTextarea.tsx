@@ -8,9 +8,11 @@ type AutoTextareaProps = ComponentProps<"textarea"> & {
 export function AutoTextarea({ minRows = 3, ...props }: AutoTextareaProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
+  const value = props.value ?? props.defaultValue;
+
   useEffect(() => {
     resize();
-  });
+  }, [value]);
 
   function resize() {
     const el = ref.current;

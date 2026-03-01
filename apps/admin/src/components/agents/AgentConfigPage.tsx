@@ -1,9 +1,10 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { ChevronLeft, Pencil, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import type { Agent } from "../../types";
 import { AgentAvatar } from "../../shared/AgentAvatar";
+import { BackButton } from "../../shared/BackButton";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
@@ -21,7 +22,6 @@ interface AgentFormValues {
   name: string;
   soul: string;
   avatar: string;
-  imageUrl: string;
 }
 
 export function AgentConfigPage() {
@@ -34,10 +34,11 @@ export function AgentConfigPage() {
   const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
   const {
     register,
     setValue,
-    watch,
     reset,
     formState: { isDirty },
   } = useForm<AgentFormValues>();
@@ -51,8 +52,8 @@ export function AgentConfigPage() {
         name: agent.name,
         soul: agent.soul,
         avatar: agent.avatar,
-        imageUrl: agent.imageUrl,
       });
+      setSelectedImageUrl(null);
     }
   }, [agent, reset]);
 
@@ -72,17 +73,11 @@ export function AgentConfigPage() {
     return <NotFound label="Agent not found." />;
   }
 
-  const displayImageUrl = watch("imageUrl") || agent.imageUrl;
+  const displayImageUrl = selectedImageUrl || agent.imageUrl;
 
   return (
     <div className="px-4 pt-6 pb-8">
-      <Link
-        to={`/agents/${agent.id}`}
-        className="flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-      >
-        <ChevronLeft size={16} className="shrink-0" />
-        Chat
-      </Link>
+      <BackButton to={`/agents/${agent.id}`} label="Chat" />
 
       <form
         className="mt-4 flex flex-col gap-4"
@@ -133,7 +128,7 @@ export function AgentConfigPage() {
           loading={avatarsResult.loading}
           onSelect={(avatar) => {
             setValue("avatar", avatar.id, { shouldDirty: true });
-            setValue("imageUrl", avatar.url, { shouldDirty: true });
+            setSelectedImageUrl(avatar.url);
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}
