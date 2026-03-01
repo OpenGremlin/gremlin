@@ -18,8 +18,10 @@ export function useTaskChatMessages(
 
   // Reset when taskId or initialLogs change
   useEffect(() => {
-    setMessages(initialLogs.map((e) => e.node));
-  }, [taskId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (initialLogs.length > 0) {
+      setMessages(initialLogs.map((e) => e.node));
+    }
+  }, [taskId, initialLogs]);
 
   // Subscribe to new messages via SSE
   useSubscription<{ taskLogCreated: ChatMessage }>(

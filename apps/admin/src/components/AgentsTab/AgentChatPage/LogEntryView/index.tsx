@@ -10,6 +10,27 @@ function safeParseJson(s: string | null): Record<string, unknown> | null {
   }
 }
 
+/** Normalize tool fields — handles both typed columns and legacy JSON-in-content */
+function resolveToolFields(entry: ChatMessage) {
+  if (entry.toolName) {
+    return {
+      name: entry.toolName,
+      input: safeParseJson(entry.toolInput),
+      result: safeParseJson(entry.toolResult),
+    };
+  }
+  // Legacy: tool data was JSON-stringified into content
+  const parsed = safeParseJson(entry.content);
+  if (parsed?.name) {
+    return {
+      name: parsed.name as string,
+      input: (parsed.input as Record<string, unknown>) ?? null,
+      result: (parsed.result as Record<string, unknown>) ?? null,
+    };
+  }
+  return { name: "tool", input: null, result: null };
+}
+
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -58,27 +79,28 @@ export function LogEntryView({
         </div>
       );
     case "TOOL": {
-      const label = entry.toolName ?? "tool";
-      const inputStr = entry.toolInput ?? entry.content;
-      let formattedInput = inputStr;
-      try {
-        formattedInput = JSON.stringify(JSON.parse(inputStr), null, 2);
-      } catch {
-        // use raw string
-      }
+      const tool = resolveToolFields(entry);
+      const formattedInput = tool.input
+        ? JSON.stringify(tool.input, null, 2)
+        : entry.content;
 
       // Render delegateTask as a tappable task card
-      if (entry.toolName === "delegateTask" && onTaskClick) {
-        const input = safeParseJson(entry.toolInput);
-        const result = safeParseJson(entry.toolResult);
-        const taskTitle = (input?.title as string) ?? "Untitled task";
-        const taskId = (result?.taskId as string) ?? null;
+      if (tool.name === "delegateTask") {
+        const taskTitle = (tool.input?.title as string) ?? "Untitled task";
+        const taskId = (tool.result?.taskId as string) ?? null;
+        const clickable = !!(taskId && onTaskClick);
         return (
           <div id={entry.id} className="py-1 px-2">
-            <button
-              type="button"
-              onClick={() => taskId && onTaskClick(taskId)}
-              className="w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 hover:border-indigo-600/60 transition-colors group"
+            <div
+              role={clickable ? "button" : undefined}
+              tabIndex={clickable ? 0 : undefined}
+              onClick={() => clickable && onTaskClick(taskId)}
+              onKeyDown={(e) =>
+                clickable &&
+                e.key === "Enter" &&
+                onTaskClick(taskId)
+              }
+              className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
             >
               <div className="flex items-center gap-2">
                 <ExternalLink
@@ -95,7 +117,7 @@ export function LogEntryView({
               <p className="text-xs text-neutral-500 mt-1 ml-[22px]">
                 Delegated task
               </p>
-            </button>
+            </div>
           </div>
         );
       }
@@ -106,7 +128,7 @@ export function LogEntryView({
             <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-neutral-800 bg-neutral-900/50">
               <Code size={12} className="text-neutral-500 shrink-0" />
               <span className="text-[11px] text-neutral-400 font-mono">
-                {label}
+                {tool.name}
               </span>
               <span className="text-[10px] text-neutral-600 ml-auto">
                 {formatTime(entry.createdAt)}
