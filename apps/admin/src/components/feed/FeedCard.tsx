@@ -20,11 +20,11 @@ export function FeedCard({ item }: { item: FeedItem }) {
   return (
     <Link
       to={`/feed/${item.id}`}
-      className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
+      className="block px-4 py-4 transition-colors hover:bg-neutral-900/50"
     >
       <div className="flex gap-3">
         <div
-          className={`w-12 h-12 shrink-0 flex items-center justify-center avatar-ring ${
+          className={`w-9 h-9 shrink-0 flex items-center justify-center avatar-ring ${
             agent.status === "ACTIVE"
               ? "avatar-ring-active"
               : agent.status === "SCHEDULED"
@@ -32,7 +32,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
                 : "avatar-ring-idle"
           }`}
         >
-          <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium">
+          <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-xs text-neutral-400 font-medium">
             <img
               src={agent.imageUrl}
               alt={agent.name}
@@ -47,22 +47,22 @@ export function FeedCard({ item }: { item: FeedItem }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm text-neutral-400 truncate">
-              {agent.name}
-            </span>
-            <span className="text-xs text-neutral-500 shrink-0">
-              {timeAgo(item.completedAt)}
-            </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm text-neutral-400 truncate">
+                {agent.name}
+              </span>
+              <span className="text-xs text-neutral-600 shrink-0">
+                {timeAgo(item.completedAt)}
+              </span>
+            </div>
+            <Badge label={item.category} />
           </div>
           <h3 className="text-sm font-medium text-neutral-100 mt-0.5">
             {item.title}
           </h3>
-          <p className="text-sm text-neutral-400 mt-1 line-clamp-2">
+          <p className="text-sm text-neutral-500 mt-0.5 line-clamp-1">
             {item.summary}
           </p>
-          <div className="mt-2">
-            <Badge label={item.category} />
-          </div>
         </div>
       </div>
     </Link>

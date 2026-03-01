@@ -14,7 +14,7 @@ export function FeedPage() {
     <div className="min-h-screen bg-neutral-950">
       <QueryResult loading={loading} error={error} />
 
-      <div className="flex flex-col gap-3 px-4 pb-24">
+      <div className="divide-y divide-neutral-800/50 pb-24">
         {feedItems.map((item) => (
           <FeedCard key={item.id} item={item} />
         ))}
