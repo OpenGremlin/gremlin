@@ -61,7 +61,7 @@ export interface Agent {
 export interface Notification {
   id: string;
   agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
-  type: "PERMISSION" | "APPROVAL" | "INPUT" | "SUGGESTION";
+  type: "PERMISSION" | "APPROVAL";
   turnId: string | null;
   message: string;
   actions: NotificationAction[];

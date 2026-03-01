@@ -2,8 +2,6 @@ export const notificationTypeDefs = /* GraphQL */ `
   enum NotificationType {
     PERMISSION
     APPROVAL
-    INPUT
-    SUGGESTION
   }
 
   enum NotificationStatus {

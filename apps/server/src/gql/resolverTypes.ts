@@ -252,9 +252,7 @@ export enum NotificationStatus {
 
 export enum NotificationType {
   Approval = 'APPROVAL',
-  Input = 'INPUT',
-  Permission = 'PERMISSION',
-  Suggestion = 'SUGGESTION'
+  Permission = 'PERMISSION'
 }
 
 export type Permission = {
