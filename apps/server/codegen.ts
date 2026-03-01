@@ -10,6 +10,7 @@ const config: CodegenConfig = {
         contextType: "./context.js#Context",
         mappers: {
           Agent: "./schema/Agent/resolvers.js#AgentModel",
+          Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           FeedItem: "./schema/Feed/resolvers.js#FeedItemModel",
           Notification: "./schema/Notification/resolvers.js#NotificationModel",
         },
