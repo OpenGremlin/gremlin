@@ -51,8 +51,11 @@ export function LogEntryView({
     case "TOOL": {
       let label = "tool";
       let content = entry.content;
-      let parsed: { name?: string; input?: Record<string, unknown> } | null =
-        null;
+      let parsed: {
+        name?: string;
+        input?: Record<string, unknown>;
+        result?: Record<string, unknown>;
+      } | null = null;
       try {
         parsed = JSON.parse(entry.content);
         label = parsed!.name || "tool";
@@ -65,14 +68,7 @@ export function LogEntryView({
       if (parsed?.name === "delegateTask" && onTaskClick) {
         const taskTitle =
           (parsed.input?.title as string) || "Untitled task";
-        // Try to extract taskId from the content (it's in the tool result)
-        let taskId: string | null = null;
-        try {
-          const result = JSON.parse(entry.content);
-          taskId = result.input?.taskId as string ?? null;
-        } catch {
-          // ignore
-        }
+        const taskId = (parsed.result?.taskId as string) ?? null;
         return (
           <div id={entry.id} className="py-1 px-2">
             <button

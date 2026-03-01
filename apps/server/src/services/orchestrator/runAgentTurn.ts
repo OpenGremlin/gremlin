@@ -31,9 +31,11 @@ export async function runAgentTurn(
     stopWhen: [hasToolCall("requestApproval")],
   });
 
-  // Log each step's tool calls
+  // Log each step's tool calls with their results
   for (const step of result.steps) {
-    for (const toolCall of step.toolCalls) {
+    for (let i = 0; i < step.toolCalls.length; i++) {
+      const toolCall = step.toolCalls[i];
+      const toolResult = step.toolResults[i];
       await writeAgentLog(ctx, {
         agentId: opts.agentId,
         taskId: opts.taskId,
@@ -41,6 +43,7 @@ export async function runAgentTurn(
         content: JSON.stringify({
           name: toolCall.toolName,
           input: "input" in toolCall ? toolCall.input : undefined,
+          result: toolResult?.output,
         }),
       });
     }

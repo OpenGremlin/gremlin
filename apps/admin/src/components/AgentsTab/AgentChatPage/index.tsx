@@ -98,7 +98,7 @@ export function AgentChatPage() {
           </div>
         )}
         {messages
-          .filter((msg) => !msg.taskId || msg.role === "TOOL")
+          .filter((msg) => !msg.taskId)
           .map((msg) => (
             <LogEntryView
               key={msg.id}
