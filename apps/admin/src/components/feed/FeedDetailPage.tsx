@@ -1,3 +1,4 @@
+import Markdown from "react-markdown";
 import { useParams } from "react-router-dom";
 import type { FeedItem } from "../../types";
 import { BackButton } from "../../shared/BackButton";
@@ -72,8 +73,8 @@ export function FeedDetailPage() {
           <Badge label={item.category} />
         </div>
 
-        <div className="mt-6 text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
-          {item.body}
+        <div className="mt-6 text-sm text-neutral-300 leading-relaxed feed-body">
+          <Markdown>{item.body}</Markdown>
         </div>
       </div>
     </div>
