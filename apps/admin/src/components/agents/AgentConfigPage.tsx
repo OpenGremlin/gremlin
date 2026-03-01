@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { ChevronLeft, Pencil, X } from "lucide-react";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
@@ -7,11 +8,19 @@ import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
 import { preloadImages } from "../../preloadImages";
+import { AutoTextarea } from "../../shared/AutoTextarea";
 
 interface Avatar {
   id: string;
   name: string;
   url: string;
+}
+
+interface AgentFormValues {
+  name: string;
+  soul: string;
+  avatar: string;
+  imageUrl: string;
 }
 
 export function AgentConfigPage() {
@@ -23,7 +32,28 @@ export function AgentConfigPage() {
   // Eagerly fetch avatars so they're ready when the picker opens
   const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+  const {
+    register,
+    setValue,
+    watch,
+    reset,
+    formState: { isDirty },
+  } = useForm<AgentFormValues>();
+
+  const agent = data?.agent ?? null;
+
+  // Reset form when agent data loads
+  useEffect(() => {
+    if (agent) {
+      reset({
+        name: agent.name,
+        soul: agent.soul,
+        avatar: agent.avatar,
+        imageUrl: agent.imageUrl,
+      });
+    }
+  }, [agent, reset]);
 
   // Preload avatar images as soon as URLs are available
   useEffect(() => {
@@ -37,13 +67,11 @@ export function AgentConfigPage() {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const agent = data?.agent ?? null;
-
   if (!agent) {
     return <NotFound label="Agent not found." />;
   }
 
-  const displayImageUrl = selectedImageUrl ?? agent.imageUrl;
+  const displayImageUrl = watch("imageUrl") || agent.imageUrl;
 
   return (
     <div className="px-4 pt-6 pb-8">
@@ -55,7 +83,10 @@ export function AgentConfigPage() {
         Chat
       </Link>
 
-      <div className="mt-4 flex flex-col gap-4">
+      <form
+        className="mt-4 flex flex-col gap-4"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -88,35 +119,41 @@ export function AgentConfigPage() {
               <Pencil size={12} className="text-neutral-200" />
             </div>
           </button>
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-100">
-              {agent.name}
-            </h1>
+          <div className="flex-1 min-w-0">
+            <input
+              {...register("name")}
+              className="w-full bg-transparent text-xl font-semibold text-neutral-100 outline-none border-b border-transparent focus:border-neutral-700 transition-colors"
+            />
             <Badge label={agent.status} />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-500">Portrait</span>
-          <span className="text-sm text-neutral-100 font-mono">
-            {agent.portraitId}
-          </span>
+          <label className="text-xs text-neutral-500">Soul</label>
+          <AutoTextarea
+            {...register("soul")}
+            minRows={3}
+            className="w-full bg-neutral-900 text-sm text-neutral-300 leading-relaxed rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+          />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-500">Soul</span>
-          <p className="text-sm text-neutral-300 leading-relaxed">
-            {agent.soul}
-          </p>
-        </div>
-      </div>
+        {isDirty && (
+          <button
+            type="submit"
+            className="self-start px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors"
+          >
+            Save
+          </button>
+        )}
+      </form>
 
       {pickerOpen && (
         <AvatarPicker
           avatars={avatarsResult.data?.avatars ?? []}
           loading={avatarsResult.loading}
           onSelect={(avatar) => {
-            setSelectedImageUrl(avatar.url);
+            setValue("avatar", avatar.id, { shouldDirty: true });
+            setValue("imageUrl", avatar.url, { shouldDirty: true });
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}
@@ -137,7 +174,6 @@ function AvatarPicker({
   onSelect: (avatar: Avatar) => void;
   onClose: () => void;
 }) {
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
