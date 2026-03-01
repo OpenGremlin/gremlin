@@ -11,9 +11,8 @@ export function SkillsPage() {
   const { data, loading, error } = useQuery<{ skills: Skill[] }>(SKILLS_QUERY);
 
   const skills = data?.skills ?? [];
-  const filtered = skills.filter((s) =>
-    s.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  const q = query.toLowerCase();
+  const filtered = skills.filter((s) => s.name.toLowerCase().includes(q));
 
   return (
     <>
