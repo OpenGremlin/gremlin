@@ -21,8 +21,8 @@ const media = new MediaStack(app, "GremlinMediaStack", { env });
 // 2. Server — depends on Database, Auth, Media
 new ServerStack(app, "GremlinServerStack", {
   env,
-  tables: db.tables,
-  tablePrefix: db.tablePrefix,
+  table: db.table,
+  tableName: db.tableName,
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   mediaCdnUrl: media.cdnUrl,

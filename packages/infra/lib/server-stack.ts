@@ -11,8 +11,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 
 export interface ServerStackProps extends cdk.StackProps {
-  tables: dynamodb.ITable[];
-  tablePrefix: string;
+  table: dynamodb.ITable;
+  tableName: string;
   userPoolId: string;
   userPoolClientId: string;
   mediaCdnUrl: string;
@@ -44,9 +44,7 @@ export class ServerStack extends cdk.Stack {
       },
     });
 
-    for (const table of props.tables) {
-      table.grantReadWriteData(taskDef.taskRole);
-    }
+    props.table.grantReadWriteData(taskDef.taskRole);
 
     const container = taskDef.addContainer("gremlin-server", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
@@ -69,7 +67,7 @@ export class ServerStack extends cdk.Stack {
       },
       environment: {
         PORT: "3001",
-        TABLE_PREFIX: props.tablePrefix,
+        TABLE_NAME: props.tableName,
         NODE_ENV: "production",
         AWS_REGION: this.region,
         COGNITO_USER_POOL_ID: props.userPoolId,
