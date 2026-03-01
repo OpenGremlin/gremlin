@@ -4,17 +4,14 @@ WORKDIR /workspace
 RUN corepack enable
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/server/package.json apps/server/
-COPY apps/admin/package.json apps/admin/
-COPY packages/shared-types/package.json packages/shared-types/
 COPY packages/infra/package.json packages/infra/
 RUN pnpm install --frozen-lockfile
 
 # Stage 2: build server
 FROM deps AS build
 COPY apps/server/ apps/server/
-COPY packages/shared-types/ packages/shared-types/
 COPY tsconfig.base.json ./
-RUN pnpm --filter @gremlin/shared-types build && pnpm --filter @gremlin/server build
+RUN pnpm --filter @gremlin/server build
 
 # Stage 3: production dependencies only
 FROM deps AS prod-deps
@@ -27,8 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 WORKDIR /app
 COPY --from=build /workspace/apps/server/dist/ apps/server/dist/
 COPY --from=build /workspace/apps/server/package.json apps/server/
-COPY --from=build /workspace/packages/shared-types/dist/ packages/shared-types/dist/
-COPY --from=build /workspace/packages/shared-types/package.json packages/shared-types/
 COPY --from=prod-deps /workspace/node_modules/ node_modules/
 COPY --from=prod-deps /workspace/apps/server/node_modules/ apps/server/node_modules/
 COPY package.json pnpm-workspace.yaml ./

@@ -17,9 +17,6 @@ importers:
 
   apps/admin:
     dependencies:
-      '@gremlin/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
       cronstrue:
         specifier: ^3.13.0
         version: 3.13.0
@@ -100,9 +97,6 @@ importers:
       '@babel/runtime':
         specifier: ^7.28.6
         version: 7.28.6
-      '@gremlin/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
       expo:
         specifier: ~52.0.0
         version: 52.0.49(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(graphql@16.13.0)(react-native@0.76.6(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)
@@ -122,55 +116,6 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
-
-  apps/screen:
-    dependencies:
-      '@gremlin/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
-      motion:
-        specifier: ^12.34.3
-        version: 12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19
-        version: 19.2.4
-      react-dom:
-        specifier: ^19
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@tailwindcss/vite':
-        specifier: ^4
-        version: 4.2.1(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-      '@testing-library/jest-dom':
-        specifier: ^6.9.1
-        version: 6.9.1
-      '@testing-library/react':
-        specifier: ^16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@types/react':
-        specifier: ^19
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19
-        version: 19.2.3(@types/react@19.2.14)
-      '@vitejs/plugin-react':
-        specifier: ^4
-        version: 4.7.0(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
-      jsdom:
-        specifier: '25'
-        version: 25.0.1
-      tailwindcss:
-        specifier: ^4
-        version: 4.2.1
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-      vite:
-        specifier: ^6
-        version: 6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-      vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@22.19.13)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   apps/server:
     dependencies:
@@ -195,9 +140,6 @@ importers:
       '@graphql-yoga/subscription':
         specifier: ^5.0.5
         version: 5.0.5
-      '@gremlin/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
       ai:
         specifier: ^6.0.105
         version: 6.0.105(zod@4.3.6)
@@ -216,12 +158,12 @@ importers:
       graphql-yoga:
         specifier: ^5.18.0
         version: 5.18.0(graphql@16.13.0)
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       jose:
         specifier: ^6
         version: 6.1.3
-      ws:
-        specifier: ^8
-        version: 8.19.0
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -244,9 +186,6 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.19.13
-      '@types/ws':
-        specifier: ^8
-        version: 8.18.1
       tsx:
         specifier: ^4
         version: 4.21.0
@@ -275,12 +214,6 @@ importers:
       tsx:
         specifier: ^4
         version: 4.21.0
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
-  packages/shared-types:
-    devDependencies:
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -1678,7 +1611,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -4236,20 +4169,6 @@ packages:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
 
-  framer-motion@12.34.3:
-    resolution: {integrity: sha512-v81ecyZKYO/DfpTwHivqkxSUBzvceOpoI+wLfgCgoUIKxlFKEXdg0oR9imxwXumT4SFy8vRk9xzJ5l3/Du/55Q==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-
   freeport-async@2.0.0:
     resolution: {integrity: sha512-K7od3Uw45AJg00XUmy15+Hae2hOcgKcmN3/EF6Y7i01O0gaqiRx8sUSpsb9+BRNL8RPBrhzPsVfy8q9ADlJuWQ==}
     engines: {node: '>=8'}
@@ -4393,6 +4312,11 @@ packages:
   graphql@16.13.0:
     resolution: {integrity: sha512-uSisMYERbaB9bkA9M4/4dnqyktaEkf1kMHNKq/7DHyxVeWqHQ2mBmVqm5u6/FVHwF3iCNalKcg82Zfl+tffWoA==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
+
+  handlebars@4.7.8:
+    resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
+    engines: {node: '>=0.4.7'}
+    hasBin: true
 
   has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
@@ -5300,26 +5224,6 @@ packages:
 
   mnemonist@0.38.3:
     resolution: {integrity: sha512-2K9QYubXx/NAjv4VLq1d1Ly8pWNC5L3BrixtdkyTegXWJIqY+zLNDhhX/A+ZwWt70tB1S8H4BE8FLYEFyNoOBw==}
-
-  motion-dom@12.34.3:
-    resolution: {integrity: sha512-sYgFe+pR9aIM7o4fhs2aXtOI+oqlUd33N9Yoxcgo1Fv7M20sRkHtCmzE/VRNIcq7uNJ+qio+Xubt1FXH3pQ+eQ==}
-
-  motion-utils@12.29.2:
-    resolution: {integrity: sha512-G3kc34H2cX2gI63RqU+cZq+zWRRPSsNIOjpdl9TN4AQwC4sgwYPl/Q/Obf/d53nOm569T0fYK+tcoSV50BWx8A==}
-
-  motion@12.34.3:
-    resolution: {integrity: sha512-xZIkBGO7v/Uvm+EyaqYd+9IpXu0sZqLywVlGdCFrrMiaO9JI4Kx51mO9KlHSWwll+gZUVY5OJsWgYI5FywJ/tw==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
 
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
@@ -6400,6 +6304,11 @@ packages:
     resolution: {integrity: sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==}
     hasBin: true
 
+  uglify-js@3.19.3:
+    resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}
+    engines: {node: '>=0.8.0'}
+    hasBin: true
+
   unc-path-regex@0.1.2:
     resolution: {integrity: sha512-eXL4nmJT7oCpkZsHZUOJo8hcX3GbsiDOa0Qu9F646fi8dT3XuSVopVqAcEiVzSKKH7UoDti23wNX3qGFxcW5Qg==}
     engines: {node: '>=0.10.0'}
@@ -6659,6 +6568,9 @@ packages:
 
   wonka@6.3.5:
     resolution: {integrity: sha512-SSil+ecw6B4/Dm7Pf2sAshKQ5hWFvfyGlfPbEd6A14dOH6VDjrmbY86u6nZvy9omGwwIPFR8V41+of1EezgoUw==}
+
+  wordwrap@1.0.0:
+    resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
 
   wrap-ansi@6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
@@ -11974,15 +11886,6 @@ snapshots:
 
   forwarded@0.2.0: {}
 
-  framer-motion@12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      motion-dom: 12.34.3
-      motion-utils: 12.29.2
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
   freeport-async@2.0.0: {}
 
   fresh@0.5.2: {}
@@ -12146,6 +12049,15 @@ snapshots:
       tslib: 2.8.1
 
   graphql@16.13.0: {}
+
+  handlebars@4.7.8:
+    dependencies:
+      minimist: 1.2.8
+      neo-async: 2.6.2
+      source-map: 0.6.1
+      wordwrap: 1.0.0
+    optionalDependencies:
+      uglify-js: 3.19.3
 
   has-flag@3.0.0: {}
 
@@ -13275,20 +13187,6 @@ snapshots:
   mnemonist@0.38.3:
     dependencies:
       obliterator: 1.6.1
-
-  motion-dom@12.34.3:
-    dependencies:
-      motion-utils: 12.29.2
-
-  motion-utils@12.29.2: {}
-
-  motion@12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      framer-motion: 12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
 
   ms@2.0.0: {}
 
@@ -14422,6 +14320,9 @@ snapshots:
 
   ua-parser-js@1.0.41: {}
 
+  uglify-js@3.19.3:
+    optional: true
+
   unc-path-regex@0.1.2: {}
 
   undici-types@6.21.0: {}
@@ -14648,6 +14549,8 @@ snapshots:
       stackback: 0.0.2
 
   wonka@6.3.5: {}
+
+  wordwrap@1.0.0: {}
 
   wrap-ansi@6.2.0:
     dependencies:

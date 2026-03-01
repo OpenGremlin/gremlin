@@ -1,4 +1,3 @@
-import type { CommandMessage } from "@gremlin/shared-types";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import {
@@ -16,7 +15,7 @@ export default function App() {
   const sendCommand = () => {
     if (!command.trim()) return;
 
-    const message: CommandMessage = {
+    const message = {
       type: "command",
       text: command.trim(),
       inputType: "text",

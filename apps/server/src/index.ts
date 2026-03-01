@@ -7,10 +7,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import { createServer } from "node:http";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import type { LayoutStateMessage } from "@gremlin/shared-types";
 import express from "express";
 import { createYoga } from "graphql-yoga";
-import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
@@ -86,8 +84,6 @@ const server = createServer((req, res) => {
   app(req, res);
 });
 
-const wss = new WebSocketServer({ server, path: "/ws" });
-
 // Serve media assets locally (in production CloudFront handles this)
 if (!process.env.MEDIA_CDN_URL) {
   const mediaAssets = path.resolve(
@@ -102,63 +98,13 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Default layout state
-const defaultLayout: LayoutStateMessage = {
-  type: "layout_state",
-  mode: "idle",
-  modules: [
-    { id: "clock-1", type: "clock", lifecycle: "active", data: {} },
-    { id: "weather-1", type: "weather", lifecycle: "active", data: {} },
-  ],
-  avatar: "dormant",
-  profileId: "family",
-};
-const defaultLayoutJson = JSON.stringify(defaultLayout);
-
-wss.on("connection", (ws) => {
-  console.log("Client connected");
-  ws.send(defaultLayoutJson);
-
-  ws.on("message", (raw) => {
-    let message: { type?: string; text?: string };
-    try {
-      message = JSON.parse(raw.toString());
-    } catch {
-      console.error("Invalid JSON from client:", raw.toString().slice(0, 200));
-      return;
-    }
-    console.log("Received:", message);
-
-    // Echo commands back as task updates for now
-    if (message.type === "command") {
-      ws.send(
-        JSON.stringify({
-          type: "task_update",
-          taskId: crypto.randomUUID(),
-          status: "complete",
-          summary: `Received: "${message.text}"`,
-        }),
-      );
-    }
-  });
-
-  ws.on("error", (err) => console.error("WebSocket error:", err));
-  ws.on("close", () => console.log("Client disconnected"));
-});
-
 server.listen(PORT, () => {
   console.log(`Gremlin server running at http://localhost:${PORT}`);
-  console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
 });
 
 function shutdown() {
-  for (const client of wss.clients) {
-    client.terminate();
-  }
-  wss.close(() => {
-    server.close(() => {
-      process.exit(0);
-    });
+  server.close(() => {
+    process.exit(0);
   });
 }
 
