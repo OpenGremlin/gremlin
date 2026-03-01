@@ -2,9 +2,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import { timeAgo } from "../../../shared/formatDate";
-import type { FeedItem } from "../../../types";
+import type { Status } from "../../../types";
 
-export function FeedCard({ item }: { item: FeedItem }) {
+export function FeedCard({ item }: { item: Status }) {
   const { agent } = item;
   const navigate = useNavigate();
   return (

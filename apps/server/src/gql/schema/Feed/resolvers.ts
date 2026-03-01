@@ -1,21 +1,32 @@
 import type {
-  FeedItemResolvers,
+  ArtifactResolvers,
+  StatusResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
 
-const feedItems: QueryResolvers["feedItems"] = (_parent, _args, ctx) =>
-  ctx.services.feed.getFeedItems(ctx);
+const statuses: QueryResolvers["statuses"] = (_parent, _args, ctx) =>
+  ctx.services.statuses.getStatuses(ctx);
 
-const feedItem: QueryResolvers["feedItem"] = (_parent, { id }, ctx) =>
-  ctx.services.feed.getFeedItem(ctx, id);
+const status: QueryResolvers["status"] = (_parent, { id }, ctx) =>
+  ctx.services.statuses.getStatus(ctx, id);
 
-const agent: FeedItemResolvers["agent"] = async (parent, _args, ctx) => {
+const agent: StatusResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
   return a;
 };
 
+const artifacts: StatusResolvers["artifacts"] = (parent) =>
+  parent.artifacts ?? [];
+
+const __resolveType: ArtifactResolvers["__resolveType"] = (obj) => {
+  const artifact = obj as unknown as { type: string };
+  if (artifact.type === "DOCUMENT") return "Document";
+  throw new Error(`Unknown artifact type: ${artifact.type}`);
+};
+
 export const feedResolvers = {
-  Query: { feedItems, feedItem },
-  FeedItem: { agent },
+  Query: { statuses, status },
+  Status: { agent, artifacts },
+  Artifact: { __resolveType },
 };

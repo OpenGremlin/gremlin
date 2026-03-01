@@ -1,5 +1,5 @@
 import { type AgentService, agentService } from "./agents/index.js";
-import { type FeedService, feedService } from "./feed/index.js";
+import { type StatusService, statusService } from "./feed/index.js";
 import {
   type IntegrationService,
   integrationService,
@@ -16,7 +16,7 @@ import { type SkillService, skillService } from "./skills/index.js";
 export interface Services {
   agents: AgentService;
   jobs: JobService;
-  feed: FeedService;
+  statuses: StatusService;
   integrations: IntegrationService;
   notifications: NotificationService;
   profile: ProfileService;
@@ -28,7 +28,7 @@ export function createServices(): Services {
   return {
     agents: agentService,
     jobs: jobService,
-    feed: feedService,
+    statuses: statusService,
     integrations: integrationService,
     notifications: notificationService,
     profile: profileService,

@@ -1,23 +1,30 @@
 export const feedTypeDefs = /* GraphQL */ `
-  enum FeedCategory {
+  enum StatusCategory {
     RESEARCH
     TASK
     MONITOR
     REPORT
   }
 
-  type FeedItem {
+  type Document {
+    title: String!
+    body: String!
+  }
+
+  union Artifact = Document
+
+  type Status {
     id: ID!
     agent: Agent!
     title: String!
     summary: String!
-    body: String!
-    category: FeedCategory!
+    artifacts: [Artifact!]!
+    category: StatusCategory!
     completedAt: String!
   }
 
   extend type Query {
-    feedItems: [FeedItem!]!
-    feedItem(id: ID!): FeedItem
+    statuses: [Status!]!
+    status(id: ID!): Status
   }
 `;

@@ -1,15 +1,15 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { FeedItemItem } from "../../resources/ddb/schema/feedItem.js";
+import type { StatusItem } from "../../resources/ddb/schema/status.js";
 import type { ServiceContext } from "../context.js";
 
-export async function getFeedItem(
+export async function getStatus(
   ctx: ServiceContext,
   id: string,
-): Promise<FeedItemItem | null> {
+): Promise<StatusItem | null> {
   const { Items } = await ctx.resources.ddb.table
     .build(QueryCommand)
-    .entities(ctx.resources.ddb.entities.FeedItem)
-    .query({ partition: "FEED_ITEM", range: { eq: `FEED_ITEM#${id}` } })
+    .entities(ctx.resources.ddb.entities.Status)
+    .query({ partition: "STATUS", range: { eq: `STATUS#${id}` } })
     .send();
 
   return Items?.[0] ?? null;

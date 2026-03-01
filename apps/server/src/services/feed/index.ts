@@ -1,6 +1,6 @@
-import { getFeedItem } from "./getFeedItem.js";
-import { getFeedItems } from "./getFeedItems.js";
+import { getStatus } from "./getStatus.js";
+import { getStatuses } from "./getStatuses.js";
 
-export const feedService = { getFeedItems, getFeedItem };
+export const statusService = { getStatuses, getStatus };
 
-export type FeedService = typeof feedService;
+export type StatusService = typeof statusService;

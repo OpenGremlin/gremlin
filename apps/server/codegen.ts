@@ -12,7 +12,7 @@ const config: CodegenConfig = {
           Agent: "../resources/ddb/schema/agent.js#AgentItem",
           AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
-          FeedItem: "../resources/ddb/schema/feedItem.js#FeedItemItem",
+          Status: "../resources/ddb/schema/status.js#StatusItem",
           Integration:
             "../resources/ddb/schema/integration.js#IntegrationItem",
           Notification:

@@ -1,11 +1,18 @@
+/** A document artifact with title and markdown body */
+export interface Document {
+  title: string;
+  body: string;
+}
+
+export type Artifact = Document;
+
 /** A completed job shown in the feed */
-export interface FeedItem {
+export interface Status {
   id: string;
   agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   title: string;
   summary: string;
-  /** Markdown body for detail view */
-  body: string;
+  artifacts: Artifact[];
   category: "research" | "task" | "monitor" | "report";
   completedAt: string;
 }

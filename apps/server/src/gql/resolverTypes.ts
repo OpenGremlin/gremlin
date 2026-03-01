@@ -2,7 +2,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { AgentItem } from '../resources/ddb/schema/agent.js';
 import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { FeedItemItem } from '../resources/ddb/schema/feedItem.js';
+import { StatusItem } from '../resources/ddb/schema/status.js';
 import { IntegrationItem } from '../resources/ddb/schema/integration.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
@@ -60,6 +60,8 @@ export enum AgentStatus {
   Scheduled = 'SCHEDULED'
 }
 
+export type Artifact = Document;
+
 export enum AuthMethod {
   ApiKey = 'API_KEY',
   Oauth = 'OAUTH',
@@ -78,21 +80,9 @@ export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export enum FeedCategory {
-  Monitor = 'MONITOR',
-  Report = 'REPORT',
-  Research = 'RESEARCH',
-  Task = 'TASK'
-}
-
-export type FeedItem = {
-  __typename?: 'FeedItem';
-  agent: Agent;
+export type Document = {
+  __typename?: 'Document';
   body: Scalars['String']['output'];
-  category: FeedCategory;
-  completedAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  summary: Scalars['String']['output'];
   title: Scalars['String']['output'];
 };
 
@@ -236,8 +226,6 @@ export type Query = {
   agentJobs: Array<AgentJob>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
-  feedItem?: Maybe<FeedItem>;
-  feedItems: Array<FeedItem>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
   notifications: Array<Notification>;
@@ -245,6 +233,8 @@ export type Query = {
   searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
+  status?: Maybe<Status>;
+  statuses: Array<Status>;
 };
 
 
@@ -254,11 +244,6 @@ export type QueryAgentArgs = {
 
 
 export type QueryAgentJobArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryFeedItemArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -277,6 +262,11 @@ export type QuerySkillArgs = {
   id: Scalars['ID']['input'];
 };
 
+
+export type QueryStatusArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export type Skill = {
   __typename?: 'Skill';
   author: Scalars['String']['output'];
@@ -289,6 +279,24 @@ export type Skill = {
   requiredEnv: Array<Scalars['String']['output']>;
   version: Scalars['String']['output'];
 };
+
+export type Status = {
+  __typename?: 'Status';
+  agent: Agent;
+  artifacts: Array<Artifact>;
+  category: StatusCategory;
+  completedAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  summary: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export enum StatusCategory {
+  Monitor = 'MONITOR',
+  Report = 'REPORT',
+  Research = 'RESEARCH',
+  Task = 'TASK'
+}
 
 
 
@@ -359,6 +367,10 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 
 
+/** Mapping of union types */
+export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
+  Artifact: ( Document );
+};
 
 
 /** Mapping between all available schema types and the resolvers types */
@@ -366,11 +378,11 @@ export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentItem>;
   AgentJob: ResolverTypeWrapper<AgentJobItem>;
   AgentStatus: AgentStatus;
+  Artifact: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Artifact']>;
   AuthMethod: AuthMethod;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
-  FeedCategory: FeedCategory;
-  FeedItem: ResolverTypeWrapper<FeedItemItem>;
+  Document: ResolverTypeWrapper<Document>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Integration: ResolverTypeWrapper<IntegrationItem>;
@@ -385,6 +397,8 @@ export type ResolversTypes = {
   ProfileInput: ProfileInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Skill: ResolverTypeWrapper<SkillItem>;
+  Status: ResolverTypeWrapper<StatusItem>;
+  StatusCategory: StatusCategory;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
 
@@ -392,9 +406,10 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Agent: AgentItem;
   AgentJob: AgentJobItem;
+  Artifact: ResolversUnionTypes<ResolversParentTypes>['Artifact'];
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
-  FeedItem: FeedItemItem;
+  Document: Document;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Integration: IntegrationItem;
@@ -406,6 +421,7 @@ export type ResolversParentTypes = {
   ProfileInput: ProfileInput;
   Query: Record<PropertyKey, never>;
   Skill: SkillItem;
+  Status: StatusItem;
   String: Scalars['String']['output'];
 };
 
@@ -430,20 +446,20 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
 };
 
+export type ArtifactResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Artifact'] = ResolversParentTypes['Artifact']> = {
+  __resolveType: TypeResolveFn<'Document', ParentType, ContextType>;
+};
+
 export type AvatarResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
 };
 
-export type FeedItemResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FeedItem'] = ResolversParentTypes['FeedItem']> = {
-  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+export type DocumentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = {
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  category?: Resolver<ResolversTypes['FeedCategory'], ParentType, ContextType>;
-  completedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type IntegrationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
@@ -507,8 +523,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
-  feedItem?: Resolver<Maybe<ResolversTypes['FeedItem']>, ParentType, ContextType, RequireFields<QueryFeedItemArgs, 'id'>>;
-  feedItems?: Resolver<Array<ResolversTypes['FeedItem']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
@@ -516,6 +530,8 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   searchSkills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySearchSkillsArgs, 'query'>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['Status']>, ParentType, ContextType, RequireFields<QueryStatusArgs, 'id'>>;
+  statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
 };
 
 export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
@@ -530,11 +546,22 @@ export type SkillResolvers<ContextType = GremlinContext, ParentType extends Reso
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type StatusResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Status'] = ResolversParentTypes['Status']> = {
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  artifacts?: Resolver<Array<ResolversTypes['Artifact']>, ParentType, ContextType>;
+  category?: Resolver<ResolversTypes['StatusCategory'], ParentType, ContextType>;
+  completedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
+  Artifact?: ArtifactResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
-  FeedItem?: FeedItemResolvers<ContextType>;
+  Document?: DocumentResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
@@ -543,5 +570,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   Profile?: ProfileResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
+  Status?: StatusResolvers<ContextType>;
 };
 

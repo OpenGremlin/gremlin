@@ -1,7 +1,7 @@
 import { GremlinTable } from "./table.js";
 import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
-import { FeedItemEntity } from "./schema/feedItem.js";
+import { StatusEntity } from "./schema/status.js";
 import { IntegrationEntity } from "./schema/integration.js";
 import { NotificationEntity } from "./schema/notification.js";
 import { ProfileEntity } from "./schema/profile.js";
@@ -12,7 +12,7 @@ export const ddb = {
   entities: {
     Agent: AgentEntity,
     AgentJob: AgentJobEntity,
-    FeedItem: FeedItemEntity,
+    Status: StatusEntity,
     Integration: IntegrationEntity,
     Notification: NotificationEntity,
     Profile: ProfileEntity,

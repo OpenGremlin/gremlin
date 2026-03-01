@@ -1,10 +1,12 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
+import { list } from "dynamodb-toolbox/schema/list";
+import { map } from "dynamodb-toolbox/schema/map";
 import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
-export const FeedItemEntity = new Entity({
-  name: "FeedItem",
+export const StatusEntity = new Entity({
+  name: "Status",
   table: GremlinTable,
   timestamps: false,
   schema: item({
@@ -12,16 +14,18 @@ export const FeedItemEntity = new Entity({
     agentId: string().key(),
     title: string(),
     summary: string(),
-    body: string(),
+    artifacts: list(
+      map({ type: string(), title: string(), body: string() }),
+    ),
     category: string(),
     completedAt: string().key(),
   }),
   computeKey: ({ id, agentId, completedAt }) => ({
-    pk: "FEED_ITEM",
-    sk: `FEED_ITEM#${id}`,
-    gsi1pk: `FEED_AGENT#${agentId}`,
+    pk: "STATUS",
+    sk: `STATUS#${id}`,
+    gsi1pk: `STATUS_AGENT#${agentId}`,
     gsi1sk: completedAt,
   }),
 });
 
-export type FeedItemItem = FormattedItem<typeof FeedItemEntity>;
+export type StatusItem = FormattedItem<typeof StatusEntity>;
