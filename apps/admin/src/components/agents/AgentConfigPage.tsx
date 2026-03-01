@@ -1,11 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Pencil, X } from "lucide-react";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
+import { preloadImages } from "../../preloadImages";
 
 interface Avatar {
   id: string;
@@ -19,8 +20,18 @@ export function AgentConfigPage() {
     AGENT_QUERY,
     { id },
   );
+  // Eagerly fetch avatars so they're ready when the picker opens
+  const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+  // Preload avatar images as soon as URLs are available
+  useEffect(() => {
+    const avatars = avatarsResult.data?.avatars;
+    if (avatars) {
+      preloadImages(avatars.map((a) => a.url));
+    }
+  }, [avatarsResult.data]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -102,6 +113,8 @@ export function AgentConfigPage() {
 
       {pickerOpen && (
         <AvatarPicker
+          avatars={avatarsResult.data?.avatars ?? []}
+          loading={avatarsResult.loading}
           onSelect={(avatar) => {
             setSelectedImageUrl(avatar.url);
             setPickerOpen(false);
@@ -114,14 +127,16 @@ export function AgentConfigPage() {
 }
 
 function AvatarPicker({
+  avatars,
+  loading,
   onSelect,
   onClose,
 }: {
+  avatars: Avatar[];
+  loading: boolean;
   onSelect: (avatar: Avatar) => void;
   onClose: () => void;
 }) {
-  const { data, loading } = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
-  const avatars = data?.avatars ?? [];
 
   return (
     <div
