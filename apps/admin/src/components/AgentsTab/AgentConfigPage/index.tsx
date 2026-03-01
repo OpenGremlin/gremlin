@@ -1,22 +1,17 @@
-import { Pencil, X } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
-import { preloadImages } from "../../preloadImages";
-import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
-import { AgentAvatar } from "../../shared/AgentAvatar";
-import { AutoTextarea } from "../../shared/AutoTextarea";
-import { BackButton } from "../../shared/BackButton";
-import { Badge } from "../../shared/Badge";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
-import type { Agent } from "../../types";
-import { useQuery } from "../../useQuery";
-
-interface Avatar {
-  id: string;
-  name: string;
-  url: string;
-}
+import { preloadImages } from "../../../preloadImages";
+import { AGENT_QUERY, AVATARS_QUERY } from "../../../queries";
+import { AgentAvatar } from "../../../shared/AgentAvatar";
+import { AutoTextarea } from "../../../shared/AutoTextarea";
+import { BackButton } from "../../../shared/BackButton";
+import { Badge } from "../../../shared/Badge";
+import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import type { Agent } from "../../../types";
+import { useQuery } from "../../../useQuery";
+import { type Avatar, AvatarPicker } from "./AvatarPicker";
 
 interface AgentFormValues {
   name: string;
@@ -30,7 +25,6 @@ export function AgentConfigPage() {
     AGENT_QUERY,
     { id },
   );
-  // Eagerly fetch avatars so they're ready when the picker opens
   const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -45,7 +39,6 @@ export function AgentConfigPage() {
 
   const agent = data?.agent ?? null;
 
-  // Reset form when agent data loads
   useEffect(() => {
     if (agent) {
       reset({
@@ -57,7 +50,6 @@ export function AgentConfigPage() {
     }
   }, [agent, reset]);
 
-  // Preload avatar images as soon as URLs are available
   useEffect(() => {
     const avatars = avatarsResult.data?.avatars;
     if (avatars) {
@@ -142,81 +134,6 @@ export function AgentConfigPage() {
           onClose={() => setPickerOpen(false)}
         />
       )}
-    </div>
-  );
-}
-
-function AvatarPicker({
-  avatars,
-  loading,
-  onSelect,
-  onClose,
-}: {
-  avatars: Avatar[];
-  loading: boolean;
-  onSelect: (avatar: Avatar) => void;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      role="dialog"
-      aria-label="Choose Avatar"
-      className="fixed inset-0 z-50 flex items-end justify-center"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
-    >
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/60"
-        aria-label="Close"
-        onClick={onClose}
-        tabIndex={-1}
-      />
-      <div className="relative w-full max-w-lg bg-neutral-900 rounded-t-2xl max-h-[70vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
-          <h2 className="text-sm font-semibold text-neutral-100">
-            Choose Avatar
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-200 transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="overflow-y-auto p-3">
-          {loading ? (
-            <p className="text-sm text-neutral-500 text-center py-8">
-              Loading avatars...
-            </p>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {avatars.map((avatar) => (
-                <button
-                  key={avatar.id}
-                  type="button"
-                  onClick={() => onSelect(avatar)}
-                  className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-neutral-800 transition-colors"
-                >
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-800">
-                    <img
-                      src={avatar.url}
-                      alt={avatar.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <span className="text-[10px] text-neutral-400 truncate w-full text-center">
-                    {avatar.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

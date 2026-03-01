@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import { AGENT_JOB_QUERY } from "../../queries";
-import { BackButton } from "../../shared/BackButton";
-import { Badge } from "../../shared/Badge";
-import { formatDate } from "../../shared/formatDate";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
-import type { AgentJob } from "../../types";
-import { useQuery } from "../../useQuery";
+import { AGENT_JOB_QUERY } from "../../../queries";
+import { BackButton } from "../../../shared/BackButton";
+import { Badge } from "../../../shared/Badge";
+import { formatDate } from "../../../shared/formatDate";
+import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import type { AgentJob } from "../../../types";
+import { useQuery } from "../../../useQuery";
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();

@@ -8,7 +8,7 @@ import { QueryResult } from "../../shared/QueryResult";
 import type { Agent } from "../../types";
 import { useQuery } from "../../useQuery";
 
-export function AgentsPage() {
+export function AgentsTab() {
   const { data, loading, error } = useQuery<{ agents: Agent[] }>(AGENTS_QUERY);
 
   const agents = data?.agents ?? [];

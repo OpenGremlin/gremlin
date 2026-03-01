@@ -4,7 +4,7 @@ import type { FeedItem } from "../../types";
 import { useQuery } from "../../useQuery";
 import { FeedCard } from "./FeedCard";
 
-export function FeedPage() {
+export function FeedTab() {
   const { data, loading, error } = useQuery<{ feedItems: FeedItem[] }>(
     FEED_ITEMS_QUERY,
   );

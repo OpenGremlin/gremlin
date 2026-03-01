@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
-import { INTEGRATION_QUERY } from "../../queries";
-import { BackButton } from "../../shared/BackButton";
-import { formatDate } from "../../shared/formatDate";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
-import type { Integration } from "../../types";
-import { useQuery } from "../../useQuery";
+import { INTEGRATION_QUERY } from "../../../queries";
+import { BackButton } from "../../../shared/BackButton";
+import { formatDate } from "../../../shared/formatDate";
+import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import type { Integration } from "../../../types";
+import { useQuery } from "../../../useQuery";
 
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();

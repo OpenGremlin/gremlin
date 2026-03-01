@@ -1,14 +1,6 @@
-import { ArrowRight, Code } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { AGENT_QUERY } from "../../queries";
-import { AgentAvatar } from "../../shared/AgentAvatar";
-import { Badge } from "../../shared/Badge";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
-import type { Agent } from "../../types";
-import { useQuery } from "../../useQuery";
+import { Code } from "lucide-react";
 
-type LogEntry =
+export type LogEntry =
   | { id: string; type: "user"; text: string; timestamp: string }
   | { id: string; type: "agent"; text: string; timestamp: string }
   | { id: string; type: "status"; text: string; timestamp: string }
@@ -20,7 +12,7 @@ type LogEntry =
       timestamp: string;
     };
 
-const MOCK_LOG: LogEntry[] = [
+export const MOCK_LOG: LogEntry[] = [
   {
     id: "turn-1",
     type: "status",
@@ -73,7 +65,7 @@ const MOCK_LOG: LogEntry[] = [
   },
 ];
 
-function LogEntryView({ entry }: { entry: LogEntry }) {
+export function LogEntryView({ entry }: { entry: LogEntry }) {
   switch (entry.type) {
     case "status":
       return (
@@ -129,87 +121,4 @@ function LogEntryView({ entry }: { entry: LogEntry }) {
         </div>
       );
   }
-}
-
-export function AgentChatPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ agent: Agent | null }>(
-    AGENT_QUERY,
-    { id },
-  );
-  const [input, setInput] = useState("");
-  const logEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  if (loading || error) {
-    return <QueryResult loading={loading} error={error} backButton />;
-  }
-
-  const agent = data?.agent ?? null;
-
-  if (!agent) {
-    return <NotFound label="Agent not found." />;
-  }
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
-        <Link to={`/agents/${agent.id}/config`}>
-          <AgentAvatar
-            src={agent.imageUrl}
-            name={agent.name}
-            status={agent.status}
-            size="lg"
-          />
-        </Link>
-        <h1 className="text-sm font-semibold text-neutral-100 mt-2">
-          {agent.name}
-        </h1>
-        <div className="mt-0.5">
-          <Badge label={agent.status} />
-        </div>
-        {agent.statusReason && (
-          <p className="text-xs text-red-400/80 mt-1">{agent.statusReason}</p>
-        )}
-      </div>
-
-      {/* Log area */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1">
-        {MOCK_LOG.map((entry) => (
-          <LogEntryView key={entry.id} entry={entry} />
-        ))}
-        <div ref={logEndRef} />
-      </div>
-
-      {/* Input bar */}
-      <div className="shrink-0 border-t border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-end gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Message…"
-            className="flex-1 bg-neutral-800 text-sm text-neutral-100 rounded-full px-4 py-2 outline-none placeholder:text-neutral-500 focus:ring-1 focus:ring-blue-500/50"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                setInput("");
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setInput("")}
-            className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 hover:bg-blue-500 transition-colors"
-          >
-            <ArrowRight size={16} className="text-white" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }

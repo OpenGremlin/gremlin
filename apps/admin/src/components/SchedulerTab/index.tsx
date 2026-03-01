@@ -7,7 +7,7 @@ import { QueryResult } from "../../shared/QueryResult";
 import type { AgentJob } from "../../types";
 import { useQuery } from "../../useQuery";
 
-export function SchedulerPage() {
+export function SchedulerTab() {
   const { data, loading, error } = useQuery<{ agentJobs: AgentJob[] }>(
     AGENT_JOBS_QUERY,
   );

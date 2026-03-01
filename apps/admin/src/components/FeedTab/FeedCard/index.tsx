@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { AgentAvatar } from "../../shared/AgentAvatar";
-import { Badge } from "../../shared/Badge";
-import { timeAgo } from "../../shared/formatDate";
-import type { FeedItem } from "../../types";
+import { AgentAvatar } from "../../../shared/AgentAvatar";
+import { Badge } from "../../../shared/Badge";
+import { timeAgo } from "../../../shared/formatDate";
+import type { FeedItem } from "../../../types";
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const { agent } = item;

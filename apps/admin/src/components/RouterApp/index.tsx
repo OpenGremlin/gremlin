@@ -1,15 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { AgentChatPage } from "../agents/AgentChatPage";
-import { AgentConfigPage } from "../agents/AgentConfigPage";
-import { AgentsPage } from "../agents/AgentsPage";
-import { FeedDetailPage } from "../feed/FeedDetailPage";
-import { FeedPage } from "../feed/FeedPage";
-import { IntegrationDetailPage } from "../integrations/IntegrationDetailPage";
-import { JobDetailPage } from "../scheduler/JobDetailPage";
-import { SchedulerPage } from "../scheduler/SchedulerPage";
-import { SkillDetailPage } from "../skills/SkillDetailPage";
+import { AgentsTab } from "../AgentsTab";
+import { AgentChatPage } from "../AgentsTab/AgentChatPage";
+import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
+import { FeedTab } from "../FeedTab";
+import { FeedDetailPage } from "../FeedTab/FeedDetailPage";
+import { SchedulerTab } from "../SchedulerTab";
+import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { TabShell } from "../TabShell";
-import { UserPage } from "../user/UserPage";
+import { UserTab } from "../UserTab";
+import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
+import { SkillDetailPage } from "../UserTab/SkillDetailPage";
 
 export function RouterApp() {
   return (
@@ -17,15 +17,18 @@ export function RouterApp() {
       <Routes>
         <Route element={<TabShell />}>
           <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<FeedPage />} />
+          <Route path="feed" element={<FeedTab />} />
           <Route path="feed/:id" element={<FeedDetailPage />} />
-          <Route path="scheduler" element={<SchedulerPage />} />
+          <Route path="scheduler" element={<SchedulerTab />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
-          <Route path="user" element={<Navigate to="/user/notifications" replace />} />
-          <Route path="user/:pill" element={<UserPage />} />
+          <Route
+            path="user"
+            element={<Navigate to="/user/notifications" replace />}
+          />
+          <Route path="user/:pill" element={<UserTab />} />
           <Route path="integrations/:id" element={<IntegrationDetailPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
-          <Route path="agents" element={<AgentsPage />} />
+          <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />
         </Route>

@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
-import { SKILL_QUERY } from "../../queries";
-import { BackButton } from "../../shared/BackButton";
-import { Badge } from "../../shared/Badge";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
-import type { Skill } from "../../types";
-import { useQuery } from "../../useQuery";
+import { SKILL_QUERY } from "../../../queries";
+import { BackButton } from "../../../shared/BackButton";
+import { Badge } from "../../../shared/Badge";
+import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import type { Skill } from "../../../types";
+import { useQuery } from "../../../useQuery";
 
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();
