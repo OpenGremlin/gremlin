@@ -14,6 +14,8 @@ import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
+import { createResources } from "./resources/index.js";
+import { createServices } from "./services/index.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -22,6 +24,8 @@ const MEDIA_CDN_URL = (
   process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`
 ).replace(/\/$/, "");
 const app = express();
+const resources = createResources();
+const services = createServices();
 
 const yoga = createYoga({
   schema: makeExecutableSchema({
@@ -66,14 +70,10 @@ const yoga = createYoga({
     },
   ],
   context: async ({ request }: { request: Request }) => {
-    if (SKIP_AUTH) {
-      return {
-        user: { sub: "local", email: "local@dev" } as AuthUser,
-        mediaCdnUrl: MEDIA_CDN_URL,
-      };
-    }
-    const user = userByRequest.get(request) as AuthUser;
-    return { user, mediaCdnUrl: MEDIA_CDN_URL };
+    const user = SKIP_AUTH
+      ? ({ sub: "local", email: "local@dev" } as AuthUser)
+      : (userByRequest.get(request) as AuthUser);
+    return { user, mediaCdnUrl: MEDIA_CDN_URL, resources, services };
   },
   graphiql: SKIP_AUTH,
 });

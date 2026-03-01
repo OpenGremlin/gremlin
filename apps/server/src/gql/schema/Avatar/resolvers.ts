@@ -1,5 +1,4 @@
 import type { AvatarResolvers, QueryResolvers } from "../../resolverTypes.js";
-import { buildMediaUrl } from "../mediaUrl.js";
 
 export interface AvatarModel {
   id: string;
@@ -105,7 +104,7 @@ const avatarList: AvatarModel[] = [
 const avatars: QueryResolvers["avatars"] = () => avatarList;
 
 const url: AvatarResolvers["url"] = (parent, args, ctx) =>
-  buildMediaUrl(ctx.mediaCdnUrl, parent.path, args.width);
+  ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.path, args.width);
 
 export const avatarResolvers = {
   Query: { avatars },

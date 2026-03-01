@@ -1,9 +1,13 @@
 import { GraphQLResolveInfo } from 'graphql';
-import { AgentModel } from './schema/Agent/resolvers.js';
+import { AgentItem } from '../resources/ddb/schema/agent.js';
+import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { FeedItemModel } from './schema/Feed/resolvers.js';
-import { NotificationModel } from './schema/Notification/resolvers.js';
-import { Context } from './context.js';
+import { FeedItemItem } from '../resources/ddb/schema/feedItem.js';
+import { IntegrationItem } from '../resources/ddb/schema/integration.js';
+import { NotificationItem } from '../resources/ddb/schema/notification.js';
+import { ProfileItem } from '../resources/ddb/schema/profile.js';
+import { SkillItem } from '../resources/ddb/schema/skill.js';
+import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -359,53 +363,53 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Agent: ResolverTypeWrapper<AgentModel>;
-  AgentJob: ResolverTypeWrapper<AgentJob>;
+  Agent: ResolverTypeWrapper<AgentItem>;
+  AgentJob: ResolverTypeWrapper<AgentJobItem>;
   AgentStatus: AgentStatus;
   AuthMethod: AuthMethod;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
-  FeedItem: ResolverTypeWrapper<FeedItemModel>;
+  FeedItem: ResolverTypeWrapper<FeedItemItem>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
-  Integration: ResolverTypeWrapper<Integration>;
+  Integration: ResolverTypeWrapper<IntegrationItem>;
   JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
-  Notification: ResolverTypeWrapper<NotificationModel>;
+  Notification: ResolverTypeWrapper<NotificationItem>;
   NotificationAction: ResolverTypeWrapper<NotificationAction>;
   NotificationStatus: NotificationStatus;
   NotificationType: NotificationType;
   Permission: ResolverTypeWrapper<Permission>;
-  Profile: ResolverTypeWrapper<Profile>;
+  Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
-  Skill: ResolverTypeWrapper<Skill>;
+  Skill: ResolverTypeWrapper<SkillItem>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Agent: AgentModel;
-  AgentJob: AgentJob;
+  Agent: AgentItem;
+  AgentJob: AgentJobItem;
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
-  FeedItem: FeedItemModel;
+  FeedItem: FeedItemItem;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
-  Integration: Integration;
+  Integration: IntegrationItem;
   Mutation: Record<PropertyKey, never>;
-  Notification: NotificationModel;
+  Notification: NotificationItem;
   NotificationAction: NotificationAction;
   Permission: Permission;
-  Profile: Profile;
+  Profile: ProfileItem;
   ProfileInput: ProfileInput;
   Query: Record<PropertyKey, never>;
-  Skill: Skill;
+  Skill: SkillItem;
   String: Scalars['String']['output'];
 };
 
-export type AgentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
+export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
@@ -413,9 +417,10 @@ export type AgentResolvers<ContextType = Context, ParentType extends ResolversPa
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['AgentStatus'], ParentType, ContextType>;
+  statusReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type AgentJobResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
+export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -425,13 +430,13 @@ export type AgentJobResolvers<ContextType = Context, ParentType extends Resolver
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
 };
 
-export type AvatarResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
+export type AvatarResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
 };
 
-export type FeedItemResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeedItem'] = ResolversParentTypes['FeedItem']> = {
+export type FeedItemResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FeedItem'] = ResolversParentTypes['FeedItem']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   category?: Resolver<ResolversTypes['FeedCategory'], ParentType, ContextType>;
@@ -441,7 +446,7 @@ export type FeedItemResolvers<ContextType = Context, ParentType extends Resolver
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type IntegrationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
+export type IntegrationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
   account?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   authMethod?: Resolver<ResolversTypes['AuthMethod'], ParentType, ContextType>;
   connectedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -452,7 +457,7 @@ export type IntegrationResolvers<ContextType = Context, ParentType extends Resol
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
@@ -464,7 +469,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
 };
 
-export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
+export type NotificationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
   actions?: Resolver<Array<ResolversTypes['NotificationAction']>, ParentType, ContextType>;
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -476,26 +481,26 @@ export type NotificationResolvers<ContextType = Context, ParentType extends Reso
   type?: Resolver<ResolversTypes['NotificationType'], ParentType, ContextType>;
 };
 
-export type NotificationActionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['NotificationAction'] = ResolversParentTypes['NotificationAction']> = {
+export type NotificationActionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['NotificationAction'] = ResolversParentTypes['NotificationAction']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type PermissionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
+export type PermissionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   scope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type ProfileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
+export type ProfileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
   about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
@@ -513,7 +518,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
 };
 
-export type SkillResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
+export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
   author?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -525,7 +530,7 @@ export type SkillResolvers<ContextType = Context, ParentType extends ResolversPa
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type Resolvers<ContextType = Context> = {
+export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;

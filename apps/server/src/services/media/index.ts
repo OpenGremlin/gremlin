@@ -6,3 +6,7 @@ export function buildMediaUrl(
   const widthParam = width ? `?width=${width}` : "";
   return `${cdnBase}${path}${widthParam}`;
 }
+
+export const mediaService = { buildMediaUrl };
+
+export type MediaService = typeof mediaService;

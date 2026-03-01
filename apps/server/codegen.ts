@@ -7,12 +7,18 @@ const config: CodegenConfig = {
     "src/gql/resolverTypes.ts": {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
-        contextType: "./context.js#Context",
+        contextType: "./context.js#GremlinContext",
         mappers: {
-          Agent: "./schema/Agent/resolvers.js#AgentModel",
+          Agent: "../resources/ddb/schema/agent.js#AgentItem",
+          AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
-          FeedItem: "./schema/Feed/resolvers.js#FeedItemModel",
-          Notification: "./schema/Notification/resolvers.js#NotificationModel",
+          FeedItem: "../resources/ddb/schema/feedItem.js#FeedItemItem",
+          Integration:
+            "../resources/ddb/schema/integration.js#IntegrationItem",
+          Notification:
+            "../resources/ddb/schema/notification.js#NotificationItem",
+          Profile: "../resources/ddb/schema/profile.js#ProfileItem",
+          Skill: "../resources/ddb/schema/skill.js#SkillItem",
         },
       },
     },
