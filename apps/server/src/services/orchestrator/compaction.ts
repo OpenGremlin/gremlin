@@ -49,20 +49,24 @@ export async function buildContextMessages(
 
   // Reverse-scan for the most recent compaction entry
   let compactionIndex = -1;
+  let cachedCompaction: CompactionEntry | null = null;
   for (let i = entries.length - 1; i >= 0; i--) {
-    if (entries[i].role === "system" && isCompactionEntry(entries[i].content)) {
-      compactionIndex = i;
-      break;
+    if (entries[i].role === "system") {
+      const parsed = isCompactionEntry(entries[i].content);
+      if (parsed) {
+        compactionIndex = i;
+        cachedCompaction = parsed;
+        break;
+      }
     }
   }
 
   const messages: ModelMessage[] = [];
 
   if (compactionIndex >= 0) {
-    const compaction = isCompactionEntry(entries[compactionIndex].content)!;
     messages.push({
       role: "user",
-      content: `[Context summary of earlier conversation]\n\n${compaction.summary}`,
+      content: `[Context summary of earlier conversation]\n\n${cachedCompaction!.summary}`,
     });
     // Map all entries after the compaction point
     for (let i = compactionIndex + 1; i < entries.length; i++) {
@@ -91,8 +95,6 @@ function mapEntry(node: {
     return { role: "user", content: node.content };
   }
   if (node.role === "system") {
-    // Skip compaction entries — they're handled separately
-    if (isCompactionEntry(node.content)) return null;
     return { role: "user", content: node.content };
   }
   // Skip tool entries

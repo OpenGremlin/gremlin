@@ -1,5 +1,5 @@
 import type { ServiceContext } from "../context.js";
-import { deactivateFollowUp } from "./deactivateFollowUp.js";
+import { deactivateFollowUp } from "../taskFollowUps/deactivateFollowUp.js";
 import { runTaskLane } from "./runTaskLane.js";
 
 /**

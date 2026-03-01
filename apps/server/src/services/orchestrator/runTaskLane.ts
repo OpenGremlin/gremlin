@@ -3,7 +3,7 @@ import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { renderTaskSystemPrompt } from "./prompts.js";
 import { defaultTools } from "./tools.js";
-import { updateTaskStatus } from "./updateTaskStatus.js";
+import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
