@@ -22,7 +22,7 @@ export async function sendMessage(
 
   // Fire-and-forget the agent turn
   if (taskId) {
-    runTaskLane(ctx, taskId, content).catch((err) =>
+    runTaskLane(ctx, taskId, content, { skipLog: true }).catch((err) =>
       console.error("runTaskLane failed:", err),
     );
   } else {

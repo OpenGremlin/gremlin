@@ -19,6 +19,7 @@ export async function runTaskLane(
   ctx: ServiceContext,
   taskId: string,
   prompt: string,
+  opts?: { skipLog?: boolean },
 ): Promise<string> {
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
@@ -29,13 +30,16 @@ export async function runTaskLane(
   // Mark task as running
   await updateTaskStatus(ctx, taskId, "RUNNING");
 
-  // Log the prompt as a system message in the task thread
-  await writeAgentLog(ctx, {
-    agentId: task.agentId,
-    taskId,
-    role: "SYSTEM",
-    content: prompt,
-  });
+  // Log the prompt as a system message (only for initial delegation;
+  // user follow-ups are already logged as USER by sendMessage)
+  if (!opts?.skipLog) {
+    await writeAgentLog(ctx, {
+      agentId: task.agentId,
+      taskId,
+      role: "SYSTEM",
+      content: prompt,
+    });
+  }
 
   // Build conversation history with compaction support
   const { messages, totalLogCount } = await buildContextMessages(ctx, {
