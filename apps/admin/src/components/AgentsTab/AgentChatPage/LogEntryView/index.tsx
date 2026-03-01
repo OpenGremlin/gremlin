@@ -76,21 +76,21 @@ function DelegateTaskCard({
             {formatTime(createdAt)}
           </span>
         </div>
-        <p className="text-xs text-neutral-500 mt-1 ml-[22px] flex items-center gap-1.5">
+        <div className="text-xs text-neutral-500 mt-1 ml-[22px] min-h-[3.5rem] flex items-start gap-1.5">
           {active ? (
             <>
-              <Loader2 size={10} className="animate-spin" />
-              {task?.message || "Working..."}
+              <Loader2 size={14} className="animate-spin shrink-0 mt-0.5" />
+              <span>{task?.message || "Working..."}</span>
             </>
           ) : task?.status === "COMPLETED" ? (
             <>
-              <CheckCircle size={10} className="text-green-500" />
-              {task.message || "Completed"}
+              <CheckCircle size={14} className="text-green-500 shrink-0 mt-0.5" />
+              <span>{task.message || "Completed"}</span>
             </>
           ) : (
-            task?.message || "Delegated task"
+            <span>{task?.message || "Delegated task"}</span>
           )}
-        </p>
+        </div>
       </div>
     </div>
   );
