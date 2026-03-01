@@ -29,23 +29,23 @@ export async function runAgentTurn(
     messages: opts.messages,
     tools: allTools,
     stopWhen: [hasToolCall("requestApproval")],
+    onStepFinish: async (step) => {
+      // Log tool calls eagerly as each step completes, so the UI
+      // shows delegated tasks before the model finishes generating text.
+      for (let i = 0; i < step.toolCalls.length; i++) {
+        const toolCall = step.toolCalls[i];
+        const toolResult = step.toolResults[i];
+        await writeAgentLog(ctx, {
+          agentId: opts.agentId,
+          taskId: opts.taskId,
+          role: "TOOL",
+          toolName: toolCall.toolName,
+          toolInput: "input" in toolCall ? toolCall.input : undefined,
+          toolResult: toolResult?.output,
+        });
+      }
+    },
   });
-
-  // Log each step's tool calls with their results
-  for (const step of result.steps) {
-    for (let i = 0; i < step.toolCalls.length; i++) {
-      const toolCall = step.toolCalls[i];
-      const toolResult = step.toolResults[i];
-      await writeAgentLog(ctx, {
-        agentId: opts.agentId,
-        taskId: opts.taskId,
-        role: "TOOL",
-        toolName: toolCall.toolName,
-        toolInput: "input" in toolCall ? toolCall.input : undefined,
-        toolResult: toolResult?.output,
-      });
-    }
-  }
 
   // Log the final text response
   if (result.text) {
