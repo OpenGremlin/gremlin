@@ -23,7 +23,8 @@ export function FeedCard({ item }: { item: FeedItem }) {
       className="block px-4 py-4 transition-colors hover:bg-neutral-900/50"
     >
       <div className="flex gap-3">
-        <div
+        <Link
+          to={`/agents/${agent.id}`}
           className={`w-9 h-9 shrink-0 flex items-center justify-center avatar-ring ${
             agent.status === "ACTIVE"
               ? "avatar-ring-active"
@@ -31,6 +32,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
                 ? "avatar-ring-scheduled"
                 : "avatar-ring-idle"
           }`}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-xs text-neutral-400 font-medium">
             <img
@@ -44,7 +46,7 @@ export function FeedCard({ item }: { item: FeedItem }) {
               }}
             />
           </div>
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">

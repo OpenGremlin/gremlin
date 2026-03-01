@@ -49,11 +49,13 @@ function NotificationCard({
       className={`bg-neutral-900 rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
     >
       <div className="flex items-start gap-3">
-        <img
-          src={notification.agent.imageUrl}
-          alt={notification.agent.name}
-          className="w-8 h-8 rounded-full shrink-0 mt-0.5"
-        />
+        <Link to={`/agents/${notification.agent.id}`}>
+          <img
+            src={notification.agent.imageUrl}
+            alt={notification.agent.name}
+            className="w-8 h-8 rounded-full shrink-0 mt-0.5"
+          />
+        </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <Link
