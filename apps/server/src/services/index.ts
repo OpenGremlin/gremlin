@@ -8,6 +8,10 @@ import {
 import { type JobService, jobService } from "./jobs/index.js";
 import { type MediaService, mediaService } from "./media/index.js";
 import {
+  type OrchestratorService,
+  orchestratorService,
+} from "./orchestrator/index.js";
+import {
   type NotificationService,
   notificationService,
 } from "./notifications/index.js";
@@ -29,6 +33,7 @@ export interface Services {
   profile: ProfileService;
   skills: SkillService;
   media: MediaService;
+  orchestrator: OrchestratorService;
   tasks: TaskService;
   taskFollowUps: TaskFollowUpService;
 }
@@ -44,6 +49,7 @@ export function createServices(): Services {
     profile: profileService,
     skills: skillService,
     media: mediaService,
+    orchestrator: orchestratorService,
     tasks: taskService,
     taskFollowUps: taskFollowUpService,
   };

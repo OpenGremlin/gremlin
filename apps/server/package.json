@@ -11,18 +11,21 @@
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^4.0.69",
     "@aws-sdk/client-dynamodb": "^3.1000.0",
     "@aws-sdk/lib-dynamodb": "^3.1000.0",
     "@graphql-tools/merge": "^9.1.7",
     "@graphql-tools/schema": "^10.0.31",
     "@gremlin/shared-types": "workspace:*",
+    "ai": "^6.0.105",
     "dotenv": "^17.3.1",
     "dynamodb-toolbox": "^2.8.0",
     "express": "^4",
     "graphql": "^16.13.0",
     "graphql-yoga": "^5.18.0",
     "jose": "^6",
-    "ws": "^8"
+    "ws": "^8",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.1.2",
