@@ -28,11 +28,14 @@ export function AgentChatPage() {
   const logEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages (instant on first load, smooth after)
   const prevMessageCountRef = useRef(0);
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current) {
-      logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      const isInitialLoad = prevMessageCountRef.current === 0;
+      logEndRef.current?.scrollIntoView({
+        behavior: isInitialLoad ? "instant" : "smooth",
+      });
     }
     prevMessageCountRef.current = messages.length;
   }, [messages.length]);
