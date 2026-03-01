@@ -4,9 +4,6 @@ import { Table } from "dynamodb-toolbox/table";
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
-  ...(process.env.DYNAMODB_ENDPOINT && {
-    endpoint: process.env.DYNAMODB_ENDPOINT,
-  }),
 });
 
 const documentClient = DynamoDBDocumentClient.from(client);

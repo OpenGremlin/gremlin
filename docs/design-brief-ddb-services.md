@@ -152,4 +152,3 @@ mappers: {
 |----------|----------|-------------|
 | `AWS_REGION` | Yes | AWS region for DynamoDB client |
 | `DYNAMODB_TABLE_NAME` | No | Table name (default: `gremlin`) |
-| `DYNAMODB_ENDPOINT` | No | Custom endpoint for local DDB |

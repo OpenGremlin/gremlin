@@ -3,9 +3,6 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
-  ...(process.env.DYNAMODB_ENDPOINT && {
-    endpoint: process.env.DYNAMODB_ENDPOINT,
-  }),
 });
 const docClient = DynamoDBDocumentClient.from(client);
 const TableName = process.env.DYNAMODB_TABLE_NAME || "gremlin";
