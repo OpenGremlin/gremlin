@@ -16,9 +16,9 @@ export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name de
 
 export const UPDATE_AGENT_JOB = `mutation($id: ID!, $input: UpdateAgentJobInput!) { updateAgentJob(id: $id, input: $input) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun } }`;
 
-export const PROFILE_QUERY = `query { profile { name displayName about website } }`;
+export const PROFILE_QUERY = `query { profile { displayName about website } }`;
 
-export const UPDATE_PROFILE = `mutation($input: ProfileInput!) { updateProfile(input: $input) { name displayName about website } }`;
+export const UPDATE_PROFILE = `mutation($input: ProfileInput!) { updateProfile(input: $input) { displayName about website } }`;
 
 export const AVATARS_QUERY = `query { avatars { id name url(width: 200) } }`;
 

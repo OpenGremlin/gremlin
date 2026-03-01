@@ -8,7 +8,6 @@ import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
 interface ProfileFormValues {
-  name: string;
   displayName: string;
   about: string;
   website: string;
@@ -17,7 +16,6 @@ interface ProfileFormValues {
 export function ProfilePage() {
   const { data, loading, error } = useQuery<{
     profile: {
-      name: string;
       displayName: string;
       about: string;
       website: string | null;
@@ -37,7 +35,6 @@ export function ProfilePage() {
   useEffect(() => {
     if (profile) {
       reset({
-        name: profile.name,
         displayName: profile.displayName,
         about: profile.about,
         website: profile.website ?? "",
@@ -48,7 +45,6 @@ export function ProfilePage() {
   async function onSubmit(values: ProfileFormValues) {
     await gql(UPDATE_PROFILE, {
       input: {
-        name: values.name,
         displayName: values.displayName,
         about: values.about,
         website: values.website || null,
@@ -68,17 +64,6 @@ export function ProfilePage() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-4 px-4 pb-6"
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="profile-name" className="text-xs text-neutral-500">
-          Username
-        </label>
-        <input
-          id="profile-name"
-          {...register("name")}
-          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
-        />
-      </div>
-
       <div className="flex flex-col gap-1">
         <label
           htmlFor="profile-displayName"

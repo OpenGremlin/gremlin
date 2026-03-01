@@ -10,7 +10,7 @@ const updateProfile: MutationResolvers["updateProfile"] = (
   _parent,
   { input },
   ctx,
-) => ctx.services.profile.updateProfile(ctx, input);
+) => ctx.services.profile.updateProfile(ctx, { ...input, name: "default" });
 
 export const profileResolvers = {
   Query: { profile },

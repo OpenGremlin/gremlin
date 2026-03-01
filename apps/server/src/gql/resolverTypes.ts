@@ -217,14 +217,12 @@ export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
   displayName: Scalars['String']['output'];
-  name: Scalars['String']['output'];
   website?: Maybe<Scalars['String']['output']>;
 };
 
 export type ProfileInput = {
   about: Scalars['String']['input'];
   displayName: Scalars['String']['input'];
-  name: Scalars['String']['input'];
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -535,7 +533,6 @@ export type PermissionResolvers<ContextType = GremlinContext, ParentType extends
 export type ProfileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
   about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 

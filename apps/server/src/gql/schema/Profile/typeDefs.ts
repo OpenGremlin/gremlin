@@ -1,13 +1,11 @@
 export const profileTypeDefs = /* GraphQL */ `
   type Profile {
-    name: String!
     displayName: String!
     about: String!
     website: String
   }
 
   input ProfileInput {
-    name: String!
     displayName: String!
     about: String!
     website: String
