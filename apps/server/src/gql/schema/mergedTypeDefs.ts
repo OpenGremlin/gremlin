@@ -5,6 +5,7 @@ import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { feedTypeDefs } from "./Feed/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
 import { notificationTypeDefs } from "./Notification/typeDefs.js";
+import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { baseTypeDefs } from "./base.js";
 
@@ -16,6 +17,7 @@ export const allTypeDefs = [
   avatarTypeDefs,
   integrationTypeDefs,
   notificationTypeDefs,
+  profileTypeDefs,
   skillTypeDefs,
 ];
 

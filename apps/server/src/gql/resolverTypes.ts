@@ -1,7 +1,9 @@
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentModel } from './schema/Agent/resolvers.js';
 import { FeedItemModel } from './schema/Feed/resolvers.js';
+import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { NotificationModel } from './schema/Notification/resolvers.js';
+import { ProfileModel } from './schema/Profile/resolvers.js';
 import { Context } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -192,6 +194,25 @@ export enum NotificationType {
   Suggestion = 'SUGGESTION'
 }
 
+export type Profile = {
+  __typename?: 'Profile';
+  name: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
+  about: Scalars['String']['output'];
+  website?: Maybe<Scalars['String']['output']>;
+};
+
+export type ProfileInput = {
+  name: Scalars['String']['input'];
+  displayName: Scalars['String']['input'];
+  about: Scalars['String']['input'];
+  website?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type MutationUpdateProfileArgs = {
+  input: ProfileInput;
+};
+
 export type Permission = {
   __typename?: 'Permission';
   enabled: Scalars['Boolean']['output'];
@@ -212,6 +233,7 @@ export type Query = {
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
   notifications: Array<Notification>;
+  profile: Profile;
   searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
@@ -337,7 +359,7 @@ export type ResolversTypes = {
   AgentJob: ResolverTypeWrapper<AgentJob>;
   AgentStatus: AgentStatus;
   AuthMethod: AuthMethod;
-  Avatar: ResolverTypeWrapper<Avatar>;
+  Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
   FeedItem: ResolverTypeWrapper<FeedItemModel>;
@@ -351,6 +373,7 @@ export type ResolversTypes = {
   NotificationStatus: NotificationStatus;
   NotificationType: NotificationType;
   Permission: ResolverTypeWrapper<Permission>;
+  Profile: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Skill: ResolverTypeWrapper<Skill>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -360,7 +383,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Agent: AgentModel;
   AgentJob: AgentJob;
-  Avatar: Avatar;
+  Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
   FeedItem: FeedItemModel;
   ID: Scalars['ID']['output'];
@@ -370,6 +393,7 @@ export type ResolversParentTypes = {
   Notification: NotificationModel;
   NotificationAction: NotificationAction;
   Permission: Permission;
+  Profile: ProfileModel;
   Query: Record<PropertyKey, never>;
   Skill: Skill;
   String: Scalars['String']['output'];
@@ -430,6 +454,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgentStatus?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentStatusArgs, 'id' | 'status'>>;
+  updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
 };
 
@@ -450,6 +475,13 @@ export type NotificationActionResolvers<ContextType = Context, ParentType extend
   style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type ProfileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type PermissionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -468,6 +500,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
+  profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   searchSkills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySearchSkillsArgs, 'query'>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
@@ -495,6 +528,7 @@ export type Resolvers<ContextType = Context> = {
   Notification?: NotificationResolvers<ContextType>;
   NotificationAction?: NotificationActionResolvers<ContextType>;
   Permission?: PermissionResolvers<ContextType>;
+  Profile?: ProfileResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
 };
