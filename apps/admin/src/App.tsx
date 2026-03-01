@@ -2,12 +2,12 @@ import { useState } from "react";
 import {
   clearToken,
   extractTokenFromHash,
+  getLoginUrl,
   getLogoutUrl,
   getToken,
   isAuthEnabled,
   setToken,
 } from "./auth";
-import { LoginPage } from "./components/LoginPage";
 import { RouterApp } from "./components/RouterApp";
 
 function getInitialToken(): string | null {
@@ -28,7 +28,8 @@ export function App() {
   }
 
   if (!token) {
-    return <LoginPage />;
+    window.location.href = getLoginUrl();
+    return null;
   }
 
   return (
