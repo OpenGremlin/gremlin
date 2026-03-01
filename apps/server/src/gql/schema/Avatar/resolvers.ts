@@ -1,4 +1,5 @@
-import type { QueryResolvers } from "../../resolverTypes.js";
+import type { AvatarResolvers, QueryResolvers } from "../../resolverTypes.js";
+import { buildMediaUrl } from "../mediaUrl.js";
 
 export interface AvatarModel {
   id: string;
@@ -38,13 +39,10 @@ const avatarList: AvatarModel[] = [
 
 const avatars: QueryResolvers["avatars"] = () => avatarList;
 
+const url: AvatarResolvers["url"] = (parent, args, ctx) =>
+  buildMediaUrl(ctx.mediaCdnUrl, parent.path, args.width);
+
 export const avatarResolvers = {
   Query: { avatars },
-  Avatar: {
-    url: (parent: AvatarModel, args: { width?: number | null }, ctx: { mediaCdnUrl: string }) => {
-      const base = ctx.mediaCdnUrl.replace(/\/$/, "");
-      const widthParam = args.width ? `?width=${args.width}` : "";
-      return `${base}${parent.path}${widthParam}`;
-    },
-  },
+  Avatar: { url },
 };

@@ -57,6 +57,7 @@ export interface Notification {
   id: string;
   agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   type: "PERMISSION" | "APPROVAL" | "INPUT" | "SUGGESTION";
+  turnId: string | null;
   message: string;
   actions: NotificationAction[];
   status: "PENDING" | "RESOLVED" | "DISMISSED";

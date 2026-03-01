@@ -22,6 +22,7 @@ export const notificationTypeDefs = /* GraphQL */ `
     id: ID!
     agent: Agent!
     type: NotificationType!
+    turnId: String
     message: String!
     actions: [NotificationAction!]!
     status: NotificationStatus!

@@ -1,9 +1,10 @@
 import {
-  AgentStatus,
   type AgentResolvers,
+  AgentStatus,
   type MutationResolvers,
   type QueryResolvers,
 } from "../../resolverTypes.js";
+import { buildMediaUrl } from "../mediaUrl.js";
 
 export interface AgentModel {
   id: string;
@@ -61,6 +62,12 @@ export function findAgent(id: string): AgentModel | undefined {
   return mockAgents.find((a) => a.id === id);
 }
 
+export function requireAgent(id: string): AgentModel {
+  const a = findAgent(id);
+  if (!a) throw new Error(`Agent ${id} not found`);
+  return a;
+}
+
 const agents: QueryResolvers["agents"] = () => mockAgents;
 
 const agent: QueryResolvers["agent"] = (_parent, { id }) =>
@@ -76,11 +83,8 @@ const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
   return a;
 };
 
-const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) => {
-  const base = ctx.mediaCdnUrl.replace(/\/$/, "");
-  const widthParam = args.width ? `?width=${args.width}` : "";
-  return `${base}${parent.avatar}${widthParam}`;
-};
+const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
+  buildMediaUrl(ctx.mediaCdnUrl, parent.avatar, args.width);
 
 export const agentResolvers = {
   Query: { agents, agent },

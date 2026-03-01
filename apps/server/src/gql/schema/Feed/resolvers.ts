@@ -3,7 +3,7 @@ import {
   type FeedItemResolvers,
   type QueryResolvers,
 } from "../../resolverTypes.js";
-import { findAgent } from "../Agent/resolvers.js";
+import { requireAgent } from "../Agent/resolvers.js";
 
 export interface FeedItemModel {
   id: string;
@@ -50,11 +50,8 @@ const feedItems: QueryResolvers["feedItems"] = () => mockFeedItems;
 const feedItem: QueryResolvers["feedItem"] = (_parent, { id }) =>
   mockFeedItems.find((item) => item.id === id) ?? null;
 
-const agent: FeedItemResolvers["agent"] = (parent) => {
-  const a = findAgent(parent.agentId);
-  if (!a) throw new Error(`Agent ${parent.agentId} not found`);
-  return a;
-};
+const agent: FeedItemResolvers["agent"] = (parent) =>
+  requireAgent(parent.agentId);
 
 export const feedResolvers = {
   Query: { feedItems, feedItem },

@@ -10,7 +10,7 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import type { LayoutStateMessage } from "@gremlin/shared-types";
 import express from "express";
 import { createYoga } from "graphql-yoga";
-import { WebSocket, WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
@@ -18,8 +18,9 @@ import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
-const MEDIA_CDN_URL =
-  process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`;
+const MEDIA_CDN_URL = (
+  process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`
+).replace(/\/$/, "");
 const app = express();
 
 const yoga = createYoga({
@@ -98,16 +99,6 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Broadcast to all connected clients
-export function broadcast(data: object) {
-  const message = JSON.stringify(data);
-  for (const client of wss.clients) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  }
-}
-
 // Default layout state
 const defaultLayout: LayoutStateMessage = {
   type: "layout_state",
@@ -119,13 +110,20 @@ const defaultLayout: LayoutStateMessage = {
   avatar: "dormant",
   profileId: "family",
 };
+const defaultLayoutJson = JSON.stringify(defaultLayout);
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
-  ws.send(JSON.stringify(defaultLayout));
+  ws.send(defaultLayoutJson);
 
   ws.on("message", (raw) => {
-    const message = JSON.parse(raw.toString());
+    let message: { type?: string; text?: string };
+    try {
+      message = JSON.parse(raw.toString());
+    } catch {
+      console.error("Invalid JSON from client:", raw.toString().slice(0, 200));
+      return;
+    }
     console.log("Received:", message);
 
     // Echo commands back as task updates for now
@@ -141,6 +139,7 @@ wss.on("connection", (ws) => {
     }
   });
 
+  ws.on("error", (err) => console.error("WebSocket error:", err));
   ws.on("close", () => console.log("Client disconnected"));
 });
 
