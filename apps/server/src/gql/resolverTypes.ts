@@ -1,7 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentModel } from './schema/Agent/resolvers.js';
-import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { FeedItemModel } from './schema/Feed/resolvers.js';
+import { NotificationModel } from './schema/Notification/resolvers.js';
 import { Context } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -49,8 +49,8 @@ export type AgentJob = {
 
 export enum AgentStatus {
   Active = 'ACTIVE',
-  Scheduled = 'SCHEDULED',
-  Idle = 'IDLE'
+  Idle = 'IDLE',
+  Scheduled = 'SCHEDULED'
 }
 
 export enum AuthMethod {
@@ -58,6 +58,18 @@ export enum AuthMethod {
   Oauth = 'OAUTH',
   Token = 'TOKEN'
 }
+
+export type Avatar = {
+  __typename?: 'Avatar';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+
+export type AvatarUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
 
 export enum FeedCategory {
   Monitor = 'MONITOR',
@@ -99,7 +111,9 @@ export enum JobStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
+  resolveNotification?: Maybe<Notification>;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
   updateAgentStatus?: Maybe<Agent>;
@@ -107,7 +121,18 @@ export type Mutation = {
 };
 
 
+export type MutationDismissNotificationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationInstallSkillArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationResolveNotificationArgs = {
+  actionId: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
 
@@ -135,22 +160,43 @@ export type MutationUpdateJobStatusArgs = {
   status: JobStatus;
 };
 
+export type Notification = {
+  __typename?: 'Notification';
+  actions: Array<NotificationAction>;
+  agent: Agent;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  resolvedAction?: Maybe<Scalars['String']['output']>;
+  status: NotificationStatus;
+  type: NotificationType;
+};
+
+export type NotificationAction = {
+  __typename?: 'NotificationAction';
+  id: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  style: Scalars['String']['output'];
+};
+
+export enum NotificationStatus {
+  Dismissed = 'DISMISSED',
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
+
+export enum NotificationType {
+  Approval = 'APPROVAL',
+  Input = 'INPUT',
+  Permission = 'PERMISSION',
+  Suggestion = 'SUGGESTION'
+}
+
 export type Permission = {
   __typename?: 'Permission';
   enabled: Scalars['Boolean']['output'];
   label: Scalars['String']['output'];
   scope: Scalars['String']['output'];
-};
-
-export type Avatar = {
-  __typename?: 'Avatar';
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  url: Scalars['String']['output'];
-};
-
-export type AvatarUrlArgs = {
-  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Query = {
@@ -165,6 +211,7 @@ export type Query = {
   feedItems: Array<FeedItem>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
+  notifications: Array<Notification>;
   searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
@@ -289,8 +336,8 @@ export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentModel>;
   AgentJob: ResolverTypeWrapper<AgentJob>;
   AgentStatus: AgentStatus;
-  Avatar: ResolverTypeWrapper<AvatarModel>;
   AuthMethod: AuthMethod;
+  Avatar: ResolverTypeWrapper<Avatar>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
   FeedItem: ResolverTypeWrapper<FeedItemModel>;
@@ -299,6 +346,10 @@ export type ResolversTypes = {
   Integration: ResolverTypeWrapper<Integration>;
   JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  Notification: ResolverTypeWrapper<NotificationModel>;
+  NotificationAction: ResolverTypeWrapper<NotificationAction>;
+  NotificationStatus: NotificationStatus;
+  NotificationType: NotificationType;
   Permission: ResolverTypeWrapper<Permission>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Skill: ResolverTypeWrapper<Skill>;
@@ -309,13 +360,15 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Agent: AgentModel;
   AgentJob: AgentJob;
-  Avatar: AvatarModel;
+  Avatar: Avatar;
   Boolean: Scalars['Boolean']['output'];
   FeedItem: FeedItemModel;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Integration: Integration;
   Mutation: Record<PropertyKey, never>;
+  Notification: NotificationModel;
+  NotificationAction: NotificationAction;
   Permission: Permission;
   Query: Record<PropertyKey, never>;
   Skill: Skill;
@@ -342,6 +395,12 @@ export type AgentJobResolvers<ContextType = Context, ParentType extends Resolver
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
 };
 
+export type AvatarResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
+};
+
 export type FeedItemResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeedItem'] = ResolversParentTypes['FeedItem']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -365,11 +424,30 @@ export type IntegrationResolvers<ContextType = Context, ParentType extends Resol
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
+  resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgentStatus?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentStatusArgs, 'id' | 'status'>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
+};
+
+export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
+  actions?: Resolver<Array<ResolversTypes['NotificationAction']>, ParentType, ContextType>;
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resolvedAction?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['NotificationStatus'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['NotificationType'], ParentType, ContextType>;
+};
+
+export type NotificationActionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['NotificationAction'] = ResolversParentTypes['NotificationAction']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type PermissionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
@@ -389,6 +467,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   feedItems?: Resolver<Array<ResolversTypes['FeedItem']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
+  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   searchSkills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySearchSkillsArgs, 'query'>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
@@ -406,12 +485,6 @@ export type SkillResolvers<ContextType = Context, ParentType extends ResolversPa
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type AvatarResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
-};
-
 export type Resolvers<ContextType = Context> = {
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
@@ -419,6 +492,8 @@ export type Resolvers<ContextType = Context> = {
   FeedItem?: FeedItemResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Notification?: NotificationResolvers<ContextType>;
+  NotificationAction?: NotificationActionResolvers<ContextType>;
   Permission?: PermissionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;

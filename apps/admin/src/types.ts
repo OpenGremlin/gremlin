@@ -52,6 +52,24 @@ export interface Agent {
   status: "ACTIVE" | "SCHEDULED" | "IDLE";
 }
 
+/** A notification from an agent */
+export interface Notification {
+  id: string;
+  agent: Pick<Agent, "id" | "name" | "imageUrl">;
+  type: "PERMISSION" | "APPROVAL" | "INPUT" | "SUGGESTION";
+  message: string;
+  actions: NotificationAction[];
+  status: "PENDING" | "RESOLVED" | "DISMISSED";
+  resolvedAction: string | null;
+  createdAt: string;
+}
+
+export interface NotificationAction {
+  id: string;
+  label: string;
+  style: "primary" | "secondary";
+}
+
 /** An installed agent skill */
 export interface Skill {
   id: string;

@@ -5,6 +5,7 @@ import { agentJobResolvers } from "./AgentJob/resolvers.js";
 import { avatarResolvers } from "./Avatar/resolvers.js";
 import { feedResolvers } from "./Feed/resolvers.js";
 import { integrationResolvers } from "./Integration/resolvers.js";
+import { notificationResolvers } from "./Notification/resolvers.js";
 import { skillResolvers } from "./Skill/resolvers.js";
 
 export const mergedResolvers: IResolvers = mergeResolvers([
@@ -13,5 +14,6 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   agentResolvers,
   avatarResolvers,
   integrationResolvers,
+  notificationResolvers,
   skillResolvers,
 ]);

@@ -11,6 +11,7 @@ const config: CodegenConfig = {
         mappers: {
           Agent: "./schema/Agent/resolvers.js#AgentModel",
           FeedItem: "./schema/Feed/resolvers.js#FeedItemModel",
+          Notification: "./schema/Notification/resolvers.js#NotificationModel",
         },
       },
     },

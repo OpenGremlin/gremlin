@@ -1,22 +1,150 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { Integration } from "../../types";
-import type { Skill } from "../../types";
+import type { Integration, Notification, Skill } from "../../types";
+import { gql } from "../../auth";
 import { Badge } from "../../shared/Badge";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
-import { INTEGRATIONS_QUERY } from "../../queries";
-import { SKILLS_QUERY } from "../../queries";
+import {
+  INTEGRATIONS_QUERY,
+  NOTIFICATIONS_QUERY,
+  RESOLVE_NOTIFICATION,
+  DISMISS_NOTIFICATION,
+  SKILLS_QUERY,
+} from "../../queries";
 
 const pills = ["Notifications", "Integrations", "Skills", "Profile"] as const;
 type Pill = (typeof pills)[number];
 
-function NotificationsContent() {
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 1000,
+  );
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function NotificationCard({
+  notification,
+  onAction,
+  onDismiss,
+}: {
+  notification: Notification;
+  onAction: (notifId: string, actionId: string) => void;
+  onDismiss: (notifId: string) => void;
+}) {
+  const resolved = notification.status !== "PENDING";
+  const resolvedLabel = notification.actions.find(
+    (a) => a.id === notification.resolvedAction,
+  )?.label;
+
   return (
-    <div className="flex items-center justify-center px-4 py-20 text-sm text-neutral-500">
-      No notifications yet
+    <div
+      className={`bg-neutral-900 rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
+    >
+      <div className="flex items-start gap-3">
+        <img
+          src={notification.agent.imageUrl}
+          alt={notification.agent.name}
+          className="w-8 h-8 rounded-full shrink-0 mt-0.5"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <Link
+              to={`/agents/${notification.agent.id}`}
+              className="text-sm font-medium text-neutral-100 hover:text-indigo-400 transition-colors"
+            >
+              {notification.agent.name}
+            </Link>
+            <span className="text-[11px] text-neutral-500 shrink-0 ml-2">
+              {timeAgo(notification.createdAt)}
+            </span>
+          </div>
+          <p className="text-sm text-neutral-300 mb-3">
+            {notification.message}
+          </p>
+
+          {resolved ? (
+            <span className="text-xs text-neutral-500">
+              {notification.status === "DISMISSED"
+                ? "Dismissed"
+                : resolvedLabel ?? "Resolved"}
+            </span>
+          ) : (
+            <div className="flex items-center gap-2 flex-wrap">
+              {notification.actions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => onAction(notification.id, action.id)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    action.style === "primary"
+                      ? "bg-indigo-500 text-white hover:bg-indigo-400"
+                      : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                  }`}
+                >
+                  {action.label}
+                </button>
+              ))}
+              <button
+                onClick={() => onDismiss(notification.id)}
+                className="text-xs text-neutral-500 hover:text-neutral-400 transition-colors ml-1"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+function NotificationsContent() {
+  const [version, setVersion] = useState(0);
+  const { data, loading, error } = useQuery<{
+    notifications: Notification[];
+  }>(NOTIFICATIONS_QUERY, { _v: version });
+
+  const notifications = data?.notifications ?? [];
+
+  async function handleAction(notifId: string, actionId: string) {
+    await gql(RESOLVE_NOTIFICATION, { id: notifId, actionId });
+    setVersion((v) => v + 1);
+  }
+
+  async function handleDismiss(notifId: string) {
+    await gql(DISMISS_NOTIFICATION, { id: notifId });
+    setVersion((v) => v + 1);
+  }
+
+  if (!loading && !error && notifications.length === 0) {
+    return (
+      <div className="flex items-center justify-center px-4 py-20 text-sm text-neutral-500">
+        No notifications yet
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <QueryResult loading={loading} error={error} />
+      <div className="flex flex-col gap-3 px-4 pb-4">
+        {notifications.map((n) => (
+          <NotificationCard
+            key={n.id}
+            notification={n}
+            onAction={handleAction}
+            onDismiss={handleDismiss}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
