@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { Check } from "lucide-react";
 import type { Integration, Notification, Skill } from "../../types";
 import { gql } from "../../auth";
 import { AgentAvatar } from "../../shared/AgentAvatar";
+import { AutoTextarea } from "../../shared/AutoTextarea";
 import { Badge } from "../../shared/Badge";
 import { QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import {
   INTEGRATIONS_QUERY,
   NOTIFICATIONS_QUERY,
+  PROFILE_QUERY,
+  UPDATE_PROFILE,
   RESOLVE_NOTIFICATION,
   DISMISS_NOTIFICATION,
   SKILLS_QUERY,
@@ -224,11 +229,115 @@ function SkillsContent() {
   );
 }
 
+interface ProfileFormValues {
+  name: string;
+  displayName: string;
+  about: string;
+  website: string;
+}
+
 function ProfileContent() {
+  const { data, loading, error } = useQuery<{
+    profile: { name: string; displayName: string; about: string; website: string | null };
+  }>(PROFILE_QUERY);
+  const [saved, setSaved] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isDirty, isSubmitting },
+  } = useForm<ProfileFormValues>();
+
+  const profile = data?.profile;
+
+  useEffect(() => {
+    if (profile) {
+      reset({
+        name: profile.name,
+        displayName: profile.displayName,
+        about: profile.about,
+        website: profile.website ?? "",
+      });
+    }
+  }, [profile, reset]);
+
+  async function onSubmit(values: ProfileFormValues) {
+    await gql(UPDATE_PROFILE, {
+      input: {
+        name: values.name,
+        displayName: values.displayName,
+        about: values.about,
+        website: values.website || null,
+      },
+    });
+    reset(values);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} />;
+  }
+
   return (
-    <div className="flex items-center justify-center px-4 py-20 text-sm text-neutral-500">
-      Coming soon
-    </div>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-4 px-4 pb-6"
+    >
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-neutral-500">Username</label>
+        <input
+          {...register("name")}
+          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-neutral-500">Display Name</label>
+        <input
+          {...register("displayName")}
+          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-neutral-500">About</label>
+        <AutoTextarea
+          {...register("about")}
+          minRows={3}
+          className="w-full bg-neutral-900 text-sm text-neutral-300 leading-relaxed rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-neutral-500">Website</label>
+        <input
+          {...register("website")}
+          type="url"
+          placeholder="https://"
+          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors placeholder:text-neutral-600"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        {isDirty && (
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="self-start px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? "Saving…" : "Save"}
+          </button>
+        )}
+        {saved && (
+          <span className="flex items-center gap-1 text-xs text-green-400">
+            <Check size={14} />
+            Saved
+          </span>
+        )}
+      </div>
+    </form>
   );
 }
 

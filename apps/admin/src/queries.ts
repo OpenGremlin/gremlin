@@ -14,6 +14,10 @@ export const AGENT_JOBS_QUERY = `query { agentJobs { id name description recurre
 
 export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence status lastRun nextRun } }`;
 
+export const PROFILE_QUERY = `query { profile { name displayName about website } }`;
+
+export const UPDATE_PROFILE = `mutation($input: ProfileInput!) { updateProfile(input: $input) { name displayName about website } }`;
+
 export const AVATARS_QUERY = `query { avatars { id name url(width: 200) } }`;
 
 export const NOTIFICATIONS_QUERY = `query { notifications { id agent { id name status imageUrl(width: 100) } type message actions { id label style } status resolvedAction createdAt } }`;
