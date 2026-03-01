@@ -1,9 +1,7 @@
-import { generateText, stepCountIs, type ModelMessage, type Tool } from "ai";
+import { generateText, type ModelMessage, type Tool } from "ai";
 import type { ServiceContext } from "../context.js";
 import { getModel } from "./model.js";
 import { writeAgentLog } from "./writeAgentLog.js";
-
-const MAX_STEPS = 10;
 
 export async function runAgentTurn(
   ctx: ServiceContext,
@@ -20,7 +18,7 @@ export async function runAgentTurn(
     model: getModel(),
     system: opts.systemPrompt,
     messages: opts.messages,
-    ...(hasTools ? { tools: opts.tools, stopWhen: stepCountIs(MAX_STEPS) } : {}),
+    ...(hasTools ? { tools: opts.tools } : {}),
   });
 
   // Log each step's tool calls
