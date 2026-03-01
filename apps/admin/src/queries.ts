@@ -16,7 +16,7 @@ export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name de
 
 export const AVATARS_QUERY = `query { avatars { id name url(width: 200) } }`;
 
-export const NOTIFICATIONS_QUERY = `query { notifications { id agent { id name imageUrl(width: 100) } type message actions { id label style } status resolvedAction createdAt } }`;
+export const NOTIFICATIONS_QUERY = `query { notifications { id agent { id name status imageUrl(width: 100) } type message actions { id label style } status resolvedAction createdAt } }`;
 
 export const RESOLVE_NOTIFICATION = `mutation($id: ID!, $actionId: String!) { resolveNotification(id: $id, actionId: $actionId) { id status resolvedAction } }`;
 

@@ -55,7 +55,7 @@ export interface Agent {
 /** A notification from an agent */
 export interface Notification {
   id: string;
-  agent: Pick<Agent, "id" | "name" | "imageUrl">;
+  agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   type: "PERMISSION" | "APPROVAL" | "INPUT" | "SUGGESTION";
   message: string;
   actions: NotificationAction[];

@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { Code, ArrowRight } from "lucide-react";
 import type { Agent } from "../../types";
+import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
@@ -136,28 +137,7 @@ export function AgentChatPage() {
       {/* Header */}
       <div className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
         <Link to={`/agents/${agent.id}/config`}>
-          <div
-            className={`w-16 h-16 flex items-center justify-center avatar-ring ${
-              agent.status === "ACTIVE"
-                ? "avatar-ring-active"
-                : agent.status === "SCHEDULED"
-                  ? "avatar-ring-scheduled"
-                  : "avatar-ring-idle"
-            }`}
-          >
-            <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-lg text-neutral-400 font-medium">
-              <img
-                src={agent.imageUrl}
-                alt={agent.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                  (e.target as HTMLImageElement).parentElement!.textContent =
-                    agent.name[0];
-                }}
-              />
-            </div>
-          </div>
+          <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="lg" />
         </Link>
         <h1 className="text-sm font-semibold text-neutral-100 mt-2">
           {agent.name}

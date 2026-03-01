@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Integration, Notification, Skill } from "../../types";
 import { gql } from "../../auth";
+import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
-import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import {
@@ -49,12 +49,8 @@ function NotificationCard({
       className={`bg-neutral-900 rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
     >
       <div className="flex items-start gap-3">
-        <Link to={`/agents/${notification.agent.id}`}>
-          <img
-            src={notification.agent.imageUrl}
-            alt={notification.agent.name}
-            className="w-8 h-8 rounded-full shrink-0 mt-0.5"
-          />
+        <Link to={`/agents/${notification.agent.id}`} className="mt-0.5">
+          <AgentAvatar src={notification.agent.imageUrl} name={notification.agent.name} status={notification.agent.status} size="xs" />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
@@ -241,9 +237,7 @@ export function UserPage() {
 
   return (
     <div>
-      <PageHeader title="You" />
-
-      <div className="flex gap-2 px-4 pb-4 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 px-4 pt-4 pb-4 overflow-x-auto scrollbar-hide">
         {pills.map((pill) => (
           <button
             key={pill}

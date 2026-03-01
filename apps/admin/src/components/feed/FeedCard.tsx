@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { FeedItem } from "../../types";
+import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 
 function timeAgo(dateStr: string): string {
@@ -25,27 +26,9 @@ export function FeedCard({ item }: { item: FeedItem }) {
       <div className="flex gap-3">
         <Link
           to={`/agents/${agent.id}`}
-          className={`w-9 h-9 shrink-0 flex items-center justify-center avatar-ring ${
-            agent.status === "ACTIVE"
-              ? "avatar-ring-active"
-              : agent.status === "SCHEDULED"
-                ? "avatar-ring-scheduled"
-                : "avatar-ring-idle"
-          }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-xs text-neutral-400 font-medium">
-            <img
-              src={agent.imageUrl}
-              alt={agent.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-                (e.target as HTMLImageElement).parentElement!.textContent =
-                  agent.name[0];
-              }}
-            />
-          </div>
+          <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="sm" />
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">

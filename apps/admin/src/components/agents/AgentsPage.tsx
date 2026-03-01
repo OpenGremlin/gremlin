@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Settings } from "lucide-react";
 import type { Agent } from "../../types";
+import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
@@ -26,29 +27,7 @@ export function AgentsPage() {
             className="bg-neutral-900 rounded-xl p-4 flex items-start gap-3"
           >
             <Link to={`/agents/${agent.id}`} className="flex-1 min-w-0 flex items-start gap-3">
-              <div
-                className={`w-12 h-12 shrink-0 flex items-center justify-center avatar-ring ${
-                  agent.status === "ACTIVE"
-                    ? "avatar-ring-active"
-                    : agent.status === "SCHEDULED"
-                      ? "avatar-ring-scheduled"
-                      : "avatar-ring-idle"
-                }`}
-              >
-                <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium">
-                  <img
-                    src={agent.imageUrl}
-                    alt={agent.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                      (
-                        e.target as HTMLImageElement
-                      ).parentElement!.textContent = agent.name[0];
-                    }}
-                  />
-                </div>
-              </div>
+              <AgentAvatar src={agent.imageUrl} name={agent.name} status={agent.status} size="md" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-medium text-neutral-100">
