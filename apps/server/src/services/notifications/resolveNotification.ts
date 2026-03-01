@@ -22,5 +22,17 @@ export async function resolveNotification(
     .item(updated)
     .send();
 
+  // Re-trigger the blocked agent with the user's decision
+  const actionLabel =
+    existing.actions.find((a) => a.id === actionId)?.label ?? actionId;
+
+  ctx.services.orchestrator
+    .sendMessage(
+      ctx,
+      existing.agentId,
+      `[Notification resolved] "${existing.message}" → User selected: "${actionLabel}"`,
+    )
+    .catch((err) => console.error("Failed to re-trigger agent:", err));
+
   return updated;
 }
