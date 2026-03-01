@@ -1,6 +1,12 @@
-import { generateText, type ModelMessage, type Tool } from "ai";
+import {
+  generateText,
+  hasToolCall,
+  type ModelMessage,
+  type Tool,
+} from "ai";
 import type { ServiceContext } from "../context.js";
 import { getModel } from "./model.js";
+import { requestApprovalTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function runAgentTurn(
@@ -13,12 +19,16 @@ export async function runAgentTurn(
     tools?: Record<string, Tool>;
   },
 ): Promise<string> {
-  const hasTools = opts.tools && Object.keys(opts.tools).length > 0;
+  const allTools = {
+    ...opts.tools,
+    requestApproval: requestApprovalTool(ctx, opts.agentId),
+  };
   const result = await generateText({
     model: getModel(),
     system: opts.systemPrompt,
     messages: opts.messages,
-    ...(hasTools ? { tools: opts.tools } : {}),
+    tools: allTools,
+    stopWhen: [hasToolCall("requestApproval")],
   });
 
   // Log each step's tool calls

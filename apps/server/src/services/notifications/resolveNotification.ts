@@ -1,5 +1,8 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
-import { NotificationStatus } from "../../gql/resolverTypes.js";
+import {
+  AgentStatus,
+  NotificationStatus,
+} from "../../gql/resolverTypes.js";
 import type { NotificationItem } from "../../resources/ddb/schema/notification.js";
 import type { ServiceContext } from "../context.js";
 import { getNotification } from "./getNotification.js";
@@ -22,9 +25,13 @@ export async function resolveNotification(
     .item(updated)
     .send();
 
-  // Re-trigger the blocked agent with the user's decision
+  // Unblock the agent and re-trigger with the user's decision
   const actionLabel =
     existing.actions.find((a) => a.id === actionId)?.label ?? actionId;
+
+  ctx.services.agents
+    .updateAgentStatus(ctx, existing.agentId, AgentStatus.Active)
+    .catch((err) => console.error("Failed to unblock agent:", err));
 
   ctx.services.orchestrator
     .sendMessage(
