@@ -2,7 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
-import { renderSystemPrompt } from "./prompts.js";
+import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(

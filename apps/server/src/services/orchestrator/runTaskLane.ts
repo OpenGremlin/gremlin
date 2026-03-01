@@ -1,7 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
-import { renderTaskSystemPrompt } from "./prompts.js";
+import { renderTaskSystemPrompt } from "../prompts/renderTaskSystemPrompt.js";
 import { defaultTools } from "./tools.js";
 import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { writeAgentLog } from "./writeAgentLog.js";
