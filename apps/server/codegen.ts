@@ -11,6 +11,7 @@ const config: CodegenConfig = {
         mappers: {
           Agent: "../resources/ddb/schema/agent.js#AgentItem",
           AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
+          AgentLog: "../resources/ddb/schema/agentLog.js#AgentLogItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           Status: "../resources/ddb/schema/status.js#StatusItem",
           Integration:
@@ -19,6 +20,9 @@ const config: CodegenConfig = {
             "../resources/ddb/schema/notification.js#NotificationItem",
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",
           Skill: "../resources/ddb/schema/skill.js#SkillItem",
+          Task: "../resources/ddb/schema/task.js#TaskItem",
+          TaskFollowUp:
+            "../resources/ddb/schema/taskFollowUp.js#TaskFollowUpItem",
         },
       },
     },

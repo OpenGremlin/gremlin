@@ -1,3 +1,4 @@
+import { type AgentLogService, agentLogService } from "./agentLogs/index.js";
 import { type AgentService, agentService } from "./agents/index.js";
 import { type StatusService, statusService } from "./feed/index.js";
 import {
@@ -12,8 +13,14 @@ import {
 } from "./notifications/index.js";
 import { type ProfileService, profileService } from "./profile/index.js";
 import { type SkillService, skillService } from "./skills/index.js";
+import {
+  type TaskFollowUpService,
+  taskFollowUpService,
+} from "./taskFollowUps/index.js";
+import { type TaskService, taskService } from "./tasks/index.js";
 
 export interface Services {
+  agentLogs: AgentLogService;
   agents: AgentService;
   jobs: JobService;
   statuses: StatusService;
@@ -22,10 +29,13 @@ export interface Services {
   profile: ProfileService;
   skills: SkillService;
   media: MediaService;
+  tasks: TaskService;
+  taskFollowUps: TaskFollowUpService;
 }
 
 export function createServices(): Services {
   return {
+    agentLogs: agentLogService,
     agents: agentService,
     jobs: jobService,
     statuses: statusService,
@@ -34,5 +44,7 @@ export function createServices(): Services {
     profile: profileService,
     skills: skillService,
     media: mediaService,
+    tasks: taskService,
+    taskFollowUps: taskFollowUpService,
   };
 }

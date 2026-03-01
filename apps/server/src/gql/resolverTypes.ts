@@ -1,12 +1,15 @@
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentItem } from '../resources/ddb/schema/agent.js';
 import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
+import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { StatusItem } from '../resources/ddb/schema/status.js';
 import { IntegrationItem } from '../resources/ddb/schema/integration.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
+import { TaskItem } from '../resources/ddb/schema/task.js';
+import { TaskFollowUpItem } from '../resources/ddb/schema/taskFollowUp.js';
 import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -55,6 +58,23 @@ export type AgentJob = {
   status: JobStatus;
   statuses: Array<Status>;
 };
+
+export type AgentLog = {
+  __typename?: 'AgentLog';
+  agent: Agent;
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  role: AgentLogRole;
+  taskId?: Maybe<Scalars['String']['output']>;
+};
+
+export enum AgentLogRole {
+  Agent = 'AGENT',
+  System = 'SYSTEM',
+  Tool = 'TOOL',
+  User = 'USER'
+}
 
 export enum AgentStatus {
   Active = 'ACTIVE',
@@ -229,9 +249,11 @@ export type ProfileInput = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeFollowUps: Array<TaskFollowUp>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
+  agentLogs: Array<AgentLog>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   integration?: Maybe<Integration>;
@@ -243,6 +265,10 @@ export type Query = {
   skills: Array<Skill>;
   status?: Maybe<Status>;
   statuses: Array<Status>;
+  task?: Maybe<Task>;
+  taskFollowUps: Array<TaskFollowUp>;
+  taskLogs: Array<AgentLog>;
+  tasks: Array<Task>;
 };
 
 
@@ -253,6 +279,11 @@ export type QueryAgentArgs = {
 
 export type QueryAgentJobArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryAgentLogsArgs = {
+  agentId: Scalars['ID']['input'];
 };
 
 
@@ -273,6 +304,26 @@ export type QuerySkillArgs = {
 
 export type QueryStatusArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskFollowUpsArgs = {
+  taskId: Scalars['ID']['input'];
+};
+
+
+export type QueryTaskLogsArgs = {
+  taskId: Scalars['ID']['input'];
+};
+
+
+export type QueryTasksArgs = {
+  agentId: Scalars['ID']['input'];
 };
 
 export type Skill = {
@@ -304,6 +355,40 @@ export enum StatusCategory {
   Report = 'REPORT',
   Research = 'RESEARCH',
   Task = 'TASK'
+}
+
+export type Task = {
+  __typename?: 'Task';
+  agent: Agent;
+  completedAt?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  logs: Array<AgentLog>;
+  originJobId?: Maybe<Scalars['String']['output']>;
+  status: TaskStatus;
+  statusReason?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type TaskFollowUp = {
+  __typename?: 'TaskFollowUp';
+  active: Scalars['Boolean']['output'];
+  agent: Agent;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  prompt: Scalars['String']['output'];
+  scheduledAt: Scalars['String']['output'];
+  task: Task;
+};
+
+export enum TaskStatus {
+  Abandoned = 'ABANDONED',
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Waiting = 'WAITING'
 }
 
 export type UpdateAgentJobInput = {
@@ -392,6 +477,8 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentItem>;
   AgentJob: ResolverTypeWrapper<AgentJobItem>;
+  AgentLog: ResolverTypeWrapper<AgentLogItem>;
+  AgentLogRole: AgentLogRole;
   AgentStatus: AgentStatus;
   Artifact: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Artifact']>;
   AuthMethod: AuthMethod;
@@ -415,6 +502,9 @@ export type ResolversTypes = {
   Status: ResolverTypeWrapper<StatusItem>;
   StatusCategory: StatusCategory;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Task: ResolverTypeWrapper<TaskItem>;
+  TaskFollowUp: ResolverTypeWrapper<TaskFollowUpItem>;
+  TaskStatus: TaskStatus;
   UpdateAgentJobInput: UpdateAgentJobInput;
 };
 
@@ -422,6 +512,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Agent: AgentItem;
   AgentJob: AgentJobItem;
+  AgentLog: AgentLogItem;
   Artifact: ResolversUnionTypes<ResolversParentTypes>['Artifact'];
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
@@ -439,6 +530,8 @@ export type ResolversParentTypes = {
   Skill: SkillItem;
   Status: StatusItem;
   String: Scalars['String']['output'];
+  Task: TaskItem;
+  TaskFollowUp: TaskFollowUpItem;
   UpdateAgentJobInput: UpdateAgentJobInput;
 };
 
@@ -464,6 +557,15 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   recurrence?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
   statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
+};
+
+export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLog'] = ResolversParentTypes['AgentLog']> = {
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
+  taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type ArtifactResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Artifact'] = ResolversParentTypes['Artifact']> = {
@@ -538,9 +640,11 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
 
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  activeFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType>;
   agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
+  agentLogs?: Resolver<Array<ResolversTypes['AgentLog']>, ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
@@ -552,6 +656,10 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['Status']>, ParentType, ContextType, RequireFields<QueryStatusArgs, 'id'>>;
   statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
+  task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
+  taskFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<QueryTaskFollowUpsArgs, 'taskId'>>;
+  taskLogs?: Resolver<Array<ResolversTypes['AgentLog']>, ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
+  tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTasksArgs, 'agentId'>>;
 };
 
 export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
@@ -576,9 +684,33 @@ export type StatusResolvers<ContextType = GremlinContext, ParentType extends Res
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  logs?: Resolver<Array<ResolversTypes['AgentLog']>, ParentType, ContextType>;
+  originJobId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['TaskStatus'], ParentType, ContextType>;
+  statusReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type TaskFollowUpResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskFollowUp'] = ResolversParentTypes['TaskFollowUp']> = {
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  prompt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scheduledAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  task?: Resolver<ResolversTypes['Task'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
+  AgentLog?: AgentLogResolvers<ContextType>;
   Artifact?: ArtifactResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
@@ -591,5 +723,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
   Status?: StatusResolvers<ContextType>;
+  Task?: TaskResolvers<ContextType>;
+  TaskFollowUp?: TaskFollowUpResolvers<ContextType>;
 };
 
