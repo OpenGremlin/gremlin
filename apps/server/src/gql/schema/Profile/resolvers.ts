@@ -16,7 +16,10 @@ let currentProfile: ProfileModel = {
 
 const profile: QueryResolvers["profile"] = () => currentProfile;
 
-const updateProfile: MutationResolvers["updateProfile"] = (_parent, { input }) => {
+const updateProfile: MutationResolvers["updateProfile"] = (
+  _parent,
+  { input },
+) => {
   currentProfile = {
     name: input.name,
     displayName: input.displayName,

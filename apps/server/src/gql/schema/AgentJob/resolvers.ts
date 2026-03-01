@@ -1,6 +1,6 @@
 import {
-  JobStatus,
   type AgentJob,
+  JobStatus,
   type MutationResolvers,
   type QueryResolvers,
 } from "../../resolverTypes.js";
