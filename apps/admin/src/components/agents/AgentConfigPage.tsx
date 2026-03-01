@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
+import { ChevronLeft, Pencil, X } from "lucide-react";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
@@ -39,21 +40,7 @@ export function AgentConfigPage() {
         to={`/agents/${agent.id}`}
         className="flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          className="shrink-0"
-        >
-          <path
-            d="M10 12L6 8L10 4"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <ChevronLeft size={16} className="shrink-0" />
         Chat
       </Link>
 
@@ -87,21 +74,7 @@ export function AgentConfigPage() {
               </div>
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                className="text-neutral-200"
-              >
-                <path
-                  d="M11.5 1.5L14.5 4.5M1 15L1.75 11.75L12 1.5L14.5 4L4.25 14.25L1 15Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Pencil size={12} className="text-neutral-200" />
             </div>
           </button>
           <div>
@@ -169,14 +142,7 @@ function AvatarPicker({
             onClick={onClose}
             className="text-neutral-400 hover:text-neutral-200 transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M5 5L15 15M15 5L5 15"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
+            <X size={20} />
           </button>
         </div>
         <div className="overflow-y-auto p-3">

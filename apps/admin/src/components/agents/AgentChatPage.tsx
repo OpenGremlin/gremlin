@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { Code, ArrowRight } from "lucide-react";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
@@ -90,21 +91,7 @@ function LogEntryView({ entry }: { entry: LogEntry }) {
         <div className="py-1 px-2">
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden">
             <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-neutral-800 bg-neutral-900/50">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 16 16"
-                fill="none"
-                className="text-neutral-500 shrink-0"
-              >
-                <path
-                  d="M4 12L2 10L4 8M12 4L14 6L12 8M9 2L7 14"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Code size={12} className="text-neutral-500 shrink-0" />
               <span className="text-[11px] text-neutral-400 font-mono">
                 {entry.label}
               </span>
@@ -209,21 +196,7 @@ export function AgentChatPage() {
             onClick={() => setInput("")}
             className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 hover:bg-blue-500 transition-colors"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              className="text-white"
-            >
-              <path
-                d="M3 8H13M13 8L9 4M13 8L9 12"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ArrowRight size={16} className="text-white" />
           </button>
         </div>
       </div>
