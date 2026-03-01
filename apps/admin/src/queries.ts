@@ -10,9 +10,11 @@ export const SKILLS_QUERY = `query { skills { id name description version instal
 
 export const SKILL_QUERY = `query($id: ID!) { skill(id: $id) { id name description version author installed category homepage requiredEnv } }`;
 
-export const AGENT_JOBS_QUERY = `query { agentJobs { id name description recurrence status lastRun nextRun } }`;
+export const AGENT_JOBS_QUERY = `query { agentJobs { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun } }`;
 
-export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence status lastRun nextRun } }`;
+export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun statuses { id agent { id name status imageUrl(width: 100) } title summary category completedAt } } }`;
+
+export const UPDATE_AGENT_JOB = `mutation($id: ID!, $input: UpdateAgentJobInput!) { updateAgentJob(id: $id, input: $input) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun } }`;
 
 export const PROFILE_QUERY = `query { profile { name displayName about website } }`;
 

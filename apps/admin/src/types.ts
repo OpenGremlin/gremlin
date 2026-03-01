@@ -23,9 +23,12 @@ export interface AgentJob {
   name: string;
   description: string;
   recurrence: string;
+  cronExpression: string | null;
+  agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   status: "running" | "idle" | "error" | "paused";
   lastRun: string | null;
   nextRun: string | null;
+  statuses: Status[];
 }
 
 export type AuthMethod = "OAUTH" | "API_KEY" | "TOKEN";

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { AGENT_JOBS_QUERY } from "../../queries";
+import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
@@ -27,15 +28,26 @@ export function SchedulerTab() {
             to={`/scheduler/${job.id}`}
             className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
           >
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-medium text-neutral-100">
-                {job.name}
-              </h2>
-              <Badge label={job.status} />
+            <div className="flex items-center gap-3">
+              <AgentAvatar
+                src={job.agent.imageUrl}
+                name={job.agent.name}
+                status={job.agent.status}
+                size="sm"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-sm font-medium text-neutral-100 truncate">
+                    {job.name}
+                  </h2>
+                  <Badge label={job.status} />
+                </div>
+                <p className="text-xs text-neutral-400">{job.recurrence}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Next: {formatDate(job.nextRun, "Not scheduled")}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-neutral-400">
-              Next: {formatDate(job.nextRun, "Not scheduled")}
-            </p>
           </Link>
         ))}
       </div>

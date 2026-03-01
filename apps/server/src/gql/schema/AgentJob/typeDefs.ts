@@ -11,9 +11,19 @@ export const agentJobTypeDefs = /* GraphQL */ `
     name: String!
     description: String!
     recurrence: String!
+    cronExpression: String
+    agent: Agent!
     status: JobStatus!
     lastRun: String
     nextRun: String
+    statuses: [Status!]!
+  }
+
+  input UpdateAgentJobInput {
+    name: String
+    description: String
+    recurrence: String
+    agentId: String
   }
 
   extend type Query {
@@ -23,5 +33,6 @@ export const agentJobTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     updateJobStatus(id: ID!, status: JobStatus!): AgentJob
+    updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   }
 `;

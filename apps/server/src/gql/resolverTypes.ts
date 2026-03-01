@@ -44,6 +44,8 @@ export type AgentImageUrlArgs = {
 
 export type AgentJob = {
   __typename?: 'AgentJob';
+  agent: Agent;
+  cronExpression?: Maybe<Scalars['String']['output']>;
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   lastRun?: Maybe<Scalars['String']['output']>;
@@ -51,6 +53,7 @@ export type AgentJob = {
   nextRun?: Maybe<Scalars['String']['output']>;
   recurrence: Scalars['String']['output'];
   status: JobStatus;
+  statuses: Array<Status>;
 };
 
 export enum AgentStatus {
@@ -113,6 +116,7 @@ export type Mutation = {
   resolveNotification?: Maybe<Notification>;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
+  updateAgentJob?: Maybe<AgentJob>;
   updateAgentStatus?: Maybe<Agent>;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
@@ -144,6 +148,12 @@ export type MutationTogglePermissionArgs = {
 
 export type MutationUninstallSkillArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationUpdateAgentJobArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateAgentJobInput;
 };
 
 
@@ -298,6 +308,13 @@ export enum StatusCategory {
   Task = 'TASK'
 }
 
+export type UpdateAgentJobInput = {
+  agentId?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  recurrence?: InputMaybe<Scalars['String']['input']>;
+};
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -400,6 +417,7 @@ export type ResolversTypes = {
   Status: ResolverTypeWrapper<StatusItem>;
   StatusCategory: StatusCategory;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  UpdateAgentJobInput: UpdateAgentJobInput;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -423,6 +441,7 @@ export type ResolversParentTypes = {
   Skill: SkillItem;
   Status: StatusItem;
   String: Scalars['String']['output'];
+  UpdateAgentJobInput: UpdateAgentJobInput;
 };
 
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
@@ -437,6 +456,8 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
 };
 
 export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  cronExpression?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -444,6 +465,7 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   nextRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   recurrence?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
+  statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
 };
 
 export type ArtifactResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Artifact'] = ResolversParentTypes['Artifact']> = {
@@ -480,6 +502,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
+  updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateAgentStatus?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentStatusArgs, 'id' | 'status'>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
