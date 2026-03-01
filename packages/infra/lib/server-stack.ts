@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
 
@@ -45,6 +46,15 @@ export class ServerStack extends cdk.Stack {
     });
 
     props.table.grantReadWriteData(taskDef.taskRole);
+
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+        resources: [
+          `arn:aws:bedrock:${this.region}::foundation-model/*`,
+        ],
+      }),
+    );
 
     const container = taskDef.addContainer("gremlin-server", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
