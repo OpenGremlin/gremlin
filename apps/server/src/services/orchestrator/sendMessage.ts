@@ -2,6 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
+import { renderSystemPrompt } from "./prompts.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(
@@ -66,7 +67,7 @@ async function runMainLaneAgent(
   await runAgentTurn(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: agent.soul,
+    systemPrompt: renderSystemPrompt({ name: agent.name, soul: agent.soul }),
     messages,
   });
 

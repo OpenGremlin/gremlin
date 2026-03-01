@@ -1,6 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
+import { renderTaskSystemPrompt } from "./prompts.js";
 import { defaultTools } from "./tools.js";
 import { updateTaskStatus } from "./updateTaskStatus.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -45,13 +46,12 @@ export async function runTaskLane(
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
     taskId,
-    systemPrompt: [
-      agent.soul,
-      "",
-      `You are working on task: "${task.title}" (ID: ${taskId}).`,
-      "You have access to tools. When you need to wait for an external response (e.g., email reply),",
-      "say so clearly and end your turn. The orchestrator will handle scheduling a follow-up.",
-    ].join("\n"),
+    systemPrompt: renderTaskSystemPrompt({
+      name: agent.name,
+      soul: agent.soul,
+      taskTitle: task.title,
+      taskId,
+    }),
     messages,
     tools: defaultTools,
   });
