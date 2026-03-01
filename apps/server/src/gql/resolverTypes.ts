@@ -3,6 +3,7 @@ import { AgentItem } from '../resources/ddb/schema/agent.js';
 import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
 import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
 import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '../services/agentLogs/pagination.js';
+import { DocumentItem } from '../resources/ddb/schema/document.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { IntegrationItem } from '../resources/ddb/schema/integration.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
@@ -119,6 +120,15 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type Document = {
+  __typename?: 'Document';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type Integration = {
@@ -276,6 +286,7 @@ export type Query = {
   agentLogs: AgentLogConnection;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  document?: Maybe<Document>;
   feed: Array<Task>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
@@ -307,6 +318,11 @@ export type QueryAgentLogsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryDocumentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -505,6 +521,7 @@ export type ResolversTypes = {
   AuthMethod: AuthMethod;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  Document: ResolverTypeWrapper<DocumentItem>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Integration: ResolverTypeWrapper<IntegrationItem>;
@@ -537,6 +554,7 @@ export type ResolversParentTypes = {
   AgentLogPageInfo: PageInfoModel;
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
+  Document: DocumentItem;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Integration: IntegrationItem;
@@ -611,6 +629,14 @@ export type AvatarResolvers<ContextType = GremlinContext, ParentType extends Res
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
 };
 
+export type DocumentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = {
+  body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type IntegrationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
   account?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   authMethod?: Resolver<ResolversTypes['AuthMethod'], ParentType, ContextType>;
@@ -675,6 +701,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
+  document?: Resolver<Maybe<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryDocumentArgs, 'id'>>;
   feed?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
@@ -737,6 +764,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
+  Document?: DocumentResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;

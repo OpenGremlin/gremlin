@@ -7,11 +7,13 @@ import { NotificationEntity } from "./schema/notification.js";
 import { ProfileEntity } from "./schema/profile.js";
 import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
+import { DocumentEntity } from "./schema/document.js";
 import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 
 export const ddb = {
   table: GremlinTable,
   entities: {
+    Document: DocumentEntity,
     Agent: AgentEntity,
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,

@@ -4,6 +4,7 @@ import { agentJobTypeDefs } from "./AgentJob/typeDefs.js";
 import { agentLogTypeDefs } from "./AgentLog/typeDefs.js";
 import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { baseTypeDefs } from "./base.js";
+import { documentTypeDefs } from "./Document/typeDefs.js";
 import { feedTypeDefs } from "./Feed/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
 import { notificationTypeDefs } from "./Notification/typeDefs.js";
@@ -14,6 +15,7 @@ import { taskFollowUpTypeDefs } from "./TaskFollowUp/typeDefs.js";
 
 export const allTypeDefs = [
   baseTypeDefs,
+  documentTypeDefs,
   feedTypeDefs,
   agentJobTypeDefs,
   agentLogTypeDefs,

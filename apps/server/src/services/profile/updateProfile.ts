@@ -10,7 +10,7 @@ export async function updateProfile(
     about: string;
     website?: string | null;
   },
-): Promise<Omit<ProfileItem, "name">> {
+): Promise<ProfileItem> {
   const item = {
     name: input.name,
     displayName: input.displayName,

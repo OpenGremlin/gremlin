@@ -1,5 +1,6 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
+import { list } from "dynamodb-toolbox/schema/list";
 import { string } from "dynamodb-toolbox/schema/string";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
@@ -19,6 +20,7 @@ export const TaskEntity = new Entity({
     updatedAt: string(),
     completedAt: anyOf(string(), nul()),
     originJobId: anyOf(string(), nul()),
+    artifacts: list(string()).optional(),
   }),
   computeKey: ({ id, agentId, createdAt }) => ({
     pk: "TASK",

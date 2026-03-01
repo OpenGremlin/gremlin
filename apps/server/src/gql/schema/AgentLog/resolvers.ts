@@ -1,10 +1,11 @@
 import { pipe, filter } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
-import type {
-  AgentLogResolvers,
-  AgentLogEdgeResolvers,
-  MutationResolvers,
-  QueryResolvers,
+import {
+  AgentLogRole,
+  type AgentLogResolvers,
+  type AgentLogEdgeResolvers,
+  type MutationResolvers,
+  type QueryResolvers,
 } from "../../resolverTypes.js";
 import type { GremlinContext } from "../../context.js";
 
@@ -26,8 +27,16 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
-const role: AgentLogResolvers["role"] = (parent) =>
-  parent.role.toUpperCase() as "AGENT" | "USER" | "SYSTEM" | "TOOL";
+const role: AgentLogResolvers["role"] = (parent) => {
+  const upper = parent.role.toUpperCase();
+  const map: Record<string, AgentLogRole> = {
+    AGENT: AgentLogRole.Agent,
+    USER: AgentLogRole.User,
+    SYSTEM: AgentLogRole.System,
+    TOOL: AgentLogRole.Tool,
+  };
+  return map[upper] ?? AgentLogRole.System;
+};
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 

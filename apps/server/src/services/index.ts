@@ -20,11 +20,16 @@ import {
   type TaskFollowUpService,
   taskFollowUpService,
 } from "./taskFollowUps/index.js";
+import {
+  type DocumentService,
+  documentService,
+} from "./documents/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
 
 export interface Services {
   agentLogs: AgentLogService;
   agents: AgentService;
+  documents: DocumentService;
   jobs: JobService;
   integrations: IntegrationService;
   notifications: NotificationService;
@@ -40,6 +45,7 @@ export function createServices(): Services {
   return {
     agentLogs: agentLogService,
     agents: agentService,
+    documents: documentService,
     jobs: jobService,
     integrations: integrationService,
     notifications: notificationService,
