@@ -1,5 +1,10 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  QueryCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -71,6 +76,22 @@ const notifications = [
 ];
 
 async function seed() {
+  // Clear existing notifications
+  console.log("Clearing existing notifications...");
+  const { Items } = await docClient.send(
+    new QueryCommand({
+      TableName,
+      KeyConditionExpression: "pk = :pk",
+      ExpressionAttributeValues: { ":pk": "NOTIFICATION" },
+    }),
+  );
+  for (const item of Items ?? []) {
+    await docClient.send(
+      new DeleteCommand({ TableName, Key: { pk: item.pk, sk: item.sk } }),
+    );
+    console.log(`  ✗ deleted ${item.sk}`);
+  }
+
   console.log(
     `Seeding ${notifications.length} mock notifications for agent "${AGENT_ID}"...`,
   );
