@@ -40,11 +40,9 @@ export async function runAgentTurn(
         agentId: opts.agentId,
         taskId: opts.taskId,
         role: "TOOL",
-        content: JSON.stringify({
-          name: toolCall.toolName,
-          input: "input" in toolCall ? toolCall.input : undefined,
-          result: toolResult?.output,
-        }),
+        toolName: toolCall.toolName,
+        toolInput: "input" in toolCall ? toolCall.input : undefined,
+        toolResult: toolResult?.output,
       });
     }
   }

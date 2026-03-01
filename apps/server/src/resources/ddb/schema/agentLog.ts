@@ -15,6 +15,9 @@ export const AgentLogEntity = new Entity({
     taskId: anyOf(string(), nul()).key(),
     role: string(),
     content: string(),
+    toolName: anyOf(string(), nul()).optional(),
+    toolInput: anyOf(string(), nul()).optional(),
+    toolResult: anyOf(string(), nul()).optional(),
     createdAt: string().key(),
   }),
   computeKey: ({ id, agentId, taskId, createdAt }) => ({

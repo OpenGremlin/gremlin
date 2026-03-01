@@ -1,6 +1,15 @@
 import { Code, ExternalLink } from "lucide-react";
 import type { ChatMessage } from "../useChatMessages";
 
+function safeParseJson(s: string | null): Record<string, unknown> | null {
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -49,26 +58,21 @@ export function LogEntryView({
         </div>
       );
     case "TOOL": {
-      let label = "tool";
-      let content = entry.content;
-      let parsed: {
-        name?: string;
-        input?: Record<string, unknown>;
-        result?: Record<string, unknown>;
-      } | null = null;
+      const label = entry.toolName ?? "tool";
+      const inputStr = entry.toolInput ?? entry.content;
+      let formattedInput = inputStr;
       try {
-        parsed = JSON.parse(entry.content);
-        label = parsed!.name || "tool";
-        content = JSON.stringify(parsed!.input ?? parsed, null, 2);
+        formattedInput = JSON.stringify(JSON.parse(inputStr), null, 2);
       } catch {
-        // use raw content
+        // use raw string
       }
 
       // Render delegateTask as a tappable task card
-      if (parsed?.name === "delegateTask" && onTaskClick) {
-        const taskTitle =
-          (parsed.input?.title as string) || "Untitled task";
-        const taskId = (parsed.result?.taskId as string) ?? null;
+      if (entry.toolName === "delegateTask" && onTaskClick) {
+        const input = safeParseJson(entry.toolInput);
+        const result = safeParseJson(entry.toolResult);
+        const taskTitle = (input?.title as string) ?? "Untitled task";
+        const taskId = (result?.taskId as string) ?? null;
         return (
           <div id={entry.id} className="py-1 px-2">
             <button
@@ -109,7 +113,7 @@ export function LogEntryView({
               </span>
             </div>
             <pre className="text-xs text-green-400/90 font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed">
-              {content}
+              {formattedInput}
             </pre>
           </div>
         </div>

@@ -30,7 +30,7 @@ export const TASK_QUERY = `query($id: ID!) {
     artifacts
     documents { id title body createdAt updatedAt }
     logs(last: 50) {
-      edges { node { id role content taskId createdAt } }
+      edges { node { id role content toolName toolInput toolResult taskId createdAt } }
       pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
     }
   }
@@ -64,23 +64,23 @@ export const INTEGRATION_QUERY = `query($id: ID!) { integration(id: $id) { id se
 
 export const AGENT_LOGS_QUERY = `query($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {
   agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {
-    edges { cursor node { id role content taskId createdAt } }
+    edges { cursor node { id role content toolName toolInput toolResult taskId createdAt } }
     pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
   }
 }`;
 
 export const SEND_MESSAGE_MUTATION = `mutation($agentId: ID!, $content: String!, $taskId: String) {
   sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {
-    id role content taskId createdAt
+    id role content toolName toolInput toolResult taskId createdAt
   }
 }`;
 
 export const AGENT_LOG_SUBSCRIPTION = `subscription($agentId: ID!) {
-  agentLogCreated(agentId: $agentId) { id role content taskId createdAt }
+  agentLogCreated(agentId: $agentId) { id role content toolName toolInput toolResult taskId createdAt }
 }`;
 
 export const TASK_LOG_SUBSCRIPTION = `subscription($taskId: ID!) {
-  taskLogCreated(taskId: $taskId) { id role content taskId createdAt }
+  taskLogCreated(taskId: $taskId) { id role content toolName toolInput toolResult taskId createdAt }
 }`;
 
 export const TASK_UPDATED_SUBSCRIPTION = `subscription($taskId: ID!) {

@@ -8,6 +8,9 @@ export interface ChatMessage {
   id: string;
   role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
   content: string;
+  toolName: string | null;
+  toolInput: string | null;
+  toolResult: string | null;
   taskId: string | null;
   createdAt: string;
 }

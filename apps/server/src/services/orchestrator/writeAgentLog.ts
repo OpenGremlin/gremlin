@@ -1,24 +1,39 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
-export async function writeAgentLog(
-  ctx: ServiceContext,
-  entry: {
-    agentId: string;
-    taskId: string | null;
-    role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
-    content: string;
-  },
-) {
+type TextLogEntry = {
+  agentId: string;
+  taskId: string | null;
+  role: "AGENT" | "USER" | "SYSTEM";
+  content: string;
+};
+
+type ToolLogEntry = {
+  agentId: string;
+  taskId: string | null;
+  role: "TOOL";
+  toolName: string;
+  toolInput: unknown;
+  toolResult: unknown;
+};
+
+export type LogEntry = TextLogEntry | ToolLogEntry;
+
+export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
+
+  const isToolEntry = entry.role === "TOOL";
 
   const item = {
     id,
     agentId: entry.agentId,
     taskId: entry.taskId,
     role: entry.role,
-    content: entry.content,
+    content: isToolEntry ? `Tool call: ${entry.toolName}` : entry.content,
+    toolName: isToolEntry ? entry.toolName : null,
+    toolInput: isToolEntry ? JSON.stringify(entry.toolInput) : null,
+    toolResult: isToolEntry ? JSON.stringify(entry.toolResult) : null,
     createdAt: now,
   };
 

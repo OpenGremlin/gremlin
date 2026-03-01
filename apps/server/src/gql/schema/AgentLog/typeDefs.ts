@@ -12,6 +12,9 @@ export const agentLogTypeDefs = /* GraphQL */ `
     taskId: String
     role: AgentLogRole!
     content: String!
+    toolName: String
+    toolInput: String
+    toolResult: String
     createdAt: String!
   }
 
