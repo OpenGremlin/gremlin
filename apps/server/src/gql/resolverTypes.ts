@@ -10,6 +10,7 @@ import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
 import { TaskItem } from '../resources/ddb/schema/task.js';
+import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '../services/tasks/pagination.js';
 import { TaskFollowUpItem } from '../resources/ddb/schema/taskFollowUp.js';
 import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
@@ -287,7 +288,6 @@ export type Query = {
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   document?: Maybe<Document>;
-  feed: Array<Task>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
   notifications: Array<Notification>;
@@ -298,7 +298,7 @@ export type Query = {
   task?: Maybe<Task>;
   taskFollowUps: Array<TaskFollowUp>;
   taskLogs: AgentLogConnection;
-  tasks: Array<Task>;
+  tasks: TaskConnection;
 };
 
 
@@ -361,7 +361,10 @@ export type QueryTaskLogsArgs = {
 
 
 export type QueryTasksArgs = {
-  agentId: Scalars['ID']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Skill = {
@@ -410,6 +413,18 @@ export type TaskLogsArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type TaskConnection = {
+  __typename?: 'TaskConnection';
+  edges: Array<TaskEdge>;
+  pageInfo: TaskPageInfo;
+};
+
+export type TaskEdge = {
+  __typename?: 'TaskEdge';
+  cursor: Scalars['String']['output'];
+  node: Task;
+};
+
 export type TaskFollowUp = {
   __typename?: 'TaskFollowUp';
   active: Scalars['Boolean']['output'];
@@ -419,6 +434,14 @@ export type TaskFollowUp = {
   prompt: Scalars['String']['output'];
   scheduledAt: Scalars['String']['output'];
   task: Task;
+};
+
+export type TaskPageInfo = {
+  __typename?: 'TaskPageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export enum TaskStatus {
@@ -539,7 +562,10 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Task: ResolverTypeWrapper<TaskItem>;
+  TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
+  TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskFollowUp: ResolverTypeWrapper<TaskFollowUpItem>;
+  TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
   TaskStatus: TaskStatus;
   UpdateAgentJobInput: UpdateAgentJobInput;
 };
@@ -569,7 +595,10 @@ export type ResolversParentTypes = {
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   Task: TaskItem;
+  TaskConnection: TaskConnectionModel;
+  TaskEdge: TaskEdgeModel;
   TaskFollowUp: TaskFollowUpItem;
+  TaskPageInfo: TaskPageInfoModel;
   UpdateAgentJobInput: UpdateAgentJobInput;
 };
 
@@ -702,7 +731,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   document?: Resolver<Maybe<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryDocumentArgs, 'id'>>;
-  feed?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
@@ -713,7 +741,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<QueryTaskFollowUpsArgs, 'taskId'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
-  tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTasksArgs, 'agentId'>>;
+  tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
 };
 
 export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
@@ -746,6 +774,16 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type TaskConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskConnection'] = ResolversParentTypes['TaskConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['TaskEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['TaskPageInfo'], ParentType, ContextType>;
+};
+
+export type TaskEdgeResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskEdge'] = ResolversParentTypes['TaskEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Task'], ParentType, ContextType>;
+};
+
 export type TaskFollowUpResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskFollowUp'] = ResolversParentTypes['TaskFollowUp']> = {
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
@@ -754,6 +792,13 @@ export type TaskFollowUpResolvers<ContextType = GremlinContext, ParentType exten
   prompt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   scheduledAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType>;
+};
+
+export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskPageInfo'] = ResolversParentTypes['TaskPageInfo']> = {
+  endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = GremlinContext> = {
@@ -775,6 +820,9 @@ export type Resolvers<ContextType = GremlinContext> = {
   Skill?: SkillResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Task?: TaskResolvers<ContextType>;
+  TaskConnection?: TaskConnectionResolvers<ContextType>;
+  TaskEdge?: TaskEdgeResolvers<ContextType>;
   TaskFollowUp?: TaskFollowUpResolvers<ContextType>;
+  TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
 };
 

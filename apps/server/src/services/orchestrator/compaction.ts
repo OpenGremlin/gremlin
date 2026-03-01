@@ -51,7 +51,7 @@ export async function buildContextMessages(
   let compactionIndex = -1;
   let cachedCompaction: CompactionEntry | null = null;
   for (let i = entries.length - 1; i >= 0; i--) {
-    if (entries[i].role === "system") {
+    if (entries[i].role === "SYSTEM") {
       const parsed = isCompactionEntry(entries[i].content);
       if (parsed) {
         compactionIndex = i;
@@ -88,13 +88,13 @@ function mapEntry(node: {
   role: string;
   content: string;
 }): ModelMessage | null {
-  if (node.role === "agent") {
+  if (node.role === "AGENT") {
     return { role: "assistant", content: node.content };
   }
-  if (node.role === "user") {
+  if (node.role === "USER") {
     return { role: "user", content: node.content };
   }
-  if (node.role === "system") {
+  if (node.role === "SYSTEM") {
     return { role: "user", content: node.content };
   }
   // Skip tool entries
@@ -141,7 +141,7 @@ export async function maybeCompact(
   await writeAgentLog(ctx, {
     agentId: opts.agentId,
     taskId: opts.taskId,
-    role: "system",
+    role: "SYSTEM",
     content: JSON.stringify(compactionContent),
   });
 }

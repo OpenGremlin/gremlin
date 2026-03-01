@@ -17,7 +17,7 @@ export async function createTask(
     id,
     agentId: input.agentId,
     title: input.title,
-    status: "pending" as const,
+    status: "PENDING" as const,
     statusReason: null,
     createdAt: now,
     updatedAt: now,

@@ -29,8 +29,8 @@ const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
 };
 
 const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
-  const allTasks = await ctx.services.tasks.getAllTasks(ctx);
-  return allTasks.filter((t) => t.originJobId === parent.id);
+  const { edges } = await ctx.services.tasks.getAllTasks(ctx);
+  return edges.map((e) => e.node).filter((t) => t.originJobId === parent.id);
 };
 
 export const agentJobResolvers = {

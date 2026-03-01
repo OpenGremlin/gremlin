@@ -21,8 +21,25 @@ export const taskTypeDefs = /* GraphQL */ `
     logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }
 
+  type TaskEdge {
+    cursor: String!
+    node: Task!
+  }
+
+  type TaskPageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+  }
+
+  type TaskConnection {
+    edges: [TaskEdge!]!
+    pageInfo: TaskPageInfo!
+  }
+
   extend type Query {
-    tasks(agentId: ID!): [Task!]!
+    tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
     task(id: ID!): Task
   }
 `;

@@ -15,7 +15,7 @@ export async function sendMessage(
   const entry = await writeAgentLog(ctx, {
     agentId,
     taskId: taskId ?? null,
-    role: "user",
+    role: "USER",
     content,
   });
 
@@ -34,7 +34,7 @@ export async function sendMessage(
     id: entry.id,
     agentId,
     taskId: taskId ?? null,
-    role: "user" as const,
+    role: "USER" as const,
     content,
     createdAt: entry.createdAt,
   };

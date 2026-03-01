@@ -2,12 +2,12 @@ import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { ServiceContext } from "../context.js";
 
 type TaskStatus =
-  | "pending"
-  | "running"
-  | "waiting"
-  | "completed"
-  | "failed"
-  | "abandoned";
+  | "PENDING"
+  | "RUNNING"
+  | "WAITING"
+  | "COMPLETED"
+  | "FAILED"
+  | "ABANDONED";
 
 export async function updateTaskStatus(
   ctx: ServiceContext,
@@ -16,7 +16,7 @@ export async function updateTaskStatus(
   statusReason?: string,
 ) {
   const now = new Date().toISOString();
-  const isTerminal = status === "completed" || status === "failed" || status === "abandoned";
+  const isTerminal = status === "COMPLETED" || status === "FAILED" || status === "ABANDONED";
 
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);

@@ -6,7 +6,7 @@ export async function writeAgentLog(
   entry: {
     agentId: string;
     taskId: string | null;
-    role: "agent" | "user" | "system" | "tool";
+    role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
     content: string;
   },
 ) {

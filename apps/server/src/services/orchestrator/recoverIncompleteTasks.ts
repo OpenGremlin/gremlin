@@ -17,7 +17,7 @@ export async function recoverIncompleteTasks(ctx: ServiceContext) {
     .send();
 
   const incomplete = (Items ?? []).filter((t: TaskItem) =>
-    ["pending", "running", "waiting"].includes(t.status),
+    ["PENDING", "RUNNING", "WAITING"].includes(t.status),
   );
 
   if (incomplete.length === 0) return;
@@ -26,7 +26,7 @@ export async function recoverIncompleteTasks(ctx: ServiceContext) {
   );
 
   for (const task of incomplete) {
-    if (task.status === "waiting") {
+    if (task.status === "WAITING") {
       // Check if there's already an active follow-up
       const followUps =
         await ctx.services.taskFollowUps.getTaskFollowUps(ctx, task.id);
@@ -48,7 +48,7 @@ export async function recoverIncompleteTasks(ctx: ServiceContext) {
         prompt:
           "Task was waiting but had no scheduled follow-up. Review AgentLog and resume.",
       });
-    } else if (task.status === "running") {
+    } else if (task.status === "RUNNING") {
       // Was mid-execution when server died — schedule immediate resume
       await createFollowUp(ctx, {
         taskId: task.id,
@@ -56,7 +56,7 @@ export async function recoverIncompleteTasks(ctx: ServiceContext) {
         delayMs: 0,
         prompt: "Task was interrupted. Review AgentLog and resume.",
       });
-    } else if (task.status === "pending") {
+    } else if (task.status === "PENDING") {
       // Never started — dispatch now
       runTaskLane(ctx, task.id, "Begin this task.").catch((err) => {
         console.error(

@@ -21,7 +21,7 @@ export async function runMainLane(
   await writeAgentLog(ctx, {
     agentId,
     taskId: null,
-    role: "user",
+    role: "USER",
     content: userMessage,
   });
 

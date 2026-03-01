@@ -22,13 +22,13 @@ export async function runTaskLane(
   if (!agent) throw new Error(`Agent ${task.agentId} not found`);
 
   // Mark task as running
-  await updateTaskStatus(ctx, taskId, "running");
+  await updateTaskStatus(ctx, taskId, "RUNNING");
 
   // Log the prompt as a system message in the task thread
   await writeAgentLog(ctx, {
     agentId: task.agentId,
     taskId,
-    role: "system",
+    role: "SYSTEM",
     content: prompt,
   });
 

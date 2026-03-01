@@ -1,15 +1,31 @@
-import { FEED_QUERY } from "../../queries";
+import { TASKS_QUERY } from "../../queries";
 import { QueryResult } from "../../shared/QueryResult";
 import type { Task } from "../../types";
 import { useQuery } from "../../useQuery";
 import { FeedCard } from "./FeedCard";
 
+interface TaskEdge {
+  cursor: string;
+  node: Task;
+}
+
+interface TaskConnection {
+  edges: TaskEdge[];
+  pageInfo: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    startCursor: string | null;
+    endCursor: string | null;
+  };
+}
+
 export function FeedTab() {
-  const { data, loading, error } = useQuery<{ feed: Task[] }>(
-    FEED_QUERY,
+  const { data, loading, error } = useQuery<{ tasks: TaskConnection }>(
+    TASKS_QUERY,
+    { last: 50 },
   );
 
-  const tasks = data?.feed ?? [];
+  const tasks = data?.tasks.edges.map((e) => e.node) ?? [];
 
   return (
     <div className="min-h-screen bg-neutral-950">

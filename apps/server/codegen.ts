@@ -26,6 +26,11 @@ const config: CodegenConfig = {
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",
           Skill: "../resources/ddb/schema/skill.js#SkillItem",
           Task: "../resources/ddb/schema/task.js#TaskItem",
+          TaskConnection:
+            "../services/tasks/pagination.js#TaskConnectionModel",
+          TaskEdge: "../services/tasks/pagination.js#TaskEdgeModel",
+          TaskPageInfo:
+            "../services/tasks/pagination.js#TaskPageInfoModel",
           TaskFollowUp:
             "../resources/ddb/schema/taskFollowUp.js#TaskFollowUpItem",
         },

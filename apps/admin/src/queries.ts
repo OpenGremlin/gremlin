@@ -2,7 +2,12 @@ export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl
 
 export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
 
-export const FEED_QUERY = `query { feed { id agent { id name status imageUrl(width: 100) } title status createdAt } }`;
+export const TASKS_QUERY = `query($first: Int, $after: String, $last: Int, $before: String) {
+  tasks(first: $first, after: $after, last: $last, before: $before) {
+    edges { cursor node { id agent { id name status imageUrl(width: 100) } title status createdAt } }
+    pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+  }
+}`;
 
 export const TASK_QUERY = `query($id: ID!) {
   task(id: $id) {

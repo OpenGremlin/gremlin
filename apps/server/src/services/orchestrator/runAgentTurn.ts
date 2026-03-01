@@ -27,7 +27,7 @@ export async function runAgentTurn(
       await writeAgentLog(ctx, {
         agentId: opts.agentId,
         taskId: opts.taskId,
-        role: "tool",
+        role: "TOOL",
         content: JSON.stringify({
           name: toolCall.toolName,
           input: "input" in toolCall ? toolCall.input : undefined,
@@ -41,7 +41,7 @@ export async function runAgentTurn(
     await writeAgentLog(ctx, {
       agentId: opts.agentId,
       taskId: opts.taskId,
-      role: "agent",
+      role: "AGENT",
       content: result.text,
     });
   }
