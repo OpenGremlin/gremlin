@@ -2,9 +2,24 @@ export const AGENTS_QUERY = `query { agents { id name avatar portraitId imageUrl
 
 export const AGENT_QUERY = `query($id: ID!) { agent(id: $id) { id name avatar portraitId imageUrl(width: 100) soul status statusReason } }`;
 
-export const STATUSES_QUERY = `query { statuses { id agent { id name status imageUrl(width: 100) } title summary category completedAt } }`;
+export const FEED_QUERY = `query { feed { id agent { id name status imageUrl(width: 100) } title status createdAt } }`;
 
-export const STATUS_QUERY = `query($id: ID!) { status(id: $id) { id agent { id name status imageUrl(width: 100) } title summary artifacts { ... on Document { title body } } category completedAt } }`;
+export const TASK_QUERY = `query($id: ID!) {
+  task(id: $id) {
+    id
+    agent { id name status imageUrl(width: 100) }
+    title
+    status
+    statusReason
+    createdAt
+    updatedAt
+    completedAt
+    logs(last: 50) {
+      edges { node { id role content taskId createdAt } }
+      pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+    }
+  }
+}`;
 
 export const SKILLS_QUERY = `query { skills { id name description version installed } }`;
 
@@ -12,7 +27,7 @@ export const SKILL_QUERY = `query($id: ID!) { skill(id: $id) { id name descripti
 
 export const AGENT_JOBS_QUERY = `query { agentJobs { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun } }`;
 
-export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun statuses { id agent { id name status imageUrl(width: 100) } title summary category completedAt } } }`;
+export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun tasks { id agent { id name status imageUrl(width: 100) } title status createdAt } } }`;
 
 export const UPDATE_AGENT_JOB = `mutation($id: ID!, $input: UpdateAgentJobInput!) { updateAgentJob(id: $id, input: $input) { id name description recurrence cronExpression agent { id name status imageUrl(width: 100) } status lastRun nextRun } }`;
 

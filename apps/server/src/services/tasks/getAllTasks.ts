@@ -1,14 +1,14 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { StatusItem } from "../../resources/ddb/schema/status.js";
+import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
-export async function getStatuses(
+export async function getAllTasks(
   ctx: ServiceContext,
-): Promise<StatusItem[]> {
+): Promise<TaskItem[]> {
   const { Items } = await ctx.resources.ddb.table
     .build(QueryCommand)
-    .entities(ctx.resources.ddb.entities.Status)
-    .query({ partition: "STATUS" })
+    .entities(ctx.resources.ddb.entities.Task)
+    .query({ partition: "TASK" })
     .send();
 
   return Items ?? [];

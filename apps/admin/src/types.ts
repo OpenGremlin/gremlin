@@ -1,20 +1,14 @@
-/** A document artifact with title and markdown body */
-export interface Document {
-  title: string;
-  body: string;
-}
-
-export type Artifact = Document;
-
-/** A completed job shown in the feed */
-export interface Status {
+/** A task created by an agent */
+export interface Task {
   id: string;
   agent: Pick<Agent, "id" | "name" | "status" | "imageUrl">;
   title: string;
-  summary: string;
-  artifacts: Artifact[];
-  category: "research" | "task" | "monitor" | "report";
-  completedAt: string;
+  status: "pending" | "running" | "waiting" | "completed" | "failed" | "abandoned";
+  statusReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  originJobId: string | null;
 }
 
 /** A scheduled agent job */
@@ -28,7 +22,7 @@ export interface AgentJob {
   status: "running" | "idle" | "error" | "paused";
   lastRun: string | null;
   nextRun: string | null;
-  statuses: Status[];
+  tasks: Task[];
 }
 
 export type AuthMethod = "OAUTH" | "API_KEY" | "TOKEN";

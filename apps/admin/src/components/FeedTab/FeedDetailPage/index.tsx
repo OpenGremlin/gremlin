@@ -1,18 +1,32 @@
-import Markdown from "react-markdown";
 import { Link, useParams } from "react-router-dom";
-import { STATUS_QUERY } from "../../../queries";
+import { TASK_QUERY } from "../../../queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Status } from "../../../types";
+import type { Task } from "../../../types";
 import { useQuery } from "../../../useQuery";
+import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
+
+interface LogNode {
+  id: string;
+  role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
+  content: string;
+  taskId: string | null;
+  createdAt: string;
+}
+
+interface TaskWithLogs extends Task {
+  logs: {
+    edges: { node: LogNode }[];
+  };
+}
 
 export function FeedDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ status: Status | null }>(
-    STATUS_QUERY,
+  const { data, loading, error } = useQuery<{ task: TaskWithLogs | null }>(
+    TASK_QUERY,
     { id },
   );
 
@@ -20,13 +34,14 @@ export function FeedDetailPage() {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const item = data?.status ?? null;
+  const item = data?.task ?? null;
 
   if (!item) {
-    return <NotFound label="Status not found." />;
+    return <NotFound label="Task not found." />;
   }
 
   const { agent } = item;
+  const logs = item.logs.edges.map((e) => e.node);
 
   return (
     <div className="min-h-screen bg-neutral-950">
@@ -47,7 +62,7 @@ export function FeedDetailPage() {
               {agent.name}
             </span>
             <p className="text-xs text-neutral-500">
-              {formatDate(item.completedAt)}
+              {formatDate(item.createdAt)}
             </p>
           </div>
         </div>
@@ -56,25 +71,32 @@ export function FeedDetailPage() {
           {item.title}
         </h1>
 
-        <div className="mt-2">
-          <Badge label={item.category} />
+        <div className="mt-2 flex items-center gap-2">
+          <Badge label={item.status} />
+          {item.statusReason && (
+            <span className="text-xs text-neutral-500">{item.statusReason}</span>
+          )}
         </div>
 
-        <div className="mt-6 space-y-4">
-          {item.artifacts.map((artifact, i) => (
-            <div
-              key={i}
-              className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5"
-            >
-              <h2 className="text-sm font-semibold text-neutral-200 mb-3">
-                {artifact.title}
-              </h2>
-              <div className="text-sm text-neutral-300 leading-relaxed document-body">
-                <Markdown>{artifact.body}</Markdown>
-              </div>
-            </div>
-          ))}
+        <div className="mt-2 text-xs text-neutral-500 space-y-0.5">
+          {item.updatedAt && (
+            <p>Updated: {formatDate(item.updatedAt)}</p>
+          )}
+          {item.completedAt && (
+            <p>Completed: {formatDate(item.completedAt)}</p>
+          )}
         </div>
+
+        {logs.length > 0 && (
+          <div className="mt-6 space-y-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-3">
+              Conversation
+            </h2>
+            {logs.map((log) => (
+              <LogEntryView key={log.id} entry={log} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

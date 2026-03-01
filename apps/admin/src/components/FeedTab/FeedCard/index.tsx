@@ -2,9 +2,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import { timeAgo } from "../../../shared/formatDate";
-import type { Status } from "../../../types";
+import type { Task } from "../../../types";
 
-export function FeedCard({ item }: { item: Status }) {
+export function FeedCard({ item }: { item: Task }) {
   const { agent } = item;
   const navigate = useNavigate();
   return (
@@ -34,17 +34,14 @@ export function FeedCard({ item }: { item: Status }) {
                 {agent.name}
               </span>
               <span className="text-xs text-neutral-600 shrink-0">
-                {timeAgo(item.completedAt)}
+                {timeAgo(item.createdAt)}
               </span>
             </div>
-            <Badge label={item.category} />
+            <Badge label={item.status} />
           </div>
           <h3 className="text-sm font-medium text-neutral-100 mt-0.5">
             {item.title}
           </h3>
-          <p className="text-sm text-neutral-500 mt-0.5 line-clamp-1">
-            {item.summary}
-          </p>
         </div>
       </div>
     </Link>

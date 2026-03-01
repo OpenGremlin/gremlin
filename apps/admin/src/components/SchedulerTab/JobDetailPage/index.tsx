@@ -79,7 +79,7 @@ export function JobDetailPage() {
         UPDATE_AGENT_JOB,
         { id, input },
       );
-      setSavedJob({ ...job, ...result.updateAgentJob, statuses: job.statuses });
+      setSavedJob({ ...job, ...result.updateAgentJob, tasks: job.tasks });
       setRecurrence(null);
       setDescription(null);
       setAgentId(null);
@@ -202,12 +202,12 @@ export function JobDetailPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
           Previous Runs
         </h2>
-        {job.statuses.length === 0 ? (
+        {job.tasks.length === 0 ? (
           <p className="text-sm text-neutral-500">No previous runs yet.</p>
         ) : (
           <div className="divide-y divide-neutral-800 -mx-4">
-            {job.statuses.map((s) => (
-              <FeedCard key={s.id} item={s} />
+            {job.tasks.map((t) => (
+              <FeedCard key={t.id} item={t} />
             ))}
           </div>
         )}

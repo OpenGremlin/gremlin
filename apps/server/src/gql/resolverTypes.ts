@@ -4,7 +4,6 @@ import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
 import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
 import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '../services/agentLogs/pagination.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { StatusItem } from '../resources/ddb/schema/status.js';
 import { IntegrationItem } from '../resources/ddb/schema/integration.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
@@ -57,7 +56,7 @@ export type AgentJob = {
   nextRun?: Maybe<Scalars['String']['output']>;
   recurrence: Scalars['String']['output'];
   status: JobStatus;
-  statuses: Array<Status>;
+  tasks: Array<Task>;
 };
 
 export type AgentLog = {
@@ -104,8 +103,6 @@ export enum AgentStatus {
   Scheduled = 'SCHEDULED'
 }
 
-export type Artifact = Document;
-
 export enum AuthMethod {
   ApiKey = 'API_KEY',
   Oauth = 'OAUTH',
@@ -122,12 +119,6 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type Document = {
-  __typename?: 'Document';
-  body: Scalars['String']['output'];
-  title: Scalars['String']['output'];
 };
 
 export type Integration = {
@@ -285,6 +276,7 @@ export type Query = {
   agentLogs: AgentLogConnection;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  feed: Array<Task>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
   notifications: Array<Notification>;
@@ -292,8 +284,6 @@ export type Query = {
   searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
-  status?: Maybe<Status>;
-  statuses: Array<Status>;
   task?: Maybe<Task>;
   taskFollowUps: Array<TaskFollowUp>;
   taskLogs: AgentLogConnection;
@@ -335,11 +325,6 @@ export type QuerySkillArgs = {
 };
 
 
-export type QueryStatusArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
 export type QueryTaskArgs = {
   id: Scalars['ID']['input'];
 };
@@ -375,24 +360,6 @@ export type Skill = {
   requiredEnv: Array<Scalars['String']['output']>;
   version: Scalars['String']['output'];
 };
-
-export type Status = {
-  __typename?: 'Status';
-  agent: Agent;
-  artifacts: Array<Artifact>;
-  category: StatusCategory;
-  completedAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  summary: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export enum StatusCategory {
-  Monitor = 'MONITOR',
-  Report = 'REPORT',
-  Research = 'RESEARCH',
-  Task = 'TASK'
-}
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -523,10 +490,6 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 
 
-/** Mapping of union types */
-export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
-  Artifact: ( Document );
-};
 
 
 /** Mapping between all available schema types and the resolvers types */
@@ -539,11 +502,9 @@ export type ResolversTypes = {
   AgentLogPageInfo: ResolverTypeWrapper<PageInfoModel>;
   AgentLogRole: AgentLogRole;
   AgentStatus: AgentStatus;
-  Artifact: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Artifact']>;
   AuthMethod: AuthMethod;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
-  Document: ResolverTypeWrapper<Document>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Integration: ResolverTypeWrapper<IntegrationItem>;
@@ -558,8 +519,6 @@ export type ResolversTypes = {
   ProfileInput: ProfileInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Skill: ResolverTypeWrapper<SkillItem>;
-  Status: ResolverTypeWrapper<StatusItem>;
-  StatusCategory: StatusCategory;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Task: ResolverTypeWrapper<TaskItem>;
@@ -576,10 +535,8 @@ export type ResolversParentTypes = {
   AgentLogConnection: AgentLogConnectionModel;
   AgentLogEdge: AgentLogEdgeModel;
   AgentLogPageInfo: PageInfoModel;
-  Artifact: ResolversUnionTypes<ResolversParentTypes>['Artifact'];
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
-  Document: Document;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Integration: IntegrationItem;
@@ -591,7 +548,6 @@ export type ResolversParentTypes = {
   ProfileInput: ProfileInput;
   Query: Record<PropertyKey, never>;
   Skill: SkillItem;
-  Status: StatusItem;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   Task: TaskItem;
@@ -620,7 +576,7 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   nextRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   recurrence?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
-  statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
+  tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
 };
 
 export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLog'] = ResolversParentTypes['AgentLog']> = {
@@ -649,20 +605,10 @@ export type AgentLogPageInfoResolvers<ContextType = GremlinContext, ParentType e
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ArtifactResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Artifact'] = ResolversParentTypes['Artifact']> = {
-  __resolveType: TypeResolveFn<'Document', ParentType, ContextType>;
-};
-
 export type AvatarResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
-};
-
-export type DocumentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = {
-  body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type IntegrationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
@@ -729,6 +675,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
+  feed?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
   integrations?: Resolver<Array<ResolversTypes['Integration']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
@@ -736,8 +683,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   searchSkills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySearchSkillsArgs, 'query'>>;
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
-  status?: Resolver<Maybe<ResolversTypes['Status']>, ParentType, ContextType, RequireFields<QueryStatusArgs, 'id'>>;
-  statuses?: Resolver<Array<ResolversTypes['Status']>, ParentType, ContextType>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<QueryTaskFollowUpsArgs, 'taskId'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
@@ -754,16 +699,6 @@ export type SkillResolvers<ContextType = GremlinContext, ParentType extends Reso
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   requiredEnv?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type StatusResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Status'] = ResolversParentTypes['Status']> = {
-  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
-  artifacts?: Resolver<Array<ResolversTypes['Artifact']>, ParentType, ContextType>;
-  category?: Resolver<ResolversTypes['StatusCategory'], ParentType, ContextType>;
-  completedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  summary?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -801,9 +736,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogConnection?: AgentLogConnectionResolvers<ContextType>;
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
-  Artifact?: ArtifactResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
-  Document?: DocumentResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
@@ -812,7 +745,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   Profile?: ProfileResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
-  Status?: StatusResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Task?: TaskResolvers<ContextType>;
   TaskFollowUp?: TaskFollowUpResolvers<ContextType>;

@@ -28,10 +28,13 @@ const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
-const statuses: AgentJobResolvers["statuses"] = () => [];
+const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
+  const allTasks = await ctx.services.tasks.getAllTasks(ctx);
+  return allTasks.filter((t) => t.originJobId === parent.id);
+};
 
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
   Mutation: { updateJobStatus, updateAgentJob },
-  AgentJob: { agent, statuses },
+  AgentJob: { agent, tasks },
 };

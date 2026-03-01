@@ -16,7 +16,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     status: JobStatus!
     lastRun: String
     nextRun: String
-    statuses: [Status!]!
+    tasks: [Task!]!
   }
 
   input UpdateAgentJobInput {

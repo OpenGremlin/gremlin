@@ -18,7 +18,6 @@ const config: CodegenConfig = {
           AgentLogPageInfo:
             "../services/agentLogs/pagination.js#PageInfoModel",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
-          Status: "../resources/ddb/schema/status.js#StatusItem",
           Integration:
             "../resources/ddb/schema/integration.js#IntegrationItem",
           Notification:
