@@ -25,6 +25,16 @@ body {
   }
 }
 
+@keyframes strobe-red {
+  0%,
+  100% {
+    outline-color: rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    outline-color: rgba(239, 68, 68, 1);
+  }
+}
+
 .avatar-ring {
   outline-style: solid;
   outline-width: 2.5px;
@@ -42,7 +52,8 @@ body {
 }
 
 .avatar-ring-blocked {
-  outline-color: rgb(239, 68, 68);
+  outline-color: rgba(239, 68, 68, 1);
+  animation: strobe-red 2s ease-in-out infinite;
 }
 
 .avatar-ring-idle {
