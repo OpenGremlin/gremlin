@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import { gql } from "../../auth";
 import {
   DISMISS_NOTIFICATION,
@@ -359,24 +359,24 @@ function ProfileContent() {
 }
 
 export function UserPage() {
-  const [active, setActive] = useState<Pill>("Notifications");
+  const { pill } = useParams<{ pill: string }>();
+  const active = pills.find((p) => p.toLowerCase() === pill) ?? "Notifications";
 
   return (
     <div>
       <div className="flex gap-2 px-4 pt-4 pb-4 overflow-x-auto scrollbar-hide">
-        {pills.map((pill) => (
-          <button
-            type="button"
-            key={pill}
-            onClick={() => setActive(pill)}
+        {pills.map((p) => (
+          <NavLink
+            key={p}
+            to={`/user/${p.toLowerCase()}`}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              active === pill
+              active === p
                 ? "bg-indigo-500 text-white"
                 : "bg-neutral-800 text-neutral-400"
             }`}
           >
-            {pill}
-          </button>
+            {p}
+          </NavLink>
         ))}
       </div>
 

@@ -15,7 +15,7 @@ export function TabShell() {
     { to: "/feed", label: "Home", icon: AlignLeft, badge: 0 },
     { to: "/scheduler", label: "Scheduler", icon: Calendar, badge: 0 },
     { to: "/agents", label: "Agents", icon: Star, badge: 0 },
-    { to: "/user", label: "User", icon: User, badge: pendingCount },
+    { to: "/user/notifications", label: "User", icon: User, badge: pendingCount },
   ];
 
   return (

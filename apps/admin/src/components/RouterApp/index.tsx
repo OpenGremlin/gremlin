@@ -21,7 +21,8 @@ export function RouterApp() {
           <Route path="feed/:id" element={<FeedDetailPage />} />
           <Route path="scheduler" element={<SchedulerPage />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
-          <Route path="user" element={<UserPage />} />
+          <Route path="user" element={<Navigate to="/user/notifications" replace />} />
+          <Route path="user/:pill" element={<UserPage />} />
           <Route path="integrations/:id" element={<IntegrationDetailPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
           <Route path="agents" element={<AgentsPage />} />
