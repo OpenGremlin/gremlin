@@ -42,7 +42,7 @@ function TabShell() {
 
   return (
     <div className="flex flex-col h-dvh bg-neutral-950 max-w-lg mx-auto">
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-16">
         <Outlet />
       </div>
       <nav className="flex items-center justify-around border-t border-neutral-800 bg-neutral-950/90 backdrop-blur-sm pt-2 pb-2">
