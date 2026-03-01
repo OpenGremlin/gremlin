@@ -60,55 +60,55 @@ body {
   outline-color: rgb(115, 115, 115);
 }
 
-.feed-body h1,
-.feed-body h2,
-.feed-body h3 {
+.document-body h1,
+.document-body h2,
+.document-body h3 {
   color: #e5e5e5;
   font-weight: 600;
   margin: 1em 0 0.5em;
 }
-.feed-body h1 {
+.document-body h1 {
   font-size: 1.25rem;
 }
-.feed-body h2 {
+.document-body h2 {
   font-size: 1.1rem;
 }
-.feed-body h3 {
+.document-body h3 {
   font-size: 1rem;
 }
-.feed-body p {
+.document-body p {
   margin: 0.5em 0;
 }
-.feed-body ul,
-.feed-body ol {
+.document-body ul,
+.document-body ol {
   padding-left: 1.25em;
   margin: 0.5em 0;
 }
-.feed-body li {
+.document-body li {
   margin: 0.25em 0;
 }
-.feed-body code {
+.document-body code {
   background: #262626;
   padding: 0.15em 0.4em;
   border-radius: 4px;
   font-size: 0.9em;
 }
-.feed-body pre {
+.document-body pre {
   background: #171717;
   padding: 0.75em 1em;
   border-radius: 8px;
   overflow-x: auto;
   margin: 0.75em 0;
 }
-.feed-body pre code {
+.document-body pre code {
   background: none;
   padding: 0;
 }
-.feed-body a {
+.document-body a {
   color: #60a5fa;
   text-decoration: underline;
 }
-.feed-body blockquote {
+.document-body blockquote {
   border-left: 3px solid #404040;
   padding-left: 1em;
   color: #a3a3a3;
