@@ -14,6 +14,8 @@ export const AGENT_JOBS_QUERY = `query { agentJobs { id name description recurre
 
 export const AGENT_JOB_QUERY = `query($id: ID!) { agentJob(id: $id) { id name description recurrence status lastRun nextRun } }`;
 
+export const AVATARS_QUERY = `query { avatars { id name url(width: 200) } }`;
+
 export const INTEGRATIONS_QUERY = `query { integrations { id service icon account } }`;
 
 export const INTEGRATION_QUERY = `query($id: ID!) { integration(id: $id) { id service icon description account connectedAt authMethod permissions { scope label enabled } } }`;

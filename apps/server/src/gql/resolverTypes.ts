@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentModel } from './schema/Agent/resolvers.js';
+import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { FeedItemModel } from './schema/Feed/resolvers.js';
 import { Context } from './context.js';
 export type Maybe<T> = T | null;
@@ -141,6 +142,17 @@ export type Permission = {
   scope: Scalars['String']['output'];
 };
 
+export type Avatar = {
+  __typename?: 'Avatar';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type AvatarUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -148,6 +160,7 @@ export type Query = {
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
   agents: Array<Agent>;
+  avatars: Array<Avatar>;
   feedItem?: Maybe<FeedItem>;
   feedItems: Array<FeedItem>;
   integration?: Maybe<Integration>;
@@ -276,6 +289,7 @@ export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentModel>;
   AgentJob: ResolverTypeWrapper<AgentJob>;
   AgentStatus: AgentStatus;
+  Avatar: ResolverTypeWrapper<AvatarModel>;
   AuthMethod: AuthMethod;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   FeedCategory: FeedCategory;
@@ -295,6 +309,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Agent: AgentModel;
   AgentJob: AgentJob;
+  Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
   FeedItem: FeedItemModel;
   ID: Scalars['ID']['output'];
@@ -369,6 +384,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
+  avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   feedItem?: Resolver<Maybe<ResolversTypes['FeedItem']>, ParentType, ContextType, RequireFields<QueryFeedItemArgs, 'id'>>;
   feedItems?: Resolver<Array<ResolversTypes['FeedItem']>, ParentType, ContextType>;
   integration?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<QueryIntegrationArgs, 'id'>>;
@@ -390,9 +406,16 @@ export type SkillResolvers<ContextType = Context, ParentType extends ResolversPa
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type AvatarResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Avatar'] = ResolversParentTypes['Avatar']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
+};
+
 export type Resolvers<ContextType = Context> = {
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
+  Avatar?: AvatarResolvers<ContextType>;
   FeedItem?: FeedItemResolvers<ContextType>;
   Integration?: IntegrationResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

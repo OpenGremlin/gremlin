@@ -1,6 +1,7 @@
 import { mergeTypeDefs } from "@graphql-tools/merge";
 import { agentTypeDefs } from "./Agent/typeDefs.js";
 import { agentJobTypeDefs } from "./AgentJob/typeDefs.js";
+import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { feedTypeDefs } from "./Feed/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
@@ -11,6 +12,7 @@ export const allTypeDefs = [
   feedTypeDefs,
   agentJobTypeDefs,
   agentTypeDefs,
+  avatarTypeDefs,
   integrationTypeDefs,
   skillTypeDefs,
 ];

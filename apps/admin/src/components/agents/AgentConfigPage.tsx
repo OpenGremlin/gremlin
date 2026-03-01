@@ -1,9 +1,16 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import type { Agent } from "../../types";
 import { Badge } from "../../shared/Badge";
 import { QueryResult, NotFound } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
-import { AGENT_QUERY } from "../../queries";
+import { AGENT_QUERY, AVATARS_QUERY } from "../../queries";
+
+interface Avatar {
+  id: string;
+  name: string;
+  url: string;
+}
 
 export function AgentConfigPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +18,8 @@ export function AgentConfigPage() {
     AGENT_QUERY,
     { id },
   );
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -21,6 +30,8 @@ export function AgentConfigPage() {
   if (!agent) {
     return <NotFound label="Agent not found." />;
   }
+
+  const displayImageUrl = selectedImageUrl ?? agent.imageUrl;
 
   return (
     <div className="px-4 pt-6 pb-8">
@@ -48,28 +59,51 @@ export function AgentConfigPage() {
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <div
-            className={`w-16 h-16 shrink-0 flex items-center justify-center avatar-ring ${
-              agent.status === "ACTIVE"
-                ? "avatar-ring-active"
-                : agent.status === "SCHEDULED"
-                  ? "avatar-ring-scheduled"
-                  : "avatar-ring-idle"
-            }`}
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="relative group shrink-0"
           >
-            <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-lg text-neutral-400 font-medium">
-              <img
-                src={agent.imageUrl}
-                alt={agent.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                  (e.target as HTMLImageElement).parentElement!.textContent =
-                    agent.name[0];
-                }}
-              />
+            <div
+              className={`w-16 h-16 flex items-center justify-center avatar-ring ${
+                agent.status === "ACTIVE"
+                  ? "avatar-ring-active"
+                  : agent.status === "SCHEDULED"
+                    ? "avatar-ring-scheduled"
+                    : "avatar-ring-idle"
+              }`}
+            >
+              <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-lg text-neutral-400 font-medium">
+                <img
+                  src={displayImageUrl}
+                  alt={agent.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                    (e.target as HTMLImageElement).parentElement!.textContent =
+                      agent.name[0];
+                  }}
+                />
+              </div>
             </div>
-          </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                className="text-neutral-200"
+              >
+                <path
+                  d="M11.5 1.5L14.5 4.5M1 15L1.75 11.75L12 1.5L14.5 4L4.25 14.25L1 15Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </button>
           <div>
             <h1 className="text-xl font-semibold text-neutral-100">
               {agent.name}
@@ -90,6 +124,90 @@ export function AgentConfigPage() {
           <p className="text-sm text-neutral-300 leading-relaxed">
             {agent.soul}
           </p>
+        </div>
+      </div>
+
+      {pickerOpen && (
+        <AvatarPicker
+          onSelect={(avatar) => {
+            setSelectedImageUrl(avatar.url);
+            setPickerOpen(false);
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AvatarPicker({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (avatar: Avatar) => void;
+  onClose: () => void;
+}) {
+  const { data, loading } = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
+  const avatars = data?.avatars ?? [];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60" />
+      <div
+        className="relative w-full max-w-lg bg-neutral-900 rounded-t-2xl max-h-[70vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
+          <h2 className="text-sm font-semibold text-neutral-100">
+            Choose Avatar
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-neutral-400 hover:text-neutral-200 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M5 5L15 15M15 5L5 15"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="overflow-y-auto p-3">
+          {loading ? (
+            <p className="text-sm text-neutral-500 text-center py-8">
+              Loading avatars...
+            </p>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {avatars.map((avatar) => (
+                <button
+                  key={avatar.id}
+                  type="button"
+                  onClick={() => onSelect(avatar)}
+                  className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-neutral-800 transition-colors"
+                >
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-800">
+                    <img
+                      src={avatar.url}
+                      alt={avatar.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[10px] text-neutral-400 truncate w-full text-center">
+                    {avatar.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
