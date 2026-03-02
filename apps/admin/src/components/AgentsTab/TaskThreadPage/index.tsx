@@ -17,6 +17,8 @@ import { LogEntryView } from "../AgentChatPage/LogEntryView";
 import { DocumentCard } from "./DocumentCard";
 import { useTaskChatMessages } from "./useTaskChatMessages";
 
+type Tab = "output" | "activity";
+
 export function TaskThreadPage() {
   const { id: agentId, taskId } = useParams<{ id: string; taskId: string }>();
   const { data, loading, error } = useQuery<{ task: Task | null }>(
@@ -43,14 +45,23 @@ export function TaskThreadPage() {
   const logEdges = data?.task?.logs?.edges ?? [];
   const { messages, isAgentActive } = useTaskChatMessages(taskId!, logEdges);
 
+  const docs = task?.documents ?? [];
+  const hasDocs = docs.length > 0;
+  const [tab, setTab] = useState<Tab>(hasDocs ? "output" : "activity");
+
+  // Switch to output tab when first doc arrives
+  useEffect(() => {
+    if (hasDocs && tab === "activity") setTab("output");
+  }, [hasDocs]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
   const prevMessageCountRef = useRef(0);
   useEffect(() => {
+    if (tab !== "activity") return;
     if (messages.length > prevMessageCountRef.current) {
       const isInitialLoad = prevMessageCountRef.current === 0;
       logEndRef.current?.scrollIntoView({
@@ -58,7 +69,7 @@ export function TaskThreadPage() {
       });
     }
     prevMessageCountRef.current = messages.length;
-  }, [messages.length]);
+  }, [messages.length, tab]);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -86,13 +97,15 @@ export function TaskThreadPage() {
     return <NotFound label="Task not found." />;
   }
 
-  const docs = task.documents ?? [];
+  // Separate system prompt from chat messages
+  const systemMsg = messages.find((m) => m.role === "SYSTEM");
+  const chatMessages = messages.filter((m) => m.role !== "SYSTEM");
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="shrink-0 border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 pt-4 pb-3">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <Link
             to={`/agents/${agentId}`}
             className="text-neutral-400 hover:text-neutral-200 transition-colors"
@@ -104,45 +117,74 @@ export function TaskThreadPage() {
           </h1>
           <Badge label={task.status} />
         </div>
-        {task.message && (
-          <p className="text-xs text-neutral-500 ml-6">{task.message}</p>
+
+        {/* Task prompt */}
+        {systemMsg && (
+          <p className="text-xs text-neutral-500 mt-2 ml-6 line-clamp-2">
+            {systemMsg.content}
+          </p>
+        )}
+
+        {/* Tabs */}
+        {hasDocs && (
+          <div className="flex gap-1.5 mt-3 ml-6">
+            <button
+              type="button"
+              onClick={() => setTab("output")}
+              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${
+                tab === "output"
+                  ? "bg-indigo-500/20 text-indigo-300"
+                  : "bg-neutral-800/60 text-neutral-500 hover:text-neutral-300"
+              }`}
+            >
+              Output
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("activity")}
+              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${
+                tab === "activity"
+                  ? "bg-indigo-500/20 text-indigo-300"
+                  : "bg-neutral-800/60 text-neutral-500 hover:text-neutral-300"
+              }`}
+            >
+              Activity
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Documents panel */}
-      {docs.length > 0 && (
-        <div className="shrink-0 border-b border-neutral-800/60 px-3 py-2 flex flex-col gap-2">
+      {/* Tab content */}
+      {tab === "output" ? (
+        <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
           {docs.map((doc) => (
             <DocumentCard key={doc.id} doc={doc} />
           ))}
         </div>
-      )}
-
-      {/* Messages */}
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1"
-      >
-        {messages.map((msg) => (
-          <LogEntryView key={msg.id} entry={msg} />
-        ))}
-        {isAgentActive && (
-          <div className="flex justify-start py-1">
-            <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-              <span className="animate-pulse">Thinking...</span>
-            </div>
+      ) : (
+        <>
+          <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1">
+            {chatMessages.map((msg) => (
+              <LogEntryView key={msg.id} entry={msg} />
+            ))}
+            {isAgentActive && (
+              <div className="flex justify-start py-1">
+                <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
+                  <span className="animate-pulse">Thinking...</span>
+                </div>
+              </div>
+            )}
+            <div ref={logEndRef} />
           </div>
-        )}
-        <div ref={logEndRef} />
-      </div>
 
-      {/* Input */}
-      <ChatInputBar
-        value={input}
-        onChange={setInput}
-        onSend={handleSend}
-        disabled={sending}
-      />
+          <ChatInputBar
+            value={input}
+            onChange={setInput}
+            onSend={handleSend}
+            disabled={sending}
+          />
+        </>
+      )}
     </div>
   );
 }
