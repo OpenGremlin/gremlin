@@ -4,7 +4,7 @@ import { Badge } from "../../../shared/Badge";
 import { timeAgo } from "../../../shared/formatDate";
 import type { Task } from "../../../types";
 
-export function FeedCard({ item }: { item: Task }) {
+export function TaskCard({ item }: { item: Task }) {
   const { agent } = item;
   const navigate = useNavigate();
   return (

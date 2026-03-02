@@ -14,7 +14,7 @@ import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import type { Agent, AgentJob } from "../../../types";
 import { useQuery } from "../../../useQuery";
-import { FeedCard } from "../../FeedTab/FeedCard";
+import { TaskCard } from "../../TasksTab/TaskCard";
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -207,7 +207,7 @@ export function JobDetailPage() {
         ) : (
           <div className="divide-y divide-neutral-800 -mx-4">
             {job.tasks.map((t) => (
-              <FeedCard key={t.id} item={t} />
+              <TaskCard key={t.id} item={t} />
             ))}
           </div>
         )}

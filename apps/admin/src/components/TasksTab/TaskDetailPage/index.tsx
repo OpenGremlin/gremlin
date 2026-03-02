@@ -9,7 +9,7 @@ import type { Task } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
 
-export function FeedDetailPage() {
+export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useQuery<{ task: Task | null }>(
     TASK_QUERY,

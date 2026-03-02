@@ -14,7 +14,7 @@ import { AgentsTab } from "../AgentsTab";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
 import { TaskThreadPage } from "../TaskThreadPage";
-import { FeedTab } from "../FeedTab";
+import { TasksTab } from "../TasksTab";
 import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { UserTab } from "../UserTab";
@@ -78,7 +78,7 @@ export function RouterApp() {
       <Routes>
         <Route element={<TabShell />}>
           <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<FeedTab />} />
+          <Route path="feed" element={<TasksTab />} />
           <Route path="scheduler" element={<SchedulerTab />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
           <Route

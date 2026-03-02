@@ -2,7 +2,7 @@ import { TASKS_QUERY } from "../../queries";
 import { QueryResult } from "../../shared/QueryResult";
 import type { Task } from "../../types";
 import { useQuery } from "../../useQuery";
-import { FeedCard } from "./FeedCard";
+import { TaskCard } from "./TaskCard";
 
 interface TaskEdge {
   cursor: string;
@@ -19,7 +19,7 @@ interface TaskConnection {
   };
 }
 
-export function FeedTab() {
+export function TasksTab() {
   const { data, loading, error } = useQuery<{ tasks: TaskConnection }>(
     TASKS_QUERY,
     { last: 50 },
@@ -33,7 +33,7 @@ export function FeedTab() {
 
       <div className="divide-y divide-neutral-800/50 pb-24">
         {tasks.map((item) => (
-          <FeedCard key={item.id} item={item} />
+          <TaskCard key={item.id} item={item} />
         ))}
       </div>
     </div>
