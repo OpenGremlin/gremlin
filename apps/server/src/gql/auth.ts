@@ -33,6 +33,12 @@ export async function verifyToken(token: string): Promise<AuthUser> {
     issuer,
     audience: clientId,
   });
+
+  const groups = (payload["cognito:groups"] as string[] | undefined) ?? [];
+  if (!groups.includes("admins")) {
+    throw new Error("User is not authorized");
+  }
+
   const email = (payload.email as string | undefined)?.toLowerCase() ?? "";
   return { sub: payload.sub as string, email };
 }

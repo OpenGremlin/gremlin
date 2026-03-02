@@ -12,9 +12,15 @@ export class AuthStack extends cdk.Stack {
     super(scope, id, props);
 
     const userPool = new cognito.UserPool(this, "AdminUsers", {
-      selfSignUpEnabled: false,
+      selfSignUpEnabled: true,
       signInAliases: { email: true },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    new cognito.CfnUserPoolGroup(this, "AdminsGroup", {
+      userPoolId: userPool.userPoolId,
+      groupName: "admins",
+      description: "Users authorized to access the admin app",
     });
 
     const googleOAuthSecret = secretsmanager.Secret.fromSecretNameV2(
