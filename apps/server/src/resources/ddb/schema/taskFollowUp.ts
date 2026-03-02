@@ -12,16 +12,16 @@ export const TaskFollowUpEntity = new Entity({
     id: string().key(),
     taskId: string(),
     agentId: string(),
-    scheduledAt: string().key(),
+    scheduledAt: string(),
     prompt: string(),
-    active: boolean().key(),
+    active: boolean(),
     createdAt: string(),
   }),
-  computeKey: ({ id, active, scheduledAt }) => ({
+  // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
+  // PutCommand/UpdateCommand because dynamodb-toolbox v2 computeKey ignores them.
+  computeKey: ({ id }) => ({
     pk: "TASK_FOLLOW_UP",
     sk: `TASK_FOLLOW_UP#${id}`,
-    gsi1pk: active ? "FOLLOWUP_ACTIVE" : "FOLLOWUP_INACTIVE",
-    gsi1sk: scheduledAt,
   }),
 });
 

@@ -1,4 +1,4 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
@@ -26,10 +26,25 @@ export async function createTask(
     artifacts: [],
   };
 
-  await ctx.resources.ddb.entities.Task.build(PutItemCommand).item(item).send();
+  // Write directly via document client so we can include GSI attributes.
+  // DynamoDB Toolbox v2's computeKey doesn't project GSI keys into the item.
+  const table = ctx.resources.ddb.table;
+  await table.getDocumentClient().send(
+    new PutCommand({
+      TableName: table.getName(),
+      Item: {
+        ...item,
+        _et: "Task",
+        pk: "TASK",
+        sk: `TASK#${id}`,
+        gsi1pk: `TASK_AGENT#${input.agentId}`,
+        gsi1sk: now,
+      },
+    }),
+  );
 
-  // Notify subscribers so the agent status updates to ACTIVE
-  await ctx.services.agents.resolveAgentStatus(ctx, input.agentId, "ACTIVE");
+  // Notify subscribers so the agent status re-derives to ACTIVE
+  await ctx.services.agents.resolveAgentStatus(ctx, input.agentId);
 
   return item;
 }

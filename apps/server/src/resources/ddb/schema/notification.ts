@@ -24,15 +24,15 @@ export const NotificationEntity = new Entity({
         style: string(),
       }),
     ),
-    status: string().key(),
+    status: string(),
     resolvedAction: anyOf(string(), nul()),
-    createdAt: string().key(),
+    createdAt: string(),
   }),
-  computeKey: ({ id, status, createdAt }) => ({
+  // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
+  // PutCommand because dynamodb-toolbox v2 computeKey ignores them.
+  computeKey: ({ id }) => ({
     pk: "NOTIFICATION",
     sk: `NOTIFICATION#${id}`,
-    gsi1pk: `NOTIF_STATUS#${status}`,
-    gsi1sk: createdAt,
   }),
 });
 

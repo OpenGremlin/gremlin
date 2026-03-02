@@ -1,4 +1,4 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { NotificationStatus } from "../../gql/resolverTypes.js";
 import type { NotificationItem } from "../../resources/ddb/schema/notification.js";
 import type { ServiceContext } from "../context.js";
@@ -13,9 +13,20 @@ export async function dismissNotification(
 
   const updated = { ...existing, status: NotificationStatus.Dismissed };
 
-  await ctx.resources.ddb.entities.Notification.build(PutItemCommand)
-    .item(updated)
-    .send();
+  const table = ctx.resources.ddb.table;
+  await table.getDocumentClient().send(
+    new PutCommand({
+      TableName: table.getName(),
+      Item: {
+        ...updated,
+        _et: "Notification",
+        pk: "NOTIFICATION",
+        sk: `NOTIFICATION#${id}`,
+        gsi1pk: `NOTIF_STATUS#${NotificationStatus.Dismissed}`,
+        gsi1sk: existing.createdAt,
+      },
+    }),
+  );
 
   return updated;
 }

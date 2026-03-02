@@ -1,4 +1,4 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
 export async function addTaskArtifact(
@@ -12,13 +12,22 @@ export async function addTaskArtifact(
   const artifacts = [...task.artifacts, documentId];
   const now = new Date().toISOString();
 
-  await ctx.resources.ddb.entities.Task.build(PutItemCommand)
-    .item({
-      ...task,
-      artifacts,
-      updatedAt: now,
-    })
-    .send();
+  const table = ctx.resources.ddb.table;
+  await table.getDocumentClient().send(
+    new PutCommand({
+      TableName: table.getName(),
+      Item: {
+        ...task,
+        artifacts,
+        updatedAt: now,
+        _et: "Task",
+        pk: "TASK",
+        sk: `TASK#${taskId}`,
+        gsi1pk: `TASK_AGENT#${task.agentId}`,
+        gsi1sk: task.createdAt,
+      },
+    }),
+  );
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, {
     ...task,

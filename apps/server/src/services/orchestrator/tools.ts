@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
 import type { ServiceContext } from "../context.js";
 
@@ -75,19 +75,28 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
       const id = crypto.randomUUID();
       const createdAt = new Date().toISOString();
 
-      await ctx.resources.ddb.entities.Notification.build(PutItemCommand)
-        .item({
-          id,
-          agentId,
-          type,
-          turnId: null,
-          message,
-          actions,
-          status: NotificationStatus.Pending,
-          resolvedAction: null,
-          createdAt,
-        })
-        .send();
+      const table = ctx.resources.ddb.table;
+      await table.getDocumentClient().send(
+        new PutCommand({
+          TableName: table.getName(),
+          Item: {
+            id,
+            agentId,
+            type,
+            turnId: null,
+            message,
+            actions,
+            status: NotificationStatus.Pending,
+            resolvedAction: null,
+            createdAt,
+            _et: "Notification",
+            pk: "NOTIFICATION",
+            sk: `NOTIFICATION#${id}`,
+            gsi1pk: `NOTIF_STATUS#${NotificationStatus.Pending}`,
+            gsi1sk: createdAt,
+          },
+        }),
+      );
 
       await ctx.services.agents.updateAgentStatus(
         ctx,

@@ -12,21 +12,21 @@ export const AgentLogEntity = new Entity({
   timestamps: false,
   schema: item({
     id: string().key(),
-    agentId: string().key(),
-    taskId: anyOf(string(), nul()).key(),
+    agentId: string(),
+    taskId: anyOf(string(), nul()),
     role: string(),
     content: string(),
     toolName: anyOf(string(), nul()).optional(),
     toolInput: anyOf(string(), nul()).optional(),
     toolResult: anyOf(string(), nul()).optional(),
     internal: boolean().optional().default(false),
-    createdAt: string().key(),
+    createdAt: string(),
   }),
-  computeKey: ({ id, agentId, taskId, createdAt }) => ({
+  // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
+  // PutCommand because dynamodb-toolbox v2 computeKey ignores them.
+  computeKey: ({ id }) => ({
     pk: "AGENT_LOG",
     sk: `AGENT_LOG#${id}`,
-    gsi1pk: taskId ? `LOG_TASK#${taskId}` : `LOG_AGENT#${agentId}`,
-    gsi1sk: createdAt,
   }),
 });
 

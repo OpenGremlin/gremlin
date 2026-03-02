@@ -1,4 +1,4 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
   AgentStatus,
   NotificationStatus,
@@ -21,9 +21,20 @@ export async function resolveNotification(
     resolvedAction: actionId,
   };
 
-  await ctx.resources.ddb.entities.Notification.build(PutItemCommand)
-    .item(updated)
-    .send();
+  const table = ctx.resources.ddb.table;
+  await table.getDocumentClient().send(
+    new PutCommand({
+      TableName: table.getName(),
+      Item: {
+        ...updated,
+        _et: "Notification",
+        pk: "NOTIFICATION",
+        sk: `NOTIFICATION#${id}`,
+        gsi1pk: `NOTIF_STATUS#${NotificationStatus.Resolved}`,
+        gsi1sk: existing.createdAt,
+      },
+    }),
+  );
 
   // Unblock the agent and re-trigger with the user's decision
   const actionLabel =
