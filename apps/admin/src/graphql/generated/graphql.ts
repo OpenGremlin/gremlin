@@ -45,7 +45,7 @@ export type AgentJob = {
   recurrence: Scalars['String']['output'];
   status: JobStatus;
   tasks: Array<Task>;
-  timezone?: Maybe<Scalars['String']['output']>;
+  timezone: Scalars['String']['output'];
 };
 
 export type AgentLog = {
@@ -636,14 +636,14 @@ export type TogglePermissionMutation = { __typename?: 'Mutation', togglePermissi
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AgentJobsQuery = { __typename?: 'Query', agentJobs: Array<{ __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone?: string | null, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } }> };
+export type AgentJobsQuery = { __typename?: 'Query', agentJobs: Array<{ __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } }> };
 
 export type AgentJobQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone?: string | null, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
+export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
 
 export type UpdateAgentJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -651,7 +651,7 @@ export type UpdateAgentJobMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentJobMutation = { __typename?: 'Mutation', updateAgentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone?: string | null, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } } | null };
+export type UpdateAgentJobMutation = { __typename?: 'Mutation', updateAgentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } } | null };
 
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 

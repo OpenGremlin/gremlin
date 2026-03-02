@@ -22,10 +22,10 @@ function makeJob(overrides: Record<string, unknown> = {}) {
     description: "Do something",
     recurrence: "daily",
     cronExpression: "0 9 * * *",
+    timezone: "America/New_York",
     agentId: "clawd",
     status: "ACTIVE",
     lastRun: null,
-    nextRun: null,
     ...overrides,
   };
 }
@@ -45,7 +45,6 @@ function makeCtx(jobs: ReturnType<typeof makeJob>[]): ServiceContext {
     },
     services: {
       jobs: { getJobs: vi.fn(() => Promise.resolve(jobs)) },
-      profile: { getProfile: vi.fn(() => Promise.resolve(null)) },
     },
     mediaCdnUrl: "",
   } as unknown as ServiceContext;

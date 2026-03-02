@@ -53,7 +53,7 @@ export function JobDetailPage() {
   const currentAgentId = agentId ?? job.agent.id;
   const currentAgent = agents.find((a) => a.id === currentAgentId) ?? job.agent;
 
-  const currentTimezone = timezone ?? job.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const currentTimezone = timezone ?? job.timezone;
 
   const isDirty =
     name !== null || recurrence !== null || description !== null || agentId !== null || timezone !== null;
@@ -182,7 +182,7 @@ export function JobDetailPage() {
           value={currentTimezone}
           onChange={(e) => {
             const val = e.target.value;
-            setTimezone(val === (job.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone) ? null : val);
+            setTimezone(val === job.timezone ? null : val);
           }}
           className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
         >

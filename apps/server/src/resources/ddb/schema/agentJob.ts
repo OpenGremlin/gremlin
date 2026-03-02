@@ -15,7 +15,7 @@ export const AgentJobEntity = new Entity({
     description: string(),
     recurrence: string(),
     cronExpression: anyOf(string(), nul()).optional(),
-    timezone: anyOf(string(), nul()).optional(),
+    timezone: string(),
     agentId: string().default("clawd"),
     status: string(),
     lastRun: anyOf(string(), nul()),

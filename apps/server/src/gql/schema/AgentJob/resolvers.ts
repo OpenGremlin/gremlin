@@ -34,17 +34,12 @@ const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
   return edges.map((e) => e.node).filter((t) => t.originJobId === parent.id);
 };
 
-const nextRun: AgentJobResolvers["nextRun"] = async (parent, _args, ctx) => {
+const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
   if (!parent.cronExpression) return null;
   try {
-    let tz = parent.timezone;
-    if (!tz) {
-      const profile = await ctx.services.profile.getProfile(ctx, "default");
-      tz = profile?.timezone ?? "UTC";
-    }
     const expr = CronExpressionParser.parse(parent.cronExpression, {
       currentDate: new Date(),
-      tz,
+      tz: parent.timezone,
     });
     return expr.next().toDate().toISOString();
   } catch {

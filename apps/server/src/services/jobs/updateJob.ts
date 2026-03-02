@@ -64,16 +64,9 @@ export async function updateJob(
   if (input.timezone != null) updates.timezone = input.timezone;
 
   if (input.recurrence != null) {
-    // Use the provided timezone, or the existing job timezone, or fall back to profile/UTC
-    let timezone = input.timezone;
-    if (!timezone) {
-      const existingJob = await ctx.services.jobs.getJob(ctx, id);
-      timezone = existingJob?.timezone;
-    }
-    if (!timezone) {
-      const profile = await ctx.services.profile.getProfile(ctx, "default");
-      timezone = profile?.timezone ?? "UTC";
-    }
+    const timezone = input.timezone
+      ?? (await ctx.services.jobs.getJob(ctx, id))?.timezone
+      ?? "UTC";
     updates.recurrence = input.recurrence;
     updates.cronExpression = await recurrenceToCron(input.recurrence, timezone);
   }
