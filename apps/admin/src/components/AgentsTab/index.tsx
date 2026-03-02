@@ -27,7 +27,7 @@ export function AgentsTab() {
               to={`/agents/${agent.id}`}
               className="flex-1 min-w-0 flex items-start gap-3"
             >
-              <AgentAvatar id={agent.id} size="md" />
+              <AgentAvatar id={agent.id} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-medium text-neutral-100">

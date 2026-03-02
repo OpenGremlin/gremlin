@@ -107,7 +107,7 @@ export function AgentConfigPage() {
               onClick={() => setPickerOpen(true)}
               className="relative group shrink-0 self-start"
             >
-              <AgentAvatar id={agent.id} size="lg" />
+              <AgentAvatar id={agent.id} />
               <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
                 <Pencil size={12} className="text-neutral-200" />
               </div>

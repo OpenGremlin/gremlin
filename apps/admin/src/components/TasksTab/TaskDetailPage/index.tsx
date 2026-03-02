@@ -32,7 +32,7 @@ export function TaskDetailPage() {
 
         <div className="flex items-center gap-3 mt-6">
           <Link to={`/agents/${agent.id}`}>
-            <AgentAvatar id={agent.id} size="md" />
+            <AgentAvatar id={agent.id} />
           </Link>
           <div>
             <span className="text-sm font-medium text-neutral-100">Task</span>

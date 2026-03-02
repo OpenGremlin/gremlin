@@ -128,7 +128,7 @@ export function JobDetailPage() {
           Agent
         </h2>
         <div className="flex items-center gap-3">
-          <AgentAvatar id={currentAgent.id} size="sm" />
+          <AgentAvatar id={currentAgent.id} />
           <select
             value={currentAgentId}
             onChange={(e) => {

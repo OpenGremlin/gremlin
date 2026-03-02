@@ -28,7 +28,7 @@ export function NotificationCard({
     >
       <div className="flex items-start gap-3">
         <Link to={chatLink} className="mt-0.5">
-          <AgentAvatar id={notification.agent.id} size="xs" />
+          <AgentAvatar id={notification.agent.id} />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">

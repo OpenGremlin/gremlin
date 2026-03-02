@@ -26,7 +26,7 @@ export function SchedulerTab() {
             className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
           >
             <div className="flex items-center gap-3">
-              <AgentAvatar id={job.agent.id} size="sm" />
+              <AgentAvatar id={job.agent.id} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-sm font-medium text-neutral-100 truncate">

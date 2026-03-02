@@ -4,16 +4,7 @@ import { AgentQuery } from "../graphql/queries";
 import { useAgentUpdates } from "../subscriptions";
 import { useQuery } from "../useQuery";
 
-type Size = "xs" | "sm" | "md" | "lg";
-
-const sizeClasses: Record<Size, { container: string; text: string }> = {
-  xs: { container: "w-8 h-8", text: "text-[10px]" },
-  sm: { container: "w-9 h-9", text: "text-xs" },
-  md: { container: "w-12 h-12", text: "text-sm" },
-  lg: { container: "w-16 h-16", text: "text-lg" },
-};
-
-export function AgentAvatar({ id, size = "md" }: { id: string; size?: Size }) {
+export function AgentAvatar({ id }: { id: string }) {
   const { data } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
   const [status, setStatus] = useState<AgentStatus | null>(null);
@@ -23,8 +14,6 @@ export function AgentAvatar({ id, size = "md" }: { id: string; size?: Size }) {
   );
 
   const effectiveStatus = status ?? agent?.status ?? "IDLE";
-
-  const s = sizeClasses[size];
 
   const ringClass = `avatar-ring ${
     effectiveStatus === "ACTIVE"
@@ -40,10 +29,10 @@ export function AgentAvatar({ id, size = "md" }: { id: string; size?: Size }) {
 
   return (
     <div
-      className={`${s.container} shrink-0 flex items-center justify-center ${ringClass}`}
+      className={`w-12 h-12 shrink-0 flex items-center justify-center ${ringClass}`}
     >
       <div
-        className={`w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden ${s.text} text-neutral-400 font-medium`}
+        className={`w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium`}
       >
         {agent?.imageUrl && (
           <img
