@@ -1,25 +1,25 @@
 import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { gql } from "../../../auth";
+import { gql } from "../../auth";
 import {
   TASK_QUERY,
   SEND_MESSAGE_MUTATION,
   TASK_UPDATED_SUBSCRIPTION,
-} from "../../../queries";
-import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { AgentAvatar } from "../../../shared/AgentAvatar";
-import { Badge } from "../../../shared/Badge";
-import type { Task } from "../../../types";
-import { useQuery } from "../../../useQuery";
-import { useSubscription } from "../../../useSubscription";
-import { ChatInputBar } from "../AgentChatPage/ChatInputBar";
-import { LogEntryView } from "../AgentChatPage/LogEntryView";
+} from "../../queries";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
+import { AgentAvatar } from "../../shared/AgentAvatar";
+import { Badge } from "../../shared/Badge";
+import type { Task } from "../../types";
+import { useQuery } from "../../useQuery";
+import { useSubscription } from "../../useSubscription";
+import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
+import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
 import { DocumentCard } from "./DocumentCard";
 import { useTaskChatMessages } from "./useTaskChatMessages";
 
 export function TaskThreadPage() {
-  const { id: agentId, taskId } = useParams<{ id: string; taskId: string }>();
+  const { taskId } = useParams<{ taskId: string }>();
   const { data, loading, error } = useQuery<{ task: Task | null }>(
     TASK_QUERY,
     { id: taskId },
@@ -65,12 +65,12 @@ export function TaskThreadPage() {
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
-    if (!content || !agentId || !taskId || sending) return;
+    if (!content || !task || !taskId || sending) return;
     setInput("");
     setSending(true);
     try {
       await gql(SEND_MESSAGE_MUTATION, {
-        agentId,
+        agentId: task.agent.id,
         content,
         taskId,
       });
@@ -79,7 +79,7 @@ export function TaskThreadPage() {
     } finally {
       setSending(false);
     }
-  }, [input, agentId, taskId, sending]);
+  }, [input, task, taskId, sending]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -99,7 +99,7 @@ export function TaskThreadPage() {
       <div className="shrink-0 border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 pt-4 pb-3">
         <div className="flex items-center gap-2">
           <Link
-            to={`/agents/${agentId}`}
+            to={`/agents/${task.agent.id}`}
             className="text-neutral-400 hover:text-neutral-200 transition-colors"
           >
             <ArrowLeft size={18} />

@@ -1,9 +1,9 @@
 import { FileText, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { DOCUMENT_UPDATED_SUBSCRIPTION } from "../../../queries";
-import type { Document } from "../../../types";
-import { useSubscription } from "../../../useSubscription";
+import { DOCUMENT_UPDATED_SUBSCRIPTION } from "../../queries";
+import type { Document } from "../../types";
+import { useSubscription } from "../../useSubscription";
 
 function DocumentModal({
   doc,

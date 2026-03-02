@@ -104,7 +104,7 @@ export function AgentChatPage() {
               key={msg.id}
               entry={msg}
               onTaskClick={(taskId) =>
-                navigate(`/agents/${id}/tasks/${taskId}`)
+                navigate(`/tasks/${taskId}`)
               }
             />
           ))}

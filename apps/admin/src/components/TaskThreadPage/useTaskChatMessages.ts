@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TASK_LOG_SUBSCRIPTION } from "../../../queries";
-import type { AgentLogEntry } from "../../../types";
-import { useSubscription } from "../../../useSubscription";
-import type { ChatMessage } from "../AgentChatPage/useChatMessages";
+import { TASK_LOG_SUBSCRIPTION } from "../../queries";
+import type { AgentLogEntry } from "../../types";
+import { useSubscription } from "../../useSubscription";
+import type { ChatMessage } from "../AgentsTab/AgentChatPage/useChatMessages";
 
 export function useTaskChatMessages(
   taskId: string,
