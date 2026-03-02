@@ -2,12 +2,11 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { TasksQuery } from "../../../graphql/generated/graphql";
-import { TaskUpdatedSubscription } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import { DocumentCard } from "../../../shared/DocumentCard";
 import { timeAgo } from "../../../shared/formatDate";
-import { useSubscription } from "../../../useSubscription";
+import { useTaskUpdates } from "../../../subscriptions";
 
 type FullTaskNode = TasksQuery["tasks"]["edges"][number]["node"];
 
@@ -36,13 +35,10 @@ export function TaskCard({ item }: { item: TaskItem }) {
   const { agent } = task;
   const navigate = useNavigate();
 
-  useSubscription(
-    TaskUpdatedSubscription,
-    { taskId: item.id },
+  useTaskUpdates(
+    item.id,
     useCallback((data) => {
-      setOverride(
-        (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
-      );
+      setOverride((prev) => ({ ...prev, ...data }) as Partial<TaskItem>);
     }, []),
   );
   return (

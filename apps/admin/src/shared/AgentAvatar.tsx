@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { AgentStatus } from "../graphql/generated/graphql";
-import { AgentQuery, AgentUpdatedSubscription } from "../graphql/queries";
+import { AgentQuery } from "../graphql/queries";
+import { useAgentUpdates } from "../subscriptions";
 import { useQuery } from "../useQuery";
-import { useSubscription } from "../useSubscription";
 
 type Size = "xs" | "sm" | "md" | "lg";
 
@@ -18,8 +18,8 @@ export function AgentAvatar({ id, size = "md" }: { id: string; size?: Size }) {
   const agent = data?.agent;
   const [status, setStatus] = useState<AgentStatus | null>(null);
 
-  useSubscription(AgentUpdatedSubscription, { agentId: id }, (update) =>
-    setStatus(update.agentUpdated.status),
+  useAgentUpdates(id, (update) =>
+    setStatus((update as { status: AgentStatus }).status),
   );
 
   const effectiveStatus = status ?? agent?.status ?? "IDLE";

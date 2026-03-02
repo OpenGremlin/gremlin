@@ -47,6 +47,7 @@ export const taskTypeDefs = /* GraphQL */ `
 
   extend type Subscription {
     taskUpdated(taskId: ID!): Task!
+    tasksUpdated(taskIds: [ID!]!): Task!
     taskLogCreated(taskId: ID!): AgentLog!
   }
 `;

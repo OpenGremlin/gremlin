@@ -1,3 +1,4 @@
+import { Repeater } from "@graphql-yoga/subscription";
 import type { AgentItem } from "../../../resources/ddb/schema/agent.js";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -36,9 +37,23 @@ const agentUpdated = {
   resolve: (payload: AgentItem) => payload,
 };
 
+const agentsUpdated = {
+  subscribe: (
+    _parent: unknown,
+    { agentIds }: { agentIds: string[] },
+    ctx: GremlinContext,
+  ) =>
+    Repeater.merge(
+      agentIds.map((id) =>
+        ctx.resources.pubsub.subscribe(`agentUpdated:${id}`),
+      ),
+    ),
+  resolve: (payload: AgentItem) => payload,
+};
+
 export const agentResolvers = {
   Query: { agents, agent },
   Mutation: { updateAgent, updateAgentStatus },
   Agent: { imageUrl },
-  Subscription: { agentUpdated },
+  Subscription: { agentUpdated, agentsUpdated },
 };

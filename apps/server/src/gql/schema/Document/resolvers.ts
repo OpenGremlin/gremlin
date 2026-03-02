@@ -1,3 +1,4 @@
+import { Repeater } from "@graphql-yoga/subscription";
 import type { DocumentItem } from "../../../resources/ddb/schema/document.js";
 import type { GremlinContext } from "../../context.js";
 import type { MutationResolvers, QueryResolvers } from "../../resolverTypes.js";
@@ -26,8 +27,22 @@ const documentUpdated = {
   resolve: (payload: DocumentItem) => payload,
 };
 
+const documentsUpdated = {
+  subscribe: (
+    _parent: unknown,
+    { documentIds }: { documentIds: string[] },
+    ctx: GremlinContext,
+  ) =>
+    Repeater.merge(
+      documentIds.map((id) =>
+        ctx.resources.pubsub.subscribe(`documentUpdated:${id}`),
+      ),
+    ),
+  resolve: (payload: DocumentItem) => payload,
+};
+
 export const documentResolvers = {
   Query: { documents, document },
   Mutation: { createDocument, updateDocument },
-  Subscription: { documentUpdated },
+  Subscription: { documentUpdated, documentsUpdated },
 };

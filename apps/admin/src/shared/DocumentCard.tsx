@@ -1,9 +1,7 @@
 import { FileText, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import type { DocumentQuery } from "../graphql/generated/graphql";
-import { DocumentUpdatedSubscription } from "../graphql/queries";
-import { useSubscription } from "../useSubscription";
+import { useDocumentUpdates } from "../subscriptions";
 
 type Document = {
   id: string;
@@ -150,11 +148,10 @@ export function DocumentCard({ doc: initial }: { doc: Document }) {
   const [open, setOpen] = useState(false);
 
   // Live-update document content
-  useSubscription(
-    DocumentUpdatedSubscription,
-    { id: doc.id },
+  useDocumentUpdates(
+    doc.id,
     useCallback((data) => {
-      setDoc((prev) => ({ ...prev, ...data.documentUpdated }));
+      setDoc((prev) => ({ ...prev, ...data }));
     }, []),
   );
 

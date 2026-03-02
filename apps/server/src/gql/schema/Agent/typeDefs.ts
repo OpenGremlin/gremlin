@@ -35,5 +35,6 @@ export const agentTypeDefs = /* GraphQL */ `
 
   extend type Subscription {
     agentUpdated(agentId: ID!): Agent!
+    agentsUpdated(agentIds: [ID!]!): Agent!
   }
 `;

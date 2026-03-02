@@ -43,9 +43,12 @@ type Mutation {
 type Subscription {
   _empty: String
   documentUpdated(id: ID!): Document!
+  documentsUpdated(documentIds: [ID!]!): Document!
   agentLogCreated(agentId: ID!): AgentLog!
   agentUpdated(agentId: ID!): Agent!
+  agentsUpdated(agentIds: [ID!]!): Agent!
   taskUpdated(taskId: ID!): Task!
+  tasksUpdated(taskIds: [ID!]!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
 }
 

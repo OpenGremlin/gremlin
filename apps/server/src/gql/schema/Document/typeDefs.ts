@@ -29,5 +29,6 @@ export const documentTypeDefs = /* GraphQL */ `
 
   extend type Subscription {
     documentUpdated(id: ID!): Document!
+    documentsUpdated(documentIds: [ID!]!): Document!
   }
 `;
