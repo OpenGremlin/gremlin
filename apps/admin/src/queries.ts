@@ -12,7 +12,7 @@ export const TOGGLE_PERMISSION = `mutation($integrationId: ID!, $scope: String!,
 
 export const TASKS_QUERY = `query($first: Int, $after: String, $last: Int, $before: String) {
   tasks(first: $first, after: $after, last: $last, before: $before) {
-    edges { cursor node { id agent { id name status imageUrl(width: 100) } title status createdAt } }
+    edges { cursor node { id agent { id name status imageUrl(width: 100) } title status message createdAt documents { id title body createdAt updatedAt } } }
     pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
   }
 }`;
@@ -93,4 +93,8 @@ export const DOCUMENT_QUERY = `query($id: ID!) {
 
 export const DOCUMENT_UPDATED_SUBSCRIPTION = `subscription($id: ID!) {
   documentUpdated(id: $id) { id title body updatedAt }
+}`;
+
+export const AGENT_UPDATED_SUBSCRIPTION = `subscription($agentId: ID!) {
+  agentUpdated(agentId: $agentId) { id status statusReason }
 }`;

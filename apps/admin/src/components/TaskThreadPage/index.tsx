@@ -15,7 +15,7 @@ import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
-import { DocumentCard } from "./DocumentCard";
+import { DocumentCard } from "../../shared/DocumentCard";
 import { useTaskChatMessages } from "./useTaskChatMessages";
 
 export function TaskThreadPage() {

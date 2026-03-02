@@ -1,9 +1,9 @@
 import { FileText, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { DOCUMENT_UPDATED_SUBSCRIPTION } from "../../queries";
-import type { Document } from "../../types";
-import { useSubscription } from "../../useSubscription";
+import { DOCUMENT_UPDATED_SUBSCRIPTION } from "../queries";
+import type { Document } from "../types";
+import { useSubscription } from "../useSubscription";
 
 function DocumentModal({
   doc,
@@ -116,8 +116,10 @@ function DocumentModal({
         <div className="border-b border-neutral-800/60" />
 
         {/* Body */}
-        <div ref={bodyRef} className="flex-1 overflow-y-auto px-[60px] py-4 document-body text-sm text-neutral-300">
-          <Markdown>{doc.body}</Markdown>
+        <div ref={bodyRef} className="flex-1 overflow-y-auto px-[60px] py-4">
+          <div className="max-w-prose document-body text-sm text-neutral-300">
+            <Markdown>{doc.body}</Markdown>
+          </div>
         </div>
       </div>
     </div>
