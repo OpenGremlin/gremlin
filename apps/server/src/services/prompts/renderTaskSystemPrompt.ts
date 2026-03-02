@@ -4,6 +4,8 @@ import { taskSystemTemplate } from "./templates/taskSystem.js";
 interface TaskSystemPromptData {
   name: string;
   soul: string;
+  userDisplayName: string;
+  userAbout?: string;
   taskTitle: string;
   taskId: string;
 }

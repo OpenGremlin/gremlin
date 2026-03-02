@@ -24,7 +24,10 @@ export async function runTaskLane(
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
 
-  const agent = await ctx.services.agents.getAgent(ctx, task.agentId);
+  const [agent, profile] = await Promise.all([
+    ctx.services.agents.getAgent(ctx, task.agentId),
+    ctx.services.profile.getProfile(ctx, "default"),
+  ]);
   if (!agent) throw new Error(`Agent ${task.agentId} not found`);
 
   // Mark task as running
@@ -58,6 +61,8 @@ export async function runTaskLane(
     systemPrompt: renderTaskSystemPrompt({
       name: agent.name,
       soul: agent.soul,
+      userDisplayName: profile?.displayName ?? "the user",
+      userAbout: profile?.about,
       taskTitle: task.title,
       taskId,
     }),

@@ -51,7 +51,10 @@ async function runMainLaneAgent(
   agentId: string,
   userMessage: string,
 ) {
-  const agent = await ctx.services.agents.getAgent(ctx, agentId);
+  const [agent, profile] = await Promise.all([
+    ctx.services.agents.getAgent(ctx, agentId),
+    ctx.services.profile.getProfile(ctx, "default"),
+  ]);
   if (!agent) throw new Error(`Agent ${agentId} not found`);
 
   // Build conversation history with compaction support
@@ -68,7 +71,12 @@ async function runMainLaneAgent(
   await runAgentTurn(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderSystemPrompt({ name: agent.name, soul: agent.soul }),
+    systemPrompt: renderSystemPrompt({
+      name: agent.name,
+      soul: agent.soul,
+      userDisplayName: profile?.displayName ?? "the user",
+      userAbout: profile?.about,
+    }),
     messages,
     tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
   });

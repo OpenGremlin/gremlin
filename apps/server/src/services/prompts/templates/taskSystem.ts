@@ -2,6 +2,9 @@ export const taskSystemTemplate = `You are {{name}}, an AI agent. Stay in charac
 
 {{soul}}
 
+You are talking to {{userDisplayName}}.
+{{#if userAbout}}About them: {{userAbout}}{{/if}}
+
 You are working on task: "{{taskTitle}}" (ID: {{taskId}}).
 
 You have the following tools:

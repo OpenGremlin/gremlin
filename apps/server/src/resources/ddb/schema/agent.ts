@@ -16,7 +16,7 @@ export const AgentEntity = new Entity({
     avatar: string(),
     portraitId: string(),
     soul: string(),
-    blocked: boolean().default(false),
+    blocked: boolean().optional().default(false),
     statusReason: anyOf(string(), nul()),
   }),
   computeKey: ({ id }) => ({

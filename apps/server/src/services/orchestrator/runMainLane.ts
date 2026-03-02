@@ -14,7 +14,10 @@ export async function runMainLane(
   agentId: string,
   userMessage: string,
 ): Promise<string> {
-  const agent = await ctx.services.agents.getAgent(ctx, agentId);
+  const [agent, profile] = await Promise.all([
+    ctx.services.agents.getAgent(ctx, agentId),
+    ctx.services.profile.getProfile(ctx, "default"),
+  ]);
   if (!agent) throw new Error(`Agent ${agentId} not found`);
 
   // Log the user message
@@ -34,7 +37,12 @@ export async function runMainLane(
   const response = await runAgentTurn(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderSystemPrompt({ name: agent.name, soul: agent.soul }),
+    systemPrompt: renderSystemPrompt({
+      name: agent.name,
+      soul: agent.soul,
+      userDisplayName: profile?.displayName ?? "the user",
+      userAbout: profile?.about,
+    }),
     messages,
     tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
   });

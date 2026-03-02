@@ -4,6 +4,8 @@ import { systemTemplate } from "./templates/system.js";
 interface SystemPromptData {
   name: string;
   soul: string;
+  userDisplayName: string;
+  userAbout?: string;
 }
 
 const template = Handlebars.compile<SystemPromptData>(systemTemplate, {
