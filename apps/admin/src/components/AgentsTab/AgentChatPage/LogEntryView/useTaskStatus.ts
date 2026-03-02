@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { gql } from "../../../../auth";
-import type { TaskUpdatedSubscription as TaskUpdatedSub } from "../../../../graphql/generated/graphql";
-import { TaskUpdatedSubscription } from "../../../../graphql/queries";
-import { useSubscription } from "../../../../useSubscription";
+import { useTaskUpdates } from "../../../../subscriptions";
 
 const TASK_STATUS_QUERY = `query($id: ID!) { task(id: $id) { status message } }`;
 
@@ -12,7 +10,9 @@ interface TaskState {
 }
 
 /**
- * Fetches initial task status, then subscribes to live updates.
+ * Fetches initial task status, then subscribes to live updates
+ * via the batched task subscription manager (single SSE connection
+ * shared across all task cards).
  */
 export function useTaskStatus(taskId: string | null) {
   const [state, setState] = useState<TaskState | null>(null);
@@ -32,15 +32,12 @@ export function useTaskStatus(taskId: string | null) {
     };
   }, [taskId]);
 
-  useSubscription<TaskUpdatedSub>(
-    taskId ? TaskUpdatedSubscription : "",
-    { taskId: taskId ?? "" },
-    (data) =>
-      setState({
-        status: data.taskUpdated.status,
-        message: data.taskUpdated.message ?? null,
-      }),
-  );
+  useTaskUpdates(taskId ?? "", (update) => {
+    const u = update as { status?: string; message?: string | null };
+    if (u.status) {
+      setState({ status: u.status, message: u.message ?? null });
+    }
+  });
 
   return state;
 }

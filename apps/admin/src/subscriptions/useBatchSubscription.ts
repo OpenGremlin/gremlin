@@ -16,6 +16,7 @@ function useBatchSubscription<T>(
   onDataRef.current = onData;
 
   useEffect(() => {
+    if (!id) return;
     return manager.subscribe(id, (entity) => {
       onDataRef.current(entity as T);
     });
