@@ -9,7 +9,7 @@ export function FeedCard({ item }: { item: Task }) {
   const navigate = useNavigate();
   return (
     <Link
-      to={`/feed/${item.id}`}
+      to={`/tasks/${item.id}`}
       className="block px-4 py-4 transition-colors hover:bg-neutral-900/50"
     >
       <div className="flex gap-3">
