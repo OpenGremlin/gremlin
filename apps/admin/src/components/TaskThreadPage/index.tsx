@@ -51,27 +51,10 @@ export function TaskThreadPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages or agent activity
-  const hasLoadedRef = useRef(false);
-  const scrollToBottom = useCallback(
-    (behavior: ScrollBehavior = "smooth") => {
-      scrollRef.current?.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior,
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (messages.length === 0) return;
-    scrollToBottom(hasLoadedRef.current ? "smooth" : "instant");
-    hasLoadedRef.current = true;
-  }, [messages.length, scrollToBottom]);
-
-  useEffect(() => {
-    if (isAgentActive) scrollToBottom();
-  }, [isAgentActive, scrollToBottom]);
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -124,47 +107,49 @@ export function TaskThreadPage() {
       </div>
 
       {/* Scrollable content */}
-      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
-        {/* Documents */}
-        {docs.length > 0 && (
-          <div className="px-3 pt-3 flex flex-col gap-2">
-            {docs.map((doc) => (
-              <DocumentCard key={doc.id} doc={doc} />
-            ))}
-          </div>
-        )}
-
-        {/* Activity section */}
-        <div className="px-3 pt-4 pb-3">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-2">
-            Activity
-          </h2>
-
-          {/* Prompt */}
-          {systemMsg && (
-            <div className="mb-3 px-3 py-2.5 rounded-lg bg-neutral-900/60 border border-neutral-800/50">
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                {systemMsg.content}
-              </p>
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto flex flex-col-reverse">
+        <div>
+          {/* Documents */}
+          {docs.length > 0 && (
+            <div className="px-3 pt-3 flex flex-col gap-2">
+              {docs.map((doc) => (
+                <DocumentCard key={doc.id} doc={doc} />
+              ))}
             </div>
           )}
 
-          {/* Log entries */}
-          <div className="flex flex-col gap-1">
-            {chatMessages.map((msg, i) => (
-              <LogEntryView
-                key={msg.id}
-                entry={msg}
-                isLast={i === chatMessages.length - 1}
-              />
-            ))}
-            {isAgentActive && (
-              <div className="flex justify-start py-1">
-                <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-                  <span className="animate-pulse">Thinking...</span>
-                </div>
+          {/* Activity section */}
+          <div className="px-3 pt-4 pb-3">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-2">
+              Activity
+            </h2>
+
+            {/* Prompt */}
+            {systemMsg && (
+              <div className="mb-3 px-3 py-2.5 rounded-lg bg-neutral-900/60 border border-neutral-800/50">
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {systemMsg.content}
+                </p>
               </div>
             )}
+
+            {/* Log entries */}
+            <div className="flex flex-col gap-1">
+              {chatMessages.map((msg, i) => (
+                <LogEntryView
+                  key={msg.id}
+                  entry={msg}
+                  isLast={i === chatMessages.length - 1}
+                />
+              ))}
+              {isAgentActive && (
+                <div className="flex justify-start py-1">
+                  <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
+                    <span className="animate-pulse">Thinking...</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

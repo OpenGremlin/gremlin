@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import { AgentQuery, SendMessageMutation } from "../../../graphql/queries";
@@ -22,27 +22,13 @@ export function AgentChatPage() {
   } = useChatMessages(id!);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const logEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages or agent activity
-  const hasLoadedRef = useRef(false);
-  const scrollToBottom = useCallback(
-    (behavior: ScrollBehavior = "smooth") => {
-      logEndRef.current?.scrollIntoView({ behavior });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (messages.length === 0) return;
-    scrollToBottom(hasLoadedRef.current ? "smooth" : "instant");
-    hasLoadedRef.current = true;
-  }, [messages.length, scrollToBottom]);
-
-  useEffect(() => {
-    if (isAgentActive) scrollToBottom();
-  }, [isAgentActive, scrollToBottom]);
+  // Scroll to bottom imperatively (for send + agent activity)
+  const scrollToBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
 
   // Infinite scroll — load older messages on scroll to top
   const handleScroll = useCallback(() => {
@@ -79,45 +65,46 @@ export function AgentChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100%+4rem)] -mb-16">
       <ChatHeader agent={agent} />
 
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1"
+        className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col-reverse"
       >
-        {hasMore && (
-          <button
-            type="button"
-            onClick={loadMore}
-            className="text-xs text-neutral-500 hover:text-neutral-300 self-center py-2"
-          >
-            Load older messages
-          </button>
-        )}
-        {messagesLoading && messages.length === 0 && (
-          <div className="text-xs text-neutral-500 self-center py-4">
-            Loading...
-          </div>
-        )}
-        {messages
-          .filter((msg) => !msg.taskId)
-          .map((msg) => (
-            <LogEntryView
-              key={msg.id}
-              entry={msg}
-              onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
-            />
-          ))}
-        {isAgentActive && (
-          <div className="flex justify-start py-1">
-            <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-              <span className="animate-pulse">Thinking...</span>
+        <div className="flex flex-col gap-1">
+          {hasMore && (
+            <button
+              type="button"
+              onClick={loadMore}
+              className="text-xs text-neutral-500 hover:text-neutral-300 self-center py-2"
+            >
+              Load older messages
+            </button>
+          )}
+          {messagesLoading && messages.length === 0 && (
+            <div className="text-xs text-neutral-500 self-center py-4">
+              Loading...
             </div>
-          </div>
-        )}
-        <div ref={logEndRef} />
+          )}
+          {messages
+            .filter((msg) => !msg.taskId)
+            .map((msg) => (
+              <LogEntryView
+                key={msg.id}
+                entry={msg}
+                onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
+              />
+            ))}
+          {isAgentActive && (
+            <div className="flex justify-start py-1">
+              <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
+                <span className="animate-pulse">Thinking...</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <ChatInputBar
