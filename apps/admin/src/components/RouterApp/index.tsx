@@ -29,7 +29,7 @@ function TabShell() {
     data?.notifications?.filter((n) => n.status === "PENDING").length ?? 0;
 
   const tabs = [
-    { to: "/feed", label: "Home", icon: AlignLeft, badge: 0 },
+    { to: "/home", label: "Home", icon: AlignLeft, badge: 0 },
     { to: "/scheduler", label: "Scheduler", icon: Calendar, badge: 0 },
     { to: "/agents", label: "Agents", icon: Star, badge: 0 },
     {
@@ -77,8 +77,8 @@ export function RouterApp() {
     <BrowserRouter>
       <Routes>
         <Route element={<TabShell />}>
-          <Route index element={<Navigate to="/feed" replace />} />
-          <Route path="feed" element={<TasksTab />} />
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<TasksTab />} />
           <Route path="scheduler" element={<SchedulerTab />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
           <Route
