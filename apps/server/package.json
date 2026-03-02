@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "codegen": "graphql-codegen --config codegen.ts",
-    "schema:export": "tsx scripts/exportSchema.ts"
+    "schema:export": "tsx scripts/exportSchema.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^4.0.69",
@@ -21,6 +22,7 @@
     "@graphql-tools/schema": "^10.0.31",
     "@graphql-yoga/subscription": "^5.0.5",
     "ai": "^6.0.105",
+    "cron-parser": "^5.5.0",
     "dotenv": "^17.3.1",
     "dynamodb-toolbox": "^2.8.0",
     "express": "^4",
@@ -42,6 +44,7 @@
     "@types/node": "^22",
     "@types/ws": "^8.18.1",
     "tsx": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }

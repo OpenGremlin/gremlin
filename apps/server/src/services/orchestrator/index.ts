@@ -1,4 +1,5 @@
 import { dispatchDueFollowUps } from "./dispatchDueFollowUps.js";
+import { dispatchDueJobs } from "./dispatchDueJobs.js";
 import { recoverIncompleteTasks } from "./recoverIncompleteTasks.js";
 import { runMainLane } from "./runMainLane.js";
 import { runTaskLane } from "./runTaskLane.js";
@@ -12,6 +13,7 @@ export const orchestratorService = {
   sendMessage,
   writeAgentLog,
   dispatchDueFollowUps,
+  dispatchDueJobs,
   recoverIncompleteTasks,
   startCron,
 };

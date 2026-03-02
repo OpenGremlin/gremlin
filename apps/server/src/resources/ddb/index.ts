@@ -2,6 +2,7 @@ import { GremlinTable } from "./table.js";
 import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
+import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
 import { IntegrationEntity } from "./schema/integration.js";
 import { NotificationEntity } from "./schema/notification.js";
 import { ProfileEntity } from "./schema/profile.js";
@@ -14,6 +15,7 @@ import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 export const ddb = {
   table: GremlinTable,
   entities: {
+    CronJobTrigger: CronJobTriggerEntity,
     Document: DocumentEntity,
     GoogleOAuthToken: GoogleOAuthTokenEntity,
     Agent: AgentEntity,
