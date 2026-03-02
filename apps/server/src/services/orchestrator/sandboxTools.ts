@@ -18,7 +18,7 @@ export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
         return { status: "already_running", wsUrl: existing.wsUrl };
       }
 
-      const session = await ctx.services.sandbox.launchSandbox(ctx, agentId);
+      const session = await ctx.services.sandbox.launchSandbox(agentId);
       await ctx.services.sandbox.connectToSandbox(session);
       activeSessions.set(agentId, session);
 

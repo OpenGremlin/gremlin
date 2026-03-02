@@ -3,8 +3,6 @@ import {
   RunTaskCommand,
   DescribeTasksCommand,
 } from "@aws-sdk/client-ecs";
-import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
-import type { ServiceContext } from "../context.js";
 import type { SandboxSession } from "./types.js";
 
 const ecs = new ECSClient({});
@@ -19,35 +17,8 @@ function sleep(ms: number): Promise<void> {
 }
 
 export async function launchSandbox(
-  ctx: ServiceContext,
   agentId: string,
 ): Promise<SandboxSession> {
-  // 1. Check for existing EBS volume for this agent
-  const table = ctx.resources.ddb.table;
-  const existing = await table.getDocumentClient().send(
-    new GetCommand({
-      TableName: table.getName(),
-      Key: { pk: "SANDBOX_VOLUME", sk: `SANDBOX_VOLUME#${agentId}` },
-    }),
-  );
-  const existingVolume = existing.Item as
-    | { volumeId: string; availabilityZone: string; sizeGiB: number }
-    | undefined;
-
-  // 2. Build volume configuration
-  const volumeConfiguration = existingVolume
-    ? {
-        name: "workspace",
-        managedEBSVolume: {
-          volumeType: "gp3" as const,
-          sizeInGiB: existingVolume.sizeGiB,
-          snaphotId: undefined,
-          roleArn: undefined,
-        },
-      }
-    : undefined;
-
-  // 3. Launch ECS task
   const runResult = await ecs.send(
     new RunTaskCommand({
       cluster: CLUSTER_NAME,
@@ -71,7 +42,7 @@ export async function launchSandbox(
     );
   }
 
-  // 4. Poll for task to be RUNNING and have a private IP
+  // Poll for task to be RUNNING and have a private IP
   let privateIp: string | undefined;
   const maxAttempts = 30; // 30 * 3s = 90s
   for (let i = 0; i < maxAttempts; i++) {
@@ -106,42 +77,6 @@ export async function launchSandbox(
 
   if (!privateIp) {
     throw new Error("Sandbox task did not become ready within 90s");
-  }
-
-  // 5. Store volume mapping in DDB if first launch
-  if (!existingVolume) {
-    const now = new Date().toISOString();
-    await table.getDocumentClient().send(
-      new PutCommand({
-        TableName: table.getName(),
-        Item: {
-          agentId,
-          volumeId: "pending", // Updated when EBS details available
-          availabilityZone: "us-east-1a",
-          sizeGiB: 10,
-          createdAt: now,
-          lastUsedAt: now,
-          _et: "SandboxVolume",
-          pk: "SANDBOX_VOLUME",
-          sk: `SANDBOX_VOLUME#${agentId}`,
-        },
-      }),
-    );
-  } else {
-    // Update lastUsedAt
-    await table.getDocumentClient().send(
-      new PutCommand({
-        TableName: table.getName(),
-        Item: {
-          ...existingVolume,
-          agentId,
-          lastUsedAt: new Date().toISOString(),
-          _et: "SandboxVolume",
-          pk: "SANDBOX_VOLUME",
-          sk: `SANDBOX_VOLUME#${agentId}`,
-        },
-      }),
-    );
   }
 
   return {

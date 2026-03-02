@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^4.0.69",
-    "@aws-sdk/client-ec2": "^3.1000.0",
     "@aws-sdk/client-ecs": "^3.1000.0",
     "@aws-sdk/client-dynamodb": "^3.1000.0",
     "@aws-sdk/client-secrets-manager": "^3.1000.0",

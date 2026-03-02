@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as efs from "aws-cdk-lib/aws-efs";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
 
@@ -31,6 +32,27 @@ export class SandboxStack extends cdk.Stack {
       "WebSocket from server",
     );
 
+    // ── EFS for shared /workspace ──────────────────────────
+    const fsSg = new ec2.SecurityGroup(this, "EfsSg", {
+      vpc: props.vpc,
+      description: "Gremlin sandbox EFS",
+    });
+    fsSg.addIngressRule(sandboxSg, ec2.Port.tcp(2049), "NFS from sandbox");
+
+    const fileSystem = new efs.FileSystem(this, "WorkspaceFs", {
+      vpc: props.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      securityGroup: fsSg,
+      performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const accessPoint = fileSystem.addAccessPoint("WorkspaceAp", {
+      path: "/workspace",
+      createAcl: { ownerGid: "1000", ownerUid: "1000", permissions: "755" },
+      posixUser: { gid: "1000", uid: "1000" },
+    });
+
     // Task definition: x86_64 for Playwright/Chromium
     const taskDef = new ecs.FargateTaskDefinition(this, "SandboxTask", {
       cpu: 1024,
@@ -41,11 +63,19 @@ export class SandboxStack extends cdk.Stack {
       },
     });
 
-    // Configure EBS volume for /workspace
     taskDef.addVolume({
       name: "workspace",
-      configuredAtLaunch: true,
+      efsVolumeConfiguration: {
+        fileSystemId: fileSystem.fileSystemId,
+        transitEncryption: "ENABLED",
+        authorizationConfig: {
+          accessPointId: accessPoint.accessPointId,
+          iam: "ENABLED",
+        },
+      },
     });
+
+    fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount", "elasticfilesystem:ClientWrite");
 
     const container = taskDef.addContainer("sandbox", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {

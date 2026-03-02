@@ -161,17 +161,6 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
-    taskDef.taskRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "ec2:CreateVolume",
-          "ec2:DeleteVolume",
-          "ec2:DescribeVolumes",
-          "ec2:CreateTags",
-        ],
-        resources: ["*"],
-      }),
-    );
 
     this.cluster = cluster;
     this.service = service;

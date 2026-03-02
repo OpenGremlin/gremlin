@@ -10,7 +10,6 @@ import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
 import { DocumentEntity } from "./schema/document.js";
 import { GoogleOAuthTokenEntity } from "./schema/googleOAuthToken.js";
-import { SandboxVolumeEntity } from "./schema/sandboxVolume.js";
 import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 
 export const ddb = {
@@ -25,7 +24,6 @@ export const ddb = {
     Integration: IntegrationEntity,
     Notification: NotificationEntity,
     Profile: ProfileEntity,
-    SandboxVolume: SandboxVolumeEntity,
     Skill: SkillEntity,
     Task: TaskEntity,
     TaskFollowUp: TaskFollowUpEntity,
