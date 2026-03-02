@@ -8,6 +8,7 @@ import {
   TASK_UPDATED_SUBSCRIPTION,
 } from "../../../queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import type { Task } from "../../../types";
 import { useQuery } from "../../../useQuery";
@@ -16,8 +17,6 @@ import { ChatInputBar } from "../AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentChatPage/LogEntryView";
 import { DocumentCard } from "./DocumentCard";
 import { useTaskChatMessages } from "./useTaskChatMessages";
-
-type Tab = "output" | "activity";
 
 export function TaskThreadPage() {
   const { id: agentId, taskId } = useParams<{ id: string; taskId: string }>();
@@ -46,30 +45,23 @@ export function TaskThreadPage() {
   const { messages, isAgentActive } = useTaskChatMessages(taskId!, logEdges);
 
   const docs = task?.documents ?? [];
-  const hasDocs = docs.length > 0;
-  const [tab, setTab] = useState<Tab>(hasDocs ? "output" : "activity");
-
-  // Switch to output tab when first doc arrives
-  useEffect(() => {
-    if (hasDocs && tab === "activity") setTab("output");
-  }, [hasDocs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const logEndRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
   const prevMessageCountRef = useRef(0);
   useEffect(() => {
-    if (tab !== "activity") return;
     if (messages.length > prevMessageCountRef.current) {
       const isInitialLoad = prevMessageCountRef.current === 0;
-      logEndRef.current?.scrollIntoView({
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
         behavior: isInitialLoad ? "instant" : "smooth",
       });
     }
     prevMessageCountRef.current = messages.length;
-  }, [messages.length, tab]);
+  }, [messages.length]);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -102,7 +94,7 @@ export function TaskThreadPage() {
   const chatMessages = messages.filter((m) => m.role !== "SYSTEM");
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100%+4rem)] -mb-16">
       {/* Header */}
       <div className="shrink-0 border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 pt-4 pb-3">
         <div className="flex items-center gap-2">
@@ -112,58 +104,46 @@ export function TaskThreadPage() {
           >
             <ArrowLeft size={18} />
           </Link>
+          <AgentAvatar
+            src={task.agent.imageUrl}
+            name={task.agent.name}
+            size="xs"
+          />
           <h1 className="text-sm font-semibold text-neutral-100 flex-1 truncate">
             {task.title}
           </h1>
           <Badge label={task.status} />
         </div>
-
-        {/* Task prompt */}
-        {systemMsg && (
-          <p className="text-xs text-neutral-500 mt-2 ml-6 line-clamp-2">
-            {systemMsg.content}
-          </p>
-        )}
-
-        {/* Tabs */}
-        {hasDocs && (
-          <div className="flex gap-1.5 mt-3 ml-6">
-            <button
-              type="button"
-              onClick={() => setTab("output")}
-              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${
-                tab === "output"
-                  ? "bg-indigo-500/20 text-indigo-300"
-                  : "bg-neutral-800/60 text-neutral-500 hover:text-neutral-300"
-              }`}
-            >
-              Output
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("activity")}
-              className={`text-xs font-medium px-3 py-1 rounded-full transition-colors ${
-                tab === "activity"
-                  ? "bg-indigo-500/20 text-indigo-300"
-                  : "bg-neutral-800/60 text-neutral-500 hover:text-neutral-300"
-              }`}
-            >
-              Activity
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Tab content */}
-      {tab === "output" ? (
-        <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
-          {docs.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} />
-          ))}
-        </div>
-      ) : (
-        <>
-          <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1">
+      {/* Scrollable content */}
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
+        {/* Documents */}
+        {docs.length > 0 && (
+          <div className="px-3 pt-3 flex flex-col gap-2">
+            {docs.map((doc) => (
+              <DocumentCard key={doc.id} doc={doc} />
+            ))}
+          </div>
+        )}
+
+        {/* Activity section */}
+        <div className="px-3 pt-4 pb-3">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-600 mb-2">
+            Activity
+          </h2>
+
+          {/* Prompt */}
+          {systemMsg && (
+            <div className="mb-3 px-3 py-2.5 rounded-lg bg-neutral-900/60 border border-neutral-800/50">
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                {systemMsg.content}
+              </p>
+            </div>
+          )}
+
+          {/* Log entries */}
+          <div className="flex flex-col gap-1">
             {chatMessages.map((msg, i) => (
               <LogEntryView
                 key={msg.id}
@@ -178,17 +158,16 @@ export function TaskThreadPage() {
                 </div>
               </div>
             )}
-            <div ref={logEndRef} />
           </div>
+        </div>
+      </div>
 
-          <ChatInputBar
-            value={input}
-            onChange={setInput}
-            onSend={handleSend}
-            disabled={sending}
-          />
-        </>
-      )}
+      <ChatInputBar
+        value={input}
+        onChange={setInput}
+        onSend={handleSend}
+        disabled={sending}
+      />
     </div>
   );
 }
