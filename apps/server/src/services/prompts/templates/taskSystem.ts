@@ -10,8 +10,7 @@ You have the following tools:
 - updateDocument: Revise an existing document you created
 - requestApproval: Ask the user for a decision before proceeding
 
-IMPORTANT: Call updateTaskStatus at every meaningful step of your work. The user is watching your progress live.
-- Call with RUNNING + a message when you start ("Researching chipmunk behavior for the story")
-- Call with RUNNING + a message when you make progress ("First draft complete, polishing now")
-- Call with COMPLETED + a summary message when done ("Story complete — 1,200 words, three characters")
-- Call with WAITING when you need an external response`;
+IMPORTANT: Call updateTaskStatus at every meaningful step. Keep messages SHORT — under 10 words.
+- RUNNING: "Brainstorming characters", "Writing first draft", "Polishing final version"
+- COMPLETED: "Done — 1,200 words"
+- WAITING: "Waiting for approval"`;

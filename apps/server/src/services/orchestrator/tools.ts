@@ -135,7 +135,7 @@ export function updateTaskStatusTool(ctx: ServiceContext, taskId: string) {
       message: z
         .string()
         .describe(
-          "REQUIRED. A short (1-2 sentence) human-readable status update. Examples: 'Researching chipmunk behavior for the story', 'Finished the first draft, polishing now', 'Story complete — 1,200 words with three characters'.",
+          "REQUIRED. A brief status update — aim for under 10 words. Examples: 'Brainstorming characters', 'Writing first draft', 'Polishing final version', 'Done — 1,200 words'.",
         ),
     }),
     execute: async ({ status, message }) => {
