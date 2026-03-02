@@ -59,7 +59,16 @@ export function JobDetailPage() {
   let cronHuman: string | null = null;
   if (cronDisplay) {
     try {
-      cronHuman = cronstrue.toString(cronDisplay);
+      // Shift the hour field from UTC to local timezone for display
+      const parts = cronDisplay.split(" ");
+      if (parts.length === 5 && /^\d+$/.test(parts[1])) {
+        const offsetHours = -new Date().getTimezoneOffset() / 60;
+        const localHour = ((Number(parts[1]) + offsetHours) % 24 + 24) % 24;
+        parts[1] = String(localHour);
+        cronHuman = cronstrue.toString(parts.join(" "));
+      } else {
+        cronHuman = cronstrue.toString(cronDisplay);
+      }
     } catch {
       // ignore parse errors
     }

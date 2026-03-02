@@ -18,7 +18,6 @@ export const AgentJobEntity = new Entity({
     agentId: string().default("clawd"),
     status: string(),
     lastRun: anyOf(string(), nul()),
-    nextRun: anyOf(string(), nul()),
   }),
   computeKey: ({ id }) => ({
     pk: "AGENT_JOB",

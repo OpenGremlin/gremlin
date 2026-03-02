@@ -1,3 +1,4 @@
+import { CronExpressionParser } from "cron-parser";
 import type {
   AgentJobResolvers,
   MutationResolvers,
@@ -33,8 +34,27 @@ const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
   return edges.map((e) => e.node).filter((t) => t.originJobId === parent.id);
 };
 
+const nextRun: AgentJobResolvers["nextRun"] = async (parent, _args, ctx) => {
+  if (!parent.cronExpression) return null;
+  try {
+    const profile = await ctx.services.profile.getProfile(ctx, "default");
+    const tz = profile?.timezone ?? "UTC";
+    console.log("[nextRun] cron=%s tz=%s", parent.cronExpression, tz);
+    const expr = CronExpressionParser.parse(parent.cronExpression, {
+      currentDate: new Date(),
+      tz,
+    });
+    const next = expr.next().toDate().toISOString();
+    console.log("[nextRun] result=%s", next);
+    return next;
+  } catch (err) {
+    console.error("[nextRun] error", err);
+    return null;
+  }
+};
+
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
   Mutation: { updateJobStatus, updateAgentJob },
-  AgentJob: { agent, tasks },
+  AgentJob: { agent, tasks, nextRun },
 };
