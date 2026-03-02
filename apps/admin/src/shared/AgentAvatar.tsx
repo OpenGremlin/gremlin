@@ -1,4 +1,8 @@
-import type { Agent } from "../types";
+import { useState } from "react";
+import type { AgentStatus } from "../graphql/generated/graphql";
+import { AgentQuery, AgentUpdatedSubscription } from "../graphql/queries";
+import { useQuery } from "../useQuery";
+import { useSubscription } from "../useSubscription";
 
 type Size = "xs" | "sm" | "md" | "lg";
 
@@ -9,30 +13,30 @@ const sizeClasses: Record<Size, { container: string; text: string }> = {
   lg: { container: "w-16 h-16", text: "text-lg" },
 };
 
-export function AgentAvatar({
-  src,
-  name,
-  status,
-  size = "md",
-}: {
-  src: string;
-  name: string;
-  status?: Agent["status"];
-  size?: Size;
-}) {
+export function AgentAvatar({ id, size = "md" }: { id: string; size?: Size }) {
+  const { data } = useQuery(AgentQuery, { id });
+  const agent = data?.agent;
+  const [status, setStatus] = useState<AgentStatus | null>(null);
+
+  useSubscription(AgentUpdatedSubscription, { agentId: id }, (update) =>
+    setStatus(update.agentUpdated.status),
+  );
+
+  const effectiveStatus = status ?? agent?.status ?? "IDLE";
+
   const s = sizeClasses[size];
 
-  const ringClass = status
-    ? `avatar-ring ${
-        status === "ACTIVE"
-          ? "avatar-ring-active"
-          : status === "SCHEDULED"
-            ? "avatar-ring-scheduled"
-            : status === "BLOCKED"
-              ? "avatar-ring-blocked"
-              : "avatar-ring-idle"
-      }`
-    : "";
+  const ringClass = `avatar-ring ${
+    effectiveStatus === "ACTIVE"
+      ? "avatar-ring-active"
+      : effectiveStatus === "SCHEDULED"
+        ? "avatar-ring-scheduled"
+        : effectiveStatus === "BLOCKED"
+          ? "avatar-ring-blocked"
+          : "avatar-ring-idle"
+  }`;
+
+  const name = agent?.name ?? "";
 
   return (
     <div
@@ -41,16 +45,18 @@ export function AgentAvatar({
       <div
         className={`w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden ${s.text} text-neutral-400 font-medium`}
       >
-        <img
-          src={src}
-          alt={name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-            const parent = (e.target as HTMLImageElement).parentElement;
-            if (parent) parent.textContent = name[0];
-          }}
-        />
+        {agent?.imageUrl && (
+          <img
+            src={agent.imageUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+              const parent = (e.target as HTMLImageElement).parentElement;
+              if (parent) parent.textContent = name[0];
+            }}
+          />
+        )}
       </div>
     </div>
   );

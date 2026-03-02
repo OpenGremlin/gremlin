@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { gql } from "../../../../auth";
-import { TASK_UPDATED_SUBSCRIPTION } from "../../../../queries";
+import type { TaskUpdatedSubscription as TaskUpdatedSub } from "../../../../graphql/generated/graphql";
+import { TaskUpdatedSubscription } from "../../../../graphql/queries";
 import { useSubscription } from "../../../../useSubscription";
 
 const TASK_STATUS_QUERY = `query($id: ID!) { task(id: $id) { status message } }`;
@@ -31,10 +32,14 @@ export function useTaskStatus(taskId: string | null) {
     };
   }, [taskId]);
 
-  useSubscription<{ taskUpdated: TaskState }>(
-    taskId ? TASK_UPDATED_SUBSCRIPTION : "",
+  useSubscription<TaskUpdatedSub>(
+    taskId ? TaskUpdatedSubscription : "",
     { taskId: taskId ?? "" },
-    (data) => setState(data.taskUpdated),
+    (data) =>
+      setState({
+        status: data.taskUpdated.status,
+        message: data.taskUpdated.message ?? null,
+      }),
   );
 
   return state;

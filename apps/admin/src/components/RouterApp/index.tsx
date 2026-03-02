@@ -7,24 +7,21 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import { NOTIFICATIONS_QUERY } from "../../queries";
-import type { Notification } from "../../types";
+import { NotificationsQuery } from "../../graphql/queries";
 import { useQuery } from "../../useQuery";
 import { AgentsTab } from "../AgentsTab";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
-import { TaskThreadPage } from "../TaskThreadPage";
-import { TasksTab } from "../TasksTab";
 import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
+import { TasksTab } from "../TasksTab";
+import { TaskThreadPage } from "../TaskThreadPage";
 import { UserTab } from "../UserTab";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
 
 function TabShell() {
-  const { data } = useQuery<{ notifications: Notification[] }>(
-    NOTIFICATIONS_QUERY,
-  );
+  const { data } = useQuery(NotificationsQuery);
   const pendingCount =
     data?.notifications?.filter((n) => n.status === "PENDING").length ?? 0;
 

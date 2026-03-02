@@ -16,7 +16,8 @@ export async function updateTaskStatus(
   message?: string,
 ) {
   const now = new Date().toISOString();
-  const isTerminal = status === "COMPLETED" || status === "FAILED" || status === "ABANDONED";
+  const isTerminal =
+    status === "COMPLETED" || status === "FAILED" || status === "ABANDONED";
 
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
@@ -41,4 +42,6 @@ export async function updateTaskStatus(
     updatedAt: now,
     ...(isTerminal ? { completedAt: now } : {}),
   });
+
+  await ctx.services.agents.resolveAgentStatus(ctx, task.agentId);
 }

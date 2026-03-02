@@ -1,17 +1,14 @@
 import { Link } from "react-router-dom";
-import { AGENT_JOBS_QUERY } from "../../queries";
+import { AgentJobsQuery } from "../../graphql/queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
-import type { AgentJob } from "../../types";
 import { useQuery } from "../../useQuery";
 
 export function SchedulerTab() {
-  const { data, loading, error } = useQuery<{ agentJobs: AgentJob[] }>(
-    AGENT_JOBS_QUERY,
-  );
+  const { data, loading, error } = useQuery(AgentJobsQuery);
 
   const jobs = data?.agentJobs ?? [];
 
@@ -29,12 +26,7 @@ export function SchedulerTab() {
             className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
           >
             <div className="flex items-center gap-3">
-              <AgentAvatar
-                src={job.agent.imageUrl}
-                name={job.agent.name}
-                status={job.agent.status}
-                size="sm"
-              />
+              <AgentAvatar id={job.agent.id} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-sm font-medium text-neutral-100 truncate">

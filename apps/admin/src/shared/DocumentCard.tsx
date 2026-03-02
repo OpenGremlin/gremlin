@@ -1,9 +1,17 @@
 import { FileText, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { DOCUMENT_UPDATED_SUBSCRIPTION } from "../queries";
-import type { Document } from "../types";
+import type { DocumentQuery } from "../graphql/generated/graphql";
+import { DocumentUpdatedSubscription } from "../graphql/queries";
 import { useSubscription } from "../useSubscription";
+
+type Document = {
+  id: string;
+  title: string;
+  body: string;
+  updatedAt: string;
+  createdAt?: string;
+};
 
 function DocumentModal({
   doc,
@@ -18,7 +26,8 @@ function DocumentModal({
   const startY = useRef(0);
   const currentY = useRef(0);
 
-  const isScrolledToTop = () => !bodyRef.current || bodyRef.current.scrollTop <= 0;
+  const isScrolledToTop = () =>
+    !bodyRef.current || bodyRef.current.scrollTop <= 0;
 
   const applyDrag = (clientY: number) => {
     const sheet = sheetRef.current;
@@ -53,7 +62,8 @@ function DocumentModal({
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
   };
-  const handleTouchMove = (e: React.TouchEvent) => applyDrag(e.touches[0].clientY);
+  const handleTouchMove = (e: React.TouchEvent) =>
+    applyDrag(e.touches[0].clientY);
   const handleTouchEnd = () => endDrag();
 
   // Mouse handlers
@@ -131,8 +141,8 @@ export function DocumentCard({ doc: initial }: { doc: Document }) {
   const [open, setOpen] = useState(false);
 
   // Live-update document content
-  useSubscription<{ documentUpdated: Document }>(
-    DOCUMENT_UPDATED_SUBSCRIPTION,
+  useSubscription(
+    DocumentUpdatedSubscription,
     { id: doc.id },
     useCallback((data) => {
       setDoc((prev) => ({ ...prev, ...data.documentUpdated }));

@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
-import { INTEGRATIONS_QUERY } from "../../../queries";
+import { IntegrationsQuery } from "../../../graphql/queries";
 import { QueryResult } from "../../../shared/QueryResult";
-import type { Integration } from "../../../types";
 import { useQuery } from "../../../useQuery";
 
 export function IntegrationsPage() {
-  const { data, loading, error } = useQuery<{ integrations: Integration[] }>(
-    INTEGRATIONS_QUERY,
-  );
+  const { data, loading, error } = useQuery(IntegrationsQuery);
 
   const integrations = data?.integrations ?? [];
 

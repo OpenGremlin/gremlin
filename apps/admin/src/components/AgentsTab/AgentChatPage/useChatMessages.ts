@@ -1,34 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gql } from "../../../auth";
-import { AGENT_LOGS_QUERY } from "../../../queries";
+import type { AgentLogsQuery } from "../../../graphql/generated/graphql";
+import {
+  AgentLogSubscription,
+  AgentLogsQuery as AgentLogsDoc,
+} from "../../../graphql/queries";
 import { useSubscription } from "../../../useSubscription";
-import { AGENT_LOG_SUBSCRIPTION } from "../../../queries";
 
-export interface ChatMessage {
-  id: string;
-  role: "AGENT" | "USER" | "SYSTEM" | "TOOL";
-  content: string;
-  toolName: string | null;
-  toolInput: string | null;
-  toolResult: string | null;
-  taskId: string | null;
-  createdAt: string;
-}
+export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 
-interface AgentLogEdge {
-  cursor: string;
-  node: ChatMessage;
-}
-
-interface AgentLogConnection {
-  edges: AgentLogEdge[];
-  pageInfo: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startCursor: string | null;
-    endCursor: string | null;
-  };
-}
+type AgentLogConnection = AgentLogsQuery["agentLogs"];
 
 const PAGE_SIZE = 20;
 
@@ -38,7 +19,9 @@ export function useChatMessages(agentId: string) {
   const [hasMore, setHasMore] = useState(false);
   const [isAgentActive, setIsAgentActive] = useState(false);
   const startCursorRef = useRef<string | null>(null);
-  const activeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const activeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   // Initial load — fetch last N messages
   useEffect(() => {
@@ -47,15 +30,15 @@ export function useChatMessages(agentId: string) {
     async function load() {
       setLoading(true);
       try {
-        const data = await gql<{ agentLogs: AgentLogConnection }>(
-          AGENT_LOGS_QUERY,
-          { agentId, last: PAGE_SIZE },
-        );
+        const data = await gql<AgentLogsQuery>(AgentLogsDoc, {
+          agentId,
+          last: PAGE_SIZE,
+        });
         if (cancelled) return;
         const edges = data.agentLogs.edges;
         setMessages(edges.map((e) => e.node));
         setHasMore(data.agentLogs.pageInfo.hasPreviousPage);
-        startCursorRef.current = data.agentLogs.pageInfo.startCursor;
+        startCursorRef.current = data.agentLogs.pageInfo.startCursor ?? null;
       } catch (err) {
         console.error("Failed to load agent logs:", err);
       } finally {
@@ -70,30 +53,27 @@ export function useChatMessages(agentId: string) {
   }, [agentId]);
 
   // Subscribe to new messages via SSE
-  useSubscription<{ agentLogCreated: ChatMessage }>(
-    AGENT_LOG_SUBSCRIPTION,
+  useSubscription(
+    AgentLogSubscription,
     { agentId },
-    useCallback(
-      (data) => {
-        const msg = data.agentLogCreated;
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          return [...prev, msg];
-        });
+    useCallback((data) => {
+      const msg = data.agentLogCreated;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
 
-        // Mark agent as active when we receive an agent message,
-        // and reset after a timeout of inactivity
-        if (msg.role === "AGENT") {
-          setIsAgentActive(true);
-          clearTimeout(activeTimerRef.current);
-          activeTimerRef.current = setTimeout(
-            () => setIsAgentActive(false),
-            2000,
-          );
-        }
-      },
-      [],
-    ),
+      // Mark agent as active when we receive an agent message,
+      // and reset after a timeout of inactivity
+      if (msg.role === "AGENT") {
+        setIsAgentActive(true);
+        clearTimeout(activeTimerRef.current);
+        activeTimerRef.current = setTimeout(
+          () => setIsAgentActive(false),
+          2000,
+        );
+      }
+    }, []),
   );
 
   // Cleanup agent active timer
@@ -106,14 +86,15 @@ export function useChatMessages(agentId: string) {
     if (!startCursorRef.current || !hasMore) return;
 
     try {
-      const data = await gql<{ agentLogs: AgentLogConnection }>(
-        AGENT_LOGS_QUERY,
-        { agentId, last: PAGE_SIZE, before: startCursorRef.current },
-      );
+      const data = await gql<AgentLogsQuery>(AgentLogsDoc, {
+        agentId,
+        last: PAGE_SIZE,
+        before: startCursorRef.current,
+      });
       const edges = data.agentLogs.edges;
       setMessages((prev) => [...edges.map((e) => e.node), ...prev]);
       setHasMore(data.agentLogs.pageInfo.hasPreviousPage);
-      startCursorRef.current = data.agentLogs.pageInfo.startCursor;
+      startCursorRef.current = data.agentLogs.pageInfo.startCursor ?? null;
     } catch (err) {
       console.error("Failed to load more messages:", err);
     }

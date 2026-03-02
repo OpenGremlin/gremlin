@@ -1,31 +1,26 @@
-import { useState } from "react";
 import { gql } from "../../../auth";
 import {
-  DISMISS_NOTIFICATION,
-  NOTIFICATIONS_QUERY,
-  RESOLVE_NOTIFICATION,
-} from "../../../queries";
+  DismissNotificationMutation,
+  NotificationsQuery,
+  ResolveNotificationMutation,
+} from "../../../graphql/queries";
 import { QueryResult } from "../../../shared/QueryResult";
-import type { Notification } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { NotificationCard } from "./NotificationCard";
 
 export function NotificationsPage() {
-  const [version, setVersion] = useState(0);
-  const { data, loading, error } = useQuery<{
-    notifications: Notification[];
-  }>(NOTIFICATIONS_QUERY, { _v: version });
+  const { data, loading, error, refetch } = useQuery(NotificationsQuery);
 
   const notifications = data?.notifications ?? [];
 
   async function handleAction(notifId: string, actionId: string) {
-    await gql(RESOLVE_NOTIFICATION, { id: notifId, actionId });
-    setVersion((v) => v + 1);
+    await gql(ResolveNotificationMutation, { id: notifId, actionId });
+    refetch();
   }
 
   async function handleDismiss(notifId: string) {
-    await gql(DISMISS_NOTIFICATION, { id: notifId });
-    setVersion((v) => v + 1);
+    await gql(DismissNotificationMutation, { id: notifId });
+    refetch();
   }
 
   if (!loading && !error && notifications.length === 0) {

@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import { INTEGRATION_QUERY, TOGGLE_PERMISSION } from "../../../queries";
+import type { IntegrationQuery as IntegrationQueryType } from "../../../graphql/generated/graphql";
+import {
+  IntegrationQuery,
+  TogglePermissionMutation,
+} from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Integration } from "../../../types";
 import { useQuery } from "../../../useQuery";
+
+type Integration = NonNullable<IntegrationQueryType["integration"]>;
 
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{
-    integration: Integration | null;
-  }>(INTEGRATION_QUERY, { id });
+  const { data, loading, error } = useQuery(IntegrationQuery, { id: id! });
   const [localIntegration, setLocalIntegration] = useState<Integration | null>(
     null,
   );
@@ -32,7 +35,7 @@ export function IntegrationDetailPage() {
     setTogglingScope(scope);
     try {
       const result = await gql<{ togglePermission: Integration }>(
-        TOGGLE_PERMISSION,
+        TogglePermissionMutation,
         { integrationId: id, scope, enabled: !currentEnabled },
       );
       setLocalIntegration(result.togglePermission);

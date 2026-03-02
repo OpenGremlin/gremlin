@@ -47,10 +47,10 @@ export function isAuthEnabled(): boolean {
   return !!COGNITO_DOMAIN;
 }
 
-export async function gql<T>(
-  query: string,
-  variables?: Record<string, unknown>,
-): Promise<T> {
+export async function gql<TResult>(
+  query: { toString(): string },
+  variables?: unknown,
+): Promise<TResult> {
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export async function gql<T>(
   const res = await fetch(`${API_URL}/graphql`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query: String(query), variables }),
   });
   if (res.status === 401) {
     clearToken();

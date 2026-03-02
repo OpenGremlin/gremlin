@@ -3,13 +3,17 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
+import type { UpdateAgentMutation } from "../../../graphql/generated/graphql";
+import {
+  AgentQuery,
+  AvatarsQuery,
+  UpdateAgentMutation as UpdateAgentDoc,
+} from "../../../graphql/queries";
 import { preloadImages } from "../../../preloadImages";
-import { AGENT_QUERY, AVATARS_QUERY, UPDATE_AGENT } from "../../../queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Agent } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { type Avatar, AvatarPicker } from "./AvatarPicker";
 
@@ -21,15 +25,14 @@ interface AgentFormValues {
 
 export function AgentConfigPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ agent: Agent | null }>(
-    AGENT_QUERY,
-    { id },
-  );
-  const avatarsResult = useQuery<{ avatars: Avatar[] }>(AVATARS_QUERY);
+  const { data, loading, error } = useQuery(AgentQuery, { id: id! });
+  const avatarsResult = useQuery(AvatarsQuery);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [_selectedImageUrl, setSelectedImageUrl] = useState<string | null>(
+    null,
+  );
 
   const {
     register,
@@ -67,10 +70,8 @@ export function AgentConfigPage() {
     return <NotFound label="Agent not found." />;
   }
 
-  const displayImageUrl = selectedImageUrl || agent.imageUrl;
-
   async function onSubmit(values: AgentFormValues) {
-    const result = await gql<{ updateAgent: Agent }>(UPDATE_AGENT, {
+    const result = await gql<UpdateAgentMutation>(UpdateAgentDoc, {
       id,
       input: {
         name: values.name,
@@ -78,11 +79,13 @@ export function AgentConfigPage() {
         avatar: values.avatar,
       },
     });
-    reset({
-      name: result.updateAgent.name,
-      soul: result.updateAgent.soul,
-      avatar: result.updateAgent.avatar,
-    });
+    if (result.updateAgent) {
+      reset({
+        name: result.updateAgent.name,
+        soul: result.updateAgent.soul,
+        avatar: result.updateAgent.avatar,
+      });
+    }
     setSelectedImageUrl(null);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -102,12 +105,7 @@ export function AgentConfigPage() {
             onClick={() => setPickerOpen(true)}
             className="relative group shrink-0"
           >
-            <AgentAvatar
-              src={displayImageUrl}
-              name={agent.name}
-              status={agent.status}
-              size="lg"
-            />
+            <AgentAvatar id={agent.id} size="lg" />
             <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
               <Pencil size={12} className="text-neutral-200" />
             </div>

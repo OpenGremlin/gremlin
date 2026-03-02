@@ -1,14 +1,13 @@
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AGENTS_QUERY } from "../../queries";
+import { AgentsQuery } from "../../graphql/queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
-import type { Agent } from "../../types";
 import { useQuery } from "../../useQuery";
 
 export function AgentsTab() {
-  const { data, loading, error } = useQuery<{ agents: Agent[] }>(AGENTS_QUERY);
+  const { data, loading, error } = useQuery(AgentsQuery);
 
   const agents = data?.agents ?? [];
 
@@ -28,12 +27,7 @@ export function AgentsTab() {
               to={`/agents/${agent.id}`}
               className="flex-1 min-w-0 flex items-start gap-3"
             >
-              <AgentAvatar
-                src={agent.imageUrl}
-                name={agent.name}
-                status={agent.status}
-                size="md"
-              />
+              <AgentAvatar id={agent.id} size="md" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-sm font-medium text-neutral-100">

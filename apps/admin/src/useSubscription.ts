@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
 import { getToken } from "./auth";
+import type { TypedDocumentString } from "./graphql/generated/graphql";
 
 const API_URL =
-  ((window as unknown as Record<string, unknown>).__GREMLIN_CONFIG__ as
-    | { apiUrl?: string }
-    | undefined)?.apiUrl ||
+  (
+    (window as unknown as Record<string, unknown>).__GREMLIN_CONFIG__ as
+      | { apiUrl?: string }
+      | undefined
+  )?.apiUrl ||
   (import.meta.env.VITE_API_URL as string) ||
   "";
 
@@ -12,24 +15,26 @@ const API_URL =
  * SSE-based GraphQL subscription hook for Yoga.
  * Connects via GET with Accept: text/event-stream.
  */
-export function useSubscription<T>(
-  query: string,
+// biome-ignore lint: any is needed to accept all TypedDocumentString variable types
+export function useSubscription<TResult>(
+  query: TypedDocumentString<TResult, any> | string,
   variables: Record<string, unknown>,
-  onData: (data: T) => void,
+  onData: (data: TResult) => void,
 ) {
   const onDataRef = useRef(onData);
   onDataRef.current = onData;
 
+  const queryStr = String(query);
   const serializedVars = JSON.stringify(variables);
 
   useEffect(() => {
-    if (!query) return;
+    if (!queryStr) return;
     const controller = new AbortController();
 
     async function connect() {
       const token = getToken();
       const params = new URLSearchParams({
-        query,
+        query: queryStr,
         variables: serializedVars,
       });
 
@@ -89,5 +94,5 @@ export function useSubscription<T>(
     connect();
 
     return () => controller.abort();
-  }, [query, serializedVars]);
+  }, [queryStr, serializedVars]);
 }

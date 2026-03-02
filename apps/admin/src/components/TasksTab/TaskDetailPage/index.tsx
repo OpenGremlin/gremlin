@@ -1,20 +1,16 @@
 import { Link, useParams } from "react-router-dom";
-import { TASK_QUERY } from "../../../queries";
+import { TaskQuery } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Task } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
 
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ task: Task | null }>(
-    TASK_QUERY,
-    { id },
-  );
+  const { data, loading, error } = useQuery(TaskQuery, { id: id! });
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -27,7 +23,7 @@ export function TaskDetailPage() {
   }
 
   const { agent } = item;
-  const logs = item.logs?.edges.map((e) => e.node) ?? [];
+  const logs = item.logs.edges.map((e) => e.node);
 
   return (
     <div className="min-h-screen bg-neutral-950">
@@ -36,17 +32,10 @@ export function TaskDetailPage() {
 
         <div className="flex items-center gap-3 mt-6">
           <Link to={`/agents/${agent.id}`}>
-            <AgentAvatar
-              src={agent.imageUrl}
-              name={agent.name}
-              status={agent.status}
-              size="md"
-            />
+            <AgentAvatar id={agent.id} size="md" />
           </Link>
           <div>
-            <span className="text-sm font-medium text-neutral-100">
-              {agent.name}
-            </span>
+            <span className="text-sm font-medium text-neutral-100">Task</span>
             <p className="text-xs text-neutral-500">
               {formatDate(item.createdAt)}
             </p>
@@ -65,12 +54,8 @@ export function TaskDetailPage() {
         </div>
 
         <div className="mt-2 text-xs text-neutral-500 space-y-0.5">
-          {item.updatedAt && (
-            <p>Updated: {formatDate(item.updatedAt)}</p>
-          )}
-          {item.completedAt && (
-            <p>Completed: {formatDate(item.completedAt)}</p>
-          )}
+          {item.updatedAt && <p>Updated: {formatDate(item.updatedAt)}</p>}
+          {item.completedAt && <p>Completed: {formatDate(item.completedAt)}</p>}
         </div>
 
         {logs.length > 0 && (

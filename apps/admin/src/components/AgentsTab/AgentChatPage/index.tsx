@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import { AGENT_QUERY, SEND_MESSAGE_MUTATION } from "../../../queries";
+import { AgentQuery, SendMessageMutation } from "../../../graphql/queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Agent } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
@@ -13,10 +12,7 @@ import { useChatMessages } from "./useChatMessages";
 export function AgentChatPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery<{ agent: Agent | null }>(
-    AGENT_QUERY,
-    { id },
-  );
+  const { data, loading, error } = useQuery(AgentQuery, { id: id! });
   const {
     messages,
     loading: messagesLoading,
@@ -56,7 +52,7 @@ export function AgentChatPage() {
     setInput("");
     setSending(true);
     try {
-      await gql(SEND_MESSAGE_MUTATION, { agentId: id, content });
+      await gql(SendMessageMutation, { agentId: id, content });
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {
@@ -103,9 +99,7 @@ export function AgentChatPage() {
             <LogEntryView
               key={msg.id}
               entry={msg}
-              onTaskClick={(taskId) =>
-                navigate(`/tasks/${taskId}`)
-              }
+              onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
             />
           ))}
         {isAgentActive && (

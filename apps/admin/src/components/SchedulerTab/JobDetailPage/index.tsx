@@ -2,27 +2,29 @@ import cronstrue from "cronstrue";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
+import type {
+  AgentJobQuery as AgentJobQueryType,
+  UpdateAgentJobMutation,
+} from "../../../graphql/generated/graphql";
 import {
-  AGENTS_QUERY,
-  AGENT_JOB_QUERY,
-  UPDATE_AGENT_JOB,
-} from "../../../queries";
+  AgentJobQuery,
+  AgentsQuery,
+  UpdateAgentJobMutation as UpdateAgentJobDoc,
+} from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Agent, AgentJob } from "../../../types";
 import { useQuery } from "../../../useQuery";
 import { TaskCard } from "../../TasksTab/TaskCard";
 
+type Job = NonNullable<AgentJobQueryType["agentJob"]>;
+
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ agentJob: AgentJob | null }>(
-    AGENT_JOB_QUERY,
-    { id },
-  );
-  const { data: agentsData } = useQuery<{ agents: Agent[] }>(AGENTS_QUERY);
+  const { data, loading, error } = useQuery(AgentJobQuery, { id: id! });
+  const { data: agentsData } = useQuery(AgentsQuery);
 
   const [recurrence, setRecurrence] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function JobDetailPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Snapshot from server
-  const [savedJob, setSavedJob] = useState<AgentJob | null>(null);
+  const [savedJob, setSavedJob] = useState<Job | null>(null);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -47,13 +49,10 @@ export function JobDetailPage() {
   const currentRecurrence = recurrence ?? job.recurrence;
   const currentDescription = description ?? job.description;
   const currentAgentId = agentId ?? job.agent.id;
-  const currentAgent =
-    agents.find((a) => a.id === currentAgentId) ?? job.agent;
+  const currentAgent = agents.find((a) => a.id === currentAgentId) ?? job.agent;
 
   const isDirty =
-    recurrence !== null ||
-    description !== null ||
-    agentId !== null;
+    recurrence !== null || description !== null || agentId !== null;
 
   const cronDisplay = job.cronExpression;
   let cronHuman: string | null = null;
@@ -75,11 +74,15 @@ export function JobDetailPage() {
       if (description !== null) input.description = description;
       if (agentId !== null) input.agentId = agentId;
 
-      const result = await gql<{ updateAgentJob: AgentJob }>(
-        UPDATE_AGENT_JOB,
-        { id, input },
-      );
-      setSavedJob({ ...job, ...result.updateAgentJob, tasks: job.tasks });
+      const result = await gql<UpdateAgentJobMutation>(UpdateAgentJobDoc, {
+        id,
+        input,
+      });
+      setSavedJob({
+        ...job,
+        ...result.updateAgentJob,
+        tasks: job.tasks,
+      } as Job);
       setRecurrence(null);
       setDescription(null);
       setAgentId(null);
@@ -106,12 +109,7 @@ export function JobDetailPage() {
           Agent
         </h2>
         <div className="flex items-center gap-3">
-          <AgentAvatar
-            src={currentAgent.imageUrl}
-            name={currentAgent.name}
-            status={currentAgent.status}
-            size="sm"
-          />
+          <AgentAvatar id={currentAgent.id} size="sm" />
           <select
             value={currentAgentId}
             onChange={(e) => {

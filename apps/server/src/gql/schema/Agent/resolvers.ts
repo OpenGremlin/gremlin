@@ -1,3 +1,5 @@
+import type { AgentItem } from "../../../resources/ddb/schema/agent.js";
+import type { GremlinContext } from "../../context.js";
 import type {
   AgentResolvers,
   MutationResolvers,
@@ -25,8 +27,18 @@ const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
 const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
   ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.avatar, args.width);
 
+const agentUpdated = {
+  subscribe: (
+    _parent: unknown,
+    { agentId }: { agentId: string },
+    ctx: GremlinContext,
+  ) => ctx.resources.pubsub.subscribe(`agentUpdated:${agentId}`),
+  resolve: (payload: AgentItem) => payload,
+};
+
 export const agentResolvers = {
   Query: { agents, agent },
   Mutation: { updateAgent, updateAgentStatus },
   Agent: { imageUrl },
+  Subscription: { agentUpdated },
 };

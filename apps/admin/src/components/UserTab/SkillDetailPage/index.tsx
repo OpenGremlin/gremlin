@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import { INSTALL_SKILL, SKILL_QUERY, UNINSTALL_SKILL } from "../../../queries";
+import type { SkillQuery as SkillQueryType } from "../../../graphql/generated/graphql";
+import {
+  InstallSkillMutation,
+  SkillQuery,
+  UninstallSkillMutation,
+} from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import type { Skill } from "../../../types";
 import { useQuery } from "../../../useQuery";
+
+type Skill = NonNullable<SkillQueryType["skill"]>;
 
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery<{ skill: Skill | null }>(
-    SKILL_QUERY,
-    { id },
-  );
+  const { data, loading, error } = useQuery(SkillQuery, { id: id! });
   const [toggling, setToggling] = useState(false);
   const [localSkill, setLocalSkill] = useState<Skill | null>(null);
 
@@ -32,14 +35,20 @@ export function SkillDetailPage() {
     setToggling(true);
     try {
       if (skill.installed) {
-        const result = await gql<{ uninstallSkill: Skill }>(UNINSTALL_SKILL, {
-          id,
-        });
+        const result = await gql<{ uninstallSkill: Skill }>(
+          UninstallSkillMutation,
+          {
+            id,
+          },
+        );
         setLocalSkill(result.uninstallSkill);
       } else {
-        const result = await gql<{ installSkill: Skill }>(INSTALL_SKILL, {
-          id,
-        });
+        const result = await gql<{ installSkill: Skill }>(
+          InstallSkillMutation,
+          {
+            id,
+          },
+        );
         setLocalSkill(result.installSkill);
       }
     } finally {

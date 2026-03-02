@@ -1,27 +1,48 @@
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { TASK_UPDATED_SUBSCRIPTION } from "../../../queries";
+import type { TasksQuery } from "../../../graphql/generated/graphql";
+import { TaskUpdatedSubscription } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import { DocumentCard } from "../../../shared/DocumentCard";
 import { timeAgo } from "../../../shared/formatDate";
-import type { Task } from "../../../types";
 import { useSubscription } from "../../../useSubscription";
+
+type FullTaskNode = TasksQuery["tasks"]["edges"][number]["node"];
+
+/** Minimal task shape accepted by TaskCard (AgentJobQuery tasks lack some fields) */
+type TaskItem = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+  agent: { id: string; name?: string };
+  message?: string | null;
+  documents?: Array<{
+    id: string;
+    title: string;
+    body: string;
+    createdAt?: string;
+    updatedAt: string;
+  }>;
+};
 
 const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
 
-export function TaskCard({ item }: { item: Task }) {
-  const [override, setOverride] = useState<Partial<Task>>({});
+export function TaskCard({ item }: { item: TaskItem }) {
+  const [override, setOverride] = useState<Partial<TaskItem>>({});
   const task = { ...item, ...override };
   const { agent } = task;
   const navigate = useNavigate();
 
-  useSubscription<{ taskUpdated: Partial<Task> & { id: string } }>(
-    TASK_UPDATED_SUBSCRIPTION,
+  useSubscription(
+    TaskUpdatedSubscription,
     { taskId: item.id },
     useCallback((data) => {
-      setOverride((prev) => ({ ...prev, ...data.taskUpdated }));
+      setOverride(
+        (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
+      );
     }, []),
   );
   return (
@@ -37,19 +58,16 @@ export function TaskCard({ item }: { item: Task }) {
             navigate(`/agents/${agent.id}`);
           }}
         >
-          <AgentAvatar
-            src={agent.imageUrl}
-            name={agent.name}
-            status={agent.status}
-            size="sm"
-          />
+          <AgentAvatar id={agent.id} size="sm" />
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm text-neutral-400 truncate">
-                {agent.name}
-              </span>
+              {agent.name && (
+                <span className="text-sm text-neutral-400 truncate">
+                  {agent.name}
+                </span>
+              )}
               <span className="text-xs text-neutral-600 shrink-0">
                 {timeAgo(task.createdAt)}
               </span>
@@ -62,15 +80,21 @@ export function TaskCard({ item }: { item: Task }) {
           {task.message && (
             <div className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1.5 truncate">
               {ACTIVE_STATUSES.has(task.status) ? (
-                <Loader2 size={12} className="animate-spin shrink-0 text-blue-400" />
+                <Loader2
+                  size={12}
+                  className="animate-spin shrink-0 text-blue-400"
+                />
               ) : task.status === "COMPLETED" ? (
                 <CheckCircle size={12} className="shrink-0 text-green-500" />
               ) : null}
               <span className="truncate">{task.message}</span>
             </div>
           )}
-          {task.documents.length > 0 && (
-            <div className="mt-2 flex flex-col gap-1.5" onClick={(e) => e.preventDefault()}>
+          {task.documents && task.documents.length > 0 && (
+            <div
+              className="mt-2 flex flex-col gap-1.5"
+              onClick={(e) => e.preventDefault()}
+            >
               {task.documents.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />
               ))}

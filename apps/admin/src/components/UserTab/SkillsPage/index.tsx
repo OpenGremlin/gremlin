@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { SKILLS_QUERY } from "../../../queries";
+import { SkillsQuery } from "../../../graphql/queries";
 import { Badge } from "../../../shared/Badge";
 import { QueryResult } from "../../../shared/QueryResult";
-import type { Skill } from "../../../types";
 import { useQuery } from "../../../useQuery";
 
 export function SkillsPage() {
   const [query, setQuery] = useState("");
-  const { data, loading, error } = useQuery<{ skills: Skill[] }>(SKILLS_QUERY);
+  const { data, loading, error } = useQuery(SkillsQuery);
 
   const skills = data?.skills ?? [];
   const q = query.toLowerCase();

@@ -1,8 +1,10 @@
 import { MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
+import type { NotificationsQuery } from "../../../../graphql/generated/graphql";
 import { AgentAvatar } from "../../../../shared/AgentAvatar";
 import { timeAgo } from "../../../../shared/formatDate";
-import type { Notification } from "../../../../types";
+
+type Notification = NotificationsQuery["notifications"][number];
 
 export function NotificationCard({
   notification,
@@ -26,12 +28,7 @@ export function NotificationCard({
     >
       <div className="flex items-start gap-3">
         <Link to={chatLink} className="mt-0.5">
-          <AgentAvatar
-            src={notification.agent.imageUrl}
-            name={notification.agent.name}
-            status={notification.agent.status}
-            size="xs"
-          />
+          <AgentAvatar id={notification.agent.id} size="xs" />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">

@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { gql } from "../../../auth";
-import { PROFILE_QUERY, UPDATE_PROFILE } from "../../../queries";
+import { ProfileQuery, UpdateProfileMutation } from "../../../graphql/queries";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
@@ -14,13 +14,7 @@ interface ProfileFormValues {
 }
 
 export function ProfilePage() {
-  const { data, loading, error } = useQuery<{
-    profile: {
-      displayName: string;
-      about: string;
-      website: string | null;
-    };
-  }>(PROFILE_QUERY);
+  const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
 
   const {
@@ -43,7 +37,7 @@ export function ProfilePage() {
   }, [profile, reset]);
 
   async function onSubmit(values: ProfileFormValues) {
-    await gql(UPDATE_PROFILE, {
+    await gql(UpdateProfileMutation, {
       input: {
         displayName: values.displayName,
         about: values.about,

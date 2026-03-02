@@ -1,4 +1,7 @@
-export function formatDate(date: string | null, fallback = "Never"): string {
+export function formatDate(
+  date: string | null | undefined,
+  fallback = "Never",
+): string {
   if (!date) return fallback;
   return new Date(date).toLocaleString("en-US", {
     month: "short",

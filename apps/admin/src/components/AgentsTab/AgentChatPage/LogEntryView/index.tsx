@@ -11,7 +11,9 @@ import {
 import type { ChatMessage } from "../useChatMessages";
 import { useTaskStatus } from "./useTaskStatus";
 
-function safeParseJson(s: string | null): Record<string, unknown> | null {
+function safeParseJson(
+  s: string | null | undefined,
+): Record<string, unknown> | null {
   if (!s) return null;
   try {
     return JSON.parse(s);
@@ -87,19 +89,22 @@ function DelegateTaskCard({
               </span>
             </div>
             <div className="text-xs text-neutral-500 mt-1 min-h-[3.5rem] flex items-start gap-1.5">
-          {active ? (
-            <>
-              <Loader2 size={14} className="animate-spin shrink-0 mt-0.5" />
-              <span>{task?.message || "Working..."}</span>
-            </>
-          ) : task?.status === "COMPLETED" ? (
-            <>
-              <CheckCircle size={14} className="text-green-500 shrink-0 mt-0.5" />
-              <span>{task.message || "Completed"}</span>
-            </>
-          ) : (
-            <span>{task?.message || "Delegated task"}</span>
-          )}
+              {active ? (
+                <>
+                  <Loader2 size={14} className="animate-spin shrink-0 mt-0.5" />
+                  <span>{task?.message || "Working..."}</span>
+                </>
+              ) : task?.status === "COMPLETED" ? (
+                <>
+                  <CheckCircle
+                    size={14}
+                    className="text-green-500 shrink-0 mt-0.5"
+                  />
+                  <span>{task.message || "Completed"}</span>
+                </>
+              ) : (
+                <span>{task?.message || "Delegated task"}</span>
+              )}
             </div>
           </div>
           <ExternalLink size={14} className="text-indigo-400 shrink-0 mt-0.5" />
@@ -159,21 +164,32 @@ export function LogEntryView({
       if (tool.name === "updateTaskStatus") {
         const status = tool.input?.status as string | undefined;
         const message = tool.input?.message as string | undefined;
-        const isActive = (status === "RUNNING" || status === "WAITING") && isLast;
+        const isActive =
+          (status === "RUNNING" || status === "WAITING") && isLast;
         const StatusIcon =
-          status === "COMPLETED" ? CheckCircle
-            : status === "FAILED" ? XCircle
-            : status === "ABANDONED" ? AlertCircle
-            : status === "WAITING" && !isLast ? Pause
-            : isActive ? Loader2
-            : CheckCircle;
+          status === "COMPLETED"
+            ? CheckCircle
+            : status === "FAILED"
+              ? XCircle
+              : status === "ABANDONED"
+                ? AlertCircle
+                : status === "WAITING" && !isLast
+                  ? Pause
+                  : isActive
+                    ? Loader2
+                    : CheckCircle;
         const iconClass =
-          status === "COMPLETED" ? "text-green-500"
-            : status === "FAILED" ? "text-red-400"
-            : status === "ABANDONED" ? "text-neutral-400"
-            : status === "WAITING" && !isLast ? "text-amber-400"
-            : isActive ? "text-blue-400 animate-spin"
-            : "text-green-500";
+          status === "COMPLETED"
+            ? "text-green-500"
+            : status === "FAILED"
+              ? "text-red-400"
+              : status === "ABANDONED"
+                ? "text-neutral-400"
+                : status === "WAITING" && !isLast
+                  ? "text-amber-400"
+                  : isActive
+                    ? "text-blue-400 animate-spin"
+                    : "text-green-500";
 
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">

@@ -1,0 +1,294 @@
+type Query {
+  _empty: String
+  documents: [Document!]!
+  document(id: ID!): Document
+  agentJobs: [AgentJob!]!
+  agentJob(id: ID!): AgentJob
+  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  agents: [Agent!]!
+  agent(id: ID!): Agent
+  avatars: [Avatar!]!
+  integrations: [Integration!]!
+  integration(id: ID!): Integration
+  notifications: [Notification!]!
+  profile: Profile!
+  skills: [Skill!]!
+  skill(id: ID!): Skill
+  searchSkills(query: String!): [Skill!]!
+  tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
+  task(id: ID!): Task
+  activeFollowUps: [TaskFollowUp!]!
+  taskFollowUps(taskId: ID!): [TaskFollowUp!]!
+}
+
+type Mutation {
+  _empty: String
+  createDocument(input: CreateDocumentInput!): Document!
+  updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+  updateJobStatus(id: ID!, status: JobStatus!): AgentJob
+  updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
+  sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
+  updateAgent(id: ID!, input: UpdateAgentInput!): Agent
+  updateAgentStatus(id: ID!, status: AgentStatus!): Agent
+  togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
+  resolveNotification(id: ID!, actionId: String!): Notification
+  dismissNotification(id: ID!): Notification
+  updateProfile(input: ProfileInput!): Profile!
+  installSkill(id: ID!): Skill
+  uninstallSkill(id: ID!): Skill
+  deactivateFollowUp(id: ID!): TaskFollowUp
+}
+
+type Subscription {
+  _empty: String
+  documentUpdated(id: ID!): Document!
+  agentLogCreated(agentId: ID!): AgentLog!
+  agentUpdated(agentId: ID!): Agent!
+  taskUpdated(taskId: ID!): Task!
+  taskLogCreated(taskId: ID!): AgentLog!
+}
+
+type Document {
+  id: ID!
+  title: String!
+  body: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateDocumentInput {
+  title: String!
+  body: String!
+}
+
+input UpdateDocumentInput {
+  title: String!
+  body: String!
+}
+
+enum JobStatus {
+  RUNNING
+  IDLE
+  ERROR
+  PAUSED
+}
+
+type AgentJob {
+  id: ID!
+  name: String!
+  description: String!
+  recurrence: String!
+  cronExpression: String
+  agent: Agent!
+  status: JobStatus!
+  lastRun: String
+  nextRun: String
+  tasks: [Task!]!
+}
+
+input UpdateAgentJobInput {
+  name: String
+  description: String
+  recurrence: String
+  agentId: String
+}
+
+enum AgentLogRole {
+  AGENT
+  USER
+  SYSTEM
+  TOOL
+}
+
+type AgentLog {
+  id: ID!
+  agent: Agent!
+  taskId: String
+  role: AgentLogRole!
+  content: String!
+  toolName: String
+  toolInput: String
+  toolResult: String
+  createdAt: String!
+}
+
+type AgentLogEdge {
+  cursor: String!
+  node: AgentLog!
+}
+
+type AgentLogPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type AgentLogConnection {
+  edges: [AgentLogEdge!]!
+  pageInfo: AgentLogPageInfo!
+}
+
+enum AgentStatus {
+  ACTIVE
+  SCHEDULED
+  IDLE
+  BLOCKED
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  avatar: String!
+  portraitId: String!
+  imageUrl(width: Int): String!
+  soul: String!
+  status: AgentStatus!
+  statusReason: String
+}
+
+input UpdateAgentInput {
+  name: String
+  soul: String
+  avatar: String
+}
+
+type Avatar {
+  id: ID!
+  name: String!
+  url(width: Int): String!
+}
+
+enum AuthMethod {
+  OAUTH
+  API_KEY
+  TOKEN
+}
+
+type Permission {
+  scope: String!
+  label: String!
+  enabled: Boolean!
+}
+
+type Integration {
+  id: ID!
+  service: String!
+  icon: String!
+  description: String!
+  account: String!
+  connectedAt: String!
+  authMethod: AuthMethod!
+  permissions: [Permission!]!
+}
+
+enum NotificationType {
+  PERMISSION
+  APPROVAL
+}
+
+enum NotificationStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+type NotificationAction {
+  id: String!
+  label: String!
+  style: String!
+}
+
+type Notification {
+  id: ID!
+  agent: Agent!
+  type: NotificationType!
+  turnId: String
+  message: String!
+  actions: [NotificationAction!]!
+  status: NotificationStatus!
+  resolvedAction: String
+  createdAt: String!
+}
+
+type Profile {
+  displayName: String!
+  about: String!
+  website: String
+}
+
+input ProfileInput {
+  displayName: String!
+  about: String!
+  website: String
+}
+
+type Skill {
+  id: ID!
+  name: String!
+  description: String!
+  version: String!
+  author: String!
+  installed: Boolean!
+  category: String!
+  homepage: String
+  requiredEnv: [String!]!
+}
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  WAITING
+  COMPLETED
+  FAILED
+  ABANDONED
+}
+
+type Task {
+  id: ID!
+  agent: Agent!
+  title: String!
+  status: TaskStatus!
+  message: String
+  createdAt: String!
+  updatedAt: String!
+  completedAt: String
+  originJobId: String
+  artifacts: [String!]!
+  documents: [Document!]!
+  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
+}
+
+type TaskEdge {
+  cursor: String!
+  node: Task!
+}
+
+type TaskPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type TaskConnection {
+  edges: [TaskEdge!]!
+  pageInfo: TaskPageInfo!
+}
+
+type TaskFollowUp {
+  id: ID!
+  task: Task!
+  agent: Agent!
+  scheduledAt: String!
+  prompt: String!
+  active: Boolean!
+  createdAt: String!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

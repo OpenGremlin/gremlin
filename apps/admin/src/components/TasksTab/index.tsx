@@ -1,29 +1,10 @@
-import { TASKS_QUERY } from "../../queries";
+import { TasksQuery } from "../../graphql/queries";
 import { QueryResult } from "../../shared/QueryResult";
-import type { Task } from "../../types";
 import { useQuery } from "../../useQuery";
 import { TaskCard } from "./TaskCard";
 
-interface TaskEdge {
-  cursor: string;
-  node: Task;
-}
-
-interface TaskConnection {
-  edges: TaskEdge[];
-  pageInfo: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startCursor: string | null;
-    endCursor: string | null;
-  };
-}
-
 export function TasksTab() {
-  const { data, loading, error } = useQuery<{ tasks: TaskConnection }>(
-    TASKS_QUERY,
-    { last: 50 },
-  );
+  const { data, loading, error } = useQuery(TasksQuery, { last: 50 });
 
   const tasks = data?.tasks.edges.map((e) => e.node) ?? [];
 

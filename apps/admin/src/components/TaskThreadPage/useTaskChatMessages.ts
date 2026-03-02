@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TASK_LOG_SUBSCRIPTION } from "../../queries";
-import type { AgentLogEntry } from "../../types";
+import type { TaskQuery } from "../../graphql/generated/graphql";
+import { TaskLogSubscription } from "../../graphql/queries";
 import { useSubscription } from "../../useSubscription";
 import type { ChatMessage } from "../AgentsTab/AgentChatPage/useChatMessages";
 
-export function useTaskChatMessages(
-  taskId: string,
-  initialLogs: { node: AgentLogEntry }[],
-) {
+type LogEdge = TaskQuery["task"] extends infer T
+  ? T extends { logs: { edges: infer E } }
+    ? E extends Array<infer Edge>
+      ? Edge
+      : never
+    : never
+  : never;
+
+export function useTaskChatMessages(taskId: string, initialLogs: LogEdge[]) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     initialLogs.map((e) => e.node),
   );
@@ -24,8 +29,8 @@ export function useTaskChatMessages(
   }, [taskId, initialLogs]);
 
   // Subscribe to new messages via SSE
-  useSubscription<{ taskLogCreated: ChatMessage }>(
-    TASK_LOG_SUBSCRIPTION,
+  useSubscription(
+    TaskLogSubscription,
     { taskId },
     useCallback((data) => {
       const msg = data.taskLogCreated;

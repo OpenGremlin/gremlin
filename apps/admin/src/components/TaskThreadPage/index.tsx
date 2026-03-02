@@ -2,28 +2,27 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { gql } from "../../auth";
+import type { TaskQuery as TaskQueryType } from "../../graphql/generated/graphql";
 import {
-  TASK_QUERY,
-  SEND_MESSAGE_MUTATION,
-  TASK_UPDATED_SUBSCRIPTION,
-} from "../../queries";
-import { NotFound, QueryResult } from "../../shared/QueryResult";
+  SendMessageMutation,
+  TaskQuery,
+  TaskUpdatedSubscription,
+} from "../../graphql/queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
-import type { Task } from "../../types";
+import { DocumentCard } from "../../shared/DocumentCard";
+import { NotFound, QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
-import { DocumentCard } from "../../shared/DocumentCard";
 import { useTaskChatMessages } from "./useTaskChatMessages";
+
+type Task = NonNullable<TaskQueryType["task"]>;
 
 export function TaskThreadPage() {
   const { taskId } = useParams<{ taskId: string }>();
-  const { data, loading, error } = useQuery<{ task: Task | null }>(
-    TASK_QUERY,
-    { id: taskId },
-  );
+  const { data, loading, error } = useQuery(TaskQuery, { id: taskId! });
 
   const [task, setTask] = useState<Task | null>(null);
 
@@ -33,15 +32,17 @@ export function TaskThreadPage() {
   }, [data]);
 
   // Live-update task header
-  useSubscription<{ taskUpdated: Partial<Task> & { id: string } }>(
-    TASK_UPDATED_SUBSCRIPTION,
+  useSubscription(
+    TaskUpdatedSubscription,
     { taskId: taskId! },
     useCallback((update) => {
-      setTask((prev) => (prev ? { ...prev, ...update.taskUpdated } : prev));
+      setTask((prev) =>
+        prev ? ({ ...prev, ...update.taskUpdated } as Task) : prev,
+      );
     }, []),
   );
 
-  const logEdges = data?.task?.logs?.edges ?? [];
+  const logEdges = data?.task?.logs.edges ?? [];
   const { messages, isAgentActive } = useTaskChatMessages(taskId!, logEdges);
 
   const docs = task?.documents ?? [];
@@ -69,7 +70,7 @@ export function TaskThreadPage() {
     setInput("");
     setSending(true);
     try {
-      await gql(SEND_MESSAGE_MUTATION, {
+      await gql(SendMessageMutation, {
         agentId: task.agent.id,
         content,
         taskId,
@@ -104,11 +105,7 @@ export function TaskThreadPage() {
           >
             <ArrowLeft size={18} />
           </Link>
-          <AgentAvatar
-            src={task.agent.imageUrl}
-            name={task.agent.name}
-            size="xs"
-          />
+          <AgentAvatar id={task.agent.id} size="xs" />
           <h1 className="text-sm font-semibold text-neutral-100 flex-1 truncate">
             {task.title}
           </h1>

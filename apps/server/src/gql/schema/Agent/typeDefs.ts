@@ -32,4 +32,8 @@ export const agentTypeDefs = /* GraphQL */ `
     updateAgent(id: ID!, input: UpdateAgentInput!): Agent
     updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   }
+
+  extend type Subscription {
+    agentUpdated(agentId: ID!): Agent!
+  }
 `;
