@@ -13,7 +13,6 @@ import {
 } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
-import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
@@ -26,6 +25,7 @@ export function JobDetailPage() {
   const { data, loading, error } = useQuery(AgentJobQuery, { id: id! });
   const { data: agentsData } = useQuery(AgentsQuery);
 
+  const [name, setName] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [agentId, setAgentId] = useState<string | null>(null);
@@ -46,13 +46,14 @@ export function JobDetailPage() {
   }
 
   const agents = agentsData?.agents ?? [];
+  const currentName = name ?? job.name;
   const currentRecurrence = recurrence ?? job.recurrence;
   const currentDescription = description ?? job.description;
   const currentAgentId = agentId ?? job.agent.id;
   const currentAgent = agents.find((a) => a.id === currentAgentId) ?? job.agent;
 
   const isDirty =
-    recurrence !== null || description !== null || agentId !== null;
+    name !== null || recurrence !== null || description !== null || agentId !== null;
 
   const cronDisplay = job.cronExpression;
   let cronHuman: string | null = null;
@@ -70,6 +71,7 @@ export function JobDetailPage() {
     setSaveError(null);
     try {
       const input: Record<string, string> = {};
+      if (name !== null) input.name = name;
       if (recurrence !== null) input.recurrence = recurrence;
       if (description !== null) input.description = description;
       if (agentId !== null) input.agentId = agentId;
@@ -83,6 +85,7 @@ export function JobDetailPage() {
         ...result.updateAgentJob,
         tasks: job.tasks,
       } as Job);
+      setName(null);
       setRecurrence(null);
       setDescription(null);
       setAgentId(null);
@@ -99,11 +102,16 @@ export function JobDetailPage() {
 
       {/* Header */}
       <div className="mt-4 flex items-center gap-3">
-        <AgentAvatar id={currentAgent.id} />
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-100">{job.name}</h1>
-          <Badge label={job.status} />
-        </div>
+        <input
+          type="text"
+          value={currentName}
+          onChange={(e) => {
+            const val = e.target.value;
+            setName(val === job.name ? null : val);
+          }}
+          className="text-xl font-semibold text-neutral-100 bg-transparent border-none outline-none focus:ring-0 p-0"
+          placeholder="Job name"
+        />
       </div>
 
       {/* Agent Picker */}
@@ -157,10 +165,10 @@ export function JobDetailPage() {
         )}
       </section>
 
-      {/* Prompt */}
+      {/* Describe Job */}
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Prompt
+          Describe Job
         </h2>
         <textarea
           value={currentDescription}
@@ -201,7 +209,7 @@ export function JobDetailPage() {
       {/* Previous Runs */}
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Previous Runs
+          History
         </h2>
         {job.tasks.length === 0 ? (
           <p className="text-sm text-neutral-500">No previous runs yet.</p>
