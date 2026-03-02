@@ -99,8 +99,11 @@ export function JobDetailPage() {
 
       {/* Header */}
       <div className="mt-4 flex items-center gap-3">
-        <h1 className="text-xl font-semibold text-neutral-100">{job.name}</h1>
-        <Badge label={job.status} />
+        <AgentAvatar id={currentAgent.id} />
+        <div>
+          <h1 className="text-xl font-semibold text-neutral-100">{job.name}</h1>
+          <Badge label={job.status} />
+        </div>
       </div>
 
       {/* Agent Picker */}
