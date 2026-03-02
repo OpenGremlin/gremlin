@@ -111,12 +111,11 @@ function DocumentModal({
       >
         {/* Handle + header (drag zone) */}
         <div
-          className="shrink-0 px-4 pt-3 pb-2 cursor-grab active:cursor-grabbing"
+          className="shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing"
           onMouseDown={handleMouseDown}
         >
           <div className="w-10 h-1 rounded-full bg-neutral-700 mx-auto mb-3" />
-          <div className="flex items-center gap-2">
-            <FileText size={16} className="text-indigo-400 shrink-0" />
+          <div className="flex items-center gap-2 px-[60px]">
             <h2 className="text-base font-semibold text-neutral-100 flex-1 truncate">
               {doc.title}
             </h2>
