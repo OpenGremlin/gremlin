@@ -43,5 +43,9 @@ export async function updateTaskStatus(
     ...(isTerminal ? { completedAt: now } : {}),
   });
 
-  await ctx.services.agents.resolveAgentStatus(ctx, task.agentId);
+  await ctx.services.agents.resolveAgentStatus(
+    ctx,
+    task.agentId,
+    isTerminal ? "IDLE" : "ACTIVE",
+  );
 }

@@ -28,5 +28,8 @@ export async function createTask(
 
   await ctx.resources.ddb.entities.Task.build(PutItemCommand).item(item).send();
 
+  // Notify subscribers so the agent status updates to ACTIVE
+  await ctx.services.agents.resolveAgentStatus(ctx, input.agentId, "ACTIVE");
+
   return item;
 }

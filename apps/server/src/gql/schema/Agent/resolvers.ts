@@ -29,6 +29,11 @@ const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
 const NON_TERMINAL = new Set(["PENDING", "RUNNING", "WAITING"]);
 
 const status: AgentResolvers["status"] = async (parent, _args, ctx) => {
+  // If status was pre-computed (e.g. by resolveAgentStatus), use it directly
+  // to avoid stale GSI reads from DynamoDB eventual consistency.
+  if ((parent as Record<string, unknown>).status) {
+    return (parent as Record<string, unknown>).status as AgentStatus;
+  }
   if (parent.blocked) return AgentStatus.Blocked;
   const tasks = await ctx.services.tasks.getTasksByAgent(ctx, parent.id);
   const hasActive = tasks.some((t) => NON_TERMINAL.has(t.status));
