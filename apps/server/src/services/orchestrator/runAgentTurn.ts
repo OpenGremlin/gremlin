@@ -28,8 +28,16 @@ export async function runAgentTurn(
   };
   const result = await generateText({
     model: getModel(),
-    system: opts.systemPrompt,
-    messages: opts.messages,
+    messages: [
+      {
+        role: "system",
+        content: opts.systemPrompt,
+        providerOptions: {
+          anthropic: { cacheControl: { type: "ephemeral" } },
+        },
+      },
+      ...opts.messages,
+    ],
     tools: allTools,
     stopWhen: [hasToolCall("requestApproval")],
     onStepFinish: async (step) => {
