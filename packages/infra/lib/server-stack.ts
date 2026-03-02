@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
@@ -22,6 +23,7 @@ export interface ServerStackProps extends cdk.StackProps {
 export class ServerStack extends cdk.Stack {
   readonly cluster: ecs.ICluster;
   readonly service: ecs.IBaseService;
+  readonly albDnsName: string;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
@@ -96,10 +98,43 @@ export class ServerStack extends cdk.Stack {
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
     });
 
+    // ── ALB in front of Fargate ────────────────────────────
+    const alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {
+      vpc,
+      internetFacing: true,
+    });
+
+    const listener = alb.addListener("HttpListener", {
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+    });
+
+    listener.addTargets("FargateTarget", {
+      port: 3001,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targets: [service],
+      healthCheck: {
+        path: "/api/health",
+        interval: cdk.Duration.seconds(30),
+      },
+    });
+
+    // Grant task role permission to read admin URL from SSM
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:GetParameter"],
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/gremlin/admin-url`,
+        ],
+      }),
+    );
+
     this.cluster = cluster;
     this.service = service;
+    this.albDnsName = alb.loadBalancerDnsName;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
     new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });
+    new cdk.CfnOutput(this, "AlbDnsName", { value: alb.loadBalancerDnsName });
   }
 }

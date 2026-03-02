@@ -19,7 +19,7 @@ const auth = new AuthStack(app, "GremlinAuthStack", { env });
 const media = new MediaStack(app, "GremlinMediaStack", { env });
 
 // 2. Server — depends on Database, Auth, Media
-new ServerStack(app, "GremlinServerStack", {
+const server = new ServerStack(app, "GremlinServerStack", {
   env,
   table: db.table,
   tableName: db.tableName,
@@ -28,11 +28,12 @@ new ServerStack(app, "GremlinServerStack", {
   mediaCdnUrl: media.cdnUrl,
 });
 
-// 3. Admin — depends on Auth, Media
+// 3. Admin — depends on Auth, Media, Server (for ALB)
 new AdminStack(app, "GremlinAdminStack", {
   env,
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   cognitoDomain: auth.cognitoDomain,
   mediaCdnUrl: media.cdnUrl,
+  albDnsName: server.albDnsName,
 });

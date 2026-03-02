@@ -6,6 +6,7 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cr from "aws-cdk-lib/custom-resources";
 import type { Construct } from "constructs";
 
@@ -17,6 +18,7 @@ export interface AdminStackProps extends cdk.StackProps {
   userPoolClientId: string;
   cognitoDomain: string;
   mediaCdnUrl: string;
+  albDnsName: string;
 }
 
 export class AdminStack extends cdk.Stack {
@@ -31,11 +33,30 @@ export class AdminStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    // ALB origin for API/auth/GraphQL traffic
+    const albOrigin = new origins.HttpOrigin(props.albDnsName, {
+      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+      httpPort: 80,
+    });
+
+    const apiBehavior: cloudfront.BehaviorOptions = {
+      origin: albOrigin,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+    };
+
     const distribution = new cloudfront.Distribution(this, "AdminCdn", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
+      additionalBehaviors: {
+        "/graphql": apiBehavior,
+        "/api/*": apiBehavior,
+        "/auth/*": apiBehavior,
       },
       defaultRootObject: "index.html",
       errorResponses: [
@@ -138,6 +159,12 @@ export class AdminStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AdminUrl", {
       value: cfUrl,
       description: "Admin dashboard URL (CloudFront HTTPS)",
+    });
+
+    // Store CloudFront URL in SSM so the server can read it at runtime
+    new ssm.StringParameter(this, "AdminUrlParam", {
+      parameterName: "/gremlin/admin-url",
+      stringValue: cfUrl,
     });
   }
 }

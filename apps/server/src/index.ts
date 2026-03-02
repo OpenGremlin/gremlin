@@ -6,6 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import { createServer } from "node:http";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import express from "express";
 import { createYoga } from "graphql-yoga";
@@ -23,6 +24,27 @@ const SKIP_AUTH = process.env.SKIP_AUTH === "true";
 const MEDIA_CDN_URL = (
   process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`
 ).replace(/\/$/, "");
+
+let cachedAdminOrigin: string | undefined;
+async function getAdminOrigin(): Promise<string> {
+  if (cachedAdminOrigin) return cachedAdminOrigin;
+  try {
+    const ssm = new SSMClient({});
+    const res = await ssm.send(
+      new GetParameterCommand({ Name: "/gremlin/admin-url" }),
+    );
+    if (res.Parameter?.Value) {
+      cachedAdminOrigin = res.Parameter.Value;
+      return cachedAdminOrigin;
+    }
+  } catch {
+    // SSM not available (local dev) — fall through
+  }
+  cachedAdminOrigin =
+    process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
+  return cachedAdminOrigin;
+}
+
 const app = express();
 const resources = createResources();
 const services = createServices();
@@ -35,7 +57,9 @@ const schema = makeExecutableSchema({
 const yoga = createYoga({
   schema,
   cors: {
-    origin: process.env.ADMIN_ORIGIN ?? "http://localhost:5173",
+    origin: [process.env.ADMIN_ORIGIN, "http://localhost:5173"].filter(
+      (o): o is string => Boolean(o),
+    ),
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -129,7 +153,7 @@ if (!process.env.MEDIA_CDN_URL) {
 
 // Google OAuth callback
 app.get("/auth/google/callback", async (req, res) => {
-  const adminOrigin = process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
+  const adminOrigin = await getAdminOrigin();
   const code = req.query.code as string | undefined;
   const state = req.query.state as string | undefined;
 
