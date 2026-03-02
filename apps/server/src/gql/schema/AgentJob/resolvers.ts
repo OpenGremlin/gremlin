@@ -37,18 +37,17 @@ const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
 const nextRun: AgentJobResolvers["nextRun"] = async (parent, _args, ctx) => {
   if (!parent.cronExpression) return null;
   try {
-    const profile = await ctx.services.profile.getProfile(ctx, "default");
-    const tz = profile?.timezone ?? "UTC";
-    console.log("[nextRun] cron=%s tz=%s", parent.cronExpression, tz);
+    let tz = parent.timezone;
+    if (!tz) {
+      const profile = await ctx.services.profile.getProfile(ctx, "default");
+      tz = profile?.timezone ?? "UTC";
+    }
     const expr = CronExpressionParser.parse(parent.cronExpression, {
       currentDate: new Date(),
       tz,
     });
-    const next = expr.next().toDate().toISOString();
-    console.log("[nextRun] result=%s", next);
-    return next;
-  } catch (err) {
-    console.error("[nextRun] error", err);
+    return expr.next().toDate().toISOString();
+  } catch {
     return null;
   }
 };

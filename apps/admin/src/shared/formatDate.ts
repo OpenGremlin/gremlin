@@ -1,6 +1,7 @@
 export function formatDate(
   date: string | null | undefined,
   fallback = "Never",
+  timeZone?: string,
 ): string {
   if (!date) return fallback;
   return new Date(date).toLocaleString("en-US", {
@@ -9,6 +10,7 @@ export function formatDate(
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone,
   });
 }
 

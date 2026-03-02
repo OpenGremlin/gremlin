@@ -19,7 +19,8 @@ export async function dispatchDueJobs(ctx: ServiceContext) {
     if (job.status === "PAUSED") continue;
     if (!job.cronExpression) continue;
 
-    const triggerTimeMs = computeLastDueTrigger(job.cronExpression, Date.now(), timezone);
+    const jobTz = job.timezone ?? timezone;
+    const triggerTimeMs = computeLastDueTrigger(job.cronExpression, Date.now(), jobTz);
     if (triggerTimeMs === null) continue;
 
     const taskId = crypto.randomUUID();

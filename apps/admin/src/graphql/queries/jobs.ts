@@ -8,6 +8,7 @@ export const AgentJobsQuery = graphql(`
       description
       recurrence
       cronExpression
+      timezone
       agent {
         id
       }
@@ -26,6 +27,7 @@ export const AgentJobQuery = graphql(`
       description
       recurrence
       cronExpression
+      timezone
       agent {
         id
         name
@@ -54,6 +56,7 @@ export const UpdateAgentJobMutation = graphql(`
       description
       recurrence
       cronExpression
+      timezone
       agent {
         id
       }

@@ -12,6 +12,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     description: String!
     recurrence: String!
     cronExpression: String
+    timezone: String
     agent: Agent!
     status: JobStatus!
     lastRun: String
@@ -24,6 +25,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     description: String
     recurrence: String
     agentId: String
+    timezone: String
   }
 
   extend type Query {

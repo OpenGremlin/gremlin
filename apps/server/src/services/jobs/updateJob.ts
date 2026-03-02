@@ -9,6 +9,7 @@ interface UpdateJobInput {
   description?: string | null;
   recurrence?: string | null;
   agentId?: string | null;
+  timezone?: string | null;
 }
 
 function getCronSystemPrompt(timezone: string): string {
@@ -60,10 +61,19 @@ export async function updateJob(
   if (input.name != null) updates.name = input.name;
   if (input.description != null) updates.description = input.description;
   if (input.agentId != null) updates.agentId = input.agentId;
+  if (input.timezone != null) updates.timezone = input.timezone;
 
   if (input.recurrence != null) {
-    const profile = await ctx.services.profile.getProfile(ctx, "default");
-    const timezone = profile?.timezone ?? "UTC";
+    // Use the provided timezone, or the existing job timezone, or fall back to profile/UTC
+    let timezone = input.timezone;
+    if (!timezone) {
+      const existingJob = await ctx.services.jobs.getJob(ctx, id);
+      timezone = existingJob?.timezone;
+    }
+    if (!timezone) {
+      const profile = await ctx.services.profile.getProfile(ctx, "default");
+      timezone = profile?.timezone ?? "UTC";
+    }
     updates.recurrence = input.recurrence;
     updates.cronExpression = await recurrenceToCron(input.recurrence, timezone);
   }

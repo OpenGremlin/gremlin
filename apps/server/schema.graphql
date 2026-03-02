@@ -84,6 +84,7 @@ type AgentJob {
   description: String!
   recurrence: String!
   cronExpression: String
+  timezone: String
   agent: Agent!
   status: JobStatus!
   lastRun: String
@@ -96,6 +97,7 @@ input UpdateAgentJobInput {
   description: String
   recurrence: String
   agentId: String
+  timezone: String
 }
 
 enum AgentLogRole {

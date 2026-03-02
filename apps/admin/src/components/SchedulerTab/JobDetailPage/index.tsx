@@ -29,6 +29,7 @@ export function JobDetailPage() {
   const [recurrence, setRecurrence] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [agentId, setAgentId] = useState<string | null>(null);
+  const [timezone, setTimezone] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -52,23 +53,16 @@ export function JobDetailPage() {
   const currentAgentId = agentId ?? job.agent.id;
   const currentAgent = agents.find((a) => a.id === currentAgentId) ?? job.agent;
 
+  const currentTimezone = timezone ?? job.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const isDirty =
-    name !== null || recurrence !== null || description !== null || agentId !== null;
+    name !== null || recurrence !== null || description !== null || agentId !== null || timezone !== null;
 
   const cronDisplay = job.cronExpression;
   let cronHuman: string | null = null;
   if (cronDisplay) {
     try {
-      // Shift the hour field from UTC to local timezone for display
-      const parts = cronDisplay.split(" ");
-      if (parts.length === 5 && /^\d+$/.test(parts[1])) {
-        const offsetHours = -new Date().getTimezoneOffset() / 60;
-        const localHour = ((Number(parts[1]) + offsetHours) % 24 + 24) % 24;
-        parts[1] = String(localHour);
-        cronHuman = cronstrue.toString(parts.join(" "));
-      } else {
-        cronHuman = cronstrue.toString(cronDisplay);
-      }
+      cronHuman = cronstrue.toString(cronDisplay);
     } catch {
       // ignore parse errors
     }
@@ -84,6 +78,7 @@ export function JobDetailPage() {
       if (recurrence !== null) input.recurrence = recurrence;
       if (description !== null) input.description = description;
       if (agentId !== null) input.agentId = agentId;
+      if (timezone !== null) input.timezone = timezone;
 
       const result = await gql<UpdateAgentJobMutation>(UpdateAgentJobDoc, {
         id,
@@ -98,6 +93,7 @@ export function JobDetailPage() {
       setRecurrence(null);
       setDescription(null);
       setAgentId(null);
+      setTimezone(null);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -177,6 +173,27 @@ export function JobDetailPage() {
         )}
       </section>
 
+      {/* Timezone */}
+      <section className="mt-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
+          Timezone
+        </h2>
+        <select
+          value={currentTimezone}
+          onChange={(e) => {
+            const val = e.target.value;
+            setTimezone(val === (job.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone) ? null : val);
+          }}
+          className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
+        >
+          {Intl.supportedValuesOf("timeZone").map((tz) => (
+            <option key={tz} value={tz}>
+              {tz.replaceAll("_", " ")}
+            </option>
+          ))}
+        </select>
+      </section>
+
       {/* Describe Job */}
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
@@ -214,7 +231,7 @@ export function JobDetailPage() {
       <div className="mt-6 text-xs text-neutral-400">
         <p>
           Next run:{" "}
-          <span className="text-neutral-300">{formatDate(job.nextRun)}</span>
+          <span className="text-neutral-300">{formatDate(job.nextRun, "Never", currentTimezone)}</span>
         </p>
       </div>
 
