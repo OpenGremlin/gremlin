@@ -21,6 +21,7 @@ export const IntegrationQuery = graphql(`
       account
       connectedAt
       authMethod
+      enabled
       permissions {
         scope
         label
@@ -46,11 +47,38 @@ export const TogglePermissionMutation = graphql(`
       account
       connectedAt
       authMethod
+      enabled
       permissions {
         scope
         label
         enabled
       }
     }
+  }
+`);
+
+export const SetIntegrationEnabledMutation = graphql(`
+  mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {
+    setIntegrationEnabled(id: $id, enabled: $enabled) {
+      id
+      service
+      icon
+      description
+      account
+      connectedAt
+      authMethod
+      enabled
+      permissions {
+        scope
+        label
+        enabled
+      }
+    }
+  }
+`);
+
+export const DisconnectIntegrationMutation = graphql(`
+  mutation DisconnectIntegration($id: ID!) {
+    disconnectIntegration(id: $id)
   }
 `);

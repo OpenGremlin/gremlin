@@ -133,6 +133,7 @@ export type Integration = {
   authMethod: AuthMethod;
   connectedAt: Scalars['String']['output'];
   description: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
   icon: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   permissions: Array<Permission>;
@@ -152,10 +153,12 @@ export type Mutation = {
   connectGoogle: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  disconnectIntegration: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   resolveNotification?: Maybe<Notification>;
   sendMessage: AgentLog;
+  setIntegrationEnabled?: Maybe<Integration>;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
@@ -173,6 +176,11 @@ export type MutationCreateDocumentArgs = {
 
 
 export type MutationDeactivateFollowUpArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDisconnectIntegrationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -197,6 +205,12 @@ export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationSetIntegrationEnabledArgs = {
+  enabled: Scalars['Boolean']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -617,7 +631,7 @@ export type IntegrationQueryVariables = Exact<{
 }>;
 
 
-export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
+export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, enabled: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
 
 export type ConnectGoogleMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -631,7 +645,22 @@ export type TogglePermissionMutationVariables = Exact<{
 }>;
 
 
-export type TogglePermissionMutation = { __typename?: 'Mutation', togglePermission?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
+export type TogglePermissionMutation = { __typename?: 'Mutation', togglePermission?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, enabled: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
+
+export type SetIntegrationEnabledMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  enabled: Scalars['Boolean']['input'];
+}>;
+
+
+export type SetIntegrationEnabledMutation = { __typename?: 'Mutation', setIntegrationEnabled?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, enabled: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
+
+export type DisconnectIntegrationMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DisconnectIntegrationMutation = { __typename?: 'Mutation', disconnectIntegration: boolean };
 
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -909,6 +938,7 @@ export const IntegrationDocument = new TypedDocumentString(`
     account
     connectedAt
     authMethod
+    enabled
     permissions {
       scope
       label
@@ -936,6 +966,7 @@ export const TogglePermissionDocument = new TypedDocumentString(`
     account
     connectedAt
     authMethod
+    enabled
     permissions {
       scope
       label
@@ -944,6 +975,30 @@ export const TogglePermissionDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<TogglePermissionMutation, TogglePermissionMutationVariables>;
+export const SetIntegrationEnabledDocument = new TypedDocumentString(`
+    mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {
+  setIntegrationEnabled(id: $id, enabled: $enabled) {
+    id
+    service
+    icon
+    description
+    account
+    connectedAt
+    authMethod
+    enabled
+    permissions {
+      scope
+      label
+      enabled
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<SetIntegrationEnabledMutation, SetIntegrationEnabledMutationVariables>;
+export const DisconnectIntegrationDocument = new TypedDocumentString(`
+    mutation DisconnectIntegration($id: ID!) {
+  disconnectIntegration(id: $id)
+}
+    `) as unknown as TypedDocumentString<DisconnectIntegrationMutation, DisconnectIntegrationMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
     query AgentJobs {
   agentJobs {

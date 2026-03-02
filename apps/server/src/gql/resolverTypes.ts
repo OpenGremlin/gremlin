@@ -59,6 +59,7 @@ export type AgentJob = {
   recurrence: Scalars['String']['output'];
   status: JobStatus;
   tasks: Array<Task>;
+  timezone: Scalars['String']['output'];
 };
 
 export type AgentLog = {
@@ -146,6 +147,7 @@ export type Integration = {
   authMethod: AuthMethod;
   connectedAt: Scalars['String']['output'];
   description: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
   icon: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   permissions: Array<Permission>;
@@ -165,10 +167,12 @@ export type Mutation = {
   connectGoogle: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  disconnectIntegration: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   resolveNotification?: Maybe<Notification>;
   sendMessage: AgentLog;
+  setIntegrationEnabled?: Maybe<Integration>;
   togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
@@ -186,6 +190,11 @@ export type MutationCreateDocumentArgs = {
 
 
 export type MutationDeactivateFollowUpArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDisconnectIntegrationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -210,6 +219,12 @@ export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationSetIntegrationEnabledArgs = {
+  enabled: Scalars['Boolean']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -301,12 +316,14 @@ export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
   displayName: Scalars['String']['output'];
+  timezone?: Maybe<Scalars['String']['output']>;
   website?: Maybe<Scalars['String']['output']>;
 };
 
 export type ProfileInput = {
   about: Scalars['String']['input'];
   displayName: Scalars['String']['input'];
+  timezone?: InputMaybe<Scalars['String']['input']>;
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -542,6 +559,7 @@ export type UpdateAgentJobInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   recurrence?: InputMaybe<Scalars['String']['input']>;
+  timezone?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateDocumentInput = {
@@ -719,6 +737,7 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   recurrence?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
+  timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLog'] = ResolversParentTypes['AgentLog']> = {
@@ -769,6 +788,7 @@ export type IntegrationResolvers<ContextType = GremlinContext, ParentType extend
   authMethod?: Resolver<ResolversTypes['AuthMethod'], ParentType, ContextType>;
   connectedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   icon?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   permissions?: Resolver<Array<ResolversTypes['Permission']>, ParentType, ContextType>;
@@ -780,10 +800,12 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectGoogle?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
+  disconnectIntegration?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisconnectIntegrationArgs, 'id'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
+  setIntegrationEnabled?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationSetIntegrationEnabledArgs, 'enabled' | 'id'>>;
   togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
@@ -821,6 +843,7 @@ export type PermissionResolvers<ContextType = GremlinContext, ParentType extends
 export type ProfileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
   about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  timezone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 

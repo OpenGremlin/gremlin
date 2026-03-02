@@ -19,6 +19,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     account: String!
     connectedAt: String!
     authMethod: AuthMethod!
+    enabled: Boolean!
     permissions: [Permission!]!
   }
 
@@ -29,6 +30,8 @@ export const integrationTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
+    setIntegrationEnabled(id: ID!, enabled: Boolean!): Integration
+    disconnectIntegration(id: ID!): Boolean!
     connectGoogle: String!
   }
 `;

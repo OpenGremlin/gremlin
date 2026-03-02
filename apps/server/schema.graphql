@@ -32,6 +32,8 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
+  setIntegrationEnabled(id: ID!, enabled: Boolean!): Integration
+  disconnectIntegration(id: ID!): Boolean!
   connectGoogle: String!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
@@ -186,6 +188,7 @@ type Integration {
   account: String!
   connectedAt: String!
   authMethod: AuthMethod!
+  enabled: Boolean!
   permissions: [Permission!]!
 }
 

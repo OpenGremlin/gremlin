@@ -18,10 +18,22 @@ const togglePermission: MutationResolvers["togglePermission"] = (
     enabled,
   );
 
+const setIntegrationEnabled: MutationResolvers["setIntegrationEnabled"] = (
+  _parent,
+  { id, enabled },
+  ctx,
+) => ctx.services.integrations.setIntegrationEnabled(ctx, id, enabled);
+
+const disconnectIntegration: MutationResolvers["disconnectIntegration"] = (
+  _parent,
+  { id },
+  ctx,
+) => ctx.services.integrations.disconnectIntegration(ctx, id);
+
 const connectGoogle: MutationResolvers["connectGoogle"] = (_parent, _args, ctx) =>
   ctx.services.google.generateGoogleAuthUrl(ctx);
 
 export const integrationResolvers = {
   Query: { integrations, integration },
-  Mutation: { togglePermission, connectGoogle },
+  Mutation: { togglePermission, setIntegrationEnabled, disconnectIntegration, connectGoogle },
 };

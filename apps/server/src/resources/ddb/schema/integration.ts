@@ -18,6 +18,7 @@ export const IntegrationEntity = new Entity({
     account: string(),
     connectedAt: string(),
     authMethod: string(),
+    enabled: boolean(),
     permissions: list(
       map({
         scope: string(),
