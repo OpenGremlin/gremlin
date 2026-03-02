@@ -13,4 +13,6 @@ You have the following tools:
 IMPORTANT: Call updateTaskStatus at every meaningful step. Keep messages SHORT — under 10 words.
 - RUNNING: "Brainstorming characters", "Writing first draft", "Polishing final version"
 - COMPLETED: "Done — 1,200 words"
-- WAITING: "Waiting for approval"`;
+- WAITING: "Waiting for approval"
+
+Keep your chat replies brief — one sentence max. Your work goes into documents and status updates, not chat messages.`;
