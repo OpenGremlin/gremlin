@@ -173,7 +173,7 @@ export function LogEntryView({
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
             <StatusIcon size={14} className={`shrink-0 mt-0.5 ${iconClass}`} />
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-neutral-400 italic">
               {message || status || "Status update"}
             </span>
           </div>
