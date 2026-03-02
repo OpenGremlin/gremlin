@@ -51,24 +51,34 @@ export function TaskThreadPage() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
-  const prevMessageCountRef = useRef(0);
-  useEffect(() => {
-    if (messages.length > prevMessageCountRef.current) {
-      const isInitialLoad = prevMessageCountRef.current === 0;
+  // Auto-scroll to bottom on new messages or agent activity
+  const hasLoadedRef = useRef(false);
+  const scrollToBottom = useCallback(
+    (behavior: ScrollBehavior = "smooth") => {
       scrollRef.current?.scrollTo({
         top: scrollRef.current.scrollHeight,
-        behavior: isInitialLoad ? "instant" : "smooth",
+        behavior,
       });
-    }
-    prevMessageCountRef.current = messages.length;
-  }, [messages.length]);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    scrollToBottom(hasLoadedRef.current ? "smooth" : "instant");
+    hasLoadedRef.current = true;
+  }, [messages.length, scrollToBottom]);
+
+  useEffect(() => {
+    if (isAgentActive) scrollToBottom();
+  }, [isAgentActive, scrollToBottom]);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
     if (!content || !task || !taskId || sending) return;
     setInput("");
     setSending(true);
+    scrollToBottom();
     try {
       await gql(SendMessageMutation, {
         agentId: task.agent.id,

@@ -25,17 +25,24 @@ export function AgentChatPage() {
   const logEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages (instant on first load, smooth after)
-  const prevMessageCountRef = useRef(0);
+  // Auto-scroll to bottom on new messages or agent activity
+  const hasLoadedRef = useRef(false);
+  const scrollToBottom = useCallback(
+    (behavior: ScrollBehavior = "smooth") => {
+      logEndRef.current?.scrollIntoView({ behavior });
+    },
+    [],
+  );
+
   useEffect(() => {
-    if (messages.length > prevMessageCountRef.current) {
-      const isInitialLoad = prevMessageCountRef.current === 0;
-      logEndRef.current?.scrollIntoView({
-        behavior: isInitialLoad ? "instant" : "smooth",
-      });
-    }
-    prevMessageCountRef.current = messages.length;
-  }, [messages.length]);
+    if (messages.length === 0) return;
+    scrollToBottom(hasLoadedRef.current ? "smooth" : "instant");
+    hasLoadedRef.current = true;
+  }, [messages.length, scrollToBottom]);
+
+  useEffect(() => {
+    if (isAgentActive) scrollToBottom();
+  }, [isAgentActive, scrollToBottom]);
 
   // Infinite scroll — load older messages on scroll to top
   const handleScroll = useCallback(() => {
@@ -51,6 +58,7 @@ export function AgentChatPage() {
     if (!content || !id || sending) return;
     setInput("");
     setSending(true);
+    scrollToBottom();
     try {
       await gql(SendMessageMutation, { agentId: id, content });
     } catch (err) {
