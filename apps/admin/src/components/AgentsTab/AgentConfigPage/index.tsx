@@ -8,7 +8,6 @@ import { AGENT_QUERY, AVATARS_QUERY, UPDATE_AGENT } from "../../../queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { BackButton } from "../../../shared/BackButton";
-import { Badge } from "../../../shared/Badge";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import type { Agent } from "../../../types";
 import { useQuery } from "../../../useQuery";
@@ -118,7 +117,6 @@ export function AgentConfigPage() {
               {...register("name")}
               className="w-full bg-transparent text-xl font-semibold text-neutral-100 outline-none border-b border-transparent focus:border-neutral-700 transition-colors"
             />
-            <Badge label={agent.status} />
           </div>
         </div>
 

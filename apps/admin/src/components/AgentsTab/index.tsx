@@ -2,7 +2,6 @@ import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AGENTS_QUERY } from "../../queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
-import { Badge } from "../../shared/Badge";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import type { Agent } from "../../types";
@@ -40,7 +39,6 @@ export function AgentsTab() {
                   <h3 className="text-sm font-medium text-neutral-100">
                     {agent.name}
                   </h3>
-                  <Badge label={agent.status} />
                 </div>
                 <p className="text-xs text-neutral-400 line-clamp-2">
                   {agent.soul}
