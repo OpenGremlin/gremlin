@@ -8,6 +8,11 @@ import {
   createDocumentTool,
   updateDocumentTool,
 } from "./tools.js";
+import {
+  launchSandboxTool,
+  runCommandTool,
+  terminateSandboxTool,
+} from "./sandboxTools.js";
 import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -73,6 +78,9 @@ export async function runTaskLane(
       updateTaskStatus: updateTaskStatusTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
+      launchSandbox: launchSandboxTool(ctx, task.agentId),
+      runCommand: runCommandTool(ctx, task.agentId),
+      terminateSandbox: terminateSandboxTool(ctx, task.agentId),
     },
   });
 

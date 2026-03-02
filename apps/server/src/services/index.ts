@@ -26,6 +26,7 @@ import {
   documentService,
 } from "./documents/index.js";
 import { type GoogleService, googleService } from "./google/index.js";
+import { type SandboxService, sandboxService } from "./sandbox/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
 
 export interface Services {
@@ -41,6 +42,7 @@ export interface Services {
   skills: SkillService;
   media: MediaService;
   orchestrator: OrchestratorService;
+  sandbox: SandboxService;
   tasks: TaskService;
   taskFollowUps: TaskFollowUpService;
 }
@@ -59,6 +61,7 @@ export function createServices(): Services {
     skills: skillService,
     media: mediaService,
     orchestrator: orchestratorService,
+    sandbox: sandboxService,
     tasks: taskService,
     taskFollowUps: taskFollowUpService,
   };

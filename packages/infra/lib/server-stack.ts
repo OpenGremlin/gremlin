@@ -24,6 +24,10 @@ export class ServerStack extends cdk.Stack {
   readonly cluster: ecs.ICluster;
   readonly service: ecs.IBaseService;
   readonly albDnsName: string;
+  readonly vpc: ec2.IVpc;
+  readonly serverSecurityGroup: ec2.ISecurityGroup;
+  readonly serverTaskDefinition: ecs.FargateTaskDefinition;
+  readonly serverContainer: ecs.ContainerDefinition;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
@@ -85,10 +89,17 @@ export class ServerStack extends cdk.Stack {
         COGNITO_USER_POOL_ID: props.userPoolId,
         COGNITO_CLIENT_ID: props.userPoolClientId,
         MEDIA_CDN_URL: props.mediaCdnUrl,
+        ECS_CLUSTER_NAME: cluster.clusterName,
+        SUBNET_IDS: vpc.publicSubnets.map(s => s.subnetId).join(","),
       },
     });
 
     container.addPortMappings({ containerPort: 3001 });
+
+    const serverSg = new ec2.SecurityGroup(this, "ServerSg", {
+      vpc,
+      description: "Gremlin server Fargate service",
+    });
 
     const service = new ecs.FargateService(this, "Svc", {
       cluster,
@@ -96,6 +107,7 @@ export class ServerStack extends cdk.Stack {
       desiredCount: 1,
       assignPublicIp: true,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      securityGroups: [serverSg],
     });
 
     // ── ALB in front of Fargate ────────────────────────────
@@ -129,9 +141,45 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // Grant task role permissions for sandbox ECS and EC2 operations
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["ecs:RunTask", "ecs:StopTask", "ecs:DescribeTasks"],
+        resources: ["*"],
+      }),
+    );
+
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["iam:PassRole"],
+        resources: ["*"],
+        conditions: {
+          StringLike: {
+            "iam:PassedToService": "ecs-tasks.amazonaws.com",
+          },
+        },
+      }),
+    );
+
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "ec2:CreateVolume",
+          "ec2:DeleteVolume",
+          "ec2:DescribeVolumes",
+          "ec2:CreateTags",
+        ],
+        resources: ["*"],
+      }),
+    );
+
     this.cluster = cluster;
     this.service = service;
     this.albDnsName = alb.loadBalancerDnsName;
+    this.vpc = vpc;
+    this.serverSecurityGroup = serverSg;
+    this.serverTaskDefinition = taskDef;
+    this.serverContainer = container;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
     new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });
