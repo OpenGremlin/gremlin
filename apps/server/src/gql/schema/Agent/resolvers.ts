@@ -1,5 +1,6 @@
 import { Repeater } from "@graphql-yoga/subscription";
 import type { AgentItem } from "../../../resources/ddb/schema/agent.js";
+import { AgentStatus } from "../../resolverTypes.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentResolvers,
@@ -24,6 +25,15 @@ const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
   { id, status },
   ctx,
 ) => ctx.services.agents.updateAgentStatus(ctx, id, status);
+
+const NON_TERMINAL = new Set(["PENDING", "RUNNING", "WAITING"]);
+
+const status: AgentResolvers["status"] = async (parent, _args, ctx) => {
+  if (parent.blocked) return AgentStatus.Blocked;
+  const tasks = await ctx.services.tasks.getTasksByAgent(ctx, parent.id);
+  const hasActive = tasks.some((t) => NON_TERMINAL.has(t.status));
+  return hasActive ? AgentStatus.Active : AgentStatus.Idle;
+};
 
 const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
   ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.avatar, args.width);
@@ -54,6 +64,6 @@ const agentsUpdated = {
 export const agentResolvers = {
   Query: { agents, agent },
   Mutation: { updateAgent, updateAgentStatus },
-  Agent: { imageUrl },
+  Agent: { status, imageUrl },
   Subscription: { agentUpdated, agentsUpdated },
 };

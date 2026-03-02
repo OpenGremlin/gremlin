@@ -1,6 +1,7 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
+import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
 import { GremlinTable } from "../table.js";
@@ -15,7 +16,7 @@ export const AgentEntity = new Entity({
     avatar: string(),
     portraitId: string(),
     soul: string(),
-    status: string(),
+    blocked: boolean().default(false),
     statusReason: anyOf(string(), nul()),
   }),
   computeKey: ({ id }) => ({

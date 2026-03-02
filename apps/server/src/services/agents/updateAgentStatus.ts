@@ -1,5 +1,5 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
-import type { AgentStatus } from "../../gql/resolverTypes.js";
+import { AgentStatus } from "../../gql/resolverTypes.js";
 import type { AgentItem } from "../../resources/ddb/schema/agent.js";
 import type { ServiceContext } from "../context.js";
 
@@ -8,10 +8,12 @@ export async function updateAgentStatus(
   id: string,
   status: AgentStatus,
 ): Promise<AgentItem> {
+  const blocked = status === AgentStatus.Blocked;
+
   const { Attributes } = await ctx.resources.ddb.entities.Agent.build(
     UpdateItemCommand,
   )
-    .item({ id, status })
+    .item({ id, blocked })
     .options({ returnValues: "ALL_NEW" })
     .send();
 
