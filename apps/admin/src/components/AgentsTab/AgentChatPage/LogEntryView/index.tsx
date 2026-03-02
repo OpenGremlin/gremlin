@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   CheckCircle,
+  Circle,
   Code,
   ExternalLink,
   Loader2,
@@ -161,13 +162,13 @@ export function LogEntryView({
             : status === "FAILED" ? XCircle
             : status === "ABANDONED" ? AlertCircle
             : status === "WAITING" ? Pause
-            : Loader2;
+            : Circle;
         const iconClass =
           status === "COMPLETED" ? "text-green-500"
             : status === "FAILED" ? "text-red-400"
             : status === "ABANDONED" ? "text-neutral-400"
             : status === "WAITING" ? "text-amber-400"
-            : "text-blue-400 animate-spin";
+            : "text-blue-400";
 
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
