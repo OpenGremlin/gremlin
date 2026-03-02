@@ -15,6 +15,7 @@ type ToolLogEntry = {
   toolName: string;
   toolInput: unknown;
   toolResult: unknown;
+  internal?: boolean;
 };
 
 export type LogEntry = TextLogEntry | ToolLogEntry;
@@ -34,6 +35,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     toolName: isToolEntry ? entry.toolName : null,
     toolInput: isToolEntry ? JSON.stringify(entry.toolInput) : null,
     toolResult: isToolEntry ? JSON.stringify(entry.toolResult) : null,
+    internal: (isToolEntry && entry.internal) || false,
     createdAt: now,
   };
 

@@ -9,8 +9,8 @@ import { getModel } from "./model.js";
 import { requestApprovalTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
-/** Tools whose calls are not persisted to the log (internal bookkeeping). */
-const SILENT_TOOLS = new Set(["createDocument", "updateDocument"]);
+/** Tools marked as internal — logged for audit but hidden from the UI. */
+const INTERNAL_TOOLS = new Set(["createDocument", "updateDocument"]);
 
 export async function runAgentTurn(
   ctx: ServiceContext,
@@ -37,7 +37,6 @@ export async function runAgentTurn(
       // shows delegated tasks before the model finishes generating text.
       for (let i = 0; i < step.toolCalls.length; i++) {
         const toolCall = step.toolCalls[i];
-        if (SILENT_TOOLS.has(toolCall.toolName)) continue;
         const toolResult = step.toolResults[i];
         await writeAgentLog(ctx, {
           agentId: opts.agentId,
@@ -46,6 +45,7 @@ export async function runAgentTurn(
           toolName: toolCall.toolName,
           toolInput: "input" in toolCall ? toolCall.input : undefined,
           toolResult: toolResult?.output,
+          internal: INTERNAL_TOOLS.has(toolCall.toolName),
         });
       }
     },

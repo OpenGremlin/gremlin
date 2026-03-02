@@ -42,7 +42,7 @@ const agentLogCreated = {
   ) => {
     return pipe(
       ctx.resources.pubsub.subscribe(`agentLogCreated:${agentId}`),
-      filter((payload: AgentLogItem) => payload.agentId === agentId),
+      filter((payload: AgentLogItem) => payload.agentId === agentId && !payload.internal),
     );
   },
   resolve: (payload: AgentLogItem) => payload,

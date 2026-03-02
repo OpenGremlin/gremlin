@@ -40,7 +40,7 @@ export async function getAgentLogs(
   }
 
   const { Items } = await query.send();
-  let items = Items ?? [];
+  let items = (Items ?? []).filter((i) => !i.internal);
 
   const hasMore = items.length > limit;
   if (hasMore) {
