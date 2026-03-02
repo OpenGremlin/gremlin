@@ -1,4 +1,12 @@
-import { CheckCircle, Code, ExternalLink, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Code,
+  ExternalLink,
+  Loader2,
+  Pause,
+  XCircle,
+} from "lucide-react";
 import type { ChatMessage } from "../useChatMessages";
 import { useTaskStatus } from "./useTaskStatus";
 
@@ -144,6 +152,32 @@ export function LogEntryView({
       );
     case "TOOL": {
       const tool = resolveToolFields(entry);
+
+      if (tool.name === "updateTaskStatus") {
+        const status = tool.input?.status as string | undefined;
+        const message = tool.input?.message as string | undefined;
+        const StatusIcon =
+          status === "COMPLETED" ? CheckCircle
+            : status === "FAILED" ? XCircle
+            : status === "ABANDONED" ? AlertCircle
+            : status === "WAITING" ? Pause
+            : Loader2;
+        const iconClass =
+          status === "COMPLETED" ? "text-green-500"
+            : status === "FAILED" ? "text-red-400"
+            : status === "ABANDONED" ? "text-neutral-400"
+            : status === "WAITING" ? "text-amber-400"
+            : "text-blue-400 animate-spin";
+
+        return (
+          <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
+            <StatusIcon size={14} className={`shrink-0 mt-0.5 ${iconClass}`} />
+            <span className="text-xs text-neutral-400">
+              {message || status || "Status update"}
+            </span>
+          </div>
+        );
+      }
 
       if (tool.name === "delegateTask") {
         return (
