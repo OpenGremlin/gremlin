@@ -19,6 +19,7 @@ export async function runAgentTurn(
     taskId: string | null;
     systemPrompt: string;
     timezone?: string;
+    memoryContext?: string;
     messages: ModelMessage[];
     tools?: Record<string, Tool>;
   },
@@ -42,6 +43,9 @@ export async function runAgentTurn(
         },
       },
       { role: "system", content: `Current time: ${currentTime} (${tz})` },
+      ...(opts.memoryContext
+        ? [{ role: "system" as const, content: opts.memoryContext }]
+        : []),
       ...opts.messages,
     ],
     tools: allTools,

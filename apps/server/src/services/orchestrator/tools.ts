@@ -215,4 +215,24 @@ export function updateDocumentTool(ctx: ServiceContext) {
   });
 }
 
+export function saveMemoryTool(ctx: ServiceContext, agentId: string) {
+  return tool({
+    description:
+      "Save information to long-term memory. If a topic already exists, the new content is appended. Use this proactively when you learn something worth remembering across conversations — user preferences, project details, important decisions, etc.",
+    inputSchema: z.object({
+      topic: z
+        .string()
+        .describe(
+          "Short topic name (e.g., 'user-preferences', 'project-setup')",
+        ),
+      content: z
+        .string()
+        .describe("The information to remember"),
+    }),
+    execute: async ({ topic, content }) => {
+      return ctx.services.memory.saveMemory(ctx, agentId, topic, content);
+    },
+  });
+}
+
 export const defaultTools = { webSearch, sendEmail, checkInbox };

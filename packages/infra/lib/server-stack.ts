@@ -89,6 +89,7 @@ export class ServerStack extends cdk.Stack {
         COGNITO_USER_POOL_ID: props.userPoolId,
         COGNITO_CLIENT_ID: props.userPoolClientId,
         MEDIA_CDN_URL: props.mediaCdnUrl,
+        S3_VECTORS_BUCKET_NAME: "gremlin-vectors",
         ECS_CLUSTER_NAME: cluster.clusterName,
         SUBNET_IDS: vpc.publicSubnets.map(s => s.subnetId).join(","),
       },
@@ -145,6 +146,13 @@ export class ServerStack extends cdk.Stack {
     taskDef.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ecs:RunTask", "ecs:StopTask", "ecs:DescribeTasks"],
+        resources: ["*"],
+      }),
+    );
+
+    taskDef.taskRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3vectors:*"],
         resources: ["*"],
       }),
     );

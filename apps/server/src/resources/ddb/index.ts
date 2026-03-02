@@ -10,6 +10,7 @@ import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
 import { DocumentEntity } from "./schema/document.js";
 import { GoogleOAuthTokenEntity } from "./schema/googleOAuthToken.js";
+import { MemoryTopicEntity } from "./schema/memoryTopic.js";
 import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 
 export const ddb = {
@@ -22,6 +23,7 @@ export const ddb = {
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,
     Integration: IntegrationEntity,
+    MemoryTopic: MemoryTopicEntity,
     Notification: NotificationEntity,
     Profile: ProfileEntity,
     Skill: SkillEntity,

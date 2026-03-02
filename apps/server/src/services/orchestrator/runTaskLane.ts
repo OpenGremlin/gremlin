@@ -7,6 +7,7 @@ import {
   updateTaskStatusTool,
   createDocumentTool,
   updateDocumentTool,
+  saveMemoryTool,
 } from "./tools.js";
 import {
   launchSandboxTool,
@@ -78,6 +79,7 @@ export async function runTaskLane(
       updateTaskStatus: updateTaskStatusTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
+      saveMemory: saveMemoryTool(ctx, task.agentId),
       launchSandbox: launchSandboxTool(ctx, task.agentId),
       runCommand: runCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),

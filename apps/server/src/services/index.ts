@@ -6,6 +6,7 @@ import {
 } from "./integrations/index.js";
 import { type JobService, jobService } from "./jobs/index.js";
 import { type MediaService, mediaService } from "./media/index.js";
+import { type MemoryService, memoryService } from "./memory/index.js";
 import {
   type OrchestratorService,
   orchestratorService,
@@ -41,6 +42,7 @@ export interface Services {
   profile: ProfileService;
   skills: SkillService;
   media: MediaService;
+  memory: MemoryService;
   orchestrator: OrchestratorService;
   sandbox: SandboxService;
   tasks: TaskService;
@@ -60,6 +62,7 @@ export function createServices(): Services {
     profile: profileService,
     skills: skillService,
     media: mediaService,
+    memory: memoryService,
     orchestrator: orchestratorService,
     sandbox: sandboxService,
     tasks: taskService,
