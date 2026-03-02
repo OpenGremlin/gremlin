@@ -148,6 +148,7 @@ export enum JobStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  connectGoogle: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
   dismissNotification?: Maybe<Notification>;
@@ -614,6 +615,11 @@ export type IntegrationQueryVariables = Exact<{
 
 export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, icon: string, description: string, account: string, connectedAt: string, authMethod: AuthMethod, permissions: Array<{ __typename?: 'Permission', scope: string, label: string, enabled: boolean }> } | null };
 
+export type ConnectGoogleMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConnectGoogleMutation = { __typename?: 'Mutation', connectGoogle: string };
+
 export type TogglePermissionMutationVariables = Exact<{
   integrationId: Scalars['ID']['input'];
   scope: Scalars['String']['input'];
@@ -907,6 +913,11 @@ export const IntegrationDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<IntegrationQuery, IntegrationQueryVariables>;
+export const ConnectGoogleDocument = new TypedDocumentString(`
+    mutation ConnectGoogle {
+  connectGoogle
+}
+    `) as unknown as TypedDocumentString<ConnectGoogleMutation, ConnectGoogleMutationVariables>;
 export const TogglePermissionDocument = new TypedDocumentString(`
     mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {
   togglePermission(

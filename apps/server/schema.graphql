@@ -32,6 +32,7 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
+  connectGoogle: String!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!

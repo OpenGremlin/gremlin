@@ -30,6 +30,12 @@ export const IntegrationQuery = graphql(`
   }
 `);
 
+export const ConnectGoogleMutation = graphql(`
+  mutation ConnectGoogle {
+    connectGoogle
+  }
+`);
+
 export const TogglePermissionMutation = graphql(`
   mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {
     togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {

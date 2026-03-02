@@ -162,6 +162,7 @@ export enum JobStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  connectGoogle: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
   dismissNotification?: Maybe<Notification>;
@@ -417,9 +418,13 @@ export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
   agentLogCreated: AgentLog;
+  agentUpdated: Agent;
+  agentsUpdated: Agent;
   documentUpdated: Document;
+  documentsUpdated: Document;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
+  tasksUpdated: Task;
 };
 
 
@@ -428,8 +433,23 @@ export type SubscriptionAgentLogCreatedArgs = {
 };
 
 
+export type SubscriptionAgentUpdatedArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionAgentsUpdatedArgs = {
+  agentIds: Array<Scalars['ID']['input']>;
+};
+
+
 export type SubscriptionDocumentUpdatedArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionDocumentsUpdatedArgs = {
+  documentIds: Array<Scalars['ID']['input']>;
 };
 
 
@@ -440,6 +460,11 @@ export type SubscriptionTaskLogCreatedArgs = {
 
 export type SubscriptionTaskUpdatedArgs = {
   taskId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionTasksUpdatedArgs = {
+  taskIds: Array<Scalars['ID']['input']>;
 };
 
 export type Task = {
@@ -752,6 +777,7 @@ export type IntegrationResolvers<ContextType = GremlinContext, ParentType extend
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  connectGoogle?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
@@ -837,9 +863,13 @@ export type SkillResolvers<ContextType = GremlinContext, ParentType extends Reso
 export type SubscriptionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
   agentLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "agentLogCreated", ParentType, ContextType, RequireFields<SubscriptionAgentLogCreatedArgs, 'agentId'>>;
+  agentUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentUpdatedArgs, 'agentId'>>;
+  agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
   documentUpdated?: SubscriptionResolver<ResolversTypes['Document'], "documentUpdated", ParentType, ContextType, RequireFields<SubscriptionDocumentUpdatedArgs, 'id'>>;
+  documentsUpdated?: SubscriptionResolver<ResolversTypes['Document'], "documentsUpdated", ParentType, ContextType, RequireFields<SubscriptionDocumentsUpdatedArgs, 'documentIds'>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;
   taskUpdated?: SubscriptionResolver<ResolversTypes['Task'], "taskUpdated", ParentType, ContextType, RequireFields<SubscriptionTaskUpdatedArgs, 'taskId'>>;
+  tasksUpdated?: SubscriptionResolver<ResolversTypes['Task'], "tasksUpdated", ParentType, ContextType, RequireFields<SubscriptionTasksUpdatedArgs, 'taskIds'>>;
 };
 
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {

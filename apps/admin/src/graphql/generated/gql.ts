@@ -26,6 +26,7 @@ type Documents = {
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": typeof types.DocumentUpdatedDocument,
     "\n  query Integrations {\n    integrations {\n      id\n      service\n      icon\n      account\n    }\n  }\n": typeof types.IntegrationsDocument,
     "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": typeof types.IntegrationDocument,
+    "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n": typeof types.ConnectGoogleDocument,
     "\n  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {\n    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": typeof types.TogglePermissionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
@@ -57,6 +58,7 @@ const documents: Documents = {
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": types.DocumentUpdatedDocument,
     "\n  query Integrations {\n    integrations {\n      id\n      service\n      icon\n      account\n    }\n  }\n": types.IntegrationsDocument,
     "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": types.IntegrationDocument,
+    "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n": types.ConnectGoogleDocument,
     "\n  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {\n    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": types.TogglePermissionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
@@ -121,6 +123,10 @@ export function graphql(source: "\n  query Integrations {\n    integrations {\n 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n"): typeof import('./graphql').ConnectGoogleDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

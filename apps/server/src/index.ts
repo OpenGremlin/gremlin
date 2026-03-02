@@ -93,6 +93,26 @@ if (!process.env.MEDIA_CDN_URL) {
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
 }
 
+// Google OAuth callback
+app.get("/auth/google/callback", async (req, res) => {
+  const adminOrigin = process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
+  const code = req.query.code as string | undefined;
+  const state = req.query.state as string | undefined;
+
+  if (!code || !state) {
+    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+    return;
+  }
+
+  try {
+    await services.google.handleGoogleCallback(resources, code, state);
+    res.redirect(`${adminOrigin}/integrations/google?connected=true`);
+  } catch (err) {
+    console.error("Google OAuth callback failed:", err);
+    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+  }
+});
+
 // Health check
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

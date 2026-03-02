@@ -18,7 +18,10 @@ const togglePermission: MutationResolvers["togglePermission"] = (
     enabled,
   );
 
+const connectGoogle: MutationResolvers["connectGoogle"] = (_parent, _args, ctx) =>
+  ctx.services.google.generateGoogleAuthUrl(ctx);
+
 export const integrationResolvers = {
   Query: { integrations, integration },
-  Mutation: { togglePermission },
+  Mutation: { togglePermission, connectGoogle },
 };

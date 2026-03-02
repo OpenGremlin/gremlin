@@ -29,5 +29,6 @@ export const integrationTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
+    connectGoogle: String!
   }
 `;

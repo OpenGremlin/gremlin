@@ -8,12 +8,14 @@ import { ProfileEntity } from "./schema/profile.js";
 import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
 import { DocumentEntity } from "./schema/document.js";
+import { GoogleOAuthTokenEntity } from "./schema/googleOAuthToken.js";
 import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 
 export const ddb = {
   table: GremlinTable,
   entities: {
     Document: DocumentEntity,
+    GoogleOAuthToken: GoogleOAuthTokenEntity,
     Agent: AgentEntity,
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,

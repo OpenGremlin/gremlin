@@ -25,12 +25,14 @@ import {
   type DocumentService,
   documentService,
 } from "./documents/index.js";
+import { type GoogleService, googleService } from "./google/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
 
 export interface Services {
   agentLogs: AgentLogService;
   agents: AgentService;
   documents: DocumentService;
+  google: GoogleService;
   jobs: JobService;
   integrations: IntegrationService;
   notifications: NotificationService;
@@ -48,6 +50,7 @@ export function createServices(): Services {
     agentLogs: agentLogService,
     agents: agentService,
     documents: documentService,
+    google: googleService,
     jobs: jobService,
     integrations: integrationService,
     notifications: notificationService,
