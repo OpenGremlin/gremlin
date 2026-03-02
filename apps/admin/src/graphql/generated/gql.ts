@@ -34,8 +34,8 @@ type Documents = {
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveNotificationDocument,
     "\n  mutation DismissNotification($id: ID!) {\n    dismissNotification(id: $id) {\n      id\n      status\n    }\n  }\n": typeof types.DismissNotificationDocument,
-    "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n    }\n  }\n": typeof types.ProfileDocument,
-    "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n    }\n  }\n": typeof types.UpdateProfileDocument,
+    "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.ProfileDocument,
+    "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.UpdateProfileDocument,
     "\n  query Avatars {\n    avatars {\n      id\n      name\n      url(width: 200)\n    }\n  }\n": typeof types.AvatarsDocument,
     "\n  query Skills {\n    skills {\n      id\n      name\n      description\n      version\n      installed\n    }\n  }\n": typeof types.SkillsDocument,
     "\n  query Skill($id: ID!) {\n    skill(id: $id) {\n      id\n      name\n      description\n      version\n      author\n      installed\n      category\n      homepage\n      requiredEnv\n    }\n  }\n": typeof types.SkillDocument,
@@ -66,8 +66,8 @@ const documents: Documents = {
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveNotificationDocument,
     "\n  mutation DismissNotification($id: ID!) {\n    dismissNotification(id: $id) {\n      id\n      status\n    }\n  }\n": types.DismissNotificationDocument,
-    "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n    }\n  }\n": types.ProfileDocument,
-    "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n    }\n  }\n": types.UpdateProfileDocument,
+    "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.ProfileDocument,
+    "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.UpdateProfileDocument,
     "\n  query Avatars {\n    avatars {\n      id\n      name\n      url(width: 200)\n    }\n  }\n": types.AvatarsDocument,
     "\n  query Skills {\n    skills {\n      id\n      name\n      description\n      version\n      installed\n    }\n  }\n": types.SkillsDocument,
     "\n  query Skill($id: ID!) {\n    skill(id: $id) {\n      id\n      name\n      description\n      version\n      author\n      installed\n      category\n      homepage\n      requiredEnv\n    }\n  }\n": types.SkillDocument,
@@ -158,11 +158,11 @@ export function graphql(source: "\n  mutation DismissNotification($id: ID!) {\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n    }\n  }\n"): typeof import('./graphql').ProfileDocument;
+export function graphql(source: "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n"): typeof import('./graphql').ProfileDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n    }\n  }\n"): typeof import('./graphql').UpdateProfileDocument;
+export function graphql(source: "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n"): typeof import('./graphql').UpdateProfileDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

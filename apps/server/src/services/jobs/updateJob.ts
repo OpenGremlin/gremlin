@@ -11,20 +11,25 @@ interface UpdateJobInput {
   agentId?: string | null;
 }
 
-const CRON_SYSTEM_PROMPT = `You convert natural-language schedule descriptions into standard 5-field cron expressions (minute hour day-of-month month day-of-week).
+function getCronSystemPrompt(timezone: string): string {
+  return `You convert natural-language schedule descriptions into standard 5-field cron expressions (minute hour day-of-month month day-of-week).
 
 Rules:
 - Output ONLY the cron expression, nothing else. No explanation, no markdown.
-- Use 24-hour time. Default to 09:00 UTC when no time is specified.
+- Use 24-hour time. Times are in the user's timezone: ${timezone}. Default to 09:00 in that timezone when no time is specified.
 - Day-of-week: 0=Sunday, 1=Monday, ..., 6=Saturday.
 - If the input is ambiguous, pick the most reasonable interpretation.
 - If the input cannot be interpreted as a schedule at all, respond with exactly: ERROR`;
+}
 
 /** Use an LLM to convert natural-language recurrence to a cron expression. */
-async function recurrenceToCron(recurrence: string): Promise<string> {
+async function recurrenceToCron(
+  recurrence: string,
+  timezone: string,
+): Promise<string> {
   const { text } = await generateText({
     model: getModel(),
-    system: CRON_SYSTEM_PROMPT,
+    system: getCronSystemPrompt(timezone),
     messages: [{ role: "user", content: recurrence }],
   });
 
@@ -57,8 +62,10 @@ export async function updateJob(
   if (input.agentId != null) updates.agentId = input.agentId;
 
   if (input.recurrence != null) {
+    const profile = await ctx.services.profile.getProfile(ctx, "default");
+    const timezone = profile?.timezone ?? "UTC";
     updates.recurrence = input.recurrence;
-    updates.cronExpression = await recurrenceToCron(input.recurrence);
+    updates.cronExpression = await recurrenceToCron(input.recurrence, timezone);
   }
 
   const { Attributes } = await ctx.resources.ddb.entities.AgentJob.build(

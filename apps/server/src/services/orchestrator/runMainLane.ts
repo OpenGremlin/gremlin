@@ -43,6 +43,7 @@ export async function runMainLane(
       userDisplayName: profile?.displayName ?? "the user",
       userAbout: profile?.about,
     }),
+    timezone: profile?.timezone ?? undefined,
     messages,
     tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
   });

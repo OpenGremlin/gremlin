@@ -14,6 +14,7 @@ export const ProfileEntity = new Entity({
     displayName: string(),
     about: string(),
     website: anyOf(string(), nul()),
+    timezone: anyOf(string(), nul()),
   }),
   computeKey: ({ name }) => ({
     pk: "PROFILE",

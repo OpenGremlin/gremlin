@@ -6,6 +6,7 @@ export const ProfileQuery = graphql(`
       displayName
       about
       website
+      timezone
     }
   }
 `);
@@ -16,6 +17,7 @@ export const UpdateProfileMutation = graphql(`
       displayName
       about
       website
+      timezone
     }
   }
 `);

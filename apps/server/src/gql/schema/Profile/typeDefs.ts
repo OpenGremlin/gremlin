@@ -3,12 +3,14 @@ export const profileTypeDefs = /* GraphQL */ `
     displayName: String!
     about: String!
     website: String
+    timezone: String
   }
 
   input ProfileInput {
     displayName: String!
     about: String!
     website: String
+    timezone: String
   }
 
   extend type Query {

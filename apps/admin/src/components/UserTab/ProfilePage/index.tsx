@@ -7,10 +7,13 @@ import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
+const TIMEZONES = Intl.supportedValuesOf("timeZone");
+
 interface ProfileFormValues {
   displayName: string;
   about: string;
   website: string;
+  timezone: string;
 }
 
 export function ProfilePage() {
@@ -32,6 +35,9 @@ export function ProfilePage() {
         displayName: profile.displayName,
         about: profile.about,
         website: profile.website ?? "",
+        timezone:
+          profile.timezone ??
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
     }
   }, [profile, reset]);
@@ -42,6 +48,7 @@ export function ProfilePage() {
         displayName: values.displayName,
         about: values.about,
         website: values.website || null,
+        timezone: values.timezone || null,
       },
     });
     reset(values);
@@ -95,6 +102,26 @@ export function ProfilePage() {
           placeholder="https://"
           className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors placeholder:text-neutral-600"
         />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="profile-timezone"
+          className="text-xs text-neutral-500"
+        >
+          Timezone
+        </label>
+        <select
+          id="profile-timezone"
+          {...register("timezone")}
+          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+        >
+          {TIMEZONES.map((tz) => (
+            <option key={tz} value={tz}>
+              {tz.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex items-center gap-3">

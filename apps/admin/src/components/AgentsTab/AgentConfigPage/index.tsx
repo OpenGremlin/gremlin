@@ -99,21 +99,28 @@ export function AgentConfigPage() {
         className="mt-4 flex flex-col gap-4"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setPickerOpen(true)}
-            className="relative group shrink-0"
-          >
-            <AgentAvatar id={agent.id} size="lg" />
-            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
-              <Pencil size={12} className="text-neutral-200" />
-            </div>
-          </button>
-          <div className="flex-1 min-w-0">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-neutral-500">Avatar Image</label>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="relative group shrink-0 self-start"
+            >
+              <AgentAvatar id={agent.id} size="lg" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-neutral-700 border-2 border-neutral-950 flex items-center justify-center group-hover:bg-neutral-600 transition-colors">
+                <Pencil size={12} className="text-neutral-200" />
+              </div>
+            </button>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="name-field" className="text-xs text-neutral-500">
+              Name
+            </label>
             <input
+              id="name-field"
               {...register("name")}
-              className="w-full bg-transparent text-xl font-semibold text-neutral-100 outline-none border-b border-transparent focus:border-neutral-700 transition-colors"
+              className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
             />
           </div>
         </div>

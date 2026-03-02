@@ -66,6 +66,7 @@ export async function runTaskLane(
       taskTitle: task.title,
       taskId,
     }),
+    timezone: profile?.timezone ?? undefined,
     messages,
     tools: {
       ...defaultTools,

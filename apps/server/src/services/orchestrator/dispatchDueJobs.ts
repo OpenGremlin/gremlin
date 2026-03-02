@@ -12,12 +12,14 @@ import { runTaskLane } from "./runTaskLane.js";
  */
 export async function dispatchDueJobs(ctx: ServiceContext) {
   const jobs = await ctx.services.jobs.getJobs(ctx);
+  const profile = await ctx.services.profile.getProfile(ctx, "default");
+  const timezone = profile?.timezone ?? "UTC";
 
   for (const job of jobs) {
     if (job.status === "PAUSED") continue;
     if (!job.cronExpression) continue;
 
-    const triggerTimeMs = computeLastDueTrigger(job.cronExpression);
+    const triggerTimeMs = computeLastDueTrigger(job.cronExpression, Date.now(), timezone);
     if (triggerTimeMs === null) continue;
 
     const taskId = crypto.randomUUID();

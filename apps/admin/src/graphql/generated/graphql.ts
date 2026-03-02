@@ -287,12 +287,14 @@ export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
   displayName: Scalars['String']['output'];
+  timezone?: Maybe<Scalars['String']['output']>;
   website?: Maybe<Scalars['String']['output']>;
 };
 
 export type ProfileInput = {
   about: Scalars['String']['input'];
   displayName: Scalars['String']['input'];
+  timezone?: InputMaybe<Scalars['String']['input']>;
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -672,14 +674,14 @@ export type DismissNotificationMutation = { __typename?: 'Mutation', dismissNoti
 export type ProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProfileQuery = { __typename?: 'Query', profile: { __typename?: 'Profile', displayName: string, about: string, website?: string | null } };
+export type ProfileQuery = { __typename?: 'Query', profile: { __typename?: 'Profile', displayName: string, about: string, website?: string | null, timezone?: string | null } };
 
 export type UpdateProfileMutationVariables = Exact<{
   input: ProfileInput;
 }>;
 
 
-export type UpdateProfileMutation = { __typename?: 'Mutation', updateProfile: { __typename?: 'Profile', displayName: string, about: string, website?: string | null } };
+export type UpdateProfileMutation = { __typename?: 'Mutation', updateProfile: { __typename?: 'Profile', displayName: string, about: string, website?: string | null, timezone?: string | null } };
 
 export type AvatarsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1046,6 +1048,7 @@ export const ProfileDocument = new TypedDocumentString(`
     displayName
     about
     website
+    timezone
   }
 }
     `) as unknown as TypedDocumentString<ProfileQuery, ProfileQueryVariables>;
@@ -1055,6 +1058,7 @@ export const UpdateProfileDocument = new TypedDocumentString(`
     displayName
     about
     website
+    timezone
   }
 }
     `) as unknown as TypedDocumentString<UpdateProfileMutation, UpdateProfileMutationVariables>;

@@ -18,6 +18,7 @@ export async function runAgentTurn(
     agentId: string;
     taskId: string | null;
     systemPrompt: string;
+    timezone?: string;
     messages: ModelMessage[];
     tools?: Record<string, Tool>;
   },
@@ -26,6 +27,10 @@ export async function runAgentTurn(
     ...opts.tools,
     requestApproval: requestApprovalTool(ctx, opts.agentId),
   };
+
+  const tz = opts.timezone ?? "UTC";
+  const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
+
   const result = await generateText({
     model: getModel(),
     messages: [
@@ -36,6 +41,7 @@ export async function runAgentTurn(
           anthropic: { cacheControl: { type: "ephemeral" } },
         },
       },
+      { role: "system", content: `Current time: ${currentTime} (${tz})` },
       ...opts.messages,
     ],
     tools: allTools,

@@ -45,6 +45,7 @@ function makeCtx(jobs: ReturnType<typeof makeJob>[]): ServiceContext {
     },
     services: {
       jobs: { getJobs: vi.fn(() => Promise.resolve(jobs)) },
+      profile: { getProfile: vi.fn(() => Promise.resolve(null)) },
     },
     mediaCdnUrl: "",
   } as unknown as ServiceContext;

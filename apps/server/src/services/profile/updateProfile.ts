@@ -9,6 +9,7 @@ export async function updateProfile(
     displayName: string;
     about: string;
     website?: string | null;
+    timezone?: string | null;
   },
 ): Promise<ProfileItem> {
   const item = {
@@ -16,6 +17,7 @@ export async function updateProfile(
     displayName: input.displayName,
     about: input.about,
     website: input.website ?? null,
+    timezone: input.timezone ?? null,
   };
 
   await ctx.resources.ddb.entities.Profile.build(PutItemCommand)

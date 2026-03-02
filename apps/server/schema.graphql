@@ -220,12 +220,14 @@ type Profile {
   displayName: String!
   about: String!
   website: String
+  timezone: String
 }
 
 input ProfileInput {
   displayName: String!
   about: String!
   website: String
+  timezone: String
 }
 
 type Skill {

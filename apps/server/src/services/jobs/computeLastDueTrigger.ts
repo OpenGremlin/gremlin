@@ -9,11 +9,12 @@ const CATCH_UP_MS = 3 * 60 * 60 * 1000; // 3 hours
 export function computeLastDueTrigger(
   cronExpression: string,
   now: number = Date.now(),
+  tz: string = "UTC",
 ): number | null {
   try {
     const expr = CronExpressionParser.parse(cronExpression, {
       currentDate: new Date(now),
-      tz: "UTC",
+      tz,
     });
     const prev = expr.prev();
     const prevMs = prev.toDate().getTime();

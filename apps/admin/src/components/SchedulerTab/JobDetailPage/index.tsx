@@ -100,8 +100,11 @@ export function JobDetailPage() {
     <div className="px-4 pt-6 pb-4">
       <BackButton />
 
-      {/* Header */}
-      <div className="mt-4 flex items-center gap-3">
+      {/* Job Name */}
+      <section className="mt-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
+          Job Name
+        </h2>
         <input
           type="text"
           value={currentName}
@@ -109,10 +112,10 @@ export function JobDetailPage() {
             const val = e.target.value;
             setName(val === job.name ? null : val);
           }}
-          className="text-xl font-semibold text-neutral-100 bg-transparent border-none outline-none focus:ring-0 p-0"
+          className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
           placeholder="Job name"
         />
-      </div>
+      </section>
 
       {/* Agent Picker */}
       <section className="mt-6">
@@ -168,7 +171,7 @@ export function JobDetailPage() {
       {/* Describe Job */}
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Describe Job
+          Job Description
         </h2>
         <textarea
           value={currentDescription}
