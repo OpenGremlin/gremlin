@@ -20,7 +20,7 @@ export const TaskEntity = new Entity({
     updatedAt: string(),
     completedAt: anyOf(string(), nul()),
     originJobId: anyOf(string(), nul()),
-    artifacts: list(string()).optional(),
+    artifacts: list(string()).default([]),
   }),
   computeKey: ({ id, agentId, createdAt }) => ({
     pk: "TASK",
