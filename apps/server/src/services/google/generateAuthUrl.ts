@@ -2,6 +2,8 @@ import type { ServiceContext } from "../context.js";
 import { getGoogleOAuthClient } from "./getGoogleOAuthClient.js";
 
 const SCOPES = [
+  "openid",
+  "email",
   "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/gmail.send",
   "https://www.googleapis.com/auth/documents.readonly",
