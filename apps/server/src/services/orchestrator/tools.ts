@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
 import type { ServiceContext } from "../context.js";
+import { applyPatches } from "../documents/applyPatches.js";
 
 export const webSearch = tool({
   description:
@@ -181,18 +182,33 @@ export function createDocumentTool(ctx: ServiceContext, taskId: string) {
 export function updateDocumentTool(ctx: ServiceContext) {
   return tool({
     description:
-      "Update an existing document. Use this to revise or expand a document you previously created.",
+      "Update an existing document by applying patches. Send old_text/new_text pairs instead of the full body. To replace text, set old_text to the existing text and new_text to the replacement. To delete text, set new_text to an empty string. To insert text, include surrounding text in old_text and add the new content in new_text.",
     inputSchema: z.object({
       id: z.string().describe("The document ID to update"),
       title: z.string().optional().describe("New title (optional)"),
-      body: z.string().optional().describe("New body in markdown (optional)"),
+      patches: z
+        .array(
+          z.object({
+            old_text: z
+              .string()
+              .describe("The existing text to find in the document"),
+            new_text: z
+              .string()
+              .describe(
+                "The replacement text (empty string to delete)",
+              ),
+          }),
+        )
+        .min(1)
+        .describe("Array of patches to apply sequentially"),
     }),
-    execute: async ({ id, title, body }) => {
+    execute: async ({ id, title, patches }) => {
       const doc = await ctx.services.documents.getDocument(ctx, id);
       if (!doc) throw new Error(`Document ${id} not found`);
+      const newBody = applyPatches(doc.body, patches);
       await ctx.services.documents.updateDocument(ctx, id, {
         title: title ?? doc.title,
-        body: body ?? doc.body,
+        body: newBody,
       });
       return { id, title: title ?? doc.title };
     },
