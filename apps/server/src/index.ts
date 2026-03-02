@@ -9,6 +9,8 @@ import { createServer } from "node:http";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import express from "express";
 import { createYoga } from "graphql-yoga";
+import { useServer } from "graphql-ws/use/ws";
+import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
@@ -25,11 +27,13 @@ const app = express();
 const resources = createResources();
 const services = createServices();
 
+const schema = makeExecutableSchema({
+  typeDefs: mergedTypeDefs,
+  resolvers: mergedResolvers,
+});
+
 const yoga = createYoga({
-  schema: makeExecutableSchema({
-    typeDefs: mergedTypeDefs,
-    resolvers: mergedResolvers,
-  }),
+  schema,
   cors: {
     origin: process.env.ADMIN_ORIGIN ?? "http://localhost:5173",
     credentials: true,
@@ -84,6 +88,36 @@ const server = createServer((req, res) => {
   app(req, res);
 });
 
+// WebSocket server for GraphQL subscriptions
+const wsServer = new WebSocketServer({ noServer: true });
+useServer(
+  {
+    schema,
+    context: async (ctx: { connectionParams?: Record<string, unknown> }) => {
+      const token = ctx.connectionParams?.token as string | undefined;
+      let user: AuthUser;
+      if (SKIP_AUTH) {
+        user = { sub: "local", email: "local@dev" } as AuthUser;
+      } else {
+        if (!token) throw new Error("Unauthorized");
+        user = await verifyToken(token);
+      }
+      return { user, mediaCdnUrl: MEDIA_CDN_URL, resources, services };
+    },
+  },
+  wsServer,
+);
+
+server.on("upgrade", (req, socket, head) => {
+  if (req.url?.startsWith("/graphql")) {
+    wsServer.handleUpgrade(req, socket, head, (ws) => {
+      wsServer.emit("connection", ws, req);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
 // Serve media assets locally (in production CloudFront handles this)
 if (!process.env.MEDIA_CDN_URL) {
   const mediaAssets = path.resolve(
@@ -123,6 +157,7 @@ server.listen(PORT, () => {
 });
 
 function shutdown() {
+  wsServer.close();
   server.close(() => {
     process.exit(0);
   });

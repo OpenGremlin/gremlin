@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "cronstrue": "^3.13.0",
+    "graphql-ws": "^6.0.7",
     "lucide-react": "^0.575.0",
     "react": "^19",
     "react-dom": "^19",

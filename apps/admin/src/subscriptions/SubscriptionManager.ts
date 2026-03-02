@@ -1,25 +1,15 @@
-import { getToken } from "../auth";
-
-const API_URL =
-  (
-    (window as unknown as Record<string, unknown>).__GREMLIN_CONFIG__ as
-      | { apiUrl?: string }
-      | undefined
-  )?.apiUrl ||
-  (import.meta.env.VITE_API_URL as string) ||
-  "";
+import { wsClient } from "../wsClient";
 
 type Callback = (entity: Record<string, unknown>) => void;
 
 /**
- * Manages a single SSE connection for a batch subscription type.
- * Collects entity IDs from many components, opens one connection
+ * Manages a single WebSocket subscription for a batch subscription type.
+ * Collects entity IDs from many components, opens one subscription
  * with all IDs, and dispatches updates to the correct callbacks.
  */
 export class SubscriptionManager {
   private registry = new Map<string, Set<Callback>>();
-  private controller: AbortController | null = null;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private unsubscribe: (() => void) | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private activeIds: string[] = [];
 
@@ -64,7 +54,7 @@ export class SubscriptionManager {
     }
     // Same set of IDs — keep existing connection
     if (
-      this.controller &&
+      this.unsubscribe &&
       ids.length === this.activeIds.length &&
       ids.every((id, i) => id === this.activeIds[i])
     ) {
@@ -76,80 +66,26 @@ export class SubscriptionManager {
   }
 
   private disconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    if (this.controller) {
-      this.controller.abort();
-      this.controller = null;
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = null;
     }
   }
 
   private connect() {
-    const controller = new AbortController();
-    this.controller = controller;
-
-    const variables = JSON.stringify({
-      [this.variableName]: this.activeIds,
-    });
-    const params = new URLSearchParams({
-      query: this.queryStr,
-      variables,
-    });
-
-    const token = getToken();
-    const headers: Record<string, string> = {
-      Accept: "text/event-stream",
-    };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    const run = async () => {
-      try {
-        const res = await fetch(`${API_URL}/graphql?${params.toString()}`, {
-          method: "GET",
-          headers,
-          signal: controller.signal,
-        });
-        if (!res.ok || !res.body) return;
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const raw = line.slice(6).trim();
-            if (!raw) continue;
-            try {
-              const json = JSON.parse(raw);
-              if (json.data) {
-                this.dispatch(json.data);
-              }
-            } catch {
-              // skip malformed
-            }
-          }
-        }
-      } catch (err) {
-        if ((err as Error).name === "AbortError") return;
-        if (!controller.signal.aborted) {
-          this.reconnectTimer = setTimeout(() => {
-            if (!controller.signal.aborted) run();
-          }, 3000);
-        }
-      }
-    };
-
-    run();
+    this.unsubscribe = wsClient.subscribe(
+      {
+        query: this.queryStr,
+        variables: { [this.variableName]: this.activeIds },
+      },
+      {
+        next: ({ data }) => {
+          if (data) this.dispatch(data as Record<string, unknown>);
+        },
+        error: () => {},
+        complete: () => {},
+      },
+    );
   }
 
   private dispatch(data: Record<string, unknown>) {
