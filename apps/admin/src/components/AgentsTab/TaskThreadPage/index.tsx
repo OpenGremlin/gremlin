@@ -164,8 +164,12 @@ export function TaskThreadPage() {
       ) : (
         <>
           <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1">
-            {chatMessages.map((msg) => (
-              <LogEntryView key={msg.id} entry={msg} />
+            {chatMessages.map((msg, i) => (
+              <LogEntryView
+                key={msg.id}
+                entry={msg}
+                isLast={i === chatMessages.length - 1}
+              />
             ))}
             {isAgentActive && (
               <div className="flex justify-start py-1">

@@ -112,9 +112,11 @@ function DelegateTaskCard({
 export function LogEntryView({
   entry,
   onTaskClick,
+  isLast,
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
+  isLast?: boolean;
 }) {
   switch (entry.role) {
     case "SYSTEM":
@@ -157,18 +159,21 @@ export function LogEntryView({
       if (tool.name === "updateTaskStatus") {
         const status = tool.input?.status as string | undefined;
         const message = tool.input?.message as string | undefined;
+        const isActive = (status === "RUNNING" || status === "WAITING") && isLast;
         const StatusIcon =
           status === "COMPLETED" ? CheckCircle
             : status === "FAILED" ? XCircle
             : status === "ABANDONED" ? AlertCircle
-            : status === "WAITING" ? Pause
-            : Circle;
+            : status === "WAITING" && !isLast ? Pause
+            : isActive ? Loader2
+            : CheckCircle;
         const iconClass =
           status === "COMPLETED" ? "text-green-500"
             : status === "FAILED" ? "text-red-400"
             : status === "ABANDONED" ? "text-neutral-400"
-            : status === "WAITING" ? "text-amber-400"
-            : "text-blue-400";
+            : status === "WAITING" && !isLast ? "text-amber-400"
+            : isActive ? "text-blue-400 animate-spin"
+            : "text-green-500";
 
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
