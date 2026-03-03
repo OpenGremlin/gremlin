@@ -59,6 +59,14 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
 
+  // Bedrock provider uses server-side credentials — no API key needed
+  if (activeModel.providerId === "bedrock") {
+    const model = bedrock(activeModel.modelId);
+    cachedModel = model;
+    cacheExpiresAt = now + 30_000;
+    return model;
+  }
+
   // Fetch the API key for the active provider
   const { Item: keyItem } =
     await ctx.resources.ddb.entities.ModelProviderKey.build(GetItemCommand)

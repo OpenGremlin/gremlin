@@ -3,6 +3,7 @@ import type { ServiceContext } from "../context.js";
 import { invalidateModelCache } from "../orchestrator/model.js";
 import { providers } from "./providers.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
+import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
 
 export async function setActiveModel(
   ctx: ServiceContext,
@@ -19,11 +20,21 @@ export async function setActiveModel(
     throw new Error(`Unknown model: ${modelId} for provider ${providerId}`);
   }
 
-  const apiKey = await getProviderApiKey(ctx.resources, providerId);
-  if (!apiKey) {
-    throw new Error(
-      `No API key configured for provider: ${providerId}. Connect an API key first.`,
-    );
+  if (provider.connectionType === "bedrock") {
+    // Bedrock uses server-side credentials — verify the model has been enabled
+    const enabled = await getBedrockEnabledModels(ctx.resources);
+    if (!enabled.includes(modelId)) {
+      throw new Error(
+        `Bedrock model not enabled: ${modelId}. Enable it first.`,
+      );
+    }
+  } else {
+    const apiKey = await getProviderApiKey(ctx.resources, providerId);
+    if (!apiKey) {
+      throw new Error(
+        `No API key configured for provider: ${providerId}. Connect an API key first.`,
+      );
+    }
   }
 
   await ctx.resources.ddb.entities.Setting.build(PutItemCommand)

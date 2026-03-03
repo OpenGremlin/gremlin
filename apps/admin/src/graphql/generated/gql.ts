@@ -31,6 +31,9 @@ type Documents = {
     "\n  mutation RenameConnection($id: ID!, $description: String!) {\n    renameIntegrationConnection(id: $id, description: $description)\n  }\n": typeof types.RenameConnectionDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": typeof types.RevokeConnectionDocument,
     "\n  mutation SetActiveModel($providerId: String!, $modelId: String!) {\n    setActiveModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.SetActiveModelDocument,
+    "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
+    "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
+    "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.UpdateAgentJobDocument,
@@ -66,6 +69,9 @@ const documents: Documents = {
     "\n  mutation RenameConnection($id: ID!, $description: String!) {\n    renameIntegrationConnection(id: $id, description: $description)\n  }\n": types.RenameConnectionDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": types.RevokeConnectionDocument,
     "\n  mutation SetActiveModel($providerId: String!, $modelId: String!) {\n    setActiveModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.SetActiveModelDocument,
+    "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
+    "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
+    "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.UpdateAgentJobDocument,
@@ -149,6 +155,18 @@ export function graphql(source: "\n  mutation RevokeConnection($id: ID!) {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation SetActiveModel($providerId: String!, $modelId: String!) {\n    setActiveModel(providerId: $providerId, modelId: $modelId)\n  }\n"): typeof import('./graphql').SetActiveModelDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n"): typeof import('./graphql').BedrockEnabledModelsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n"): typeof import('./graphql').EnableBedrockModelDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n"): typeof import('./graphql').DisableBedrockModelDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

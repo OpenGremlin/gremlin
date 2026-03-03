@@ -12,6 +12,7 @@ type Query {
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
   activeModel: ActiveModel
+  bedrockEnabledModels: [String!]!
   notifications: [Notification!]!
   profile: Profile!
   skills: [Skill!]!
@@ -37,6 +38,8 @@ type Mutation {
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!
   setActiveModel(providerId: String!, modelId: String!): Boolean!
+  enableBedrockModel(modelId: String!): Boolean!
+  disableBedrockModel(modelId: String!): Boolean!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!

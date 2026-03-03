@@ -205,7 +205,9 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
+  enableBedrockModel: Scalars['Boolean']['output'];
   installSkill?: Maybe<Skill>;
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
@@ -244,8 +246,18 @@ export type MutationDeactivateFollowUpArgs = {
 };
 
 
+export type MutationDisableBedrockModelArgs = {
+  modelId: Scalars['String']['input'];
+};
+
+
 export type MutationDismissNotificationArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationEnableBedrockModelArgs = {
+  modelId: Scalars['String']['input'];
 };
 
 
@@ -387,6 +399,7 @@ export type Query = {
   agentLogs: AgentLogConnection;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  bedrockEnabledModels: Array<Scalars['String']['output']>;
   document?: Maybe<Document>;
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
@@ -905,7 +918,9 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
+  disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
+  enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
@@ -963,6 +978,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
+  bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   document?: Resolver<Maybe<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryDocumentArgs, 'id'>>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;

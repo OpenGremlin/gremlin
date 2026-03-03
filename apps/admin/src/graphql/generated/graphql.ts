@@ -189,7 +189,9 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
+  enableBedrockModel: Scalars['Boolean']['output'];
   installSkill?: Maybe<Skill>;
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
@@ -228,8 +230,18 @@ export type MutationDeactivateFollowUpArgs = {
 };
 
 
+export type MutationDisableBedrockModelArgs = {
+  modelId: Scalars['String']['input'];
+};
+
+
 export type MutationDismissNotificationArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationEnableBedrockModelArgs = {
+  modelId: Scalars['String']['input'];
 };
 
 
@@ -371,6 +383,7 @@ export type Query = {
   agentLogs: AgentLogConnection;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  bedrockEnabledModels: Array<Scalars['String']['output']>;
   document?: Maybe<Document>;
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
@@ -716,6 +729,25 @@ export type SetActiveModelMutationVariables = Exact<{
 
 export type SetActiveModelMutation = { __typename?: 'Mutation', setActiveModel: boolean };
 
+export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BedrockEnabledModelsQuery = { __typename?: 'Query', bedrockEnabledModels: Array<string> };
+
+export type EnableBedrockModelMutationVariables = Exact<{
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type EnableBedrockModelMutation = { __typename?: 'Mutation', enableBedrockModel: boolean };
+
+export type DisableBedrockModelMutationVariables = Exact<{
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type DisableBedrockModelMutation = { __typename?: 'Mutation', disableBedrockModel: boolean };
+
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1050,6 +1082,21 @@ export const SetActiveModelDocument = new TypedDocumentString(`
   setActiveModel(providerId: $providerId, modelId: $modelId)
 }
     `) as unknown as TypedDocumentString<SetActiveModelMutation, SetActiveModelMutationVariables>;
+export const BedrockEnabledModelsDocument = new TypedDocumentString(`
+    query BedrockEnabledModels {
+  bedrockEnabledModels
+}
+    `) as unknown as TypedDocumentString<BedrockEnabledModelsQuery, BedrockEnabledModelsQueryVariables>;
+export const EnableBedrockModelDocument = new TypedDocumentString(`
+    mutation EnableBedrockModel($modelId: String!) {
+  enableBedrockModel(modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<EnableBedrockModelMutation, EnableBedrockModelMutationVariables>;
+export const DisableBedrockModelDocument = new TypedDocumentString(`
+    mutation DisableBedrockModel($modelId: String!) {
+  disableBedrockModel(modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<DisableBedrockModelMutation, DisableBedrockModelMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
     query AgentJobs {
   agentJobs {

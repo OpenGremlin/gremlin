@@ -84,3 +84,21 @@ export const SetActiveModelMutation = graphql(`
     setActiveModel(providerId: $providerId, modelId: $modelId)
   }
 `);
+
+export const BedrockEnabledModelsQuery = graphql(`
+  query BedrockEnabledModels {
+    bedrockEnabledModels
+  }
+`);
+
+export const EnableBedrockModelMutation = graphql(`
+  mutation EnableBedrockModel($modelId: String!) {
+    enableBedrockModel(modelId: $modelId)
+  }
+`);
+
+export const DisableBedrockModelMutation = graphql(`
+  mutation DisableBedrockModel($modelId: String!) {
+    disableBedrockModel(modelId: $modelId)
+  }
+`);

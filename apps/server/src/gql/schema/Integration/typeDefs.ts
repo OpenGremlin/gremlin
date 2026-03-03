@@ -57,6 +57,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationProviders: [IntegrationProvider!]!
     integrationConnections: [IntegrationConnection!]!
     activeModel: ActiveModel
+    bedrockEnabledModels: [String!]!
   }
 
   extend type Mutation {
@@ -65,5 +66,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     renameIntegrationConnection(id: ID!, description: String!): Boolean!
     revokeIntegrationConnection(id: ID!): Boolean!
     setActiveModel(providerId: String!, modelId: String!): Boolean!
+    enableBedrockModel(modelId: String!): Boolean!
+    disableBedrockModel(modelId: String!): Boolean!
   }
 `;

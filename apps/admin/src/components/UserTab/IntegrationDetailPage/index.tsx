@@ -2,8 +2,11 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import {
+  BedrockEnabledModelsQuery,
   ConnectApiKeyMutation,
   ConnectIntegrationMutation,
+  DisableBedrockModelMutation,
+  EnableBedrockModelMutation,
   IntegrationProvidersQuery,
   SetActiveModelMutation,
 } from "../../../graphql/queries";
@@ -26,6 +29,13 @@ import jiraLogo from "../../../assets/logos/Jira.svg";
 import spotifyLogo from "../../../assets/logos/Spotify.svg";
 import hueLogo from "../../../assets/logos/Hue.svg";
 import homeAssistantLogo from "../../../assets/logos/HomeAssistant.svg";
+import anthropicLogo from "../../../assets/logos/Anthropic.svg";
+import openaiLogo from "../../../assets/logos/OpenAI.svg";
+import geminiLogo from "../../../assets/logos/Gemini.svg";
+import mistralLogo from "../../../assets/logos/Mistral.svg";
+import deepseekLogo from "../../../assets/logos/DeepSeek.svg";
+import xaiLogo from "../../../assets/logos/xAI.svg";
+import bedrockLogo from "../../../assets/logos/Bedrock.svg";
 
 const logoMap: Record<string, string> = {
   google: googleLogo,
@@ -43,12 +53,13 @@ const logoMap: Record<string, string> = {
   spotify: spotifyLogo,
   hue: hueLogo,
   homeassistant: homeAssistantLogo,
-};
-
-const aiProviderColors: Record<string, string> = {
-  anthropic: "bg-orange-900/60 text-orange-300",
-  openai: "bg-emerald-900/60 text-emerald-300",
-  google_ai: "bg-blue-900/60 text-blue-300",
+  anthropic: anthropicLogo,
+  openai: openaiLogo,
+  google_ai: geminiLogo,
+  mistral: mistralLogo,
+  deepseek: deepseekLogo,
+  xai: xaiLogo,
+  bedrock: bedrockLogo,
 };
 
 function IntegrationLogo({ id }: { id: string }) {
@@ -57,16 +68,6 @@ function IntegrationLogo({ id }: { id: string }) {
     return (
       <div className="h-12 w-12 flex items-center justify-center">
         <img src={logo} alt={id} className="h-12 w-12 object-contain" />
-      </div>
-    );
-  }
-  const aiColor = aiProviderColors[id];
-  if (aiColor) {
-    return (
-      <div
-        className={`h-12 w-12 rounded-full flex items-center justify-center text-xl font-semibold ${aiColor}`}
-      >
-        {id[0]?.toUpperCase()}
       </div>
     );
   }
@@ -254,6 +255,204 @@ function ApiKeyDetailView({
   );
 }
 
+function BedrockDetailView({
+  provider,
+  activeModel,
+  refetch,
+}: {
+  provider: {
+    id: string;
+    service: string;
+    models?: ReadonlyArray<{
+      id: string;
+      name: string;
+      contextWindow: number;
+      maxTokens: number;
+      reasoning: boolean;
+      inputCost?: number | null;
+      outputCost?: number | null;
+    }> | null;
+  };
+  activeModel: { providerId: string; modelId: string } | null;
+  refetch: () => void;
+}) {
+  const { data: enabledData, refetch: refetchEnabled } = useQuery(
+    BedrockEnabledModelsQuery,
+  );
+  const [enablingModel, setEnablingModel] = useState<string | null>(null);
+  const [disablingModel, setDisablingModel] = useState<string | null>(null);
+  const [settingModel, setSettingModel] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const enabledModels = enabledData?.bedrockEnabledModels ?? [];
+  const isActiveProvider = activeModel?.providerId === provider.id;
+  const models = provider.models ?? [];
+
+  async function handleEnable(modelId: string) {
+    setEnablingModel(modelId);
+    setError(null);
+    try {
+      await gql<{ enableBedrockModel: boolean }>(EnableBedrockModelMutation, {
+        modelId,
+      });
+      refetchEnabled();
+    } catch (err) {
+      setError(
+        `Failed to enable model: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
+    } finally {
+      setEnablingModel(null);
+    }
+  }
+
+  async function handleDisable(modelId: string) {
+    setDisablingModel(modelId);
+    setError(null);
+    try {
+      await gql<{ disableBedrockModel: boolean }>(DisableBedrockModelMutation, {
+        modelId,
+      });
+      refetchEnabled();
+      refetch();
+    } catch (err) {
+      setError(
+        `Failed to disable model: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
+    } finally {
+      setDisablingModel(null);
+    }
+  }
+
+  async function handleSetActive(modelId: string) {
+    setSettingModel(modelId);
+    setError(null);
+    try {
+      await gql<{ setActiveModel: boolean }>(SetActiveModelMutation, {
+        providerId: provider.id,
+        modelId,
+      });
+      refetch();
+    } catch (err) {
+      setError(
+        `Failed to set active model: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
+    } finally {
+      setSettingModel(null);
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-5 bg-neutral-900 rounded-xl p-4 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-neutral-100">AWS Credentials</p>
+          <p className="text-xs text-neutral-500 mt-0.5">
+            Managed server-side
+          </p>
+        </div>
+        <span className="flex items-center gap-1.5 text-xs">
+          <span className="inline-block w-2 h-2 rounded-full bg-green-400" />
+          <span className="text-neutral-400">Connected</span>
+        </span>
+      </div>
+
+      {error && (
+        <div className="mt-3 bg-red-900/30 border border-red-800/50 rounded-xl p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
+      {models.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-sm font-medium text-neutral-100 mb-3">Models</h2>
+          <div className="flex flex-col gap-2">
+            {models.map((model) => {
+              const isEnabled = enabledModels.includes(model.id);
+              const isActive =
+                isActiveProvider && activeModel?.modelId === model.id;
+              const isEnabling = enablingModel === model.id;
+              const isDisabling = disablingModel === model.id;
+              const isSetting = settingModel === model.id;
+
+              return (
+                <div
+                  key={model.id}
+                  className={`flex items-center justify-between bg-neutral-900 rounded-xl p-4 ${
+                    isActive ? "ring-1 ring-indigo-500/50" : ""
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-neutral-100">
+                        {model.name}
+                      </span>
+                      {model.reasoning && (
+                        <span className="text-[10px] font-medium bg-violet-500/20 text-violet-400 rounded px-1.5 py-0.5">
+                          Reasoning
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs text-neutral-500">
+                        {(model.contextWindow / 1000).toFixed(0)}k context
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isEnabling ? (
+                      <span className="text-xs text-neutral-400">
+                        Testing...
+                      </span>
+                    ) : isDisabling ? (
+                      <span className="text-xs text-neutral-400">
+                        Disabling...
+                      </span>
+                    ) : isSetting ? (
+                      <span className="text-xs text-neutral-400">
+                        Setting...
+                      </span>
+                    ) : isActive ? (
+                      <span className="flex items-center gap-1.5 text-xs">
+                        <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
+                        <span className="text-indigo-400">Active</span>
+                      </span>
+                    ) : isEnabled ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleSetActive(model.id)}
+                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                        >
+                          Set Active
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDisable(model.id)}
+                          className="text-xs text-neutral-500 hover:text-red-400 transition-colors"
+                        >
+                          Disable
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleEnable(model.id)}
+                        className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                      >
+                        Enable
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function OAuthDetailView({
   provider,
   id,
@@ -391,7 +590,13 @@ export function IntegrationDetailPage() {
         </div>
       </div>
 
-      {provider.connectionType === "apikey" ? (
+      {provider.connectionType === "bedrock" ? (
+        <BedrockDetailView
+          provider={provider}
+          activeModel={activeModel ?? null}
+          refetch={refetch}
+        />
+      ) : provider.connectionType === "apikey" ? (
         <ApiKeyDetailView
           provider={provider}
           activeModel={activeModel ?? null}

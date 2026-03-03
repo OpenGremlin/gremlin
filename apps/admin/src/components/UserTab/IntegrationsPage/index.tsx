@@ -23,6 +23,13 @@ import jiraLogo from "../../../assets/logos/Jira.svg";
 import spotifyLogo from "../../../assets/logos/Spotify.svg";
 import hueLogo from "../../../assets/logos/Hue.svg";
 import homeAssistantLogo from "../../../assets/logos/HomeAssistant.svg";
+import anthropicLogo from "../../../assets/logos/Anthropic.svg";
+import openaiLogo from "../../../assets/logos/OpenAI.svg";
+import geminiLogo from "../../../assets/logos/Gemini.svg";
+import mistralLogo from "../../../assets/logos/Mistral.svg";
+import deepseekLogo from "../../../assets/logos/DeepSeek.svg";
+import xaiLogo from "../../../assets/logos/xAI.svg";
+import bedrockLogo from "../../../assets/logos/Bedrock.svg";
 
 const logoMap: Record<string, string> = {
   google: googleLogo,
@@ -40,12 +47,13 @@ const logoMap: Record<string, string> = {
   spotify: spotifyLogo,
   hue: hueLogo,
   homeassistant: homeAssistantLogo,
-};
-
-const aiProviderColors: Record<string, string> = {
-  anthropic: "bg-orange-900/60 text-orange-300",
-  openai: "bg-emerald-900/60 text-emerald-300",
-  google_ai: "bg-blue-900/60 text-blue-300",
+  anthropic: anthropicLogo,
+  openai: openaiLogo,
+  google_ai: geminiLogo,
+  mistral: mistralLogo,
+  deepseek: deepseekLogo,
+  xai: xaiLogo,
+  bedrock: bedrockLogo,
 };
 
 function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
@@ -55,16 +63,6 @@ function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
     return (
       <div className={`${cls} flex items-center justify-center`}>
         <img src={logo} alt={id} className={`${cls} object-contain`} />
-      </div>
-    );
-  }
-  const aiColor = aiProviderColors[id];
-  if (aiColor) {
-    return (
-      <div
-        className={`${cls} rounded-full flex items-center justify-center text-lg font-semibold ${aiColor}`}
-      >
-        {id[0]?.toUpperCase()}
       </div>
     );
   }
@@ -223,7 +221,13 @@ export function IntegrationsPage() {
                   <span className="text-sm font-medium text-neutral-100">
                     {provider.service}
                   </span>
-                  <ConnectionCountBadge count={provider.connectionCount} />
+                  {provider.connectionType === "bedrock" ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                      <CircleCheck size={12} /> Connected
+                    </span>
+                  ) : (
+                    <ConnectionCountBadge count={provider.connectionCount} />
+                  )}
                 </Link>
               ))}
             </div>

@@ -21,6 +21,12 @@ const integrationConnections: QueryResolvers["integrationConnections"] = (
 const activeModel: QueryResolvers["activeModel"] = (_parent, _args, ctx) =>
   ctx.services.integrations.getActiveModel(ctx);
 
+const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.getBedrockEnabledModels(ctx.resources);
+
 const connectionCount: IntegrationProviderResolvers["connectionCount"] =
   async (parent, _args, ctx) => {
     const connections = await ctx.services.integrations.getConnections(
@@ -31,6 +37,8 @@ const connectionCount: IntegrationProviderResolvers["connectionCount"] =
 
 const hasConnection: IntegrationProviderResolvers["hasConnection"] =
   async (parent, _args, ctx) => {
+    // Bedrock uses server-side AWS credentials — always connected
+    if (parent.connectionType === "bedrock") return true;
     const connections = await ctx.services.integrations.getConnections(
       ctx.resources,
     );
@@ -82,14 +90,28 @@ const setActiveModel: MutationResolvers["setActiveModel"] = async (
   return true;
 };
 
+const enableBedrockModel: MutationResolvers["enableBedrockModel"] = async (
+  _parent,
+  { modelId },
+  ctx,
+) => ctx.services.integrations.enableBedrockModel(ctx.resources, modelId);
+
+const disableBedrockModel: MutationResolvers["disableBedrockModel"] = async (
+  _parent,
+  { modelId },
+  ctx,
+) => ctx.services.integrations.disableBedrockModel(ctx.resources, modelId);
+
 export const integrationResolvers = {
-  Query: { integrationProviders, integrationConnections, activeModel },
+  Query: { integrationProviders, integrationConnections, activeModel, bedrockEnabledModels },
   Mutation: {
     connectIntegration,
     connectApiKey,
     renameIntegrationConnection,
     revokeIntegrationConnection,
     setActiveModel,
+    enableBedrockModel,
+    disableBedrockModel,
   },
   IntegrationProvider: { connectionCount, hasConnection },
   IntegrationConnection: { meta },
