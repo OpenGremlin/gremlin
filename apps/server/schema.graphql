@@ -9,8 +9,8 @@ type Query {
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
-  integrations: [Integration!]!
-  integration(id: ID!): Integration
+  integrationProviders: [IntegrationProvider!]!
+  integrationConnections: [IntegrationConnection!]!
   modelProviders: [ModelProvider!]!
   activeModel: ActiveModel
   notifications: [Notification!]!
@@ -33,8 +33,8 @@ type Mutation {
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
-  connectIntegration(provider: String!): String!
-  disconnectIntegration(id: ID!): Boolean!
+  connectIntegration(providerId: String!, scopes: [String!]!): String!
+  revokeIntegrationConnection(id: ID!): Boolean!
   setProviderApiKey(providerId: String!, apiKey: String!): Boolean!
   removeProviderApiKey(providerId: String!): Boolean!
   setActiveModel(providerId: String!, modelId: String!): Boolean!
@@ -171,20 +171,40 @@ type Avatar {
   url(width: Int): String!
 }
 
-type Permission {
+type AvailableScope {
   scope: String!
   label: String!
 }
 
-type Integration {
+type IntegrationProvider {
   id: ID!
   service: String!
   category: String!
   description: String!
-  account: String
-  connectedAt: String
-  connected: Boolean!
-  permissions: [Permission!]!
+  availableScopes: [AvailableScope!]!
+  connectionCount: Int!
+}
+
+type OAuthConnectionMeta {
+  accountId: String
+  scopes: [String!]!
+  expiresAt: String
+}
+
+type ApiKeyConnectionMeta {
+  accountId: String
+}
+
+union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta
+
+type IntegrationConnection {
+  id: ID!
+  providerId: String!
+  connectionType: String!
+  description: String!
+  connectedAt: String!
+  isRevoked: Boolean!
+  meta: ConnectionMeta!
 }
 
 type ModelInfo {

@@ -18,6 +18,7 @@ import { TasksTab } from "../TasksTab";
 import { TaskThreadPage } from "../TaskThreadPage";
 import { UserTab } from "../UserTab";
 import { AIModelProviderPage } from "../UserTab/AIModelProviderPage";
+import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
 
@@ -86,6 +87,7 @@ export function RouterApp() {
           <Route path="user/:pill" element={<UserTab />} />
           <Route path="aimodels/:id" element={<AIModelProviderPage />} />
           <Route path="integrations/:id" element={<IntegrationDetailPage />} />
+          <Route path="connections/:id" element={<ConnectionDetailPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />
           <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />

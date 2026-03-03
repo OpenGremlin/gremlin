@@ -1,8 +1,10 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { gql } from "../../../auth";
-import { ConnectIntegrationMutation, IntegrationsQuery } from "../../../graphql/queries";
+import {
+  IntegrationConnectionsQuery,
+  IntegrationProvidersQuery,
+} from "../../../graphql/queries";
 import { QueryResult } from "../../../shared/QueryResult";
+import { formatDate } from "../../../shared/formatDate";
 import { useQuery } from "../../../useQuery";
 
 import googleLogo from "../../../assets/logos/Google.svg";
@@ -39,41 +41,48 @@ const logoMap: Record<string, string> = {
   homeassistant: homeAssistantLogo,
 };
 
-function IntegrationLogo({ id }: { id: string }) {
+function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
   const logo = logoMap[id];
+  const cls = `h-${size} w-${size}`;
   if (logo) {
     return (
-      <div className="h-10 w-10 flex items-center justify-center">
-        <img src={logo} alt={id} className="h-10 w-10 object-contain" />
+      <div className={`${cls} flex items-center justify-center`}>
+        <img src={logo} alt={id} className={`${cls} object-contain`} />
       </div>
     );
   }
-  return <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">{id[0]?.toUpperCase()}</div>;
-}
-
-function ChevronRight() {
   return (
-    <svg className="h-5 w-5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
+    <div
+      className={`${cls} rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400`}
+    >
+      {id[0]?.toUpperCase()}
+    </div>
   );
 }
 
-function StatusBadge({ connected }: { connected: boolean }) {
-  if (connected) {
+function ConnectionCountBadge({ count }: { count: number }) {
+  if (count === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-        Connected
+      <span className="inline-flex items-center gap-1 text-xs text-neutral-500">
+        <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
+        Not connected
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-neutral-500">
-      <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
-      Not connected
+    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+      {count} {count === 1 ? "connection" : "connections"}
     </span>
   );
+}
+
+function getAccountId(
+  meta:
+    | { __typename?: "OAuthConnectionMeta"; accountId?: string | null }
+    | { __typename?: "ApiKeyConnectionMeta"; accountId?: string | null },
+): string | null {
+  return meta.accountId ?? null;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -84,77 +93,87 @@ const categoryLabels: Record<string, string> = {
   smart_home: "Smart Home",
 };
 
-const categoryOrder = ["productivity", "communication", "developer", "entertainment", "smart_home"];
+const categoryOrder = [
+  "productivity",
+  "communication",
+  "developer",
+  "entertainment",
+  "smart_home",
+];
 
 export function IntegrationsPage() {
-  const { data, loading, error } = useQuery(IntegrationsQuery);
-  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const providers = useQuery(IntegrationProvidersQuery);
+  const connections = useQuery(IntegrationConnectionsQuery);
 
-  const integrations = data?.integrations ?? [];
+  const loading = providers.loading || connections.loading;
+  const error = providers.error || connections.error;
+
+  const providerList = providers.data?.integrationProviders ?? [];
+  const connectionList = connections.data?.integrationConnections ?? [];
 
   const grouped = categoryOrder
     .map((cat) => ({
       category: cat,
       label: categoryLabels[cat] ?? cat,
-      items: integrations.filter((i) => i.category === cat),
+      items: providerList.filter((p) => p.category === cat),
     }))
     .filter((g) => g.items.length > 0);
-
-  async function handleConnect(providerId: string) {
-    setConnectingId(providerId);
-    try {
-      const result = await gql<{ connectIntegration: string }>(
-        ConnectIntegrationMutation,
-        { provider: providerId },
-      );
-      window.location.href = result.connectIntegration;
-    } catch (err) {
-      console.error(`Failed to start OAuth for ${providerId}:`, err);
-      setConnectingId(null);
-    }
-  }
 
   return (
     <>
       <QueryResult loading={loading} error={error} />
       <div className="flex flex-col gap-5 px-4 pb-6">
+        {/* Active Connections */}
+        {connectionList.length > 0 && (
+          <div>
+            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
+              Connections
+            </h3>
+            <div className="flex flex-col gap-2">
+              {connectionList.map((conn) => (
+                <Link
+                  key={conn.id}
+                  to={`/connections/${conn.id}`}
+                  className="flex items-center gap-3 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800"
+                >
+                  <IntegrationLogo id={conn.providerId} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-100 truncate">
+                      {conn.description}
+                    </p>
+                    <p className="text-xs text-neutral-400 truncate">
+                      {getAccountId(conn.meta) ?? conn.providerId}
+                    </p>
+                  </div>
+                  <span className="text-xs text-neutral-500 shrink-0">
+                    {formatDate(conn.connectedAt)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Provider catalog grouped by category */}
         {grouped.map((group) => (
           <div key={group.category}>
             <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
               {group.label}
             </h3>
             <div className="grid grid-cols-3 gap-3">
-              {group.items.map((integration) =>
-                integration.connected ? (
-                  <Link
-                    key={integration.id}
-                    to={`/integrations/${integration.id}`}
-                    className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
-                  >
-                    <IntegrationLogo id={integration.id} />
-                    <span className="text-sm font-medium text-neutral-100">
-                      {integration.service}
-                    </span>
-                    <StatusBadge connected />
-                  </Link>
-                ) : (
-                  <button
-                    key={integration.id}
-                    type="button"
-                    onClick={() => handleConnect(integration.id)}
-                    disabled={connectingId === integration.id}
-                    className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 disabled:opacity-50 cursor-pointer disabled:cursor-default"
-                  >
-                    <div className="opacity-50 group-hover:opacity-75 transition-opacity">
-                      <IntegrationLogo id={integration.id} />
-                    </div>
-                    <span className="text-sm font-medium text-neutral-100">
-                      {integration.service}
-                    </span>
-                    <StatusBadge connected={false} />
-                  </button>
-                ),
-              )}
+              {group.items.map((provider) => (
+                <Link
+                  key={provider.id}
+                  to={`/integrations/${provider.id}`}
+                  className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
+                >
+                  <IntegrationLogo id={provider.id} />
+                  <span className="text-sm font-medium text-neutral-100">
+                    {provider.service}
+                  </span>
+                  <ConnectionCountBadge count={provider.connectionCount} />
+                </Link>
+              ))}
             </div>
           </div>
         ))}

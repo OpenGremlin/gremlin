@@ -1,21 +1,26 @@
 export type IntegrationCategory = "productivity" | "communication" | "developer" | "entertainment" | "smart_home";
 
-export interface ProviderDef {
+export interface AvailableScope {
+  scope: string;
+  label: string;
+}
+
+export interface IntegrationProviderDef {
   id: string;
   service: string;
   category: IntegrationCategory;
   description: string;
-  scopes: { scope: string; label: string }[];
+  availableScopes: AvailableScope[];
 }
 
-export const providers: ProviderDef[] = [
+export const providers: IntegrationProviderDef[] = [
   // Productivity
   {
     id: "google",
     service: "Google",
     category: "productivity",
     description: "Gmail & Google Docs",
-    scopes: [
+    availableScopes: [
       { scope: "gmail.readonly", label: "Read Gmail" },
       { scope: "gmail.send", label: "Send Gmail" },
       { scope: "documents.readonly", label: "Read Google Docs" },
@@ -26,7 +31,7 @@ export const providers: ProviderDef[] = [
     service: "Notion",
     category: "productivity",
     description: "Pages & Databases",
-    scopes: [
+    availableScopes: [
       { scope: "read_content", label: "Read Pages" },
       { scope: "insert_content", label: "Create Content" },
     ],
@@ -36,7 +41,7 @@ export const providers: ProviderDef[] = [
     service: "Linear",
     category: "productivity",
     description: "Issues & Projects",
-    scopes: [
+    availableScopes: [
       { scope: "read", label: "Read Issues" },
       { scope: "write", label: "Create & Update Issues" },
     ],
@@ -46,7 +51,7 @@ export const providers: ProviderDef[] = [
     service: "Trello",
     category: "productivity",
     description: "Boards & Cards",
-    scopes: [
+    availableScopes: [
       { scope: "read", label: "Read Boards" },
       { scope: "write", label: "Create & Move Cards" },
     ],
@@ -57,7 +62,7 @@ export const providers: ProviderDef[] = [
     service: "Slack",
     category: "communication",
     description: "Channels & Direct Messages",
-    scopes: [
+    availableScopes: [
       { scope: "channels:read", label: "Read Channels" },
       { scope: "chat:write", label: "Send Messages" },
     ],
@@ -67,7 +72,7 @@ export const providers: ProviderDef[] = [
     service: "Discord",
     category: "communication",
     description: "Servers & Direct Messages",
-    scopes: [
+    availableScopes: [
       { scope: "guilds", label: "Access Servers" },
       { scope: "messages.read", label: "Read Messages" },
     ],
@@ -77,7 +82,7 @@ export const providers: ProviderDef[] = [
     service: "Microsoft Teams",
     category: "communication",
     description: "Chats & Channels",
-    scopes: [
+    availableScopes: [
       { scope: "Chat.Read", label: "Read Chats" },
       { scope: "Chat.ReadWrite", label: "Send Messages" },
     ],
@@ -87,7 +92,7 @@ export const providers: ProviderDef[] = [
     service: "Telegram",
     category: "communication",
     description: "Chats & Channels",
-    scopes: [
+    availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
     ],
@@ -97,7 +102,7 @@ export const providers: ProviderDef[] = [
     service: "WhatsApp",
     category: "communication",
     description: "Messages & Groups",
-    scopes: [
+    availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
     ],
@@ -108,7 +113,7 @@ export const providers: ProviderDef[] = [
     service: "GitHub",
     category: "developer",
     description: "Repositories & Issues",
-    scopes: [
+    availableScopes: [
       { scope: "repo", label: "Access Repositories" },
       { scope: "issues:read", label: "Read Issues" },
     ],
@@ -118,7 +123,7 @@ export const providers: ProviderDef[] = [
     service: "GitLab",
     category: "developer",
     description: "Repositories & Merge Requests",
-    scopes: [
+    availableScopes: [
       { scope: "read_repository", label: "Read Repositories" },
       { scope: "api", label: "API Access" },
     ],
@@ -128,7 +133,7 @@ export const providers: ProviderDef[] = [
     service: "Jira",
     category: "developer",
     description: "Issues & Sprints",
-    scopes: [
+    availableScopes: [
       { scope: "read:jira-work", label: "Read Issues" },
       { scope: "write:jira-work", label: "Create & Update Issues" },
     ],
@@ -139,7 +144,7 @@ export const providers: ProviderDef[] = [
     service: "Spotify",
     category: "entertainment",
     description: "Playlists & Listening History",
-    scopes: [
+    availableScopes: [
       { scope: "user-read-playback-state", label: "Read Playback State" },
       { scope: "playlist-read-private", label: "Read Private Playlists" },
     ],
@@ -150,7 +155,7 @@ export const providers: ProviderDef[] = [
     service: "Philips Hue",
     category: "smart_home",
     description: "Lights & Scenes",
-    scopes: [
+    availableScopes: [
       { scope: "lights:read", label: "Read Light State" },
       { scope: "lights:write", label: "Control Lights" },
     ],
@@ -160,7 +165,7 @@ export const providers: ProviderDef[] = [
     service: "Home Assistant",
     category: "smart_home",
     description: "Devices & Automations",
-    scopes: [
+    availableScopes: [
       { scope: "state:read", label: "Read Device State" },
       { scope: "service:call", label: "Control Devices" },
     ],

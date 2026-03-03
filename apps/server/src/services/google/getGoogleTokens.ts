@@ -1,32 +1,48 @@
-import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
+import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
+import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import { getGoogleOAuthClient } from "./getGoogleOAuthClient.js";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes
 
+/**
+ * Get a valid Google access token. Finds the first active Google OAuth
+ * connection and refreshes the token if needed.
+ */
 export async function getGoogleAccessToken(
   resources: Resources,
   userId: string,
 ): Promise<string> {
-  const { Item } = await resources.ddb.entities.OAuthToken.build(
-    GetItemCommand,
-  )
-    .key({ userId, provider: "google" })
+  const { Items = [] } = await resources.ddb.secretsTable
+    .build(QueryCommand)
+    .entities(resources.ddb.entities.IntegrationConnection)
+    .query({ partition: "INTEGRATION_CONNECTION" })
     .send();
 
-  if (!Item) throw new Error("Google OAuth tokens not found for user");
+  const connection = (Items as IntegrationConnectionItem[]).find(
+    (item) =>
+      item.providerId === "google" &&
+      item.connectionType === "oauth" &&
+      !item.isRevoked &&
+      item.connectionMeta?.accessToken,
+  );
 
-  const expiresAt = new Date(Item.expiresAt).getTime();
+  if (!connection) {
+    throw new Error("Google OAuth connection not found");
+  }
+
+  const meta = connection.connectionMeta;
+  const expiresAt = new Date(meta.expiresAt ?? 0).getTime();
   const now = Date.now();
 
   if (now < expiresAt - REFRESH_BUFFER_MS) {
-    return Item.accessToken;
+    return meta.accessToken!;
   }
 
   // Refresh the token
   const client = await getGoogleOAuthClient();
-  client.setCredentials({ refresh_token: Item.refreshToken });
+  client.setCredentials({ refresh_token: meta.refreshToken });
   const { credentials } = await client.refreshAccessToken();
 
   if (!credentials.access_token) {
@@ -35,11 +51,14 @@ export async function getGoogleAccessToken(
 
   const newExpiresAt = new Date(credentials.expiry_date ?? 0).toISOString();
 
-  await resources.ddb.entities.OAuthToken.build(PutItemCommand)
+  await resources.ddb.entities.IntegrationConnection.build(PutItemCommand)
     .item({
-      ...Item,
-      accessToken: credentials.access_token,
-      expiresAt: newExpiresAt,
+      ...connection,
+      connectionMeta: {
+        ...meta,
+        accessToken: credentials.access_token,
+        expiresAt: newExpiresAt,
+      },
     })
     .send();
 

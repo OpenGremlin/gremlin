@@ -19,8 +19,10 @@ const config: CodegenConfig = {
             "../services/agentLogs/pagination.js#PageInfoModel",
           Document: "../resources/ddb/schema/document.js#DocumentItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
-          Integration:
-            "../services/integrations/providers.js#ProviderDef",
+          IntegrationProvider:
+            "../services/integrations/providers.js#IntegrationProviderDef",
+          IntegrationConnection:
+            "../services/integrations/getConnections.js#SafeIntegrationConnection",
           ModelProvider:
             "../services/modelProviders/getModelProviders.js#ModelProviderResult",
           ActiveModel:

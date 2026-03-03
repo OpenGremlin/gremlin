@@ -1,12 +1,22 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
+import { describeScopes } from "../integrations/describeScopes.js";
 import { getGoogleOAuthClient } from "./getGoogleOAuthClient.js";
+
+interface OAuthState {
+  userId: string;
+  connectionId: string;
+  scopes: string[];
+}
 
 export async function handleGoogleCallback(
   resources: Resources,
   code: string,
-  userId: string,
+  stateRaw: string,
 ): Promise<void> {
+  const state: OAuthState = JSON.parse(stateRaw);
+  const { userId, connectionId, scopes } = state;
+
   const client = await getGoogleOAuthClient();
   const { tokens } = await client.getToken(code);
 
@@ -23,19 +33,23 @@ export async function handleGoogleCallback(
 
   const now = new Date().toISOString();
   const expiresAt = new Date(tokens.expiry_date ?? 0).toISOString();
-  const scopes = (tokens.scope ?? "").split(" ").join(",");
+  const description = describeScopes("google", scopes);
 
-  // Store OAuth tokens
-  await resources.ddb.entities.OAuthToken.build(PutItemCommand)
+  await resources.ddb.entities.IntegrationConnection.build(PutItemCommand)
     .item({
-      userId,
-      provider: "google",
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      expiresAt,
-      scopes,
-      email,
+      id: connectionId,
+      providerId: "google",
+      connectionType: "oauth",
+      description,
       connectedAt: now,
+      isRevoked: false,
+      connectionMeta: {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresAt,
+        scopes: scopes.join(","),
+        accountId: email,
+      },
     })
     .send();
 }

@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import {
   ConnectIntegrationMutation,
-  DisconnectIntegrationMutation,
-  IntegrationQuery,
+  IntegrationProvidersQuery,
 } from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
-import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
@@ -54,45 +52,49 @@ function IntegrationLogo({ id }: { id: string }) {
       </div>
     );
   }
-  return <div className="h-12 w-12 rounded-full bg-neutral-800 flex items-center justify-center text-xl text-neutral-400">{id[0]?.toUpperCase()}</div>;
+  return (
+    <div className="h-12 w-12 rounded-full bg-neutral-800 flex items-center justify-center text-xl text-neutral-400">
+      {id[0]?.toUpperCase()}
+    </div>
+  );
 }
 
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { data, loading, error } = useQuery(IntegrationQuery, { id: id! });
-  const [disconnecting, setDisconnecting] = useState(false);
+  const { data, loading, error } = useQuery(IntegrationProvidersQuery);
+  const [selectedScopes, setSelectedScopes] = useState<Set<string>>(new Set());
   const [connecting, setConnecting] = useState(false);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const integration = data?.integration ?? null;
+  const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
 
-  if (!integration) {
+  if (!provider) {
     return <NotFound label="Integration not found." />;
   }
 
-  async function handleDisconnect() {
-    setDisconnecting(true);
-    try {
-      await gql<{ disconnectIntegration: boolean }>(
-        DisconnectIntegrationMutation,
-        { id },
-      );
-      navigate("/user/integrations");
-    } catch {
-      setDisconnecting(false);
-    }
+  function toggleScope(scope: string) {
+    setSelectedScopes((prev) => {
+      const next = new Set(prev);
+      if (next.has(scope)) next.delete(scope);
+      else next.add(scope);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedScopes(new Set(provider!.availableScopes.map((s) => s.scope)));
   }
 
   async function handleConnect() {
+    if (selectedScopes.size === 0) return;
     setConnecting(true);
     try {
       const result = await gql<{ connectIntegration: string }>(
         ConnectIntegrationMutation,
-        { provider: id },
+        { providerId: id, scopes: Array.from(selectedScopes) },
       );
       window.location.href = result.connectIntegration;
     } catch {
@@ -102,75 +104,80 @@ export function IntegrationDetailPage() {
 
   return (
     <div className="px-4 pt-6 pb-6">
-      <div className="flex items-center justify-between">
-        <BackButton />
-        {integration.connected && (
-          <button
-            type="button"
-            onClick={handleDisconnect}
-            disabled={disconnecting}
-            className="text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
-          >
-            {disconnecting ? "Disconnecting..." : "Disconnect"}
-          </button>
-        )}
-      </div>
+      <BackButton />
 
       <div className="mt-4 flex items-center gap-4">
-        <IntegrationLogo id={integration.id} />
+        <IntegrationLogo id={provider.id} />
         <div>
-          <h1 className="text-xl font-semibold text-neutral-100 transition-colors">
-            {integration.service}
+          <h1 className="text-xl font-semibold text-neutral-100">
+            {provider.service}
           </h1>
-          {integration.connected ? (
-            <>
-              <p className="text-sm text-neutral-400 mt-0.5">
-                {integration.account}
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Connected {formatDate(integration.connectedAt!)}
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-neutral-400 mt-0.5">
-              {integration.description}
-            </p>
-          )}
+          <p className="text-sm text-neutral-400 mt-0.5">
+            {provider.description}
+          </p>
         </div>
       </div>
 
-      {!integration.connected && (
-        <button
-          type="button"
-          onClick={handleConnect}
-          disabled={connecting}
-          className="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl p-4 transition-colors disabled:opacity-50"
-        >
-          {connecting ? "Connecting..." : `Connect ${integration.service}`}
-        </button>
-      )}
-
-      {integration.connected && (
-        <div className="mt-5">
-          <h2 className="text-sm font-medium text-neutral-100 mb-3">
-            Permissions
+      <div className="mt-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-neutral-100">
+            Select Permissions
           </h2>
-          <div className="flex flex-col gap-2">
-            {integration.permissions.map((perm) => (
-              <div
-                key={perm.scope}
-                className="flex items-center justify-between bg-neutral-900 rounded-xl p-4 text-left"
-              >
-                <span className="text-sm text-neutral-100">{perm.label}</span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="inline-block w-2 h-2 rounded-full bg-green-400" />
-                  <span className="text-neutral-400">Active</span>
-                </span>
-              </div>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={selectAll}
+            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+          >
+            Select all
+          </button>
         </div>
-      )}
+        <div className="flex flex-col gap-2">
+          {provider.availableScopes.map((scope) => (
+            <button
+              key={scope.scope}
+              type="button"
+              onClick={() => toggleScope(scope.scope)}
+              className="flex items-center gap-3 bg-neutral-900 rounded-xl p-4 text-left transition-colors hover:bg-neutral-800/80 active:bg-neutral-800"
+            >
+              <div
+                className={`h-5 w-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  selectedScopes.has(scope.scope)
+                    ? "bg-indigo-600 border-indigo-600"
+                    : "border-neutral-600"
+                }`}
+              >
+                {selectedScopes.has(scope.scope) && (
+                  <svg
+                    className="h-3 w-3 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm text-neutral-100">{scope.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleConnect}
+        disabled={connecting || selectedScopes.size === 0}
+        className="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl p-4 transition-colors disabled:opacity-50"
+      >
+        {connecting
+          ? "Connecting..."
+          : `Connect ${provider.service}${selectedScopes.size > 0 ? ` (${selectedScopes.size} ${selectedScopes.size === 1 ? "permission" : "permissions"})` : ""}`}
+      </button>
     </div>
   );
 }

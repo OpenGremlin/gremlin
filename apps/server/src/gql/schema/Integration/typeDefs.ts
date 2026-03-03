@@ -1,27 +1,47 @@
 export const integrationTypeDefs = /* GraphQL */ `
-  type Permission {
+  type AvailableScope {
     scope: String!
     label: String!
   }
 
-  type Integration {
+  type IntegrationProvider {
     id: ID!
     service: String!
     category: String!
     description: String!
-    account: String
-    connectedAt: String
-    connected: Boolean!
-    permissions: [Permission!]!
+    availableScopes: [AvailableScope!]!
+    connectionCount: Int!
+  }
+
+  type OAuthConnectionMeta {
+    accountId: String
+    scopes: [String!]!
+    expiresAt: String
+  }
+
+  type ApiKeyConnectionMeta {
+    accountId: String
+  }
+
+  union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta
+
+  type IntegrationConnection {
+    id: ID!
+    providerId: String!
+    connectionType: String!
+    description: String!
+    connectedAt: String!
+    isRevoked: Boolean!
+    meta: ConnectionMeta!
   }
 
   extend type Query {
-    integrations: [Integration!]!
-    integration(id: ID!): Integration
+    integrationProviders: [IntegrationProvider!]!
+    integrationConnections: [IntegrationConnection!]!
   }
 
   extend type Mutation {
-    connectIntegration(provider: String!): String!
-    disconnectIntegration(id: ID!): Boolean!
+    connectIntegration(providerId: String!, scopes: [String!]!): String!
+    revokeIntegrationConnection(id: ID!): Boolean!
   }
 `;

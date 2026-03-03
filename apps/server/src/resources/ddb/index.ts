@@ -4,9 +4,9 @@ import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
+import { IntegrationConnectionEntity } from "./schema/integrationConnection.js";
 import { ModelProviderKeyEntity } from "./schema/modelProviderKey.js";
 import { NotificationEntity } from "./schema/notification.js";
-import { OAuthTokenEntity } from "./schema/oauthToken.js";
 import { ProfileEntity } from "./schema/profile.js";
 import { SettingEntity } from "./schema/setting.js";
 import { SkillEntity } from "./schema/skill.js";
@@ -21,8 +21,8 @@ export const ddb = {
   entities: {
     CronJobTrigger: CronJobTriggerEntity,
     Document: DocumentEntity,
+    IntegrationConnection: IntegrationConnectionEntity,
     ModelProviderKey: ModelProviderKeyEntity,
-    OAuthToken: OAuthTokenEntity,
     Agent: AgentEntity,
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,

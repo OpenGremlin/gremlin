@@ -101,6 +101,17 @@ export enum AgentStatus {
   Scheduled = 'SCHEDULED'
 }
 
+export type ApiKeyConnectionMeta = {
+  __typename?: 'ApiKeyConnectionMeta';
+  accountId?: Maybe<Scalars['String']['output']>;
+};
+
+export type AvailableScope = {
+  __typename?: 'AvailableScope';
+  label: Scalars['String']['output'];
+  scope: Scalars['String']['output'];
+};
+
 export type Avatar = {
   __typename?: 'Avatar';
   id: Scalars['ID']['output'];
@@ -112,6 +123,8 @@ export type Avatar = {
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
 export type CreateDocumentInput = {
   body: Scalars['String']['input'];
@@ -127,15 +140,24 @@ export type Document = {
   updatedAt: Scalars['String']['output'];
 };
 
-export type Integration = {
-  __typename?: 'Integration';
-  account?: Maybe<Scalars['String']['output']>;
-  category: Scalars['String']['output'];
-  connected: Scalars['Boolean']['output'];
-  connectedAt?: Maybe<Scalars['String']['output']>;
+export type IntegrationConnection = {
+  __typename?: 'IntegrationConnection';
+  connectedAt: Scalars['String']['output'];
+  connectionType: Scalars['String']['output'];
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  permissions: Array<Permission>;
+  isRevoked: Scalars['Boolean']['output'];
+  meta: ConnectionMeta;
+  providerId: Scalars['String']['output'];
+};
+
+export type IntegrationProvider = {
+  __typename?: 'IntegrationProvider';
+  availableScopes: Array<AvailableScope>;
+  category: Scalars['String']['output'];
+  connectionCount: Scalars['Int']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   service: Scalars['String']['output'];
 };
 
@@ -171,11 +193,11 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
-  disconnectIntegration: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   removeProviderApiKey: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
+  revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setActiveModel: Scalars['Boolean']['output'];
   setProviderApiKey: Scalars['Boolean']['output'];
@@ -190,7 +212,8 @@ export type Mutation = {
 
 
 export type MutationConnectIntegrationArgs = {
-  provider: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+  scopes: Array<Scalars['String']['input']>;
 };
 
 
@@ -200,11 +223,6 @@ export type MutationCreateDocumentArgs = {
 
 
 export type MutationDeactivateFollowUpArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationDisconnectIntegrationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -226,6 +244,11 @@ export type MutationRemoveProviderApiKeyArgs = {
 
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRevokeIntegrationConnectionArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -319,10 +342,11 @@ export enum NotificationType {
   Permission = 'PERMISSION'
 }
 
-export type Permission = {
-  __typename?: 'Permission';
-  label: Scalars['String']['output'];
-  scope: Scalars['String']['output'];
+export type OAuthConnectionMeta = {
+  __typename?: 'OAuthConnectionMeta';
+  accountId?: Maybe<Scalars['String']['output']>;
+  expiresAt?: Maybe<Scalars['String']['output']>;
+  scopes: Array<Scalars['String']['output']>;
 };
 
 export type Profile = {
@@ -353,8 +377,8 @@ export type Query = {
   avatars: Array<Avatar>;
   document?: Maybe<Document>;
   documents: Array<Document>;
-  integration?: Maybe<Integration>;
-  integrations: Array<Integration>;
+  integrationConnections: Array<IntegrationConnection>;
+  integrationProviders: Array<IntegrationProvider>;
   modelProviders: Array<ModelProvider>;
   notifications: Array<Notification>;
   profile: Profile;
@@ -388,11 +412,6 @@ export type QueryAgentLogsArgs = {
 
 
 export type QueryDocumentArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryIntegrationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -650,31 +669,33 @@ export type DocumentUpdatedSubscriptionVariables = Exact<{
 
 export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documentUpdated: { __typename?: 'Document', id: string, title: string, body: string, updatedAt: string } };
 
-export type IntegrationsQueryVariables = Exact<{ [key: string]: never; }>;
+export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationsQuery = { __typename?: 'Query', integrations: Array<{ __typename?: 'Integration', id: string, service: string, category: string, description: string, connected: boolean, account?: string | null }> };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionCount: number, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }> }> };
 
-export type IntegrationQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
+export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, category: string, description: string, account?: string | null, connectedAt?: string | null, connected: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string }> } | null };
+export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, description: string, connectedAt: string, isRevoked: boolean, meta:
+      | { __typename?: 'ApiKeyConnectionMeta', accountId?: string | null }
+      | { __typename?: 'OAuthConnectionMeta', accountId?: string | null, scopes: Array<string>, expiresAt?: string | null }
+     }> };
 
 export type ConnectIntegrationMutationVariables = Exact<{
-  provider: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+  scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
 }>;
 
 
 export type ConnectIntegrationMutation = { __typename?: 'Mutation', connectIntegration: string };
 
-export type DisconnectIntegrationMutationVariables = Exact<{
+export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DisconnectIntegrationMutation = { __typename?: 'Mutation', disconnectIntegration: boolean };
+export type RevokeConnectionMutation = { __typename?: 'Mutation', revokeIntegrationConnection: boolean };
 
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -960,45 +981,53 @@ export const DocumentUpdatedDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DocumentUpdatedSubscription, DocumentUpdatedSubscriptionVariables>;
-export const IntegrationsDocument = new TypedDocumentString(`
-    query Integrations {
-  integrations {
+export const IntegrationProvidersDocument = new TypedDocumentString(`
+    query IntegrationProviders {
+  integrationProviders {
     id
     service
     category
     description
-    connected
-    account
-  }
-}
-    `) as unknown as TypedDocumentString<IntegrationsQuery, IntegrationsQueryVariables>;
-export const IntegrationDocument = new TypedDocumentString(`
-    query Integration($id: ID!) {
-  integration(id: $id) {
-    id
-    service
-    category
-    description
-    account
-    connectedAt
-    connected
-    permissions {
+    availableScopes {
       scope
       label
     }
+    connectionCount
   }
 }
-    `) as unknown as TypedDocumentString<IntegrationQuery, IntegrationQueryVariables>;
+    `) as unknown as TypedDocumentString<IntegrationProvidersQuery, IntegrationProvidersQueryVariables>;
+export const IntegrationConnectionsDocument = new TypedDocumentString(`
+    query IntegrationConnections {
+  integrationConnections {
+    id
+    providerId
+    connectionType
+    description
+    connectedAt
+    isRevoked
+    meta {
+      ... on OAuthConnectionMeta {
+        accountId
+        scopes
+        expiresAt
+      }
+      ... on ApiKeyConnectionMeta {
+        accountId
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<IntegrationConnectionsQuery, IntegrationConnectionsQueryVariables>;
 export const ConnectIntegrationDocument = new TypedDocumentString(`
-    mutation ConnectIntegration($provider: String!) {
-  connectIntegration(provider: $provider)
+    mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {
+  connectIntegration(providerId: $providerId, scopes: $scopes)
 }
     `) as unknown as TypedDocumentString<ConnectIntegrationMutation, ConnectIntegrationMutationVariables>;
-export const DisconnectIntegrationDocument = new TypedDocumentString(`
-    mutation DisconnectIntegration($id: ID!) {
-  disconnectIntegration(id: $id)
+export const RevokeConnectionDocument = new TypedDocumentString(`
+    mutation RevokeConnection($id: ID!) {
+  revokeIntegrationConnection(id: $id)
 }
-    `) as unknown as TypedDocumentString<DisconnectIntegrationMutation, DisconnectIntegrationMutationVariables>;
+    `) as unknown as TypedDocumentString<RevokeConnectionMutation, RevokeConnectionMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
     query AgentJobs {
   agentJobs {

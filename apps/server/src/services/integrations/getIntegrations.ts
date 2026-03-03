@@ -1,5 +1,5 @@
-import { providers, type ProviderDef } from "./providers.js";
+import { providers, type IntegrationProviderDef } from "./providers.js";
 
-export function getIntegrations(): ProviderDef[] {
+export function getIntegrations(): IntegrationProviderDef[] {
   return providers;
 }

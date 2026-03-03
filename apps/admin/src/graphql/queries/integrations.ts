@@ -1,44 +1,52 @@
 import { graphql } from "../generated/gql";
 
-export const IntegrationsQuery = graphql(`
-  query Integrations {
-    integrations {
+export const IntegrationProvidersQuery = graphql(`
+  query IntegrationProviders {
+    integrationProviders {
       id
       service
       category
       description
-      connected
-      account
+      availableScopes {
+        scope
+        label
+      }
+      connectionCount
     }
   }
 `);
 
-export const IntegrationQuery = graphql(`
-  query Integration($id: ID!) {
-    integration(id: $id) {
+export const IntegrationConnectionsQuery = graphql(`
+  query IntegrationConnections {
+    integrationConnections {
       id
-      service
-      category
+      providerId
+      connectionType
       description
-      account
       connectedAt
-      connected
-      permissions {
-        scope
-        label
+      isRevoked
+      meta {
+        ... on OAuthConnectionMeta {
+          accountId
+          scopes
+          expiresAt
+        }
+        ... on ApiKeyConnectionMeta {
+          accountId
+        }
       }
     }
   }
 `);
 
 export const ConnectIntegrationMutation = graphql(`
-  mutation ConnectIntegration($provider: String!) {
-    connectIntegration(provider: $provider)
+  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {
+    connectIntegration(providerId: $providerId, scopes: $scopes)
   }
 `);
 
-export const DisconnectIntegrationMutation = graphql(`
-  mutation DisconnectIntegration($id: ID!) {
-    disconnectIntegration(id: $id)
+export const RevokeConnectionMutation = graphql(`
+  mutation RevokeConnection($id: ID!) {
+    revokeIntegrationConnection(id: $id)
   }
 `);

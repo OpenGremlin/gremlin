@@ -161,16 +161,19 @@ app.get("/auth/google/callback", async (req, res) => {
   const state = req.query.state as string | undefined;
 
   if (!code || !state) {
-    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+    res.redirect(`${adminOrigin}/user/integrations?error=google_oauth_failed`);
     return;
   }
 
   try {
     await services.google.handleGoogleCallback(resources, code, state);
-    res.redirect(`${adminOrigin}/integrations/google?connected=true`);
+    const { connectionId } = JSON.parse(state) as { connectionId: string };
+    res.redirect(
+      `${adminOrigin}/connections/${connectionId}?connected=true`,
+    );
   } catch (err) {
     console.error("Google OAuth callback failed:", err);
-    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+    res.redirect(`${adminOrigin}/user/integrations?error=google_oauth_failed`);
   }
 });
 
