@@ -37,7 +37,6 @@ new SandboxStack(app, "GremlinSandboxStack", {
   vpc: server.vpc,
   cluster: server.cluster,
   serverSecurityGroup: server.serverSecurityGroup,
-  serverContainer: server.serverContainer,
 });
 
 // 4. Admin — depends on Auth, Media, Server (for ALB)

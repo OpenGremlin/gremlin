@@ -29,7 +29,6 @@ export class ServerStack extends cdk.Stack {
   readonly vpc: ec2.IVpc;
   readonly serverSecurityGroup: ec2.ISecurityGroup;
   readonly serverTaskDefinition: ecs.FargateTaskDefinition;
-  readonly serverContainer: ecs.ContainerDefinition;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
@@ -136,12 +135,12 @@ export class ServerStack extends cdk.Stack {
       },
     });
 
-    // Grant task role permission to read admin URL from SSM
+    // Grant task role permission to read config from SSM
     taskDef.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ssm:GetParameter"],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter/gremlin/admin-url`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/gremlin/*`,
         ],
       }),
     );
@@ -180,7 +179,6 @@ export class ServerStack extends cdk.Stack {
     this.vpc = vpc;
     this.serverSecurityGroup = serverSg;
     this.serverTaskDefinition = taskDef;
-    this.serverContainer = container;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
     new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });

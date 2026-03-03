@@ -5,6 +5,7 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as efs from "aws-cdk-lib/aws-efs";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import type { Construct } from "constructs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -14,7 +15,6 @@ export interface SandboxStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   cluster: ecs.ICluster;
   serverSecurityGroup: ec2.ISecurityGroup;
-  serverContainer: ecs.ContainerDefinition;
 }
 
 export class SandboxStack extends cdk.Stack {
@@ -109,15 +109,16 @@ export class SandboxStack extends cdk.Stack {
       readOnly: false,
     });
 
-    // Inject sandbox config into server container
-    props.serverContainer.addEnvironment(
-      "SANDBOX_TASK_DEF_ARN",
-      taskDef.taskDefinitionArn,
-    );
-    props.serverContainer.addEnvironment(
-      "SANDBOX_SG_ID",
-      sandboxSg.securityGroupId,
-    );
+    // Store sandbox config in SSM so the server can read at runtime
+    // (avoids cyclic cross-stack reference via serverContainer.addEnvironment)
+    new ssm.StringParameter(this, "SandboxTaskDefArnParam", {
+      parameterName: "/gremlin/sandbox-task-def-arn",
+      stringValue: taskDef.taskDefinitionArn,
+    });
+    new ssm.StringParameter(this, "SandboxSgIdParam", {
+      parameterName: "/gremlin/sandbox-sg-id",
+      stringValue: sandboxSg.securityGroupId,
+    });
 
     new cdk.CfnOutput(this, "SandboxTaskDefArn", {
       value: taskDef.taskDefinitionArn,
