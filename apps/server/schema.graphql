@@ -11,7 +11,6 @@ type Query {
   avatars: [Avatar!]!
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
-  modelProviders: [ModelProvider!]!
   activeModel: ActiveModel
   notifications: [Notification!]!
   profile: Profile!
@@ -34,10 +33,9 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   connectIntegration(providerId: String!, scopes: [String!]!): String!
+  connectApiKey(providerId: String!, apiKey: String!): ID!
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!
-  setProviderApiKey(providerId: String!, apiKey: String!): Boolean!
-  removeProviderApiKey(providerId: String!): Boolean!
   setActiveModel(providerId: String!, modelId: String!): Boolean!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
@@ -177,13 +175,31 @@ type AvailableScope {
   label: String!
 }
 
+type ModelInfo {
+  id: ID!
+  name: String!
+  contextWindow: Int!
+  maxTokens: Int!
+  reasoning: Boolean!
+  inputCost: Float
+  outputCost: Float
+}
+
+type ActiveModel {
+  providerId: String!
+  modelId: String!
+}
+
 type IntegrationProvider {
   id: ID!
   service: String!
   category: String!
   description: String!
+  connectionType: String!
   availableScopes: [AvailableScope!]!
+  models: [ModelInfo!]
   connectionCount: Int!
+  hasConnection: Boolean!
 }
 
 type OAuthConnectionMeta {
@@ -206,28 +222,6 @@ type IntegrationConnection {
   connectedAt: String!
   isRevoked: Boolean!
   meta: ConnectionMeta!
-}
-
-type ModelInfo {
-  id: ID!
-  name: String!
-  contextWindow: Int!
-  maxTokens: Int!
-  reasoning: Boolean!
-  inputCost: Float
-  outputCost: Float
-}
-
-type ModelProvider {
-  id: ID!
-  name: String!
-  hasApiKey: Boolean!
-  models: [ModelInfo!]!
-}
-
-type ActiveModel {
-  providerId: String!
-  modelId: String!
 }
 
 enum NotificationType {

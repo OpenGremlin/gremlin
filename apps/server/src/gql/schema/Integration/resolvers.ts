@@ -18,12 +18,23 @@ const integrationConnections: QueryResolvers["integrationConnections"] = (
   ctx,
 ) => ctx.services.integrations.getConnections(ctx.resources);
 
+const activeModel: QueryResolvers["activeModel"] = (_parent, _args, ctx) =>
+  ctx.services.integrations.getActiveModel(ctx);
+
 const connectionCount: IntegrationProviderResolvers["connectionCount"] =
   async (parent, _args, ctx) => {
     const connections = await ctx.services.integrations.getConnections(
       ctx.resources,
     );
     return connections.filter((c) => c.providerId === parent.id).length;
+  };
+
+const hasConnection: IntegrationProviderResolvers["hasConnection"] =
+  async (parent, _args, ctx) => {
+    const connections = await ctx.services.integrations.getConnections(
+      ctx.resources,
+    );
+    return connections.some((c) => c.providerId === parent.id);
   };
 
 const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
@@ -48,6 +59,12 @@ const connectIntegration: MutationResolvers["connectIntegration"] = (
   ctx,
 ) => ctx.services.integrations.connectIntegration(ctx, providerId, scopes);
 
+const connectApiKey: MutationResolvers["connectApiKey"] = (
+  _parent,
+  { providerId, apiKey },
+  ctx,
+) => ctx.services.integrations.connectApiKey(ctx.resources, providerId, apiKey);
+
 const renameIntegrationConnection: MutationResolvers["renameIntegrationConnection"] =
   (_parent, { id, description }, ctx) =>
     ctx.services.integrations.renameConnection(ctx.resources, id, description);
@@ -56,10 +73,25 @@ const revokeIntegrationConnection: MutationResolvers["revokeIntegrationConnectio
   (_parent, { id }, ctx) =>
     ctx.services.integrations.revokeConnection(ctx.resources, id);
 
+const setActiveModel: MutationResolvers["setActiveModel"] = async (
+  _parent,
+  { providerId, modelId },
+  ctx,
+) => {
+  await ctx.services.integrations.setActiveModel(ctx, providerId, modelId);
+  return true;
+};
+
 export const integrationResolvers = {
-  Query: { integrationProviders, integrationConnections },
-  Mutation: { connectIntegration, renameIntegrationConnection, revokeIntegrationConnection },
-  IntegrationProvider: { connectionCount },
+  Query: { integrationProviders, integrationConnections, activeModel },
+  Mutation: {
+    connectIntegration,
+    connectApiKey,
+    renameIntegrationConnection,
+    revokeIntegrationConnection,
+    setActiveModel,
+  },
+  IntegrationProvider: { connectionCount, hasConnection },
   IntegrationConnection: { meta },
   ConnectionMeta: {
     __resolveType(obj: { __typename: string }) {

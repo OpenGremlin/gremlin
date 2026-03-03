@@ -3,7 +3,7 @@ export * from "./agents";
 export * from "./documents";
 export * from "./integrations";
 export * from "./jobs";
-export * from "./modelProviders";
+
 export * from "./notifications";
 export * from "./profile";
 export * from "./skills";

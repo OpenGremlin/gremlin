@@ -4,13 +4,31 @@ export const integrationTypeDefs = /* GraphQL */ `
     label: String!
   }
 
+  type ModelInfo {
+    id: ID!
+    name: String!
+    contextWindow: Int!
+    maxTokens: Int!
+    reasoning: Boolean!
+    inputCost: Float
+    outputCost: Float
+  }
+
+  type ActiveModel {
+    providerId: String!
+    modelId: String!
+  }
+
   type IntegrationProvider {
     id: ID!
     service: String!
     category: String!
     description: String!
+    connectionType: String!
     availableScopes: [AvailableScope!]!
+    models: [ModelInfo!]
     connectionCount: Int!
+    hasConnection: Boolean!
   }
 
   type OAuthConnectionMeta {
@@ -38,11 +56,14 @@ export const integrationTypeDefs = /* GraphQL */ `
   extend type Query {
     integrationProviders: [IntegrationProvider!]!
     integrationConnections: [IntegrationConnection!]!
+    activeModel: ActiveModel
   }
 
   extend type Mutation {
     connectIntegration(providerId: String!, scopes: [String!]!): String!
+    connectApiKey(providerId: String!, apiKey: String!): ID!
     renameIntegrationConnection(id: ID!, description: String!): Boolean!
     revokeIntegrationConnection(id: ID!): Boolean!
+    setActiveModel(providerId: String!, modelId: String!): Boolean!
   }
 `;

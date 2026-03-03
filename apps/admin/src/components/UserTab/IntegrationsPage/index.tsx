@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import { CircleCheck, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   IntegrationConnectionsQuery,
@@ -42,6 +42,12 @@ const logoMap: Record<string, string> = {
   homeassistant: homeAssistantLogo,
 };
 
+const aiProviderColors: Record<string, string> = {
+  anthropic: "bg-orange-900/60 text-orange-300",
+  openai: "bg-emerald-900/60 text-emerald-300",
+  google_ai: "bg-blue-900/60 text-blue-300",
+};
+
 function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
   const logo = logoMap[id];
   const cls = `h-${size} w-${size}`;
@@ -49,6 +55,16 @@ function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
     return (
       <div className={`${cls} flex items-center justify-center`}>
         <img src={logo} alt={id} className={`${cls} object-contain`} />
+      </div>
+    );
+  }
+  const aiColor = aiProviderColors[id];
+  if (aiColor) {
+    return (
+      <div
+        className={`${cls} rounded-full flex items-center justify-center text-lg font-semibold ${aiColor}`}
+      >
+        {id[0]?.toUpperCase()}
       </div>
     );
   }
@@ -64,19 +80,18 @@ function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
 function ConnectionCountBadge({ count }: { count: number }) {
   if (count === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-neutral-500">
-        <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
-        Not connected
+      <span className="text-xs text-neutral-500">
+        Connect
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-      {count} {count === 1 ? "connection" : "connections"}
+      <CircleCheck size={12} /> {count}
     </span>
   );
 }
+
 
 function getAccountId(
   meta:
@@ -87,6 +102,7 @@ function getAccountId(
 }
 
 const categoryLabels: Record<string, string> = {
+  ai: "AI Models",
   productivity: "Productivity",
   communication: "Communication",
   developer: "Developer",
@@ -95,6 +111,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 const categoryOrder = [
+  "ai",
   "productivity",
   "communication",
   "developer",
@@ -110,6 +127,7 @@ export function IntegrationsPage() {
   const error = providers.error || connections.error;
 
   const providerList = providers.data?.integrationProviders ?? [];
+  const activeModel = providers.data?.activeModel ?? null;
   const connectionList = connections.data?.integrationConnections ?? [];
 
   const grouped = categoryOrder
@@ -124,6 +142,31 @@ export function IntegrationsPage() {
     <>
       <QueryResult loading={loading} error={error} />
       <div className="flex flex-col gap-5 px-4 pb-6">
+        {/* Active Model Summary */}
+        {!loading && activeModel && (
+          <div className="bg-neutral-900 rounded-xl p-4">
+            <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+              Active Model
+            </p>
+            <p className="text-sm font-medium text-neutral-100">
+              {providerList
+                .find((p) => p.id === activeModel.providerId)
+                ?.models?.find((m) => m.id === activeModel.modelId)?.name ??
+                activeModel.modelId}
+            </p>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              {providerList.find((p) => p.id === activeModel.providerId)?.service ??
+                activeModel.providerId}
+            </p>
+          </div>
+        )}
+        {!loading && !activeModel && providerList.some((p) => p.category === "ai") && (
+          <div className="bg-neutral-900 rounded-xl p-4 text-sm text-neutral-400">
+            No active model selected. Using default Bedrock Claude Sonnet 4.
+            Configure a provider below to use your own API key.
+          </div>
+        )}
+
         {/* Active Connections */}
         {connectionList.length > 0 && (
           <div>
@@ -148,7 +191,9 @@ export function IntegrationsPage() {
                       <span className="text-neutral-500">
                         {conn.connectionType === "oauth"
                           ? "OAuth"
-                          : conn.connectionType}
+                          : conn.connectionType === "apikey"
+                            ? "API Key"
+                            : conn.connectionType}
                       </span>
                     </p>
                   </div>

@@ -7,11 +7,26 @@ export const IntegrationProvidersQuery = graphql(`
       service
       category
       description
+      connectionType
       availableScopes {
         scope
         label
       }
+      models {
+        id
+        name
+        contextWindow
+        maxTokens
+        reasoning
+        inputCost
+        outputCost
+      }
       connectionCount
+      hasConnection
+    }
+    activeModel {
+      providerId
+      modelId
     }
   }
 `);
@@ -46,6 +61,12 @@ export const ConnectIntegrationMutation = graphql(`
   }
 `);
 
+export const ConnectApiKeyMutation = graphql(`
+  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
+    connectApiKey(providerId: $providerId, apiKey: $apiKey)
+  }
+`);
+
 export const RenameConnectionMutation = graphql(`
   mutation RenameConnection($id: ID!, $description: String!) {
     renameIntegrationConnection(id: $id, description: $description)
@@ -55,5 +76,11 @@ export const RenameConnectionMutation = graphql(`
 export const RevokeConnectionMutation = graphql(`
   mutation RevokeConnection($id: ID!) {
     revokeIntegrationConnection(id: $id)
+  }
+`);
+
+export const SetActiveModelMutation = graphql(`
+  mutation SetActiveModel($providerId: String!, $modelId: String!) {
+    setActiveModel(providerId: $providerId, modelId: $modelId)
   }
 `);

@@ -7,8 +7,7 @@ import { DocumentItem } from '../resources/ddb/schema/document.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { IntegrationProviderDef } from '../services/integrations/providers.js';
 import { SafeIntegrationConnection } from '../services/integrations/getConnections.js';
-import { ModelProviderResult } from '../services/modelProviders/getModelProviders.js';
-import { ActiveModelResult } from '../services/modelProviders/getActiveModel.js';
+import { ActiveModelResult } from '../services/integrations/getActiveModel.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
@@ -173,8 +172,11 @@ export type IntegrationProvider = {
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
   connectionCount: Scalars['Int']['output'];
+  connectionType: Scalars['String']['output'];
   description: Scalars['String']['output'];
+  hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  models?: Maybe<Array<ModelInfo>>;
   service: Scalars['String']['output'];
 };
 
@@ -196,29 +198,20 @@ export type ModelInfo = {
   reasoning: Scalars['Boolean']['output'];
 };
 
-export type ModelProvider = {
-  __typename?: 'ModelProvider';
-  hasApiKey: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  models: Array<ModelInfo>;
-  name: Scalars['String']['output'];
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
-  removeProviderApiKey: Scalars['Boolean']['output'];
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setActiveModel: Scalars['Boolean']['output'];
-  setProviderApiKey: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -226,6 +219,12 @@ export type Mutation = {
   updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
+};
+
+
+export type MutationConnectApiKeyArgs = {
+  apiKey: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -255,11 +254,6 @@ export type MutationInstallSkillArgs = {
 };
 
 
-export type MutationRemoveProviderApiKeyArgs = {
-  providerId: Scalars['String']['input'];
-};
-
-
 export type MutationRenameIntegrationConnectionArgs = {
   description: Scalars['String']['input'];
   id: Scalars['ID']['input'];
@@ -286,12 +280,6 @@ export type MutationSendMessageArgs = {
 
 export type MutationSetActiveModelArgs = {
   modelId: Scalars['String']['input'];
-  providerId: Scalars['String']['input'];
-};
-
-
-export type MutationSetProviderApiKeyArgs = {
-  apiKey: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
 };
 
@@ -403,7 +391,6 @@ export type Query = {
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
-  modelProviders: Array<ModelProvider>;
   notifications: Array<Notification>;
   profile: Profile;
   searchSkills: Array<Skill>;
@@ -728,7 +715,6 @@ export type ResolversTypes = {
   IntegrationProvider: ResolverTypeWrapper<IntegrationProviderDef>;
   JobStatus: JobStatus;
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
-  ModelProvider: ResolverTypeWrapper<ModelProviderResult>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Notification: ResolverTypeWrapper<NotificationItem>;
   NotificationAction: ResolverTypeWrapper<NotificationAction>;
@@ -774,7 +760,6 @@ export type ResolversParentTypes = {
   IntegrationConnection: SafeIntegrationConnection;
   IntegrationProvider: IntegrationProviderDef;
   ModelInfo: ModelInfo;
-  ModelProvider: ModelProviderResult;
   Mutation: Record<PropertyKey, never>;
   Notification: NotificationItem;
   NotificationAction: NotificationAction;
@@ -896,8 +881,11 @@ export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentTyp
   availableScopes?: Resolver<Array<ResolversTypes['AvailableScope']>, ParentType, ContextType>;
   category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   connectionCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  connectionType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hasConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  models?: Resolver<Maybe<Array<ResolversTypes['ModelInfo']>>, ParentType, ContextType>;
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -911,27 +899,19 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
   reasoning?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
-export type ModelProviderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelProvider'] = ResolversParentTypes['ModelProvider']> = {
-  hasApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  models?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
-  removeProviderApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProviderApiKeyArgs, 'providerId'>>;
   renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setActiveModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetActiveModelArgs, 'modelId' | 'providerId'>>;
-  setProviderApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetProviderApiKeyArgs, 'apiKey' | 'providerId'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -987,7 +967,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
-  modelProviders?: Resolver<Array<ResolversTypes['ModelProvider']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   searchSkills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySearchSkillsArgs, 'query'>>;
@@ -1081,7 +1060,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
   ModelInfo?: ModelInfoResolvers<ContextType>;
-  ModelProvider?: ModelProviderResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   NotificationAction?: NotificationActionResolvers<ContextType>;

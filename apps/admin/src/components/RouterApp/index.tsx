@@ -17,7 +17,7 @@ import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { TasksTab } from "../TasksTab";
 import { TaskThreadPage } from "../TaskThreadPage";
 import { UserTab } from "../UserTab";
-import { AIModelProviderPage } from "../UserTab/AIModelProviderPage";
+
 import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
@@ -85,7 +85,7 @@ export function RouterApp() {
             element={<Navigate to="/user/notifications" replace />}
           />
           <Route path="user/:pill" element={<UserTab />} />
-          <Route path="aimodels/:id" element={<AIModelProviderPage />} />
+
           <Route path="integrations/:id" element={<IntegrationDetailPage />} />
           <Route path="connections/:id" element={<ConnectionDetailPage />} />
           <Route path="skills/:id" element={<SkillDetailPage />} />

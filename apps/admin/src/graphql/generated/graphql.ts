@@ -156,8 +156,11 @@ export type IntegrationProvider = {
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
   connectionCount: Scalars['Int']['output'];
+  connectionType: Scalars['String']['output'];
   description: Scalars['String']['output'];
+  hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  models?: Maybe<Array<ModelInfo>>;
   service: Scalars['String']['output'];
 };
 
@@ -179,29 +182,20 @@ export type ModelInfo = {
   reasoning: Scalars['Boolean']['output'];
 };
 
-export type ModelProvider = {
-  __typename?: 'ModelProvider';
-  hasApiKey: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  models: Array<ModelInfo>;
-  name: Scalars['String']['output'];
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
-  removeProviderApiKey: Scalars['Boolean']['output'];
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setActiveModel: Scalars['Boolean']['output'];
-  setProviderApiKey: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -209,6 +203,12 @@ export type Mutation = {
   updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
+};
+
+
+export type MutationConnectApiKeyArgs = {
+  apiKey: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -238,11 +238,6 @@ export type MutationInstallSkillArgs = {
 };
 
 
-export type MutationRemoveProviderApiKeyArgs = {
-  providerId: Scalars['String']['input'];
-};
-
-
 export type MutationRenameIntegrationConnectionArgs = {
   description: Scalars['String']['input'];
   id: Scalars['ID']['input'];
@@ -269,12 +264,6 @@ export type MutationSendMessageArgs = {
 
 export type MutationSetActiveModelArgs = {
   modelId: Scalars['String']['input'];
-  providerId: Scalars['String']['input'];
-};
-
-
-export type MutationSetProviderApiKeyArgs = {
-  apiKey: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
 };
 
@@ -386,7 +375,6 @@ export type Query = {
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
-  modelProviders: Array<ModelProvider>;
   notifications: Array<Notification>;
   profile: Profile;
   searchSkills: Array<Skill>;
@@ -679,7 +667,7 @@ export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documen
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionCount: number, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }> }> };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, activeModel?: { __typename?: 'ActiveModel', providerId: string, modelId: string } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -697,6 +685,14 @@ export type ConnectIntegrationMutationVariables = Exact<{
 
 export type ConnectIntegrationMutation = { __typename?: 'Mutation', connectIntegration: string };
 
+export type ConnectApiKeyMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  apiKey: Scalars['String']['input'];
+}>;
+
+
+export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: string };
+
 export type RenameConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   description: Scalars['String']['input'];
@@ -711,6 +707,14 @@ export type RevokeConnectionMutationVariables = Exact<{
 
 
 export type RevokeConnectionMutation = { __typename?: 'Mutation', revokeIntegrationConnection: boolean };
+
+export type SetActiveModelMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type SetActiveModelMutation = { __typename?: 'Mutation', setActiveModel: boolean };
 
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -731,34 +735,6 @@ export type UpdateAgentJobMutationVariables = Exact<{
 
 
 export type UpdateAgentJobMutation = { __typename?: 'Mutation', updateAgentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } } | null };
-
-export type ModelProvidersQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ModelProvidersQuery = { __typename?: 'Query', modelProviders: Array<{ __typename?: 'ModelProvider', id: string, name: string, hasApiKey: boolean, models: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> }>, activeModel?: { __typename?: 'ActiveModel', providerId: string, modelId: string } | null };
-
-export type SetProviderApiKeyMutationVariables = Exact<{
-  providerId: Scalars['String']['input'];
-  apiKey: Scalars['String']['input'];
-}>;
-
-
-export type SetProviderApiKeyMutation = { __typename?: 'Mutation', setProviderApiKey: boolean };
-
-export type RemoveProviderApiKeyMutationVariables = Exact<{
-  providerId: Scalars['String']['input'];
-}>;
-
-
-export type RemoveProviderApiKeyMutation = { __typename?: 'Mutation', removeProviderApiKey: boolean };
-
-export type SetActiveModelMutationVariables = Exact<{
-  providerId: Scalars['String']['input'];
-  modelId: Scalars['String']['input'];
-}>;
-
-
-export type SetActiveModelMutation = { __typename?: 'Mutation', setActiveModel: boolean };
 
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1003,11 +979,26 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     service
     category
     description
+    connectionType
     availableScopes {
       scope
       label
     }
+    models {
+      id
+      name
+      contextWindow
+      maxTokens
+      reasoning
+      inputCost
+      outputCost
+    }
     connectionCount
+    hasConnection
+  }
+  activeModel {
+    providerId
+    modelId
   }
 }
     `) as unknown as TypedDocumentString<IntegrationProvidersQuery, IntegrationProvidersQueryVariables>;
@@ -1039,6 +1030,11 @@ export const ConnectIntegrationDocument = new TypedDocumentString(`
   connectIntegration(providerId: $providerId, scopes: $scopes)
 }
     `) as unknown as TypedDocumentString<ConnectIntegrationMutation, ConnectIntegrationMutationVariables>;
+export const ConnectApiKeyDocument = new TypedDocumentString(`
+    mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
+  connectApiKey(providerId: $providerId, apiKey: $apiKey)
+}
+    `) as unknown as TypedDocumentString<ConnectApiKeyMutation, ConnectApiKeyMutationVariables>;
 export const RenameConnectionDocument = new TypedDocumentString(`
     mutation RenameConnection($id: ID!, $description: String!) {
   renameIntegrationConnection(id: $id, description: $description)
@@ -1049,6 +1045,11 @@ export const RevokeConnectionDocument = new TypedDocumentString(`
   revokeIntegrationConnection(id: $id)
 }
     `) as unknown as TypedDocumentString<RevokeConnectionMutation, RevokeConnectionMutationVariables>;
+export const SetActiveModelDocument = new TypedDocumentString(`
+    mutation SetActiveModel($providerId: String!, $modelId: String!) {
+  setActiveModel(providerId: $providerId, modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<SetActiveModelMutation, SetActiveModelMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
     query AgentJobs {
   agentJobs {
@@ -1113,43 +1114,6 @@ export const UpdateAgentJobDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateAgentJobMutation, UpdateAgentJobMutationVariables>;
-export const ModelProvidersDocument = new TypedDocumentString(`
-    query ModelProviders {
-  modelProviders {
-    id
-    name
-    hasApiKey
-    models {
-      id
-      name
-      contextWindow
-      maxTokens
-      reasoning
-      inputCost
-      outputCost
-    }
-  }
-  activeModel {
-    providerId
-    modelId
-  }
-}
-    `) as unknown as TypedDocumentString<ModelProvidersQuery, ModelProvidersQueryVariables>;
-export const SetProviderApiKeyDocument = new TypedDocumentString(`
-    mutation SetProviderApiKey($providerId: String!, $apiKey: String!) {
-  setProviderApiKey(providerId: $providerId, apiKey: $apiKey)
-}
-    `) as unknown as TypedDocumentString<SetProviderApiKeyMutation, SetProviderApiKeyMutationVariables>;
-export const RemoveProviderApiKeyDocument = new TypedDocumentString(`
-    mutation RemoveProviderApiKey($providerId: String!) {
-  removeProviderApiKey(providerId: $providerId)
-}
-    `) as unknown as TypedDocumentString<RemoveProviderApiKeyMutation, RemoveProviderApiKeyMutationVariables>;
-export const SetActiveModelDocument = new TypedDocumentString(`
-    mutation SetActiveModel($providerId: String!, $modelId: String!) {
-  setActiveModel(providerId: $providerId, modelId: $modelId)
-}
-    `) as unknown as TypedDocumentString<SetActiveModelMutation, SetActiveModelMutationVariables>;
 export const NotificationsDocument = new TypedDocumentString(`
     query Notifications {
   notifications {
