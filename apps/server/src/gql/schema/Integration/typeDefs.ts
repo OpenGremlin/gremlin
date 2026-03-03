@@ -7,6 +7,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   type Integration {
     id: ID!
     service: String!
+    category: String!
     description: String!
     account: String
     connectedAt: String

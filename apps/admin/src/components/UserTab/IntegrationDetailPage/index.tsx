@@ -12,15 +12,37 @@ import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
 import googleLogo from "../../../assets/logos/Google.svg";
+import notionLogo from "../../../assets/logos/Notion.svg";
+import linearLogo from "../../../assets/logos/Linear.svg";
+import trelloLogo from "../../../assets/logos/Trello.svg";
 import slackLogo from "../../../assets/logos/Slack.svg";
+import discordLogo from "../../../assets/logos/Discord.svg";
+import teamsLogo from "../../../assets/logos/Teams.svg";
+import telegramLogo from "../../../assets/logos/Telegram.svg";
+import whatsappLogo from "../../../assets/logos/WhatsApp.svg";
 import githubLogo from "../../../assets/logos/GitHub.svg";
+import gitlabLogo from "../../../assets/logos/GitLab.svg";
+import jiraLogo from "../../../assets/logos/Jira.svg";
 import spotifyLogo from "../../../assets/logos/Spotify.svg";
+import hueLogo from "../../../assets/logos/Hue.svg";
+import homeAssistantLogo from "../../../assets/logos/HomeAssistant.svg";
 
 const logoMap: Record<string, string> = {
   google: googleLogo,
+  notion: notionLogo,
+  linear: linearLogo,
+  trello: trelloLogo,
   slack: slackLogo,
+  discord: discordLogo,
+  teams: teamsLogo,
+  telegram: telegramLogo,
+  whatsapp: whatsappLogo,
   github: githubLogo,
+  gitlab: gitlabLogo,
+  jira: jiraLogo,
   spotify: spotifyLogo,
+  hue: hueLogo,
+  homeassistant: homeAssistantLogo,
 };
 
 function IntegrationLogo({ id }: { id: string }) {

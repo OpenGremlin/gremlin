@@ -5,6 +5,7 @@ export const IntegrationsQuery = graphql(`
     integrations {
       id
       service
+      category
       description
       connected
       account
@@ -17,6 +18,7 @@ export const IntegrationQuery = graphql(`
     integration(id: $id) {
       id
       service
+      category
       description
       account
       connectedAt

@@ -11,6 +11,8 @@ type Query {
   avatars: [Avatar!]!
   integrations: [Integration!]!
   integration(id: ID!): Integration
+  modelProviders: [ModelProvider!]!
+  activeModel: ActiveModel
   notifications: [Notification!]!
   profile: Profile!
   skills: [Skill!]!
@@ -33,6 +35,9 @@ type Mutation {
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   connectIntegration(provider: String!): String!
   disconnectIntegration(id: ID!): Boolean!
+  setProviderApiKey(providerId: String!, apiKey: String!): Boolean!
+  removeProviderApiKey(providerId: String!): Boolean!
+  setActiveModel(providerId: String!, modelId: String!): Boolean!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
@@ -174,11 +179,34 @@ type Permission {
 type Integration {
   id: ID!
   service: String!
+  category: String!
   description: String!
   account: String
   connectedAt: String
   connected: Boolean!
   permissions: [Permission!]!
+}
+
+type ModelInfo {
+  id: ID!
+  name: String!
+  contextWindow: Int!
+  maxTokens: Int!
+  reasoning: Boolean!
+  inputCost: Float
+  outputCost: Float
+}
+
+type ModelProvider {
+  id: ID!
+  name: String!
+  hasApiKey: Boolean!
+  models: [ModelInfo!]!
+}
+
+type ActiveModel {
+  providerId: String!
+  modelId: String!
 }
 
 enum NotificationType {

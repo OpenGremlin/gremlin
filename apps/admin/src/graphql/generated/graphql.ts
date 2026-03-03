@@ -124,6 +124,7 @@ export type Document = {
 export type Integration = {
   __typename?: 'Integration';
   account?: Maybe<Scalars['String']['output']>;
+  category: Scalars['String']['output'];
   connected: Scalars['Boolean']['output'];
   connectedAt?: Maybe<Scalars['String']['output']>;
   description: Scalars['String']['output'];
@@ -605,14 +606,14 @@ export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documen
 export type IntegrationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationsQuery = { __typename?: 'Query', integrations: Array<{ __typename?: 'Integration', id: string, service: string, description: string, connected: boolean, account?: string | null }> };
+export type IntegrationsQuery = { __typename?: 'Query', integrations: Array<{ __typename?: 'Integration', id: string, service: string, category: string, description: string, connected: boolean, account?: string | null }> };
 
 export type IntegrationQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, description: string, account?: string | null, connectedAt?: string | null, connected: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string }> } | null };
+export type IntegrationQuery = { __typename?: 'Query', integration?: { __typename?: 'Integration', id: string, service: string, category: string, description: string, account?: string | null, connectedAt?: string | null, connected: boolean, permissions: Array<{ __typename?: 'Permission', scope: string, label: string }> } | null };
 
 export type ConnectIntegrationMutationVariables = Exact<{
   provider: Scalars['String']['input'];
@@ -889,6 +890,7 @@ export const IntegrationsDocument = new TypedDocumentString(`
   integrations {
     id
     service
+    category
     description
     connected
     account
@@ -900,6 +902,7 @@ export const IntegrationDocument = new TypedDocumentString(`
   integration(id: $id) {
     id
     service
+    category
     description
     account
     connectedAt
