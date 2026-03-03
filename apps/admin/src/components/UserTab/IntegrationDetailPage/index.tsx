@@ -8,7 +8,7 @@ import {
   DisableBedrockModelMutation,
   EnableBedrockModelMutation,
   IntegrationProvidersQuery,
-  SetActiveModelMutation,
+  SetDefaultModelMutation,
 } from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -80,7 +80,7 @@ function IntegrationLogo({ id }: { id: string }) {
 
 function ApiKeyDetailView({
   provider,
-  activeModel,
+  defaultModel,
   refetch,
 }: {
   provider: {
@@ -98,7 +98,7 @@ function ApiKeyDetailView({
       outputCost?: number | null;
     }> | null;
   };
-  activeModel: { providerId: string; modelId: string } | null;
+  defaultModel: { providerId: string; modelId: string } | null;
   refetch: () => void;
 }) {
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -125,19 +125,19 @@ function ApiKeyDetailView({
   async function handleSelectModel(modelId: string) {
     setSettingModel(modelId);
     try {
-      await gql<{ setActiveModel: boolean }>(SetActiveModelMutation, {
+      await gql<{ setDefaultModel: boolean }>(SetDefaultModelMutation, {
         providerId: provider.id,
         modelId,
       });
       refetch();
     } catch (err) {
-      console.error("Failed to set active model:", err);
+      console.error("Failed to set default model:", err);
     } finally {
       setSettingModel(null);
     }
   }
 
-  const isActiveProvider = activeModel?.providerId === provider.id;
+  const isDefaultProvider = defaultModel?.providerId === provider.id;
   const models = provider.models ?? [];
 
   return (
@@ -190,9 +190,9 @@ function ApiKeyDetailView({
           <h2 className="text-sm font-medium text-neutral-100 mb-3">Models</h2>
           <div className="flex flex-col gap-2">
             {models.map((model) => {
-              const isActive =
-                isActiveProvider && activeModel?.modelId === model.id;
-              const canSelect = provider.hasConnection && !isActive;
+              const isDefault =
+                isDefaultProvider && defaultModel?.modelId === model.id;
+              const canSelect = provider.hasConnection && !isDefault;
 
               return (
                 <button
@@ -204,7 +204,7 @@ function ApiKeyDetailView({
                     canSelect
                       ? "hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
                       : "cursor-default"
-                  } ${isActive ? "ring-1 ring-indigo-500/50" : ""}`}
+                  } ${isDefault ? "ring-1 ring-indigo-500/50" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -235,10 +235,10 @@ function ApiKeyDetailView({
                   </div>
                   {settingModel === model.id ? (
                     <span className="text-xs text-neutral-400">Setting...</span>
-                  ) : isActive ? (
+                  ) : isDefault ? (
                     <span className="flex items-center gap-1.5 text-xs">
                       <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
-                      <span className="text-indigo-400">Active</span>
+                      <span className="text-indigo-400">Default</span>
                     </span>
                   ) : !provider.hasConnection ? (
                     <span className="text-xs text-neutral-600">
@@ -257,7 +257,7 @@ function ApiKeyDetailView({
 
 function BedrockDetailView({
   provider,
-  activeModel,
+  defaultModel,
   refetch,
 }: {
   provider: {
@@ -273,7 +273,7 @@ function BedrockDetailView({
       outputCost?: number | null;
     }> | null;
   };
-  activeModel: { providerId: string; modelId: string } | null;
+  defaultModel: { providerId: string; modelId: string } | null;
   refetch: () => void;
 }) {
   const { data: enabledData, refetch: refetchEnabled } = useQuery(
@@ -285,7 +285,7 @@ function BedrockDetailView({
   const [error, setError] = useState<string | null>(null);
 
   const enabledModels = enabledData?.bedrockEnabledModels ?? [];
-  const isActiveProvider = activeModel?.providerId === provider.id;
+  const isDefaultProvider = defaultModel?.providerId === provider.id;
   const models = provider.models ?? [];
 
   async function handleEnable(modelId: string) {
@@ -323,18 +323,18 @@ function BedrockDetailView({
     }
   }
 
-  async function handleSetActive(modelId: string) {
+  async function handleSetDefault(modelId: string) {
     setSettingModel(modelId);
     setError(null);
     try {
-      await gql<{ setActiveModel: boolean }>(SetActiveModelMutation, {
+      await gql<{ setDefaultModel: boolean }>(SetDefaultModelMutation, {
         providerId: provider.id,
         modelId,
       });
       refetch();
     } catch (err) {
       setError(
-        `Failed to set active model: ${err instanceof Error ? err.message : "unknown error"}`,
+        `Failed to set default model: ${err instanceof Error ? err.message : "unknown error"}`,
       );
     } finally {
       setSettingModel(null);
@@ -368,8 +368,8 @@ function BedrockDetailView({
           <div className="flex flex-col gap-2">
             {models.map((model) => {
               const isEnabled = enabledModels.includes(model.id);
-              const isActive =
-                isActiveProvider && activeModel?.modelId === model.id;
+              const isDefault =
+                isDefaultProvider && defaultModel?.modelId === model.id;
               const isEnabling = enablingModel === model.id;
               const isDisabling = disablingModel === model.id;
               const isSetting = settingModel === model.id;
@@ -378,7 +378,7 @@ function BedrockDetailView({
                 <div
                   key={model.id}
                   className={`flex items-center justify-between bg-neutral-900 rounded-xl p-4 ${
-                    isActive ? "ring-1 ring-indigo-500/50" : ""
+                    isDefault ? "ring-1 ring-indigo-500/50" : ""
                   }`}
                 >
                   <div className="flex-1 min-w-0">
@@ -411,19 +411,19 @@ function BedrockDetailView({
                       <span className="text-xs text-neutral-400">
                         Setting...
                       </span>
-                    ) : isActive ? (
+                    ) : isDefault ? (
                       <span className="flex items-center gap-1.5 text-xs">
                         <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
-                        <span className="text-indigo-400">Active</span>
+                        <span className="text-indigo-400">Default</span>
                       </span>
                     ) : isEnabled ? (
                       <>
                         <button
                           type="button"
-                          onClick={() => handleSetActive(model.id)}
+                          onClick={() => handleSetDefault(model.id)}
                           className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                         >
-                          Set Active
+                          Set Default
                         </button>
                         <button
                           type="button"
@@ -568,7 +568,7 @@ export function IntegrationDetailPage() {
   }
 
   const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
-  const activeModel = data?.activeModel ?? null;
+  const defaultModel = data?.defaultModel ?? null;
 
   if (!provider) {
     return <NotFound label="Integration not found." />;
@@ -593,13 +593,13 @@ export function IntegrationDetailPage() {
       {provider.connectionType === "bedrock" ? (
         <BedrockDetailView
           provider={provider}
-          activeModel={activeModel ?? null}
+          defaultModel={defaultModel ?? null}
           refetch={refetch}
         />
       ) : provider.connectionType === "apikey" ? (
         <ApiKeyDetailView
           provider={provider}
-          activeModel={activeModel ?? null}
+          defaultModel={defaultModel ?? null}
           refetch={refetch}
         />
       ) : (

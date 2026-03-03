@@ -14,7 +14,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     outputCost: Float
   }
 
-  type ActiveModel {
+  type DefaultModel {
     providerId: String!
     modelId: String!
   }
@@ -56,7 +56,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   extend type Query {
     integrationProviders: [IntegrationProvider!]!
     integrationConnections: [IntegrationConnection!]!
-    activeModel: ActiveModel
+    defaultModel: DefaultModel
     bedrockEnabledModels: [String!]!
   }
 
@@ -65,7 +65,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     connectApiKey(providerId: String!, apiKey: String!): ID!
     renameIntegrationConnection(id: ID!, description: String!): Boolean!
     revokeIntegrationConnection(id: ID!): Boolean!
-    setActiveModel(providerId: String!, modelId: String!): Boolean!
+    setDefaultModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!
     disableBedrockModel(modelId: String!): Boolean!
   }

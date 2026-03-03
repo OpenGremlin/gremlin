@@ -125,7 +125,7 @@ export function IntegrationsPage() {
   const error = providers.error || connections.error;
 
   const providerList = providers.data?.integrationProviders ?? [];
-  const activeModel = providers.data?.activeModel ?? null;
+  const defaultModel = providers.data?.defaultModel ?? null;
   const connectionList = connections.data?.integrationConnections ?? [];
 
   const grouped = categoryOrder
@@ -140,27 +140,27 @@ export function IntegrationsPage() {
     <>
       <QueryResult loading={loading} error={error} />
       <div className="flex flex-col gap-5 px-4 pb-6">
-        {/* Active Model Summary */}
-        {!loading && activeModel && (
+        {/* Default Model Summary */}
+        {!loading && defaultModel && (
           <div className="bg-neutral-900 rounded-xl p-4">
             <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
-              Active Model
+              Default Model
             </p>
             <p className="text-sm font-medium text-neutral-100">
               {providerList
-                .find((p) => p.id === activeModel.providerId)
-                ?.models?.find((m) => m.id === activeModel.modelId)?.name ??
-                activeModel.modelId}
+                .find((p) => p.id === defaultModel.providerId)
+                ?.models?.find((m) => m.id === defaultModel.modelId)?.name ??
+                defaultModel.modelId}
             </p>
             <p className="text-xs text-neutral-500 mt-0.5">
-              {providerList.find((p) => p.id === activeModel.providerId)?.service ??
-                activeModel.providerId}
+              {providerList.find((p) => p.id === defaultModel.providerId)?.service ??
+                defaultModel.providerId}
             </p>
           </div>
         )}
-        {!loading && !activeModel && providerList.some((p) => p.category === "ai") && (
+        {!loading && !defaultModel && providerList.some((p) => p.category === "ai") && (
           <div className="bg-neutral-900 rounded-xl p-4 text-sm text-neutral-400">
-            No active model selected. Using default Bedrock Claude Sonnet 4.
+            No default model selected. Using Bedrock Claude Sonnet 4.
             Configure a provider below to use your own API key.
           </div>
         )}

@@ -4,7 +4,7 @@ import type { ServiceContext } from "../context.js";
 import { invalidateModelCache } from "../orchestrator/model.js";
 import { providerCatalog } from "./providers.js";
 
-export async function setActiveModel(
+export async function setDefaultModel(
   ctx: ServiceContext,
   providerId: string,
   modelId: string,
@@ -33,10 +33,10 @@ export async function setActiveModel(
     );
   }
 
-  // Save active model setting
+  // Save default model setting
   await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
     .item({
-      key: "activeModel",
+      key: "defaultModel",
       value: JSON.stringify({ providerId, modelId }),
     })
     .send();

@@ -24,7 +24,7 @@ export const IntegrationProvidersQuery = graphql(`
       connectionCount
       hasConnection
     }
-    activeModel {
+    defaultModel {
       providerId
       modelId
     }
@@ -79,9 +79,9 @@ export const RevokeConnectionMutation = graphql(`
   }
 `);
 
-export const SetActiveModelMutation = graphql(`
-  mutation SetActiveModel($providerId: String!, $modelId: String!) {
-    setActiveModel(providerId: $providerId, modelId: $modelId)
+export const SetDefaultModelMutation = graphql(`
+  mutation SetDefaultModel($providerId: String!, $modelId: String!) {
+    setDefaultModel(providerId: $providerId, modelId: $modelId)
   }
 `);
 

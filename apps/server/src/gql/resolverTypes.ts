@@ -7,7 +7,7 @@ import { DocumentItem } from '../resources/ddb/schema/document.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { IntegrationProviderDef } from '../services/integrations/providers.js';
 import { SafeIntegrationConnection } from '../services/integrations/getConnections.js';
-import { ActiveModelResult } from '../services/integrations/getActiveModel.js';
+import { DefaultModelResult } from '../services/integrations/getDefaultModel.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
@@ -30,12 +30,6 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-};
-
-export type ActiveModel = {
-  __typename?: 'ActiveModel';
-  modelId: Scalars['String']['output'];
-  providerId: Scalars['String']['output'];
 };
 
 export type Agent = {
@@ -147,6 +141,12 @@ export type CreateDocumentInput = {
   title: Scalars['String']['input'];
 };
 
+export type DefaultModel = {
+  __typename?: 'DefaultModel';
+  modelId: Scalars['String']['output'];
+  providerId: Scalars['String']['output'];
+};
+
 export type Document = {
   __typename?: 'Document';
   body: Scalars['String']['output'];
@@ -213,7 +213,7 @@ export type Mutation = {
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
-  setActiveModel: Scalars['Boolean']['output'];
+  setDefaultModel: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -290,7 +290,7 @@ export type MutationSendMessageArgs = {
 };
 
 
-export type MutationSetActiveModelArgs = {
+export type MutationSetDefaultModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
 };
@@ -392,7 +392,6 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
   activeFollowUps: Array<TaskFollowUp>;
-  activeModel?: Maybe<ActiveModel>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
@@ -400,6 +399,7 @@ export type Query = {
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
+  defaultModel?: Maybe<DefaultModel>;
   document?: Maybe<Document>;
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
@@ -705,7 +705,6 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  ActiveModel: ResolverTypeWrapper<ActiveModelResult>;
   Agent: ResolverTypeWrapper<AgentItem>;
   AgentJob: ResolverTypeWrapper<AgentJobItem>;
   AgentLog: ResolverTypeWrapper<AgentLogItem>;
@@ -720,6 +719,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ConnectionMeta: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ConnectionMeta']>;
   CreateDocumentInput: CreateDocumentInput;
+  DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   Document: ResolverTypeWrapper<DocumentItem>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
@@ -753,7 +753,6 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  ActiveModel: ActiveModelResult;
   Agent: AgentItem;
   AgentJob: AgentJobItem;
   AgentLog: AgentLogItem;
@@ -766,6 +765,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   ConnectionMeta: ResolversUnionTypes<ResolversParentTypes>['ConnectionMeta'];
   CreateDocumentInput: CreateDocumentInput;
+  DefaultModel: DefaultModelResult;
   Document: DocumentItem;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
@@ -791,11 +791,6 @@ export type ResolversParentTypes = {
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
   UpdateDocumentInput: UpdateDocumentInput;
-};
-
-export type ActiveModelResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ActiveModel'] = ResolversParentTypes['ActiveModel']> = {
-  modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
@@ -872,6 +867,11 @@ export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType ext
   __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
 };
 
+export type DefaultModelResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DefaultModel'] = ResolversParentTypes['DefaultModel']> = {
+  modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type DocumentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = {
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -926,7 +926,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
-  setActiveModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetActiveModelArgs, 'modelId' | 'providerId'>>;
+  setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -971,7 +971,6 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   activeFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType>;
-  activeModel?: Resolver<Maybe<ResolversTypes['ActiveModel']>, ParentType, ContextType>;
   agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
@@ -979,6 +978,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   document?: Resolver<Maybe<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryDocumentArgs, 'id'>>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
@@ -1061,7 +1061,6 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
 };
 
 export type Resolvers<ContextType = GremlinContext> = {
-  ActiveModel?: ActiveModelResolvers<ContextType>;
   Agent?: AgentResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
   AgentLog?: AgentLogResolvers<ContextType>;
@@ -1072,6 +1071,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
+  DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;

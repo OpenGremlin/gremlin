@@ -16,12 +16,6 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
-export type ActiveModel = {
-  __typename?: 'ActiveModel';
-  modelId: Scalars['String']['output'];
-  providerId: Scalars['String']['output'];
-};
-
 export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
@@ -131,6 +125,12 @@ export type CreateDocumentInput = {
   title: Scalars['String']['input'];
 };
 
+export type DefaultModel = {
+  __typename?: 'DefaultModel';
+  modelId: Scalars['String']['output'];
+  providerId: Scalars['String']['output'];
+};
+
 export type Document = {
   __typename?: 'Document';
   body: Scalars['String']['output'];
@@ -197,7 +197,7 @@ export type Mutation = {
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
-  setActiveModel: Scalars['Boolean']['output'];
+  setDefaultModel: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -274,7 +274,7 @@ export type MutationSendMessageArgs = {
 };
 
 
-export type MutationSetActiveModelArgs = {
+export type MutationSetDefaultModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
 };
@@ -376,7 +376,6 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
   activeFollowUps: Array<TaskFollowUp>;
-  activeModel?: Maybe<ActiveModel>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
@@ -384,6 +383,7 @@ export type Query = {
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
+  defaultModel?: Maybe<DefaultModel>;
   document?: Maybe<Document>;
   documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
@@ -680,7 +680,7 @@ export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documen
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, activeModel?: { __typename?: 'ActiveModel', providerId: string, modelId: string } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -721,13 +721,13 @@ export type RevokeConnectionMutationVariables = Exact<{
 
 export type RevokeConnectionMutation = { __typename?: 'Mutation', revokeIntegrationConnection: boolean };
 
-export type SetActiveModelMutationVariables = Exact<{
+export type SetDefaultModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
   modelId: Scalars['String']['input'];
 }>;
 
 
-export type SetActiveModelMutation = { __typename?: 'Mutation', setActiveModel: boolean };
+export type SetDefaultModelMutation = { __typename?: 'Mutation', setDefaultModel: boolean };
 
 export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1028,7 +1028,7 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     connectionCount
     hasConnection
   }
-  activeModel {
+  defaultModel {
     providerId
     modelId
   }
@@ -1077,11 +1077,11 @@ export const RevokeConnectionDocument = new TypedDocumentString(`
   revokeIntegrationConnection(id: $id)
 }
     `) as unknown as TypedDocumentString<RevokeConnectionMutation, RevokeConnectionMutationVariables>;
-export const SetActiveModelDocument = new TypedDocumentString(`
-    mutation SetActiveModel($providerId: String!, $modelId: String!) {
-  setActiveModel(providerId: $providerId, modelId: $modelId)
+export const SetDefaultModelDocument = new TypedDocumentString(`
+    mutation SetDefaultModel($providerId: String!, $modelId: String!) {
+  setDefaultModel(providerId: $providerId, modelId: $modelId)
 }
-    `) as unknown as TypedDocumentString<SetActiveModelMutation, SetActiveModelMutationVariables>;
+    `) as unknown as TypedDocumentString<SetDefaultModelMutation, SetDefaultModelMutationVariables>;
 export const BedrockEnabledModelsDocument = new TypedDocumentString(`
     query BedrockEnabledModels {
   bedrockEnabledModels

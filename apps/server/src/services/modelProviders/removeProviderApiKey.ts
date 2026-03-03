@@ -11,18 +11,18 @@ export async function removeProviderApiKey(
     .key({ providerId })
     .send();
 
-  // Clear active model if it was using this provider
+  // Clear default model if it was using this provider
   const { Item: setting } = await ctx.resources.ddb.entities.Setting.build(
     GetItemCommand,
   )
-    .key({ key: "activeModel" })
+    .key({ key: "defaultModel" })
     .send();
 
   if (setting) {
-    const activeModel = JSON.parse(setting.value);
-    if (activeModel.providerId === providerId) {
+    const defaultModel = JSON.parse(setting.value);
+    if (defaultModel.providerId === providerId) {
       await ctx.resources.ddb.entities.Setting.build(DeleteItemCommand)
-        .key({ key: "activeModel" })
+        .key({ key: "defaultModel" })
         .send();
     }
   }

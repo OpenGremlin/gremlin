@@ -19,21 +19,21 @@ export async function disableBedrockModel(
     })
     .send();
 
-  // If the active model was this Bedrock model, clear it
+  // If the default model was this Bedrock model, clear it
   const { Item: setting } = await resources.ddb.entities.Setting.build(
     GetItemCommand,
   )
-    .key({ key: "activeModel" })
+    .key({ key: "defaultModel" })
     .send();
 
   if (setting) {
-    const activeModel = JSON.parse(setting.value);
+    const defaultModel = JSON.parse(setting.value);
     if (
-      activeModel.providerId === "bedrock" &&
-      activeModel.modelId === modelId
+      defaultModel.providerId === "bedrock" &&
+      defaultModel.modelId === modelId
     ) {
       await resources.ddb.entities.Setting.build(DeleteItemCommand)
-        .key({ key: "activeModel" })
+        .key({ key: "defaultModel" })
         .send();
       invalidateModelCache();
     }

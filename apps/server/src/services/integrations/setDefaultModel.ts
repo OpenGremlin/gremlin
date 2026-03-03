@@ -5,7 +5,7 @@ import { providers } from "./providers.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
 import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
 
-export async function setActiveModel(
+export async function setDefaultModel(
   ctx: ServiceContext,
   providerId: string,
   modelId: string,
@@ -39,7 +39,7 @@ export async function setActiveModel(
 
   await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
     .item({
-      key: "activeModel",
+      key: "defaultModel",
       value: JSON.stringify({ providerId, modelId }),
     })
     .send();

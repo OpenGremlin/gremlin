@@ -1,15 +1,15 @@
-import { getActiveModel } from "./getActiveModel.js";
+import { getDefaultModel } from "./getDefaultModel.js";
 import { getModelProviders } from "./getModelProviders.js";
 import { removeProviderApiKey } from "./removeProviderApiKey.js";
-import { setActiveModel } from "./setActiveModel.js";
+import { setDefaultModel } from "./setDefaultModel.js";
 import { setProviderApiKey } from "./setProviderApiKey.js";
 
 export const modelProviderService = {
   getModelProviders,
-  getActiveModel,
+  getDefaultModel,
   setProviderApiKey,
   removeProviderApiKey,
-  setActiveModel,
+  setDefaultModel,
 };
 
 export type ModelProviderService = typeof modelProviderService;

@@ -23,8 +23,8 @@ const config: CodegenConfig = {
             "../services/integrations/providers.js#IntegrationProviderDef",
           IntegrationConnection:
             "../services/integrations/getConnections.js#SafeIntegrationConnection",
-          ActiveModel:
-            "../services/integrations/getActiveModel.js#ActiveModelResult",
+          DefaultModel:
+            "../services/integrations/getDefaultModel.js#DefaultModelResult",
           Notification:
             "../resources/ddb/schema/notification.js#NotificationItem",
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",

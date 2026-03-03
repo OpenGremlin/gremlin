@@ -2,7 +2,7 @@ import { connectApiKey } from "./connectApiKey.js";
 import { connectIntegration } from "./connectIntegration.js";
 import { disableBedrockModel } from "./disableBedrockModel.js";
 import { enableBedrockModel } from "./enableBedrockModel.js";
-import { getActiveModel } from "./getActiveModel.js";
+import { getDefaultModel } from "./getDefaultModel.js";
 import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
 import { getConnections } from "./getConnections.js";
 import { getIntegration } from "./getIntegration.js";
@@ -10,7 +10,7 @@ import { getIntegrations } from "./getIntegrations.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
 import { renameConnection } from "./renameConnection.js";
 import { revokeConnection } from "./revokeConnection.js";
-import { setActiveModel } from "./setActiveModel.js";
+import { setDefaultModel } from "./setDefaultModel.js";
 import { describeScopes } from "./describeScopes.js";
 
 export const integrationService = {
@@ -19,7 +19,7 @@ export const integrationService = {
   describeScopes,
   disableBedrockModel,
   enableBedrockModel,
-  getActiveModel,
+  getDefaultModel,
   getBedrockEnabledModels,
   getConnections,
   getIntegration,
@@ -27,7 +27,7 @@ export const integrationService = {
   getProviderApiKey,
   renameConnection,
   revokeConnection,
-  setActiveModel,
+  setDefaultModel,
 };
 
 export type IntegrationService = typeof integrationService;

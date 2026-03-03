@@ -51,26 +51,26 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
     return cachedModel;
   }
 
-  // Read active model setting
-  const activeModel = await ctx.services.modelProviders.getActiveModel(ctx);
+  // Read default model setting
+  const defaultModel = await ctx.services.modelProviders.getDefaultModel(ctx);
 
-  if (!activeModel) {
-    // No active model configured — fall back to Bedrock
+  if (!defaultModel) {
+    // No default model configured — fall back to Bedrock
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
 
   // Bedrock provider uses server-side credentials — no API key needed
-  if (activeModel.providerId === "bedrock") {
-    const model = bedrock(activeModel.modelId);
+  if (defaultModel.providerId === "bedrock") {
+    const model = bedrock(defaultModel.modelId);
     cachedModel = model;
     cacheExpiresAt = now + 30_000;
     return model;
   }
 
-  // Fetch the API key for the active provider
+  // Fetch the API key for the default provider
   const { Item: keyItem } =
     await ctx.resources.ddb.entities.ModelProviderKey.build(GetItemCommand)
-      .key({ providerId: activeModel.providerId })
+      .key({ providerId: defaultModel.providerId })
       .send();
 
   if (!keyItem) {
@@ -79,8 +79,8 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
   }
 
   const model = createProviderModel(
-    activeModel.providerId,
-    activeModel.modelId,
+    defaultModel.providerId,
+    defaultModel.modelId,
     keyItem.apiKey,
   );
 
