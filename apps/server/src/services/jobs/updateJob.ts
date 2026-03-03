@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
+import { renderPrompt } from "../prompts/index.js";
 import { getModel } from "../orchestrator/model.js";
 
 interface UpdateJobInput {
@@ -12,17 +13,6 @@ interface UpdateJobInput {
   timezone?: string | null;
 }
 
-function getCronSystemPrompt(timezone: string): string {
-  return `You convert natural-language schedule descriptions into standard 5-field cron expressions (minute hour day-of-month month day-of-week).
-
-Rules:
-- Output ONLY the cron expression, nothing else. No explanation, no markdown.
-- Use 24-hour time. Times are in the user's timezone: ${timezone}. Default to 09:00 in that timezone when no time is specified.
-- Day-of-week: 0=Sunday, 1=Monday, ..., 6=Saturday.
-- If the input is ambiguous, pick the most reasonable interpretation.
-- If the input cannot be interpreted as a schedule at all, respond with exactly: ERROR`;
-}
-
 /** Use an LLM to convert natural-language recurrence to a cron expression. */
 async function recurrenceToCron(
   ctx: ServiceContext,
@@ -31,7 +21,7 @@ async function recurrenceToCron(
 ): Promise<string> {
   const { text } = await generateText({
     model: await getModel(ctx),
-    system: getCronSystemPrompt(timezone),
+    system: renderPrompt("cron", { timezone }),
     messages: [{ role: "user", content: recurrence }],
   });
 

@@ -1,7 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
-import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
+import { renderPrompt } from "../prompts/index.js";
 import { defaultTools, delegateTaskTool, saveMemoryTool, recallMemoryTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -69,7 +69,7 @@ export async function runMainLane(
   const response = await runAgentTurn(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderSystemPrompt({
+    systemPrompt: renderPrompt("system", {
       name: agent.name,
       soul: agent.soul,
       userDisplayName: profile?.displayName ?? "the user",

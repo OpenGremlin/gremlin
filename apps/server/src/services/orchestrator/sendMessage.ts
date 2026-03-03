@@ -2,7 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
-import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
+import { renderPrompt } from "../prompts/index.js";
 import { delegateTaskTool, defaultTools } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -71,7 +71,7 @@ async function runMainLaneAgent(
   await runAgentTurn(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderSystemPrompt({
+    systemPrompt: renderPrompt("system", {
       name: agent.name,
       soul: agent.soul,
       userDisplayName: profile?.displayName ?? "the user",

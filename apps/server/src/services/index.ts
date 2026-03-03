@@ -19,7 +19,7 @@ import {
   type NotificationService,
   notificationService,
 } from "./notifications/index.js";
-import { type PromptService, promptService } from "./prompts/index.js";
+
 import { type ProfileService, profileService } from "./profile/index.js";
 import { type SkillService, skillService } from "./skills/index.js";
 import {
@@ -42,7 +42,7 @@ export interface Services {
   jobs: JobService;
   integrations: IntegrationService;
   notifications: NotificationService;
-  prompts: PromptService;
+
   profile: ProfileService;
   skills: SkillService;
   media: MediaService;
@@ -63,7 +63,7 @@ export function createServices(): Services {
     jobs: jobService,
     integrations: integrationService,
     notifications: notificationService,
-    prompts: promptService,
+
     profile: profileService,
     skills: skillService,
     media: mediaService,

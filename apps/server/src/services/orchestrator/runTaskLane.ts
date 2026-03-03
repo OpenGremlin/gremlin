@@ -1,7 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
-import { renderTaskSystemPrompt } from "../prompts/renderTaskSystemPrompt.js";
+import { renderPrompt } from "../prompts/index.js";
 import {
   defaultTools,
   updateTaskStatusTool,
@@ -92,7 +92,7 @@ export async function runTaskLane(
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
     taskId,
-    systemPrompt: renderTaskSystemPrompt({
+    systemPrompt: renderPrompt("taskSystem", {
       name: agent.name,
       soul: agent.soul,
       userDisplayName: profile?.displayName ?? "the user",
