@@ -48,13 +48,17 @@ const connectIntegration: MutationResolvers["connectIntegration"] = (
   ctx,
 ) => ctx.services.integrations.connectIntegration(ctx, providerId, scopes);
 
+const renameIntegrationConnection: MutationResolvers["renameIntegrationConnection"] =
+  (_parent, { id, description }, ctx) =>
+    ctx.services.integrations.renameConnection(ctx.resources, id, description);
+
 const revokeIntegrationConnection: MutationResolvers["revokeIntegrationConnection"] =
   (_parent, { id }, ctx) =>
     ctx.services.integrations.revokeConnection(ctx.resources, id);
 
 export const integrationResolvers = {
   Query: { integrationProviders, integrationConnections },
-  Mutation: { connectIntegration, revokeIntegrationConnection },
+  Mutation: { connectIntegration, renameIntegrationConnection, revokeIntegrationConnection },
   IntegrationProvider: { connectionCount },
   IntegrationConnection: { meta },
   ConnectionMeta: {

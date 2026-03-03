@@ -196,6 +196,7 @@ export type Mutation = {
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   removeProviderApiKey: Scalars['Boolean']['output'];
+  renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
@@ -239,6 +240,12 @@ export type MutationInstallSkillArgs = {
 
 export type MutationRemoveProviderApiKeyArgs = {
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationRenameIntegrationConnectionArgs = {
+  description: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -678,8 +685,8 @@ export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never;
 
 
 export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, description: string, connectedAt: string, isRevoked: boolean, meta:
-      | { __typename?: 'ApiKeyConnectionMeta', accountId?: string | null }
-      | { __typename?: 'OAuthConnectionMeta', accountId?: string | null, scopes: Array<string>, expiresAt?: string | null }
+      | { __typename: 'ApiKeyConnectionMeta', accountId?: string | null }
+      | { __typename: 'OAuthConnectionMeta', accountId?: string | null, scopes: Array<string>, expiresAt?: string | null }
      }> };
 
 export type ConnectIntegrationMutationVariables = Exact<{
@@ -689,6 +696,14 @@ export type ConnectIntegrationMutationVariables = Exact<{
 
 
 export type ConnectIntegrationMutation = { __typename?: 'Mutation', connectIntegration: string };
+
+export type RenameConnectionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  description: Scalars['String']['input'];
+}>;
+
+
+export type RenameConnectionMutation = { __typename?: 'Mutation', renameIntegrationConnection: boolean };
 
 export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1006,6 +1021,7 @@ export const IntegrationConnectionsDocument = new TypedDocumentString(`
     connectedAt
     isRevoked
     meta {
+      __typename
       ... on OAuthConnectionMeta {
         accountId
         scopes
@@ -1023,6 +1039,11 @@ export const ConnectIntegrationDocument = new TypedDocumentString(`
   connectIntegration(providerId: $providerId, scopes: $scopes)
 }
     `) as unknown as TypedDocumentString<ConnectIntegrationMutation, ConnectIntegrationMutationVariables>;
+export const RenameConnectionDocument = new TypedDocumentString(`
+    mutation RenameConnection($id: ID!, $description: String!) {
+  renameIntegrationConnection(id: $id, description: $description)
+}
+    `) as unknown as TypedDocumentString<RenameConnectionMutation, RenameConnectionMutationVariables>;
 export const RevokeConnectionDocument = new TypedDocumentString(`
     mutation RevokeConnection($id: ID!) {
   revokeIntegrationConnection(id: $id)

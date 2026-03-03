@@ -213,6 +213,7 @@ export type Mutation = {
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
   removeProviderApiKey: Scalars['Boolean']['output'];
+  renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
@@ -256,6 +257,12 @@ export type MutationInstallSkillArgs = {
 
 export type MutationRemoveProviderApiKeyArgs = {
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationRenameIntegrationConnectionArgs = {
+  description: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -919,6 +926,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   removeProviderApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProviderApiKeyArgs, 'providerId'>>;
+  renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;

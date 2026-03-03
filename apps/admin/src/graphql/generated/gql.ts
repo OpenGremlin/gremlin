@@ -25,8 +25,9 @@ type Documents = {
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": typeof types.DocumentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      availableScopes {\n        scope\n        label\n      }\n      connectionCount\n    }\n  }\n": typeof types.IntegrationProvidersDocument,
-    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
+    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
     "\n  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {\n    connectIntegration(providerId: $providerId, scopes: $scopes)\n  }\n": typeof types.ConnectIntegrationDocument,
+    "\n  mutation RenameConnection($id: ID!, $description: String!) {\n    renameIntegrationConnection(id: $id, description: $description)\n  }\n": typeof types.RenameConnectionDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": typeof types.RevokeConnectionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
@@ -61,8 +62,9 @@ const documents: Documents = {
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": types.DocumentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      availableScopes {\n        scope\n        label\n      }\n      connectionCount\n    }\n  }\n": types.IntegrationProvidersDocument,
-    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
+    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
     "\n  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {\n    connectIntegration(providerId: $providerId, scopes: $scopes)\n  }\n": types.ConnectIntegrationDocument,
+    "\n  mutation RenameConnection($id: ID!, $description: String!) {\n    renameIntegrationConnection(id: $id, description: $description)\n  }\n": types.RenameConnectionDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": types.RevokeConnectionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
@@ -130,11 +132,15 @@ export function graphql(source: "\n  query IntegrationProviders {\n    integrati
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationConnectionsDocument;
+export function graphql(source: "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationConnectionsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {\n    connectIntegration(providerId: $providerId, scopes: $scopes)\n  }\n"): typeof import('./graphql').ConnectIntegrationDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RenameConnection($id: ID!, $description: String!) {\n    renameIntegrationConnection(id: $id, description: $description)\n  }\n"): typeof import('./graphql').RenameConnectionDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

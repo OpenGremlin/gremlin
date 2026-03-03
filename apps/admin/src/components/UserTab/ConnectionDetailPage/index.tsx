@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import {
   IntegrationConnectionsQuery,
+  RenameConnectionMutation,
   RevokeConnectionMutation,
 } from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
@@ -63,8 +64,17 @@ function IntegrationLogo({ id }: { id: string }) {
 export function ConnectionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery(IntegrationConnectionsQuery);
+  const { data, loading, error, refetch } = useQuery(
+    IntegrationConnectionsQuery,
+  );
   const [revoking, setRevoking] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -81,6 +91,26 @@ export function ConnectionDetailPage() {
   const accountId = meta.accountId ?? null;
   const scopes =
     meta.__typename === "OAuthConnectionMeta" ? meta.scopes : null;
+  const description = connection.description;
+
+  function startEditing() {
+    setEditValue(description);
+    setEditing(true);
+  }
+
+  async function handleRename() {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === description) {
+      setEditing(false);
+      return;
+    }
+    await gql<{ renameIntegrationConnection: boolean }>(
+      RenameConnectionMutation,
+      { id, description: trimmed },
+    );
+    setEditing(false);
+    refetch();
+  }
 
   async function handleRevoke() {
     setRevoking(true);
@@ -98,7 +128,7 @@ export function ConnectionDetailPage() {
   return (
     <div className="px-4 pt-6 pb-6">
       <div className="flex items-center justify-between">
-        <BackButton />
+        <BackButton to="/user/integrations" />
         <button
           type="button"
           onClick={handleRevoke}
@@ -112,9 +142,26 @@ export function ConnectionDetailPage() {
       <div className="mt-4 flex items-center gap-4">
         <IntegrationLogo id={connection.providerId} />
         <div>
-          <h1 className="text-xl font-semibold text-neutral-100">
-            {connection.description}
-          </h1>
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={() => handleRename()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setEditing(false);
+              }}
+              className="text-xl font-semibold text-neutral-100 bg-transparent border-b border-neutral-600 outline-none w-full"
+            />
+          ) : (
+            <h1
+              onClick={startEditing}
+              className="text-xl font-semibold text-neutral-100 cursor-pointer hover:text-neutral-300 transition-colors"
+            >
+              {connection.description}
+            </h1>
+          )}
           {accountId && (
             <p className="text-sm text-neutral-400 mt-0.5">{accountId}</p>
           )}
@@ -136,10 +183,6 @@ export function ConnectionDetailPage() {
                 className="flex items-center justify-between bg-neutral-900 rounded-xl p-4 text-left"
               >
                 <span className="text-sm text-neutral-100">{scope}</span>
-                <span className="flex items-center gap-1.5 text-xs">
-                  <span className="inline-block w-2 h-2 rounded-full bg-green-400" />
-                  <span className="text-neutral-400">Active</span>
-                </span>
               </div>
             ))}
           </div>

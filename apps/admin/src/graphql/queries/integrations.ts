@@ -26,6 +26,7 @@ export const IntegrationConnectionsQuery = graphql(`
       connectedAt
       isRevoked
       meta {
+        __typename
         ... on OAuthConnectionMeta {
           accountId
           scopes
@@ -42,6 +43,12 @@ export const IntegrationConnectionsQuery = graphql(`
 export const ConnectIntegrationMutation = graphql(`
   mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {
     connectIntegration(providerId: $providerId, scopes: $scopes)
+  }
+`);
+
+export const RenameConnectionMutation = graphql(`
+  mutation RenameConnection($id: ID!, $description: String!) {
+    renameIntegrationConnection(id: $id, description: $description)
   }
 `);
 

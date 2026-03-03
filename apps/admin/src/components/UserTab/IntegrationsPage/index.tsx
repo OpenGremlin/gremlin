@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   IntegrationConnectionsQuery,
@@ -141,8 +142,14 @@ export function IntegrationsPage() {
                     <p className="text-sm font-medium text-neutral-100 truncate">
                       {conn.description}
                     </p>
-                    <p className="text-xs text-neutral-400 truncate">
+                    <p className="text-xs text-neutral-400 truncate flex items-center gap-1.5">
                       {getAccountId(conn.meta) ?? conn.providerId}
+                      <Lock size={10} className="shrink-0 text-neutral-500" />
+                      <span className="text-neutral-500">
+                        {conn.connectionType === "oauth"
+                          ? "OAuth"
+                          : conn.connectionType}
+                      </span>
                     </p>
                   </div>
                   <span className="text-xs text-neutral-500 shrink-0">

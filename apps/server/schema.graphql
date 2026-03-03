@@ -34,6 +34,7 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   connectIntegration(providerId: String!, scopes: [String!]!): String!
+  renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!
   setProviderApiKey(providerId: String!, apiKey: String!): Boolean!
   removeProviderApiKey(providerId: String!): Boolean!
