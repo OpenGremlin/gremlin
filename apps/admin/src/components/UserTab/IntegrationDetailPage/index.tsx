@@ -26,9 +26,13 @@ const logoMap: Record<string, string> = {
 function IntegrationLogo({ id }: { id: string }) {
   const logo = logoMap[id];
   if (logo) {
-    return <img src={logo} alt={id} className="h-16 w-16 transition-opacity" />;
+    return (
+      <div className="h-12 w-12 flex items-center justify-center">
+        <img src={logo} alt={id} className="h-12 w-12 object-contain" />
+      </div>
+    );
   }
-  return <div className="h-16 w-16 rounded-full bg-neutral-800 flex items-center justify-center text-xl text-neutral-400">{id[0]?.toUpperCase()}</div>;
+  return <div className="h-12 w-12 rounded-full bg-neutral-800 flex items-center justify-center text-xl text-neutral-400">{id[0]?.toUpperCase()}</div>;
 }
 
 export function IntegrationDetailPage() {

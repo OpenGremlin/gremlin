@@ -5,7 +5,7 @@ import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
 import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '../services/agentLogs/pagination.js';
 import { DocumentItem } from '../resources/ddb/schema/document.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { IntegrationResult } from '../services/integrations/getIntegrations.js';
+import { ProviderDef } from '../services/integrations/providers.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
@@ -635,7 +635,7 @@ export type ResolversTypes = {
   Document: ResolverTypeWrapper<DocumentItem>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
-  Integration: ResolverTypeWrapper<IntegrationResult>;
+  Integration: ResolverTypeWrapper<ProviderDef>;
   JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Notification: ResolverTypeWrapper<NotificationItem>;
@@ -674,7 +674,7 @@ export type ResolversParentTypes = {
   Document: DocumentItem;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
-  Integration: IntegrationResult;
+  Integration: ProviderDef;
   Mutation: Record<PropertyKey, never>;
   Notification: NotificationItem;
   NotificationAction: NotificationAction;

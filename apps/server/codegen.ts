@@ -20,7 +20,7 @@ const config: CodegenConfig = {
           Document: "../resources/ddb/schema/document.js#DocumentItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           Integration:
-            "../services/integrations/getIntegrations.js#IntegrationResult",
+            "../services/integrations/providers.js#ProviderDef",
           Notification:
             "../resources/ddb/schema/notification.js#NotificationItem",
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",

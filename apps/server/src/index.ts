@@ -28,17 +28,19 @@ const MEDIA_CDN_URL = (
 let cachedAdminOrigin: string | undefined;
 async function getAdminOrigin(): Promise<string> {
   if (cachedAdminOrigin) return cachedAdminOrigin;
-  try {
-    const ssm = new SSMClient({});
-    const res = await ssm.send(
-      new GetParameterCommand({ Name: "/gremlin/admin-url" }),
-    );
-    if (res.Parameter?.Value) {
-      cachedAdminOrigin = res.Parameter.Value;
-      return cachedAdminOrigin;
+  if (!SKIP_AUTH) {
+    try {
+      const ssm = new SSMClient({});
+      const res = await ssm.send(
+        new GetParameterCommand({ Name: "/gremlin/admin-url" }),
+      );
+      if (res.Parameter?.Value) {
+        cachedAdminOrigin = res.Parameter.Value;
+        return cachedAdminOrigin;
+      }
+    } catch {
+      // SSM not available — fall through
     }
-  } catch {
-    // SSM not available (local dev) — fall through
   }
   cachedAdminOrigin =
     process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
@@ -152,30 +154,23 @@ if (!process.env.MEDIA_CDN_URL) {
 }
 
 // OAuth callback (provider-based)
-app.get("/auth/callback/:provider", async (req, res) => {
-  const { provider } = req.params;
+// Google's redirect URI is registered as /auth/google/callback, so keep that path
+app.get("/auth/google/callback", async (req, res) => {
   const adminOrigin = await getAdminOrigin();
   const code = req.query.code as string | undefined;
   const state = req.query.state as string | undefined;
 
   if (!code || !state) {
-    res.redirect(`${adminOrigin}/integrations?error=${provider}_oauth_failed`);
+    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
     return;
   }
 
   try {
-    switch (provider) {
-      case "google":
-        await services.google.handleGoogleCallback(resources, code, state);
-        break;
-      default:
-        res.redirect(`${adminOrigin}/integrations?error=unknown_provider`);
-        return;
-    }
-    res.redirect(`${adminOrigin}/integrations/${provider}?connected=true`);
+    await services.google.handleGoogleCallback(resources, code, state);
+    res.redirect(`${adminOrigin}/integrations/google?connected=true`);
   } catch (err) {
-    console.error(`OAuth callback failed for ${provider}:`, err);
-    res.redirect(`${adminOrigin}/integrations?error=${provider}_oauth_failed`);
+    console.error("Google OAuth callback failed:", err);
+    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
   }
 });
 

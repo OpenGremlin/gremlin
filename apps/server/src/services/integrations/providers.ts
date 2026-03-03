@@ -16,4 +16,31 @@ export const providers: ProviderDef[] = [
       { scope: "documents.readonly", label: "Read Google Docs" },
     ],
   },
+  {
+    id: "slack",
+    service: "Slack",
+    description: "Channels & Direct Messages",
+    scopes: [
+      { scope: "channels:read", label: "Read Channels" },
+      { scope: "chat:write", label: "Send Messages" },
+    ],
+  },
+  {
+    id: "github",
+    service: "GitHub",
+    description: "Repositories & Issues",
+    scopes: [
+      { scope: "repo", label: "Access Repositories" },
+      { scope: "issues:read", label: "Read Issues" },
+    ],
+  },
+  {
+    id: "spotify",
+    service: "Spotify",
+    description: "Playlists & Listening History",
+    scopes: [
+      { scope: "user-read-playback-state", label: "Read Playback State" },
+      { scope: "playlist-read-private", label: "Read Private Playlists" },
+    ],
+  },
 ];

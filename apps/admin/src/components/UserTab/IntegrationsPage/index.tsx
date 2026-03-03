@@ -20,9 +20,13 @@ const logoMap: Record<string, string> = {
 function IntegrationLogo({ id }: { id: string }) {
   const logo = logoMap[id];
   if (logo) {
-    return <img src={logo} alt={id} className="h-14 w-14" />;
+    return (
+      <div className="h-10 w-10 flex items-center justify-center">
+        <img src={logo} alt={id} className="h-10 w-10 object-contain" />
+      </div>
+    );
   }
-  return <div className="h-14 w-14 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">{id[0]?.toUpperCase()}</div>;
+  return <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">{id[0]?.toUpperCase()}</div>;
 }
 
 function ChevronRight() {
@@ -73,29 +77,19 @@ export function IntegrationsPage() {
   return (
     <>
       <QueryResult loading={loading} error={error} />
-      <div className="flex flex-col gap-3 px-4 pb-6">
+      <div className="grid grid-cols-3 gap-3 px-4 pb-6">
         {integrations.map((integration) =>
           integration.connected ? (
             <Link
               key={integration.id}
               to={`/integrations/${integration.id}`}
-              className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 group"
+              className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
             >
-              <div className="flex-shrink-0">
-                <IntegrationLogo id={integration.id} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-neutral-100">
-                  {integration.service}
-                </h3>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">
-                  {integration.account}
-                </p>
-                <StatusBadge connected />
-              </div>
-              <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
-                <ChevronRight />
-              </div>
+              <IntegrationLogo id={integration.id} />
+              <span className="text-sm font-medium text-neutral-100">
+                {integration.service}
+              </span>
+              <StatusBadge connected />
             </Link>
           ) : (
             <button
@@ -103,27 +97,15 @@ export function IntegrationsPage() {
               type="button"
               onClick={() => handleConnect(integration.id)}
               disabled={connectingId === integration.id}
-              className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 text-left disabled:opacity-50 group"
+              className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 disabled:opacity-50 cursor-pointer disabled:cursor-default"
             >
-              <div className="flex-shrink-0">
-                <div className="opacity-50 group-hover:opacity-75 transition-opacity">
-                  <IntegrationLogo id={integration.id} />
-                </div>
+              <div className="opacity-50 group-hover:opacity-75 transition-opacity">
+                <IntegrationLogo id={integration.id} />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-neutral-100">
-                  {connectingId === integration.id
-                    ? "Connecting..."
-                    : `Connect ${integration.service}`}
-                </h3>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  {integration.description}
-                </p>
-                <StatusBadge connected={false} />
-              </div>
-              <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
-                <ChevronRight />
-              </div>
+              <span className="text-sm font-medium text-neutral-100">
+                {integration.service}
+              </span>
+              <StatusBadge connected={false} />
             </button>
           ),
         )}
