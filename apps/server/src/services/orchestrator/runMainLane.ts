@@ -2,7 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { renderSystemPrompt } from "../prompts/renderSystemPrompt.js";
-import { defaultTools, delegateTaskTool, saveMemoryTool } from "./tools.js";
+import { defaultTools, delegateTaskTool, saveMemoryTool, recallMemoryTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
@@ -34,41 +34,34 @@ export async function runMainLane(
     taskId: null,
   });
 
-  // Recall relevant memories and list topics in parallel
-  const [recalled, topics] = await Promise.all([
-    ctx.services.memory
-      .recallMemories(ctx, agentId, userMessage)
-      .catch((err) => {
-        console.error("memory recall failed:", err);
-        return [];
-      }),
-    ctx.services.memory
-      .listMemoryTopics(ctx, agentId)
-      .catch((err) => {
-        console.error("memory topic list failed:", err);
-        return [];
-      }),
-  ]);
+  // Recall recent journals and semantically relevant older memories
+  const memories = await ctx.services.memory
+    .recallMemories(ctx, agentId, userMessage)
+    .catch((err) => {
+      console.error("memory recall failed:", err);
+      return { recent: [], relevant: [] };
+    });
 
   // Build memory context string
   let memoryContext: string | undefined;
-  if (topics.length > 0 || recalled.length > 0) {
+  if (memories.recent.length > 0 || memories.relevant.length > 0) {
     const lines: string[] = ["## Long-term Memory"];
-    if (topics.length > 0) {
-      lines.push(
-        `Your memory topics: ${topics.map((t) => t.topic).join(", ")}`,
-      );
+    if (memories.recent.length > 0) {
+      lines.push("### Recent journals");
+      for (const m of memories.recent) {
+        lines.push(`[${m.date}]:\n${m.content}`);
+      }
     }
-    if (recalled.length > 0) {
+    if (memories.relevant.length > 0) {
       lines.push("");
-      lines.push("Relevant memories:");
-      for (const m of recalled) {
-        lines.push(`- [${m.topic}]: ${m.content}`);
+      lines.push("### Relevant past memories");
+      for (const m of memories.relevant) {
+        lines.push(`[${m.date}]:\n${m.content}`);
       }
     }
     lines.push("");
     lines.push(
-      "You can save new memories or append to existing topics using the saveMemory tool.",
+      "You can save new memories using the saveMemory tool. Entries are appended to today's journal.",
     );
     memoryContext = lines.join("\n");
   }
@@ -89,6 +82,7 @@ export async function runMainLane(
       ...defaultTools,
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
+      recallMemory: recallMemoryTool(ctx, agentId),
     },
   });
 

@@ -46,7 +46,7 @@ export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
         dimension: 1024,
         distanceMetric: "cosine",
         metadataConfiguration: {
-          nonFilterableMetadataKeys: ["content", "topic"],
+          nonFilterableMetadataKeys: ["content", "date"],
         },
       }),
     );

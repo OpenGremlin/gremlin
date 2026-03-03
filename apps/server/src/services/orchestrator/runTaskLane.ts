@@ -8,6 +8,7 @@ import {
   createDocumentTool,
   updateDocumentTool,
   saveMemoryTool,
+  recallMemoryTool,
 } from "./tools.js";
 import {
   launchSandboxTool,
@@ -61,6 +62,33 @@ export async function runTaskLane(
     messages.push({ role: "user", content: prompt });
   }
 
+  // Recall memories using task prompt
+  const memories = await ctx.services.memory
+    .recallMemories(ctx, task.agentId, prompt)
+    .catch((err) => {
+      console.error("memory recall failed:", err);
+      return { recent: [], relevant: [] };
+    });
+
+  let memoryContext: string | undefined;
+  if (memories.recent.length > 0 || memories.relevant.length > 0) {
+    const lines: string[] = ["## Long-term Memory"];
+    if (memories.recent.length > 0) {
+      lines.push("### Recent journals");
+      for (const m of memories.recent) {
+        lines.push(`[${m.date}]:\n${m.content}`);
+      }
+    }
+    if (memories.relevant.length > 0) {
+      lines.push("");
+      lines.push("### Relevant past memories");
+      for (const m of memories.relevant) {
+        lines.push(`[${m.date}]:\n${m.content}`);
+      }
+    }
+    memoryContext = lines.join("\n");
+  }
+
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
     taskId,
@@ -73,6 +101,7 @@ export async function runTaskLane(
       taskId,
     }),
     timezone: profile?.timezone ?? undefined,
+    memoryContext,
     messages,
     tools: {
       ...defaultTools,
@@ -80,6 +109,7 @@ export async function runTaskLane(
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
       saveMemory: saveMemoryTool(ctx, task.agentId),
+      recallMemory: recallMemoryTool(ctx, task.agentId),
       launchSandbox: launchSandboxTool(ctx, task.agentId),
       runCommand: runCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),
