@@ -204,6 +204,10 @@ export function IntegrationsPage() {
           </div>
         )}
 
+        {connectionList.length > 0 && (
+          <hr className="border-neutral-800" />
+        )}
+
         {/* Provider catalog grouped by category */}
         {grouped.map((group) => (
           <div key={group.category}>
@@ -211,11 +215,13 @@ export function IntegrationsPage() {
               {group.label}
             </h3>
             <div className="grid grid-cols-3 gap-3">
-              {group.items.map((provider) => (
+              {group.items.map((provider) => {
+                const connected = provider.connectionType === "bedrock" || provider.connectionCount > 0;
+                return (
                 <Link
                   key={provider.id}
                   to={`/integrations/${provider.id}`}
-                  className="flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
+                  className={`flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer ${connected ? "ring-1 ring-emerald-500/40" : ""}`}
                 >
                   <IntegrationLogo id={provider.id} />
                   <span className="text-sm font-medium text-neutral-100">
@@ -229,7 +235,8 @@ export function IntegrationsPage() {
                     <ConnectionCountBadge count={provider.connectionCount} />
                   )}
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
