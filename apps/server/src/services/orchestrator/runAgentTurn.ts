@@ -33,7 +33,7 @@ export async function runAgentTurn(
   const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
 
   const result = await generateText({
-    model: getModel(),
+    model: await getModel(ctx),
     messages: [
       {
         role: "system",

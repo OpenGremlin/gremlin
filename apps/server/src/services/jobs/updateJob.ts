@@ -25,11 +25,12 @@ Rules:
 
 /** Use an LLM to convert natural-language recurrence to a cron expression. */
 async function recurrenceToCron(
+  ctx: ServiceContext,
   recurrence: string,
   timezone: string,
 ): Promise<string> {
   const { text } = await generateText({
-    model: getModel(),
+    model: await getModel(ctx),
     system: getCronSystemPrompt(timezone),
     messages: [{ role: "user", content: recurrence }],
   });
@@ -68,7 +69,7 @@ export async function updateJob(
       ?? (await ctx.services.jobs.getJob(ctx, id))?.timezone
       ?? "UTC";
     updates.recurrence = input.recurrence;
-    updates.cronExpression = await recurrenceToCron(input.recurrence, timezone);
+    updates.cronExpression = await recurrenceToCron(ctx, input.recurrence, timezone);
   }
 
   const { Attributes } = await ctx.resources.ddb.entities.AgentJob.build(

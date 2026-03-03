@@ -125,7 +125,7 @@ export async function maybeCompact(
     .join("\n\n");
 
   const result = await generateText({
-    model: getModel(),
+    model: await getModel(ctx),
     system: SUMMARIZATION_PROMPT,
     messages: [{ role: "user", content: transcript }],
   });

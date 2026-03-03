@@ -21,6 +21,10 @@ const config: CodegenConfig = {
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           Integration:
             "../services/integrations/providers.js#ProviderDef",
+          ModelProvider:
+            "../services/modelProviders/getModelProviders.js#ModelProviderResult",
+          ActiveModel:
+            "../services/modelProviders/getActiveModel.js#ActiveModelResult",
           Notification:
             "../resources/ddb/schema/notification.js#NotificationItem",
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",

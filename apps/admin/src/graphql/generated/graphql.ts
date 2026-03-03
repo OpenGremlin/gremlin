@@ -16,6 +16,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ActiveModel = {
+  __typename?: 'ActiveModel';
+  modelId: Scalars['String']['output'];
+  providerId: Scalars['String']['output'];
+};
+
 export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
@@ -140,6 +146,25 @@ export enum JobStatus {
   Running = 'RUNNING'
 }
 
+export type ModelInfo = {
+  __typename?: 'ModelInfo';
+  contextWindow: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  inputCost?: Maybe<Scalars['Float']['output']>;
+  maxTokens: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  outputCost?: Maybe<Scalars['Float']['output']>;
+  reasoning: Scalars['Boolean']['output'];
+};
+
+export type ModelProvider = {
+  __typename?: 'ModelProvider';
+  hasApiKey: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  models: Array<ModelInfo>;
+  name: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -149,8 +174,11 @@ export type Mutation = {
   disconnectIntegration: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   installSkill?: Maybe<Skill>;
+  removeProviderApiKey: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
   sendMessage: AgentLog;
+  setActiveModel: Scalars['Boolean']['output'];
+  setProviderApiKey: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -191,6 +219,11 @@ export type MutationInstallSkillArgs = {
 };
 
 
+export type MutationRemoveProviderApiKeyArgs = {
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
   id: Scalars['ID']['input'];
@@ -201,6 +234,18 @@ export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationSetActiveModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
+export type MutationSetProviderApiKeyArgs = {
+  apiKey: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -299,6 +344,7 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
   activeFollowUps: Array<TaskFollowUp>;
+  activeModel?: Maybe<ActiveModel>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
@@ -309,6 +355,7 @@ export type Query = {
   documents: Array<Document>;
   integration?: Maybe<Integration>;
   integrations: Array<Integration>;
+  modelProviders: Array<ModelProvider>;
   notifications: Array<Notification>;
   profile: Profile;
   searchSkills: Array<Skill>;
@@ -649,6 +696,34 @@ export type UpdateAgentJobMutationVariables = Exact<{
 
 export type UpdateAgentJobMutation = { __typename?: 'Mutation', updateAgentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string } } | null };
 
+export type ModelProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ModelProvidersQuery = { __typename?: 'Query', modelProviders: Array<{ __typename?: 'ModelProvider', id: string, name: string, hasApiKey: boolean, models: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> }>, activeModel?: { __typename?: 'ActiveModel', providerId: string, modelId: string } | null };
+
+export type SetProviderApiKeyMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  apiKey: Scalars['String']['input'];
+}>;
+
+
+export type SetProviderApiKeyMutation = { __typename?: 'Mutation', setProviderApiKey: boolean };
+
+export type RemoveProviderApiKeyMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+}>;
+
+
+export type RemoveProviderApiKeyMutation = { __typename?: 'Mutation', removeProviderApiKey: boolean };
+
+export type SetActiveModelMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type SetActiveModelMutation = { __typename?: 'Mutation', setActiveModel: boolean };
+
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -988,6 +1063,43 @@ export const UpdateAgentJobDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateAgentJobMutation, UpdateAgentJobMutationVariables>;
+export const ModelProvidersDocument = new TypedDocumentString(`
+    query ModelProviders {
+  modelProviders {
+    id
+    name
+    hasApiKey
+    models {
+      id
+      name
+      contextWindow
+      maxTokens
+      reasoning
+      inputCost
+      outputCost
+    }
+  }
+  activeModel {
+    providerId
+    modelId
+  }
+}
+    `) as unknown as TypedDocumentString<ModelProvidersQuery, ModelProvidersQueryVariables>;
+export const SetProviderApiKeyDocument = new TypedDocumentString(`
+    mutation SetProviderApiKey($providerId: String!, $apiKey: String!) {
+  setProviderApiKey(providerId: $providerId, apiKey: $apiKey)
+}
+    `) as unknown as TypedDocumentString<SetProviderApiKeyMutation, SetProviderApiKeyMutationVariables>;
+export const RemoveProviderApiKeyDocument = new TypedDocumentString(`
+    mutation RemoveProviderApiKey($providerId: String!) {
+  removeProviderApiKey(providerId: $providerId)
+}
+    `) as unknown as TypedDocumentString<RemoveProviderApiKeyMutation, RemoveProviderApiKeyMutationVariables>;
+export const SetActiveModelDocument = new TypedDocumentString(`
+    mutation SetActiveModel($providerId: String!, $modelId: String!) {
+  setActiveModel(providerId: $providerId, modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<SetActiveModelMutation, SetActiveModelMutationVariables>;
 export const NotificationsDocument = new TypedDocumentString(`
     query Notifications {
   notifications {

@@ -24,6 +24,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   env,
   table: db.table,
   tableName: db.tableName,
+  secretsTable: db.secretsTable,
+  secretsTableName: db.secretsTableName,
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   mediaCdnUrl: media.cdnUrl,

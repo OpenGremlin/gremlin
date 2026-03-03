@@ -5,6 +5,8 @@ import type { Construct } from "constructs";
 export class DatabaseStack extends cdk.Stack {
   readonly table: dynamodb.ITable;
   readonly tableName: string;
+  readonly secretsTable: dynamodb.ITable;
+  readonly secretsTableName: string;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -27,5 +29,17 @@ export class DatabaseStack extends cdk.Stack {
     });
 
     this.table = table;
+
+    this.secretsTableName = "gremlin-secrets";
+
+    const secretsTable = new dynamodb.Table(this, "SecretsTable", {
+      tableName: this.secretsTableName,
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    this.secretsTable = secretsTable;
   }
 }

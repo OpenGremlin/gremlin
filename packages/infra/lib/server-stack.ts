@@ -15,6 +15,8 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 export interface ServerStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
   tableName: string;
+  secretsTable: dynamodb.ITable;
+  secretsTableName: string;
   userPoolId: string;
   userPoolClientId: string;
   mediaCdnUrl: string;
@@ -52,6 +54,7 @@ export class ServerStack extends cdk.Stack {
     });
 
     props.table.grantReadWriteData(taskDef.taskRole);
+    props.secretsTable.grantReadWriteData(taskDef.taskRole);
 
     taskDef.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -84,6 +87,7 @@ export class ServerStack extends cdk.Stack {
       environment: {
         PORT: "3001",
         TABLE_NAME: props.tableName,
+        SECRETS_TABLE_NAME: props.secretsTableName,
         NODE_ENV: "production",
         AWS_REGION: this.region,
         COGNITO_USER_POOL_ID: props.userPoolId,
