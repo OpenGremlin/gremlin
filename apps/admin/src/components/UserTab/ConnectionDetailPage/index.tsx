@@ -157,12 +157,6 @@ export function ConnectionDetailPage() {
             <span className="text-neutral-400">Type</span>
             <span className="text-neutral-100">{connection.connectionType}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-neutral-400">Connection ID</span>
-            <span className="text-neutral-100 font-mono text-xs">
-              {connection.id}
-            </span>
-          </div>
         </div>
       </div>
     </div>
