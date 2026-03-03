@@ -1,25 +1,16 @@
 export const integrationTypeDefs = /* GraphQL */ `
-  enum AuthMethod {
-    OAUTH
-    API_KEY
-    TOKEN
-  }
-
   type Permission {
     scope: String!
     label: String!
-    enabled: Boolean!
   }
 
   type Integration {
     id: ID!
     service: String!
-    icon: String!
     description: String!
-    account: String!
-    connectedAt: String!
-    authMethod: AuthMethod!
-    enabled: Boolean!
+    account: String
+    connectedAt: String
+    connected: Boolean!
     permissions: [Permission!]!
   }
 
@@ -29,9 +20,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   }
 
   extend type Mutation {
-    togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
-    setIntegrationEnabled(id: ID!, enabled: Boolean!): Integration
+    connectIntegration(provider: String!): String!
     disconnectIntegration(id: ID!): Boolean!
-    connectGoogle: String!
   }
 `;

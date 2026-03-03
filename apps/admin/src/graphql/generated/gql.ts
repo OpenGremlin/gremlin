@@ -24,11 +24,9 @@ type Documents = {
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      status\n      statusReason\n    }\n  }\n": typeof types.AgentUpdatedDocument,
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": typeof types.DocumentUpdatedDocument,
-    "\n  query Integrations {\n    integrations {\n      id\n      service\n      icon\n      account\n    }\n  }\n": typeof types.IntegrationsDocument,
-    "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": typeof types.IntegrationDocument,
-    "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n": typeof types.ConnectGoogleDocument,
-    "\n  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {\n    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": typeof types.TogglePermissionDocument,
-    "\n  mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {\n    setIntegrationEnabled(id: $id, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": typeof types.SetIntegrationEnabledDocument,
+    "\n  query Integrations {\n    integrations {\n      id\n      service\n      description\n      connected\n      account\n    }\n  }\n": typeof types.IntegrationsDocument,
+    "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      description\n      account\n      connectedAt\n      connected\n      permissions {\n        scope\n        label\n      }\n    }\n  }\n": typeof types.IntegrationDocument,
+    "\n  mutation ConnectIntegration($provider: String!) {\n    connectIntegration(provider: $provider)\n  }\n": typeof types.ConnectIntegrationDocument,
     "\n  mutation DisconnectIntegration($id: ID!) {\n    disconnectIntegration(id: $id)\n  }\n": typeof types.DisconnectIntegrationDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
@@ -58,11 +56,9 @@ const documents: Documents = {
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      status\n      statusReason\n    }\n  }\n": types.AgentUpdatedDocument,
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": types.DocumentUpdatedDocument,
-    "\n  query Integrations {\n    integrations {\n      id\n      service\n      icon\n      account\n    }\n  }\n": types.IntegrationsDocument,
-    "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": types.IntegrationDocument,
-    "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n": types.ConnectGoogleDocument,
-    "\n  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {\n    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": types.TogglePermissionDocument,
-    "\n  mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {\n    setIntegrationEnabled(id: $id, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n": types.SetIntegrationEnabledDocument,
+    "\n  query Integrations {\n    integrations {\n      id\n      service\n      description\n      connected\n      account\n    }\n  }\n": types.IntegrationsDocument,
+    "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      description\n      account\n      connectedAt\n      connected\n      permissions {\n        scope\n        label\n      }\n    }\n  }\n": types.IntegrationDocument,
+    "\n  mutation ConnectIntegration($provider: String!) {\n    connectIntegration(provider: $provider)\n  }\n": types.ConnectIntegrationDocument,
     "\n  mutation DisconnectIntegration($id: ID!) {\n    disconnectIntegration(id: $id)\n  }\n": types.DisconnectIntegrationDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
@@ -122,23 +118,15 @@ export function graphql(source: "\n  subscription DocumentUpdated($id: ID!) {\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Integrations {\n    integrations {\n      id\n      service\n      icon\n      account\n    }\n  }\n"): typeof import('./graphql').IntegrationsDocument;
+export function graphql(source: "\n  query Integrations {\n    integrations {\n      id\n      service\n      description\n      connected\n      account\n    }\n  }\n"): typeof import('./graphql').IntegrationsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationDocument;
+export function graphql(source: "\n  query Integration($id: ID!) {\n    integration(id: $id) {\n      id\n      service\n      description\n      account\n      connectedAt\n      connected\n      permissions {\n        scope\n        label\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation ConnectGoogle {\n    connectGoogle\n  }\n"): typeof import('./graphql').ConnectGoogleDocument;
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {\n    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n"): typeof import('./graphql').TogglePermissionDocument;
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {\n    setIntegrationEnabled(id: $id, enabled: $enabled) {\n      id\n      service\n      icon\n      description\n      account\n      connectedAt\n      authMethod\n      enabled\n      permissions {\n        scope\n        label\n        enabled\n      }\n    }\n  }\n"): typeof import('./graphql').SetIntegrationEnabledDocument;
+export function graphql(source: "\n  mutation ConnectIntegration($provider: String!) {\n    connectIntegration(provider: $provider)\n  }\n"): typeof import('./graphql').ConnectIntegrationDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -26,33 +26,16 @@ export async function handleGoogleCallback(
   const scopes = (tokens.scope ?? "").split(" ").join(",");
 
   // Store OAuth tokens
-  await resources.ddb.entities.GoogleOAuthToken.build(PutItemCommand)
+  await resources.ddb.entities.OAuthToken.build(PutItemCommand)
     .item({
       userId,
+      provider: "google",
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresAt,
       scopes,
       email,
       connectedAt: now,
-    })
-    .send();
-
-  // Upsert Integration record
-  await resources.ddb.entities.Integration.build(PutItemCommand)
-    .item({
-      id: "google",
-      service: "Google",
-      icon: "🔗",
-      description: "Gmail (read/send) and Google Docs (read)",
-      account: email,
-      connectedAt: now,
-      authMethod: "OAUTH",
-      permissions: [
-        { scope: "gmail.readonly", label: "Read Gmail", enabled: true },
-        { scope: "gmail.send", label: "Send Gmail", enabled: true },
-        { scope: "documents.readonly", label: "Read Google Docs", enabled: true },
-      ],
     })
     .send();
 }

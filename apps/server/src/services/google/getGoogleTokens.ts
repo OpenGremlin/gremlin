@@ -9,10 +9,10 @@ export async function getGoogleAccessToken(
   resources: Resources,
   userId: string,
 ): Promise<string> {
-  const { Item } = await resources.ddb.entities.GoogleOAuthToken.build(
+  const { Item } = await resources.ddb.entities.OAuthToken.build(
     GetItemCommand,
   )
-    .key({ userId })
+    .key({ userId, provider: "google" })
     .send();
 
   if (!Item) throw new Error("Google OAuth tokens not found for user");
@@ -35,7 +35,7 @@ export async function getGoogleAccessToken(
 
   const newExpiresAt = new Date(credentials.expiry_date ?? 0).toISOString();
 
-  await resources.ddb.entities.GoogleOAuthToken.build(PutItemCommand)
+  await resources.ddb.entities.OAuthToken.build(PutItemCommand)
     .item({
       ...Item,
       accessToken: credentials.access_token,

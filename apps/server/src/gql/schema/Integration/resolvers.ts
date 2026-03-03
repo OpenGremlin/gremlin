@@ -6,23 +6,11 @@ const integrations: QueryResolvers["integrations"] = (_parent, _args, ctx) =>
 const integration: QueryResolvers["integration"] = (_parent, { id }, ctx) =>
   ctx.services.integrations.getIntegration(ctx, id);
 
-const togglePermission: MutationResolvers["togglePermission"] = (
+const connectIntegration: MutationResolvers["connectIntegration"] = (
   _parent,
-  { integrationId, scope, enabled },
+  { provider },
   ctx,
-) =>
-  ctx.services.integrations.togglePermission(
-    ctx,
-    integrationId,
-    scope,
-    enabled,
-  );
-
-const setIntegrationEnabled: MutationResolvers["setIntegrationEnabled"] = (
-  _parent,
-  { id, enabled },
-  ctx,
-) => ctx.services.integrations.setIntegrationEnabled(ctx, id, enabled);
+) => ctx.services.integrations.connectIntegration(ctx, provider);
 
 const disconnectIntegration: MutationResolvers["disconnectIntegration"] = (
   _parent,
@@ -30,10 +18,7 @@ const disconnectIntegration: MutationResolvers["disconnectIntegration"] = (
   ctx,
 ) => ctx.services.integrations.disconnectIntegration(ctx, id);
 
-const connectGoogle: MutationResolvers["connectGoogle"] = (_parent, _args, ctx) =>
-  ctx.services.google.generateGoogleAuthUrl(ctx);
-
 export const integrationResolvers = {
   Query: { integrations, integration },
-  Mutation: { togglePermission, setIntegrationEnabled, disconnectIntegration, connectGoogle },
+  Mutation: { connectIntegration, disconnectIntegration },
 };

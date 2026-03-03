@@ -151,23 +151,31 @@ if (!process.env.MEDIA_CDN_URL) {
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
 }
 
-// Google OAuth callback
-app.get("/auth/google/callback", async (req, res) => {
+// OAuth callback (provider-based)
+app.get("/auth/callback/:provider", async (req, res) => {
+  const { provider } = req.params;
   const adminOrigin = await getAdminOrigin();
   const code = req.query.code as string | undefined;
   const state = req.query.state as string | undefined;
 
   if (!code || !state) {
-    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+    res.redirect(`${adminOrigin}/integrations?error=${provider}_oauth_failed`);
     return;
   }
 
   try {
-    await services.google.handleGoogleCallback(resources, code, state);
-    res.redirect(`${adminOrigin}/integrations/google?connected=true`);
+    switch (provider) {
+      case "google":
+        await services.google.handleGoogleCallback(resources, code, state);
+        break;
+      default:
+        res.redirect(`${adminOrigin}/integrations?error=unknown_provider`);
+        return;
+    }
+    res.redirect(`${adminOrigin}/integrations/${provider}?connected=true`);
   } catch (err) {
-    console.error("Google OAuth callback failed:", err);
-    res.redirect(`${adminOrigin}/integrations?error=google_oauth_failed`);
+    console.error(`OAuth callback failed for ${provider}:`, err);
+    res.redirect(`${adminOrigin}/integrations?error=${provider}_oauth_failed`);
   }
 });
 

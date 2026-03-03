@@ -31,10 +31,8 @@ type Mutation {
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
-  togglePermission(integrationId: ID!, scope: String!, enabled: Boolean!): Integration
-  setIntegrationEnabled(id: ID!, enabled: Boolean!): Integration
+  connectIntegration(provider: String!): String!
   disconnectIntegration(id: ID!): Boolean!
-  connectGoogle: String!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
@@ -168,27 +166,18 @@ type Avatar {
   url(width: Int): String!
 }
 
-enum AuthMethod {
-  OAUTH
-  API_KEY
-  TOKEN
-}
-
 type Permission {
   scope: String!
   label: String!
-  enabled: Boolean!
 }
 
 type Integration {
   id: ID!
   service: String!
-  icon: String!
   description: String!
-  account: String!
-  connectedAt: String!
-  authMethod: AuthMethod!
-  enabled: Boolean!
+  account: String
+  connectedAt: String
+  connected: Boolean!
   permissions: [Permission!]!
 }
 

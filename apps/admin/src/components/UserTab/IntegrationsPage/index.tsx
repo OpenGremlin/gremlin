@@ -1,16 +1,28 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { gql } from "../../../auth";
-import { ConnectGoogleMutation, IntegrationsQuery } from "../../../graphql/queries";
+import { ConnectIntegrationMutation, IntegrationsQuery } from "../../../graphql/queries";
 import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-import googleLogo from "../../../assets/logos/Google.svg";
 
-function IntegrationIcon({ id, icon }: { id: string; icon: string }) {
-  if (id === "google") {
-    return <img src={googleLogo} alt="Google" className="h-14 w-14" />;
+import googleLogo from "../../../assets/logos/Google.svg";
+import slackLogo from "../../../assets/logos/Slack.svg";
+import githubLogo from "../../../assets/logos/GitHub.svg";
+import spotifyLogo from "../../../assets/logos/Spotify.svg";
+
+const logoMap: Record<string, string> = {
+  google: googleLogo,
+  slack: slackLogo,
+  github: githubLogo,
+  spotify: spotifyLogo,
+};
+
+function IntegrationLogo({ id }: { id: string }) {
+  const logo = logoMap[id];
+  if (logo) {
+    return <img src={logo} alt={id} className="h-14 w-14" />;
   }
-  return <span className="text-5xl">{icon}</span>;
+  return <div className="h-14 w-14 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">{id[0]?.toUpperCase()}</div>;
 }
 
 function ChevronRight() {
@@ -40,19 +52,21 @@ function StatusBadge({ connected }: { connected: boolean }) {
 
 export function IntegrationsPage() {
   const { data, loading, error } = useQuery(IntegrationsQuery);
-  const [connecting, setConnecting] = useState(false);
+  const [connectingId, setConnectingId] = useState<string | null>(null);
 
   const integrations = data?.integrations ?? [];
-  const hasGoogle = integrations.some((i) => i.id === "google");
 
-  async function handleConnectGoogle() {
-    setConnecting(true);
+  async function handleConnect(providerId: string) {
+    setConnectingId(providerId);
     try {
-      const result = await gql<{ connectGoogle: string }>(ConnectGoogleMutation);
-      window.location.href = result.connectGoogle;
+      const result = await gql<{ connectIntegration: string }>(
+        ConnectIntegrationMutation,
+        { provider: providerId },
+      );
+      window.location.href = result.connectIntegration;
     } catch (err) {
-      console.error("Failed to start Google OAuth:", err);
-      setConnecting(false);
+      console.error(`Failed to start OAuth for ${providerId}:`, err);
+      setConnectingId(null);
     }
   }
 
@@ -60,52 +74,58 @@ export function IntegrationsPage() {
     <>
       <QueryResult loading={loading} error={error} />
       <div className="flex flex-col gap-3 px-4 pb-6">
-        {integrations.map((integration) => (
-          <Link
-            key={integration.id}
-            to={`/integrations/${integration.id}`}
-            className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 group"
-          >
-            <div className="flex-shrink-0">
-              <IntegrationIcon id={integration.id} icon={integration.icon} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-neutral-100">
-                {integration.service}
-              </h3>
-              <p className="text-xs text-neutral-400 mt-0.5 truncate">
-                {integration.account}
-              </p>
-              <StatusBadge connected />
-            </div>
-            <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
-              <ChevronRight />
-            </div>
-          </Link>
-        ))}
-        {!hasGoogle && (
-          <button
-            type="button"
-            onClick={handleConnectGoogle}
-            disabled={connecting}
-            className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 text-left disabled:opacity-50 group"
-          >
-            <div className="flex-shrink-0">
-              <img src={googleLogo} alt="Google" className="h-14 w-14 opacity-50 group-hover:opacity-75 transition-opacity" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-neutral-100">
-                {connecting ? "Connecting..." : "Connect Google"}
-              </h3>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Gmail & Google Docs
-              </p>
-              <StatusBadge connected={false} />
-            </div>
-            <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
-              <ChevronRight />
-            </div>
-          </button>
+        {integrations.map((integration) =>
+          integration.connected ? (
+            <Link
+              key={integration.id}
+              to={`/integrations/${integration.id}`}
+              className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 group"
+            >
+              <div className="flex-shrink-0">
+                <IntegrationLogo id={integration.id} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-neutral-100">
+                  {integration.service}
+                </h3>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">
+                  {integration.account}
+                </p>
+                <StatusBadge connected />
+              </div>
+              <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
+                <ChevronRight />
+              </div>
+            </Link>
+          ) : (
+            <button
+              key={integration.id}
+              type="button"
+              onClick={() => handleConnect(integration.id)}
+              disabled={connectingId === integration.id}
+              className="flex items-center gap-4 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 text-left disabled:opacity-50 group"
+            >
+              <div className="flex-shrink-0">
+                <div className="opacity-50 group-hover:opacity-75 transition-opacity">
+                  <IntegrationLogo id={integration.id} />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-neutral-100">
+                  {connectingId === integration.id
+                    ? "Connecting..."
+                    : `Connect ${integration.service}`}
+                </h3>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  {integration.description}
+                </p>
+                <StatusBadge connected={false} />
+              </div>
+              <div className="flex-shrink-0 transition-transform group-hover:translate-x-0.5">
+                <ChevronRight />
+              </div>
+            </button>
+          ),
         )}
       </div>
     </>

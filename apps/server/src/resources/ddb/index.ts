@@ -3,13 +3,12 @@ import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
-import { IntegrationEntity } from "./schema/integration.js";
 import { NotificationEntity } from "./schema/notification.js";
+import { OAuthTokenEntity } from "./schema/oauthToken.js";
 import { ProfileEntity } from "./schema/profile.js";
 import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
 import { DocumentEntity } from "./schema/document.js";
-import { GoogleOAuthTokenEntity } from "./schema/googleOAuthToken.js";
 import { MemoryTopicEntity } from "./schema/memoryTopic.js";
 import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 
@@ -18,11 +17,10 @@ export const ddb = {
   entities: {
     CronJobTrigger: CronJobTriggerEntity,
     Document: DocumentEntity,
-    GoogleOAuthToken: GoogleOAuthTokenEntity,
+    OAuthToken: OAuthTokenEntity,
     Agent: AgentEntity,
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,
-    Integration: IntegrationEntity,
     MemoryTopic: MemoryTopicEntity,
     Notification: NotificationEntity,
     Profile: ProfileEntity,

@@ -5,7 +5,7 @@ import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
 import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '../services/agentLogs/pagination.js';
 import { DocumentItem } from '../resources/ddb/schema/document.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { IntegrationItem } from '../resources/ddb/schema/integration.js';
+import { IntegrationResult } from '../services/integrations/getIntegrations.js';
 import { NotificationItem } from '../resources/ddb/schema/notification.js';
 import { ProfileItem } from '../resources/ddb/schema/profile.js';
 import { SkillItem } from '../resources/ddb/schema/skill.js';
@@ -109,12 +109,6 @@ export enum AgentStatus {
   Scheduled = 'SCHEDULED'
 }
 
-export enum AuthMethod {
-  ApiKey = 'API_KEY',
-  Oauth = 'OAUTH',
-  Token = 'TOKEN'
-}
-
 export type Avatar = {
   __typename?: 'Avatar';
   id: Scalars['ID']['output'];
@@ -143,12 +137,10 @@ export type Document = {
 
 export type Integration = {
   __typename?: 'Integration';
-  account: Scalars['String']['output'];
-  authMethod: AuthMethod;
-  connectedAt: Scalars['String']['output'];
+  account?: Maybe<Scalars['String']['output']>;
+  connected: Scalars['Boolean']['output'];
+  connectedAt?: Maybe<Scalars['String']['output']>;
   description: Scalars['String']['output'];
-  enabled: Scalars['Boolean']['output'];
-  icon: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   permissions: Array<Permission>;
   service: Scalars['String']['output'];
@@ -164,7 +156,7 @@ export enum JobStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  connectGoogle: Scalars['String']['output'];
+  connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
   disconnectIntegration: Scalars['Boolean']['output'];
@@ -172,8 +164,6 @@ export type Mutation = {
   installSkill?: Maybe<Skill>;
   resolveNotification?: Maybe<Notification>;
   sendMessage: AgentLog;
-  setIntegrationEnabled?: Maybe<Integration>;
-  togglePermission?: Maybe<Integration>;
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -181,6 +171,11 @@ export type Mutation = {
   updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
+};
+
+
+export type MutationConnectIntegrationArgs = {
+  provider: Scalars['String']['input'];
 };
 
 
@@ -219,19 +214,6 @@ export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type MutationSetIntegrationEnabledArgs = {
-  enabled: Scalars['Boolean']['input'];
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationTogglePermissionArgs = {
-  enabled: Scalars['Boolean']['input'];
-  integrationId: Scalars['ID']['input'];
-  scope: Scalars['String']['input'];
 };
 
 
@@ -307,7 +289,6 @@ export enum NotificationType {
 
 export type Permission = {
   __typename?: 'Permission';
-  enabled: Scalars['Boolean']['output'];
   label: Scalars['String']['output'];
   scope: Scalars['String']['output'];
 };
@@ -648,14 +629,13 @@ export type ResolversTypes = {
   AgentLogPageInfo: ResolverTypeWrapper<PageInfoModel>;
   AgentLogRole: AgentLogRole;
   AgentStatus: AgentStatus;
-  AuthMethod: AuthMethod;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CreateDocumentInput: CreateDocumentInput;
   Document: ResolverTypeWrapper<DocumentItem>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
-  Integration: ResolverTypeWrapper<IntegrationItem>;
+  Integration: ResolverTypeWrapper<IntegrationResult>;
   JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Notification: ResolverTypeWrapper<NotificationItem>;
@@ -694,7 +674,7 @@ export type ResolversParentTypes = {
   Document: DocumentItem;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
-  Integration: IntegrationItem;
+  Integration: IntegrationResult;
   Mutation: Record<PropertyKey, never>;
   Notification: NotificationItem;
   NotificationAction: NotificationAction;
@@ -784,12 +764,10 @@ export type DocumentResolvers<ContextType = GremlinContext, ParentType extends R
 };
 
 export type IntegrationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Integration'] = ResolversParentTypes['Integration']> = {
-  account?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  authMethod?: Resolver<ResolversTypes['AuthMethod'], ParentType, ContextType>;
-  connectedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  account?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  connected?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  connectedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  icon?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   permissions?: Resolver<Array<ResolversTypes['Permission']>, ParentType, ContextType>;
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -797,7 +775,7 @@ export type IntegrationResolvers<ContextType = GremlinContext, ParentType extend
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  connectGoogle?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'provider'>>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
   disconnectIntegration?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisconnectIntegrationArgs, 'id'>>;
@@ -805,8 +783,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
-  setIntegrationEnabled?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationSetIntegrationEnabledArgs, 'enabled' | 'id'>>;
-  togglePermission?: Resolver<Maybe<ResolversTypes['Integration']>, ParentType, ContextType, RequireFields<MutationTogglePermissionArgs, 'enabled' | 'integrationId' | 'scope'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -835,7 +811,6 @@ export type NotificationActionResolvers<ContextType = GremlinContext, ParentType
 };
 
 export type PermissionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = {
-  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   scope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

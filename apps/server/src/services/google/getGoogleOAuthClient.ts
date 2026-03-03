@@ -26,7 +26,7 @@ export async function getGoogleOAuthClient(): Promise<OAuth2Client> {
 
   const redirectUri =
     process.env.GOOGLE_OAUTH_REDIRECT_URI ||
-    "http://localhost:3001/auth/google/callback";
+    "http://localhost:3001/auth/callback/google";
 
   cachedClient = new OAuth2Client(clientId, clientSecret, redirectUri);
   return cachedClient;

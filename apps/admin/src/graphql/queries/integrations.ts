@@ -5,7 +5,8 @@ export const IntegrationsQuery = graphql(`
     integrations {
       id
       service
-      icon
+      description
+      connected
       account
     }
   }
@@ -16,64 +17,21 @@ export const IntegrationQuery = graphql(`
     integration(id: $id) {
       id
       service
-      icon
       description
       account
       connectedAt
-      authMethod
-      enabled
+      connected
       permissions {
         scope
         label
-        enabled
       }
     }
   }
 `);
 
-export const ConnectGoogleMutation = graphql(`
-  mutation ConnectGoogle {
-    connectGoogle
-  }
-`);
-
-export const TogglePermissionMutation = graphql(`
-  mutation TogglePermission($integrationId: ID!, $scope: String!, $enabled: Boolean!) {
-    togglePermission(integrationId: $integrationId, scope: $scope, enabled: $enabled) {
-      id
-      service
-      icon
-      description
-      account
-      connectedAt
-      authMethod
-      enabled
-      permissions {
-        scope
-        label
-        enabled
-      }
-    }
-  }
-`);
-
-export const SetIntegrationEnabledMutation = graphql(`
-  mutation SetIntegrationEnabled($id: ID!, $enabled: Boolean!) {
-    setIntegrationEnabled(id: $id, enabled: $enabled) {
-      id
-      service
-      icon
-      description
-      account
-      connectedAt
-      authMethod
-      enabled
-      permissions {
-        scope
-        label
-        enabled
-      }
-    }
+export const ConnectIntegrationMutation = graphql(`
+  mutation ConnectIntegration($provider: String!) {
+    connectIntegration(provider: $provider)
   }
 `);
 
