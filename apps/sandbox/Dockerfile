@@ -1,6 +1,7 @@
 # Stage 1: install dependencies
 FROM node:20-slim AS deps
 WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/sandbox/package.json apps/sandbox/
