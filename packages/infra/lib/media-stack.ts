@@ -52,7 +52,7 @@ export class MediaStack extends cdk.Stack {
         s3deploy.Source.asset(path.join(REPO_ROOT, "apps/media-server/assets")),
       ],
       destinationBucket: bucket,
-      memoryLimit: 512,
+      memoryLimit: 1024,
     });
 
     bucket.grantRead(handler);

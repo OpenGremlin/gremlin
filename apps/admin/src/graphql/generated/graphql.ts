@@ -576,12 +576,18 @@ export type Task = {
   createdAt: Scalars['String']['output'];
   documents: Array<Document>;
   id: Scalars['ID']['output'];
+  imageUrl?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
   status: TaskStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+
+export type TaskImageUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -909,14 +915,14 @@ export type TasksQueryVariables = Exact<{
 }>;
 
 
-export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } | null };
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } | null };
 
 export type TaskLogsQueryVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -941,7 +947,7 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, updatedAt: string, completedAt?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -1419,6 +1425,7 @@ export const TasksDocument = new TypedDocumentString(`
         status
         message
         createdAt
+        imageUrl(width: 100)
         documents {
           id
           title
@@ -1450,6 +1457,7 @@ export const TaskDocument = new TypedDocumentString(`
     createdAt
     updatedAt
     completedAt
+    imageUrl(width: 100)
     artifacts
     documents {
       id
@@ -1515,6 +1523,7 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     message
     updatedAt
     completedAt
+    imageUrl(width: 100)
     artifacts
     documents {
       id

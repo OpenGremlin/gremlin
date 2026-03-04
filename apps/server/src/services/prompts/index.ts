@@ -2,6 +2,7 @@ import Handlebars from "handlebars";
 import { compactionTemplate } from "./templates/compaction.js";
 import { cronTemplate } from "./templates/cron.js";
 import { systemTemplate } from "./templates/system.js";
+import { taskImageTemplate } from "./templates/taskImage.js";
 import { taskSystemTemplate } from "./templates/taskSystem.js";
 
 interface PromptRegistry {
@@ -23,6 +24,9 @@ interface PromptRegistry {
   cron: {
     timezone: string;
   };
+  taskImage: {
+    images: string;
+  };
 }
 
 const templates: Record<keyof PromptRegistry, string> = {
@@ -30,6 +34,7 @@ const templates: Record<keyof PromptRegistry, string> = {
   taskSystem: taskSystemTemplate,
   compaction: compactionTemplate,
   cron: cronTemplate,
+  taskImage: taskImageTemplate,
 };
 
 const compiled = new Map<string, Handlebars.TemplateDelegate>();

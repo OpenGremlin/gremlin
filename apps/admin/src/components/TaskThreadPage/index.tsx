@@ -99,6 +99,13 @@ export function TaskThreadPage() {
             <ArrowLeft size={18} />
           </Link>
           <AgentAvatar id={task.agent.id} />
+          {task.imageUrl && (
+            <img
+              src={task.imageUrl}
+              alt=""
+              className="w-8 h-8 rounded-md object-cover shrink-0"
+            />
+          )}
           <h1 className="text-sm font-semibold text-neutral-100 flex-1 truncate">
             {task.title}
           </h1>

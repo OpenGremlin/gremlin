@@ -23,6 +23,7 @@ export async function createTask(
     updatedAt: now,
     completedAt: null,
     originJobId: input.originJobId ?? null,
+    image: null,
     artifacts: [],
   };
 

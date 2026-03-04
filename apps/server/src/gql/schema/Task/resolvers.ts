@@ -23,6 +23,15 @@ const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
+const imageUrl: TaskResolvers["imageUrl"] = (parent, args, ctx) =>
+  parent.image
+    ? ctx.services.media.buildMediaUrl(
+        ctx.mediaCdnUrl,
+        `tasks/${parent.image}`,
+        args.width,
+      )
+    : null;
+
 const artifacts: TaskResolvers["artifacts"] = (parent) =>
   parent.artifacts ?? [];
 
@@ -84,7 +93,7 @@ const taskLogCreated = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, artifacts, documents, logs },
+  Task: { agent, imageUrl, artifacts, documents, logs },
   TaskEdge: { node },
   Subscription: { taskUpdated, tasksUpdated, taskLogCreated },
 };

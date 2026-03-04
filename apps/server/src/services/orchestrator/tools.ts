@@ -128,6 +128,9 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
         title,
       });
 
+      // Fire-and-forget: AI picks an illustration for the task
+      void ctx.services.tasks.selectAndSetTaskImage(ctx, task);
+
       // Enqueue to inbox — the consumer picks it up after the current turn
       await ctx.services.inbox.enqueueWork(ctx, agentId, {
         type: "run_task",

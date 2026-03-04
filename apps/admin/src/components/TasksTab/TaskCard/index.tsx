@@ -15,6 +15,7 @@ type TaskItem = {
   createdAt: string;
   agent: { id: string; name?: string };
   message?: string | null;
+  imageUrl?: string | null;
   documents?: Array<{
     id: string;
     title: string;
@@ -54,6 +55,7 @@ export function TaskCard({ item }: { item: TaskItem }) {
           <AgentAvatar id={agent.id} />
         </button>
         <div className="min-w-0 flex-1">
+
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               {agent.name && (
@@ -99,6 +101,13 @@ export function TaskCard({ item }: { item: TaskItem }) {
             </div>
           )}
         </div>
+        {task.imageUrl && (
+          <img
+            src={task.imageUrl}
+            alt=""
+            className="w-14 h-14 rounded-lg object-cover shrink-0"
+          />
+        )}
       </div>
     </Link>
   );

@@ -593,12 +593,18 @@ export type Task = {
   createdAt: Scalars['String']['output'];
   documents: Array<Document>;
   id: Scalars['ID']['output'];
+  imageUrl?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
   status: TaskStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+
+export type TaskImageUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1085,6 +1091,7 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<TaskImageUrlArgs>>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   originJobId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

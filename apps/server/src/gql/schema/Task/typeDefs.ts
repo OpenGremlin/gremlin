@@ -18,6 +18,7 @@ export const taskTypeDefs = /* GraphQL */ `
     updatedAt: String!
     completedAt: String
     originJobId: String
+    imageUrl(width: Int): String
     artifacts: [String!]!
     documents: [Document!]!
     logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
