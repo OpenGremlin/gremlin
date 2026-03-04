@@ -10,6 +10,7 @@ import { notificationTypeDefs } from "./Notification/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { taskTypeDefs } from "./Task/typeDefs.js";
+import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
   baseTypeDefs,
@@ -23,6 +24,7 @@ export const allTypeDefs = [
   profileTypeDefs,
   skillTypeDefs,
   taskTypeDefs,
+  workspaceTypeDefs,
 ];
 
 export const mergedTypeDefs = mergeTypeDefs(allTypeDefs);

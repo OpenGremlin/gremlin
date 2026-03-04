@@ -41,7 +41,6 @@ export const AgentJobQuery = graphql(`
           id
         }
         title
-        status
         createdAt
       }
     }

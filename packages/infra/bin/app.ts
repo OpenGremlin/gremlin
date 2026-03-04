@@ -40,12 +40,14 @@ new MessagingStack(app, "GremlinMessagingStack", {
   serverTaskDefinition: server.serverTaskDefinition,
 });
 
-// 4. Sandbox — depends on Server (VPC, cluster, SG)
+// 4. Sandbox — depends on Server (VPC, cluster, SG, EFS)
 new SandboxStack(app, "GremlinSandboxStack", {
   env,
   vpc: server.vpc,
   cluster: server.cluster,
   serverSecurityGroup: server.serverSecurityGroup,
+  fileSystem: server.fileSystem,
+  accessPoint: server.accessPoint,
 });
 
 // 5. Admin — depends on Auth, Media, Server (for ALB)

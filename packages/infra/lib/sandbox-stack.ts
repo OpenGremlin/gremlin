@@ -15,6 +15,8 @@ export interface SandboxStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   cluster: ecs.ICluster;
   serverSecurityGroup: ec2.ISecurityGroup;
+  fileSystem: efs.IFileSystem;
+  accessPoint: efs.IAccessPoint;
 }
 
 export class SandboxStack extends cdk.Stack {
@@ -37,27 +39,6 @@ export class SandboxStack extends cdk.Stack {
       "Browser bridge from server",
     );
 
-    // ── EFS for shared /workspace ──────────────────────────
-    const fsSg = new ec2.SecurityGroup(this, "EfsSg", {
-      vpc: props.vpc,
-      description: "Gremlin sandbox EFS",
-    });
-    fsSg.addIngressRule(sandboxSg, ec2.Port.tcp(2049), "NFS from sandbox");
-
-    const fileSystem = new efs.FileSystem(this, "WorkspaceFs", {
-      vpc: props.vpc,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      securityGroup: fsSg,
-      performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    const accessPoint = fileSystem.addAccessPoint("WorkspaceAp", {
-      path: "/workspace",
-      createAcl: { ownerGid: "1000", ownerUid: "1000", permissions: "755" },
-      posixUser: { gid: "1000", uid: "1000" },
-    });
-
     // Task definition: x86_64 for Playwright/Chromium + browser sidecar
     const taskDef = new ecs.FargateTaskDefinition(this, "SandboxTask", {
       cpu: 2048,
@@ -71,16 +52,16 @@ export class SandboxStack extends cdk.Stack {
     taskDef.addVolume({
       name: "workspace",
       efsVolumeConfiguration: {
-        fileSystemId: fileSystem.fileSystemId,
+        fileSystemId: props.fileSystem.fileSystemId,
         transitEncryption: "ENABLED",
         authorizationConfig: {
-          accessPointId: accessPoint.accessPointId,
+          accessPointId: props.accessPoint.accessPointId,
           iam: "ENABLED",
         },
       },
     });
 
-    fileSystem.grant(
+    props.fileSystem.grant(
       taskDef.taskRole,
       "elasticfilesystem:ClientMount",
       "elasticfilesystem:ClientWrite",

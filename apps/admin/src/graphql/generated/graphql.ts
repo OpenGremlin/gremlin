@@ -24,8 +24,6 @@ export type Agent = {
   name: Scalars['String']['output'];
   portraitId: Scalars['String']['output'];
   soul: Scalars['String']['output'];
-  status: AgentStatus;
-  statusReason?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -86,13 +84,6 @@ export enum AgentLogRole {
   System = 'SYSTEM',
   Tool = 'TOOL',
   User = 'USER'
-}
-
-export enum AgentStatus {
-  Active = 'ACTIVE',
-  Blocked = 'BLOCKED',
-  Idle = 'IDLE',
-  Scheduled = 'SCHEDULED'
 }
 
 export type ApiKeyConnectionMeta = {
@@ -210,7 +201,6 @@ export type Mutation = {
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
-  updateAgentStatus?: Maybe<Agent>;
   updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
@@ -311,12 +301,6 @@ export type MutationUpdateAgentJobArgs = {
 };
 
 
-export type MutationUpdateAgentStatusArgs = {
-  id: Scalars['ID']['input'];
-  status: AgentStatus;
-};
-
-
 export type MutationUpdateDocumentArgs = {
   id: Scalars['ID']['input'];
   input: UpdateDocumentInput;
@@ -409,6 +393,8 @@ export type Query = {
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
+  workspaceEntries: Array<WorkspaceEntry>;
+  workspaceFile?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -465,6 +451,16 @@ export type QueryTasksArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryWorkspaceEntriesArgs = {
+  path: Scalars['String']['input'];
+};
+
+
+export type QueryWorkspaceFileArgs = {
+  path: Scalars['String']['input'];
 };
 
 export type Skill = {
@@ -545,7 +541,6 @@ export type Task = {
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
-  status: TaskStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -583,15 +578,6 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
-export enum TaskStatus {
-  Abandoned = 'ABANDONED',
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Running = 'RUNNING',
-  Waiting = 'WAITING'
-}
-
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -609,6 +595,15 @@ export type UpdateAgentJobInput = {
 export type UpdateDocumentInput = {
   body: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type WorkspaceEntry = {
+  __typename?: 'WorkspaceEntry';
+  isDirectory: Scalars['Boolean']['output'];
+  modifiedAt?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  size?: Maybe<Scalars['Int']['output']>;
 };
 
 export type AgentLogsQueryVariables = Exact<{
@@ -760,7 +755,7 @@ export type AgentJobQueryVariables = Exact<{
 }>;
 
 
-export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
+export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, tasks: Array<{ __typename?: 'Task', id: string, title: string, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
 
 export type DeleteAgentJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -888,6 +883,20 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 
 
 export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
+
+export type WorkspaceEntriesQueryVariables = Exact<{
+  path: Scalars['String']['input'];
+}>;
+
+
+export type WorkspaceEntriesQuery = { __typename?: 'Query', workspaceEntries: Array<{ __typename?: 'WorkspaceEntry', name: string, path: string, isDirectory: boolean, size?: number | null, modifiedAt?: string | null }> };
+
+export type WorkspaceFileQueryVariables = Exact<{
+  path: Scalars['String']['input'];
+}>;
+
+
+export type WorkspaceFileQuery = { __typename?: 'Query', workspaceFile?: string | null };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -1160,7 +1169,6 @@ export const AgentJobDocument = new TypedDocumentString(`
         id
       }
       title
-      status
       createdAt
     }
   }
@@ -1443,3 +1451,19 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<TaskUpdatedSubscription, TaskUpdatedSubscriptionVariables>;
+export const WorkspaceEntriesDocument = new TypedDocumentString(`
+    query WorkspaceEntries($path: String!) {
+  workspaceEntries(path: $path) {
+    name
+    path
+    isDirectory
+    size
+    modifiedAt
+  }
+}
+    `) as unknown as TypedDocumentString<WorkspaceEntriesQuery, WorkspaceEntriesQueryVariables>;
+export const WorkspaceFileDocument = new TypedDocumentString(`
+    query WorkspaceFile($path: String!) {
+  workspaceFile(path: $path)
+}
+    `) as unknown as TypedDocumentString<WorkspaceFileQuery, WorkspaceFileQueryVariables>;

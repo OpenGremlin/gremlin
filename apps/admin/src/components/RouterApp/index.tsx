@@ -1,4 +1,4 @@
-import { AlignLeft, Calendar, Star, User } from "lucide-react";
+import { AlignLeft, Calendar, FolderOpen, Star, User } from "lucide-react";
 import {
   BrowserRouter,
   Navigate,
@@ -10,6 +10,8 @@ import {
 import { NotificationsQuery } from "../../graphql/queries";
 import { useQuery } from "../../useQuery";
 import { AgentsTab } from "../AgentsTab";
+import { FilesTab } from "../FilesTab";
+import { FileViewPage } from "../FilesTab/FileViewPage";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
 import { SchedulerTab } from "../SchedulerTab";
@@ -32,6 +34,7 @@ function TabShell() {
     { to: "/home", label: "Home", icon: AlignLeft, badge: 0 },
     { to: "/scheduler", label: "Scheduler", icon: Calendar, badge: 0 },
     { to: "/agents", label: "Agents", icon: Star, badge: 0 },
+    { to: "/files", label: "Files", icon: FolderOpen, badge: 0 },
     {
       to: "/user/notifications",
       label: "User",
@@ -94,6 +97,8 @@ export function RouterApp() {
           <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />
+          <Route path="files" element={<FilesTab />} />
+          <Route path="files/view" element={<FileViewPage />} />
           <Route path="tasks/:taskId" element={<TaskThreadPage />} />
         </Route>
       </Routes>

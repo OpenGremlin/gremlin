@@ -27,6 +27,10 @@ import { type ProfileService, profileService } from "./profile/index.js";
 import { type SandboxService, sandboxService } from "./sandbox/index.js";
 import { type SkillService, skillService } from "./skills/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
+import {
+  type WorkspaceService,
+  workspaceService,
+} from "./workspace/index.js";
 
 export interface Services {
   agentLogs: AgentLogService;
@@ -47,6 +51,7 @@ export interface Services {
   orchestrator: OrchestratorService;
   sandbox: SandboxService;
   tasks: TaskService;
+  workspace: WorkspaceService;
 }
 
 export function createServices(): Services {
@@ -69,5 +74,6 @@ export function createServices(): Services {
     orchestrator: orchestratorService,
     sandbox: sandboxService,
     tasks: taskService,
+    workspace: workspaceService,
   };
 }

@@ -20,6 +20,8 @@ type Query {
   searchSkills(query: String!): [Skill!]!
   tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
   task(id: ID!): Task
+  workspaceEntries(path: String!): [WorkspaceEntry!]!
+  workspaceFile(path: String!): String
 }
 
 type Mutation {
@@ -32,7 +34,6 @@ type Mutation {
   deleteAgentJob(id: ID!): AgentJob
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
-  updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   connectIntegration(providerId: String!, scopes: [String!]!): String!
   connectApiKey(providerId: String!, apiKey: String!): ID!
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
@@ -150,13 +151,6 @@ type AgentLogConnection {
   pageInfo: AgentLogPageInfo!
 }
 
-enum AgentStatus {
-  ACTIVE
-  SCHEDULED
-  IDLE
-  BLOCKED
-}
-
 type Agent {
   id: ID!
   name: String!
@@ -164,8 +158,6 @@ type Agent {
   portraitId: String!
   imageUrl(width: Int): String!
   soul: String!
-  status: AgentStatus!
-  statusReason: String
 }
 
 input UpdateAgentInput {
@@ -289,20 +281,10 @@ type Skill {
   requiredEnv: [String!]!
 }
 
-enum TaskStatus {
-  PENDING
-  RUNNING
-  WAITING
-  COMPLETED
-  FAILED
-  ABANDONED
-}
-
 type Task {
   id: ID!
   agent: Agent!
   title: String!
-  status: TaskStatus!
   message: String
   createdAt: String!
   updatedAt: String!
@@ -329,6 +311,14 @@ type TaskPageInfo {
 type TaskConnection {
   edges: [TaskEdge!]!
   pageInfo: TaskPageInfo!
+}
+
+type WorkspaceEntry {
+  name: String!
+  path: String!
+  isDirectory: Boolean!
+  size: Int
+  modifiedAt: String
 }
 
 schema {

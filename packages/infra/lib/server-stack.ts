@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as efs from "aws-cdk-lib/aws-efs";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -29,6 +30,8 @@ export class ServerStack extends cdk.Stack {
   readonly vpc: ec2.IVpc;
   readonly serverSecurityGroup: ec2.ISecurityGroup;
   readonly serverTaskDefinition: ecs.FargateTaskDefinition;
+  readonly fileSystem: efs.IFileSystem;
+  readonly accessPoint: efs.IAccessPoint;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
@@ -94,6 +97,7 @@ export class ServerStack extends cdk.Stack {
         COGNITO_CLIENT_ID: props.userPoolClientId,
         MEDIA_CDN_URL: props.mediaCdnUrl,
         S3_VECTORS_BUCKET_NAME: "gremlin-vectors",
+        WORKSPACE_PATH: "/workspace",
         ECS_CLUSTER_NAME: cluster.clusterName,
         SUBNET_IDS: vpc.publicSubnets.map((s) => s.subnetId).join(","),
       },
@@ -105,6 +109,51 @@ export class ServerStack extends cdk.Stack {
       vpc,
       description: "Gremlin server Fargate service",
     });
+
+    // ── EFS for shared /workspace ──────────────────────────
+    const efsSg = new ec2.SecurityGroup(this, "EfsSg", {
+      vpc,
+      description: "Gremlin EFS",
+    });
+    efsSg.addIngressRule(
+      ec2.Peer.ipv4(vpc.vpcCidrBlock),
+      ec2.Port.tcp(2049),
+      "NFS from VPC",
+    );
+
+    const fileSystem = new efs.FileSystem(this, "WorkspaceFs", {
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      securityGroup: efsSg,
+      performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const accessPoint = fileSystem.addAccessPoint("WorkspaceAp", {
+      path: "/workspace",
+      createAcl: { ownerGid: "1000", ownerUid: "1000", permissions: "755" },
+      posixUser: { gid: "1000", uid: "1000" },
+    });
+
+    taskDef.addVolume({
+      name: "workspace",
+      efsVolumeConfiguration: {
+        fileSystemId: fileSystem.fileSystemId,
+        transitEncryption: "ENABLED",
+        authorizationConfig: {
+          accessPointId: accessPoint.accessPointId,
+          iam: "ENABLED",
+        },
+      },
+    });
+
+    container.addMountPoints({
+      sourceVolume: "workspace",
+      containerPath: "/workspace",
+      readOnly: true,
+    });
+
+    fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount");
 
     const service = new ecs.FargateService(this, "Svc", {
       cluster,
@@ -179,6 +228,8 @@ export class ServerStack extends cdk.Stack {
     this.vpc = vpc;
     this.serverSecurityGroup = serverSg;
     this.serverTaskDefinition = taskDef;
+    this.fileSystem = fileSystem;
+    this.accessPoint = accessPoint;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
     new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });

@@ -35,7 +35,7 @@ type Documents = {
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
-    "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
+    "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
     "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": typeof types.DeleteAgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.UpdateAgentJobDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": typeof types.CreateAgentJobDocument,
@@ -54,6 +54,8 @@ type Documents = {
     "\n  query TaskLogs($taskId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    taskLogs(taskId: $taskId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": typeof types.TaskLogsDocument,
     "\n  subscription TaskLogCreated($taskId: ID!) {\n    taskLogCreated(taskId: $taskId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": typeof types.TaskLogCreatedDocument,
     "\n  subscription TaskUpdated($taskId: ID!) {\n    taskUpdated(taskId: $taskId) {\n      id\n      title\n      message\n      updatedAt\n      completedAt\n      imageUrl(width: 200)\n      artifacts\n      documents {\n        id\n        title\n        body\n        updatedAt\n      }\n    }\n  }\n": typeof types.TaskUpdatedDocument,
+    "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": typeof types.WorkspaceEntriesDocument,
+    "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": typeof types.WorkspaceFileDocument,
 };
 const documents: Documents = {
     "\n  query AgentLogs($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.AgentLogsDocument,
@@ -76,7 +78,7 @@ const documents: Documents = {
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
-    "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
+    "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
     "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": types.DeleteAgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.UpdateAgentJobDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": types.CreateAgentJobDocument,
@@ -95,6 +97,8 @@ const documents: Documents = {
     "\n  query TaskLogs($taskId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    taskLogs(taskId: $taskId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.TaskLogsDocument,
     "\n  subscription TaskLogCreated($taskId: ID!) {\n    taskLogCreated(taskId: $taskId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": types.TaskLogCreatedDocument,
     "\n  subscription TaskUpdated($taskId: ID!) {\n    taskUpdated(taskId: $taskId) {\n      id\n      title\n      message\n      updatedAt\n      completedAt\n      imageUrl(width: 200)\n      artifacts\n      documents {\n        id\n        title\n        body\n        updatedAt\n      }\n    }\n  }\n": types.TaskUpdatedDocument,
+    "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": types.WorkspaceEntriesDocument,
+    "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": types.WorkspaceFileDocument,
 };
 
 /**
@@ -180,7 +184,7 @@ export function graphql(source: "\n  query AgentJobs {\n    agentJobs {\n      i
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n"): typeof import('./graphql').AgentJobDocument;
+export function graphql(source: "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        createdAt\n      }\n    }\n  }\n"): typeof import('./graphql').AgentJobDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -253,6 +257,14 @@ export function graphql(source: "\n  subscription TaskLogCreated($taskId: ID!) {
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription TaskUpdated($taskId: ID!) {\n    taskUpdated(taskId: $taskId) {\n      id\n      title\n      message\n      updatedAt\n      completedAt\n      imageUrl(width: 200)\n      artifacts\n      documents {\n        id\n        title\n        body\n        updatedAt\n      }\n    }\n  }\n"): typeof import('./graphql').TaskUpdatedDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n"): typeof import('./graphql').WorkspaceEntriesDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n"): typeof import('./graphql').WorkspaceFileDocument;
 
 
 export function graphql(source: string) {
