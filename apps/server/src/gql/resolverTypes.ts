@@ -205,6 +205,7 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
@@ -242,6 +243,11 @@ export type MutationCreateDocumentArgs = {
 
 
 export type MutationDeactivateFollowUpArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteAgentJobArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -918,6 +924,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
   deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
+  deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;

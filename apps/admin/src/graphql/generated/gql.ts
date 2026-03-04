@@ -36,6 +36,7 @@ type Documents = {
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
+    "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": typeof types.DeleteAgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.UpdateAgentJobDocument,
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveNotificationDocument,
@@ -75,6 +76,7 @@ const documents: Documents = {
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
+    "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": types.DeleteAgentJobDocument,
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      status\n      lastRun\n      nextRun\n    }\n  }\n": types.UpdateAgentJobDocument,
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveNotificationDocument,
@@ -177,6 +179,10 @@ export function graphql(source: "\n  query AgentJobs {\n    agentJobs {\n      i
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      status\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        status\n        createdAt\n      }\n    }\n  }\n"): typeof import('./graphql').AgentJobDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n"): typeof import('./graphql').DeleteAgentJobDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -1,14 +1,17 @@
 import cronstrue from "cronstrue";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import type {
   AgentJobQuery as AgentJobQueryType,
+  DeleteAgentJobMutation,
   UpdateAgentJobMutation,
 } from "../../../graphql/generated/graphql";
 import {
   AgentJobQuery,
   AgentsQuery,
+  DeleteAgentJobMutation as DeleteAgentJobDoc,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
@@ -32,6 +35,8 @@ export function JobDetailPage() {
   const [timezone, setTimezone] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   // Snapshot from server
   const [savedJob, setSavedJob] = useState<Job | null>(null);
@@ -255,6 +260,30 @@ export function JobDetailPage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Delete Job */}
+      <section className="mt-8 mb-4">
+        <button
+          type="button"
+          disabled={deleting}
+          onClick={async () => {
+            if (!window.confirm("Delete this job? This cannot be undone."))
+              return;
+            setDeleting(true);
+            try {
+              await gql<DeleteAgentJobMutation>(DeleteAgentJobDoc, { id });
+              navigate("/scheduler");
+            } catch (err) {
+              console.error("Failed to delete job:", err);
+              setDeleting(false);
+            }
+          }}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <Trash2 size={16} />
+          {deleting ? "Deleting…" : "Delete Job"}
+        </button>
       </section>
     </div>
   );

@@ -4,20 +4,8 @@ type Query {
   document(id: ID!): Document
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(
-    agentId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
-  taskLogs(
-    taskId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -42,6 +30,7 @@ type Mutation {
   updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
   updateJobStatus(id: ID!, status: JobStatus!): AgentJob
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
+  deleteAgentJob(id: ID!): AgentJob
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   updateAgentStatus(id: ID!, status: AgentStatus!): Agent
@@ -315,12 +304,7 @@ type Task {
   originJobId: String
   artifacts: [String!]!
   documents: [Document!]!
-  logs(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
 }
 
 type TaskEdge {

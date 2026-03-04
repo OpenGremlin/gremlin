@@ -23,6 +23,9 @@ const updateAgentJob: MutationResolvers["updateAgentJob"] = (
   ctx,
 ) => ctx.services.jobs.updateJob(ctx, id, input);
 
+const deleteAgentJob: MutationResolvers["deleteAgentJob"] = (_parent, { id }, ctx) =>
+  ctx.services.jobs.deleteJob(ctx, id);
+
 const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.loaders.agentLoader.load(parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
@@ -49,6 +52,6 @@ const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
 
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
-  Mutation: { updateJobStatus, updateAgentJob },
+  Mutation: { updateJobStatus, updateAgentJob, deleteAgentJob },
   AgentJob: { agent, tasks, nextRun },
 };

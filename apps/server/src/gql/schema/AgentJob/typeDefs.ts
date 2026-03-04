@@ -36,5 +36,6 @@ export const agentJobTypeDefs = /* GraphQL */ `
   extend type Mutation {
     updateJobStatus(id: ID!, status: JobStatus!): AgentJob
     updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
+    deleteAgentJob(id: ID!): AgentJob
   }
 `;

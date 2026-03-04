@@ -48,6 +48,12 @@ export const AgentJobQuery = graphql(`
   }
 `);
 
+export const DeleteAgentJobMutation = graphql(`
+  mutation DeleteAgentJob($id: ID!) {
+    deleteAgentJob(id: $id) { id }
+  }
+`);
+
 export const UpdateAgentJobMutation = graphql(`
   mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {
     updateAgentJob(id: $id, input: $input) {

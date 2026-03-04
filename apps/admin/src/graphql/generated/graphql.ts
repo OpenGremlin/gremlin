@@ -189,6 +189,7 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createDocument: Document;
   deactivateFollowUp?: Maybe<TaskFollowUp>;
+  deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
@@ -226,6 +227,11 @@ export type MutationCreateDocumentArgs = {
 
 
 export type MutationDeactivateFollowUpArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteAgentJobArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -760,6 +766,13 @@ export type AgentJobQueryVariables = Exact<{
 
 export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, status: JobStatus, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, tasks: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
 
+export type DeleteAgentJobMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteAgentJobMutation = { __typename?: 'Mutation', deleteAgentJob?: { __typename?: 'AgentJob', id: string } | null };
+
 export type UpdateAgentJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   input: UpdateAgentJobInput;
@@ -1154,6 +1167,13 @@ export const AgentJobDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<AgentJobQuery, AgentJobQueryVariables>;
+export const DeleteAgentJobDocument = new TypedDocumentString(`
+    mutation DeleteAgentJob($id: ID!) {
+  deleteAgentJob(id: $id) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<DeleteAgentJobMutation, DeleteAgentJobMutationVariables>;
 export const UpdateAgentJobDocument = new TypedDocumentString(`
     mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {
   updateAgentJob(id: $id, input: $input) {
