@@ -55,6 +55,11 @@ export async function enqueueWork(
     }),
   );
 
+  ctx.log.info(
+    { agentId, inboxItemId: id, type: input.type },
+    "Enqueued inbox item",
+  );
+
   // Ring the doorbell
   const queueUrl = process.env.DOORBELL_QUEUE_URL;
   if (queueUrl) {

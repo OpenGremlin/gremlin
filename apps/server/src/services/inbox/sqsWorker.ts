@@ -42,6 +42,8 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
             const { agentId } = JSON.parse(msg.Body ?? "{}");
             if (!agentId) return;
 
+            ctx.log.info({ agentId }, "SQS doorbell received");
+
             // Ack immediately — inbox is source of truth
             await sqs.send(
               new DeleteMessageCommand({

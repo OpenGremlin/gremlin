@@ -18,13 +18,26 @@ export async function ringDoorbell(
   ctx: ServiceContext,
   agentId: string,
 ): Promise<void> {
-  if (activeAgents.has(agentId)) return;
+  if (activeAgents.has(agentId)) {
+    ctx.log.info({ agentId }, "Agent already active, skipping doorbell");
+    return;
+  }
 
+  ctx.log.info({ agentId }, "Agent waking up");
   activeAgents.add(agentId);
   try {
     while (true) {
       const items = await ctx.services.inbox.getUnreadItems(ctx, agentId);
       if (items.length === 0) break;
+
+      ctx.log.info(
+        {
+          agentId,
+          itemCount: items.length,
+          types: items.map((i) => i.type),
+        },
+        "Agent picked up inbox items",
+      );
 
       await ctx.services.inbox.markRead(ctx, items);
       await routeBatch(ctx, agentId, items);
@@ -32,6 +45,7 @@ export async function ringDoorbell(
   } catch (err) {
     ctx.log.error({ err, agentId }, "Consumer error");
   } finally {
+    ctx.log.info({ agentId }, "Agent going back to sleep");
     activeAgents.delete(agentId);
   }
 }
