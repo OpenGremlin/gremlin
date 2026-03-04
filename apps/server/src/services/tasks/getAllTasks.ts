@@ -2,23 +2,10 @@ import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { ServiceContext } from "../context.js";
 import {
   buildConnection,
+  decodeCursor,
   type PaginationArgs,
   type TaskConnectionModel,
 } from "./pagination.js";
-
-/**
- * Decode a task cursor. Handles both old format (just createdAt)
- * and new format (createdAt#id) by extracting the id portion,
- * which maps to the SK format `TASK#<id>`.
- */
-function decodeTaskCursor(cursor: string): string {
-  const decoded = Buffer.from(cursor, "base64").toString("utf-8");
-  const hashIdx = decoded.indexOf("#");
-  // New format: createdAt#id → use id
-  if (hashIdx > 0) return decoded.slice(hashIdx + 1);
-  // Old format: just createdAt (shouldn't happen for tasks, but safe fallback)
-  return decoded;
-}
 
 export async function getAllTasks(
   ctx: ServiceContext,
@@ -28,19 +15,18 @@ export async function getAllTasks(
   const limit = args.first ?? args.last ?? 50;
   const fetchLimit = limit + 1;
 
-  const partition = "TASK";
-
   const rangeCondition = args.after
-    ? { gt: `TASK#${decodeTaskCursor(args.after)}` }
+    ? { gt: decodeCursor(args.after) }
     : args.before
-      ? { lt: `TASK#${decodeTaskCursor(args.before)}` }
+      ? { lt: decodeCursor(args.before) }
       : undefined;
 
   const query = ctx.resources.ddb.table
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.Task)
     .query({
-      partition,
+      index: "gsi2",
+      partition: "TASK_ALL",
       ...(rangeCondition && { range: rangeCondition }),
     })
     .options({ limit: fetchLimit, reverse: isBackward });

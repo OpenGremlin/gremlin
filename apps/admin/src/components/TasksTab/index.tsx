@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { TasksQuery } from "../../graphql/queries";
 import { QueryResult } from "../../shared/QueryResult";
 import { usePaginatedQuery } from "../../usePaginatedQuery";
@@ -6,7 +6,9 @@ import { TaskCard } from "./TaskCard";
 
 export function TasksTab() {
   const { nodes, loading, loadingMore, error, hasMore, loadMore } =
-    usePaginatedQuery(TasksQuery, (d) => d.tasks);
+    usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
+      direction: "newest-first",
+    });
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -27,8 +29,7 @@ export function TasksTab() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, loadMore]);
 
-  // Display newest first
-  const tasks = useMemo(() => [...nodes].reverse(), [nodes]);
+  const tasks = nodes;
 
   return (
     <div className="min-h-screen bg-neutral-950">

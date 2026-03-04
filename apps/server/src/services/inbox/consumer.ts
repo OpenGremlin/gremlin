@@ -161,6 +161,8 @@ async function handleScheduledJob(
                 sk: `TASK#${taskId}`,
                 gsi1pk: `TASK_AGENT#${agentId}`,
                 gsi1sk: now,
+                gsi2pk: "TASK_ALL",
+                gsi2sk: `${now}#${taskId}`,
                 id: taskId,
                 agentId,
                 title: job.name,

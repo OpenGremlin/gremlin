@@ -2,7 +2,6 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
-import { Badge } from "../../../shared/Badge";
 import { DocumentCard } from "../../../shared/DocumentCard";
 import { timeAgo } from "../../../shared/formatDate";
 import { useTaskUpdates } from "../../../subscriptions";
@@ -67,7 +66,6 @@ export function TaskCard({ item }: { item: TaskItem }) {
                 {timeAgo(task.createdAt)}
               </span>
             </div>
-            <Badge label={task.status} />
           </div>
           <h3 className="text-sm font-medium text-neutral-100 mt-0.5">
             {task.title}
@@ -101,13 +99,6 @@ export function TaskCard({ item }: { item: TaskItem }) {
             </div>
           )}
         </div>
-        {task.imageUrl && (
-          <img
-            src={task.imageUrl}
-            alt=""
-            className="w-14 h-14 rounded-lg object-cover shrink-0"
-          />
-        )}
       </div>
     </Link>
   );

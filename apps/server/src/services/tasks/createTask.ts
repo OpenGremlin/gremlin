@@ -40,6 +40,8 @@ export async function createTask(
         sk: `TASK#${id}`,
         gsi1pk: `TASK_AGENT#${input.agentId}`,
         gsi1sk: now,
+        gsi2pk: "TASK_ALL",
+        gsi2sk: `${now}#${id}`,
       },
     }),
   );

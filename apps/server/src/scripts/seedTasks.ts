@@ -72,6 +72,8 @@ async function seed() {
           _et: "Task",
           gsi1pk: `TASK_AGENT#${AGENT_ID}`,
           gsi1sk: createdAt,
+          gsi2pk: "TASK_ALL",
+          gsi2sk: `${createdAt}#${task.id}`,
           id: task.id,
           agentId: AGENT_ID,
           title: task.title,
