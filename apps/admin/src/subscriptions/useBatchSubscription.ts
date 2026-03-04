@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
   agentSubscriptionManager,
-  documentSubscriptionManager,
   taskSubscriptionManager,
 } from "./managers";
 
@@ -37,11 +36,4 @@ export function useAgentUpdates<T = Record<string, unknown>>(
   onData: Callback<T>,
 ) {
   useBatchSubscription(agentSubscriptionManager, agentId, onData);
-}
-
-export function useDocumentUpdates<T = Record<string, unknown>>(
-  docId: string,
-  onData: Callback<T>,
-) {
-  useBatchSubscription(documentSubscriptionManager, docId, onData);
 }

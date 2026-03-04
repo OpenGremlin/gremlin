@@ -1,12 +1,22 @@
 import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
 import type { TaskItem } from "../../../resources/ddb/schema/task.js";
+import { readFile } from "../../../services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   QueryResolvers,
   TaskEdgeResolvers,
   TaskResolvers,
 } from "../../resolverTypes.js";
+
+function parseFrontmatter(content: string): { title: string; body: string } {
+  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!match) return { title: "", body: content };
+  const frontmatter = match[1];
+  const body = match[2];
+  const titleMatch = frontmatter.match(/^title:\s*(.+)$/m);
+  return { title: titleMatch?.[1]?.trim() ?? "", body };
+}
 
 const tasks: QueryResolvers["tasks"] = (
   _parent,
@@ -35,12 +45,21 @@ const imageUrl: TaskResolvers["imageUrl"] = (parent, args, ctx) =>
 const artifacts: TaskResolvers["artifacts"] = (parent) =>
   parent.artifacts ?? [];
 
-const documents: TaskResolvers["documents"] = async (parent, _args, ctx) => {
-  const ids = parent.artifacts ?? [];
-  const docs = await Promise.all(
-    ids.map((id: string) => ctx.loaders.documentLoader.load(id)),
+const documents: TaskResolvers["documents"] = async (parent) => {
+  const paths = parent.artifacts ?? [];
+  const results = await Promise.all(
+    paths.map(async (filePath: string) => {
+      try {
+        const content = await readFile(filePath);
+        if (!content) return null;
+        const { title, body } = parseFrontmatter(content);
+        return { path: filePath, title: title || filePath, body };
+      } catch {
+        return null;
+      }
+    }),
   );
-  return docs.filter((d): d is NonNullable<typeof d> => d != null);
+  return results.filter((d): d is NonNullable<typeof d> => d != null);
 };
 
 const logs: TaskResolvers["logs"] = (

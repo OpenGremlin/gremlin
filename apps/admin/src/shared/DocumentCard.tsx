@@ -1,14 +1,11 @@
 import { FileText, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { useDocumentUpdates } from "../subscriptions";
 
 type Document = {
-  id: string;
+  path: string;
   title: string;
-  body: string;
-  updatedAt: string;
-  createdAt?: string;
+  body?: string | null;
 };
 
 function DocumentModal({
@@ -143,7 +140,7 @@ function DocumentModal({
         {/* Body */}
         <div ref={bodyRef} className="flex-1 overflow-y-auto px-[60px] py-4">
           <div className="max-w-prose document-body text-sm text-neutral-300">
-            <Markdown>{doc.body}</Markdown>
+            <Markdown>{doc.body ?? ""}</Markdown>
           </div>
         </div>
       </div>
@@ -151,17 +148,8 @@ function DocumentModal({
   );
 }
 
-export function DocumentCard({ doc: initial }: { doc: Document }) {
-  const [doc, setDoc] = useState(initial);
+export function DocumentCard({ doc }: { doc: Document }) {
   const [open, setOpen] = useState(false);
-
-  // Live-update document content
-  useDocumentUpdates(
-    doc.id,
-    useCallback((data) => {
-      setDoc((prev) => ({ ...prev, ...data }));
-    }, []),
-  );
 
   return (
     <>
@@ -179,7 +167,7 @@ export function DocumentCard({ doc: initial }: { doc: Document }) {
         <div className="border-t border-neutral-800/60" />
         <div className="relative px-3 py-2 max-h-36 overflow-hidden">
           <div className="document-body text-xs text-neutral-500">
-            <Markdown>{doc.body}</Markdown>
+            <Markdown>{doc.body ?? ""}</Markdown>
           </div>
           <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-neutral-900 to-transparent" />
         </div>

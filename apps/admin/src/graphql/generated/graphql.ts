@@ -119,11 +119,6 @@ export type CreateAgentJobInput = {
   timezone: Scalars['String']['input'];
 };
 
-export type CreateDocumentInput = {
-  body: Scalars['String']['input'];
-  title: Scalars['String']['input'];
-};
-
 export type DefaultModel = {
   __typename?: 'DefaultModel';
   modelId: Scalars['String']['output'];
@@ -132,11 +127,9 @@ export type DefaultModel = {
 
 export type Document = {
   __typename?: 'Document';
-  body: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
+  body?: Maybe<Scalars['String']['output']>;
+  path: Scalars['String']['output'];
   title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
 };
 
 export type IntegrationConnection = {
@@ -187,7 +180,6 @@ export type Mutation = {
   connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
   createAgentJob: AgentJob;
-  createDocument: Document;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
@@ -201,7 +193,6 @@ export type Mutation = {
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
-  updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
 };
@@ -221,11 +212,6 @@ export type MutationConnectIntegrationArgs = {
 
 export type MutationCreateAgentJobArgs = {
   input: CreateAgentJobInput;
-};
-
-
-export type MutationCreateDocumentArgs = {
-  input: CreateDocumentInput;
 };
 
 
@@ -298,12 +284,6 @@ export type MutationUpdateAgentArgs = {
 export type MutationUpdateAgentJobArgs = {
   id: Scalars['ID']['input'];
   input: UpdateAgentJobInput;
-};
-
-
-export type MutationUpdateDocumentArgs = {
-  id: Scalars['ID']['input'];
-  input: UpdateDocumentInput;
 };
 
 
@@ -381,8 +361,6 @@ export type Query = {
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
-  document?: Maybe<Document>;
-  documents: Array<Document>;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
@@ -414,11 +392,6 @@ export type QueryAgentLogsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryDocumentArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -482,8 +455,6 @@ export type Subscription = {
   agentLogCreated: AgentLog;
   agentUpdated: Agent;
   agentsUpdated: Agent;
-  documentUpdated: Document;
-  documentsUpdated: Document;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
   tasksUpdated: Task;
@@ -502,16 +473,6 @@ export type SubscriptionAgentUpdatedArgs = {
 
 export type SubscriptionAgentsUpdatedArgs = {
   agentIds: Array<Scalars['ID']['input']>;
-};
-
-
-export type SubscriptionDocumentUpdatedArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptionDocumentsUpdatedArgs = {
-  documentIds: Array<Scalars['ID']['input']>;
 };
 
 
@@ -592,11 +553,6 @@ export type UpdateAgentJobInput = {
   timezone?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateDocumentInput = {
-  body: Scalars['String']['input'];
-  title: Scalars['String']['input'];
-};
-
 export type WorkspaceEntry = {
   __typename?: 'WorkspaceEntry';
   isDirectory: Scalars['Boolean']['output'];
@@ -659,20 +615,6 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 
 
 export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string } };
-
-export type DocumentQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type DocumentQuery = { __typename?: 'Query', document?: { __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string } | null };
-
-export type DocumentUpdatedSubscriptionVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documentUpdated: { __typename?: 'Document', id: string, title: string, body: string, updatedAt: string } };
 
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -850,14 +792,14 @@ export type TasksQueryVariables = Exact<{
 }>;
 
 
-export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } | null };
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } | null };
 
 export type TaskLogsQueryVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -882,7 +824,7 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } };
 
 export type WorkspaceEntriesQueryVariables = Exact<{
   path: Scalars['String']['input'];
@@ -1015,27 +957,6 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;
-export const DocumentDocument = new TypedDocumentString(`
-    query Document($id: ID!) {
-  document(id: $id) {
-    id
-    title
-    body
-    createdAt
-    updatedAt
-  }
-}
-    `) as unknown as TypedDocumentString<DocumentQuery, DocumentQueryVariables>;
-export const DocumentUpdatedDocument = new TypedDocumentString(`
-    subscription DocumentUpdated($id: ID!) {
-  documentUpdated(id: $id) {
-    id
-    title
-    body
-    updatedAt
-  }
-}
-    `) as unknown as TypedDocumentString<DocumentUpdatedSubscription, DocumentUpdatedSubscriptionVariables>;
 export const IntegrationProvidersDocument = new TypedDocumentString(`
     query IntegrationProviders {
   integrationProviders {
@@ -1346,11 +1267,9 @@ export const TasksDocument = new TypedDocumentString(`
         createdAt
         imageUrl(width: 200)
         documents {
-          id
+          path
           title
           body
-          createdAt
-          updatedAt
         }
       }
     }
@@ -1378,11 +1297,9 @@ export const TaskDocument = new TypedDocumentString(`
     imageUrl(width: 200)
     artifacts
     documents {
-      id
+      path
       title
       body
-      createdAt
-      updatedAt
     }
   }
 }
@@ -1443,10 +1360,9 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     imageUrl(width: 200)
     artifacts
     documents {
-      id
+      path
       title
       body
-      updatedAt
     }
   }
 }

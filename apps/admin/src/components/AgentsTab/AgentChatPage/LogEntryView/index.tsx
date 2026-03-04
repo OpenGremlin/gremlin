@@ -178,7 +178,7 @@ export function LogEntryView({
   onTaskClick?: (taskId: string) => void;
   isLast?: boolean;
   sending?: boolean;
-  documents?: Array<{ id: string; title: string; body: string; createdAt?: string; updatedAt: string }>;
+  documents?: Array<{ path: string; title: string; body?: string | null }>;
 }) {
   switch (entry.role) {
     case "SYSTEM": {
@@ -243,8 +243,8 @@ export function LogEntryView({
       }
 
       if (tool.name === "createDocument" && documents) {
-        const docId = tool.result?.id as string | undefined;
-        const doc = docId ? documents.find((d) => d.id === docId) : undefined;
+        const docPath = tool.result?.path as string | undefined;
+        const doc = docPath ? documents.find((d) => d.path === docPath) : undefined;
         if (doc) {
           return (
             <div id={entry.id} className="py-1">

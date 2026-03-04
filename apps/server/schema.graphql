@@ -1,7 +1,5 @@
 type Query {
   _empty: String
-  documents: [Document!]!
-  document(id: ID!): Document
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
   agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
@@ -26,8 +24,6 @@ type Query {
 
 type Mutation {
   _empty: String
-  createDocument(input: CreateDocumentInput!): Document!
-  updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
   updateJobStatus(id: ID!, status: JobStatus!): AgentJob
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
@@ -50,8 +46,6 @@ type Mutation {
 
 type Subscription {
   _empty: String
-  documentUpdated(id: ID!): Document!
-  documentsUpdated(documentIds: [ID!]!): Document!
   agentLogCreated(agentId: ID!): AgentLog!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
@@ -61,21 +55,9 @@ type Subscription {
 }
 
 type Document {
-  id: ID!
+  path: String!
   title: String!
-  body: String!
-  createdAt: String!
-  updatedAt: String!
-}
-
-input CreateDocumentInput {
-  title: String!
-  body: String!
-}
-
-input UpdateDocumentInput {
-  title: String!
-  body: String!
+  body: String
 }
 
 enum JobStatus {

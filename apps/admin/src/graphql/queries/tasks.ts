@@ -16,11 +16,9 @@ export const TasksQuery = graphql(`
           createdAt
           imageUrl(width: 200)
           documents {
-            id
+            path
             title
             body
-            createdAt
-            updatedAt
           }
         }
       }
@@ -49,11 +47,9 @@ export const TaskQuery = graphql(`
       imageUrl(width: 200)
       artifacts
       documents {
-        id
+        path
         title
         body
-        createdAt
-        updatedAt
       }
     }
   }
@@ -111,10 +107,9 @@ export const TaskUpdatedSubscription = graphql(`
       imageUrl(width: 200)
       artifacts
       documents {
-        id
+        path
         title
         body
-        updatedAt
       }
     }
   }

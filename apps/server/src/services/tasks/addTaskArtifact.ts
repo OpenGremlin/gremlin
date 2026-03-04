@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 export async function addTaskArtifact(
   ctx: ServiceContext,
   taskId: string,
-  documentId: string,
+  filePath: string,
 ) {
   const table = ctx.resources.ddb.table;
   const now = new Date().toISOString();
@@ -17,7 +17,7 @@ export async function addTaskArtifact(
       UpdateExpression:
         "SET artifacts = list_append(if_not_exists(artifacts, :empty), :doc), updatedAt = :now",
       ExpressionAttributeValues: {
-        ":doc": [documentId],
+        ":doc": [filePath],
         ":empty": [],
         ":now": now,
       },

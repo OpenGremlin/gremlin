@@ -7,14 +7,12 @@ import {
 } from "dynamodb-toolbox/table/actions/batchGet";
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { AgentItem } from "../resources/ddb/schema/agent.js";
-import type { DocumentItem } from "../resources/ddb/schema/document.js";
 import type { TaskItem } from "../resources/ddb/schema/task.js";
 import type { Resources } from "../resources/index.js";
 
 export interface Loaders {
   agentLoader: DataLoader<string, AgentItem | null>;
   taskLoader: DataLoader<string, TaskItem | null>;
-  documentLoader: DataLoader<string, DocumentItem | null>;
   tasksByAgentLoader: DataLoader<string, TaskItem[]>;
 }
 
@@ -69,24 +67,6 @@ export function createLoaders(resources: Resources): Loaders {
     resources.ddb.entities.Task,
   ) as DataLoader<string, TaskItem | null>;
 
-  // Document entity has `createdAt` as a key field, so BatchGetRequest
-  // requires it. Since we only have `id`, use parallel queries instead.
-  const documentLoader = new DataLoader<string, DocumentItem | null>(
-    async (ids) => {
-      const results = await Promise.all(
-        ids.map(async (id) => {
-          const { Items } = await resources.ddb.table
-            .build(QueryCommand)
-            .entities(resources.ddb.entities.Document)
-            .query({ partition: "DOCUMENT", range: { eq: `DOCUMENT#${id}` } })
-            .send();
-          return Items?.[0] ?? null;
-        }),
-      );
-      return results;
-    },
-  );
-
   const tasksByAgentLoader = new DataLoader<string, TaskItem[]>(
     async (agentIds) => {
       const results = await Promise.all(
@@ -103,5 +83,5 @@ export function createLoaders(resources: Resources): Loaders {
     },
   );
 
-  return { agentLoader, taskLoader, documentLoader, tasksByAgentLoader };
+  return { agentLoader, taskLoader, tasksByAgentLoader };
 }

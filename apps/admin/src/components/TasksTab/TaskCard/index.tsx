@@ -14,11 +14,9 @@ type TaskItem = {
   message?: string | null;
   imageUrl?: string | null;
   documents?: Array<{
-    id: string;
+    path: string;
     title: string;
-    body: string;
-    createdAt?: string;
-    updatedAt: string;
+    body?: string | null;
   }>;
 };
 
@@ -82,7 +80,7 @@ export function TaskCard({ item }: { item: TaskItem }) {
               }}
             >
               {task.documents.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
+                <DocumentCard key={doc.path} doc={doc} />
               ))}
             </div>
           )}

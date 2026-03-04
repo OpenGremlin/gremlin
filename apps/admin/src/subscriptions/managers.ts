@@ -11,10 +11,9 @@ export const taskSubscriptionManager = new SubscriptionManager(
     imageUrl(width: 200)
     artifacts
     documents {
-      id
+      path
       title
       body
-      updatedAt
     }
   }
 }`,
@@ -29,16 +28,4 @@ export const agentSubscriptionManager = new SubscriptionManager(
   }
 }`,
   "agentIds",
-);
-
-export const documentSubscriptionManager = new SubscriptionManager(
-  /* GraphQL */ `subscription DocumentsUpdated($documentIds: [ID!]!) {
-  documentsUpdated(documentIds: $documentIds) {
-    id
-    title
-    body
-    updatedAt
-  }
-}`,
-  "documentIds",
 );
