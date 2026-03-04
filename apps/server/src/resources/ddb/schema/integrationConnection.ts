@@ -1,8 +1,8 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
-import { item } from "dynamodb-toolbox/schema/item";
-import { string } from "dynamodb-toolbox/schema/string";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
+import { item } from "dynamodb-toolbox/schema/item";
 import { map } from "dynamodb-toolbox/schema/map";
+import { string } from "dynamodb-toolbox/schema/string";
 import { SecretsTable } from "../secretsTable.js";
 
 export const IntegrationConnectionEntity = new Entity({

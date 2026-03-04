@@ -1,6 +1,6 @@
 import { generateGoogleAuthUrl } from "./generateAuthUrl.js";
-import { handleGoogleCallback } from "./handleCallback.js";
 import { getGoogleAccessToken } from "./getGoogleTokens.js";
+import { handleGoogleCallback } from "./handleCallback.js";
 
 export const googleService = {
   generateGoogleAuthUrl,

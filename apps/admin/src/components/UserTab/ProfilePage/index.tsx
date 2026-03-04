@@ -36,8 +36,7 @@ export function ProfilePage() {
         about: profile.about,
         website: profile.website ?? "",
         timezone:
-          profile.timezone ??
-          Intl.DateTimeFormat().resolvedOptions().timeZone,
+          profile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
     }
   }, [profile, reset]);
@@ -105,10 +104,7 @@ export function ProfilePage() {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="profile-timezone"
-          className="text-xs text-neutral-500"
-        >
+        <label htmlFor="profile-timezone" className="text-xs text-neutral-500">
           Timezone
         </label>
         <select

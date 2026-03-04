@@ -1,7 +1,7 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
+import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
-import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { GremlinTable } from "../table.js";
 
 export const TaskFollowUpEntity = new Entity({

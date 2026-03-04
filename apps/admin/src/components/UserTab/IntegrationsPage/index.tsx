@@ -1,14 +1,13 @@
 import { CircleCheck, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import * as logos from "../../../assets/logos";
 import {
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../graphql/queries";
-import { QueryResult } from "../../../shared/QueryResult";
 import { formatDate } from "../../../shared/formatDate";
+import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-
-import * as logos from "../../../assets/logos";
 
 const logoMap: Record<string, string> = {
   google: logos.googleLogo,
@@ -56,11 +55,7 @@ function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
 
 function ConnectionCountBadge({ count }: { count: number }) {
   if (count === 0) {
-    return (
-      <span className="text-xs text-neutral-500">
-        Connect
-      </span>
-    );
+    return <span className="text-xs text-neutral-500">Connect</span>;
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
@@ -68,7 +63,6 @@ function ConnectionCountBadge({ count }: { count: number }) {
     </span>
   );
 }
-
 
 function getAccountId(
   meta:
@@ -132,17 +126,19 @@ export function IntegrationsPage() {
                 defaultModel.modelId}
             </p>
             <p className="text-xs text-neutral-500 mt-0.5">
-              {providerList.find((p) => p.id === defaultModel.providerId)?.service ??
-                defaultModel.providerId}
+              {providerList.find((p) => p.id === defaultModel.providerId)
+                ?.service ?? defaultModel.providerId}
             </p>
           </div>
         )}
-        {!loading && !defaultModel && providerList.some((p) => p.category === "ai") && (
-          <div className="bg-neutral-900 rounded-xl p-4 text-sm text-neutral-400">
-            No default model selected. Using Bedrock Claude Sonnet 4.
-            Configure a provider below to use your own API key.
-          </div>
-        )}
+        {!loading &&
+          !defaultModel &&
+          providerList.some((p) => p.category === "ai") && (
+            <div className="bg-neutral-900 rounded-xl p-4 text-sm text-neutral-400">
+              No default model selected. Using Bedrock Claude Sonnet 4.
+              Configure a provider below to use your own API key.
+            </div>
+          )}
 
         {/* Active Connections */}
         {connectionList.length > 0 && (
@@ -183,9 +179,7 @@ export function IntegrationsPage() {
           </div>
         )}
 
-        {connectionList.length > 0 && (
-          <hr className="border-neutral-800" />
-        )}
+        {connectionList.length > 0 && <hr className="border-neutral-800" />}
 
         {/* Provider catalog grouped by category */}
         {grouped.map((group) => (
@@ -195,25 +189,27 @@ export function IntegrationsPage() {
             </h3>
             <div className="grid grid-cols-3 gap-3">
               {group.items.map((provider) => {
-                const connected = provider.connectionType === "bedrock" || provider.connectionCount > 0;
+                const connected =
+                  provider.connectionType === "bedrock" ||
+                  provider.connectionCount > 0;
                 return (
-                <Link
-                  key={provider.id}
-                  to={`/integrations/${provider.id}`}
-                  className={`flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer ${connected ? "ring-1 ring-emerald-500/40" : ""}`}
-                >
-                  <IntegrationLogo id={provider.id} />
-                  <span className="text-sm font-medium text-neutral-100">
-                    {provider.service}
-                  </span>
-                  {provider.connectionType === "bedrock" ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
-                      <CircleCheck size={12} /> Connected
+                  <Link
+                    key={provider.id}
+                    to={`/integrations/${provider.id}`}
+                    className={`flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer ${connected ? "ring-1 ring-emerald-500/40" : ""}`}
+                  >
+                    <IntegrationLogo id={provider.id} />
+                    <span className="text-sm font-medium text-neutral-100">
+                      {provider.service}
                     </span>
-                  ) : (
-                    <ConnectionCountBadge count={provider.connectionCount} />
-                  )}
-                </Link>
+                    {provider.connectionType === "bedrock" ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                        <CircleCheck size={12} /> Connected
+                      </span>
+                    ) : (
+                      <ConnectionCountBadge count={provider.connectionCount} />
+                    )}
+                  </Link>
                 );
               })}
             </div>

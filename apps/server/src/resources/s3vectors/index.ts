@@ -1,5 +1,5 @@
-import { s3VectorsClient } from "./client.js";
 import type { S3VectorsClient } from "@aws-sdk/client-s3vectors";
+import { s3VectorsClient } from "./client.js";
 
 export interface S3VectorsResource {
   client: S3VectorsClient;

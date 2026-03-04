@@ -1,4 +1,7 @@
-import { PutVectorsCommand, GetVectorsCommand } from "@aws-sdk/client-s3vectors";
+import {
+  GetVectorsCommand,
+  PutVectorsCommand,
+} from "@aws-sdk/client-s3vectors";
 import type { ServiceContext } from "../context.js";
 import { embed } from "./embed.js";
 import { ensureVectorIndex } from "./ensure.js";

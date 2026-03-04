@@ -1,12 +1,12 @@
 import { Repeater } from "@graphql-yoga/subscription";
 import type { AgentItem } from "../../../resources/ddb/schema/agent.js";
-import { AgentStatus } from "../../resolverTypes.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentResolvers,
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
+import { AgentStatus } from "../../resolverTypes.js";
 
 const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
   ctx.services.agents.getAgents(ctx);

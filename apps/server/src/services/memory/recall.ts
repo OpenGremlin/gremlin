@@ -1,6 +1,6 @@
 import {
-  QueryVectorsCommand,
   GetVectorsCommand,
+  QueryVectorsCommand,
 } from "@aws-sdk/client-s3vectors";
 import type { ServiceContext } from "../context.js";
 import { embed } from "./embed.js";

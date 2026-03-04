@@ -107,7 +107,10 @@ export function TaskThreadPage() {
       </div>
 
       {/* Scrollable content */}
-      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto flex flex-col-reverse">
+      <div
+        ref={scrollRef}
+        className="flex-1 min-h-0 overflow-y-auto flex flex-col-reverse"
+      >
         <div>
           {/* Documents */}
           {docs.length > 0 && (

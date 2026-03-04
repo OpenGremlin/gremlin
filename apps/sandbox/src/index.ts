@@ -1,5 +1,5 @@
-import { startRelay } from "./relay.js";
 import { startHealthServer } from "./health.js";
+import { startRelay } from "./relay.js";
 
 const WS_PORT = Number(process.env.WS_PORT ?? 8080);
 const HEALTH_PORT = Number(process.env.HEALTH_PORT ?? 8081);

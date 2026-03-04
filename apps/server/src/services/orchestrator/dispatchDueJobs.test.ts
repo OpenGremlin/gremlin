@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { dispatchDueJobs } from "./dispatchDueJobs.js";
-import * as computeModule from "../jobs/computeLastDueTrigger.js";
-import * as runTaskLaneModule from "./runTaskLane.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ServiceContext } from "../context.js";
+import * as computeModule from "../jobs/computeLastDueTrigger.js";
+import { dispatchDueJobs } from "./dispatchDueJobs.js";
+import * as runTaskLaneModule from "./runTaskLane.js";
 
 vi.mock("../jobs/computeLastDueTrigger.js", () => ({
   computeLastDueTrigger: vi.fn(),
@@ -12,7 +12,9 @@ vi.mock("./runTaskLane.js", () => ({
   runTaskLane: vi.fn(() => Promise.resolve("")),
 }));
 
-const mockComputeLastDueTrigger = vi.mocked(computeModule.computeLastDueTrigger);
+const mockComputeLastDueTrigger = vi.mocked(
+  computeModule.computeLastDueTrigger,
+);
 const mockRunTaskLane = vi.mocked(runTaskLaneModule.runTaskLane);
 
 function makeJob(overrides: Record<string, unknown> = {}) {
@@ -64,7 +66,8 @@ describe("dispatchDueJobs", () => {
 
     await dispatchDueJobs(ctx);
 
-    const sendMock = ctx.resources.ddb.table.getDocumentClient().send as ReturnType<typeof vi.fn>;
+    const sendMock = ctx.resources.ddb.table.getDocumentClient()
+      .send as ReturnType<typeof vi.fn>;
     expect(sendMock).toHaveBeenCalledOnce();
 
     const command = sendMock.mock.calls[0][0];
@@ -88,7 +91,8 @@ describe("dispatchDueJobs", () => {
 
     const err = new Error("ConditionalCheckFailed");
     err.name = "TransactionCanceledException";
-    const sendMock = ctx.resources.ddb.table.getDocumentClient().send as ReturnType<typeof vi.fn>;
+    const sendMock = ctx.resources.ddb.table.getDocumentClient()
+      .send as ReturnType<typeof vi.fn>;
     sendMock.mockRejectedValue(err);
 
     await dispatchDueJobs(ctx);
@@ -123,7 +127,8 @@ describe("dispatchDueJobs", () => {
 
     await dispatchDueJobs(ctx);
 
-    const sendMock = ctx.resources.ddb.table.getDocumentClient().send as ReturnType<typeof vi.fn>;
+    const sendMock = ctx.resources.ddb.table.getDocumentClient()
+      .send as ReturnType<typeof vi.fn>;
     expect(sendMock).not.toHaveBeenCalled();
     expect(mockRunTaskLane).not.toHaveBeenCalled();
   });

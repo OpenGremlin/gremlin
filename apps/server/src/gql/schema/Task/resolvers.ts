@@ -1,4 +1,4 @@
-import { pipe, filter, Repeater } from "@graphql-yoga/subscription";
+import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
 import type { TaskItem } from "../../../resources/ddb/schema/task.js";
 import type { GremlinContext } from "../../context.js";
@@ -74,10 +74,11 @@ const taskLogCreated = {
     _parent: unknown,
     { taskId }: { taskId: string },
     ctx: GremlinContext,
-  ) => pipe(
-    ctx.resources.pubsub.subscribe(`agentLogCreated:task:${taskId}`),
-    filter((payload: AgentLogItem) => !payload.internal),
-  ),
+  ) =>
+    pipe(
+      ctx.resources.pubsub.subscribe(`agentLogCreated:task:${taskId}`),
+      filter((payload: AgentLogItem) => !payload.internal),
+    ),
   resolve: (payload: AgentLogItem) => payload,
 };
 

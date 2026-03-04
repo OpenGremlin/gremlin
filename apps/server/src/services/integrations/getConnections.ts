@@ -1,6 +1,6 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { Resources } from "../../resources/index.js";
 import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
+import type { Resources } from "../../resources/index.js";
 
 export interface SafeConnectionMeta {
   accountId?: string;

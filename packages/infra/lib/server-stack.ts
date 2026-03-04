@@ -57,10 +57,11 @@ export class ServerStack extends cdk.Stack {
 
     taskDef.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
-        resources: [
-          `arn:aws:bedrock:${this.region}::foundation-model/*`,
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
         ],
+        resources: [`arn:aws:bedrock:${this.region}::foundation-model/*`],
       }),
     );
 
@@ -94,7 +95,7 @@ export class ServerStack extends cdk.Stack {
         MEDIA_CDN_URL: props.mediaCdnUrl,
         S3_VECTORS_BUCKET_NAME: "gremlin-vectors",
         ECS_CLUSTER_NAME: cluster.clusterName,
-        SUBNET_IDS: vpc.publicSubnets.map(s => s.subnetId).join(","),
+        SUBNET_IDS: vpc.publicSubnets.map((s) => s.subnetId).join(","),
       },
     });
 
@@ -171,7 +172,6 @@ export class ServerStack extends cdk.Stack {
         },
       }),
     );
-
 
     this.cluster = cluster;
     this.service = service;

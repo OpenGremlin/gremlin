@@ -1,7 +1,7 @@
-import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
-import type { Resources } from "../../resources/index.js";
+import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
+import type { Resources } from "../../resources/index.js";
 import { getGoogleOAuthClient } from "./getGoogleOAuthClient.js";
 
 const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes

@@ -1,8 +1,8 @@
 import {
-  CreateVectorBucketCommand,
   CreateIndexCommand,
-  ListVectorBucketsCommand,
+  CreateVectorBucketCommand,
   ListIndexesCommand,
+  ListVectorBucketsCommand,
 } from "@aws-sdk/client-s3vectors";
 import type { ServiceContext } from "../context.js";
 
@@ -16,9 +16,7 @@ export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
   const { client, bucketName } = ctx.resources.s3vectors;
 
   // Check if bucket exists
-  const { vectorBuckets } = await client.send(
-    new ListVectorBucketsCommand({}),
-  );
+  const { vectorBuckets } = await client.send(new ListVectorBucketsCommand({}));
   const bucketExists = vectorBuckets?.some(
     (b) => b.vectorBucketName === bucketName,
   );

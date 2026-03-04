@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBDocumentClient,
   DeleteCommand,
+  DynamoDBDocumentClient,
   PutCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
@@ -11,9 +11,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TableName = process.env.DYNAMODB_TABLE_NAME || "gremlin";
 
 async function migrate() {
-  console.log(
-    "Migrating GoogleOAuthToken → OAuthToken (provider-keyed)...\n",
-  );
+  console.log("Migrating GoogleOAuthToken → OAuthToken (provider-keyed)...\n");
 
   // Scan for old GoogleOAuthToken records (sk = "GOOGLE_OAUTH")
   const { Items = [] } = await docClient.send(

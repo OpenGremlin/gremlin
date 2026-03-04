@@ -7,10 +7,11 @@ export async function renameConnection(
   id: string,
   description: string,
 ): Promise<boolean> {
-  const { Item } =
-    await resources.ddb.entities.IntegrationConnection.build(GetItemCommand)
-      .key({ id })
-      .send();
+  const { Item } = await resources.ddb.entities.IntegrationConnection.build(
+    GetItemCommand,
+  )
+    .key({ id })
+    .send();
 
   if (!Item) throw new Error(`Connection not found: ${id}`);
 

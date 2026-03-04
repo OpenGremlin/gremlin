@@ -1,12 +1,9 @@
 import {
+  DescribeTasksCommand,
   ECSClient,
   RunTaskCommand,
-  DescribeTasksCommand,
 } from "@aws-sdk/client-ecs";
-import {
-  SSMClient,
-  GetParameterCommand,
-} from "@aws-sdk/client-ssm";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import type { SandboxSession } from "./types.js";
 
 const ecs = new ECSClient({});
@@ -35,9 +32,7 @@ async function getSandboxConfig(): Promise<{
       ssm.send(
         new GetParameterCommand({ Name: "/gremlin/sandbox-task-def-arn" }),
       ),
-      ssm.send(
-        new GetParameterCommand({ Name: "/gremlin/sandbox-sg-id" }),
-      ),
+      ssm.send(new GetParameterCommand({ Name: "/gremlin/sandbox-sg-id" })),
     ]);
     cachedTaskDefArn = taskDefRes.Parameter?.Value;
     cachedSgId = sgRes.Parameter?.Value;
@@ -53,9 +48,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function launchSandbox(
-  agentId: string,
-): Promise<SandboxSession> {
+export async function launchSandbox(agentId: string): Promise<SandboxSession> {
   const { taskDefArn, sgId } = await getSandboxConfig();
 
   const runResult = await ecs.send(

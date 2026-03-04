@@ -1,6 +1,6 @@
-import { ddb, type DDBResource } from "./ddb/index.js";
-import { pubsub, type PubSub } from "./pubsub.js";
-import { s3vectors, type S3VectorsResource } from "./s3vectors/index.js";
+import { type DDBResource, ddb } from "./ddb/index.js";
+import { type PubSub, pubsub } from "./pubsub.js";
+import { type S3VectorsResource, s3vectors } from "./s3vectors/index.js";
 
 export interface Resources {
   ddb: DDBResource;

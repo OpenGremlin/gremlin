@@ -1,8 +1,8 @@
 import Handlebars from "handlebars";
-import { systemTemplate } from "./templates/system.js";
-import { taskSystemTemplate } from "./templates/taskSystem.js";
 import { compactionTemplate } from "./templates/compaction.js";
 import { cronTemplate } from "./templates/cron.js";
+import { systemTemplate } from "./templates/system.js";
+import { taskSystemTemplate } from "./templates/taskSystem.js";
 
 interface PromptRegistry {
   system: {

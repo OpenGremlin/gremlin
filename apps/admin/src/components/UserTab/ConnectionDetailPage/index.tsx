@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import * as logos from "../../../assets/logos";
 import { gql } from "../../../auth";
 import {
   IntegrationConnectionsQuery,
@@ -10,8 +11,6 @@ import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-
-import * as logos from "../../../assets/logos";
 
 const logoMap: Record<string, string> = {
   google: logos.googleLogo,
@@ -75,8 +74,7 @@ export function ConnectionDetailPage() {
 
   const meta = connection.meta;
   const accountId = meta.accountId ?? null;
-  const scopes =
-    meta.__typename === "OAuthConnectionMeta" ? meta.scopes : null;
+  const scopes = meta.__typename === "OAuthConnectionMeta" ? meta.scopes : null;
   const description = connection.description;
 
   function startEditing() {
@@ -184,7 +182,9 @@ export function ConnectionDetailPage() {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-neutral-400">Type</span>
-            <span className="text-neutral-100">{connection.connectionType}</span>
+            <span className="text-neutral-100">
+              {connection.connectionType}
+            </span>
           </div>
         </div>
       </div>

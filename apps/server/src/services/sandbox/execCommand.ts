@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import type { SandboxSession, CommandResult } from "./types.js";
+import type { CommandResult, SandboxSession } from "./types.js";
 
 const COMMAND_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;

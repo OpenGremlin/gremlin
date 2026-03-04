@@ -1,10 +1,10 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { ServiceContext } from "../context.js";
 import {
-  type TaskConnectionModel,
-  type PaginationArgs,
   buildConnection,
   decodeCursor,
+  type PaginationArgs,
+  type TaskConnectionModel,
 } from "./pagination.js";
 
 export async function getAllTasks(

@@ -1,8 +1,5 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import {
-  AgentStatus,
-  NotificationStatus,
-} from "../../gql/resolverTypes.js";
+import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
 import type { NotificationItem } from "../../resources/ddb/schema/notification.js";
 import type { ServiceContext } from "../context.js";
 import { getNotification } from "./getNotification.js";

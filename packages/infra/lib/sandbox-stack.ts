@@ -75,7 +75,11 @@ export class SandboxStack extends cdk.Stack {
       },
     });
 
-    fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount", "elasticfilesystem:ClientWrite");
+    fileSystem.grant(
+      taskDef.taskRole,
+      "elasticfilesystem:ClientMount",
+      "elasticfilesystem:ClientWrite",
+    );
 
     const container = taskDef.addContainer("sandbox", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
@@ -98,10 +102,7 @@ export class SandboxStack extends cdk.Stack {
       },
     });
 
-    container.addPortMappings(
-      { containerPort: 8080 },
-      { containerPort: 8081 },
-    );
+    container.addPortMappings({ containerPort: 8080 }, { containerPort: 8081 });
 
     container.addMountPoints({
       sourceVolume: "workspace",

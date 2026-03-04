@@ -60,10 +60,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
 
   // Publish to the appropriate subscription channel
   if (entry.taskId) {
-    ctx.resources.pubsub.publish(
-      `agentLogCreated:task:${entry.taskId}`,
-      item,
-    );
+    ctx.resources.pubsub.publish(`agentLogCreated:task:${entry.taskId}`, item);
   } else {
     ctx.resources.pubsub.publish(`agentLogCreated:${entry.agentId}`, item);
   }

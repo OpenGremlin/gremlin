@@ -40,7 +40,9 @@ async function migrateTasks() {
         }),
       );
       migrated++;
-      console.log(`  Task ${item.sk}: "${status}" -> "${status.toUpperCase()}"`);
+      console.log(
+        `  Task ${item.sk}: "${status}" -> "${status.toUpperCase()}"`,
+      );
     }
 
     lastKey = scan.LastEvaluatedKey;

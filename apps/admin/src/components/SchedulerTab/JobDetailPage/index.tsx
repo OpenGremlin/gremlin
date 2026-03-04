@@ -56,7 +56,11 @@ export function JobDetailPage() {
   const currentTimezone = timezone ?? job.timezone;
 
   const isDirty =
-    name !== null || recurrence !== null || description !== null || agentId !== null || timezone !== null;
+    name !== null ||
+    recurrence !== null ||
+    description !== null ||
+    agentId !== null ||
+    timezone !== null;
 
   const cronDisplay = job.cronExpression;
   let cronHuman: string | null = null;
@@ -231,7 +235,9 @@ export function JobDetailPage() {
       <div className="mt-6 text-xs text-neutral-400">
         <p>
           Next run:{" "}
-          <span className="text-neutral-300">{formatDate(job.nextRun, "Never", currentTimezone)}</span>
+          <span className="text-neutral-300">
+            {formatDate(job.nextRun, "Never", currentTimezone)}
+          </span>
         </p>
       </div>
 

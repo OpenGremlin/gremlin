@@ -1,9 +1,9 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
-import { item } from "dynamodb-toolbox/schema/item";
-import { string } from "dynamodb-toolbox/schema/string";
-import { boolean } from "dynamodb-toolbox/schema/boolean";
-import { nul } from "dynamodb-toolbox/schema/nul";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
+import { boolean } from "dynamodb-toolbox/schema/boolean";
+import { item } from "dynamodb-toolbox/schema/item";
+import { nul } from "dynamodb-toolbox/schema/nul";
+import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
 export const AgentLogEntity = new Entity({

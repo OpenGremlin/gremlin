@@ -1,6 +1,6 @@
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { tool } from "ai";
 import { z } from "zod";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
 import type { ServiceContext } from "../context.js";
 import { applyPatches } from "../documents/applyPatches.js";
@@ -56,9 +56,7 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
         .describe(
           "PERMISSION for requesting access to a new integration scope, APPROVAL for any other decision",
         ),
-      message: z
-        .string()
-        .describe("Explain what you need and why you need it"),
+      message: z.string().describe("Explain what you need and why you need it"),
       actions: z
         .array(
           z.object({
@@ -66,7 +64,9 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
             label: z.string().describe("Button label shown to the user"),
             style: z
               .enum(["primary", "secondary"])
-              .describe("primary for the recommended action, secondary for alternatives"),
+              .describe(
+                "primary for the recommended action, secondary for alternatives",
+              ),
           }),
         )
         .min(2)
@@ -149,12 +149,7 @@ export function updateTaskStatusTool(ctx: ServiceContext, taskId: string) {
         ),
     }),
     execute: async ({ status, message }) => {
-      await ctx.services.tasks.updateTaskStatus(
-        ctx,
-        taskId,
-        status,
-        message,
-      );
+      await ctx.services.tasks.updateTaskStatus(ctx, taskId, status, message);
       return { taskId, status, message };
     },
   });
@@ -194,9 +189,7 @@ export function updateDocumentTool(ctx: ServiceContext) {
               .describe("The existing text to find in the document"),
             new_text: z
               .string()
-              .describe(
-                "The replacement text (empty string to delete)",
-              ),
+              .describe("The replacement text (empty string to delete)"),
           }),
         )
         .min(1)
@@ -249,9 +242,7 @@ export function recallMemoryTool(ctx: ServiceContext, agentId: string) {
     description:
       "Search long-term memory for information relevant to a query. Use this when you need to recall specific details from past conversations or context.",
     inputSchema: z.object({
-      query: z
-        .string()
-        .describe("What to search for in memory"),
+      query: z.string().describe("What to search for in memory"),
     }),
     execute: async ({ query }) => {
       const { recent, relevant } = await ctx.services.memory.recallMemories(

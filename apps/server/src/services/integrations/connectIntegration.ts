@@ -13,8 +13,6 @@ export async function connectIntegration(
     case "google":
       return ctx.services.google.generateGoogleAuthUrl(ctx, scopes);
     default:
-      throw new Error(
-        `Provider "${providerId}" does not support connect yet`,
-      );
+      throw new Error(`Provider "${providerId}" does not support connect yet`);
   }
 }

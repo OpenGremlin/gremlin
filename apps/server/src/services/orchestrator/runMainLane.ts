@@ -1,8 +1,13 @@
 import type { ServiceContext } from "../context.js";
+import { renderPrompt } from "../prompts/index.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
-import { renderPrompt } from "../prompts/index.js";
-import { defaultTools, delegateTaskTool, saveMemoryTool, recallMemoryTool } from "./tools.js";
+import {
+  defaultTools,
+  delegateTaskTool,
+  recallMemoryTool,
+  saveMemoryTool,
+} from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**

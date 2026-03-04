@@ -15,7 +15,8 @@ interface CompactionEntry {
 function isCompactionEntry(content: string): CompactionEntry | null {
   try {
     const parsed = JSON.parse(content);
-    if (parsed && parsed.type === "compaction") return parsed as CompactionEntry;
+    if (parsed && parsed.type === "compaction")
+      return parsed as CompactionEntry;
   } catch {
     // not JSON or not a compaction entry
   }
@@ -112,7 +113,10 @@ export async function maybeCompact(
 
   // Format as a transcript for the summarizer
   const transcript = toSummarize
-    .map((m) => `[${m.role}]: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`)
+    .map(
+      (m) =>
+        `[${m.role}]: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`,
+    )
     .join("\n\n");
 
   const result = await generateText({
@@ -153,6 +157,8 @@ export async function maybeCompact(
     const content = memories.join("\n");
     await ctx.services.memory
       .saveMemory(ctx, opts.agentId, content)
-      .catch((err) => console.error("memory save during compaction failed:", err));
+      .catch((err) =>
+        console.error("memory save during compaction failed:", err),
+      );
   }
 }

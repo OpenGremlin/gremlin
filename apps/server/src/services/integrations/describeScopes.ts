@@ -4,10 +4,7 @@ import { providers } from "./providers.js";
  * Generate a human-readable description from scope labels.
  * Uses the provider's availableScopes to look up labels, then summarizes.
  */
-export function describeScopes(
-  providerId: string,
-  scopes: string[],
-): string {
+export function describeScopes(providerId: string, scopes: string[]): string {
   const provider = providers.find((p) => p.id === providerId);
   if (!provider) return scopes.join(", ");
 

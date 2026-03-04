@@ -17,7 +17,11 @@ export async function dispatchDueJobs(ctx: ServiceContext) {
     if (job.status === "PAUSED") continue;
     if (!job.cronExpression) continue;
 
-    const triggerTimeMs = computeLastDueTrigger(job.cronExpression, Date.now(), job.timezone);
+    const triggerTimeMs = computeLastDueTrigger(
+      job.cronExpression,
+      Date.now(),
+      job.timezone,
+    );
     if (triggerTimeMs === null) continue;
 
     const taskId = crypto.randomUUID();
@@ -83,10 +87,7 @@ export async function dispatchDueJobs(ctx: ServiceContext) {
       });
     } catch (err: unknown) {
       // Transaction cancelled = CronJobTrigger already exists → skip
-      if (
-        err instanceof Error &&
-        err.name === "TransactionCanceledException"
-      ) {
+      if (err instanceof Error && err.name === "TransactionCanceledException") {
         continue;
       }
       console.error(

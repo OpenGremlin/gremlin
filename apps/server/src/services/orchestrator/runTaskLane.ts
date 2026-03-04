@@ -1,21 +1,21 @@
 import type { ServiceContext } from "../context.js";
+import { renderPrompt } from "../prompts/index.js";
+import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
-import { renderPrompt } from "../prompts/index.js";
-import {
-  defaultTools,
-  updateTaskStatusTool,
-  createDocumentTool,
-  updateDocumentTool,
-  saveMemoryTool,
-  recallMemoryTool,
-} from "./tools.js";
 import {
   launchSandboxTool,
   runCommandTool,
   terminateSandboxTool,
 } from "./sandboxTools.js";
-import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
+import {
+  createDocumentTool,
+  defaultTools,
+  recallMemoryTool,
+  saveMemoryTool,
+  updateDocumentTool,
+  updateTaskStatusTool,
+} from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
@@ -58,7 +58,10 @@ export async function runTaskLane(
   });
 
   // Ensure the prompt is included (DDB eventual consistency may miss it)
-  if (messages.length === 0 || messages[messages.length - 1].content !== prompt) {
+  if (
+    messages.length === 0 ||
+    messages[messages.length - 1].content !== prompt
+  ) {
     messages.push({ role: "user", content: prompt });
   }
 

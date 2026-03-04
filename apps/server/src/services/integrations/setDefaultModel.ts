@@ -1,16 +1,18 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { ServiceContext } from "../context.js";
 import { invalidateModelCache } from "../orchestrator/model.js";
-import { providers } from "./providers.js";
-import { getProviderApiKey } from "./getProviderApiKey.js";
 import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
+import { getProviderApiKey } from "./getProviderApiKey.js";
+import { providers } from "./providers.js";
 
 export async function setDefaultModel(
   ctx: ServiceContext,
   providerId: string,
   modelId: string,
 ): Promise<void> {
-  const provider = providers.find((p) => p.id === providerId && p.category === "ai");
+  const provider = providers.find(
+    (p) => p.id === providerId && p.category === "ai",
+  );
   if (!provider) {
     throw new Error(`Unknown AI provider: ${providerId}`);
   }

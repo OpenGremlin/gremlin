@@ -9,8 +9,8 @@ import { createServer } from "node:http";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import express from "express";
-import { createYoga } from "graphql-yoga";
 import { useServer } from "graphql-ws/use/ws";
+import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
@@ -42,8 +42,7 @@ async function getAdminOrigin(): Promise<string> {
       // SSM not available — fall through
     }
   }
-  cachedAdminOrigin =
-    process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
+  cachedAdminOrigin = process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
   return cachedAdminOrigin;
 }
 
@@ -168,9 +167,7 @@ app.get("/auth/google/callback", async (req, res) => {
   try {
     await services.google.handleGoogleCallback(resources, code, state);
     const { connectionId } = JSON.parse(state) as { connectionId: string };
-    res.redirect(
-      `${adminOrigin}/connections/${connectionId}?connected=true`,
-    );
+    res.redirect(`${adminOrigin}/connections/${connectionId}?connected=true`);
   } catch (err) {
     console.error("Google OAuth callback failed:", err);
     res.redirect(`${adminOrigin}/user/integrations?error=google_oauth_failed`);
@@ -200,4 +197,3 @@ function shutdown() {
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
-

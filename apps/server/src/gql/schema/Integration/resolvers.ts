@@ -1,10 +1,10 @@
+import type { SafeIntegrationConnection } from "../../../services/integrations/getConnections.js";
 import type {
-  IntegrationProviderResolvers,
   IntegrationConnectionResolvers,
+  IntegrationProviderResolvers,
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
-import type { SafeIntegrationConnection } from "../../../services/integrations/getConnections.js";
 
 const integrationProviders: QueryResolvers["integrationProviders"] = (
   _parent,
@@ -27,23 +27,29 @@ const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
   ctx,
 ) => ctx.services.integrations.getBedrockEnabledModels(ctx.resources);
 
-const connectionCount: IntegrationProviderResolvers["connectionCount"] =
-  async (parent, _args, ctx) => {
-    const connections = await ctx.services.integrations.getConnections(
-      ctx.resources,
-    );
-    return connections.filter((c) => c.providerId === parent.id).length;
-  };
+const connectionCount: IntegrationProviderResolvers["connectionCount"] = async (
+  parent,
+  _args,
+  ctx,
+) => {
+  const connections = await ctx.services.integrations.getConnections(
+    ctx.resources,
+  );
+  return connections.filter((c) => c.providerId === parent.id).length;
+};
 
-const hasConnection: IntegrationProviderResolvers["hasConnection"] =
-  async (parent, _args, ctx) => {
-    // Bedrock uses server-side AWS credentials — always connected
-    if (parent.connectionType === "bedrock") return true;
-    const connections = await ctx.services.integrations.getConnections(
-      ctx.resources,
-    );
-    return connections.some((c) => c.providerId === parent.id);
-  };
+const hasConnection: IntegrationProviderResolvers["hasConnection"] = async (
+  parent,
+  _args,
+  ctx,
+) => {
+  // Bedrock uses server-side AWS credentials — always connected
+  if (parent.connectionType === "bedrock") return true;
+  const connections = await ctx.services.integrations.getConnections(
+    ctx.resources,
+  );
+  return connections.some((c) => c.providerId === parent.id);
+};
 
 const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
   const conn = parent as unknown as SafeIntegrationConnection;
@@ -103,7 +109,12 @@ const disableBedrockModel: MutationResolvers["disableBedrockModel"] = async (
 ) => ctx.services.integrations.disableBedrockModel(ctx.resources, modelId);
 
 export const integrationResolvers = {
-  Query: { integrationProviders, integrationConnections, defaultModel, bedrockEnabledModels },
+  Query: {
+    integrationProviders,
+    integrationConnections,
+    defaultModel,
+    bedrockEnabledModels,
+  },
   Mutation: {
     connectIntegration,
     connectApiKey,

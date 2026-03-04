@@ -1,5 +1,5 @@
 export {
-  useTaskUpdates,
   useAgentUpdates,
   useDocumentUpdates,
+  useTaskUpdates,
 } from "./useBatchSubscription";

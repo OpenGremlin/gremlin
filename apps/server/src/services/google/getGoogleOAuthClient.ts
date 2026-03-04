@@ -1,6 +1,6 @@
 import {
-  SecretsManagerClient,
   GetSecretValueCommand,
+  SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
 import { OAuth2Client } from "google-auth-library";
 

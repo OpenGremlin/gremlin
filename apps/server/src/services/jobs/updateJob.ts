@@ -2,8 +2,8 @@ import { generateText } from "ai";
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
-import { renderPrompt } from "../prompts/index.js";
 import { getModel } from "../orchestrator/model.js";
+import { renderPrompt } from "../prompts/index.js";
 
 interface UpdateJobInput {
   name?: string | null;
@@ -55,11 +55,16 @@ export async function updateJob(
   if (input.timezone != null) updates.timezone = input.timezone;
 
   if (input.recurrence != null) {
-    const timezone = input.timezone
-      ?? (await ctx.services.jobs.getJob(ctx, id))?.timezone
-      ?? "UTC";
+    const timezone =
+      input.timezone ??
+      (await ctx.services.jobs.getJob(ctx, id))?.timezone ??
+      "UTC";
     updates.recurrence = input.recurrence;
-    updates.cronExpression = await recurrenceToCron(ctx, input.recurrence, timezone);
+    updates.cronExpression = await recurrenceToCron(
+      ctx,
+      input.recurrence,
+      timezone,
+    );
   }
 
   const { Attributes } = await ctx.resources.ddb.entities.AgentJob.build(

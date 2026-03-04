@@ -1,24 +1,36 @@
-import { pipe, filter } from "@graphql-yoga/subscription";
+import { filter, pipe } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
+import type { GremlinContext } from "../../context.js";
 import type {
-  AgentLogResolvers,
   AgentLogEdgeResolvers,
+  AgentLogResolvers,
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
-import type { GremlinContext } from "../../context.js";
 
 const agentLogs: QueryResolvers["agentLogs"] = (
   _parent,
   { agentId, first, after, last, before },
   ctx,
-) => ctx.services.agentLogs.getAgentLogs(ctx, agentId, { first, after, last, before });
+) =>
+  ctx.services.agentLogs.getAgentLogs(ctx, agentId, {
+    first,
+    after,
+    last,
+    before,
+  });
 
 const taskLogs: QueryResolvers["taskLogs"] = (
   _parent,
   { taskId, first, after, last, before },
   ctx,
-) => ctx.services.agentLogs.getTaskLogs(ctx, taskId, { first, after, last, before });
+) =>
+  ctx.services.agentLogs.getTaskLogs(ctx, taskId, {
+    first,
+    after,
+    last,
+    before,
+  });
 
 const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
@@ -42,7 +54,10 @@ const agentLogCreated = {
   ) => {
     return pipe(
       ctx.resources.pubsub.subscribe(`agentLogCreated:${agentId}`),
-      filter((payload: AgentLogItem) => payload.agentId === agentId && !payload.internal),
+      filter(
+        (payload: AgentLogItem) =>
+          payload.agentId === agentId && !payload.internal,
+      ),
     );
   },
   resolve: (payload: AgentLogItem) => payload,

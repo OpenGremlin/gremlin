@@ -8,7 +8,9 @@ import {
 type Callback<T> = (entity: T) => void;
 
 function useBatchSubscription<T>(
-  manager: { subscribe(id: string, cb: (e: Record<string, unknown>) => void): () => void },
+  manager: {
+    subscribe(id: string, cb: (e: Record<string, unknown>) => void): () => void;
+  },
   id: string,
   onData: Callback<T>,
 ) {

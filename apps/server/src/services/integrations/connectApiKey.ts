@@ -1,5 +1,5 @@
-import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import { randomUUID } from "node:crypto";
+import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
 import { providers } from "./providers.js";
 
@@ -11,7 +11,9 @@ export async function connectApiKey(
   const def = providers.find((p) => p.id === providerId);
   if (!def) throw new Error(`Unknown provider: ${providerId}`);
   if (def.connectionType !== "apikey") {
-    throw new Error(`Provider "${providerId}" does not support API key connections`);
+    throw new Error(
+      `Provider "${providerId}" does not support API key connections`,
+    );
   }
 
   const id = randomUUID();

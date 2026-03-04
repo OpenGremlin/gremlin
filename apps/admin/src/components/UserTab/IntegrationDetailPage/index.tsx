@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import * as logos from "../../../assets/logos";
 import { gql } from "../../../auth";
 import {
   BedrockEnabledModelsQuery,
@@ -13,8 +14,6 @@ import {
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-
-import * as logos from "../../../assets/logos";
 
 const logoMap: Record<string, string> = {
   google: logos.googleLogo,
@@ -325,9 +324,7 @@ function BedrockDetailView({
       <div className="mt-5 bg-neutral-900 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-sm text-neutral-100">AWS Credentials</p>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            Managed server-side
-          </p>
+          <p className="text-xs text-neutral-500 mt-0.5">Managed server-side</p>
         </div>
         <span className="flex items-center gap-1.5 text-xs">
           <span className="inline-block w-2 h-2 rounded-full bg-green-400" />

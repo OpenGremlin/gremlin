@@ -15,8 +15,7 @@ const config: CodegenConfig = {
           AgentLogConnection:
             "../services/agentLogs/pagination.js#AgentLogConnectionModel",
           AgentLogEdge: "../services/agentLogs/pagination.js#AgentLogEdgeModel",
-          AgentLogPageInfo:
-            "../services/agentLogs/pagination.js#PageInfoModel",
+          AgentLogPageInfo: "../services/agentLogs/pagination.js#PageInfoModel",
           Document: "../resources/ddb/schema/document.js#DocumentItem",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           IntegrationProvider:
@@ -30,11 +29,9 @@ const config: CodegenConfig = {
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",
           Skill: "../resources/ddb/schema/skill.js#SkillItem",
           Task: "../resources/ddb/schema/task.js#TaskItem",
-          TaskConnection:
-            "../services/tasks/pagination.js#TaskConnectionModel",
+          TaskConnection: "../services/tasks/pagination.js#TaskConnectionModel",
           TaskEdge: "../services/tasks/pagination.js#TaskEdgeModel",
-          TaskPageInfo:
-            "../services/tasks/pagination.js#TaskPageInfoModel",
+          TaskPageInfo: "../services/tasks/pagination.js#TaskPageInfoModel",
           TaskFollowUp:
             "../resources/ddb/schema/taskFollowUp.js#TaskFollowUpItem",
         },

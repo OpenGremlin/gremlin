@@ -1,9 +1,9 @@
 import type { ServiceContext } from "../context.js";
+import { renderPrompt } from "../prompts/index.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
-import { renderPrompt } from "../prompts/index.js";
-import { delegateTaskTool, defaultTools } from "./tools.js";
+import { defaultTools, delegateTaskTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(
@@ -64,7 +64,10 @@ async function runMainLaneAgent(
   });
 
   // Ensure the user message is included (DDB eventual consistency may miss it)
-  if (messages.length === 0 || messages[messages.length - 1].content !== userMessage) {
+  if (
+    messages.length === 0 ||
+    messages[messages.length - 1].content !== userMessage
+  ) {
     messages.push({ role: "user", content: userMessage });
   }
 

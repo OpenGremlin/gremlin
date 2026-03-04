@@ -1,5 +1,5 @@
-import { WebSocketServer, type WebSocket } from "ws";
 import pty from "node-pty";
+import { type WebSocket, WebSocketServer } from "ws";
 
 export function startRelay(port: number): void {
   const wss = new WebSocketServer({ port });
@@ -10,10 +10,7 @@ export function startRelay(port: number): void {
       cols: 120,
       rows: 40,
       cwd: "/workspace",
-      env: { ...process.env, TERM: "xterm-256color" } as Record<
-        string,
-        string
-      >,
+      env: { ...process.env, TERM: "xterm-256color" } as Record<string, string>,
     });
 
     // Signal readiness

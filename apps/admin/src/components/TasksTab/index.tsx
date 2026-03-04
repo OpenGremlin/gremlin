@@ -18,30 +18,27 @@ export function TasksTab() {
   const cursorRef = useRef<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const fetchPage = useCallback(
-    async (cursor: string | null) => {
-      const isInitial = cursor === null;
-      if (isInitial) setLoading(true);
-      else setLoadingMore(true);
+  const fetchPage = useCallback(async (cursor: string | null) => {
+    const isInitial = cursor === null;
+    if (isInitial) setLoading(true);
+    else setLoadingMore(true);
 
-      try {
-        const vars: Record<string, unknown> = { last: PAGE_SIZE };
-        if (cursor) vars.before = cursor;
-        const result = await gql<TasksQueryType>(TasksQuery, vars);
-        const newEdges = result.tasks.edges;
-        // Initial load is newest; subsequent pages are older, appended below
-        setEdges((prev) => (isInitial ? newEdges : [...prev, ...newEdges]));
-        setHasMore(result.tasks.pageInfo.hasPreviousPage);
-        cursorRef.current = result.tasks.pageInfo.startCursor ?? null;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        if (isInitial) setLoading(false);
-        else setLoadingMore(false);
-      }
-    },
-    [],
-  );
+    try {
+      const vars: Record<string, unknown> = { last: PAGE_SIZE };
+      if (cursor) vars.before = cursor;
+      const result = await gql<TasksQueryType>(TasksQuery, vars);
+      const newEdges = result.tasks.edges;
+      // Initial load is newest; subsequent pages are older, appended below
+      setEdges((prev) => (isInitial ? newEdges : [...prev, ...newEdges]));
+      setHasMore(result.tasks.pageInfo.hasPreviousPage);
+      cursorRef.current = result.tasks.pageInfo.startCursor ?? null;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      if (isInitial) setLoading(false);
+      else setLoadingMore(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchPage(null);
@@ -75,7 +72,10 @@ export function TasksTab() {
           <TaskCard key={item.id} item={item} />
         ))}
         {hasMore && (
-          <div ref={sentinelRef} className="py-4 text-center text-xs text-neutral-500">
+          <div
+            ref={sentinelRef}
+            className="py-4 text-center text-xs text-neutral-500"
+          >
             {loadingMore ? "Loading..." : ""}
           </div>
         )}

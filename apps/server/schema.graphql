@@ -4,8 +4,20 @@ type Query {
   document(id: ID!): Document
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
-  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  agentLogs(
+    agentId: ID!
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
+  taskLogs(
+    taskId: ID!
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -303,7 +315,12 @@ type Task {
   originJobId: String
   artifacts: [String!]!
   documents: [Document!]!
-  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  logs(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
 }
 
 type TaskEdge {

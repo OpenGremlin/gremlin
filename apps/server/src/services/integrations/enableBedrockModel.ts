@@ -3,8 +3,8 @@ import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { generateText } from "ai";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
-import { providers } from "./providers.js";
 import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
+import { providers } from "./providers.js";
 
 export async function enableBedrockModel(
   resources: Resources,

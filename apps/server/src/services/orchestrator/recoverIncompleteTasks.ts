@@ -28,8 +28,10 @@ export async function recoverIncompleteTasks(ctx: ServiceContext) {
   for (const task of incomplete) {
     if (task.status === "WAITING") {
       // Check if there's already an active follow-up
-      const followUps =
-        await ctx.services.taskFollowUps.getTaskFollowUps(ctx, task.id);
+      const followUps = await ctx.services.taskFollowUps.getTaskFollowUps(
+        ctx,
+        task.id,
+      );
       const hasActive = followUps.some((f) => f.active);
 
       if (hasActive) {

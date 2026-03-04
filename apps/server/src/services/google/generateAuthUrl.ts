@@ -9,7 +9,9 @@ function expandScopes(scopes: string[]): string[] {
   return [
     "openid",
     "email",
-    ...scopes.map((s) => (s.startsWith("https://") ? s : `${SCOPE_PREFIX}${s}`)),
+    ...scopes.map((s) =>
+      s.startsWith("https://") ? s : `${SCOPE_PREFIX}${s}`,
+    ),
   ];
 }
 

@@ -1,5 +1,5 @@
-import { saveMemory } from "./save.js";
 import { recallMemories } from "./recall.js";
+import { saveMemory } from "./save.js";
 
 export const memoryService = { saveMemory, recallMemories };
 

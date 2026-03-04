@@ -2,9 +2,9 @@ import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { ServiceContext } from "../context.js";
 import {
   type AgentLogConnectionModel,
-  type PaginationArgs,
   buildConnection,
   decodeCursor,
+  type PaginationArgs,
 } from "./pagination.js";
 
 export async function getTaskLogs(
@@ -23,13 +23,21 @@ export async function getTaskLogs(
     query = ctx.resources.ddb.table
       .build(QueryCommand)
       .entities(ctx.resources.ddb.entities.AgentLog)
-      .query({ index: "gsi1", partition, range: { gt: decodeCursor(args.after) } })
+      .query({
+        index: "gsi1",
+        partition,
+        range: { gt: decodeCursor(args.after) },
+      })
       .options({ limit: fetchLimit, reverse: isBackward });
   } else if (args.before) {
     query = ctx.resources.ddb.table
       .build(QueryCommand)
       .entities(ctx.resources.ddb.entities.AgentLog)
-      .query({ index: "gsi1", partition, range: { lt: decodeCursor(args.before) } })
+      .query({
+        index: "gsi1",
+        partition,
+        range: { lt: decodeCursor(args.before) },
+      })
       .options({ limit: fetchLimit, reverse: isBackward });
   } else {
     query = ctx.resources.ddb.table

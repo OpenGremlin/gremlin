@@ -1,4 +1,10 @@
-export type IntegrationCategory = "ai" | "productivity" | "communication" | "developer" | "entertainment" | "smart_home";
+export type IntegrationCategory =
+  | "ai"
+  | "productivity"
+  | "communication"
+  | "developer"
+  | "entertainment"
+  | "smart_home";
 
 export interface AvailableScope {
   scope: string;

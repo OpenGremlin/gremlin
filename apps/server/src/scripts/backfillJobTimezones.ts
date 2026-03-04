@@ -9,7 +9,9 @@ const DEFAULT_TZ = "America/New_York";
 const jobIds = ["1", "2", "3"];
 
 async function backfill() {
-  console.log(`Backfilling timezone="${DEFAULT_TZ}" for ${jobIds.length} jobs...`);
+  console.log(
+    `Backfilling timezone="${DEFAULT_TZ}" for ${jobIds.length} jobs...`,
+  );
 
   for (const id of jobIds) {
     await docClient.send(

@@ -1,9 +1,9 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
+import { anyOf } from "dynamodb-toolbox/schema/anyOf";
 import { item } from "dynamodb-toolbox/schema/item";
 import { list } from "dynamodb-toolbox/schema/list";
-import { string } from "dynamodb-toolbox/schema/string";
 import { nul } from "dynamodb-toolbox/schema/nul";
-import { anyOf } from "dynamodb-toolbox/schema/anyOf";
+import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
 export const TaskEntity = new Entity({
