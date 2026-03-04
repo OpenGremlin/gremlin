@@ -2,16 +2,19 @@ import { wsClient } from "../wsClient";
 
 type Callback = (entity: Record<string, unknown>) => void;
 
+interface Entry {
+  refCount: number;
+  callbacks: Set<Callback>;
+  unsubscribe: () => void;
+  lingerTimer: ReturnType<typeof setTimeout> | null;
+}
+
 /**
- * Manages a single WebSocket subscription for a batch subscription type.
- * Collects entity IDs from many components, opens one subscription
- * with all IDs, and dispatches updates to the correct callbacks.
+ * Manages individual WebSocket subscriptions per entity ID, ref-counted
+ * so that duplicate subscribers share a single connection.
  */
 export class SubscriptionManager {
-  private registry = new Map<string, Set<Callback>>();
-  private unsubscribe: (() => void) | null = null;
-  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private activeIds: string[] = [];
+  private entries = new Map<string, Entry>();
 
   constructor(
     private queryStr: string,
@@ -19,87 +22,53 @@ export class SubscriptionManager {
   ) {}
 
   subscribe(id: string, callback: Callback): () => void {
-    let cbs = this.registry.get(id);
-    if (!cbs) {
-      cbs = new Set();
-      this.registry.set(id, cbs);
+    let entry = this.entries.get(id);
+
+    if (entry) {
+      // Reuse existing subscription — cancel linger if pending
+      if (entry.lingerTimer) {
+        clearTimeout(entry.lingerTimer);
+        entry.lingerTimer = null;
+      }
+      entry.refCount++;
+      entry.callbacks.add(callback);
+    } else {
+      // Open a new individual subscription
+      const callbacks = new Set<Callback>([callback]);
+      const unsubscribe = wsClient.subscribe(
+        {
+          query: this.queryStr,
+          variables: { [this.variableName]: id },
+        },
+        {
+          next: ({ data }) => {
+            if (!data) return;
+            const entity = Object.values(data)[0] as
+              | Record<string, unknown>
+              | undefined;
+            if (!entity || typeof entity !== "object") return;
+            for (const cb of callbacks) cb(entity);
+          },
+          error: () => {},
+          complete: () => {},
+        },
+      );
+      entry = { refCount: 1, callbacks, unsubscribe, lingerTimer: null };
+      this.entries.set(id, entry);
     }
-    cbs.add(callback);
-    this.scheduleReconnect();
 
     return () => {
-      cbs?.delete(callback);
-      if (cbs?.size === 0) {
-        this.registry.delete(id);
+      if (!entry) return;
+      entry.callbacks.delete(callback);
+      entry.refCount--;
+
+      if (entry.refCount <= 0) {
+        // Linger for 1s before tearing down — covers page transitions
+        entry.lingerTimer = setTimeout(() => {
+          entry!.unsubscribe();
+          this.entries.delete(id);
+        }, 1000);
       }
-      this.scheduleReconnect();
     };
-  }
-
-  private scheduleReconnect() {
-    if (this.debounceTimer) clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      this.debounceTimer = null;
-      this.reconnect();
-    }, 50);
-  }
-
-  private reconnect() {
-    const ids = Array.from(this.registry.keys()).sort();
-    // No subscribers — tear down
-    if (ids.length === 0) {
-      this.disconnect();
-      this.activeIds = [];
-      return;
-    }
-    // Same set of IDs — keep existing connection
-    if (
-      this.unsubscribe &&
-      ids.length === this.activeIds.length &&
-      ids.every((id, i) => id === this.activeIds[i])
-    ) {
-      return;
-    }
-    this.disconnect();
-    this.activeIds = ids;
-    this.connect();
-  }
-
-  private disconnect() {
-    if (this.unsubscribe) {
-      this.unsubscribe();
-      this.unsubscribe = null;
-    }
-  }
-
-  private connect() {
-    this.unsubscribe = wsClient.subscribe(
-      {
-        query: this.queryStr,
-        variables: { [this.variableName]: this.activeIds },
-      },
-      {
-        next: ({ data }) => {
-          if (data) this.dispatch(data as Record<string, unknown>);
-        },
-        error: () => {},
-        complete: () => {},
-      },
-    );
-  }
-
-  private dispatch(data: Record<string, unknown>) {
-    // data is e.g. { tasksUpdated: { id: "...", ... } }
-    const entity = Object.values(data)[0] as
-      | Record<string, unknown>
-      | undefined;
-    if (!entity || typeof entity !== "object") return;
-    const id = entity.id as string | undefined;
-    if (!id) return;
-
-    const cbs = this.registry.get(id);
-    if (cbs) {
-      for (const cb of cbs) cb(entity);
-    }
   }
 }

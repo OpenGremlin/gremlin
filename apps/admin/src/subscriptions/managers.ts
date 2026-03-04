@@ -1,8 +1,8 @@
 import { SubscriptionManager } from "./SubscriptionManager";
 
 export const taskSubscriptionManager = new SubscriptionManager(
-  /* GraphQL */ `subscription TasksUpdated($taskIds: [ID!]!) {
-  tasksUpdated(taskIds: $taskIds) {
+  /* GraphQL */ `subscription TaskUpdated($taskId: ID!) {
+  taskUpdated(taskId: $taskId) {
     id
     title
     message
@@ -17,15 +17,15 @@ export const taskSubscriptionManager = new SubscriptionManager(
     }
   }
 }`,
-  "taskIds",
+  "taskId",
 );
 
 export const agentSubscriptionManager = new SubscriptionManager(
-  /* GraphQL */ `subscription AgentsUpdated($agentIds: [ID!]!) {
-  agentsUpdated(agentIds: $agentIds) {
+  /* GraphQL */ `subscription AgentUpdated($agentId: ID!) {
+  agentUpdated(agentId: $agentId) {
     id
     name
   }
 }`,
-  "agentIds",
+  "agentId",
 );
