@@ -18,7 +18,7 @@ export interface AdminStackProps extends cdk.StackProps {
   userPoolClientId: string;
   cognitoDomain: string;
   mediaCdnUrl: string;
-  albDnsName: string;
+  serverDns: string;
 }
 
 export class AdminStack extends cdk.Stack {
@@ -34,13 +34,13 @@ export class AdminStack extends cdk.Stack {
     });
 
     // ALB origin for API/auth/GraphQL traffic
-    const albOrigin = new origins.HttpOrigin(props.albDnsName, {
+    const serverOrigin = new origins.HttpOrigin(props.serverDns, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
-      httpPort: 80,
+      httpPort: 3001,
     });
 
     const apiBehavior: cloudfront.BehaviorOptions = {
-      origin: albOrigin,
+      origin: serverOrigin,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,

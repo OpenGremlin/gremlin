@@ -47,14 +47,13 @@ new MessagingStack(app, "GremlinMessagingStack", {
   env,
   table: db.table,
   tableName: db.tableName,
-  serverTaskDefinition: server.serverTaskDefinition,
+  serverRole: server.serverRole,
 });
 
 // 4. Sandbox — depends on VPC, Database (EFS), Server (cluster, SG)
 new SandboxStack(app, "GremlinSandboxStack", {
   env,
   vpc: network.vpc,
-  cluster: server.cluster,
   serverSecurityGroup: server.serverSecurityGroup,
   fileSystem: db.fileSystem,
   accessPoint: db.accessPoint,
@@ -67,5 +66,5 @@ new AdminStack(app, "GremlinAdminStack", {
   userPoolClientId: auth.userPoolClientId,
   cognitoDomain: auth.cognitoDomain,
   mediaCdnUrl: media.cdnUrl,
-  albDnsName: server.albDnsName,
+  serverDns: server.serverDns,
 });

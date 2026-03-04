@@ -2,7 +2,6 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import type * as ecs from "aws-cdk-lib/aws-ecs";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
@@ -17,7 +16,7 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 export interface MessagingStackProps extends cdk.StackProps {
   table: dynamodb.ITable;
   tableName: string;
-  serverTaskDefinition: ecs.FargateTaskDefinition;
+  serverRole: iam.IRole;
 }
 
 export class MessagingStack extends cdk.Stack {
@@ -46,8 +45,8 @@ export class MessagingStack extends cdk.Stack {
     });
 
     // Grant the ECS server permission to send + receive doorbells
-    queue.grantSendMessages(props.serverTaskDefinition.taskRole);
-    queue.grantConsumeMessages(props.serverTaskDefinition.taskRole);
+    queue.grantSendMessages(props.serverRole);
+    queue.grantConsumeMessages(props.serverRole);
 
     // ── Schedule target Lambda ──────────────────────────────
     // EventBridge Scheduler fires this Lambda for cron jobs and
@@ -124,7 +123,7 @@ export class MessagingStack extends cdk.Stack {
     new cdk.CfnOutput(this, "QueueUrl", { value: queue.queueUrl });
 
     // Grant server permission to create/delete EventBridge schedules
-    props.serverTaskDefinition.taskRole.addToPrincipalPolicy(
+    props.serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           "scheduler:CreateSchedule",
@@ -160,7 +159,7 @@ export class MessagingStack extends cdk.Stack {
     });
 
     // Grant server permission to pass the scheduler role
-    props.serverTaskDefinition.taskRole.addToPrincipalPolicy(
+    props.serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iam:PassRole"],
         resources: [schedulerRole.roleArn],

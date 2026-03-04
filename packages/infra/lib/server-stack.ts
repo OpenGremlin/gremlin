@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as ecr_assets from "aws-cdk-lib/aws-ecr-assets";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import type * as efs from "aws-cdk-lib/aws-efs";
-import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
@@ -28,30 +28,36 @@ export interface ServerStackProps extends cdk.StackProps {
 
 export class ServerStack extends cdk.Stack {
   readonly cluster: ecs.ICluster;
-  readonly service: ecs.IBaseService;
-  readonly albDnsName: string;
+  readonly serverRole: iam.IRole;
+  readonly elasticIp: string;
+  readonly serverDns: string;
   readonly serverSecurityGroup: ec2.ISecurityGroup;
-  readonly serverTaskDefinition: ecs.FargateTaskDefinition;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
 
     const vpc = props.vpc;
+
+    // ECS cluster is still needed for sandbox RunTask
     const cluster = new ecs.Cluster(this, "Cluster", { vpc });
 
-    const taskDef = new ecs.FargateTaskDefinition(this, "Task", {
-      cpu: 256,
-      memoryLimitMiB: 512,
-      runtimePlatform: {
-        cpuArchitecture: ecs.CpuArchitecture.ARM64,
-        operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
-      },
+    // ── Docker image asset (builds & pushes to ECR) ──────────
+    const imageAsset = new ecr_assets.DockerImageAsset(this, "ServerImage", {
+      directory: REPO_ROOT,
+      file: "Dockerfile",
+      exclude: ["**/cdk.out"],
+      platform: ecr_assets.Platform.LINUX_ARM64,
     });
 
-    props.table.grantReadWriteData(taskDef.taskRole);
-    props.secretsTable.grantReadWriteData(taskDef.taskRole);
+    // ── IAM role for EC2 instance ────────────────────────────
+    const serverRole = new iam.Role(this, "ServerRole", {
+      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+    });
 
-    taskDef.taskRole.addToPrincipalPolicy(
+    props.table.grantReadWriteData(serverRole);
+    props.secretsTable.grantReadWriteData(serverRole);
+
+    serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           "bedrock:InvokeModel",
@@ -61,101 +67,9 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
-    // Mount EFS workspace volume (read-only for server)
-    taskDef.addVolume({
-      name: "workspace",
-      efsVolumeConfiguration: {
-        fileSystemId: props.fileSystem.fileSystemId,
-        transitEncryption: "ENABLED",
-        authorizationConfig: {
-          accessPointId: props.accessPoint.accessPointId,
-          iam: "ENABLED",
-        },
-      },
-    });
+    props.fileSystem.grant(serverRole, "elasticfilesystem:ClientMount");
 
-    props.fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount");
-
-    const container = taskDef.addContainer("gremlin-server", {
-      image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
-        file: "Dockerfile",
-        exclude: ["**/cdk.out"],
-      }),
-      logging: ecs.LogDrivers.awsLogs({
-        streamPrefix: "gremlin-server",
-        logRetention: logs.RetentionDays.TWO_WEEKS,
-      }),
-      healthCheck: {
-        command: [
-          "CMD-SHELL",
-          "curl -f http://localhost:3001/api/health || exit 1",
-        ],
-        interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
-        retries: 3,
-        startPeriod: cdk.Duration.seconds(30),
-      },
-      environment: {
-        PORT: "3001",
-        TABLE_NAME: props.tableName,
-        SECRETS_TABLE_NAME: props.secretsTableName,
-        NODE_ENV: "production",
-        AWS_REGION: this.region,
-        COGNITO_USER_POOL_ID: props.userPoolId,
-        COGNITO_CLIENT_ID: props.userPoolClientId,
-        MEDIA_CDN_URL: props.mediaCdnUrl,
-        S3_VECTORS_BUCKET_NAME: "gremlin-vectors",
-        WORKSPACE_PATH: "/workspace",
-        ECS_CLUSTER_NAME: cluster.clusterName,
-        SUBNET_IDS: vpc.publicSubnets.map((s) => s.subnetId).join(","),
-      },
-    });
-
-    container.addPortMappings({ containerPort: 3001 });
-
-    container.addMountPoints({
-      sourceVolume: "workspace",
-      containerPath: "/workspace",
-      readOnly: true,
-    });
-
-    const serverSg = new ec2.SecurityGroup(this, "ServerSg", {
-      vpc,
-      description: "Gremlin server Fargate service",
-    });
-
-    const service = new ecs.FargateService(this, "Svc", {
-      cluster,
-      taskDefinition: taskDef,
-      desiredCount: 1,
-      assignPublicIp: true,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      securityGroups: [serverSg],
-    });
-
-    // ── ALB in front of Fargate ────────────────────────────
-    const alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {
-      vpc,
-      internetFacing: true,
-    });
-
-    const listener = alb.addListener("HttpListener", {
-      port: 80,
-      protocol: elbv2.ApplicationProtocol.HTTP,
-    });
-
-    listener.addTargets("FargateTarget", {
-      port: 3001,
-      protocol: elbv2.ApplicationProtocol.HTTP,
-      targets: [service],
-      healthCheck: {
-        path: "/api/health",
-        interval: cdk.Duration.seconds(30),
-      },
-    });
-
-    // Grant task role permission to read config from SSM
-    taskDef.taskRole.addToPrincipalPolicy(
+    serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ssm:GetParameter"],
         resources: [
@@ -164,22 +78,21 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
-    // Grant task role permissions for sandbox ECS operations
-    taskDef.taskRole.addToPrincipalPolicy(
+    serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ecs:RunTask", "ecs:StopTask", "ecs:DescribeTasks"],
         resources: ["*"],
       }),
     );
 
-    taskDef.taskRole.addToPrincipalPolicy(
+    serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["s3vectors:*"],
         resources: ["*"],
       }),
     );
 
-    taskDef.taskRole.addToPrincipalPolicy(
+    serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iam:PassRole"],
         resources: ["*"],
@@ -191,14 +104,121 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // ECR pull permissions
+    imageAsset.repository.grantPull(serverRole);
+
+    // CloudWatch Logs permissions
+    serverRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ],
+        resources: ["*"],
+      }),
+    );
+
+    // ── Log group ────────────────────────────────────────────
+    const logGroup = new logs.LogGroup(this, "ServerLogGroup", {
+      logGroupName: "/gremlin/server",
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // ── Security group ───────────────────────────────────────
+    const serverSg = new ec2.SecurityGroup(this, "ServerSg", {
+      vpc,
+      description: "Gremlin server EC2 instance",
+    });
+
+    serverSg.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(3001),
+      "CloudFront to server",
+    );
+
+    // ── EC2 instance ─────────────────────────────────────────
+    const userData = ec2.UserData.forLinux();
+    userData.addCommands(
+      "set -euo pipefail",
+
+      // Install Docker
+      "dnf install -y docker amazon-efs-utils",
+      "systemctl enable docker && systemctl start docker",
+
+      // Authenticate to ECR and pull server image
+      `aws ecr get-login-password --region ${this.region} | docker login --username AWS --password-stdin ${imageAsset.repository.repositoryUri}`,
+      `docker pull ${imageAsset.imageUri}`,
+
+      // Mount EFS
+      "mkdir -p /workspace",
+      `mount -t efs -o tls,accesspoint=${props.accessPoint.accessPointId} ${props.fileSystem.fileSystemId}:/ /workspace`,
+
+      // Run the container
+      [
+        "docker run -d --restart always",
+        `--log-driver awslogs`,
+        `--log-opt awslogs-region=${this.region}`,
+        `--log-opt awslogs-group=${logGroup.logGroupName}`,
+        `--log-opt awslogs-create-group=false`,
+        `-p 3001:3001`,
+        `-v /workspace:/workspace:ro`,
+        `-e PORT=3001`,
+        `-e TABLE_NAME=${props.tableName}`,
+        `-e SECRETS_TABLE_NAME=${props.secretsTableName}`,
+        `-e NODE_ENV=production`,
+        `-e AWS_REGION=${this.region}`,
+        `-e COGNITO_USER_POOL_ID=${props.userPoolId}`,
+        `-e COGNITO_CLIENT_ID=${props.userPoolClientId}`,
+        `-e MEDIA_CDN_URL=${props.mediaCdnUrl}`,
+        `-e S3_VECTORS_BUCKET_NAME=gremlin-vectors`,
+        `-e WORKSPACE_PATH=/workspace`,
+        `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
+        `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,
+        imageAsset.imageUri,
+      ].join(" "),
+    );
+
+    const instance = new ec2.Instance(this, "Server", {
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T4G,
+        ec2.InstanceSize.NANO,
+      ),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023({
+        cpuType: ec2.AmazonLinuxCpuType.ARM_64,
+      }),
+      role: serverRole,
+      securityGroup: serverSg,
+      userData,
+      userDataCausesReplacement: true,
+    });
+
+    // ── Elastic IP ───────────────────────────────────────────
+    const eip = new ec2.CfnEIP(this, "ServerEip");
+    new ec2.CfnEIPAssociation(this, "ServerEipAssoc", {
+      allocationId: eip.attrAllocationId,
+      instanceId: instance.instanceId,
+    });
+
+    // ── Exports ──────────────────────────────────────────────
     this.cluster = cluster;
-    this.service = service;
-    this.albDnsName = alb.loadBalancerDnsName;
+    this.serverRole = serverRole;
+    this.elasticIp = eip.attrPublicIp;
+    // CloudFront requires a domain name, not an IP. Construct EC2 public DNS
+    // from the EIP: ec2-1-2-3-4.compute-1.amazonaws.com (us-east-1)
+    const dashedIp = cdk.Fn.join("-", cdk.Fn.split(".", eip.attrPublicIp));
+    this.serverDns = cdk.Fn.join("", [
+      "ec2-", dashedIp,
+      this.region === "us-east-1"
+        ? ".compute-1.amazonaws.com"
+        : `.${this.region}.compute.amazonaws.com`,
+    ]);
     this.serverSecurityGroup = serverSg;
-    this.serverTaskDefinition = taskDef;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
-    new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });
-    new cdk.CfnOutput(this, "AlbDnsName", { value: alb.loadBalancerDnsName });
+    new cdk.CfnOutput(this, "ServerInstanceId", { value: instance.instanceId });
+    new cdk.CfnOutput(this, "ServerElasticIp", { value: eip.attrPublicIp });
   }
 }

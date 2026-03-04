@@ -13,7 +13,6 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 
 export interface SandboxStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
-  cluster: ecs.ICluster;
   serverSecurityGroup: ec2.ISecurityGroup;
   fileSystem: efs.IFileSystem;
   accessPoint: efs.IAccessPoint;
