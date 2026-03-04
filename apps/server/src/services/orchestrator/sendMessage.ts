@@ -3,7 +3,12 @@ import { renderPrompt } from "../prompts/index.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { runTaskLane } from "./runTaskLane.js";
-import { defaultTools, delegateTaskTool } from "./tools.js";
+import {
+  defaultTools,
+  delegateTaskTool,
+  recallMemoryTool,
+  saveMemoryTool,
+} from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(
@@ -71,6 +76,37 @@ async function runMainLaneAgent(
     messages.push({ role: "user", content: userMessage });
   }
 
+  // Recall recent journals and semantically relevant older memories
+  const memories = await ctx.services.memory
+    .recallMemories(ctx, agentId, userMessage)
+    .catch((err) => {
+      console.error("memory recall failed:", err);
+      return { recent: [], relevant: [] };
+    });
+
+  let memoryContext: string | undefined;
+  if (memories.recent.length > 0 || memories.relevant.length > 0) {
+    const lines: string[] = ["## Long-term Memory"];
+    if (memories.recent.length > 0) {
+      lines.push("### Recent journals");
+      for (const m of memories.recent) {
+        lines.push(`[${m.date}]:\n${m.content}`);
+      }
+    }
+    if (memories.relevant.length > 0) {
+      lines.push("");
+      lines.push("### Relevant past memories");
+      for (const m of memories.relevant) {
+        lines.push(`[${m.date}]:\n${m.content}`);
+      }
+    }
+    lines.push("");
+    lines.push(
+      "You can save new memories using the saveMemory tool. Entries are appended to today's journal.",
+    );
+    memoryContext = lines.join("\n");
+  }
+
   await runAgentTurn(ctx, {
     agentId,
     taskId: null,
@@ -80,8 +116,15 @@ async function runMainLaneAgent(
       userDisplayName: profile?.displayName ?? "the user",
       userAbout: profile?.about,
     }),
+    timezone: profile?.timezone ?? undefined,
+    memoryContext,
     messages,
-    tools: { ...defaultTools, delegateTask: delegateTaskTool(ctx, agentId) },
+    tools: {
+      ...defaultTools,
+      delegateTask: delegateTaskTool(ctx, agentId),
+      saveMemory: saveMemoryTool(ctx, agentId),
+      recallMemory: recallMemoryTool(ctx, agentId),
+    },
   });
 
   // Fire-and-forget compaction
