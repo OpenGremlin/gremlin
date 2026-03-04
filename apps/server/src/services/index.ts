@@ -1,6 +1,5 @@
 import { type AgentLogService, agentLogService } from "./agentLogs/index.js";
 import { type AgentService, agentService } from "./agents/index.js";
-import { type GoogleService, googleService } from "./google/index.js";
 import { type InboxService, inboxService } from "./inbox/index.js";
 import {
   type IntegrationService,
@@ -34,7 +33,6 @@ import {
 export interface Services {
   agentLogs: AgentLogService;
   agents: AgentService;
-  google: GoogleService;
   inbox: InboxService;
   jobs: JobService;
   integrations: IntegrationService;
@@ -56,7 +54,6 @@ export function createServices(): Services {
   return {
     agentLogs: agentLogService,
     agents: agentService,
-    google: googleService,
     inbox: inboxService,
     jobs: jobService,
     integrations: integrationService,

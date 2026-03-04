@@ -21,12 +21,14 @@ export function useSubscription<TResult>(
     if (!queryStr) return;
 
     const unsubscribe = wsClient.subscribe(
-      { query: queryStr, variables: JSON.parse(serializedVars) },
+      { query: queryStr, variables },
       {
         next: ({ data }) => {
           if (data) onDataRef.current(data as TResult);
         },
-        error: () => {},
+        error: (err) => {
+          console.error("[useSubscription] error:", err);
+        },
         complete: () => {},
       },
     );
