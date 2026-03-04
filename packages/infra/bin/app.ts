@@ -4,6 +4,7 @@ import { AdminStack } from "../lib/admin-stack.js";
 import { AuthStack } from "../lib/auth-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
+import { MessagingStack } from "../lib/messaging-stack.js";
 import { SandboxStack } from "../lib/sandbox-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
 
@@ -31,7 +32,15 @@ const server = new ServerStack(app, "GremlinServerStack", {
   mediaCdnUrl: media.cdnUrl,
 });
 
-// 3. Sandbox — depends on Server (VPC, cluster, SG)
+// 3. Messaging — depends on Database, Server
+new MessagingStack(app, "GremlinMessagingStack", {
+  env,
+  table: db.table,
+  tableName: db.tableName,
+  serverTaskDefinition: server.serverTaskDefinition,
+});
+
+// 4. Sandbox — depends on Server (VPC, cluster, SG)
 new SandboxStack(app, "GremlinSandboxStack", {
   env,
   vpc: server.vpc,
@@ -39,7 +48,7 @@ new SandboxStack(app, "GremlinSandboxStack", {
   serverSecurityGroup: server.serverSecurityGroup,
 });
 
-// 4. Admin — depends on Auth, Media, Server (for ALB)
+// 5. Admin — depends on Auth, Media, Server (for ALB)
 new AdminStack(app, "GremlinAdminStack", {
   env,
   userPoolId: auth.userPoolId,
