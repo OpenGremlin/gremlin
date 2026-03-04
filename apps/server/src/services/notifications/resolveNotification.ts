@@ -1,6 +1,5 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
-import { logger } from "../../logger.js";
 import type { NotificationItem } from "../../resources/ddb/schema/notification.js";
 import type { ServiceContext } from "../context.js";
 import { getNotification } from "./getNotification.js";
@@ -38,7 +37,7 @@ export async function resolveNotification(
   ctx.services.agents
     .updateAgentStatus(ctx, existing.agentId, AgentStatus.Active)
     .catch((err) =>
-      logger.error(
+      ctx.log.error(
         { err, agentId: existing.agentId, component: "notifications" },
         "Failed to unblock agent",
       ),
@@ -51,7 +50,7 @@ export async function resolveNotification(
       payload: { notificationId: id, actionId },
     })
     .catch((err) =>
-      logger.error(
+      ctx.log.error(
         { err, notificationId: id, component: "notifications" },
         "Failed to enqueue notification reply",
       ),

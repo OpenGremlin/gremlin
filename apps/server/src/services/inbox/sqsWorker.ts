@@ -6,8 +6,6 @@ import {
 import type { ServiceContext } from "../context.js";
 import { ringDoorbell } from "./consumer.js";
 
-const sqs = new SQSClient({});
-
 /**
  * Start long-polling SQS for doorbell messages.
  * Each message contains { agentId } — we ack immediately and
@@ -24,6 +22,7 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
   }
 
   ctx.log.info("Starting SQS worker");
+  const sqs = new SQSClient({});
   let shuttingDown = false;
 
   const poll = async () => {

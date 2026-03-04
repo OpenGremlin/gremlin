@@ -1,4 +1,5 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
 export async function addTaskArtifact(
@@ -25,6 +26,9 @@ export async function addTaskArtifact(
   );
 
   if (Attributes) {
-    ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, Attributes);
+    ctx.resources.pubsub.publish(
+      `taskUpdated:${taskId}`,
+      Attributes as unknown as TaskItem,
+    );
   }
 }

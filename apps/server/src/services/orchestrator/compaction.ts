@@ -30,7 +30,7 @@ function isCompactionEntry(content: string): CompactionEntry | null {
 export async function buildContextMessages(
   ctx: ServiceContext,
   opts: { agentId: string; taskId: string | null },
-): Promise<{ messages: ModelMessage[]; totalLogCount: number }> {
+): Promise<{ messages: ModelMessage[]; postCompactionCount: number }> {
   const connection = opts.taskId
     ? await ctx.services.agentLogs.getTaskLogs(ctx, opts.taskId, { first: 200 })
     : await ctx.services.agentLogs.getAgentLogs(ctx, opts.agentId, {
@@ -38,7 +38,6 @@ export async function buildContextMessages(
       });
 
   const entries = connection.edges.map((e) => e.node);
-  const totalLogCount = entries.length;
 
   // Reverse-scan for the most recent compaction entry
   let compactionIndex = -1;
@@ -61,13 +60,11 @@ export async function buildContextMessages(
       role: "user",
       content: `[Context summary of earlier conversation]\n\n${cachedCompaction?.summary}`,
     });
-    // Map all entries after the compaction point
     for (let i = compactionIndex + 1; i < entries.length; i++) {
       const mapped = mapEntry(entries[i]);
       if (mapped) messages.push(mapped);
     }
   } else {
-    // No compaction found — map all entries
     for (const entry of entries) {
       const mapped = mapEntry(entry);
       if (mapped) messages.push(mapped);
@@ -76,9 +73,11 @@ export async function buildContextMessages(
 
   // Count entries after last compaction (for deciding when to compact next)
   const postCompactionCount =
-    compactionIndex >= 0 ? entries.length - compactionIndex - 1 : totalLogCount;
+    compactionIndex >= 0
+      ? entries.length - compactionIndex - 1
+      : entries.length;
 
-  return { messages, totalLogCount: postCompactionCount };
+  return { messages, postCompactionCount };
 }
 
 function mapEntry(node: {
@@ -108,10 +107,10 @@ export async function maybeCompact(
     agentId: string;
     taskId: string | null;
     messages: ModelMessage[];
-    totalLogCount: number;
+    postCompactionCount: number;
   },
 ): Promise<void> {
-  if (opts.totalLogCount < COMPACTION_THRESHOLD) return;
+  if (opts.postCompactionCount < COMPACTION_THRESHOLD) return;
 
   const toSummarize = opts.messages;
 

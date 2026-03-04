@@ -1,6 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
+import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import {
@@ -52,7 +53,7 @@ export async function runTaskLane(
   }
 
   // Build conversation history with compaction support
-  const { messages, totalLogCount } = await buildContextMessages(ctx, {
+  const { messages, postCompactionCount } = await buildContextMessages(ctx, {
     agentId: task.agentId,
     taskId,
   });
@@ -73,24 +74,7 @@ export async function runTaskLane(
       return { recent: [], relevant: [] };
     });
 
-  let memoryContext: string | undefined;
-  if (memories.recent.length > 0 || memories.relevant.length > 0) {
-    const lines: string[] = ["## Long-term Memory"];
-    if (memories.recent.length > 0) {
-      lines.push("### Recent journals");
-      for (const m of memories.recent) {
-        lines.push(`[${m.date}]:\n${m.content}`);
-      }
-    }
-    if (memories.relevant.length > 0) {
-      lines.push("");
-      lines.push("### Relevant past memories");
-      for (const m of memories.relevant) {
-        lines.push(`[${m.date}]:\n${m.content}`);
-      }
-    }
-    memoryContext = lines.join("\n");
-  }
+  const memoryContext = buildMemoryContext(memories);
 
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
@@ -124,7 +108,7 @@ export async function runTaskLane(
     agentId: task.agentId,
     taskId,
     messages,
-    totalLogCount,
+    postCompactionCount,
   }).catch((err) =>
     ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
   );

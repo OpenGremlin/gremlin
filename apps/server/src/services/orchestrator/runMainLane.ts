@@ -1,5 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
+import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import {
@@ -42,7 +43,7 @@ export async function runMainLane(
   }
 
   // Build conversation history with compaction support
-  const { messages, totalLogCount } = await buildContextMessages(ctx, {
+  const { messages, postCompactionCount } = await buildContextMessages(ctx, {
     agentId,
     taskId: null,
   });
@@ -55,29 +56,7 @@ export async function runMainLane(
       return { recent: [], relevant: [] };
     });
 
-  // Build memory context string
-  let memoryContext: string | undefined;
-  if (memories.recent.length > 0 || memories.relevant.length > 0) {
-    const lines: string[] = ["## Long-term Memory"];
-    if (memories.recent.length > 0) {
-      lines.push("### Recent journals");
-      for (const m of memories.recent) {
-        lines.push(`[${m.date}]:\n${m.content}`);
-      }
-    }
-    if (memories.relevant.length > 0) {
-      lines.push("");
-      lines.push("### Relevant past memories");
-      for (const m of memories.relevant) {
-        lines.push(`[${m.date}]:\n${m.content}`);
-      }
-    }
-    lines.push("");
-    lines.push(
-      "You can save new memories using the saveMemory tool. Entries are appended to today's journal.",
-    );
-    memoryContext = lines.join("\n");
-  }
+  const memoryContext = buildMemoryContext(memories);
 
   const response = await runAgentTurn(ctx, {
     agentId,
@@ -100,9 +79,13 @@ export async function runMainLane(
   });
 
   // Fire-and-forget compaction
-  maybeCompact(ctx, { agentId, taskId: null, messages, totalLogCount }).catch(
-    (err) =>
-      ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
+  maybeCompact(ctx, {
+    agentId,
+    taskId: null,
+    messages,
+    postCompactionCount,
+  }).catch((err) =>
+    ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
   );
 
   return response;

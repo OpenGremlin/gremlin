@@ -1,6 +1,6 @@
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
-import pino from "pino";
+import { createLogger } from "../logger.js";
 
 /**
  * Lambda invoked by EventBridge Scheduler for:
@@ -10,7 +10,7 @@ import pino from "pino";
  * Writes an inbox item to DDB and rings the SQS doorbell.
  */
 
-const logger = pino({ base: { service: "gremlin-schedule-target" } });
+const logger = createLogger("gremlin-schedule-target");
 const ddb = new DynamoDBClient({});
 const sqs = new SQSClient({});
 const TABLE_NAME = process.env.TABLE_NAME ?? "";
@@ -27,33 +27,33 @@ export async function handler(event: ScheduleEvent) {
   const createdAt = new Date().toISOString();
   const payloadStr = JSON.stringify(event.payload);
 
-  // Write inbox item using raw DDB attribute values
-  await ddb.send(
-    new PutItemCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        _et: { S: "InboxItem" },
-        pk: { S: `AGENT_INBOX#${event.agentId}` },
-        sk: { S: `ITEM#${createdAt}#${id}` },
-        gsi2pk: { S: "INBOX_UNREAD" },
-        gsi2sk: { S: createdAt },
-        id: { S: id },
-        agentId: { S: event.agentId },
-        type: { S: event.type },
-        payload: { S: payloadStr },
-        isRead: { BOOL: false },
-        createdAt: { S: createdAt },
-      },
-    }),
-  );
-
-  // Ring doorbell
-  await sqs.send(
-    new SendMessageCommand({
-      QueueUrl: QUEUE_URL,
-      MessageBody: JSON.stringify({ agentId: event.agentId }),
-    }),
-  );
+  // Write inbox item and ring doorbell concurrently
+  await Promise.all([
+    ddb.send(
+      new PutItemCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          _et: { S: "InboxItem" },
+          pk: { S: `AGENT_INBOX#${event.agentId}` },
+          sk: { S: `ITEM#${createdAt}#${id}` },
+          gsi2pk: { S: "INBOX_UNREAD" },
+          gsi2sk: { S: createdAt },
+          id: { S: id },
+          agentId: { S: event.agentId },
+          type: { S: event.type },
+          payload: { S: payloadStr },
+          isRead: { BOOL: false },
+          createdAt: { S: createdAt },
+        },
+      }),
+    ),
+    sqs.send(
+      new SendMessageCommand({
+        QueueUrl: QUEUE_URL,
+        MessageBody: JSON.stringify({ agentId: event.agentId }),
+      }),
+    ),
+  ]);
 
   logger.info(
     { type: event.type, agentId: event.agentId, inboxItemId: id },

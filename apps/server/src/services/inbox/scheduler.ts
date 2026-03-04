@@ -6,13 +6,26 @@ import {
 } from "@aws-sdk/client-scheduler";
 import { logger } from "../../logger.js";
 
-const scheduler = new SchedulerClient({});
+let _scheduler: SchedulerClient | undefined;
+function getSchedulerClient() {
+  if (!_scheduler) _scheduler = new SchedulerClient({});
+  return _scheduler;
+}
+
 const log = logger.child({ component: "scheduler" });
+
+function getSchedulerConfig() {
+  const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
+  const roleArn = process.env.SCHEDULER_ROLE_ARN;
+  if (!targetArn || !roleArn) {
+    log.warn("Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN");
+    return null;
+  }
+  return { targetArn, roleArn };
+}
 
 /**
  * Create a recurring EventBridge schedule for a cron job.
- * The schedule fires the scheduleTarget Lambda which writes
- * an inbox item and rings the doorbell.
  */
 export async function createCronSchedule(job: {
   id: string;
@@ -22,16 +35,10 @@ export async function createCronSchedule(job: {
   description: string;
   timezone?: string;
 }) {
-  const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
-  const roleArn = process.env.SCHEDULER_ROLE_ARN;
-  if (!targetArn || !roleArn) {
-    log.warn(
-      "Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping schedule creation",
-    );
-    return;
-  }
+  const config = getSchedulerConfig();
+  if (!config) return;
 
-  await scheduler.send(
+  await getSchedulerClient().send(
     new CreateScheduleCommand({
       Name: `gremlin-job-${job.id}`,
       GroupName: "gremlin",
@@ -39,14 +46,14 @@ export async function createCronSchedule(job: {
       ScheduleExpressionTimezone: job.timezone ?? "UTC",
       FlexibleTimeWindow: { Mode: "OFF" as FlexibleTimeWindowMode },
       Target: {
-        Arn: targetArn,
-        RoleArn: roleArn,
+        Arn: config.targetArn,
+        RoleArn: config.roleArn,
         Input: JSON.stringify({
           type: "scheduled_job",
           agentId: job.agentId,
           payload: {
             jobId: job.id,
-            triggerTimeMs: 0, // filled at runtime by Lambda
+            triggerTimeMs: 0,
           },
         }),
       },
@@ -61,7 +68,7 @@ export async function createCronSchedule(job: {
  */
 export async function deleteCronSchedule(jobId: string) {
   try {
-    await scheduler.send(
+    await getSchedulerClient().send(
       new DeleteScheduleCommand({
         Name: `gremlin-job-${jobId}`,
         GroupName: "gremlin",
@@ -70,7 +77,7 @@ export async function deleteCronSchedule(jobId: string) {
     log.info({ jobId }, "Deleted cron schedule");
   } catch (err: unknown) {
     if (err instanceof Error && err.name === "ResourceNotFoundException") {
-      return; // already deleted
+      return;
     }
     throw err;
   }
@@ -78,7 +85,7 @@ export async function deleteCronSchedule(jobId: string) {
 
 /**
  * Create a one-shot EventBridge schedule for an agent self-follow-up.
- * The schedule auto-deletes after firing (ActionAfterCompletion: DELETE).
+ * Auto-deletes after firing (ActionAfterCompletion: DELETE).
  */
 export async function createFollowUpSchedule(input: {
   taskId: string;
@@ -86,19 +93,13 @@ export async function createFollowUpSchedule(input: {
   delayMs: number;
   prompt: string;
 }) {
-  const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
-  const roleArn = process.env.SCHEDULER_ROLE_ARN;
-  if (!targetArn || !roleArn) {
-    log.warn(
-      "Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping follow-up schedule",
-    );
-    return;
-  }
+  const config = getSchedulerConfig();
+  if (!config) return;
 
   const fireAt = new Date(Date.now() + input.delayMs);
   const scheduleId = crypto.randomUUID();
 
-  await scheduler.send(
+  await getSchedulerClient().send(
     new CreateScheduleCommand({
       Name: `gremlin-followup-${scheduleId}`,
       GroupName: "gremlin",
@@ -106,8 +107,8 @@ export async function createFollowUpSchedule(input: {
       FlexibleTimeWindow: { Mode: "OFF" as FlexibleTimeWindowMode },
       ActionAfterCompletion: "DELETE",
       Target: {
-        Arn: targetArn,
-        RoleArn: roleArn,
+        Arn: config.targetArn,
+        RoleArn: config.roleArn,
         Input: JSON.stringify({
           type: "agent_self_followup",
           agentId: input.agentId,

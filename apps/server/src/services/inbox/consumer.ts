@@ -1,3 +1,4 @@
+import { TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 
@@ -12,9 +13,6 @@ const activeAgents = new Set<string>();
  * Ring the doorbell for an agent.
  * If the agent is already processing, the active drain loop will
  * pick up new items automatically — this call is a no-op.
- *
- * For now this runs in-process. When SQS is deployed, this becomes
- * the SQS consumer callback (same logic, different trigger).
  */
 export async function ringDoorbell(
   ctx: ServiceContext,
@@ -61,26 +59,20 @@ async function routeBatch(
 
   // --- Main lane: batch all conversational items into one turn ---
   if (mainLaneItems.length > 0) {
+    let recallHint: string | undefined;
+
     for (const item of mainLaneItems) {
       const payload = JSON.parse(item.payload);
       switch (item.type) {
         case "user_message":
-          // User message is already written to the log by sendMessage
-          // before enqueueing, so we don't write it again here.
+          // Already written to the log by sendMessage — just capture for recall
+          recallHint = payload.content;
           break;
         case "user_notification_reply":
           await formatAndWriteNotificationReply(ctx, agentId, payload);
           break;
       }
     }
-
-    // Find the latest user message content for memory recall context
-    const lastUserMsg = [...mainLaneItems]
-      .reverse()
-      .find((i) => i.type === "user_message");
-    const recallHint = lastUserMsg
-      ? JSON.parse(lastUserMsg.payload).content
-      : undefined;
 
     await ctx.services.orchestrator.runMainLane(ctx, agentId, recallHint);
   }
@@ -122,8 +114,6 @@ async function handleScheduledJob(
   agentId: string,
   payload: { jobId: string; triggerTimeMs: number },
 ) {
-  const { TransactWriteCommand } = await import("@aws-sdk/lib-dynamodb");
-
   const job = await ctx.services.jobs.getJob(ctx, payload.jobId);
   if (!job) {
     ctx.log.warn({ jobId: payload.jobId }, "Scheduled job not found");
@@ -170,6 +160,7 @@ async function handleScheduledJob(
                 title: job.name,
                 status: "PENDING",
                 message: null,
+                image: null,
                 createdAt: now,
                 updatedAt: now,
                 completedAt: null,
