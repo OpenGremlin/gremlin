@@ -42,11 +42,8 @@ export function TaskThreadPage() {
     }, []),
   );
 
-  const logEdges = data?.task?.logs.edges ?? [];
-  const { messages, isAgentActive } = useTaskChatMessages(
-    taskId ?? "",
-    logEdges,
-  );
+  const { messages, isAgentActive, hasMore, loadMore, loadingMore } =
+    useTaskChatMessages(taskId ?? "");
 
   const docs = task?.documents ?? [];
 
@@ -137,6 +134,18 @@ export function TaskThreadPage() {
                   {systemMsg.content}
                 </p>
               </div>
+            )}
+
+            {/* Load older messages */}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mb-2 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors py-1"
+              >
+                {loadingMore ? "Loading..." : "Load older messages"}
+              </button>
             )}
 
             {/* Log entries */}

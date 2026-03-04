@@ -55,25 +55,31 @@ export const TaskQuery = graphql(`
         createdAt
         updatedAt
       }
-      logs(last: 50) {
-        edges {
-          node {
-            id
-            role
-            content
-            toolName
-            toolInput
-            toolResult
-            taskId
-            createdAt
-          }
+    }
+  }
+`);
+
+export const TaskLogsQuery = graphql(`
+  query TaskLogs($taskId: ID!, $first: Int, $after: String, $last: Int, $before: String) {
+    taskLogs(taskId: $taskId, first: $first, after: $after, last: $last, before: $before) {
+      edges {
+        cursor
+        node {
+          id
+          role
+          content
+          toolName
+          toolInput
+          toolResult
+          taskId
+          createdAt
         }
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
     }
   }

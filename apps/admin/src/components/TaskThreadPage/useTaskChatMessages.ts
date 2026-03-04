@@ -1,53 +1,43 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { TaskQuery } from "../../graphql/generated/graphql";
-import { TaskLogSubscription } from "../../graphql/queries";
+import { TaskLogSubscription, TaskLogsQuery } from "../../graphql/queries";
+import { usePaginatedQuery } from "../../usePaginatedQuery";
 import { useSubscription } from "../../useSubscription";
-import type { ChatMessage } from "../AgentsTab/AgentChatPage/useChatMessages";
 
-type LogEdge = TaskQuery["task"] extends infer T
-  ? T extends { logs: { edges: infer E } }
-    ? E extends Array<infer Edge>
-      ? Edge
-      : never
-    : never
-  : never;
+export function useTaskChatMessages(taskId: string) {
+  const {
+    nodes: messages,
+    loading,
+    hasMore,
+    loadMore,
+    loadingMore,
+    appendNode,
+  } = usePaginatedQuery(TaskLogsQuery, (d) => d.taskLogs, { taskId });
 
-export function useTaskChatMessages(taskId: string, initialLogs: LogEdge[]) {
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    initialLogs.map((e) => e.node),
-  );
   const [isAgentActive, setIsAgentActive] = useState(false);
   const activeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
 
-  // Reset when taskId or initialLogs change
-  useEffect(() => {
-    if (initialLogs.length > 0) {
-      setMessages(initialLogs.map((e) => e.node));
-    }
-  }, [initialLogs]);
-
-  // Subscribe to new messages via SSE
+  // Subscribe to new messages via WebSocket
   useSubscription(
     TaskLogSubscription,
     { taskId },
-    useCallback((data) => {
-      const msg = data.taskLogCreated;
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
-        return [...prev, msg];
-      });
+    useCallback(
+      (data) => {
+        const msg = data.taskLogCreated;
+        appendNode(msg);
 
-      if (msg.role === "AGENT") {
-        setIsAgentActive(true);
-        clearTimeout(activeTimerRef.current);
-        activeTimerRef.current = setTimeout(
-          () => setIsAgentActive(false),
-          2000,
-        );
-      }
-    }, []),
+        if (msg.role === "AGENT") {
+          setIsAgentActive(true);
+          clearTimeout(activeTimerRef.current);
+          activeTimerRef.current = setTimeout(
+            () => setIsAgentActive(false),
+            2000,
+          );
+        }
+      },
+      [appendNode],
+    ),
   );
 
   // Cleanup agent active timer
@@ -55,5 +45,5 @@ export function useTaskChatMessages(taskId: string, initialLogs: LogEdge[]) {
     return () => clearTimeout(activeTimerRef.current);
   }, []);
 
-  return { messages, isAgentActive, hasMore: false, loadMore: () => {} };
+  return { messages, loading, hasMore, loadMore, loadingMore, isAgentActive };
 }

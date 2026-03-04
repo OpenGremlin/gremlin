@@ -1,18 +1,28 @@
 import { Link, useParams } from "react-router-dom";
-import { TaskQuery } from "../../../graphql/queries";
+import { TaskLogsQuery, TaskQuery } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import { usePaginatedQuery } from "../../../usePaginatedQuery";
 import { useQuery } from "../../../useQuery";
 import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
 
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useQuery(TaskQuery, { id: id ?? "" });
+  const {
+    nodes: logs,
+    loading: logsLoading,
+    hasMore,
+    loadMore,
+    loadingMore,
+  } = usePaginatedQuery(TaskLogsQuery, (d) => d.taskLogs, {
+    taskId: id ?? "",
+  });
 
-  if (loading || error) {
+  if ((loading && logsLoading) || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
@@ -23,7 +33,6 @@ export function TaskDetailPage() {
   }
 
   const { agent } = item;
-  const logs = item.logs.edges.map((e) => e.node);
 
   return (
     <div className="min-h-screen bg-neutral-950">
@@ -63,6 +72,16 @@ export function TaskDetailPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-3">
               Conversation
             </h2>
+            {hasMore && (
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="mb-2 w-full text-xs text-neutral-500 hover:text-neutral-300 transition-colors py-1"
+              >
+                {loadingMore ? "Loading..." : "Load older messages"}
+              </button>
+            )}
             {logs.map((log) => (
               <LogEntryView key={log.id} entry={log} />
             ))}
