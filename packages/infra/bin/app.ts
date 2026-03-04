@@ -7,6 +7,7 @@ import { MediaStack } from "../lib/media-stack.js";
 import { MessagingStack } from "../lib/messaging-stack.js";
 import { SandboxStack } from "../lib/sandbox-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
+import { VpcStack } from "../lib/vpc-stack.js";
 
 const env = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -15,18 +16,27 @@ const env = {
 
 const app = new cdk.App();
 
-// 1. Foundation — no dependencies
-const db = new DatabaseStack(app, "GremlinDatabaseStack", { env });
+// 0. Network — no dependencies
+const network = new VpcStack(app, "GremlinVpcStack", { env });
+
+// 1. Foundation — depends on VPC only
+const db = new DatabaseStack(app, "GremlinDatabaseStack", {
+  env,
+  vpc: network.vpc,
+});
 const auth = new AuthStack(app, "GremlinAuthStack", { env });
 const media = new MediaStack(app, "GremlinMediaStack", { env });
 
-// 2. Server — depends on Database, Auth, Media
+// 2. Server — depends on VPC, Database, Auth, Media
 const server = new ServerStack(app, "GremlinServerStack", {
   env,
+  vpc: network.vpc,
   table: db.table,
   tableName: db.tableName,
   secretsTable: db.secretsTable,
   secretsTableName: db.secretsTableName,
+  fileSystem: db.fileSystem,
+  accessPoint: db.accessPoint,
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   mediaCdnUrl: media.cdnUrl,
@@ -40,14 +50,14 @@ new MessagingStack(app, "GremlinMessagingStack", {
   serverTaskDefinition: server.serverTaskDefinition,
 });
 
-// 4. Sandbox — depends on Server (VPC, cluster, SG, EFS)
+// 4. Sandbox — depends on VPC, Database (EFS), Server (cluster, SG)
 new SandboxStack(app, "GremlinSandboxStack", {
   env,
-  vpc: server.vpc,
+  vpc: network.vpc,
   cluster: server.cluster,
   serverSecurityGroup: server.serverSecurityGroup,
-  fileSystem: server.fileSystem,
-  accessPoint: server.accessPoint,
+  fileSystem: db.fileSystem,
+  accessPoint: db.accessPoint,
 });
 
 // 5. Admin — depends on Auth, Media, Server (for ALB)

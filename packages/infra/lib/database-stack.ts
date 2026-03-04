@@ -1,16 +1,25 @@
 import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as efs from "aws-cdk-lib/aws-efs";
 import type { Construct } from "constructs";
+
+export interface DatabaseStackProps extends cdk.StackProps {
+  vpc: ec2.IVpc;
+}
 
 export class DatabaseStack extends cdk.Stack {
   readonly table: dynamodb.ITable;
   readonly tableName: string;
   readonly secretsTable: dynamodb.ITable;
   readonly secretsTableName: string;
+  readonly fileSystem: efs.IFileSystem;
+  readonly accessPoint: efs.IAccessPoint;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
 
+    // ── DynamoDB ─────────────────────────────────────────────
     this.tableName = "gremlin";
 
     const table = new dynamodb.Table(this, "Table", {
@@ -49,5 +58,33 @@ export class DatabaseStack extends cdk.Stack {
     });
 
     this.secretsTable = secretsTable;
+
+    // ── EFS for shared /workspace ────────────────────────────
+    const efsSg = new ec2.SecurityGroup(this, "EfsSg", {
+      vpc: props.vpc,
+      description: "Gremlin EFS",
+    });
+    efsSg.addIngressRule(
+      ec2.Peer.ipv4(props.vpc.vpcCidrBlock),
+      ec2.Port.tcp(2049),
+      "NFS from VPC",
+    );
+
+    const fileSystem = new efs.FileSystem(this, "WorkspaceFs", {
+      vpc: props.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      securityGroup: efsSg,
+      performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const accessPoint = fileSystem.addAccessPoint("WorkspaceAp", {
+      path: "/workspace",
+      createAcl: { ownerGid: "1000", ownerUid: "1000", permissions: "755" },
+      posixUser: { gid: "1000", uid: "1000" },
+    });
+
+    this.fileSystem = fileSystem;
+    this.accessPoint = accessPoint;
   }
 }

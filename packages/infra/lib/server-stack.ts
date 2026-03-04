@@ -4,7 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
-import * as efs from "aws-cdk-lib/aws-efs";
+import type * as efs from "aws-cdk-lib/aws-efs";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -14,10 +14,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 
 export interface ServerStackProps extends cdk.StackProps {
+  vpc: ec2.IVpc;
   table: dynamodb.ITable;
   tableName: string;
   secretsTable: dynamodb.ITable;
   secretsTableName: string;
+  fileSystem: efs.IFileSystem;
+  accessPoint: efs.IAccessPoint;
   userPoolId: string;
   userPoolClientId: string;
   mediaCdnUrl: string;
@@ -27,23 +30,13 @@ export class ServerStack extends cdk.Stack {
   readonly cluster: ecs.ICluster;
   readonly service: ecs.IBaseService;
   readonly albDnsName: string;
-  readonly vpc: ec2.IVpc;
   readonly serverSecurityGroup: ec2.ISecurityGroup;
   readonly serverTaskDefinition: ecs.FargateTaskDefinition;
-  readonly fileSystem: efs.IFileSystem;
-  readonly accessPoint: efs.IAccessPoint;
 
   constructor(scope: Construct, id: string, props: ServerStackProps) {
     super(scope, id, props);
 
-    const vpc = new ec2.Vpc(this, "Vpc", {
-      maxAzs: 2,
-      natGateways: 0,
-      subnetConfiguration: [
-        { name: "Public", subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
-      ],
-    });
-
+    const vpc = props.vpc;
     const cluster = new ecs.Cluster(this, "Cluster", { vpc });
 
     const taskDef = new ecs.FargateTaskDefinition(this, "Task", {
@@ -67,6 +60,21 @@ export class ServerStack extends cdk.Stack {
         resources: [`arn:aws:bedrock:${this.region}::foundation-model/*`],
       }),
     );
+
+    // Mount EFS workspace volume (read-only for server)
+    taskDef.addVolume({
+      name: "workspace",
+      efsVolumeConfiguration: {
+        fileSystemId: props.fileSystem.fileSystemId,
+        transitEncryption: "ENABLED",
+        authorizationConfig: {
+          accessPointId: props.accessPoint.accessPointId,
+          iam: "ENABLED",
+        },
+      },
+    });
+
+    props.fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount");
 
     const container = taskDef.addContainer("gremlin-server", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
@@ -105,55 +113,16 @@ export class ServerStack extends cdk.Stack {
 
     container.addPortMappings({ containerPort: 3001 });
 
-    const serverSg = new ec2.SecurityGroup(this, "ServerSg", {
-      vpc,
-      description: "Gremlin server Fargate service",
-    });
-
-    // ── EFS for shared /workspace ──────────────────────────
-    const efsSg = new ec2.SecurityGroup(this, "EfsSg", {
-      vpc,
-      description: "Gremlin EFS",
-    });
-    efsSg.addIngressRule(
-      ec2.Peer.ipv4(vpc.vpcCidrBlock),
-      ec2.Port.tcp(2049),
-      "NFS from VPC",
-    );
-
-    const fileSystem = new efs.FileSystem(this, "WorkspaceFs", {
-      vpc,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      securityGroup: efsSg,
-      performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    const accessPoint = fileSystem.addAccessPoint("WorkspaceAp", {
-      path: "/workspace",
-      createAcl: { ownerGid: "1000", ownerUid: "1000", permissions: "755" },
-      posixUser: { gid: "1000", uid: "1000" },
-    });
-
-    taskDef.addVolume({
-      name: "workspace",
-      efsVolumeConfiguration: {
-        fileSystemId: fileSystem.fileSystemId,
-        transitEncryption: "ENABLED",
-        authorizationConfig: {
-          accessPointId: accessPoint.accessPointId,
-          iam: "ENABLED",
-        },
-      },
-    });
-
     container.addMountPoints({
       sourceVolume: "workspace",
       containerPath: "/workspace",
       readOnly: true,
     });
 
-    fileSystem.grant(taskDef.taskRole, "elasticfilesystem:ClientMount");
+    const serverSg = new ec2.SecurityGroup(this, "ServerSg", {
+      vpc,
+      description: "Gremlin server Fargate service",
+    });
 
     const service = new ecs.FargateService(this, "Svc", {
       cluster,
@@ -195,7 +164,7 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
-    // Grant task role permissions for sandbox ECS and EC2 operations
+    // Grant task role permissions for sandbox ECS operations
     taskDef.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ecs:RunTask", "ecs:StopTask", "ecs:DescribeTasks"],
@@ -225,11 +194,8 @@ export class ServerStack extends cdk.Stack {
     this.cluster = cluster;
     this.service = service;
     this.albDnsName = alb.loadBalancerDnsName;
-    this.vpc = vpc;
     this.serverSecurityGroup = serverSg;
     this.serverTaskDefinition = taskDef;
-    this.fileSystem = fileSystem;
-    this.accessPoint = accessPoint;
 
     new cdk.CfnOutput(this, "ClusterName", { value: cluster.clusterName });
     new cdk.CfnOutput(this, "ServiceName", { value: service.serviceName });

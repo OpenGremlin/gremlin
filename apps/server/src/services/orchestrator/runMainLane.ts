@@ -8,7 +8,7 @@ import {
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
-} from "./tools.js";
+} from "../tools/index.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**

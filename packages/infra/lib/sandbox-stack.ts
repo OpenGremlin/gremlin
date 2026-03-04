@@ -124,7 +124,6 @@ export class SandboxStack extends cdk.Stack {
     });
 
     // Store sandbox config in SSM so the server can read at runtime
-    // (avoids cyclic cross-stack reference via serverContainer.addEnvironment)
     new ssm.StringParameter(this, "SandboxTaskDefArnParam", {
       parameterName: "/gremlin/sandbox-task-def-arn",
       stringValue: taskDef.taskDefinitionArn,
