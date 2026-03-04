@@ -14,6 +14,7 @@ import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
 import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
+import { NewJobPage } from "../SchedulerTab/NewJobPage";
 import { TasksTab } from "../TasksTab";
 import { TaskThreadPage } from "../TaskThreadPage";
 import { UserTab } from "../UserTab";
@@ -79,6 +80,7 @@ export function RouterApp() {
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="home" element={<TasksTab />} />
           <Route path="scheduler" element={<SchedulerTab />} />
+          <Route path="scheduler/new" element={<NewJobPage />} />
           <Route path="scheduler/:id" element={<JobDetailPage />} />
           <Route
             path="user"

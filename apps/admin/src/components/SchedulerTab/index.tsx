@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AgentJobsQuery } from "../../graphql/queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
@@ -14,7 +15,15 @@ export function SchedulerTab() {
 
   return (
     <div>
-      <PageHeader title="Scheduler" />
+      <PageHeader title="Scheduler">
+        <Link
+          to="/scheduler/new"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+        >
+          <Plus size={14} />
+          New Job
+        </Link>
+      </PageHeader>
 
       <QueryResult loading={loading} error={error} />
 

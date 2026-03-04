@@ -28,6 +28,14 @@ export const agentJobTypeDefs = /* GraphQL */ `
     timezone: String
   }
 
+  input CreateAgentJobInput {
+    name: String!
+    description: String!
+    recurrence: String!
+    timezone: String!
+    agentId: String
+  }
+
   extend type Query {
     agentJobs: [AgentJob!]!
     agentJob(id: ID!): AgentJob
@@ -36,6 +44,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
   extend type Mutation {
     updateJobStatus(id: ID!, status: JobStatus!): AgentJob
     updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
+    createAgentJob(input: CreateAgentJobInput!): AgentJob!
     deleteAgentJob(id: ID!): AgentJob
   }
 `;

@@ -72,3 +72,11 @@ export const UpdateAgentJobMutation = graphql(`
     }
   }
 `);
+
+export const CreateAgentJobMutation = graphql(`
+  mutation CreateAgentJob($input: CreateAgentJobInput!) {
+    createAgentJob(input: $input) {
+      id
+    }
+  }
+`);

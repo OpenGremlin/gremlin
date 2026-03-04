@@ -9,6 +9,7 @@ type Query {
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
+  inboxItems(agentId: ID!): [InboxItem!]!
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
@@ -30,6 +31,7 @@ type Mutation {
   updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
   updateJobStatus(id: ID!, status: JobStatus!): AgentJob
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
+  createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
@@ -56,6 +58,7 @@ type Subscription {
   agentLogCreated(agentId: ID!): AgentLog!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
+  inboxItemCreated(agentId: ID!): InboxItem!
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
@@ -106,6 +109,14 @@ input UpdateAgentJobInput {
   recurrence: String
   agentId: String
   timezone: String
+}
+
+input CreateAgentJobInput {
+  name: String!
+  description: String!
+  recurrence: String!
+  timezone: String!
+  agentId: String
 }
 
 enum AgentLogRole {
@@ -172,6 +183,15 @@ type Avatar {
   id: ID!
   name: String!
   url(width: Int): String!
+}
+
+type InboxItem {
+  id: ID!
+  agentId: ID!
+  type: String!
+  payload: String!
+  isRead: Boolean!
+  createdAt: String!
 }
 
 type AvailableScope {
