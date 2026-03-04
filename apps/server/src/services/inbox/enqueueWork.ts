@@ -6,7 +6,11 @@ let _sqs: SQSClientType | undefined;
 async function getSqsClient() {
   if (!_sqs) {
     const { SQSClient } = await import("@aws-sdk/client-sqs");
-    _sqs = new SQSClient({});
+    _sqs = new SQSClient({
+      ...(process.env.LOCALSTACK_ENDPOINT && {
+        endpoint: process.env.LOCALSTACK_ENDPOINT,
+      }),
+    });
   }
   return _sqs;
 }
@@ -60,10 +64,9 @@ export async function enqueueWork(
     "Enqueued inbox item",
   );
 
-  // Ring the doorbell
+  // Ring the doorbell via SQS
   const queueUrl = process.env.DOORBELL_QUEUE_URL;
   if (queueUrl) {
-    // SQS doorbell — deployed environment
     const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
     const sqs = await getSqsClient();
     sqs
@@ -79,12 +82,6 @@ export async function enqueueWork(
           "SQS doorbell failed",
         ),
       );
-  } else {
-    // In-process doorbell — local development
-    const { ringDoorbell } = await import("./consumer.js");
-    ringDoorbell(ctx, agentId).catch((err) =>
-      ctx.log.error({ err, agentId, component: "inbox" }, "Doorbell failed"),
-    );
   }
 
   return { id, createdAt };

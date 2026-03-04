@@ -8,7 +8,12 @@ import { logger } from "../../logger.js";
 
 let _scheduler: SchedulerClient | undefined;
 function getSchedulerClient() {
-  if (!_scheduler) _scheduler = new SchedulerClient({});
+  if (!_scheduler)
+    _scheduler = new SchedulerClient({
+      ...(process.env.LOCALSTACK_ENDPOINT && {
+        endpoint: process.env.LOCALSTACK_ENDPOINT,
+      }),
+    });
   return _scheduler;
 }
 

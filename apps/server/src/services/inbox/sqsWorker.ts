@@ -22,7 +22,11 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
   }
 
   ctx.log.info("Starting SQS worker");
-  const sqs = new SQSClient({});
+  const sqs = new SQSClient({
+    ...(process.env.LOCALSTACK_ENDPOINT && {
+      endpoint: process.env.LOCALSTACK_ENDPOINT,
+    }),
+  });
   let shuttingDown = false;
 
   const poll = async () => {

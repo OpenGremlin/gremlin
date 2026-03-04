@@ -10,6 +10,8 @@
     "clean": "rm -rf dist",
     "codegen": "graphql-codegen --config codegen.ts",
     "schema:export": "tsx scripts/exportSchema.ts",
+    "db:create": "tsx scripts/create-local-tables.ts",
+    "db:seed": "tsx scripts/seed-local.ts",
     "test": "vitest run"
   },
   "dependencies": {
