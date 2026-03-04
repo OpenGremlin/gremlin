@@ -1,5 +1,15 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import type { SQSClient as SQSClientType } from "@aws-sdk/client-sqs";
 import type { ServiceContext } from "../context.js";
+
+let _sqs: SQSClientType | undefined;
+async function getSqsClient() {
+  if (!_sqs) {
+    const { SQSClient } = await import("@aws-sdk/client-sqs");
+    _sqs = new SQSClient({});
+  }
+  return _sqs;
+}
 
 export type InboxItemType =
   | "user_message"
@@ -58,10 +68,8 @@ export async function enqueueWork(
   const queueUrl = process.env.DOORBELL_QUEUE_URL;
   if (queueUrl) {
     // SQS doorbell — deployed environment
-    const { SendMessageCommand, SQSClient } = await import(
-      "@aws-sdk/client-sqs"
-    );
-    const sqs = new SQSClient({});
+    const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
+    const sqs = await getSqsClient();
     sqs
       .send(
         new SendMessageCommand({

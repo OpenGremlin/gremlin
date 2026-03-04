@@ -2,11 +2,14 @@ import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 
+const INBOX_READ_TTL_SECONDS = 7 * 24 * 60 * 60;
+
 export async function markRead(
   ctx: ServiceContext,
   items: InboxItemItem[],
 ): Promise<void> {
   const table = ctx.resources.ddb.table;
+  const ttl = Math.floor(Date.now() / 1000) + INBOX_READ_TTL_SECONDS;
 
   await Promise.all(
     items.map((item) =>
@@ -22,7 +25,7 @@ export async function markRead(
           ExpressionAttributeNames: { "#ttl": "ttl" },
           ExpressionAttributeValues: {
             ":true": true,
-            ":ttl": Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+            ":ttl": ttl,
           },
         }),
       ),

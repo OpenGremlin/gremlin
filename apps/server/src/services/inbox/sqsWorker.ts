@@ -8,8 +8,6 @@ import { ringDoorbell } from "./consumer.js";
 
 const sqs = new SQSClient({});
 
-let shuttingDown = false;
-
 /**
  * Start long-polling SQS for doorbell messages.
  * Each message contains { agentId } — we ack immediately and
@@ -26,7 +24,7 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
   }
 
   console.log("[inbox] Starting SQS worker");
-  shuttingDown = false;
+  let shuttingDown = false;
 
   const poll = async () => {
     while (!shuttingDown) {
