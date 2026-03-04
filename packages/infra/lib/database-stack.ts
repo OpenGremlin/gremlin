@@ -19,6 +19,7 @@ export class DatabaseStack extends cdk.Stack {
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: "ttl",
     });
 
     table.addGlobalSecondaryIndex({

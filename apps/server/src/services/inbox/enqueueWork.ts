@@ -54,12 +54,31 @@ export async function enqueueWork(
     createdAt,
   });
 
-  // Ring the doorbell — in-process for now, SQS later.
-  // Fire-and-forget: the drain loop handles errors internally.
-  const { ringDoorbell } = await import("./consumer.js");
-  ringDoorbell(ctx, agentId).catch((err) =>
-    console.error(`[inbox] doorbell failed for agent ${agentId}:`, err),
-  );
+  // Ring the doorbell
+  const queueUrl = process.env.DOORBELL_QUEUE_URL;
+  if (queueUrl) {
+    // SQS doorbell — deployed environment
+    const { SendMessageCommand, SQSClient } = await import(
+      "@aws-sdk/client-sqs"
+    );
+    const sqs = new SQSClient({});
+    sqs
+      .send(
+        new SendMessageCommand({
+          QueueUrl: queueUrl,
+          MessageBody: JSON.stringify({ agentId }),
+        }),
+      )
+      .catch((err) =>
+        console.error(`[inbox] SQS doorbell failed for agent ${agentId}:`, err),
+      );
+  } else {
+    // In-process doorbell — local development
+    const { ringDoorbell } = await import("./consumer.js");
+    ringDoorbell(ctx, agentId).catch((err) =>
+      console.error(`[inbox] doorbell failed for agent ${agentId}:`, err),
+    );
+  }
 
   return { id, createdAt };
 }

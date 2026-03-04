@@ -17,9 +17,12 @@ export async function markRead(
             pk: `AGENT_INBOX#${item.agentId}`,
             sk: `ITEM#${item.createdAt}#${item.id}`,
           },
-          UpdateExpression: "SET isRead = :true REMOVE gsi2pk, gsi2sk",
+          UpdateExpression:
+            "SET isRead = :true, #ttl = :ttl REMOVE gsi2pk, gsi2sk",
+          ExpressionAttributeNames: { "#ttl": "ttl" },
           ExpressionAttributeValues: {
             ":true": true,
+            ":ttl": Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
           },
         }),
       ),

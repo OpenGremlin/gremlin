@@ -226,13 +226,21 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-loadSchedulerConfig().then(() => {
+let stopSqsWorker: (() => void) | undefined;
+
+loadSchedulerConfig().then(async () => {
+  // Start SQS worker if queue URL is available (deployed environment)
+  const { startSqsWorker } = await import("./services/inbox/sqsWorker.js");
+  const svcCtx = { resources, services, mediaCdnUrl: MEDIA_CDN_URL };
+  stopSqsWorker = startSqsWorker(svcCtx);
+
   server.listen(PORT, () => {
     console.log(`Gremlin server running at http://localhost:${PORT}`);
   });
 });
 
 function shutdown() {
+  stopSqsWorker?.();
   wsServer.close();
   server.close(() => {
     process.exit(0);
