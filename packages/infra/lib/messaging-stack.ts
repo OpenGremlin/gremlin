@@ -106,6 +106,20 @@ export class MessagingStack extends cdk.Stack {
       targets: [new targets.LambdaFunction(sweeperFn)],
     });
 
+    // EventBridge rule: daily core memory review (8 AM UTC = midnight PST)
+    new events.Rule(this, "CoreMemoryReviewRule", {
+      schedule: events.Schedule.cron({ hour: "8", minute: "0" }),
+      targets: [
+        new targets.LambdaFunction(scheduleTargetFn, {
+          event: events.RuleTargetInput.fromObject({
+            type: "core_memory_review",
+            agentId: "clawd",
+            payload: {},
+          }),
+        }),
+      ],
+    });
+
     // Store queue URL in SSM so the server can read it at boot
     new cdk.CfnOutput(this, "QueueUrl", { value: queue.queueUrl });
 

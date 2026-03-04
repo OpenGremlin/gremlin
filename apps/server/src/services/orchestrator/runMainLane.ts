@@ -48,15 +48,24 @@ export async function runMainLane(
     taskId: null,
   });
 
-  // Recall recent journals and semantically relevant older memories
-  const memories = await ctx.services.memory
-    .recallMemories(ctx, agentId, recallHint ?? "")
-    .catch((err) => {
-      ctx.log.error({ err, component: "memory" }, "Memory recall failed");
-      return { recent: [], relevant: [] };
-    });
+  // Recall recent journals, semantically relevant older memories, and core memories
+  const [memories, coreMemories] = await Promise.all([
+    ctx.services.memory
+      .recallMemories(ctx, agentId, recallHint ?? "")
+      .catch((err) => {
+        ctx.log.error({ err, component: "memory" }, "Memory recall failed");
+        return { recent: [], relevant: [] };
+      }),
+    ctx.services.memory.getCoreMemories(ctx, agentId).catch((err) => {
+      ctx.log.error({ err, component: "memory" }, "Core memory fetch failed");
+      return [];
+    }),
+  ]);
 
-  const memoryContext = buildMemoryContext(memories);
+  const memoryContext = buildMemoryContext({
+    ...memories,
+    core: coreMemories,
+  });
 
   const response = await runAgentTurn(ctx, {
     agentId,

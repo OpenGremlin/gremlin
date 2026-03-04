@@ -54,7 +54,8 @@ async function routeBatch(
     (i) =>
       i.type === "run_task" ||
       i.type === "scheduled_job" ||
-      i.type === "agent_self_followup",
+      i.type === "agent_self_followup" ||
+      i.type === "core_memory_review",
   );
 
   // --- Main lane: batch all conversational items into one turn ---
@@ -99,6 +100,16 @@ async function routeBatch(
             payload.taskId,
             payload.prompt,
           );
+          break;
+        case "core_memory_review":
+          await ctx.services.memory
+            .reviewCoreMemories(ctx, agentId)
+            .catch((err) =>
+              ctx.log.error(
+                { err, component: "core-memories" },
+                "Core memory review failed",
+              ),
+            );
           break;
       }
     }),

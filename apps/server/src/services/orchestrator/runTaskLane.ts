@@ -70,15 +70,24 @@ export async function runTaskLane(
     messages.push({ role: "user", content: prompt });
   }
 
-  // Recall memories using task prompt
-  const memories = await ctx.services.memory
-    .recallMemories(ctx, task.agentId, prompt)
-    .catch((err) => {
-      ctx.log.error({ err, component: "memory" }, "Memory recall failed");
-      return { recent: [], relevant: [] };
-    });
+  // Recall memories and core memories using task prompt
+  const [memories, coreMemories] = await Promise.all([
+    ctx.services.memory
+      .recallMemories(ctx, task.agentId, prompt)
+      .catch((err) => {
+        ctx.log.error({ err, component: "memory" }, "Memory recall failed");
+        return { recent: [], relevant: [] };
+      }),
+    ctx.services.memory.getCoreMemories(ctx, task.agentId).catch((err) => {
+      ctx.log.error({ err, component: "memory" }, "Core memory fetch failed");
+      return [];
+    }),
+  ]);
 
-  const memoryContext = buildMemoryContext(memories);
+  const memoryContext = buildMemoryContext({
+    ...memories,
+    core: coreMemories,
+  });
 
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,

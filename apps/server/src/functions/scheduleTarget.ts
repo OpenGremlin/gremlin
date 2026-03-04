@@ -17,7 +17,7 @@ const TABLE_NAME = process.env.TABLE_NAME ?? "";
 const QUEUE_URL = process.env.QUEUE_URL ?? "";
 
 interface ScheduleEvent {
-  type: "scheduled_job" | "agent_self_followup";
+  type: "scheduled_job" | "agent_self_followup" | "core_memory_review";
   agentId: string;
   payload: Record<string, unknown>;
 }
