@@ -3,8 +3,8 @@ import { z } from "zod";
 import type { ServiceContext } from "../context.js";
 import type { SandboxSession } from "../sandbox/types.js";
 
-// In-memory map of active sandbox sessions
-const activeSessions = new Map<string, SandboxSession>();
+// In-memory map of active sandbox sessions (exported for browser tools)
+export const activeSessions = new Map<string, SandboxSession>();
 
 export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
   return tool({

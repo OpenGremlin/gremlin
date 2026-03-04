@@ -5,6 +5,14 @@ import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import {
+  browserClickTool,
+  browserEvaluateTool,
+  browserGetContentTool,
+  browserNavigateTool,
+  browserScreenshotTool,
+  browserTypeTool,
+} from "./browserTools.js";
+import {
   launchSandboxTool,
   runCommandTool,
   terminateSandboxTool,
@@ -100,6 +108,12 @@ export async function runTaskLane(
       launchSandbox: launchSandboxTool(ctx, task.agentId),
       runCommand: runCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),
+      browserNavigate: browserNavigateTool(task.agentId),
+      browserScreenshot: browserScreenshotTool(task.agentId),
+      browserClick: browserClickTool(task.agentId),
+      browserType: browserTypeTool(task.agentId),
+      browserEvaluate: browserEvaluateTool(task.agentId),
+      browserGetContent: browserGetContentTool(task.agentId),
     },
   });
 

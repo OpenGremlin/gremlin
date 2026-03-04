@@ -1,0 +1,91 @@
+import type { SandboxSession } from "./types.js";
+
+const BROWSER_BRIDGE_PORT = 9090;
+const TIMEOUT_MS = 30_000;
+
+function browserUrl(session: SandboxSession, path: string): string {
+  return `http://${session.privateIp}:${BROWSER_BRIDGE_PORT}${path}`;
+}
+
+async function browserFetch(
+  session: SandboxSession,
+  path: string,
+  options?: RequestInit,
+): Promise<Record<string, unknown>> {
+  const url = browserUrl(session, path);
+  const res = await fetch(url, {
+    ...options,
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+    headers: { "Content-Type": "application/json", ...options?.headers },
+  });
+
+  const data = (await res.json()) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(
+      (data.error as string) ?? `Browser bridge error: ${res.status}`,
+    );
+  }
+  return data;
+}
+
+export async function browserStatus(
+  session: SandboxSession,
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/status");
+}
+
+export async function browserNavigate(
+  session: SandboxSession,
+  url: string,
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/navigate", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+}
+
+export async function browserScreenshot(
+  session: SandboxSession,
+  opts?: { fullPage?: boolean },
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/screenshot", {
+    method: "POST",
+    body: JSON.stringify(opts ?? {}),
+  });
+}
+
+export async function browserClick(
+  session: SandboxSession,
+  target: { selector?: string; x?: number; y?: number },
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/click", {
+    method: "POST",
+    body: JSON.stringify(target),
+  });
+}
+
+export async function browserType(
+  session: SandboxSession,
+  params: { selector?: string; text: string },
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/type", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export async function browserEvaluate(
+  session: SandboxSession,
+  expression: string,
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/evaluate", {
+    method: "POST",
+    body: JSON.stringify({ expression }),
+  });
+}
+
+export async function browserGetContent(
+  session: SandboxSession,
+): Promise<Record<string, unknown>> {
+  return browserFetch(session, "/browser/content");
+}

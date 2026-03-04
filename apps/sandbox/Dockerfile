@@ -39,5 +39,5 @@ COPY --from=deps /build/apps/sandbox/node_modules/ apps/sandbox/node_modules/
 COPY package.json pnpm-workspace.yaml ./
 
 RUN mkdir -p /workspace
-EXPOSE 8080 8081
+EXPOSE 8080 8081 9090
 CMD ["node", "apps/sandbox/dist/index.js"]

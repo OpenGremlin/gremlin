@@ -21,7 +21,7 @@ export class SandboxStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SandboxStackProps) {
     super(scope, id, props);
 
-    // Security group: allow inbound 8080 from server only
+    // Security group: allow inbound 8080 + 9090 from server only
     const sandboxSg = new ec2.SecurityGroup(this, "SandboxSg", {
       vpc: props.vpc,
       description: "Gremlin sandbox Fargate tasks",
@@ -30,6 +30,11 @@ export class SandboxStack extends cdk.Stack {
       props.serverSecurityGroup,
       ec2.Port.tcp(8080),
       "WebSocket from server",
+    );
+    sandboxSg.addIngressRule(
+      props.serverSecurityGroup,
+      ec2.Port.tcp(9090),
+      "Browser bridge from server",
     );
 
     // ── EFS for shared /workspace ──────────────────────────
@@ -53,10 +58,10 @@ export class SandboxStack extends cdk.Stack {
       posixUser: { gid: "1000", uid: "1000" },
     });
 
-    // Task definition: x86_64 for Playwright/Chromium
+    // Task definition: x86_64 for Playwright/Chromium + browser sidecar
     const taskDef = new ecs.FargateTaskDefinition(this, "SandboxTask", {
-      cpu: 1024,
-      memoryLimitMiB: 2048,
+      cpu: 2048,
+      memoryLimitMiB: 4096,
       runtimePlatform: {
         cpuArchitecture: ecs.CpuArchitecture.X86_64,
         operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
@@ -102,12 +107,39 @@ export class SandboxStack extends cdk.Stack {
       },
     });
 
-    container.addPortMappings({ containerPort: 8080 }, { containerPort: 8081 });
+    container.addPortMappings(
+      { containerPort: 8080 },
+      { containerPort: 8081 },
+      { containerPort: 9090 },
+    );
 
     container.addMountPoints({
       sourceVolume: "workspace",
       containerPath: "/workspace",
       readOnly: false,
+    });
+
+    // ── Browser sidecar (headless Chromium with CDP) ─────────
+    taskDef.addContainer("sandbox-browser", {
+      image: ecs.ContainerImage.fromAsset(
+        path.join(REPO_ROOT, "apps/sandbox-browser"),
+      ),
+      essential: false,
+      memoryLimitMiB: 1024,
+      logging: ecs.LogDrivers.awsLogs({
+        streamPrefix: "gremlin-sandbox-browser",
+        logRetention: logs.RetentionDays.ONE_WEEK,
+      }),
+      healthCheck: {
+        command: [
+          "CMD-SHELL",
+          "curl -f http://localhost:9222/json/version || exit 1",
+        ],
+        interval: cdk.Duration.seconds(15),
+        timeout: cdk.Duration.seconds(5),
+        retries: 3,
+        startPeriod: cdk.Duration.seconds(30),
+      },
     });
 
     // Store sandbox config in SSM so the server can read at runtime
