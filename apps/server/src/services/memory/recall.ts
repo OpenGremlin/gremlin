@@ -71,7 +71,7 @@ export async function recallMemories(
       indexName: "memories",
       queryVector: { float32: queryEmbedding },
       topK,
-      filter: { agentId: { eq: agentId } },
+      filter: { agentId: { $eq: agentId } },
       returnMetadata: true,
       returnDistance: true,
     }),
