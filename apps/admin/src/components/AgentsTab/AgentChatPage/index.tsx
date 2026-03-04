@@ -65,13 +65,13 @@ export function AgentChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100%+4rem)] -mb-16">
+    <div className="relative flex flex-col h-[calc(100%+4rem)] -mb-16">
       <ChatHeader agent={agent} />
 
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col-reverse"
+        className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 pt-32 flex flex-col-reverse"
       >
         <div className="flex flex-col gap-1">
           {hasMore && (

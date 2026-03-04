@@ -6,7 +6,7 @@ type Agent = NonNullable<AgentQuery["agent"]>;
 
 export function ChatHeader({ agent }: { agent: Agent }) {
   return (
-    <div className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
+    <div className="absolute top-0 left-0 right-0 z-10 pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/70 backdrop-blur-md">
       <Link to={`/agents/${agent.id}/config`}>
         <AgentAvatar id={agent.id} size={64} />
       </Link>
