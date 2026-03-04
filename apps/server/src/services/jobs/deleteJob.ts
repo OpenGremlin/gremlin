@@ -1,4 +1,5 @@
 import { DeleteItemCommand } from "dynamodb-toolbox/entity/actions/delete";
+import { logger } from "../../logger.js";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
 
@@ -17,7 +18,10 @@ export async function deleteJob(
   ctx.services.inbox
     .deleteCronSchedule(id)
     .catch((err) =>
-      console.error(`[jobs] Failed to delete schedule for job ${id}:`, err),
+      logger.error(
+        { err, jobId: id, component: "jobs" },
+        "Failed to delete schedule",
+      ),
     );
 
   return job;

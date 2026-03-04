@@ -4,6 +4,7 @@ import {
   ListIndexesCommand,
   ListVectorBucketsCommand,
 } from "@aws-sdk/client-s3vectors";
+import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 
 let initialized = false;
@@ -22,7 +23,10 @@ export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
   );
 
   if (!bucketExists) {
-    console.log(`Creating S3 Vectors bucket: ${bucketName}`);
+    logger.info(
+      { bucketName, component: "memory" },
+      "Creating S3 Vectors bucket",
+    );
     await client.send(
       new CreateVectorBucketCommand({ vectorBucketName: bucketName }),
     );
@@ -35,7 +39,10 @@ export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
   const indexExists = indexes?.some((i) => i.indexName === INDEX_NAME);
 
   if (!indexExists) {
-    console.log(`Creating S3 Vectors index: ${INDEX_NAME}`);
+    logger.info(
+      { indexName: INDEX_NAME, component: "memory" },
+      "Creating S3 Vectors index",
+    );
     await client.send(
       new CreateIndexCommand({
         vectorBucketName: bucketName,
@@ -51,5 +58,5 @@ export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
   }
 
   initialized = true;
-  console.log("S3 Vectors index ready");
+  logger.info({ component: "memory" }, "S3 Vectors index ready");
 }

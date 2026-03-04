@@ -9,6 +9,7 @@ import {
   Pause,
   XCircle,
 } from "lucide-react";
+import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
 import type { ChatMessage } from "../useChatMessages";
 import { useTaskStatus } from "./useTaskStatus";
@@ -146,7 +147,7 @@ function DelegateTaskCard({
         }}
         className={`w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
       >
-        <div className="flex">
+        <div className="flex h-[110px]">
           <div className="flex-1 min-w-0 px-3.5 py-3">
             <span className="text-sm text-indigo-100 font-medium line-clamp-2 leading-snug">
               {taskTitle}
@@ -197,11 +198,13 @@ export function LogEntryView({
   onTaskClick,
   isLast,
   sending,
+  documents,
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
   isLast?: boolean;
   sending?: boolean;
+  documents?: Array<{ id: string; title: string; body: string; createdAt?: string; updatedAt: string }>;
 }) {
   switch (entry.role) {
     case "SYSTEM": {
@@ -292,6 +295,18 @@ export function LogEntryView({
             </span>
           </div>
         );
+      }
+
+      if (tool.name === "createDocument" && documents) {
+        const docId = tool.result?.id as string | undefined;
+        const doc = docId ? documents.find((d) => d.id === docId) : undefined;
+        if (doc) {
+          return (
+            <div id={entry.id} className="py-1">
+              <DocumentCard doc={doc} />
+            </div>
+          );
+        }
       }
 
       if (tool.name === "delegateTask") {

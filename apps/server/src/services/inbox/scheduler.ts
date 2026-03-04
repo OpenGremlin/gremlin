@@ -4,8 +4,10 @@ import {
   type FlexibleTimeWindowMode,
   SchedulerClient,
 } from "@aws-sdk/client-scheduler";
+import { logger } from "../../logger.js";
 
 const scheduler = new SchedulerClient({});
+const log = logger.child({ component: "scheduler" });
 
 /**
  * Create a recurring EventBridge schedule for a cron job.
@@ -23,8 +25,8 @@ export async function createCronSchedule(job: {
   const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
   const roleArn = process.env.SCHEDULER_ROLE_ARN;
   if (!targetArn || !roleArn) {
-    console.warn(
-      "[scheduler] Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping schedule creation",
+    log.warn(
+      "Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping schedule creation",
     );
     return;
   }
@@ -51,7 +53,7 @@ export async function createCronSchedule(job: {
     }),
   );
 
-  console.log(`[scheduler] Created cron schedule for job "${job.name}"`);
+  log.info({ jobId: job.id, jobName: job.name }, "Created cron schedule");
 }
 
 /**
@@ -65,7 +67,7 @@ export async function deleteCronSchedule(jobId: string) {
         GroupName: "gremlin",
       }),
     );
-    console.log(`[scheduler] Deleted cron schedule for job ${jobId}`);
+    log.info({ jobId }, "Deleted cron schedule");
   } catch (err: unknown) {
     if (err instanceof Error && err.name === "ResourceNotFoundException") {
       return; // already deleted
@@ -87,8 +89,8 @@ export async function createFollowUpSchedule(input: {
   const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
   const roleArn = process.env.SCHEDULER_ROLE_ARN;
   if (!targetArn || !roleArn) {
-    console.warn(
-      "[scheduler] Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping follow-up schedule",
+    log.warn(
+      "Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN, skipping follow-up schedule",
     );
     return;
   }
@@ -118,8 +120,9 @@ export async function createFollowUpSchedule(input: {
     }),
   );
 
-  console.log(
-    `[scheduler] Created follow-up schedule firing at ${fireAt.toISOString()}`,
+  log.info(
+    { scheduleId, fireAt: fireAt.toISOString() },
+    "Created follow-up schedule",
   );
 
   return { scheduleId, fireAt: fireAt.toISOString() };

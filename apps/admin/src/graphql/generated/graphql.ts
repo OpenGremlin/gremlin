@@ -984,7 +984,7 @@ export const AgentDocument = new TypedDocumentString(`
     name
     avatar
     portraitId
-    imageUrl(width: 100)
+    imageUrl(width: 200)
     soul
     status
     statusReason
@@ -1341,7 +1341,7 @@ export const TasksDocument = new TypedDocumentString(`
         status
         message
         createdAt
-        imageUrl(width: 100)
+        imageUrl(width: 200)
         documents {
           id
           title
@@ -1373,7 +1373,7 @@ export const TaskDocument = new TypedDocumentString(`
     createdAt
     updatedAt
     completedAt
-    imageUrl(width: 100)
+    imageUrl(width: 200)
     artifacts
     documents {
       id
@@ -1439,7 +1439,7 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     message
     updatedAt
     completedAt
-    imageUrl(width: 100)
+    imageUrl(width: 200)
     artifacts
     documents {
       id

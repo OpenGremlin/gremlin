@@ -5,7 +5,7 @@ import { requestApprovalTool } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /** Tools marked as internal — logged for audit but hidden from the UI. */
-const INTERNAL_TOOLS = new Set(["createDocument", "updateDocument"]);
+const INTERNAL_TOOLS = new Set(["updateDocument"]);
 
 export async function runAgentTurn(
   ctx: ServiceContext,

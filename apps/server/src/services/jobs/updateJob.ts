@@ -1,4 +1,5 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
+import { logger } from "../../logger.js";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
 import { recurrenceToCron } from "./recurrenceToCron.js";
@@ -58,7 +59,10 @@ export async function updateJob(
         }
       })
       .catch((err) =>
-        console.error(`[jobs] Failed to update schedule for job ${id}:`, err),
+        logger.error(
+          { err, jobId: id, component: "jobs" },
+          "Failed to update schedule",
+        ),
       );
   }
 

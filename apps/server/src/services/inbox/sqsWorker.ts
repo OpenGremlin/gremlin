@@ -19,11 +19,11 @@ const sqs = new SQSClient({});
 export function startSqsWorker(ctx: ServiceContext): () => void {
   const queueUrl = process.env.DOORBELL_QUEUE_URL;
   if (!queueUrl) {
-    console.log("[inbox] No DOORBELL_QUEUE_URL — using in-process doorbell");
+    ctx.log.info("No DOORBELL_QUEUE_URL — using in-process doorbell");
     return () => {};
   }
 
-  console.log("[inbox] Starting SQS worker");
+  ctx.log.info("Starting SQS worker");
   let shuttingDown = false;
 
   const poll = async () => {
@@ -51,18 +51,20 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
               }),
             );
 
+            const doorbellLog = ctx.log.child({
+              doorbellId: crypto.randomUUID(),
+              agentId,
+            });
+
             // Fire-and-forget — ringDoorbell handles errors
-            ringDoorbell(ctx, agentId).catch((err) =>
-              console.error(
-                `[inbox] SQS doorbell failed for agent ${agentId}:`,
-                err,
-              ),
+            ringDoorbell({ ...ctx, log: doorbellLog }, agentId).catch((err) =>
+              doorbellLog.error({ err }, "SQS doorbell failed"),
             );
           }),
         );
       } catch (err) {
         if (!shuttingDown) {
-          console.error("[inbox] SQS poll error:", err);
+          ctx.log.error({ err }, "SQS poll error");
           // Back off on error
           await new Promise((r) => setTimeout(r, 5000));
         }
@@ -73,7 +75,7 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
   poll();
 
   return () => {
-    console.log("[inbox] Stopping SQS worker");
+    ctx.log.info("Stopping SQS worker");
     shuttingDown = true;
   };
 }

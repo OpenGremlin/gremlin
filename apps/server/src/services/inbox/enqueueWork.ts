@@ -1,5 +1,6 @@
 import type { SQSClient as SQSClientType } from "@aws-sdk/client-sqs";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 
 let _sqs: SQSClientType | undefined;
@@ -68,13 +69,16 @@ export async function enqueueWork(
         }),
       )
       .catch((err) =>
-        console.error(`[inbox] SQS doorbell failed for agent ${agentId}:`, err),
+        logger.error(
+          { err, agentId, component: "inbox" },
+          "SQS doorbell failed",
+        ),
       );
   } else {
     // In-process doorbell — local development
     const { ringDoorbell } = await import("./consumer.js");
     ringDoorbell(ctx, agentId).catch((err) =>
-      console.error(`[inbox] doorbell failed for agent ${agentId}:`, err),
+      logger.error({ err, agentId, component: "inbox" }, "Doorbell failed"),
     );
   }
 

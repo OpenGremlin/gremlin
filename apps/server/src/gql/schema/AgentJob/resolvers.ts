@@ -23,11 +23,17 @@ const updateAgentJob: MutationResolvers["updateAgentJob"] = (
   ctx,
 ) => ctx.services.jobs.updateJob(ctx, id, input);
 
-const createAgentJob: MutationResolvers["createAgentJob"] = (_parent, { input }, ctx) =>
-  ctx.services.jobs.createJob(ctx, input);
+const createAgentJob: MutationResolvers["createAgentJob"] = (
+  _parent,
+  { input },
+  ctx,
+) => ctx.services.jobs.createJob(ctx, input);
 
-const deleteAgentJob: MutationResolvers["deleteAgentJob"] = (_parent, { id }, ctx) =>
-  ctx.services.jobs.deleteJob(ctx, id);
+const deleteAgentJob: MutationResolvers["deleteAgentJob"] = (
+  _parent,
+  { id },
+  ctx,
+) => ctx.services.jobs.deleteJob(ctx, id);
 
 const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.loaders.agentLoader.load(parent.agentId);

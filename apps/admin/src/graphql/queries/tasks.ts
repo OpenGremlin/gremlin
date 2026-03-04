@@ -15,7 +15,7 @@ export const TasksQuery = graphql(`
           status
           message
           createdAt
-          imageUrl(width: 100)
+          imageUrl(width: 200)
           documents {
             id
             title
@@ -48,7 +48,7 @@ export const TaskQuery = graphql(`
       createdAt
       updatedAt
       completedAt
-      imageUrl(width: 100)
+      imageUrl(width: 200)
       artifacts
       documents {
         id
@@ -111,7 +111,7 @@ export const TaskUpdatedSubscription = graphql(`
       message
       updatedAt
       completedAt
-      imageUrl(width: 100)
+      imageUrl(width: 200)
       artifacts
       documents {
         id

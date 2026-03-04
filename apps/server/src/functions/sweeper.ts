@@ -1,5 +1,6 @@
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import pino from "pino";
 
 /**
  * Sweeper Lambda — runs every 3 minutes via EventBridge rule.
@@ -7,6 +8,7 @@ import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
  * and re-rings doorbells for their agents.
  */
 
+const logger = pino({ base: { service: "gremlin-sweeper" } });
 const ddb = new DynamoDBClient({});
 const sqs = new SQSClient({});
 const TABLE_NAME = process.env.TABLE_NAME ?? "";
@@ -30,7 +32,7 @@ export async function handler() {
   );
 
   if (!Items || Items.length === 0) {
-    console.log("[sweeper] No stale inbox items");
+    logger.info("No stale inbox items");
     return { statusCode: 200, stale: 0 };
   }
 
@@ -41,8 +43,9 @@ export async function handler() {
     ),
   ];
 
-  console.log(
-    `[sweeper] Found ${Items.length} stale items for ${agentIds.length} agent(s)`,
+  logger.info(
+    { staleCount: Items.length, agentCount: agentIds.length },
+    "Re-ringing doorbells for stale items",
   );
 
   await Promise.all(

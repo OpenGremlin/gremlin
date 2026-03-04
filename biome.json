@@ -10,7 +10,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "suspicious": {
+        "noConsole": "error"
+      }
     }
   },
   "formatter": {
@@ -34,5 +37,17 @@
       "!**/resolverTypes.ts"
     ],
     "ignoreUnknown": true
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
 }

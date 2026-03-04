@@ -8,7 +8,7 @@ export function ChatHeader({ agent }: { agent: Agent }) {
   return (
     <div className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
       <Link to={`/agents/${agent.id}/config`}>
-        <AgentAvatar id={agent.id} />
+        <AgentAvatar id={agent.id} size={64} />
       </Link>
       <h1 className="text-sm font-semibold text-neutral-100 mt-2">
         {agent.name}

@@ -32,7 +32,7 @@ export async function ringDoorbell(
       await routeBatch(ctx, agentId, items);
     }
   } catch (err) {
-    console.error(`[inbox] consumer error for agent ${agentId}:`, err);
+    ctx.log.error({ err, agentId }, "Consumer error");
   } finally {
     activeAgents.delete(agentId);
   }
@@ -124,7 +124,7 @@ async function handleScheduledJob(
 
   const job = await ctx.services.jobs.getJob(ctx, payload.jobId);
   if (!job) {
-    console.warn(`[inbox] scheduled_job: job ${payload.jobId} not found`);
+    ctx.log.warn({ jobId: payload.jobId }, "Scheduled job not found");
     return;
   }
 
@@ -185,7 +185,10 @@ async function handleScheduledJob(
     throw err;
   }
 
-  console.log(`[inbox] Triggered job "${job.name}" → task ${taskId}`);
+  ctx.log.info(
+    { jobId: job.id, jobName: job.name, taskId },
+    "Triggered job → task created",
+  );
 
   // Anchor in main-lane log so the UI can attach the sub-thread
   await ctx.services.orchestrator.writeAgentLog(ctx, {

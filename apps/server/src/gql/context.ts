@@ -1,3 +1,4 @@
+import type { Logger } from "../logger.js";
 import type { Resources } from "../resources/index.js";
 import type { Services } from "../services/index.js";
 import type { AuthUser } from "./auth.js";
@@ -9,4 +10,5 @@ export interface GremlinContext {
   resources: Resources;
   services: Services;
   loaders: Loaders;
+  log: Logger;
 }

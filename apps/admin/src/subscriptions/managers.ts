@@ -9,7 +9,7 @@ export const taskSubscriptionManager = new SubscriptionManager(
     message
     updatedAt
     completedAt
-    imageUrl(width: 100)
+    imageUrl(width: 200)
     artifacts
     documents {
       id

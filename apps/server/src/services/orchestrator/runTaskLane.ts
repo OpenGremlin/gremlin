@@ -69,7 +69,7 @@ export async function runTaskLane(
   const memories = await ctx.services.memory
     .recallMemories(ctx, task.agentId, prompt)
     .catch((err) => {
-      console.error("memory recall failed:", err);
+      ctx.log.error({ err, component: "memory" }, "Memory recall failed");
       return { recent: [], relevant: [] };
     });
 
@@ -125,7 +125,9 @@ export async function runTaskLane(
     taskId,
     messages,
     totalLogCount,
-  }).catch((err) => console.error("compaction failed:", err));
+  }).catch((err) =>
+    ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
+  );
 
   return response;
 }

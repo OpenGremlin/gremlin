@@ -162,7 +162,10 @@ export async function maybeCompact(
     await ctx.services.memory
       .saveMemory(ctx, opts.agentId, content)
       .catch((err) =>
-        console.error("memory save during compaction failed:", err),
+        ctx.log.error(
+          { err, component: "compaction" },
+          "Memory save during compaction failed",
+        ),
       );
   }
 }

@@ -16,6 +16,7 @@ import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
+import { logger } from "./logger.js";
 import { createResources } from "./resources/index.js";
 import { createServices } from "./services/index.js";
 
@@ -112,7 +113,7 @@ const yoga = createYoga({
           const user = await verifyToken(header.slice(7));
           userByRequest.set(request, user);
         } catch (err) {
-          console.error("Auth failed:", err);
+          logger.error({ err, component: "auth" }, "Auth failed");
           endResponse(
             fetchAPI.Response.json(
               { errors: [{ message: "Unauthorized" }] },
@@ -133,6 +134,11 @@ const yoga = createYoga({
       resources,
       services,
       loaders: createLoaders(resources),
+      log: logger.child({
+        requestId: crypto.randomUUID(),
+        userId: user?.sub,
+        component: "graphql",
+      }),
     };
   },
   graphiql: SKIP_AUTH,
@@ -166,6 +172,11 @@ useServer(
         resources,
         services,
         loaders: createLoaders(resources),
+        log: logger.child({
+          requestId: crypto.randomUUID(),
+          userId: user.sub,
+          component: "ws",
+        }),
       };
     },
   },
@@ -214,7 +225,10 @@ app.get("/auth/:provider/callback", async (req, res) => {
     );
     res.redirect(`${adminOrigin}/connections/${connectionId}?connected=true`);
   } catch (err) {
-    console.error(`${provider} OAuth callback failed:`, err);
+    logger.error(
+      { err, provider, component: "oauth" },
+      "OAuth callback failed",
+    );
     res.redirect(
       `${adminOrigin}/user/integrations?error=${provider}_oauth_failed`,
     );
@@ -231,11 +245,16 @@ let stopSqsWorker: (() => void) | undefined;
 loadSchedulerConfig().then(async () => {
   // Start SQS worker if queue URL is available (deployed environment)
   const { startSqsWorker } = await import("./services/inbox/sqsWorker.js");
-  const svcCtx = { resources, services, mediaCdnUrl: MEDIA_CDN_URL };
+  const svcCtx = {
+    resources,
+    services,
+    mediaCdnUrl: MEDIA_CDN_URL,
+    log: logger.child({ component: "inbox" }),
+  };
   stopSqsWorker = startSqsWorker(svcCtx);
 
   server.listen(PORT, () => {
-    console.log(`Gremlin server running at http://localhost:${PORT}`);
+    logger.info({ port: PORT }, "Gremlin server started");
   });
 });
 

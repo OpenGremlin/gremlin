@@ -1,4 +1,5 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
+import { logger } from "../../logger.js";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
 import { recurrenceToCron } from "./recurrenceToCron.js";
@@ -43,7 +44,10 @@ export async function createJob(
     ctx.services.inbox
       .createCronSchedule(item)
       .catch((err) =>
-        console.error(`[jobs] Failed to create schedule for job ${id}:`, err),
+        logger.error(
+          { err, jobId: id, component: "jobs" },
+          "Failed to create schedule",
+        ),
       );
   }
 

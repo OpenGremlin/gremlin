@@ -18,7 +18,7 @@ export const AgentQuery = graphql(`
       name
       avatar
       portraitId
-      imageUrl(width: 100)
+      imageUrl(width: 200)
       soul
       status
       statusReason

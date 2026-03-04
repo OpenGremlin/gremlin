@@ -4,7 +4,10 @@ import { AgentQuery } from "../graphql/queries";
 import { useAgentUpdates } from "../subscriptions";
 import { useQuery } from "../useQuery";
 
-export function AgentAvatar({ id }: { id: string }) {
+export function AgentAvatar({
+  id,
+  size = 48,
+}: { id: string; size?: number }) {
   const { data } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
   const [status, setStatus] = useState<AgentStatus | null>(null);
@@ -29,7 +32,8 @@ export function AgentAvatar({ id }: { id: string }) {
 
   return (
     <div
-      className={`w-12 h-12 shrink-0 flex items-center justify-center ${ringClass}`}
+      style={{ width: size, height: size }}
+      className={`shrink-0 flex items-center justify-center ${ringClass}`}
     >
       <div
         className={`w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium`}

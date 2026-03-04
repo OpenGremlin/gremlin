@@ -1,5 +1,6 @@
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import pino from "pino";
 
 /**
  * Lambda invoked by EventBridge Scheduler for:
@@ -9,6 +10,7 @@ import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
  * Writes an inbox item to DDB and rings the SQS doorbell.
  */
 
+const logger = pino({ base: { service: "gremlin-schedule-target" } });
 const ddb = new DynamoDBClient({});
 const sqs = new SQSClient({});
 const TABLE_NAME = process.env.TABLE_NAME ?? "";
@@ -53,8 +55,9 @@ export async function handler(event: ScheduleEvent) {
     }),
   );
 
-  console.log(
-    `[scheduleTarget] Enqueued ${event.type} for agent ${event.agentId}`,
+  logger.info(
+    { type: event.type, agentId: event.agentId, inboxItemId: id },
+    "Enqueued inbox item",
   );
 
   return { statusCode: 200, id };

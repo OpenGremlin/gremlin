@@ -51,7 +51,7 @@ export async function runMainLane(
   const memories = await ctx.services.memory
     .recallMemories(ctx, agentId, recallHint ?? "")
     .catch((err) => {
-      console.error("memory recall failed:", err);
+      ctx.log.error({ err, component: "memory" }, "Memory recall failed");
       return { recent: [], relevant: [] };
     });
 
@@ -101,7 +101,8 @@ export async function runMainLane(
 
   // Fire-and-forget compaction
   maybeCompact(ctx, { agentId, taskId: null, messages, totalLogCount }).catch(
-    (err) => console.error("compaction failed:", err),
+    (err) =>
+      ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
   );
 
   return response;

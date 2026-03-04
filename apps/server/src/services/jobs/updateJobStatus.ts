@@ -1,5 +1,6 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { JobStatus } from "../../gql/resolverTypes.js";
+import { logger } from "../../logger.js";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
 
@@ -22,9 +23,9 @@ export async function updateJobStatus(
     ctx.services.inbox
       .deleteCronSchedule(id)
       .catch((err) =>
-        console.error(
-          `[jobs] Failed to delete schedule for paused job ${id}:`,
-          err,
+        logger.error(
+          { err, jobId: id, component: "jobs" },
+          "Failed to delete schedule for paused job",
         ),
       );
   } else if (Attributes.cronExpression) {
@@ -34,9 +35,9 @@ export async function updateJobStatus(
         cronExpression: Attributes.cronExpression,
       })
       .catch((err) =>
-        console.error(
-          `[jobs] Failed to create schedule for resumed job ${id}:`,
-          err,
+        logger.error(
+          { err, jobId: id, component: "jobs" },
+          "Failed to create schedule for resumed job",
         ),
       );
   }

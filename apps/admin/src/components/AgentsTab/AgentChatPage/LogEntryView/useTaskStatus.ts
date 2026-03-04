@@ -4,7 +4,7 @@ import { useTaskUpdates } from "../../../../subscriptions";
 
 const TASK_QUERY = `query($id: ID!) {
   task(id: $id) {
-    status message imageUrl(width: 90)
+    status message imageUrl(width: 180)
     logs(first: 200) {
       edges { node { role toolName toolInput } }
     }
