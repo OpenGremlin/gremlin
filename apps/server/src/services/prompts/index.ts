@@ -39,7 +39,7 @@ const templates: Record<keyof PromptRegistry, string> = {
 
 const compiled = new Map<string, Handlebars.TemplateDelegate>();
 
-function getCompiled(key: string): Handlebars.TemplateDelegate {
+function getCompiled(key: keyof PromptRegistry): Handlebars.TemplateDelegate {
   let fn = compiled.get(key);
   if (!fn) {
     fn = Handlebars.compile(templates[key], { noEscape: true });
