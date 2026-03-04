@@ -115,7 +115,11 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
     description:
       "Delegate a task to run in the background. Use this when the user's request involves work that can be done asynchronously (e.g., writing a document, research). The task runs in a separate thread and the user can check on it later.",
     inputSchema: z.object({
-      title: z.string().describe("Short title for the task"),
+      title: z
+        .string()
+        .describe(
+          "Short title for the task. Start with a verb and only uppercase the beginning, like a commit message (e.g. \"Write a space cat story\", \"Research competitor pricing\").",
+        ),
       prompt: z.string().describe("Detailed instructions for the task"),
     }),
     execute: async ({ title, prompt }) => {
