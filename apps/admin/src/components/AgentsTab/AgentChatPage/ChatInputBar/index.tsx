@@ -12,7 +12,7 @@ export function ChatInputBar({
   disabled?: boolean;
 }) {
   return (
-    <div className="shrink-0 border-t border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-neutral-800/60 bg-neutral-950/70 backdrop-blur-md px-3 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))]">
       <div className="flex items-end gap-2">
         <input
           type="text"

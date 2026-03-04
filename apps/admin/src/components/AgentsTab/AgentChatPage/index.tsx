@@ -71,7 +71,7 @@ export function AgentChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 pt-32 flex flex-col-reverse"
+        className="flex-1 min-h-0 overflow-y-auto px-3 pb-16 pt-32 flex flex-col-reverse"
       >
         <div className="flex flex-col gap-1">
           {hasMore && (
