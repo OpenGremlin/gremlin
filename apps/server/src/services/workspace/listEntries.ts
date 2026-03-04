@@ -1,7 +1,9 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH ?? "/workspace";
+function getWorkspacePath() {
+  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
+}
 
 export interface WorkspaceEntry {
   name: string;
@@ -12,8 +14,9 @@ export interface WorkspaceEntry {
 }
 
 export async function listEntries(dirPath: string): Promise<WorkspaceEntry[]> {
-  const resolved = path.resolve(WORKSPACE_PATH, dirPath);
-  if (!resolved.startsWith(WORKSPACE_PATH)) {
+  const workspacePath = getWorkspacePath();
+  const resolved = path.resolve(workspacePath, dirPath);
+  if (!resolved.startsWith(workspacePath)) {
     throw new Error("Path traversal not allowed");
   }
 
@@ -22,7 +25,7 @@ export async function listEntries(dirPath: string): Promise<WorkspaceEntry[]> {
   const results: WorkspaceEntry[] = [];
   for (const entry of entries) {
     const fullPath = path.join(resolved, entry.name);
-    const relativePath = path.relative(WORKSPACE_PATH, fullPath);
+    const relativePath = path.relative(workspacePath, fullPath);
     let size: number | null = null;
     let modifiedAt: string | null = null;
 
