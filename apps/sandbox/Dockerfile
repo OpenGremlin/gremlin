@@ -38,6 +38,10 @@ COPY --from=deps /build/node_modules/ node_modules/
 COPY --from=deps /build/apps/sandbox/node_modules/ apps/sandbox/node_modules/
 COPY package.json pnpm-workspace.yaml ./
 
+COPY apps/sandbox/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 RUN mkdir -p /workspace
 EXPOSE 8080 8081 9090
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "apps/sandbox/dist/index.js"]
