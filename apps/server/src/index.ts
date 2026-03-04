@@ -47,6 +47,32 @@ async function getAdminOrigin(): Promise<string> {
   return cachedAdminOrigin;
 }
 
+// Load scheduler config from SSM (set by MessagingStack)
+async function loadSchedulerConfig() {
+  if (SKIP_AUTH) return; // local dev — no SSM
+  try {
+    const ssm = new SSMClient({});
+    const params = [
+      "/gremlin/schedule-target-lambda-arn",
+      "/gremlin/scheduler-role-arn",
+      "/gremlin/doorbell-queue-url",
+    ];
+    const envKeys = [
+      "SCHEDULE_TARGET_LAMBDA_ARN",
+      "SCHEDULER_ROLE_ARN",
+      "DOORBELL_QUEUE_URL",
+    ];
+    await Promise.all(
+      params.map(async (name, i) => {
+        const res = await ssm.send(new GetParameterCommand({ Name: name }));
+        if (res.Parameter?.Value) process.env[envKeys[i]] = res.Parameter.Value;
+      }),
+    );
+  } catch {
+    // SSM not available — scheduler features disabled
+  }
+}
+
 const app = express();
 const resources = createResources();
 const services = createServices();
@@ -200,8 +226,10 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-server.listen(PORT, () => {
-  console.log(`Gremlin server running at http://localhost:${PORT}`);
+loadSchedulerConfig().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Gremlin server running at http://localhost:${PORT}`);
+  });
 });
 
 function shutdown() {

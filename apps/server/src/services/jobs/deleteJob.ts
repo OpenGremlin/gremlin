@@ -13,5 +13,12 @@ export async function deleteJob(
     .key({ id })
     .send();
 
+  // Delete EventBridge schedule
+  ctx.services.inbox
+    .deleteCronSchedule(id)
+    .catch((err) =>
+      console.error(`[jobs] Failed to delete schedule for job ${id}:`, err),
+    );
+
   return job;
 }

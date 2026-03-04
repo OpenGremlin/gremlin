@@ -16,5 +16,30 @@ export async function updateJobStatus(
     .send();
 
   if (!Attributes) throw new Error(`Job ${id} not found`);
+
+  // Create or delete EventBridge schedule based on new status
+  if (status === "PAUSED") {
+    ctx.services.inbox
+      .deleteCronSchedule(id)
+      .catch((err) =>
+        console.error(
+          `[jobs] Failed to delete schedule for paused job ${id}:`,
+          err,
+        ),
+      );
+  } else if (Attributes.cronExpression) {
+    ctx.services.inbox
+      .createCronSchedule({
+        ...Attributes,
+        cronExpression: Attributes.cronExpression,
+      })
+      .catch((err) =>
+        console.error(
+          `[jobs] Failed to create schedule for resumed job ${id}:`,
+          err,
+        ),
+      );
+  }
+
   return Attributes;
 }

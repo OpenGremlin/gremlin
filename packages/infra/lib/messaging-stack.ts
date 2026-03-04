@@ -27,6 +27,11 @@ export class MessagingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: MessagingStackProps) {
     super(scope, id, props);
 
+    // ── EventBridge Scheduler group ────────────────────────
+    new cdk.aws_scheduler.CfnScheduleGroup(this, "SchedulerGroup", {
+      name: "gremlin",
+    });
+
     // ── SQS doorbell queue ──────────────────────────────────
     const dlq = new sqs.Queue(this, "DoorbellDlq", {
       queueName: "gremlin-doorbell-dlq",

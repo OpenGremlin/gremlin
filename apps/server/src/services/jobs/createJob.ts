@@ -38,5 +38,14 @@ export async function createJob(
     .item(item)
     .send();
 
+  // Create EventBridge cron schedule
+  if (cronExpression) {
+    ctx.services.inbox
+      .createCronSchedule(item)
+      .catch((err) =>
+        console.error(`[jobs] Failed to create schedule for job ${id}:`, err),
+      );
+  }
+
   return item;
 }

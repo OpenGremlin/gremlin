@@ -44,5 +44,23 @@ export async function updateJob(
     .send();
 
   if (!Attributes) throw new Error(`Job ${id} not found`);
+
+  // Recreate EventBridge schedule if cron or timezone changed
+  if (input.recurrence != null || input.timezone != null) {
+    ctx.services.inbox
+      .deleteCronSchedule(id)
+      .then(() => {
+        if (Attributes.cronExpression && Attributes.status !== "PAUSED") {
+          return ctx.services.inbox.createCronSchedule({
+            ...Attributes,
+            cronExpression: Attributes.cronExpression,
+          });
+        }
+      })
+      .catch((err) =>
+        console.error(`[jobs] Failed to update schedule for job ${id}:`, err),
+      );
+  }
+
   return Attributes;
 }
