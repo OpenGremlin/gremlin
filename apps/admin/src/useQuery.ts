@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { gql } from "./auth";
 import type { TypedDocumentString } from "./graphql/generated/graphql";
 
-// biome-ignore lint: any is needed to accept all TypedDocumentString variable types
 export function useQuery<TResult>(
+  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
   query: TypedDocumentString<TResult, any>,
   variables?: Record<string, unknown>,
 ): {
@@ -15,7 +15,7 @@ export function useQuery<TResult>(
   const [data, setData] = useState<TResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
+  const [_version, setVersion] = useState(0);
 
   const serializedVars = variables ? JSON.stringify(variables) : undefined;
   const stableVars = useMemo(
@@ -45,7 +45,7 @@ export function useQuery<TResult>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars, version]);
+  }, [query, stableVars]);
 
   return {
     data,

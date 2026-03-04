@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   CheckCircle,
-  Circle,
   Code,
   ExternalLink,
   Loader2,
@@ -69,12 +68,17 @@ function DelegateTaskCard({
 
   return (
     <div id={id} className="py-1">
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally "button" when clickable */}
       <div
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
-        onClick={() => clickable && onTaskClick(taskId!)}
-        onKeyDown={(e) =>
-          clickable && e.key === "Enter" && onTaskClick(taskId!)
+        onClick={clickable && taskId ? () => onTaskClick(taskId) : undefined}
+        onKeyDown={
+          clickable && taskId
+            ? (e) => {
+                if (e.key === "Enter") onTaskClick(taskId);
+              }
+            : undefined
         }
         className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
       >

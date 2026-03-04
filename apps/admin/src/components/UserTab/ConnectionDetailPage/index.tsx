@@ -139,12 +139,13 @@ export function ConnectionDetailPage() {
               className="text-xl font-semibold text-neutral-100 bg-transparent border-b border-neutral-600 outline-none w-full"
             />
           ) : (
-            <h1
+            <button
+              type="button"
               onClick={startEditing}
-              className="text-xl font-semibold text-neutral-100 cursor-pointer hover:text-neutral-300 transition-colors"
+              className="text-xl font-semibold text-neutral-100 cursor-pointer hover:text-neutral-300 transition-colors text-left"
             >
               {connection.description}
-            </h1>
+            </button>
           )}
           {accountId && (
             <p className="text-sm text-neutral-400 mt-0.5">{accountId}</p>

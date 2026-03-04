@@ -59,7 +59,7 @@ export async function buildContextMessages(
   if (compactionIndex >= 0) {
     messages.push({
       role: "user",
-      content: `[Context summary of earlier conversation]\n\n${cachedCompaction!.summary}`,
+      content: `[Context summary of earlier conversation]\n\n${cachedCompaction?.summary}`,
     });
     // Map all entries after the compaction point
     for (let i = compactionIndex + 1; i < entries.length; i++) {

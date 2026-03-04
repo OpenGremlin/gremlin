@@ -17,26 +17,20 @@ export async function getAllTasks(
 
   const partition = "TASK";
 
-  let query;
-  if (args.after) {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.Task)
-      .query({ partition, range: { gt: `TASK#${decodeCursor(args.after)}` } })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  } else if (args.before) {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.Task)
-      .query({ partition, range: { lt: `TASK#${decodeCursor(args.before)}` } })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  } else {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.Task)
-      .query({ partition })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  }
+  const rangeCondition = args.after
+    ? { gt: `TASK#${decodeCursor(args.after)}` }
+    : args.before
+      ? { lt: `TASK#${decodeCursor(args.before)}` }
+      : undefined;
+
+  const query = ctx.resources.ddb.table
+    .build(QueryCommand)
+    .entities(ctx.resources.ddb.entities.Task)
+    .query({
+      partition,
+      ...(rangeCondition && { range: rangeCondition }),
+    })
+    .options({ limit: fetchLimit, reverse: isBackward });
 
   const { Items } = await query.send();
   let items = Items ?? [];

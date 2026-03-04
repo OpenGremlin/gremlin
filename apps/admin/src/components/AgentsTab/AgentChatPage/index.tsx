@@ -12,14 +12,14 @@ import { useChatMessages } from "./useChatMessages";
 export function AgentChatPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery(AgentQuery, { id: id! });
+  const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
   const {
     messages,
     loading: messagesLoading,
     hasMore,
     loadMore,
     isAgentActive,
-  } = useChatMessages(id!);
+  } = useChatMessages(id ?? "");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ export function AgentChatPage() {
     } finally {
       setSending(false);
     }
-  }, [input, id, sending]);
+  }, [input, id, sending, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;

@@ -47,11 +47,11 @@ export async function execCommand(
   const wrappedCommand = `${command}; echo "${sentinel}$?__"`;
 
   let output = "";
-  let timedOut = false;
+  let _timedOut = false;
 
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
-      timedOut = true;
+      _timedOut = true;
       cleanup();
       resolve({
         output: truncate(output),
@@ -90,13 +90,13 @@ export async function execCommand(
     }
 
     function cleanup() {
-      ws!.off("message", onMessage);
+      ws?.off("message", onMessage);
     }
 
     ws.on("message", onMessage);
 
     // Send the wrapped command
-    ws.send(JSON.stringify({ type: "input", data: wrappedCommand + "\n" }));
+    ws.send(JSON.stringify({ type: "input", data: `${wrappedCommand}\n` }));
   });
 }
 

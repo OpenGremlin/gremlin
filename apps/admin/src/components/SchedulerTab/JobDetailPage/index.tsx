@@ -22,7 +22,7 @@ type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(AgentJobQuery, { id: id! });
+  const { data, loading, error } = useQuery(AgentJobQuery, { id: id ?? "" });
   const { data: agentsData } = useQuery(AgentsQuery);
 
   const [name, setName] = useState<string | null>(null);

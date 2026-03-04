@@ -2,7 +2,7 @@ import { ECSClient, StopTaskCommand } from "@aws-sdk/client-ecs";
 import type { SandboxSession } from "./types.js";
 
 const ecs = new ECSClient({});
-const CLUSTER_NAME = process.env.ECS_CLUSTER_NAME!;
+const CLUSTER_NAME = process.env.ECS_CLUSTER_NAME ?? "";
 
 export async function terminateSandbox(session: SandboxSession): Promise<void> {
   // Close WebSocket

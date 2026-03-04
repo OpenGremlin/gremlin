@@ -96,9 +96,11 @@ function DocumentModal({
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
       {/* Backdrop */}
-      <div
+      <button
+        type="button"
         className={`absolute inset-0 bg-black/70 backdrop-blur-sm cursor-pointer transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
+        aria-label="Close"
       />
 
       {/* Sheet */}
@@ -111,8 +113,15 @@ function DocumentModal({
       >
         {/* Handle + header (drag zone) */}
         <div
+          role="slider"
+          tabIndex={0}
+          aria-label="Drag to dismiss"
+          aria-valuenow={0}
           className="shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing"
           onMouseDown={handleMouseDown}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") onClose();
+          }}
         >
           <div className="w-10 h-1 rounded-full bg-neutral-700 mx-auto mb-3" />
           <div className="flex items-center gap-2 px-[60px]">

@@ -10,7 +10,7 @@ import { LogEntryView } from "../../AgentsTab/AgentChatPage/LogEntryView";
 
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(TaskQuery, { id: id! });
+  const { data, loading, error } = useQuery(TaskQuery, { id: id ?? "" });
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;

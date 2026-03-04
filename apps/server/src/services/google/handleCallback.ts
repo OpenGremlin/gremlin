@@ -15,7 +15,7 @@ export async function handleGoogleCallback(
   stateRaw: string,
 ): Promise<void> {
   const state: OAuthState = JSON.parse(stateRaw);
-  const { userId, connectionId, scopes } = state;
+  const { connectionId, scopes } = state;
 
   const client = await getGoogleOAuthClient();
   const { tokens } = await client.getToken(code);
@@ -26,7 +26,7 @@ export async function handleGoogleCallback(
 
   // Decode the id_token to get the user's email
   const ticket = await client.verifyIdToken({
-    idToken: tokens.id_token!,
+    idToken: tokens.id_token as string,
     audience: client._clientId,
   });
   const email = ticket.getPayload()?.email ?? "unknown";

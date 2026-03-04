@@ -10,7 +10,7 @@ const API_URL =
   (import.meta.env.VITE_API_URL as string) ||
   "";
 
-const wsUrl = API_URL.replace(/^http/, "ws") + "/graphql";
+const wsUrl = `${API_URL.replace(/^http/, "ws")}/graphql`;
 
 export const wsClient = createClient({
   url: wsUrl,

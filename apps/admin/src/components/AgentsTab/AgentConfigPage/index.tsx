@@ -15,7 +15,7 @@ import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-import { type Avatar, AvatarPicker } from "./AvatarPicker";
+import { AvatarPicker } from "./AvatarPicker";
 
 interface AgentFormValues {
   name: string;
@@ -25,7 +25,7 @@ interface AgentFormValues {
 
 export function AgentConfigPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(AgentQuery, { id: id! });
+  const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
   const avatarsResult = useQuery(AvatarsQuery);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -101,7 +101,7 @@ export function AgentConfigPage() {
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-neutral-500">Avatar Image</label>
+            <span className="text-xs text-neutral-500">Avatar Image</span>
             <button
               type="button"
               onClick={() => setPickerOpen(true)}

@@ -9,7 +9,7 @@ import type { SandboxSession } from "./types.js";
 const ecs = new ECSClient({});
 const ssm = new SSMClient({});
 
-const CLUSTER_NAME = process.env.ECS_CLUSTER_NAME!;
+const CLUSTER_NAME = process.env.ECS_CLUSTER_NAME ?? "";
 const SUBNET_IDS = (process.env.SUBNET_IDS ?? "").split(",");
 
 let cachedTaskDefArn: string | undefined;

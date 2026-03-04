@@ -16,7 +16,7 @@ type Skill = NonNullable<SkillQueryType["skill"]>;
 
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(SkillQuery, { id: id! });
+  const { data, loading, error } = useQuery(SkillQuery, { id: id ?? "" });
   const [toggling, setToggling] = useState(false);
   const [localSkill, setLocalSkill] = useState<Skill | null>(null);
 

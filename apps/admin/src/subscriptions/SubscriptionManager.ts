@@ -28,8 +28,8 @@ export class SubscriptionManager {
     this.scheduleReconnect();
 
     return () => {
-      cbs!.delete(callback);
-      if (cbs!.size === 0) {
+      cbs?.delete(callback);
+      if (cbs?.size === 0) {
         this.registry.delete(id);
       }
       this.scheduleReconnect();

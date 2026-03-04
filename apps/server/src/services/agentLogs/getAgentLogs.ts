@@ -18,34 +18,21 @@ export async function getAgentLogs(
 
   const partition = `LOG_AGENT#${agentId}`;
 
-  let query;
-  if (args.after) {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.AgentLog)
-      .query({
-        index: "gsi1",
-        partition,
-        range: { gt: decodeCursor(args.after) },
-      })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  } else if (args.before) {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.AgentLog)
-      .query({
-        index: "gsi1",
-        partition,
-        range: { lt: decodeCursor(args.before) },
-      })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  } else {
-    query = ctx.resources.ddb.table
-      .build(QueryCommand)
-      .entities(ctx.resources.ddb.entities.AgentLog)
-      .query({ index: "gsi1", partition })
-      .options({ limit: fetchLimit, reverse: isBackward });
-  }
+  const rangeCondition = args.after
+    ? { gt: decodeCursor(args.after) }
+    : args.before
+      ? { lt: decodeCursor(args.before) }
+      : undefined;
+
+  const query = ctx.resources.ddb.table
+    .build(QueryCommand)
+    .entities(ctx.resources.ddb.entities.AgentLog)
+    .query({
+      index: "gsi1",
+      partition,
+      ...(rangeCondition && { range: rangeCondition }),
+    })
+    .options({ limit: fetchLimit, reverse: isBackward });
 
   const { Items } = await query.send();
   let items = (Items ?? []).filter((i) => !i.internal);

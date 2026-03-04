@@ -1,14 +1,11 @@
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { TasksQuery } from "../../../graphql/generated/graphql";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { Badge } from "../../../shared/Badge";
 import { DocumentCard } from "../../../shared/DocumentCard";
 import { timeAgo } from "../../../shared/formatDate";
 import { useTaskUpdates } from "../../../subscriptions";
-
-type FullTaskNode = TasksQuery["tasks"]["edges"][number]["node"];
 
 /** Minimal task shape accepted by TaskCard (AgentJobQuery tasks lack some fields) */
 type TaskItem = {
@@ -87,9 +84,14 @@ export function TaskCard({ item }: { item: TaskItem }) {
             </div>
           )}
           {task.documents && task.documents.length > 0 && (
+            // biome-ignore lint/a11y/noStaticElementInteractions: presentation role prevents parent link navigation
             <div
+              role="presentation"
               className="mt-2 flex flex-col gap-1.5"
               onClick={(e) => e.preventDefault()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
             >
               {task.documents.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />

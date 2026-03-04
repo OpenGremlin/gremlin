@@ -506,6 +506,8 @@ function OAuthDetailView({
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={3}
+                    role="img"
+                    aria-label="Checked"
                   >
                     <path
                       strokeLinecap="round"
@@ -579,7 +581,7 @@ export function IntegrationDetailPage() {
           refetch={refetch}
         />
       ) : (
-        <OAuthDetailView provider={provider} id={id!} />
+        <OAuthDetailView provider={provider} id={id ?? ""} />
       )}
     </div>
   );

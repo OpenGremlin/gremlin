@@ -26,7 +26,7 @@ export function useTaskChatMessages(taskId: string, initialLogs: LogEdge[]) {
     if (initialLogs.length > 0) {
       setMessages(initialLogs.map((e) => e.node));
     }
-  }, [taskId, initialLogs]);
+  }, [initialLogs]);
 
   // Subscribe to new messages via SSE
   useSubscription(

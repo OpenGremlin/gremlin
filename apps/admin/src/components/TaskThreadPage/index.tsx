@@ -22,7 +22,7 @@ type Task = NonNullable<TaskQueryType["task"]>;
 
 export function TaskThreadPage() {
   const { taskId } = useParams<{ taskId: string }>();
-  const { data, loading, error } = useQuery(TaskQuery, { id: taskId! });
+  const { data, loading, error } = useQuery(TaskQuery, { id: taskId ?? "" });
 
   const [task, setTask] = useState<Task | null>(null);
 
@@ -34,7 +34,7 @@ export function TaskThreadPage() {
   // Live-update task header
   useSubscription(
     TaskUpdatedSubscription,
-    { taskId: taskId! },
+    { taskId: taskId ?? "" },
     useCallback((update) => {
       setTask((prev) =>
         prev ? ({ ...prev, ...update.taskUpdated } as Task) : prev,
@@ -43,7 +43,10 @@ export function TaskThreadPage() {
   );
 
   const logEdges = data?.task?.logs.edges ?? [];
-  const { messages, isAgentActive } = useTaskChatMessages(taskId!, logEdges);
+  const { messages, isAgentActive } = useTaskChatMessages(
+    taskId ?? "",
+    logEdges,
+  );
 
   const docs = task?.documents ?? [];
 
@@ -73,7 +76,7 @@ export function TaskThreadPage() {
     } finally {
       setSending(false);
     }
-  }, [input, task, taskId, sending]);
+  }, [input, task, taskId, sending, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;

@@ -5,8 +5,8 @@ import { wsClient } from "./wsClient";
 /**
  * WebSocket-based GraphQL subscription hook.
  */
-// biome-ignore lint: any is needed to accept all TypedDocumentString variable types
 export function useSubscription<TResult>(
+  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
   query: TypedDocumentString<TResult, any> | string,
   variables: Record<string, unknown>,
   onData: (data: TResult) => void,

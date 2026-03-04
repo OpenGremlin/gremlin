@@ -9,8 +9,6 @@ import { useSubscription } from "../../../useSubscription";
 
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 
-type AgentLogConnection = AgentLogsQuery["agentLogs"];
-
 const PAGE_SIZE = 20;
 
 export function useChatMessages(agentId: string) {

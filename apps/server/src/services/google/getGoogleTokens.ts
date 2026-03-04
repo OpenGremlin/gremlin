@@ -12,7 +12,7 @@ const REFRESH_BUFFER_MS = 5 * 60 * 1000; // 5 minutes
  */
 export async function getGoogleAccessToken(
   resources: Resources,
-  userId: string,
+  _userId: string,
 ): Promise<string> {
   const { Items = [] } = await resources.ddb.secretsTable
     .build(QueryCommand)
@@ -37,7 +37,7 @@ export async function getGoogleAccessToken(
   const now = Date.now();
 
   if (now < expiresAt - REFRESH_BUFFER_MS) {
-    return meta.accessToken!;
+    return meta.accessToken as string;
   }
 
   // Refresh the token
