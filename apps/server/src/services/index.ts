@@ -17,6 +17,7 @@ import {
   type NotificationService,
   notificationService,
 } from "./notifications/index.js";
+import { type OAuthService, oauthService } from "./oauth/index.js";
 import {
   type OrchestratorService,
   orchestratorService,
@@ -38,6 +39,7 @@ export interface Services {
   jobs: JobService;
   integrations: IntegrationService;
   notifications: NotificationService;
+  oauth: OAuthService;
 
   profile: ProfileService;
   skills: SkillService;
@@ -59,6 +61,7 @@ export function createServices(): Services {
     jobs: jobService,
     integrations: integrationService,
     notifications: notificationService,
+    oauth: oauthService,
 
     profile: profileService,
     skills: skillService,

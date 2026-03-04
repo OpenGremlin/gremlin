@@ -26,7 +26,7 @@ export interface IntegrationProviderDef {
   service: string;
   category: IntegrationCategory;
   description: string;
-  connectionType: "oauth" | "apikey" | "bedrock";
+  connectionType: "oauth" | "apikey" | "bedrock" | "custom";
   availableScopes: AvailableScope[];
   models?: ModelDef[];
 }
@@ -304,7 +304,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "Trello",
     category: "productivity",
     description: "Boards & Cards",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "read", label: "Read Boards" },
       { scope: "write", label: "Create & Move Cards" },
@@ -316,7 +316,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "Slack",
     category: "communication",
     description: "Channels & Direct Messages",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "channels:read", label: "Read Channels" },
       { scope: "chat:write", label: "Send Messages" },
@@ -349,7 +349,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "Telegram",
     category: "communication",
     description: "Chats & Channels",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
@@ -360,7 +360,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "WhatsApp",
     category: "communication",
     description: "Messages & Groups",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
@@ -418,7 +418,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "Philips Hue",
     category: "smart_home",
     description: "Lights & Scenes",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "lights:read", label: "Read Light State" },
       { scope: "lights:write", label: "Control Lights" },
@@ -429,7 +429,7 @@ export const providers: IntegrationProviderDef[] = [
     service: "Home Assistant",
     category: "smart_home",
     description: "Devices & Automations",
-    connectionType: "oauth",
+    connectionType: "custom",
     availableScopes: [
       { scope: "state:read", label: "Read Device State" },
       { scope: "service:call", label: "Control Devices" },

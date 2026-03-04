@@ -580,6 +580,11 @@ export function IntegrationDetailPage() {
           defaultModel={defaultModel ?? null}
           refetch={refetch}
         />
+      ) : provider.connectionType === "custom" ? (
+        <p className="text-sm text-neutral-500 mt-4">
+          This integration requires a custom connection flow that is not yet
+          supported.
+        </p>
       ) : (
         <OAuthDetailView provider={provider} id={id ?? ""} />
       )}

@@ -1,4 +1,6 @@
 import type { ServiceContext } from "../context.js";
+import { oauthConfigs } from "../oauth/configs.js";
+import { generateAuthUrl } from "../oauth/generateAuthUrl.js";
 import { providers } from "./providers.js";
 
 export async function connectIntegration(
@@ -9,10 +11,9 @@ export async function connectIntegration(
   const def = providers.find((p) => p.id === providerId);
   if (!def) throw new Error(`Unknown provider: ${providerId}`);
 
-  switch (providerId) {
-    case "google":
-      return ctx.services.google.generateGoogleAuthUrl(ctx, scopes);
-    default:
-      throw new Error(`Provider "${providerId}" does not support connect yet`);
+  if (oauthConfigs.has(providerId)) {
+    return generateAuthUrl(ctx, providerId, scopes);
   }
+
+  throw new Error(`Provider "${providerId}" does not support connect yet`);
 }
