@@ -273,7 +273,7 @@ export function JobDetailPage() {
             setDeleting(true);
             try {
               await gql<DeleteAgentJobMutation>(DeleteAgentJobDoc, { id });
-              navigate("/scheduler");
+              navigate("/settings/scheduler");
             } catch (err) {
               console.error("Failed to delete job:", err);
               setDeleting(false);

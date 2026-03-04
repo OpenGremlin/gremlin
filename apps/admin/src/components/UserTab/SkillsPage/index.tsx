@@ -31,7 +31,7 @@ export function SkillsPage() {
         {filtered.map((skill) => (
           <Link
             key={skill.id}
-            to={`/skills/${skill.id}`}
+            to={`/settings/skills/${skill.id}`}
             className="bg-neutral-900 rounded-xl p-4 block transition-colors hover:bg-neutral-800/60"
           >
             <div className="flex items-center justify-between mb-1">

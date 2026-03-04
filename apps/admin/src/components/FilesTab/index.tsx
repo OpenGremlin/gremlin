@@ -75,7 +75,7 @@ export function FilesTab() {
               if (entry.isDirectory) {
                 navigateToDir(entry.path);
               } else {
-                navigate(`/files/view?path=${encodeURIComponent(entry.path)}`);
+                navigate(`/settings/files/view?path=${encodeURIComponent(entry.path)}`);
               }
             }}
             className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-neutral-900 transition-colors"

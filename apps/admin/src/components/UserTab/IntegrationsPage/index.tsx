@@ -150,7 +150,7 @@ export function IntegrationsPage() {
               {connectionList.map((conn) => (
                 <Link
                   key={conn.id}
-                  to={`/connections/${conn.id}`}
+                  to={`/settings/connections/${conn.id}`}
                   className="flex items-center gap-3 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800"
                 >
                   <IntegrationLogo id={conn.providerId} />
@@ -195,7 +195,7 @@ export function IntegrationsPage() {
                 return (
                   <Link
                     key={provider.id}
-                    to={`/integrations/${provider.id}`}
+                    to={`/settings/integrations/${provider.id}`}
                     className={`flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer ${connected ? "ring-1 ring-emerald-500/40" : ""}`}
                   >
                     <IntegrationLogo id={provider.id} />

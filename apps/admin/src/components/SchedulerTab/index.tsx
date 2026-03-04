@@ -17,7 +17,7 @@ export function SchedulerTab() {
     <div>
       <PageHeader title="Scheduler">
         <Link
-          to="/scheduler/new"
+          to="/settings/scheduler/new"
           className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
         >
           <Plus size={14} />
@@ -31,7 +31,7 @@ export function SchedulerTab() {
         {jobs.map((job) => (
           <Link
             key={job.id}
-            to={`/scheduler/${job.id}`}
+            to={`/settings/scheduler/${job.id}`}
             className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
           >
             <div className="flex items-center gap-3">

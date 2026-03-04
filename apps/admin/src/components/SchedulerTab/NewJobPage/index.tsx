@@ -39,7 +39,7 @@ export function NewJobPage() {
           agentId: agentId || undefined,
         },
       });
-      navigate(`/scheduler/${result.createAgentJob.id}`);
+      navigate(`/settings/scheduler/${result.createAgentJob.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

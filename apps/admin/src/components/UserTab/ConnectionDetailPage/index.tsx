@@ -103,7 +103,7 @@ export function ConnectionDetailPage() {
         RevokeConnectionMutation,
         { id },
       );
-      navigate("/user/integrations");
+      navigate("/settings/integrations");
     } catch {
       setRevoking(false);
     }
@@ -112,7 +112,7 @@ export function ConnectionDetailPage() {
   return (
     <div className="px-4 pt-6 pb-6">
       <div className="flex items-center justify-between">
-        <BackButton to="/user/integrations" />
+        <BackButton to="/settings/integrations" />
         <button
           type="button"
           onClick={handleRevoke}

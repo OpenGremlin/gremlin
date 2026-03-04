@@ -1,4 +1,13 @@
-import { AlignLeft, Calendar, FolderOpen, Star, User } from "lucide-react";
+import {
+  Bot,
+  Calendar,
+  FolderOpen,
+  Home,
+  Plug,
+  Settings,
+  User,
+  Wand2,
+} from "lucide-react";
 import {
   BrowserRouter,
   Navigate,
@@ -6,9 +15,8 @@ import {
   Outlet,
   Route,
   Routes,
+  useLocation,
 } from "react-router-dom";
-import { NotificationsQuery } from "../../graphql/queries";
-import { useQuery } from "../../useQuery";
 import { AgentsTab } from "../AgentsTab";
 import { FilesTab } from "../FilesTab";
 import { FileViewPage } from "../FilesTab/FileViewPage";
@@ -19,58 +27,89 @@ import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { NewJobPage } from "../SchedulerTab/NewJobPage";
 import { TasksTab } from "../TasksTab";
 import { TaskThreadPage } from "../TaskThreadPage";
-import { UserTab } from "../UserTab";
 
 import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
+import { IntegrationsPage } from "../UserTab/IntegrationsPage";
+import { ProfilePage } from "../UserTab/ProfilePage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
+import { SkillsPage } from "../UserTab/SkillsPage";
 
-function TabShell() {
-  const { data } = useQuery(NotificationsQuery);
-  const pendingCount =
-    data?.notifications?.filter((n) => n.status === "PENDING").length ?? 0;
+const settingsItems = [
+  { to: "/settings/scheduler", label: "Scheduler", icon: Calendar },
+  { to: "/settings/files", label: "Files", icon: FolderOpen },
+  { to: "/settings/integrations", label: "Connect", icon: Plug },
+  { to: "/settings/skills", label: "Skills", icon: Wand2 },
+  { to: "/settings/profile", label: "Profile", icon: User },
+];
 
-  const tabs = [
-    { to: "/home", label: "Home", icon: AlignLeft, badge: 0 },
-    { to: "/scheduler", label: "Scheduler", icon: Calendar, badge: 0 },
-    { to: "/agents", label: "Agents", icon: Star, badge: 0 },
-    { to: "/files", label: "Files", icon: FolderOpen, badge: 0 },
-    {
-      to: "/user/notifications",
-      label: "User",
-      icon: User,
-      badge: pendingCount,
-    },
-  ];
+function AppShell() {
+  const location = useLocation();
+  const isSettingsRoute = location.pathname.startsWith("/settings");
 
   return (
-    <div className="flex flex-col h-dvh bg-neutral-950 max-w-lg mx-auto">
-      <div className="flex-1 overflow-y-auto pb-16">
+    <div className="flex flex-row h-dvh bg-neutral-950">
+      {/* Left icon rail */}
+      <nav className="w-16 shrink-0 bg-neutral-950 border-r border-neutral-800 flex flex-col items-center gap-1 pt-4">
+        <NavLink
+          to="/home"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
+              isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+            }`
+          }
+        >
+          <Home size={22} />
+          Home
+        </NavLink>
+        <NavLink
+          to="/agents"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
+              isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+            }`
+          }
+        >
+          <Bot size={22} />
+          Agents
+        </NavLink>
+        <NavLink
+          to="/settings/scheduler"
+          className={`flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
+            isSettingsRoute ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+          }`}
+        >
+          <Settings size={22} />
+          Settings
+        </NavLink>
+      </nav>
+
+      {/* Settings secondary rail */}
+      {isSettingsRoute && (
+        <nav className="w-16 shrink-0 bg-neutral-900 border-r border-neutral-800 flex flex-col items-center gap-1 pt-4">
+          {settingsItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? "text-indigo-400"
+                    : "text-neutral-500 hover:text-neutral-300"
+                }`
+              }
+            >
+              <item.icon size={20} />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+
+      {/* Content area */}
+      <div className="flex-1 overflow-y-auto">
         <Outlet />
       </div>
-      <nav className="flex items-center justify-around border-t border-neutral-800 bg-neutral-950/90 backdrop-blur-sm pt-2 pb-2">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 text-[11px] px-3 py-1 transition-colors ${
-                isActive ? "text-indigo-400" : "text-neutral-500"
-              }`
-            }
-          >
-            <span className="relative">
-              <tab.icon size={20} />
-              {tab.badge > 0 && (
-                <span className="absolute -top-1 -right-1.5 bg-indigo-500 text-white text-[9px] font-bold leading-none min-w-[14px] h-[14px] flex items-center justify-center rounded-full px-0.5">
-                  {tab.badge}
-                </span>
-              )}
-            </span>
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
     </div>
   );
 }
@@ -79,27 +118,51 @@ export function RouterApp() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<TabShell />}>
+        <Route element={<AppShell />}>
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="home" element={<TasksTab />} />
-          <Route path="scheduler" element={<SchedulerTab />} />
-          <Route path="scheduler/new" element={<NewJobPage />} />
-          <Route path="scheduler/:id" element={<JobDetailPage />} />
-          <Route
-            path="user"
-            element={<Navigate to="/user/notifications" replace />}
-          />
-          <Route path="user/:pill" element={<UserTab />} />
 
-          <Route path="integrations/:id" element={<IntegrationDetailPage />} />
-          <Route path="connections/:id" element={<ConnectionDetailPage />} />
-          <Route path="skills/:id" element={<SkillDetailPage />} />
           <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />
-          <Route path="files" element={<FilesTab />} />
-          <Route path="files/view" element={<FileViewPage />} />
+
+          <Route
+            path="settings"
+            element={<Navigate to="/settings/scheduler" replace />}
+          />
+          <Route path="settings/scheduler" element={<SchedulerTab />} />
+          <Route path="settings/scheduler/new" element={<NewJobPage />} />
+          <Route path="settings/scheduler/:id" element={<JobDetailPage />} />
+          <Route path="settings/files" element={<FilesTab />} />
+          <Route path="settings/files/view" element={<FileViewPage />} />
+          <Route path="settings/integrations" element={<IntegrationsPage />} />
+          <Route
+            path="settings/integrations/:id"
+            element={<IntegrationDetailPage />}
+          />
+          <Route path="settings/skills" element={<SkillsPage />} />
+          <Route path="settings/skills/:id" element={<SkillDetailPage />} />
+          <Route path="settings/profile" element={<ProfilePage />} />
+          <Route
+            path="settings/connections/:id"
+            element={<ConnectionDetailPage />}
+          />
+
           <Route path="tasks/:taskId" element={<TaskThreadPage />} />
+
+          {/* Legacy redirects */}
+          <Route
+            path="scheduler/*"
+            element={<Navigate to="/settings/scheduler" replace />}
+          />
+          <Route
+            path="files/*"
+            element={<Navigate to="/settings/files" replace />}
+          />
+          <Route
+            path="user/*"
+            element={<Navigate to="/settings/profile" replace />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
