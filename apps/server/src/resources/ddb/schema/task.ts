@@ -4,6 +4,7 @@ import { item } from "dynamodb-toolbox/schema/item";
 import { list } from "dynamodb-toolbox/schema/list";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
+
 import { GremlinTable } from "../table.js";
 
 export const TaskEntity = new Entity({
@@ -14,7 +15,6 @@ export const TaskEntity = new Entity({
     id: string().key(),
     agentId: string(),
     title: string(),
-    status: string(),
     message: anyOf(string(), nul()),
     createdAt: string(),
     updatedAt: string(),

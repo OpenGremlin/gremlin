@@ -2,7 +2,6 @@ import { Link, useParams } from "react-router-dom";
 import { TaskLogsQuery, TaskQuery } from "../../../graphql/queries";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
-import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { usePaginatedQuery } from "../../../usePaginatedQuery";
@@ -55,12 +54,9 @@ export function TaskDetailPage() {
           {item.title}
         </h1>
 
-        <div className="mt-2 flex items-center gap-2">
-          <Badge label={item.status} />
-          {item.message && (
-            <span className="text-xs text-neutral-500">{item.message}</span>
-          )}
-        </div>
+        {item.message && (
+          <p className="text-xs text-neutral-500 mt-2">{item.message}</p>
+        )}
 
         <div className="mt-2 text-xs text-neutral-500 space-y-0.5">
           {item.updatedAt && <p>Updated: {formatDate(item.updatedAt)}</p>}

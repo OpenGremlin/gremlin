@@ -1,7 +1,4 @@
-import { useState } from "react";
-import type { AgentStatus } from "../graphql/generated/graphql";
 import { AgentQuery } from "../graphql/queries";
-import { useAgentUpdates } from "../subscriptions";
 import { useQuery } from "../useQuery";
 
 export function AgentAvatar({
@@ -10,33 +7,15 @@ export function AgentAvatar({
 }: { id: string; size?: number }) {
   const { data } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
-  const [status, setStatus] = useState<AgentStatus | null>(null);
-
-  useAgentUpdates(id, (update) =>
-    setStatus((update as { status: AgentStatus }).status),
-  );
-
-  const effectiveStatus = status ?? agent?.status ?? "IDLE";
-
-  const ringClass = `avatar-ring ${
-    effectiveStatus === "ACTIVE"
-      ? "avatar-ring-active"
-      : effectiveStatus === "SCHEDULED"
-        ? "avatar-ring-scheduled"
-        : effectiveStatus === "BLOCKED"
-          ? "avatar-ring-blocked"
-          : "avatar-ring-idle"
-  }`;
-
   const name = agent?.name ?? "";
 
   return (
     <div
       style={{ width: size, height: size }}
-      className={`shrink-0 flex items-center justify-center ${ringClass}`}
+      className="shrink-0 flex items-center justify-center"
     >
       <div
-        className={`w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium`}
+        className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium"
       >
         {agent?.imageUrl && (
           <img

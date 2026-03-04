@@ -1,18 +1,15 @@
 import { useState } from "react";
 import {
-  AlertCircle,
-  CheckCircle,
+  Check,
   ChevronRight,
   Code,
   ExternalLink,
   Loader2,
-  Pause,
-  XCircle,
 } from "lucide-react";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
 import type { ChatMessage } from "../useChatMessages";
-import { useTaskStatus } from "./useTaskStatus";
+import { useTaskInfo } from "./useTaskInfo";
 
 function safeParseJson(
   s: string | null | undefined,
@@ -86,22 +83,6 @@ function resolveToolFields(entry: ChatMessage) {
   return { name: "tool", input: null, result: null };
 }
 
-const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
-
-function StatusIcon({ status, active }: { status: string; active: boolean }) {
-  if (active)
-    return <Loader2 size={12} className="animate-spin shrink-0 text-blue-400" />;
-  if (status === "COMPLETED")
-    return <CheckCircle size={12} className="text-green-400 shrink-0" />;
-  if (status === "FAILED")
-    return <XCircle size={12} className="text-red-400 shrink-0" />;
-  if (status === "ABANDONED")
-    return <AlertCircle size={12} className="text-neutral-400 shrink-0" />;
-  if (status === "WAITING")
-    return <Pause size={12} className="text-amber-400 shrink-0" />;
-  return <CheckCircle size={12} className="text-neutral-600 shrink-0" />;
-}
-
 function DelegateTaskCard({
   id,
   taskId,
@@ -115,12 +96,9 @@ function DelegateTaskCard({
   createdAt: string;
   onTaskClick?: (taskId: string) => void;
 }) {
-  const task = useTaskStatus(taskId);
+  const task = useTaskInfo(taskId);
   const [imgError, setImgError] = useState(false);
   const clickable = !!(taskId && onTaskClick);
-  const statuses = task?.statuses ?? [];
-  const current = statuses[statuses.length - 1];
-  const isActive = current ? ACTIVE_STATUSES.has(current.status) : false;
 
   return (
     <div id={id} className="py-1">
@@ -156,23 +134,19 @@ function DelegateTaskCard({
               )}
             </span>
             <div className="mt-2 space-y-1.5 max-h-[4.5rem] overflow-hidden relative">
-              {[...statuses].reverse().map((s, i) => {
-                const isLast = i === 0;
-                const active = isLast && ACTIVE_STATUSES.has(s.status);
-                return (
-                  <div
-                    key={`${s.status}-${i}`}
-                    className={`text-xs flex items-center gap-1.5 ${isLast ? "text-neutral-400" : "text-neutral-500"}`}
-                  >
-                    <StatusIcon status={s.status} active={active} />
-                    <span>{s.message || s.status}</span>
-                  </div>
-                );
-              })}
-              {statuses.length === 0 && (
+              {task?.messages && [...task.messages].reverse().map((msg, i) => (
+                <div
+                  key={`${msg}-${i}`}
+                  className={`text-xs flex items-center gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
+                >
+                  <Check size={10} className="shrink-0 opacity-40" />
+                  <span>{msg}</span>
+                </div>
+              ))}
+              {(!task?.messages || task.messages.length === 0) && (
                 <span className="text-xs text-neutral-500">Delegated task</span>
               )}
-              {statuses.length > 2 && (
+              {task?.messages && task.messages.length > 2 && (
                 <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-indigo-950 to-transparent pointer-events-none" />
               )}
             </div>
@@ -257,41 +231,12 @@ export function LogEntryView({
     case "TOOL": {
       const tool = resolveToolFields(entry);
 
-      if (tool.name === "updateTaskStatus") {
-        const status = tool.input?.status as string | undefined;
+      if (tool.name === "updateTaskStatus" || tool.name === "updateTaskMessage") {
         const message = tool.input?.message as string | undefined;
-        const isActive =
-          (status === "RUNNING" || status === "WAITING") && isLast;
-        const StatusIcon =
-          status === "COMPLETED"
-            ? CheckCircle
-            : status === "FAILED"
-              ? XCircle
-              : status === "ABANDONED"
-                ? AlertCircle
-                : status === "WAITING" && !isLast
-                  ? Pause
-                  : isActive
-                    ? Loader2
-                    : CheckCircle;
-        const iconClass =
-          status === "COMPLETED"
-            ? "text-green-500"
-            : status === "FAILED"
-              ? "text-red-400"
-              : status === "ABANDONED"
-                ? "text-neutral-400"
-                : status === "WAITING" && !isLast
-                  ? "text-amber-400"
-                  : isActive
-                    ? "text-blue-400 animate-spin"
-                    : "text-green-500";
-
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
-            <StatusIcon size={14} className={`shrink-0 mt-0.5 ${iconClass}`} />
             <span className="text-xs text-neutral-400 italic">
-              {message || status || "Status update"}
+              {message || "Progress update"}
             </span>
           </div>
         );

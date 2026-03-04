@@ -1,11 +1,4 @@
 export const agentTypeDefs = /* GraphQL */ `
-  enum AgentStatus {
-    ACTIVE
-    SCHEDULED
-    IDLE
-    BLOCKED
-  }
-
   type Agent {
     id: ID!
     name: String!
@@ -13,8 +6,6 @@ export const agentTypeDefs = /* GraphQL */ `
     portraitId: String!
     imageUrl(width: Int): String!
     soul: String!
-    status: AgentStatus!
-    statusReason: String
   }
 
   extend type Query {
@@ -30,7 +21,6 @@ export const agentTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     updateAgent(id: ID!, input: UpdateAgentInput!): Agent
-    updateAgentStatus(id: ID!, status: AgentStatus!): Agent
   }
 
   extend type Subscription {

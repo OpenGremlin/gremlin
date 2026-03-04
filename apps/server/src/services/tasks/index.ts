@@ -4,7 +4,7 @@ import { getAllTasks } from "./getAllTasks.js";
 import { getTask } from "./getTask.js";
 import { getTasksByAgent } from "./getTasksByAgent.js";
 import { selectAndSetTaskImage } from "./selectTaskImage.js";
-import { updateTaskStatus } from "./updateTaskStatus.js";
+import { updateTaskMessage } from "./updateTaskMessage.js";
 
 export const taskService = {
   addTaskArtifact,
@@ -13,7 +13,7 @@ export const taskService = {
   getTask,
   getTasksByAgent,
   selectAndSetTaskImage,
-  updateTaskStatus,
+  updateTaskMessage,
 };
 
 export type TaskService = typeof taskService;

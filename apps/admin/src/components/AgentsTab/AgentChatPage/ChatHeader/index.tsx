@@ -13,9 +13,6 @@ export function ChatHeader({ agent }: { agent: Agent }) {
       <h1 className="text-sm font-semibold text-neutral-100 mt-2">
         {agent.name}
       </h1>
-      {agent.statusReason && (
-        <p className="text-xs text-red-400/80 mt-1">{agent.statusReason}</p>
-      )}
     </div>
   );
 }

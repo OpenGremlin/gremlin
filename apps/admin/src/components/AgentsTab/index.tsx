@@ -37,11 +37,6 @@ export function AgentsTab() {
                 <p className="text-xs text-neutral-400 line-clamp-2">
                   {agent.soul}
                 </p>
-                {agent.statusReason && (
-                  <p className="text-xs text-red-400/80 mt-1">
-                    {agent.statusReason}
-                  </p>
-                )}
               </div>
             </Link>
             <Link

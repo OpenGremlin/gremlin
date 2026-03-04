@@ -5,7 +5,6 @@ export const taskSubscriptionManager = new SubscriptionManager(
   tasksUpdated(taskIds: $taskIds) {
     id
     title
-    status
     message
     updatedAt
     completedAt
@@ -26,8 +25,7 @@ export const agentSubscriptionManager = new SubscriptionManager(
   /* GraphQL */ `subscription AgentsUpdated($agentIds: [ID!]!) {
   agentsUpdated(agentIds: $agentIds) {
     id
-    status
-    statusReason
+    name
   }
 }`,
   "agentIds",

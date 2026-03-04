@@ -17,7 +17,6 @@ export async function createTask(
     id,
     agentId: input.agentId,
     title: input.title,
-    status: "PENDING" as const,
     message: null,
     createdAt: now,
     updatedAt: now,
@@ -45,9 +44,6 @@ export async function createTask(
       },
     }),
   );
-
-  // Notify subscribers so the agent status re-derives to ACTIVE
-  await ctx.services.agents.resolveAgentStatus(ctx, input.agentId);
 
   return item;
 }

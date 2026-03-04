@@ -39,8 +39,6 @@ export type Agent = {
   name: Scalars['String']['output'];
   portraitId: Scalars['String']['output'];
   soul: Scalars['String']['output'];
-  status: AgentStatus;
-  statusReason?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -101,13 +99,6 @@ export enum AgentLogRole {
   System = 'SYSTEM',
   Tool = 'TOOL',
   User = 'USER'
-}
-
-export enum AgentStatus {
-  Active = 'ACTIVE',
-  Blocked = 'BLOCKED',
-  Idle = 'IDLE',
-  Scheduled = 'SCHEDULED'
 }
 
 export type ApiKeyConnectionMeta = {
@@ -225,7 +216,6 @@ export type Mutation = {
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
-  updateAgentStatus?: Maybe<Agent>;
   updateDocument: Document;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
@@ -323,12 +313,6 @@ export type MutationUpdateAgentArgs = {
 export type MutationUpdateAgentJobArgs = {
   id: Scalars['ID']['input'];
   input: UpdateAgentJobInput;
-};
-
-
-export type MutationUpdateAgentStatusArgs = {
-  id: Scalars['ID']['input'];
-  status: AgentStatus;
 };
 
 
@@ -560,7 +544,6 @@ export type Task = {
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
-  status: TaskStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -597,15 +580,6 @@ export type TaskPageInfo = {
   hasPreviousPage: Scalars['Boolean']['output'];
   startCursor?: Maybe<Scalars['String']['output']>;
 };
-
-export enum TaskStatus {
-  Abandoned = 'ABANDONED',
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Running = 'RUNNING',
-  Waiting = 'WAITING'
-}
 
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
@@ -713,7 +687,6 @@ export type ResolversTypes = {
   AgentLogEdge: ResolverTypeWrapper<AgentLogEdgeModel>;
   AgentLogPageInfo: ResolverTypeWrapper<PageInfoModel>;
   AgentLogRole: AgentLogRole;
-  AgentStatus: AgentStatus;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
   Avatar: ResolverTypeWrapper<AvatarModel>;
@@ -746,7 +719,6 @@ export type ResolversTypes = {
   TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
-  TaskStatus: TaskStatus;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
   UpdateDocumentInput: UpdateDocumentInput;
@@ -801,8 +773,6 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['AgentStatus'], ParentType, ContextType>;
-  statusReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
@@ -932,7 +902,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
-  updateAgentStatus?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentStatusArgs, 'id' | 'status'>>;
   updateDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentArgs, 'id' | 'input'>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
@@ -1029,7 +998,6 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   originJobId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['TaskStatus'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

@@ -6,7 +6,6 @@ export const AgentsQuery = graphql(`
       id
       name
       soul
-      statusReason
     }
   }
 `);
@@ -20,8 +19,6 @@ export const AgentQuery = graphql(`
       portraitId
       imageUrl(width: 200)
       soul
-      status
-      statusReason
     }
   }
 `);
@@ -41,8 +38,7 @@ export const AgentUpdatedSubscription = graphql(`
   subscription AgentUpdated($agentId: ID!) {
     agentUpdated(agentId: $agentId) {
       id
-      status
-      statusReason
+      name
     }
   }
 `);

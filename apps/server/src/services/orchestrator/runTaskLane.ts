@@ -1,6 +1,5 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
-import { updateTaskStatus } from "../tasks/updateTaskStatus.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
@@ -23,7 +22,7 @@ import {
   recallMemoryTool,
   saveMemoryTool,
   updateDocumentTool,
-  updateTaskStatusTool,
+  updateTaskMessageTool,
 } from "./tools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -45,9 +44,6 @@ export async function runTaskLane(
     ctx.services.profile.getProfile(ctx, "default"),
   ]);
   if (!agent) throw new Error(`Agent ${task.agentId} not found`);
-
-  // Mark task as running
-  await updateTaskStatus(ctx, taskId, "RUNNING");
 
   // Log the prompt as a system message (only for initial delegation;
   // user follow-ups are already logged as USER by sendMessage)
@@ -100,7 +96,7 @@ export async function runTaskLane(
     messages,
     tools: {
       ...defaultTools,
-      updateTaskStatus: updateTaskStatusTool(ctx, taskId),
+      updateTaskMessage: updateTaskMessageTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
       saveMemory: saveMemoryTool(ctx, task.agentId),

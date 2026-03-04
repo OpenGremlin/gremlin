@@ -641,14 +641,14 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
 export type AgentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AgentsQuery = { __typename?: 'Query', agents: Array<{ __typename?: 'Agent', id: string, name: string, soul: string, statusReason?: string | null }> };
+export type AgentsQuery = { __typename?: 'Query', agents: Array<{ __typename?: 'Agent', id: string, name: string, soul: string }> };
 
 export type AgentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, status: AgentStatus, statusReason?: string | null } | null };
+export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string } | null };
 
 export type UpdateAgentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -663,7 +663,7 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, status: AgentStatus, statusReason?: string | null } };
+export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string } };
 
 export type DocumentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -855,14 +855,14 @@ export type TasksQueryVariables = Exact<{
 }>;
 
 
-export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } | null };
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, createdAt: string, updatedAt: string }> } | null };
 
 export type TaskLogsQueryVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -887,7 +887,7 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, status: TaskStatus, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', id: string, title: string, body: string, updatedAt: string }> } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -973,7 +973,6 @@ export const AgentsDocument = new TypedDocumentString(`
     id
     name
     soul
-    statusReason
   }
 }
     `) as unknown as TypedDocumentString<AgentsQuery, AgentsQueryVariables>;
@@ -986,8 +985,6 @@ export const AgentDocument = new TypedDocumentString(`
     portraitId
     imageUrl(width: 200)
     soul
-    status
-    statusReason
   }
 }
     `) as unknown as TypedDocumentString<AgentQuery, AgentQueryVariables>;
@@ -1005,8 +1002,7 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     subscription AgentUpdated($agentId: ID!) {
   agentUpdated(agentId: $agentId) {
     id
-    status
-    statusReason
+    name
   }
 }
     `) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;
@@ -1338,7 +1334,6 @@ export const TasksDocument = new TypedDocumentString(`
           name
         }
         title
-        status
         message
         createdAt
         imageUrl(width: 200)
@@ -1368,7 +1363,6 @@ export const TaskDocument = new TypedDocumentString(`
       id
     }
     title
-    status
     message
     createdAt
     updatedAt
@@ -1435,7 +1429,6 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
   taskUpdated(taskId: $taskId) {
     id
     title
-    status
     message
     updatedAt
     completedAt

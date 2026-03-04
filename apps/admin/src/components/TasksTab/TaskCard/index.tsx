@@ -1,4 +1,3 @@
-import { CheckCircle, Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
@@ -10,7 +9,6 @@ import { useTaskUpdates } from "../../../subscriptions";
 type TaskItem = {
   id: string;
   title: string;
-  status: string;
   createdAt: string;
   agent: { id: string; name?: string };
   message?: string | null;
@@ -23,8 +21,6 @@ type TaskItem = {
     updatedAt: string;
   }>;
 };
-
-const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
 
 export function TaskCard({ item }: { item: TaskItem }) {
   const [override, setOverride] = useState<Partial<TaskItem>>({});
@@ -71,17 +67,9 @@ export function TaskCard({ item }: { item: TaskItem }) {
             {task.title}
           </h3>
           {task.message && (
-            <div className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1.5 truncate">
-              {ACTIVE_STATUSES.has(task.status) ? (
-                <Loader2
-                  size={12}
-                  className="animate-spin shrink-0 text-blue-400"
-                />
-              ) : task.status === "COMPLETED" ? (
-                <CheckCircle size={12} className="shrink-0 text-green-500" />
-              ) : null}
-              <span className="truncate">{task.message}</span>
-            </div>
+            <p className="text-xs text-neutral-500 mt-0.5 truncate">
+              {task.message}
+            </p>
           )}
           {task.documents && task.documents.length > 0 && (
             // biome-ignore lint/a11y/noStaticElementInteractions: presentation role prevents parent link navigation

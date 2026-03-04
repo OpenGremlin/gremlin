@@ -6,7 +6,6 @@ import type {
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
-import { AgentStatus } from "../../resolverTypes.js";
 
 const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
   ctx.services.agents.getAgents(ctx);
@@ -19,21 +18,6 @@ const updateAgent: MutationResolvers["updateAgent"] = (
   { id, input },
   ctx,
 ) => ctx.services.agents.updateAgent(ctx, id, input);
-
-const updateAgentStatus: MutationResolvers["updateAgentStatus"] = (
-  _parent,
-  { id, status },
-  ctx,
-) => ctx.services.agents.updateAgentStatus(ctx, id, status);
-
-const NON_TERMINAL = new Set(["PENDING", "RUNNING", "WAITING"]);
-
-const status: AgentResolvers["status"] = async (parent, _args, ctx) => {
-  if (parent.blocked) return AgentStatus.Blocked;
-  const tasks = await ctx.loaders.tasksByAgentLoader.load(parent.id);
-  const hasActive = tasks.some((t) => NON_TERMINAL.has(t.status));
-  return hasActive ? AgentStatus.Active : AgentStatus.Idle;
-};
 
 const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
   ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.avatar, args.width);
@@ -63,7 +47,7 @@ const agentsUpdated = {
 
 export const agentResolvers = {
   Query: { agents, agent },
-  Mutation: { updateAgent, updateAgentStatus },
-  Agent: { status, imageUrl },
+  Mutation: { updateAgent },
+  Agent: { imageUrl },
   Subscription: { agentUpdated, agentsUpdated },
 };

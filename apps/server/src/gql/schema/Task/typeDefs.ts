@@ -1,18 +1,8 @@
 export const taskTypeDefs = /* GraphQL */ `
-  enum TaskStatus {
-    PENDING
-    RUNNING
-    WAITING
-    COMPLETED
-    FAILED
-    ABANDONED
-  }
-
   type Task {
     id: ID!
     agent: Agent!
     title: String!
-    status: TaskStatus!
     message: String
     createdAt: String!
     updatedAt: String!

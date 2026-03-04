@@ -12,7 +12,6 @@ export const TasksQuery = graphql(`
             name
           }
           title
-          status
           message
           createdAt
           imageUrl(width: 200)
@@ -43,7 +42,6 @@ export const TaskQuery = graphql(`
         id
       }
       title
-      status
       message
       createdAt
       updatedAt
@@ -107,7 +105,6 @@ export const TaskUpdatedSubscription = graphql(`
     taskUpdated(taskId: $taskId) {
       id
       title
-      status
       message
       updatedAt
       completedAt

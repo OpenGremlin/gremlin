@@ -1,7 +1,7 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { tool } from "ai";
 import { z } from "zod";
-import { AgentStatus, NotificationStatus } from "../../gql/resolverTypes.js";
+import { NotificationStatus } from "../../gql/resolverTypes.js";
 import type { ServiceContext } from "../context.js";
 import { applyPatches } from "../documents/applyPatches.js";
 
@@ -99,12 +99,6 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
         }),
       );
 
-      await ctx.services.agents.updateAgentStatus(
-        ctx,
-        agentId,
-        AgentStatus.Blocked,
-      );
-
       return { blocked: true, notificationId: id };
     },
   });
@@ -142,23 +136,20 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
   });
 }
 
-export function updateTaskStatusTool(ctx: ServiceContext, taskId: string) {
+export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Update the status of the current task. You MUST call this tool every time you make meaningful progress — not just at the end. Include a short, human-readable message summarizing what you just did or are about to do. Call with COMPLETED when you are done.",
+      "Post a short progress update for the current task. Call this frequently as you work — the user sees these messages in real time.",
     inputSchema: z.object({
-      status: z
-        .enum(["RUNNING", "WAITING", "COMPLETED", "FAILED", "ABANDONED"])
-        .describe("The new task status"),
       message: z
         .string()
         .describe(
-          "REQUIRED. A brief status update — aim for under 10 words. Examples: 'Brainstorming characters', 'Writing first draft', 'Polishing final version', 'Done — 1,200 words'.",
+          "A brief progress update — aim for under 10 words. Examples: 'Brainstorming characters', 'Writing first draft', 'Polishing final version', 'Done — 1,200 words'.",
         ),
     }),
-    execute: async ({ status, message }) => {
-      await ctx.services.tasks.updateTaskStatus(ctx, taskId, status, message);
-      return { taskId, status, message };
+    execute: async ({ message }) => {
+      await ctx.services.tasks.updateTaskMessage(ctx, taskId, message);
+      return { taskId, message };
     },
   });
 }
