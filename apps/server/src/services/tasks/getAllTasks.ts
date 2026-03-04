@@ -2,10 +2,23 @@ import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { ServiceContext } from "../context.js";
 import {
   buildConnection,
-  decodeCursor,
   type PaginationArgs,
   type TaskConnectionModel,
 } from "./pagination.js";
+
+/**
+ * Decode a task cursor. Handles both old format (just createdAt)
+ * and new format (createdAt#id) by extracting the id portion,
+ * which maps to the SK format `TASK#<id>`.
+ */
+function decodeTaskCursor(cursor: string): string {
+  const decoded = Buffer.from(cursor, "base64").toString("utf-8");
+  const hashIdx = decoded.indexOf("#");
+  // New format: createdAt#id → use id
+  if (hashIdx > 0) return decoded.slice(hashIdx + 1);
+  // Old format: just createdAt (shouldn't happen for tasks, but safe fallback)
+  return decoded;
+}
 
 export async function getAllTasks(
   ctx: ServiceContext,
@@ -18,9 +31,9 @@ export async function getAllTasks(
   const partition = "TASK";
 
   const rangeCondition = args.after
-    ? { gt: `TASK#${decodeCursor(args.after)}` }
+    ? { gt: `TASK#${decodeTaskCursor(args.after)}` }
     : args.before
-      ? { lt: `TASK#${decodeCursor(args.before)}` }
+      ? { lt: `TASK#${decodeTaskCursor(args.before)}` }
       : undefined;
 
   const query = ctx.resources.ddb.table
@@ -33,11 +46,11 @@ export async function getAllTasks(
     .options({ limit: fetchLimit, reverse: isBackward });
 
   const { Items } = await query.send();
-  let items = Items ?? [];
+  const items = [...(Items ?? [])];
 
   const hasMore = items.length > limit;
   if (hasMore) {
-    items = items.slice(0, limit);
+    items.length = limit;
   }
 
   if (isBackward) {

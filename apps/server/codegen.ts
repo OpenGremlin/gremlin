@@ -32,7 +32,6 @@ const config: CodegenConfig = {
           TaskConnection: "../services/tasks/pagination.js#TaskConnectionModel",
           TaskEdge: "../services/tasks/pagination.js#TaskEdgeModel",
           TaskPageInfo: "../services/tasks/pagination.js#TaskPageInfoModel",
-          InboxItem: "../resources/ddb/schema/inboxItem.js#InboxItemItem",
         },
       },
     },

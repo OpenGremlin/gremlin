@@ -9,7 +9,6 @@ type Query {
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
-  inboxItems(agentId: ID!): [InboxItem!]!
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
@@ -55,7 +54,6 @@ type Subscription {
   agentLogCreated(agentId: ID!): AgentLog!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
-  inboxItemCreated(agentId: ID!): InboxItem!
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
@@ -180,15 +178,6 @@ type Avatar {
   id: ID!
   name: String!
   url(width: Int): String!
-}
-
-type InboxItem {
-  id: ID!
-  agentId: ID!
-  type: String!
-  payload: String!
-  isRead: Boolean!
-  createdAt: String!
 }
 
 type AvailableScope {

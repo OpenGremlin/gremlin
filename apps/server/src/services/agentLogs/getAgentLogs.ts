@@ -1,4 +1,5 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
+import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
 import {
   type AgentLogConnectionModel,
@@ -12,11 +13,22 @@ export async function getAgentLogs(
   agentId: string,
   args: PaginationArgs = {},
 ): Promise<AgentLogConnectionModel> {
+  return queryLogs(ctx, `LOG_AGENT#${agentId}`, args);
+}
+
+/**
+ * Paginate agent logs on a GSI1 partition, filtering out internal
+ * tool entries in application code (not DDB) so that `hasMore` and
+ * cursor math are always correct.
+ */
+export async function queryLogs(
+  ctx: ServiceContext,
+  partition: string,
+  args: PaginationArgs,
+): Promise<AgentLogConnectionModel> {
   const isBackward = args.last != null;
   const limit = args.first ?? args.last ?? 50;
-  const fetchLimit = limit * 2 + 1;
-
-  const partition = `LOG_AGENT#${agentId}`;
+  const need = limit + 1; // one extra to determine hasMore
 
   const rangeCondition = args.after
     ? { gt: decodeCursor(args.after) }
@@ -24,27 +36,40 @@ export async function getAgentLogs(
       ? { lt: decodeCursor(args.before) }
       : undefined;
 
-  const query = ctx.resources.ddb.table
-    .build(QueryCommand)
-    .entities(ctx.resources.ddb.entities.AgentLog)
-    .query({
-      index: "gsi1",
-      partition,
-      ...(rangeCondition && { range: rangeCondition }),
-    })
-    .options({
-      limit: fetchLimit,
-      reverse: isBackward,
-      filters: { AgentLog: { attr: "internal", ne: true } },
-    });
+  const collected: AgentLogItem[] = [];
+  let exclusiveStartKey: Record<string, unknown> | undefined;
 
-  const { Items } = await query.send();
-  let items = Items ?? [];
+  while (collected.length < need) {
+    const query = ctx.resources.ddb.table
+      .build(QueryCommand)
+      .entities(ctx.resources.ddb.entities.AgentLog)
+      .query({
+        index: "gsi1",
+        partition,
+        ...(rangeCondition && { range: rangeCondition }),
+      })
+      .options({
+        limit: need * 2,
+        reverse: isBackward,
+        ...(exclusiveStartKey && { exclusiveStartKey }),
+      });
 
-  const hasMore = items.length > limit;
-  if (hasMore) {
-    items = items.slice(0, limit);
+    const result = await query.send();
+    const page = result.Items ?? [];
+
+    for (const item of page) {
+      if (!item.internal) {
+        collected.push(item);
+        if (collected.length >= need) break;
+      }
+    }
+
+    if (!result.LastEvaluatedKey) break;
+    exclusiveStartKey = result.LastEvaluatedKey;
   }
+
+  const hasMore = collected.length > limit;
+  const items = hasMore ? collected.slice(0, limit) : collected;
 
   if (isBackward) {
     items.reverse();

@@ -53,7 +53,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
         gsi1pk: entry.taskId
           ? `LOG_TASK#${entry.taskId}`
           : `LOG_AGENT#${entry.agentId}`,
-        gsi1sk: now,
+        gsi1sk: `${now}#${id}`,
       },
     }),
   );

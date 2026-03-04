@@ -148,16 +148,6 @@ export type Document = {
   updatedAt: Scalars['String']['output'];
 };
 
-export type InboxItem = {
-  __typename?: 'InboxItem';
-  agentId: Scalars['ID']['output'];
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  isRead: Scalars['Boolean']['output'];
-  payload: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
 export type IntegrationConnection = {
   __typename?: 'IntegrationConnection';
   connectedAt: Scalars['String']['output'];
@@ -409,7 +399,6 @@ export type Query = {
   defaultModel?: Maybe<DefaultModel>;
   document?: Maybe<Document>;
   documents: Array<Document>;
-  inboxItems: Array<InboxItem>;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
@@ -444,11 +433,6 @@ export type QueryAgentLogsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryInboxItemsArgs = {
-  agentId: Scalars['ID']['input'];
 };
 
 
@@ -504,7 +488,6 @@ export type Subscription = {
   agentsUpdated: Agent;
   documentUpdated: Document;
   documentsUpdated: Document;
-  inboxItemCreated: InboxItem;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
   tasksUpdated: Task;
@@ -533,11 +516,6 @@ export type SubscriptionDocumentUpdatedArgs = {
 
 export type SubscriptionDocumentsUpdatedArgs = {
   documentIds: Array<Scalars['ID']['input']>;
-};
-
-
-export type SubscriptionInboxItemCreatedArgs = {
-  agentId: Scalars['ID']['input'];
 };
 
 
@@ -700,20 +678,6 @@ export type DocumentUpdatedSubscriptionVariables = Exact<{
 
 
 export type DocumentUpdatedSubscription = { __typename?: 'Subscription', documentUpdated: { __typename?: 'Document', id: string, title: string, body: string, updatedAt: string } };
-
-export type InboxItemsQueryVariables = Exact<{
-  agentId: Scalars['ID']['input'];
-}>;
-
-
-export type InboxItemsQuery = { __typename?: 'Query', inboxItems: Array<{ __typename?: 'InboxItem', id: string, agentId: string, type: string, payload: string, isRead: boolean, createdAt: string }> };
-
-export type InboxItemCreatedSubscriptionVariables = Exact<{
-  agentId: Scalars['ID']['input'];
-}>;
-
-
-export type InboxItemCreatedSubscription = { __typename?: 'Subscription', inboxItemCreated: { __typename?: 'InboxItem', id: string, agentId: string, type: string, payload: string, isRead: boolean, createdAt: string } };
 
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1067,30 +1031,6 @@ export const DocumentUpdatedDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DocumentUpdatedSubscription, DocumentUpdatedSubscriptionVariables>;
-export const InboxItemsDocument = new TypedDocumentString(`
-    query InboxItems($agentId: ID!) {
-  inboxItems(agentId: $agentId) {
-    id
-    agentId
-    type
-    payload
-    isRead
-    createdAt
-  }
-}
-    `) as unknown as TypedDocumentString<InboxItemsQuery, InboxItemsQueryVariables>;
-export const InboxItemCreatedDocument = new TypedDocumentString(`
-    subscription InboxItemCreated($agentId: ID!) {
-  inboxItemCreated(agentId: $agentId) {
-    id
-    agentId
-    type
-    payload
-    isRead
-    createdAt
-  }
-}
-    `) as unknown as TypedDocumentString<InboxItemCreatedSubscription, InboxItemCreatedSubscriptionVariables>;
 export const IntegrationProvidersDocument = new TypedDocumentString(`
     query IntegrationProviders {
   integrationProviders {

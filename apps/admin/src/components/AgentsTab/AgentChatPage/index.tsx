@@ -1,16 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import type { SendMessageMutation as SendMessageResult } from "../../../graphql/generated/graphql";
 import { AgentQuery, SendMessageMutation } from "../../../graphql/queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
-import { InboxQueue } from "./InboxQueue";
 import { LogEntryView } from "./LogEntryView";
 import { useChatMessages } from "./useChatMessages";
-import { useInboxItems } from "./useInboxItems";
 
 export function AgentChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,9 +19,7 @@ export function AgentChatPage() {
     hasMore,
     loadMore,
     isAgentActive,
-    appendNode: appendMessage,
   } = useChatMessages(id ?? "");
-  const { items: inboxItems } = useInboxItems(id ?? "");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -51,17 +46,13 @@ export function AgentChatPage() {
     setSending(true);
     scrollToBottom();
     try {
-      const result = await gql<SendMessageResult>(SendMessageMutation, {
-        agentId: id,
-        content,
-      });
-      appendMessage(result.sendMessage);
+      await gql(SendMessageMutation, { agentId: id, content });
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {
       setSending(false);
     }
-  }, [input, id, sending, scrollToBottom, appendMessage]);
+  }, [input, id, sending, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -119,8 +110,6 @@ export function AgentChatPage() {
           )}
         </div>
       </div>
-
-      <InboxQueue items={inboxItems} />
 
       <ChatInputBar
         value={input}

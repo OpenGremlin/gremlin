@@ -51,5 +51,5 @@ export function useChatMessages(agentId: string) {
     return () => clearTimeout(activeTimerRef.current);
   }, []);
 
-  return { messages, loading, hasMore, loadMore, isAgentActive, appendNode };
+  return { messages, loading, hasMore, loadMore, isAgentActive };
 }

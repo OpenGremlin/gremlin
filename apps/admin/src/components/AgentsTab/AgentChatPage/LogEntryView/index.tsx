@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -89,6 +90,20 @@ function resolveToolFields(entry: ChatMessage) {
 
 const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
 
+function StatusIcon({ status, active }: { status: string; active: boolean }) {
+  if (active)
+    return <Loader2 size={12} className="animate-spin shrink-0 text-blue-400" />;
+  if (status === "COMPLETED")
+    return <CheckCircle size={12} className="text-green-400 shrink-0" />;
+  if (status === "FAILED")
+    return <XCircle size={12} className="text-red-400 shrink-0" />;
+  if (status === "ABANDONED")
+    return <AlertCircle size={12} className="text-neutral-400 shrink-0" />;
+  if (status === "WAITING")
+    return <Pause size={12} className="text-amber-400 shrink-0" />;
+  return <CheckCircle size={12} className="text-neutral-600 shrink-0" />;
+}
+
 function DelegateTaskCard({
   id,
   taskId,
@@ -103,8 +118,11 @@ function DelegateTaskCard({
   onTaskClick?: (taskId: string) => void;
 }) {
   const task = useTaskStatus(taskId);
+  const [imgError, setImgError] = useState(false);
   const clickable = !!(taskId && onTaskClick);
-  const active = task ? ACTIVE_STATUSES.has(task.status) : false;
+  const statuses = task?.statuses ?? [];
+  const current = statuses[statuses.length - 1];
+  const isActive = current ? ACTIVE_STATUSES.has(current.status) : false;
 
   return (
     <div id={id} className="py-1">
@@ -120,38 +138,57 @@ function DelegateTaskCard({
               }
             : undefined
         }
-        className={`w-full text-left bg-indigo-950/40 border border-indigo-800/50 rounded-lg px-3 py-2.5 transition-colors ${clickable ? "cursor-pointer hover:border-indigo-600/60" : "opacity-70"}`}
+        style={{
+          background: `
+            radial-gradient(ellipse 140% 100% at 0% 100%, rgba(79,70,229,0.45) 0%, transparent 50%),
+            radial-gradient(ellipse 100% 140% at 100% 0%, rgba(168,85,247,0.3) 0%, transparent 50%),
+            radial-gradient(ellipse 70% 60% at 80% 90%, rgba(56,189,248,0.12) 0%, transparent 50%),
+            linear-gradient(140deg, rgb(8,10,28) 0%, rgb(25,8,55) 50%, rgb(40,8,48) 100%)
+          `,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 20px rgba(99,102,241,0.08)",
+        }}
+        className={`w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
       >
-        <div className="flex items-start gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-indigo-200 font-medium truncate">
-                {taskTitle}
-              </span>
-              <span className="text-[10px] text-neutral-600 shrink-0">
-                {formatTime(createdAt)}
-              </span>
-            </div>
-            <div className="text-xs text-neutral-500 mt-1 min-h-[3.5rem] flex items-start gap-1.5">
-              {active ? (
-                <>
-                  <Loader2 size={14} className="animate-spin shrink-0 mt-0.5" />
-                  <span>{task?.message || "Working..."}</span>
-                </>
-              ) : task?.status === "COMPLETED" ? (
-                <>
-                  <CheckCircle
-                    size={14}
-                    className="text-green-500 shrink-0 mt-0.5"
-                  />
-                  <span>{task.message || "Completed"}</span>
-                </>
-              ) : (
-                <span>{task?.message || "Delegated task"}</span>
+        <div className="flex">
+          <div className="flex-1 min-w-0 px-3.5 py-3">
+            <span className="text-sm text-indigo-100 font-medium line-clamp-2 leading-snug">
+              {taskTitle}
+              {clickable && (
+                <ExternalLink size={12} className="text-indigo-400 inline ml-1 align-baseline" />
+              )}
+            </span>
+            <div className="mt-2 space-y-1.5 max-h-[4.5rem] overflow-hidden relative">
+              {[...statuses].reverse().map((s, i) => {
+                const isLast = i === 0;
+                const active = isLast && ACTIVE_STATUSES.has(s.status);
+                return (
+                  <div
+                    key={`${s.status}-${i}`}
+                    className={`text-xs flex items-center gap-1.5 ${isLast ? "text-neutral-400" : "text-neutral-500"}`}
+                  >
+                    <StatusIcon status={s.status} active={active} />
+                    <span>{s.message || s.status}</span>
+                  </div>
+                );
+              })}
+              {statuses.length === 0 && (
+                <span className="text-xs text-neutral-500">Delegated task</span>
+              )}
+              {statuses.length > 2 && (
+                <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-indigo-950 to-transparent pointer-events-none" />
               )}
             </div>
           </div>
-          <ExternalLink size={14} className="text-indigo-400 shrink-0 mt-0.5" />
+          {task?.imageUrl && !imgError && (
+            <div className="shrink-0 p-2.5">
+              <img
+                src={task.imageUrl}
+                alt=""
+                className="w-[90px] h-[90px] object-contain"
+                onError={() => setImgError(true)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

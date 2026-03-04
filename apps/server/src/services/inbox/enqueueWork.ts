@@ -54,16 +54,6 @@ export async function enqueueWork(
     }),
   );
 
-  // Publish for real-time UI subscription
-  ctx.resources.pubsub.publish(`inboxItemCreated:${agentId}`, {
-    id,
-    agentId,
-    type: input.type,
-    payload: payloadStr,
-    isRead: false,
-    createdAt,
-  });
-
   // Ring the doorbell
   const queueUrl = process.env.DOORBELL_QUEUE_URL;
   if (queueUrl) {

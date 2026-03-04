@@ -1,7 +1,6 @@
 export * from "./agentLogs";
 export * from "./agents";
 export * from "./documents";
-export * from "./inbox";
 export * from "./integrations";
 export * from "./jobs";
 

@@ -24,8 +24,6 @@ type Documents = {
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      status\n      statusReason\n    }\n  }\n": typeof types.AgentUpdatedDocument,
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": typeof types.DocumentUpdatedDocument,
-    "\n  query InboxItems($agentId: ID!) {\n    inboxItems(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n": typeof types.InboxItemsDocument,
-    "\n  subscription InboxItemCreated($agentId: ID!) {\n    inboxItemCreated(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n": typeof types.InboxItemCreatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": typeof types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
     "\n  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {\n    connectIntegration(providerId: $providerId, scopes: $scopes)\n  }\n": typeof types.ConnectIntegrationDocument,
@@ -67,8 +65,6 @@ const documents: Documents = {
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      status\n      statusReason\n    }\n  }\n": types.AgentUpdatedDocument,
     "\n  query Document($id: ID!) {\n    document(id: $id) {\n      id\n      title\n      body\n      createdAt\n      updatedAt\n    }\n  }\n": types.DocumentDocument,
     "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n": types.DocumentUpdatedDocument,
-    "\n  query InboxItems($agentId: ID!) {\n    inboxItems(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n": types.InboxItemsDocument,
-    "\n  subscription InboxItemCreated($agentId: ID!) {\n    inboxItemCreated(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n": types.InboxItemCreatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
     "\n  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {\n    connectIntegration(providerId: $providerId, scopes: $scopes)\n  }\n": types.ConnectIntegrationDocument,
@@ -137,14 +133,6 @@ export function graphql(source: "\n  query Document($id: ID!) {\n    document(id
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription DocumentUpdated($id: ID!) {\n    documentUpdated(id: $id) {\n      id\n      title\n      body\n      updatedAt\n    }\n  }\n"): typeof import('./graphql').DocumentUpdatedDocument;
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query InboxItems($agentId: ID!) {\n    inboxItems(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n"): typeof import('./graphql').InboxItemsDocument;
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription InboxItemCreated($agentId: ID!) {\n    inboxItemCreated(agentId: $agentId) {\n      id\n      agentId\n      type\n      payload\n      isRead\n      createdAt\n    }\n  }\n"): typeof import('./graphql').InboxItemCreatedDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

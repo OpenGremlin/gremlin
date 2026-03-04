@@ -74,7 +74,13 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
         before: startCursorRef.current,
       });
       const conn = selectorRef.current(result);
-      setNodes((prev) => [...conn.edges.map((e) => e.node), ...prev]);
+      setNodes((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newNodes = conn.edges
+          .map((e) => e.node)
+          .filter((n) => !existingIds.has(n.id));
+        return [...newNodes, ...prev];
+      });
       setHasMore(conn.pageInfo.hasPreviousPage);
       startCursorRef.current = conn.pageInfo.startCursor ?? null;
     } catch (err) {
