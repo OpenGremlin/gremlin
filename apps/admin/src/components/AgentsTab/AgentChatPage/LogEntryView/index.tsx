@@ -38,24 +38,21 @@ function CollapsibleBlock({
   textClass?: string;
 }) {
   return (
-    <details id={id} className="py-1 px-2 group">
+    <details id={id} className="py-1 group">
       <summary className="list-none cursor-pointer">
-        <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden group-open:rounded-b-none group-open:border-b-0">
-          <div className="flex items-center gap-1.5 px-3 py-1.5">
-            <ChevronRight
-              size={12}
-              className="text-neutral-500 shrink-0 transition-transform group-open:rotate-90"
-            />
-            <Code size={12} className="text-neutral-500 shrink-0" />
-            <span className="text-[11px] text-neutral-400 font-mono">
-              {label}
-            </span>
-            <span className="text-[10px] text-neutral-600 ml-auto">
-              {formatTime(createdAt)}
-            </span>
-          </div>
+        <div className="flex items-center gap-1.5 py-1">
+          <ChevronRight
+            size={12}
+            className="text-neutral-600 shrink-0 transition-transform group-open:rotate-90"
+          />
+          <span className="text-[11px] text-neutral-500 font-mono">
+            {label}
+          </span>
+          <span className="text-[10px] text-neutral-600">
+            {formatTime(createdAt)}
+          </span>
         </div>
-        <div className="hidden group-open:block bg-neutral-950 border border-t-0 border-neutral-800 rounded-b-lg">
+        <div className="hidden group-open:block bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
           <pre
             className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed ${textClass}`}
           >

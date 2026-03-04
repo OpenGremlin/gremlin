@@ -3,9 +3,9 @@ export function buildMediaUrl(
   path: string,
   width?: number | null,
 ): string {
-  const base = cdnBase.endsWith("/") ? cdnBase : `${cdnBase}/`;
-  const widthParam = width ? `?width=${width}` : "";
-  return `${base}${path}${widthParam}`;
+  const url = new URL(path, cdnBase.endsWith("/") ? cdnBase : `${cdnBase}/`);
+  if (width) url.searchParams.set("width", String(width));
+  return url.toString();
 }
 
 export const mediaService = { buildMediaUrl };
