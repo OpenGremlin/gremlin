@@ -16,8 +16,21 @@ RUN pnpm --filter @gremlin/sandbox build
 # Stage 3: runtime with Playwright/Chromium
 FROM mcr.microsoft.com/playwright:v1.52.0-noble AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      jq curl git python3 \
+      jq curl wget git python3 python3-pip \
+      build-essential pkg-config libssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Go
+ENV GOLANG_VERSION=1.22.5
+RUN curl -fsSL "https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+    | tar -C /usr/local -xz
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Rust (installed as root, available to all users)
+ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y --no-modify-path
+ENV PATH="/usr/local/cargo/bin:${PATH}"
 WORKDIR /app
 COPY --from=build /build/apps/sandbox/dist/ apps/sandbox/dist/
 COPY --from=build /build/apps/sandbox/package.json apps/sandbox/
