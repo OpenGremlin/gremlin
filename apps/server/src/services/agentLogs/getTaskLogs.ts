@@ -14,7 +14,7 @@ export async function getTaskLogs(
 ): Promise<AgentLogConnectionModel> {
   const isBackward = args.last != null;
   const limit = args.first ?? args.last ?? 50;
-  const fetchLimit = limit + 1;
+  const fetchLimit = limit * 2 + 1;
 
   const partition = `LOG_TASK#${taskId}`;
 
@@ -32,10 +32,14 @@ export async function getTaskLogs(
       partition,
       ...(rangeCondition && { range: rangeCondition }),
     })
-    .options({ limit: fetchLimit, reverse: isBackward });
+    .options({
+      limit: fetchLimit,
+      reverse: isBackward,
+      filters: { AgentLog: { attr: "internal", ne: true } },
+    });
 
   const { Items } = await query.send();
-  let items = (Items ?? []).filter((i) => !i.internal);
+  let items = Items ?? [];
 
   const hasMore = items.length > limit;
   if (hasMore) {

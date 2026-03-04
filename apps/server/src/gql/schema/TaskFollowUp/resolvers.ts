@@ -26,13 +26,13 @@ const deactivateFollowUp: MutationResolvers["deactivateFollowUp"] = async (
 };
 
 const task: TaskFollowUpResolvers["task"] = async (parent, _args, ctx) => {
-  const t = await ctx.services.tasks.getTask(ctx, parent.taskId);
+  const t = await ctx.loaders.taskLoader.load(parent.taskId);
   if (!t) throw new Error(`Task ${parent.taskId} not found`);
   return t;
 };
 
 const agent: TaskFollowUpResolvers["agent"] = async (parent, _args, ctx) => {
-  const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
+  const a = await ctx.loaders.agentLoader.load(parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
   return a;
 };

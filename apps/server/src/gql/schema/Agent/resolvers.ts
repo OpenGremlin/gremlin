@@ -30,7 +30,7 @@ const NON_TERMINAL = new Set(["PENDING", "RUNNING", "WAITING"]);
 
 const status: AgentResolvers["status"] = async (parent, _args, ctx) => {
   if (parent.blocked) return AgentStatus.Blocked;
-  const tasks = await ctx.services.tasks.getTasksByAgent(ctx, parent.id);
+  const tasks = await ctx.loaders.tasksByAgentLoader.load(parent.id);
   const hasActive = tasks.some((t) => NON_TERMINAL.has(t.status));
   return hasActive ? AgentStatus.Active : AgentStatus.Idle;
 };

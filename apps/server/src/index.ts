@@ -13,6 +13,7 @@ import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
+import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 import { createResources } from "./resources/index.js";
@@ -100,7 +101,13 @@ const yoga = createYoga({
     const user = SKIP_AUTH
       ? ({ sub: "local", email: "local@dev" } as AuthUser)
       : (userByRequest.get(request) as AuthUser);
-    return { user, mediaCdnUrl: MEDIA_CDN_URL, resources, services };
+    return {
+      user,
+      mediaCdnUrl: MEDIA_CDN_URL,
+      resources,
+      services,
+      loaders: createLoaders(resources),
+    };
   },
   graphiql: SKIP_AUTH,
 });
@@ -127,7 +134,13 @@ useServer(
         if (!token) throw new Error("Unauthorized");
         user = await verifyToken(token);
       }
-      return { user, mediaCdnUrl: MEDIA_CDN_URL, resources, services };
+      return {
+        user,
+        mediaCdnUrl: MEDIA_CDN_URL,
+        resources,
+        services,
+        loaders: createLoaders(resources),
+      };
     },
   },
   wsServer,
@@ -152,25 +165,33 @@ if (!process.env.MEDIA_CDN_URL) {
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
 }
 
-// OAuth callback (provider-based)
-// Google's redirect URI is registered as /auth/google/callback, so keep that path
-app.get("/auth/google/callback", async (req, res) => {
+// Generic OAuth callback — handles all providers
+// Google's redirect URI is registered as /auth/google/callback, which matches this pattern
+app.get("/auth/:provider/callback", async (req, res) => {
   const adminOrigin = await getAdminOrigin();
+  const provider = req.params.provider;
   const code = req.query.code as string | undefined;
   const state = req.query.state as string | undefined;
 
   if (!code || !state) {
-    res.redirect(`${adminOrigin}/user/integrations?error=google_oauth_failed`);
+    res.redirect(
+      `${adminOrigin}/user/integrations?error=${provider}_oauth_failed`,
+    );
     return;
   }
 
   try {
-    await services.google.handleGoogleCallback(resources, code, state);
-    const { connectionId } = JSON.parse(state) as { connectionId: string };
+    const { connectionId } = await services.oauth.handleOAuthCallback(
+      resources,
+      code,
+      state,
+    );
     res.redirect(`${adminOrigin}/connections/${connectionId}?connected=true`);
   } catch (err) {
-    console.error("Google OAuth callback failed:", err);
-    res.redirect(`${adminOrigin}/user/integrations?error=google_oauth_failed`);
+    console.error(`${provider} OAuth callback failed:`, err);
+    res.redirect(
+      `${adminOrigin}/user/integrations?error=${provider}_oauth_failed`,
+    );
   }
 });
 

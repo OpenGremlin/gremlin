@@ -33,7 +33,7 @@ const taskLogs: QueryResolvers["taskLogs"] = (
   });
 
 const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
-  const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
+  const a = await ctx.loaders.agentLoader.load(parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
   return a;
 };

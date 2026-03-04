@@ -1,4 +1,4 @@
-import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
+import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
@@ -6,11 +6,9 @@ export async function getTask(
   ctx: ServiceContext,
   id: string,
 ): Promise<TaskItem | null> {
-  const { Items } = await ctx.resources.ddb.table
-    .build(QueryCommand)
-    .entities(ctx.resources.ddb.entities.Task)
-    .query({ partition: "TASK", range: { eq: `TASK#${id}` } })
+  const { Item } = await ctx.resources.ddb.entities.Task.build(GetItemCommand)
+    .key({ id })
     .send();
 
-  return Items?.[0] ?? null;
+  return Item ?? null;
 }

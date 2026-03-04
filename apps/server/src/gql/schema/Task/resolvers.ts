@@ -18,7 +18,7 @@ const task: QueryResolvers["task"] = (_parent, { id }, ctx) =>
   ctx.services.tasks.getTask(ctx, id);
 
 const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
-  const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
+  const a = await ctx.loaders.agentLoader.load(parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
   return a;
 };
@@ -29,7 +29,7 @@ const artifacts: TaskResolvers["artifacts"] = (parent) =>
 const documents: TaskResolvers["documents"] = async (parent, _args, ctx) => {
   const ids = parent.artifacts ?? [];
   const docs = await Promise.all(
-    ids.map((id: string) => ctx.services.documents.getDocument(ctx, id)),
+    ids.map((id: string) => ctx.loaders.documentLoader.load(id)),
   );
   return docs.filter((d): d is NonNullable<typeof d> => d != null);
 };
