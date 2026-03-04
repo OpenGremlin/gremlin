@@ -14,7 +14,6 @@ import { SkillItem } from '../resources/ddb/schema/skill.js';
 import { TaskItem } from '../resources/ddb/schema/task.js';
 import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '../services/tasks/pagination.js';
 import { InboxItemItem } from '../resources/ddb/schema/inboxItem.js';
-import { TaskFollowUpItem } from '../resources/ddb/schema/taskFollowUp.js';
 import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -224,7 +223,6 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createAgentJob: AgentJob;
   createDocument: Document;
-  deactivateFollowUp?: Maybe<TaskFollowUp>;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
@@ -264,11 +262,6 @@ export type MutationCreateAgentJobArgs = {
 
 export type MutationCreateDocumentArgs = {
   input: CreateDocumentInput;
-};
-
-
-export type MutationDeactivateFollowUpArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -422,7 +415,6 @@ export type ProfileInput = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
-  activeFollowUps: Array<TaskFollowUp>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
@@ -442,7 +434,6 @@ export type Query = {
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
   task?: Maybe<Task>;
-  taskFollowUps: Array<TaskFollowUp>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
 };
@@ -489,11 +480,6 @@ export type QuerySkillArgs = {
 
 export type QueryTaskArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryTaskFollowUpsArgs = {
-  taskId: Scalars['ID']['input'];
 };
 
 
@@ -625,17 +611,6 @@ export type TaskEdge = {
   __typename?: 'TaskEdge';
   cursor: Scalars['String']['output'];
   node: Task;
-};
-
-export type TaskFollowUp = {
-  __typename?: 'TaskFollowUp';
-  active: Scalars['Boolean']['output'];
-  agent: Agent;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  prompt: Scalars['String']['output'];
-  scheduledAt: Scalars['String']['output'];
-  task: Task;
 };
 
 export type TaskPageInfo = {
@@ -794,7 +769,6 @@ export type ResolversTypes = {
   Task: ResolverTypeWrapper<TaskItem>;
   TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
-  TaskFollowUp: ResolverTypeWrapper<TaskFollowUpItem>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
   TaskStatus: TaskStatus;
   UpdateAgentInput: UpdateAgentInput;
@@ -839,7 +813,6 @@ export type ResolversParentTypes = {
   Task: TaskItem;
   TaskConnection: TaskConnectionModel;
   TaskEdge: TaskEdgeModel;
-  TaskFollowUp: TaskFollowUpItem;
   TaskPageInfo: TaskPageInfoModel;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
@@ -980,7 +953,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   createDocument?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationCreateDocumentArgs, 'input'>>;
-  deactivateFollowUp?: Resolver<Maybe<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<MutationDeactivateFollowUpArgs, 'id'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
@@ -1034,7 +1006,6 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
 
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  activeFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType>;
   agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
@@ -1054,7 +1025,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
-  taskFollowUps?: Resolver<Array<ResolversTypes['TaskFollowUp']>, ParentType, ContextType, RequireFields<QueryTaskFollowUpsArgs, 'taskId'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
 };
@@ -1110,16 +1080,6 @@ export type TaskEdgeResolvers<ContextType = GremlinContext, ParentType extends R
   node?: Resolver<ResolversTypes['Task'], ParentType, ContextType>;
 };
 
-export type TaskFollowUpResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskFollowUp'] = ResolversParentTypes['TaskFollowUp']> = {
-  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  prompt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  scheduledAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  task?: Resolver<ResolversTypes['Task'], ParentType, ContextType>;
-};
-
 export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['TaskPageInfo'] = ResolversParentTypes['TaskPageInfo']> = {
   endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1155,7 +1115,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   Task?: TaskResolvers<ContextType>;
   TaskConnection?: TaskConnectionResolvers<ContextType>;
   TaskEdge?: TaskEdgeResolvers<ContextType>;
-  TaskFollowUp?: TaskFollowUpResolvers<ContextType>;
   TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
 };
 

@@ -207,7 +207,6 @@ export type Mutation = {
   connectIntegration: Scalars['String']['output'];
   createAgentJob: AgentJob;
   createDocument: Document;
-  deactivateFollowUp?: Maybe<TaskFollowUp>;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
@@ -247,11 +246,6 @@ export type MutationCreateAgentJobArgs = {
 
 export type MutationCreateDocumentArgs = {
   input: CreateDocumentInput;
-};
-
-
-export type MutationDeactivateFollowUpArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -405,7 +399,6 @@ export type ProfileInput = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
-  activeFollowUps: Array<TaskFollowUp>;
   agent?: Maybe<Agent>;
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
@@ -425,7 +418,6 @@ export type Query = {
   skill?: Maybe<Skill>;
   skills: Array<Skill>;
   task?: Maybe<Task>;
-  taskFollowUps: Array<TaskFollowUp>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
 };
@@ -472,11 +464,6 @@ export type QuerySkillArgs = {
 
 export type QueryTaskArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryTaskFollowUpsArgs = {
-  taskId: Scalars['ID']['input'];
 };
 
 
@@ -608,17 +595,6 @@ export type TaskEdge = {
   __typename?: 'TaskEdge';
   cursor: Scalars['String']['output'];
   node: Task;
-};
-
-export type TaskFollowUp = {
-  __typename?: 'TaskFollowUp';
-  active: Scalars['Boolean']['output'];
-  agent: Agent;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  prompt: Scalars['String']['output'];
-  scheduledAt: Scalars['String']['output'];
-  task: Task;
 };
 
 export type TaskPageInfo = {

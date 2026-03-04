@@ -11,7 +11,6 @@ import { ProfileEntity } from "./schema/profile.js";
 import { SettingEntity } from "./schema/setting.js";
 import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
-import { TaskFollowUpEntity } from "./schema/taskFollowUp.js";
 import { SecretsTable } from "./secretsTable.js";
 import { GremlinTable } from "./table.js";
 
@@ -33,7 +32,6 @@ export const ddb = {
     Setting: SettingEntity,
     Skill: SkillEntity,
     Task: TaskEntity,
-    TaskFollowUp: TaskFollowUpEntity,
   },
 } as const;
 

@@ -21,8 +21,6 @@ type Query {
   searchSkills(query: String!): [Skill!]!
   tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
   task(id: ID!): Task
-  activeFollowUps: [TaskFollowUp!]!
-  taskFollowUps(taskId: ID!): [TaskFollowUp!]!
 }
 
 type Mutation {
@@ -48,7 +46,6 @@ type Mutation {
   updateProfile(input: ProfileInput!): Profile!
   installSkill(id: ID!): Skill
   uninstallSkill(id: ID!): Skill
-  deactivateFollowUp(id: ID!): TaskFollowUp
 }
 
 type Subscription {
@@ -343,16 +340,6 @@ type TaskPageInfo {
 type TaskConnection {
   edges: [TaskEdge!]!
   pageInfo: TaskPageInfo!
-}
-
-type TaskFollowUp {
-  id: ID!
-  task: Task!
-  agent: Agent!
-  scheduledAt: String!
-  prompt: String!
-  active: Boolean!
-  createdAt: String!
 }
 
 schema {

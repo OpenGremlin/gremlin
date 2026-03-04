@@ -20,7 +20,7 @@ import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
  * Run an agent turn on a task's lane.
- * Called when starting a new task or resuming from a TaskFollowUp.
+ * Called when starting a new task or resuming from a scheduled follow-up.
  */
 export async function runTaskLane(
   ctx: ServiceContext,

@@ -5,14 +5,12 @@ import { agentLogTypeDefs } from "./AgentLog/typeDefs.js";
 import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { baseTypeDefs } from "./base.js";
 import { documentTypeDefs } from "./Document/typeDefs.js";
-import { integrationTypeDefs } from "./Integration/typeDefs.js";
-
 import { inboxItemTypeDefs } from "./InboxItem/typeDefs.js";
+import { integrationTypeDefs } from "./Integration/typeDefs.js";
 import { notificationTypeDefs } from "./Notification/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { taskTypeDefs } from "./Task/typeDefs.js";
-import { taskFollowUpTypeDefs } from "./TaskFollowUp/typeDefs.js";
 
 export const allTypeDefs = [
   baseTypeDefs,
@@ -27,7 +25,6 @@ export const allTypeDefs = [
   profileTypeDefs,
   skillTypeDefs,
   taskTypeDefs,
-  taskFollowUpTypeDefs,
 ];
 
 export const mergedTypeDefs = mergeTypeDefs(allTypeDefs);
