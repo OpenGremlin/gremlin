@@ -6,6 +6,7 @@ import type {
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
+import { avatarPathById } from "../Avatar/resolvers.js";
 
 const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
   ctx.services.agents.getAgents(ctx);
@@ -19,8 +20,10 @@ const updateAgent: MutationResolvers["updateAgent"] = (
   ctx,
 ) => ctx.services.agents.updateAgent(ctx, id, input);
 
-const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) =>
-  ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.avatar, args.width);
+const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) => {
+  const path = avatarPathById(parent.avatar) ?? parent.avatar;
+  return ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, path, args.width);
+};
 
 const agentUpdated = {
   subscribe: (

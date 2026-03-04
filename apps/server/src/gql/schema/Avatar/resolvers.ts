@@ -101,6 +101,12 @@ const avatarList: AvatarModel[] = [
   path: `/avatars/${name}.png`,
 }));
 
+const avatarMap = new Map(avatarList.map((a) => [a.id, a.path]));
+
+export function avatarPathById(id: string): string | undefined {
+  return avatarMap.get(id);
+}
+
 const avatars: QueryResolvers["avatars"] = () => avatarList;
 
 const url: AvatarResolvers["url"] = (parent, args, ctx) =>

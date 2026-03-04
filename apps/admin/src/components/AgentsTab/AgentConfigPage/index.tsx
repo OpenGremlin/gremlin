@@ -1,11 +1,12 @@
 import { Check, Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import type { UpdateAgentMutation } from "../../../graphql/generated/graphql";
 import {
   AgentQuery,
+  AgentUpdatedSubscription,
   AvatarsQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../../graphql/queries";
@@ -15,25 +16,33 @@ import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
+import { useSubscription } from "../../../useSubscription";
 import { AvatarPicker } from "./AvatarPicker";
 
 interface AgentFormValues {
   name: string;
   soul: string;
-  avatar: string;
 }
 
 export function AgentConfigPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
+  const { data, loading, error, refetch } = useQuery(AgentQuery, {
+    id: id ?? "",
+  });
   const avatarsResult = useQuery(AvatarsQuery);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const initialized = useRef(false);
+
+  useSubscription(
+    AgentUpdatedSubscription,
+    { agentId: id ?? "" },
+    useCallback(() => refetch(), [refetch]),
+  );
 
   const {
     register,
     handleSubmit,
-    setValue,
     reset,
     formState: { isDirty, isSubmitting },
   } = useForm<AgentFormValues>();
@@ -41,11 +50,11 @@ export function AgentConfigPage() {
   const agent = data?.agent ?? null;
 
   useEffect(() => {
-    if (agent) {
+    if (agent && !initialized.current) {
+      initialized.current = true;
       reset({
         name: agent.name,
         soul: agent.soul,
-        avatar: agent.avatar,
       });
     }
   }, [agent, reset]);
@@ -71,14 +80,12 @@ export function AgentConfigPage() {
       input: {
         name: values.name,
         soul: values.soul,
-        avatar: values.avatar,
       },
     });
     if (result.updateAgent) {
       reset({
         name: result.updateAgent.name,
         soul: result.updateAgent.soul,
-        avatar: result.updateAgent.avatar,
       });
     }
     setSaved(true);
@@ -154,9 +161,12 @@ export function AgentConfigPage() {
         <AvatarPicker
           avatars={avatarsResult.data?.avatars ?? []}
           loading={avatarsResult.loading}
-          onSelect={(avatar) => {
-            setValue("avatar", avatar.id, { shouldDirty: true });
+          onSelect={async (avatar) => {
             setPickerOpen(false);
+            await gql<UpdateAgentMutation>(UpdateAgentDoc, {
+              id,
+              input: { avatar: avatar.id },
+            });
           }}
           onClose={() => setPickerOpen(false)}
         />

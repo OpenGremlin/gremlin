@@ -27,5 +27,6 @@ export async function updateAgent(
     .send();
 
   if (!Attributes) throw new Error(`Agent ${id} not found`);
+  ctx.resources.pubsub.publish(`agentUpdated:${id}`, Attributes);
   return Attributes;
 }
