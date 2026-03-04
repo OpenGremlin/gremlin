@@ -1,12 +1,14 @@
 import {
   AlertCircle,
   CheckCircle,
+  ChevronRight,
   Code,
   ExternalLink,
   Loader2,
   Pause,
   XCircle,
 } from "lucide-react";
+import { formatTime } from "../../../../shared/formatDate";
 import type { ChatMessage } from "../useChatMessages";
 import { useTaskStatus } from "./useTaskStatus";
 
@@ -19,6 +21,49 @@ function safeParseJson(
   } catch {
     return null;
   }
+}
+
+function CollapsibleBlock({
+  id,
+  label,
+  content,
+  createdAt,
+  textClass = "text-green-400/90",
+}: {
+  id: string;
+  label: string;
+  content: string;
+  createdAt: string;
+  textClass?: string;
+}) {
+  return (
+    <details id={id} className="py-1 px-2 group">
+      <summary className="list-none cursor-pointer">
+        <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden group-open:rounded-b-none group-open:border-b-0">
+          <div className="flex items-center gap-1.5 px-3 py-1.5">
+            <ChevronRight
+              size={12}
+              className="text-neutral-500 shrink-0 transition-transform group-open:rotate-90"
+            />
+            <Code size={12} className="text-neutral-500 shrink-0" />
+            <span className="text-[11px] text-neutral-400 font-mono">
+              {label}
+            </span>
+            <span className="text-[10px] text-neutral-600 ml-auto">
+              {formatTime(createdAt)}
+            </span>
+          </div>
+        </div>
+        <div className="hidden group-open:block bg-neutral-950 border border-t-0 border-neutral-800 rounded-b-lg">
+          <pre
+            className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed ${textClass}`}
+          >
+            {content}
+          </pre>
+        </div>
+      </summary>
+    </details>
+  );
 }
 
 /** Normalize tool fields — handles both typed columns and legacy JSON-in-content */
@@ -40,11 +85,6 @@ function resolveToolFields(entry: ChatMessage) {
     };
   }
   return { name: "tool", input: null, result: null };
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 const ACTIVE_STATUSES = new Set(["PENDING", "RUNNING", "WAITING"]);
@@ -122,28 +162,43 @@ export function LogEntryView({
   entry,
   onTaskClick,
   isLast,
+  sending,
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
   isLast?: boolean;
+  sending?: boolean;
 }) {
   switch (entry.role) {
-    case "SYSTEM":
+    case "SYSTEM": {
+      const parsed = safeParseJson(entry.content);
+      const label = parsed?.type ? String(parsed.type) : "system";
+      const display = parsed
+        ? JSON.stringify(parsed, null, 2)
+        : entry.content;
+
       return (
-        <div id={entry.id} className="flex justify-center py-2">
-          <span className="text-xs text-neutral-500 bg-neutral-900 px-3 py-1 rounded-full">
-            {entry.content} · {formatTime(entry.createdAt)}
-          </span>
-        </div>
+        <CollapsibleBlock
+          id={entry.id}
+          label={label}
+          content={display}
+          createdAt={entry.createdAt}
+        />
       );
+    }
     case "USER":
       return (
         <div id={entry.id} className="flex justify-end py-1">
           <div className="max-w-[80%]">
-            <div className="bg-blue-600 text-white text-sm px-3.5 py-2 rounded-2xl rounded-br-md">
+            <div
+              className={`text-white text-sm px-3.5 py-2 rounded-2xl rounded-br-md ${sending ? "bg-blue-600/70" : "bg-blue-600"}`}
+            >
               {entry.content}
             </div>
-            <div className="text-[10px] text-neutral-500 mt-0.5 text-right pr-1">
+            <div className="text-[10px] text-neutral-500 mt-0.5 text-right pr-1 flex items-center justify-end gap-1">
+              {sending && (
+                <Loader2 size={9} className="animate-spin text-blue-400" />
+              )}
               {formatTime(entry.createdAt)}
             </div>
           </div>
@@ -222,22 +277,12 @@ export function LogEntryView({
         : entry.content;
 
       return (
-        <div id={entry.id} className="py-1 px-2">
-          <div className="bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-neutral-800 bg-neutral-900/50">
-              <Code size={12} className="text-neutral-500 shrink-0" />
-              <span className="text-[11px] text-neutral-400 font-mono">
-                {tool.name}
-              </span>
-              <span className="text-[10px] text-neutral-600 ml-auto">
-                {formatTime(entry.createdAt)}
-              </span>
-            </div>
-            <pre className="text-xs text-green-400/90 font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed">
-              {formattedInput}
-            </pre>
-          </div>
-        </div>
+        <CollapsibleBlock
+          id={entry.id}
+          label={tool.name}
+          content={formattedInput}
+          createdAt={entry.createdAt}
+        />
       );
     }
   }

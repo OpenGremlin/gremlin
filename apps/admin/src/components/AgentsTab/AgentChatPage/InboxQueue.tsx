@@ -1,4 +1,5 @@
 import { Clock, Inbox } from "lucide-react";
+import { formatTime } from "../../../shared/formatDate";
 import type { InboxItem } from "./useInboxItems";
 
 function formatType(type: string): string {
@@ -16,11 +17,6 @@ function formatType(type: string): string {
     default:
       return type;
   }
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function parsePayloadPreview(type: string, payload: string): string {

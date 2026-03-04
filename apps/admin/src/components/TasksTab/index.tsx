@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { TasksQuery } from "../../graphql/queries";
 import { QueryResult } from "../../shared/QueryResult";
 import { usePaginatedQuery } from "../../usePaginatedQuery";
@@ -28,7 +28,7 @@ export function TasksTab() {
   }, [hasMore, loadingMore, loadMore]);
 
   // Display newest first
-  const tasks = [...nodes].reverse();
+  const tasks = useMemo(() => [...nodes].reverse(), [nodes]);
 
   return (
     <div className="min-h-screen bg-neutral-950">

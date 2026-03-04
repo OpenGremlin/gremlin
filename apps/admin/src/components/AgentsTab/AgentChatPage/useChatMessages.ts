@@ -10,8 +10,13 @@ import { useSubscription } from "../../../useSubscription";
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 
 export function useChatMessages(agentId: string) {
-  const { nodes: messages, loading, hasMore, loadMore, appendNode } =
-    usePaginatedQuery(AgentLogsDoc, (d) => d.agentLogs, { agentId });
+  const {
+    nodes: messages,
+    loading,
+    hasMore,
+    loadMore,
+    appendNode,
+  } = usePaginatedQuery(AgentLogsDoc, (d) => d.agentLogs, { agentId });
 
   const [isAgentActive, setIsAgentActive] = useState(false);
   const activeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -27,15 +32,14 @@ export function useChatMessages(agentId: string) {
         const msg = data.agentLogCreated;
         appendNode(msg);
 
-        // Mark agent as active when we receive an agent message,
-        // and reset after a timeout of inactivity
-        if (msg.role === "AGENT") {
+        // TOOL messages (status updates) mean the agent is mid-turn.
+        // AGENT messages mean the turn is complete.
+        if (msg.role === "TOOL") {
           setIsAgentActive(true);
           clearTimeout(activeTimerRef.current);
-          activeTimerRef.current = setTimeout(
-            () => setIsAgentActive(false),
-            2000,
-          );
+        } else if (msg.role === "AGENT") {
+          setIsAgentActive(false);
+          clearTimeout(activeTimerRef.current);
         }
       },
       [appendNode],
@@ -47,5 +51,5 @@ export function useChatMessages(agentId: string) {
     return () => clearTimeout(activeTimerRef.current);
   }, []);
 
-  return { messages, loading, hasMore, loadMore, isAgentActive };
+  return { messages, loading, hasMore, loadMore, isAgentActive, appendNode };
 }

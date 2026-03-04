@@ -74,7 +74,11 @@ export async function buildContextMessages(
     }
   }
 
-  return { messages, totalLogCount };
+  // Count entries after last compaction (for deciding when to compact next)
+  const postCompactionCount =
+    compactionIndex >= 0 ? entries.length - compactionIndex - 1 : totalLogCount;
+
+  return { messages, totalLogCount: postCompactionCount };
 }
 
 function mapEntry(node: {

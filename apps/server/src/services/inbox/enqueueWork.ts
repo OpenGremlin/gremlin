@@ -1,5 +1,5 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { SQSClient as SQSClientType } from "@aws-sdk/client-sqs";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
 let _sqs: SQSClientType | undefined;

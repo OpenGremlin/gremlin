@@ -30,10 +30,6 @@ export function AgentConfigPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const [_selectedImageUrl, setSelectedImageUrl] = useState<string | null>(
-    null,
-  );
-
   const {
     register,
     handleSubmit,
@@ -51,7 +47,6 @@ export function AgentConfigPage() {
         soul: agent.soul,
         avatar: agent.avatar,
       });
-      setSelectedImageUrl(null);
     }
   }, [agent, reset]);
 
@@ -86,7 +81,6 @@ export function AgentConfigPage() {
         avatar: result.updateAgent.avatar,
       });
     }
-    setSelectedImageUrl(null);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -162,7 +156,6 @@ export function AgentConfigPage() {
           loading={avatarsResult.loading}
           onSelect={(avatar) => {
             setValue("avatar", avatar.id, { shouldDirty: true });
-            setSelectedImageUrl(avatar.url);
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}

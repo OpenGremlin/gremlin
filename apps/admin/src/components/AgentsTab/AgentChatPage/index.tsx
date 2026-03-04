@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
+import type { SendMessageMutation as SendMessageResult } from "../../../graphql/generated/graphql";
 import { AgentQuery, SendMessageMutation } from "../../../graphql/queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
@@ -21,6 +22,7 @@ export function AgentChatPage() {
     hasMore,
     loadMore,
     isAgentActive,
+    appendNode: appendMessage,
   } = useChatMessages(id ?? "");
   const { items: inboxItems } = useInboxItems(id ?? "");
   const [input, setInput] = useState("");
@@ -49,13 +51,17 @@ export function AgentChatPage() {
     setSending(true);
     scrollToBottom();
     try {
-      await gql(SendMessageMutation, { agentId: id, content });
+      const result = await gql<SendMessageResult>(SendMessageMutation, {
+        agentId: id,
+        content,
+      });
+      appendMessage(result.sendMessage);
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {
       setSending(false);
     }
-  }, [input, id, sending, scrollToBottom]);
+  }, [input, id, sending, scrollToBottom, appendMessage]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -91,15 +97,19 @@ export function AgentChatPage() {
               Loading...
             </div>
           )}
-          {messages
-            .filter((msg) => !msg.taskId)
-            .map((msg) => (
+          {(() => {
+            const filtered = messages.filter((msg) => !msg.taskId);
+            const lastMsg = filtered[filtered.length - 1];
+            const pendingSend = lastMsg?.role === "USER" && !isAgentActive;
+            return filtered.map((msg) => (
               <LogEntryView
                 key={msg.id}
                 entry={msg}
                 onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
+                sending={pendingSend && msg === lastMsg}
               />
-            ))}
+            ));
+          })()}
           {isAgentActive && (
             <div className="flex justify-start py-1">
               <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
