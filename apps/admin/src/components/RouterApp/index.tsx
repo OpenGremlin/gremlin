@@ -26,7 +26,7 @@ import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { NewJobPage } from "../SchedulerTab/NewJobPage";
 import { TasksTab } from "../TasksTab";
-import { TaskThreadPage } from "../TaskThreadPage";
+
 
 import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
@@ -138,6 +138,7 @@ export function RouterApp() {
 
           <Route path="agents" element={<AgentsTab />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
+          <Route path="agents/:id/tasks/:taskId" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />
 
           <Route path="jobs" element={<SchedulerTab />} />
@@ -162,8 +163,6 @@ export function RouterApp() {
             path="settings/connections/:id"
             element={<ConnectionDetailPage />}
           />
-
-          <Route path="tasks/:taskId" element={<TaskThreadPage />} />
 
           {/* Legacy redirects */}
           <Route

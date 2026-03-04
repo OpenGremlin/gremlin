@@ -34,7 +34,7 @@ export function TaskCard({ item }: { item: TaskItem }) {
   );
   return (
     <Link
-      to={`/tasks/${task.id}`}
+      to={`/agents/${agent.id}/tasks/${task.id}`}
       className="block px-4 py-4 transition-colors hover:bg-neutral-900/50"
     >
       <div className="flex items-start gap-3">

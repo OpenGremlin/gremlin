@@ -1,43 +1,45 @@
 import { useCallback, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import { AgentQuery, SendMessageMutation } from "../../../graphql/queries";
+import { AgentQuery, SendMessageMutation, TaskQuery } from "../../../graphql/queries";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
+import { useTaskChatMessages } from "../../TaskThreadPage/useTaskChatMessages";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
 import { LogEntryView } from "./LogEntryView";
 import { useChatMessages } from "./useChatMessages";
 
 export function AgentChatPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, taskId } = useParams<{ id: string; taskId?: string }>();
   const navigate = useNavigate();
   const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
-  const {
-    messages,
-    loading: messagesLoading,
-    hasMore,
-    loadMore,
-    isAgentActive,
-  } = useChatMessages(id ?? "");
+
+  const agentChat = useChatMessages(id ?? "");
+  const taskChat = useTaskChatMessages(taskId ?? "");
+
+  const { data: taskData } = useQuery(TaskQuery, { id: taskId ?? "" });
+  const taskDocs = taskData?.task?.documents ?? [];
+
+  const isTaskView = !!taskId;
+  const chat = isTaskView ? taskChat : agentChat;
+
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom imperatively (for send + agent activity)
   const scrollToBottom = useCallback(() => {
     const el = scrollContainerRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
-  // Infinite scroll — load older messages on scroll to top
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
-    if (!el || !hasMore) return;
+    if (!el || !chat.hasMore) return;
     if (el.scrollTop < 50) {
-      loadMore();
+      chat.loadMore();
     }
-  }, [hasMore, loadMore]);
+  }, [chat.hasMore, chat.loadMore]);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -46,13 +48,17 @@ export function AgentChatPage() {
     setSending(true);
     scrollToBottom();
     try {
-      await gql(SendMessageMutation, { agentId: id, content });
+      await gql(SendMessageMutation, {
+        agentId: id,
+        content,
+        ...(taskId ? { taskId } : {}),
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
     } finally {
       setSending(false);
     }
-  }, [input, id, sending, scrollToBottom]);
+  }, [input, id, taskId, sending, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -64,44 +70,51 @@ export function AgentChatPage() {
     return <NotFound label="Agent not found." />;
   }
 
+  const filteredMessages = isTaskView
+    ? chat.messages
+    : chat.messages.filter((msg) => !msg.taskId);
+
+  const lastMsg = filteredMessages[filteredMessages.length - 1];
+  const pendingSend = lastMsg?.role === "USER" && !chat.isAgentActive;
+
   return (
-    <div className="relative flex flex-col h-full">
-      <ChatHeader agent={agent} />
+    <div className="relative h-full">
+      <ChatHeader agent={agent} taskId={taskId} />
 
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto px-3 pb-16 pt-32 flex flex-col-reverse"
+        className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-40" : "pt-32"}`}
       >
         <div className="flex flex-col gap-1">
-          {hasMore && (
+          {chat.hasMore && (
             <button
               type="button"
-              onClick={loadMore}
+              onClick={chat.loadMore}
               className="text-xs text-neutral-500 hover:text-neutral-300 self-center py-2"
             >
               Load older messages
             </button>
           )}
-          {messagesLoading && messages.length === 0 && (
+          {chat.loading && chat.messages.length === 0 && (
             <div className="text-xs text-neutral-500 self-center py-4">
               Loading...
             </div>
           )}
-          {(() => {
-            const filtered = messages.filter((msg) => !msg.taskId);
-            const lastMsg = filtered[filtered.length - 1];
-            const pendingSend = lastMsg?.role === "USER" && !isAgentActive;
-            return filtered.map((msg) => (
-              <LogEntryView
-                key={msg.id}
-                entry={msg}
-                onTaskClick={(taskId) => navigate(`/tasks/${taskId}`)}
-                sending={pendingSend && msg === lastMsg}
-              />
-            ));
-          })()}
-          {isAgentActive && (
+          {filteredMessages.map((msg) => (
+            <LogEntryView
+              key={msg.id}
+              entry={msg}
+              onTaskClick={
+                isTaskView
+                  ? undefined
+                  : (tid) => navigate(`/agents/${id}/tasks/${tid}`)
+              }
+              sending={pendingSend && msg === lastMsg}
+              documents={isTaskView ? taskDocs : undefined}
+            />
+          ))}
+          {chat.isAgentActive && (
             <div className="flex justify-start py-1">
               <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
                 <span className="animate-pulse">Thinking...</span>
