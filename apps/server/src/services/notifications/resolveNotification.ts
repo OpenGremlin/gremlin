@@ -33,21 +33,20 @@ export async function resolveNotification(
     }),
   );
 
-  // Unblock the agent and re-trigger with the user's decision
-  const actionLabel =
-    existing.actions.find((a) => a.id === actionId)?.label ?? actionId;
-
+  // Unblock the agent
   ctx.services.agents
     .updateAgentStatus(ctx, existing.agentId, AgentStatus.Active)
     .catch((err) => console.error("Failed to unblock agent:", err));
 
-  ctx.services.orchestrator
-    .sendMessage(
-      ctx,
-      existing.agentId,
-      `[Notification resolved] "${existing.message}" → User selected: "${actionLabel}"`,
-    )
-    .catch((err) => console.error("Failed to re-trigger agent:", err));
+  // Enqueue the reply — the consumer writes it to the log with full context
+  ctx.services.inbox
+    .enqueueWork(ctx, existing.agentId, {
+      type: "user_notification_reply",
+      payload: { notificationId: id, actionId },
+    })
+    .catch((err) =>
+      console.error("Failed to enqueue notification reply:", err),
+    );
 
   return updated;
 }

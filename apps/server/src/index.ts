@@ -204,12 +204,7 @@ server.listen(PORT, () => {
   console.log(`Gremlin server running at http://localhost:${PORT}`);
 });
 
-// Start cron for scheduled jobs and follow-ups
-const cronCtx = { resources, services, mediaCdnUrl: MEDIA_CDN_URL };
-const stopCron = services.orchestrator.startCron(cronCtx);
-
 function shutdown() {
-  stopCron();
   wsServer.close();
   server.close(() => {
     process.exit(0);

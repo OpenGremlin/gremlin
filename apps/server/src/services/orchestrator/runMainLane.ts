@@ -12,12 +12,17 @@ import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
  * Run an agent turn on the main lane (user conversation thread).
- * The main lane is always free — this never blocks on tasks.
+ *
+ * @param recallHint - Text used for memory recall. When called from the
+ *   inbox consumer the user message is already in the log, so only the
+ *   hint is needed (no log write). When a userMessage needs to be logged,
+ *   pass `opts.userMessage`.
  */
 export async function runMainLane(
   ctx: ServiceContext,
   agentId: string,
-  userMessage: string,
+  recallHint?: string,
+  opts?: { userMessage?: string },
 ): Promise<string> {
   const [agent, profile] = await Promise.all([
     ctx.services.agents.getAgent(ctx, agentId),
@@ -25,13 +30,16 @@ export async function runMainLane(
   ]);
   if (!agent) throw new Error(`Agent ${agentId} not found`);
 
-  // Log the user message
-  await writeAgentLog(ctx, {
-    agentId,
-    taskId: null,
-    role: "USER",
-    content: userMessage,
-  });
+  // Only write the user message when explicitly provided (legacy path).
+  // The inbox consumer writes messages before enqueueing, so it skips this.
+  if (opts?.userMessage) {
+    await writeAgentLog(ctx, {
+      agentId,
+      taskId: null,
+      role: "USER",
+      content: opts.userMessage,
+    });
+  }
 
   // Build conversation history with compaction support
   const { messages, totalLogCount } = await buildContextMessages(ctx, {
@@ -41,7 +49,7 @@ export async function runMainLane(
 
   // Recall recent journals and semantically relevant older memories
   const memories = await ctx.services.memory
-    .recallMemories(ctx, agentId, userMessage)
+    .recallMemories(ctx, agentId, recallHint ?? "")
     .catch((err) => {
       console.error("memory recall failed:", err);
       return { recent: [], relevant: [] };

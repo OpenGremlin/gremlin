@@ -3,6 +3,7 @@ import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
 import { DocumentEntity } from "./schema/document.js";
+import { InboxItemEntity } from "./schema/inboxItem.js";
 import { IntegrationConnectionEntity } from "./schema/integrationConnection.js";
 import { ModelProviderKeyEntity } from "./schema/modelProviderKey.js";
 import { NotificationEntity } from "./schema/notification.js";
@@ -20,6 +21,7 @@ export const ddb = {
   entities: {
     CronJobTrigger: CronJobTriggerEntity,
     Document: DocumentEntity,
+    InboxItem: InboxItemEntity,
     IntegrationConnection: IntegrationConnectionEntity,
     ModelProviderKey: ModelProviderKeyEntity,
     Agent: AgentEntity,

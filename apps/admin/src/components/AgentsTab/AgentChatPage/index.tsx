@@ -6,8 +6,10 @@ import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
+import { InboxQueue } from "./InboxQueue";
 import { LogEntryView } from "./LogEntryView";
 import { useChatMessages } from "./useChatMessages";
+import { useInboxItems } from "./useInboxItems";
 
 export function AgentChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +22,7 @@ export function AgentChatPage() {
     loadMore,
     isAgentActive,
   } = useChatMessages(id ?? "");
+  const { items: inboxItems } = useInboxItems(id ?? "");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -106,6 +109,8 @@ export function AgentChatPage() {
           )}
         </div>
       </div>
+
+      <InboxQueue items={inboxItems} />
 
       <ChatInputBar
         value={input}

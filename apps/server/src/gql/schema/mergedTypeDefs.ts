@@ -7,6 +7,7 @@ import { baseTypeDefs } from "./base.js";
 import { documentTypeDefs } from "./Document/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
 
+import { inboxItemTypeDefs } from "./InboxItem/typeDefs.js";
 import { notificationTypeDefs } from "./Notification/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
@@ -20,6 +21,7 @@ export const allTypeDefs = [
   agentLogTypeDefs,
   agentTypeDefs,
   avatarTypeDefs,
+  inboxItemTypeDefs,
   integrationTypeDefs,
   notificationTypeDefs,
   profileTypeDefs,

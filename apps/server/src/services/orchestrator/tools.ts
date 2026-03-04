@@ -118,7 +118,7 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
       title: z
         .string()
         .describe(
-          "Short title for the task. Start with a verb and only uppercase the beginning, like a commit message (e.g. \"Write a space cat story\", \"Research competitor pricing\").",
+          'Short title for the task. Start with a verb and only uppercase the beginning, like a commit message (e.g. "Write a space cat story", "Research competitor pricing").',
         ),
       prompt: z.string().describe("Detailed instructions for the task"),
     }),
@@ -128,10 +128,11 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
         title,
       });
 
-      // Fire-and-forget the task lane
-      ctx.services.orchestrator
-        .runTaskLane(ctx, task.id, prompt)
-        .catch((err) => console.error("delegateTask runTaskLane failed:", err));
+      // Enqueue to inbox — the consumer picks it up after the current turn
+      await ctx.services.inbox.enqueueWork(ctx, agentId, {
+        type: "run_task",
+        payload: { taskId: task.id, prompt },
+      });
 
       return { taskId: task.id, title };
     },
