@@ -5,6 +5,7 @@ export const workspaceTypeDefs = /* GraphQL */ `
     isDirectory: Boolean!
     size: Int
     modifiedAt: String
+    mimeType: String
   }
 
   extend type Query {
