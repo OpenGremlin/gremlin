@@ -70,10 +70,10 @@ export function useTaskStatus(taskId: string | null) {
   }, [taskId]);
 
   useTaskUpdates(taskId ?? "", (update) => {
-    const u = update as { status?: string; message?: string | null };
+    const u = update as { status?: string; message?: string | null; imageUrl?: string | null };
     if (u.status) {
       setState((prev) => ({
-        imageUrl: prev?.imageUrl ?? null,
+        imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
         statuses: [
           ...(prev?.statuses ?? []),
           { status: u.status as string, message: u.message ?? null },

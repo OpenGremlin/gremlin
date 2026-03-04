@@ -1,4 +1,4 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
 export async function addTaskArtifact(
@@ -6,32 +6,25 @@ export async function addTaskArtifact(
   taskId: string,
   documentId: string,
 ) {
-  const task = await ctx.services.tasks.getTask(ctx, taskId);
-  if (!task) throw new Error(`Task ${taskId} not found`);
-
-  const artifacts = [...task.artifacts, documentId];
+  const table = ctx.resources.ddb.table;
   const now = new Date().toISOString();
 
-  const table = ctx.resources.ddb.table;
-  await table.getDocumentClient().send(
-    new PutCommand({
+  const { Attributes } = await table.getDocumentClient().send(
+    new UpdateCommand({
       TableName: table.getName(),
-      Item: {
-        ...task,
-        artifacts,
-        updatedAt: now,
-        _et: "Task",
-        pk: "TASK",
-        sk: `TASK#${taskId}`,
-        gsi1pk: `TASK_AGENT#${task.agentId}`,
-        gsi1sk: task.createdAt,
+      Key: { pk: "TASK", sk: `TASK#${taskId}` },
+      UpdateExpression:
+        "SET artifacts = list_append(if_not_exists(artifacts, :empty), :doc), updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":doc": [documentId],
+        ":empty": [],
+        ":now": now,
       },
+      ReturnValues: "ALL_NEW",
     }),
   );
 
-  ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, {
-    ...task,
-    artifacts,
-    updatedAt: now,
-  });
+  if (Attributes) {
+    ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, Attributes);
+  }
 }

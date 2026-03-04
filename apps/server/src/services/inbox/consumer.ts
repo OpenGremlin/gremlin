@@ -85,30 +85,32 @@ async function routeBatch(
     await ctx.services.orchestrator.runMainLane(ctx, agentId, recallHint);
   }
 
-  // --- Task lane: each item gets its own runTaskLane call, sequentially ---
-  for (const item of taskLaneItems) {
-    const payload = JSON.parse(item.payload);
-    switch (item.type) {
-      case "run_task":
-        await ctx.services.orchestrator.runTaskLane(
-          ctx,
-          payload.taskId,
-          payload.prompt,
-          payload.skipLog ? { skipLog: true } : undefined,
-        );
-        break;
-      case "scheduled_job":
-        await handleScheduledJob(ctx, agentId, payload);
-        break;
-      case "agent_self_followup":
-        await ctx.services.orchestrator.runTaskLane(
-          ctx,
-          payload.taskId,
-          payload.prompt,
-        );
-        break;
-    }
-  }
+  // --- Task lane: each item is independent, run in parallel ---
+  await Promise.all(
+    taskLaneItems.map(async (item) => {
+      const payload = JSON.parse(item.payload);
+      switch (item.type) {
+        case "run_task":
+          await ctx.services.orchestrator.runTaskLane(
+            ctx,
+            payload.taskId,
+            payload.prompt,
+            payload.skipLog ? { skipLog: true } : undefined,
+          );
+          break;
+        case "scheduled_job":
+          await handleScheduledJob(ctx, agentId, payload);
+          break;
+        case "agent_self_followup":
+          await ctx.services.orchestrator.runTaskLane(
+            ctx,
+            payload.taskId,
+            payload.prompt,
+          );
+          break;
+      }
+    }),
+  );
 }
 
 /**
