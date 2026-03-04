@@ -110,7 +110,7 @@ export function ConnectionDetailPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-6">
+    <div className="p-6">
       <div className="flex items-center justify-between">
         <BackButton to="/settings/integrations" />
         <button

@@ -14,8 +14,8 @@ export function SkillsPage() {
   const filtered = skills.filter((s) => s.name.toLowerCase().includes(q));
 
   return (
-    <>
-      <div className="px-4 pb-3">
+    <div className="p-6">
+      <div className="pb-3">
         <input
           type="text"
           placeholder="Search skills…"
@@ -27,7 +27,7 @@ export function SkillsPage() {
 
       <QueryResult loading={loading} error={error} />
 
-      <div className="flex flex-col gap-3 px-4 pb-4">
+      <div className="flex flex-col gap-3">
         {filtered.map((skill) => (
           <Link
             key={skill.id}
@@ -47,6 +47,6 @@ export function SkillsPage() {
           </Link>
         ))}
       </div>
-    </>
+    </div>
   );
 }

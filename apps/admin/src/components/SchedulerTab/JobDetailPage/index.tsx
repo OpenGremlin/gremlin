@@ -111,7 +111,7 @@ export function JobDetailPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="p-6">
       <BackButton />
 
       {/* Job Name */}
@@ -273,7 +273,7 @@ export function JobDetailPage() {
             setDeleting(true);
             try {
               await gql<DeleteAgentJobMutation>(DeleteAgentJobDoc, { id });
-              navigate("/settings/scheduler");
+              navigate("/jobs");
             } catch (err) {
               console.error("Failed to delete job:", err);
               setDeleting(false);

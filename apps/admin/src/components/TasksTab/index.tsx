@@ -32,10 +32,10 @@ export function TasksTab() {
   const tasks = nodes;
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="p-6">
       <QueryResult loading={loading} error={error} />
 
-      <div className="divide-y divide-neutral-800/50 pb-24">
+      <div className="divide-y divide-neutral-800/50">
         {tasks.map((item) => (
           <TaskCard key={item.id} item={item} />
         ))}

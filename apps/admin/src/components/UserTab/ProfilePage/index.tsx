@@ -62,7 +62,7 @@ export function ProfilePage() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-4 px-4 pb-6"
+      className="flex flex-col gap-4 p-6"
     >
       <div className="flex flex-col gap-1">
         <label

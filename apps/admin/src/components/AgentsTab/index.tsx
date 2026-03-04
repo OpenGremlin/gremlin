@@ -17,7 +17,7 @@ export function AgentsTab() {
 
       <QueryResult loading={loading} error={error} />
 
-      <div className="flex flex-col gap-3 px-4 pb-4">
+      <div className="flex flex-col gap-3 px-6 pb-6">
         {agents.map((agent) => (
           <div
             key={agent.id}

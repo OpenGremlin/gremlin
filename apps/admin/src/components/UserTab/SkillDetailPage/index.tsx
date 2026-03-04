@@ -57,7 +57,7 @@ export function SkillDetailPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8">
+    <div className="p-6">
       <BackButton />
 
       <div className="mt-4 flex flex-col gap-4">

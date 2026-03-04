@@ -34,8 +34,8 @@ export function TaskDetailPage() {
   const { agent } = item;
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <div className="px-4 pt-4 pb-24">
+    <div>
+      <div className="p-6">
         <BackButton />
 
         <div className="flex items-center gap-3 mt-6">

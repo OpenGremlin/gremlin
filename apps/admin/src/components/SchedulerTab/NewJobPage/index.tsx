@@ -39,7 +39,7 @@ export function NewJobPage() {
           agentId: agentId || undefined,
         },
       });
-      navigate(`/settings/scheduler/${result.createAgentJob.id}`);
+      navigate(`/jobs/${result.createAgentJob.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -48,7 +48,7 @@ export function NewJobPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="p-6">
       <BackButton />
 
       <h1 className="text-lg font-semibold text-neutral-100 mt-4 mb-6">

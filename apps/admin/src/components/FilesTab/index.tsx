@@ -14,7 +14,7 @@ function Breadcrumbs({
   const segments = dirPath ? dirPath.split("/") : [];
 
   return (
-    <div className="flex items-center gap-1 text-sm text-neutral-400 overflow-x-auto px-4 py-3 border-b border-neutral-800">
+    <div className="flex items-center gap-1 text-sm text-neutral-400 overflow-x-auto px-6 py-3 border-b border-neutral-800">
       <button
         type="button"
         onClick={() => onNavigate("")}
@@ -62,7 +62,7 @@ export function FilesTab() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div>
       <Breadcrumbs dirPath={dirPath} onNavigate={navigateToDir} />
       <QueryResult loading={loading} error={error} />
 
@@ -78,7 +78,7 @@ export function FilesTab() {
                 navigate(`/settings/files/view?path=${encodeURIComponent(entry.path)}`);
               }
             }}
-            className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-neutral-900 transition-colors"
+            className="flex items-center gap-3 w-full px-6 py-3 text-left hover:bg-neutral-900 transition-colors"
           >
             {entry.isDirectory ? (
               <Folder size={18} className="text-indigo-400 shrink-0" />
@@ -96,7 +96,7 @@ export function FilesTab() {
           </button>
         ))}
         {!loading && entries.length === 0 && (
-          <p className="px-4 py-8 text-sm text-neutral-500 text-center">
+          <p className="px-6 py-8 text-sm text-neutral-500 text-center">
             Empty directory
           </p>
         )}

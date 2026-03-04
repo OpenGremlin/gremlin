@@ -110,9 +110,9 @@ export function IntegrationsPage() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <>
+    <div className="p-6">
       <QueryResult loading={loading} error={error} />
-      <div className="flex flex-col gap-5 px-4 pb-6">
+      <div className="flex flex-col gap-5">
         {/* Default Model Summary */}
         {!loading && defaultModel && (
           <div className="bg-neutral-900 rounded-xl p-4">
@@ -216,6 +216,6 @@ export function IntegrationsPage() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

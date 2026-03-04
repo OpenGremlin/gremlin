@@ -13,7 +13,7 @@ export function QueryResult({
 
   if (backButton) {
     return (
-      <div className="px-4 pt-6">
+      <div className="px-6 pt-6">
         <BackButton />
         {loading && <p className="text-neutral-500 mt-4 text-sm">Loading…</p>}
         {error && <p className="text-red-400 mt-4 text-sm">Error: {error}</p>}
@@ -23,15 +23,15 @@ export function QueryResult({
 
   return (
     <>
-      {loading && <p className="px-4 text-sm text-neutral-500">Loading…</p>}
-      {error && <p className="px-4 text-sm text-red-400">Error: {error}</p>}
+      {loading && <p className="px-6 text-sm text-neutral-500">Loading…</p>}
+      {error && <p className="px-6 text-sm text-red-400">Error: {error}</p>}
     </>
   );
 }
 
 export function NotFound({ label }: { label: string }) {
   return (
-    <div className="px-4 pt-6">
+    <div className="px-6 pt-6">
       <BackButton />
       <p className="text-neutral-400 mt-4">{label}</p>
     </div>

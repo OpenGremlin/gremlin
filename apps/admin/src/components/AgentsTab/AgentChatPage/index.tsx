@@ -65,7 +65,7 @@ export function AgentChatPage() {
   }
 
   return (
-    <div className="relative flex flex-col h-[calc(100%+4rem)] -mb-16">
+    <div className="relative flex flex-col h-full">
       <ChatHeader agent={agent} />
 
       <div

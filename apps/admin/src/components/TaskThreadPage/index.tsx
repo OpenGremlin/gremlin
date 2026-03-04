@@ -84,7 +84,7 @@ export function TaskThreadPage() {
   const chatMessages = messages;
 
   return (
-    <div className="flex flex-col h-[calc(100%+4rem)] -mb-16">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="shrink-0 border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm px-3 pt-4 pb-3">
         <div className="flex items-center gap-2">

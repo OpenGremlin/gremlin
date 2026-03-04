@@ -93,7 +93,7 @@ export function AgentConfigPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8">
+    <div className="p-6">
       <BackButton to={`/agents/${agent.id}`} label="Chat" />
 
       <form

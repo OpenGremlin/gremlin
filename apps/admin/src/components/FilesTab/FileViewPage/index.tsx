@@ -14,8 +14,8 @@ export function FileViewPage() {
   });
 
   return (
-    <div className="min-h-screen bg-neutral-950">
-      <div className="px-4 pt-4 pb-2">
+    <div>
+      <div className="px-6 pt-6 pb-2">
         <BackButton />
         <h1 className="text-neutral-200 text-sm font-medium mt-3 break-all">
           {fileName}
@@ -26,13 +26,13 @@ export function FileViewPage() {
       <QueryResult loading={loading} error={error} />
 
       {data?.workspaceFile != null ? (
-        <pre className="px-4 py-3 text-xs text-neutral-300 font-mono whitespace-pre-wrap break-all overflow-x-auto">
+        <pre className="px-6 py-3 text-xs text-neutral-300 font-mono whitespace-pre-wrap break-all overflow-x-auto">
           {data.workspaceFile}
         </pre>
       ) : (
         !loading &&
         !error && (
-          <p className="px-4 py-8 text-sm text-neutral-500 text-center">
+          <p className="px-6 py-8 text-sm text-neutral-500 text-center">
             Unable to display file (binary or too large)
           </p>
         )

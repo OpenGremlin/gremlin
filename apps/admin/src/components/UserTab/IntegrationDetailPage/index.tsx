@@ -553,7 +553,7 @@ export function IntegrationDetailPage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-6">
+    <div className="p-6">
       <BackButton />
 
       <div className="mt-4 flex items-center gap-4">
