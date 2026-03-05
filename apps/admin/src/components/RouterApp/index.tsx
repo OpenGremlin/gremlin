@@ -5,8 +5,8 @@ import {
   Home,
   Plug,
   Settings,
+  Sparkles,
   User,
-  Wand2,
 } from "lucide-react";
 import {
   BrowserRouter,
@@ -38,8 +38,8 @@ import { SkillsPage } from "../UserTab/SkillsPage";
 
 const settingsItems = [
   { to: "/settings/profile", label: "Profile", icon: User },
+  { to: "/settings/skills", label: "Skills", icon: Sparkles },
   { to: "/settings/integrations", label: "Connect", icon: Plug },
-  { to: "/settings/skills", label: "Skill", icon: Wand2 },
   { to: "/settings/files", label: "Files", icon: FolderOpen },
 ];
 
