@@ -32,6 +32,7 @@ const logoMap: Record<string, string> = {
   deepseek: logos.deepseekLogo,
   xai: logos.xaiLogo,
   bedrock: logos.bedrockLogo,
+  brave: logos.braveLogo,
 };
 
 function IntegrationLogo({ id, size = 10 }: { id: string; size?: number }) {
@@ -74,6 +75,7 @@ function getAccountId(
 
 const categoryLabels: Record<string, string> = {
   ai: "AI Models",
+  web: "Web",
   productivity: "Productivity",
   communication: "Communication",
   developer: "Developer",
@@ -83,6 +85,7 @@ const categoryLabels: Record<string, string> = {
 
 const categoryOrder = [
   "ai",
+  "web",
   "productivity",
   "communication",
   "developer",

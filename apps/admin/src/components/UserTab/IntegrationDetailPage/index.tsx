@@ -38,6 +38,7 @@ const logoMap: Record<string, string> = {
   deepseek: logos.deepseekLogo,
   xai: logos.xaiLogo,
   bedrock: logos.bedrockLogo,
+  brave: logos.braveLogo,
 };
 
 function IntegrationLogo({ id }: { id: string }) {

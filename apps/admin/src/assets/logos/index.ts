@@ -1,5 +1,6 @@
 export { default as anthropicLogo } from "./Anthropic.svg";
 export { default as bedrockLogo } from "./Bedrock.svg";
+export { default as braveLogo } from "./Brave.svg";
 export { default as deepseekLogo } from "./DeepSeek.svg";
 export { default as discordLogo } from "./Discord.svg";
 export { default as geminiLogo } from "./Gemini.svg";

@@ -1,5 +1,6 @@
 export type IntegrationCategory =
   | "ai"
+  | "web"
   | "productivity"
   | "communication"
   | "developer"
@@ -263,6 +264,15 @@ export const providers: IntegrationProviderDef[] = [
         outputCost: 2.19,
       },
     ],
+  },
+  // Web
+  {
+    id: "brave",
+    service: "Brave Search",
+    category: "web",
+    description: "Web search via Brave Search API",
+    connectionType: "apikey",
+    availableScopes: [],
   },
   // Productivity
   {
