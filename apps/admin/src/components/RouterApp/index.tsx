@@ -36,10 +36,10 @@ import { SkillDetailPage } from "../UserTab/SkillDetailPage";
 import { SkillsPage } from "../UserTab/SkillsPage";
 
 const settingsItems = [
-  { to: "/settings/files", label: "Files", icon: FolderOpen },
-  { to: "/settings/integrations", label: "Connect", icon: Plug },
-  { to: "/settings/skills", label: "Skills", icon: Wand2 },
   { to: "/settings/profile", label: "Profile", icon: User },
+  { to: "/settings/integrations", label: "Connect", icon: Plug },
+  { to: "/settings/skills", label: "Skill", icon: Wand2 },
+  { to: "/settings/files", label: "Files", icon: FolderOpen },
 ];
 
 function AppShell() {
