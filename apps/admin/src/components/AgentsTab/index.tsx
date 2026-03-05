@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AgentsQuery } from "../../graphql/queries";
 import { AgentAvatar } from "../../shared/AgentAvatar";
@@ -48,6 +48,14 @@ export function AgentsTab() {
             </Link>
           </div>
         ))}
+
+        <Link
+          to="/agents/new"
+          className="bg-neutral-900 rounded-xl p-4 flex items-center justify-center gap-2 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors border border-dashed border-neutral-700"
+        >
+          <Plus size={16} />
+          New Agent
+        </Link>
       </div>
     </div>
   );

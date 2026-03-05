@@ -19,7 +19,14 @@ export const agentTypeDefs = /* GraphQL */ `
     avatar: String
   }
 
+  input CreateAgentInput {
+    id: String!
+    name: String!
+    soul: String
+  }
+
   extend type Mutation {
+    createAgent(input: CreateAgentInput!): Agent!
     updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   }
 

@@ -111,6 +111,12 @@ export type AvatarUrlArgs = {
 
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
+export type CreateAgentInput = {
+  id: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  soul?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateAgentJobInput = {
   agentId?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
@@ -177,8 +183,10 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  bindSkillConnection?: Maybe<Skill>;
   connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
+  createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
@@ -190,11 +198,19 @@ export type Mutation = {
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setDefaultModel: Scalars['Boolean']['output'];
+  setSkillMcpEnabled?: Maybe<Skill>;
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
+};
+
+
+export type MutationBindSkillConnectionArgs = {
+  connectionId: Scalars['ID']['input'];
+  providerId: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -207,6 +223,11 @@ export type MutationConnectApiKeyArgs = {
 export type MutationConnectIntegrationArgs = {
   providerId: Scalars['String']['input'];
   scopes: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationCreateAgentArgs = {
+  input: CreateAgentInput;
 };
 
 
@@ -267,6 +288,12 @@ export type MutationSendMessageArgs = {
 export type MutationSetDefaultModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationSetSkillMcpEnabledArgs = {
+  enabled: Scalars['Boolean']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -441,12 +468,27 @@ export type Skill = {
   author: Scalars['String']['output'];
   category: Scalars['String']['output'];
   description: Scalars['String']['output'];
+  hasInstructions: Scalars['Boolean']['output'];
+  hasMcp: Scalars['Boolean']['output'];
   homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   installed: Scalars['Boolean']['output'];
+  installedAt?: Maybe<Scalars['String']['output']>;
+  mcpEnabled?: Maybe<Scalars['Boolean']['output']>;
   name: Scalars['String']['output'];
+  requiredConnections: Array<SkillConnectionStatus>;
   requiredEnv: Array<Scalars['String']['output']>;
   version: Scalars['String']['output'];
+};
+
+export type SkillConnectionStatus = {
+  __typename?: 'SkillConnectionStatus';
+  boundConnectionId?: Maybe<Scalars['String']['output']>;
+  connected: Scalars['Boolean']['output'];
+  optional: Scalars['Boolean']['output'];
+  providerId: Scalars['String']['output'];
+  providerName: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
 };
 
 export type Subscription = {
@@ -556,6 +598,7 @@ export type UpdateAgentJobInput = {
 export type WorkspaceEntry = {
   __typename?: 'WorkspaceEntry';
   isDirectory: Scalars['Boolean']['output'];
+  mimeType?: Maybe<Scalars['String']['output']>;
   modifiedAt?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
@@ -608,6 +651,13 @@ export type UpdateAgentMutationVariables = Exact<{
 
 
 export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, soul: string } | null };
+
+export type CreateAgentMutationVariables = Exact<{
+  input: CreateAgentInput;
+}>;
+
+
+export type CreateAgentMutation = { __typename?: 'Mutation', createAgent: { __typename?: 'Agent', id: string, name: string, soul: string } };
 
 export type AgentUpdatedSubscriptionVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -949,6 +999,15 @@ export const UpdateAgentDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateAgentMutation, UpdateAgentMutationVariables>;
+export const CreateAgentDocument = new TypedDocumentString(`
+    mutation CreateAgent($input: CreateAgentInput!) {
+  createAgent(input: $input) {
+    id
+    name
+    soul
+  }
+}
+    `) as unknown as TypedDocumentString<CreateAgentMutation, CreateAgentMutationVariables>;
 export const AgentUpdatedDocument = new TypedDocumentString(`
     subscription AgentUpdated($agentId: ID!) {
   agentUpdated(agentId: $agentId) {

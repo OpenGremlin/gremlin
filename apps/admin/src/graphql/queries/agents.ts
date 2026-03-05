@@ -34,6 +34,17 @@ export const UpdateAgentMutation = graphql(`
   }
 `);
 
+export const CreateAgentMutation = graphql(`
+  mutation CreateAgent($input: CreateAgentInput!) {
+    createAgent(input: $input) {
+      id
+      name
+      soul
+    }
+  }
+`);
+
+
 export const AgentUpdatedSubscription = graphql(`
   subscription AgentUpdated($agentId: ID!) {
     agentUpdated(agentId: $agentId) {

@@ -29,6 +29,7 @@ type Mutation {
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
+  createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   connectIntegration(providerId: String!, scopes: [String!]!): String!
   connectApiKey(providerId: String!, apiKey: String!): ID!
@@ -42,6 +43,8 @@ type Mutation {
   updateProfile(input: ProfileInput!): Profile!
   installSkill(id: ID!): Skill
   uninstallSkill(id: ID!): Skill
+  bindSkillConnection(skillId: ID!, providerId: String!, connectionId: ID!): Skill
+  setSkillMcpEnabled(skillId: ID!, enabled: Boolean!): Skill
 }
 
 type Subscription {
@@ -146,6 +149,12 @@ input UpdateAgentInput {
   name: String
   soul: String
   avatar: String
+}
+
+input CreateAgentInput {
+  id: String!
+  name: String!
+  soul: String
 }
 
 type Avatar {
@@ -261,6 +270,20 @@ type Skill {
   category: String!
   homepage: String
   requiredEnv: [String!]!
+  installedAt: String
+  mcpEnabled: Boolean
+  hasInstructions: Boolean!
+  hasMcp: Boolean!
+  requiredConnections: [SkillConnectionStatus!]!
+}
+
+type SkillConnectionStatus {
+  providerId: String!
+  providerName: String!
+  reason: String!
+  optional: Boolean!
+  boundConnectionId: String
+  connected: Boolean!
 }
 
 type Task {
@@ -301,6 +324,7 @@ type WorkspaceEntry {
   isDirectory: Boolean!
   size: Int
   modifiedAt: String
+  mimeType: String
 }
 
 schema {

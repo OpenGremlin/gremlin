@@ -22,6 +22,7 @@ import { FilesTab } from "../FilesTab";
 import { FileViewPage } from "../FilesTab/FileViewPage";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
+import { NewAgentPage } from "../AgentsTab/NewAgentPage";
 import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { NewJobPage } from "../SchedulerTab/NewJobPage";
@@ -137,6 +138,7 @@ export function RouterApp() {
           <Route path="home" element={<TasksTab />} />
 
           <Route path="agents" element={<AgentsTab />} />
+          <Route path="agents/new" element={<NewAgentPage />} />
           <Route path="agents/:id" element={<AgentChatPage />} />
           <Route path="agents/:id/tasks/:taskId" element={<AgentChatPage />} />
           <Route path="agents/:id/config" element={<AgentConfigPage />} />

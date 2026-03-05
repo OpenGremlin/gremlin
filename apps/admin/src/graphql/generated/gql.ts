@@ -21,6 +21,7 @@ type Documents = {
     "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n    }\n  }\n": typeof types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n    }\n  }\n": typeof types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      id\n      name\n      avatar\n      soul\n    }\n  }\n": typeof types.UpdateAgentDocument,
+    "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n": typeof types.CreateAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      name\n    }\n  }\n": typeof types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": typeof types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
@@ -62,6 +63,7 @@ const documents: Documents = {
     "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n    }\n  }\n": types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n    }\n  }\n": types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      id\n      name\n      avatar\n      soul\n    }\n  }\n": types.UpdateAgentDocument,
+    "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n": types.CreateAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      name\n    }\n  }\n": types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
@@ -121,6 +123,10 @@ export function graphql(source: "\n  query Agent($id: ID!) {\n    agent(id: $id)
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      id\n      name\n      avatar\n      soul\n    }\n  }\n"): typeof import('./graphql').UpdateAgentDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n"): typeof import('./graphql').CreateAgentDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

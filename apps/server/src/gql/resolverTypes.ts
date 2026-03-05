@@ -125,6 +125,12 @@ export type AvatarUrlArgs = {
 
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
+export type CreateAgentInput = {
+  id: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  soul?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateAgentJobInput = {
   agentId?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
@@ -194,6 +200,7 @@ export type Mutation = {
   bindSkillConnection?: Maybe<Skill>;
   connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
+  createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
@@ -230,6 +237,11 @@ export type MutationConnectApiKeyArgs = {
 export type MutationConnectIntegrationArgs = {
   providerId: Scalars['String']['input'];
   scopes: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationCreateAgentArgs = {
+  input: CreateAgentInput;
 };
 
 
@@ -699,6 +711,7 @@ export type ResolversTypes = {
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ConnectionMeta: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ConnectionMeta']>;
+  CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   Document: ResolverTypeWrapper<Document>;
@@ -744,6 +757,7 @@ export type ResolversParentTypes = {
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
   ConnectionMeta: ResolversUnionTypes<ResolversParentTypes>['ConnectionMeta'];
+  CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: DefaultModelResult;
   Document: Document;
@@ -893,6 +907,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   bindSkillConnection?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationBindSkillConnectionArgs, 'connectionId' | 'providerId' | 'skillId'>>;
   connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
+  createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
