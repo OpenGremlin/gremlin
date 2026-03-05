@@ -30,6 +30,7 @@ export async function runMainLane(
     ctx.services.profile.getProfile(ctx, "default"),
   ]);
   if (!agent) throw new Error(`Agent ${agentId} not found`);
+  if (agent.retired) throw new Error(`Agent ${agentId} is retired`);
 
   // Only write the user message when explicitly provided (legacy path).
   // The inbox consumer writes messages before enqueueing, so it skips this.

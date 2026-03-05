@@ -124,12 +124,20 @@ export function AgentChatPage() {
         </div>
       </div>
 
-      <ChatInputBar
-        value={input}
-        onChange={setInput}
-        onSend={handleSend}
-        disabled={sending}
-      />
+      {agent.retired ? (
+        <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-neutral-800/60 bg-neutral-950/70 backdrop-blur-md px-3 py-3.5">
+          <div className="text-center text-sm text-neutral-500">
+            This agent is retired.
+          </div>
+        </div>
+      ) : (
+        <ChatInputBar
+          value={input}
+          onChange={setInput}
+          onSend={handleSend}
+          disabled={sending}
+        />
+      )}
     </div>
   );
 }

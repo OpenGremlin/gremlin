@@ -18,10 +18,11 @@ type Documents = {
     "\n  query AgentLogs($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": typeof types.AgentLogsDocument,
     "\n  mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {\n    sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": typeof types.SendMessageDocument,
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": typeof types.AgentLogCreatedDocument,
-    "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n    }\n  }\n": typeof types.AgentsDocument,
-    "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n    }\n  }\n": typeof types.AgentDocument,
+    "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n      retired\n    }\n  }\n": typeof types.AgentsDocument,
+    "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n      retired\n    }\n  }\n": typeof types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      id\n      name\n      avatar\n      soul\n    }\n  }\n": typeof types.UpdateAgentDocument,
     "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n": typeof types.CreateAgentDocument,
+    "\n  mutation RetireAgent($id: ID!) {\n    retireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": typeof types.RetireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      name\n    }\n  }\n": typeof types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": typeof types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
@@ -60,10 +61,11 @@ const documents: Documents = {
     "\n  query AgentLogs($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.AgentLogsDocument,
     "\n  mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {\n    sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": types.SendMessageDocument,
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      taskId\n      createdAt\n    }\n  }\n": types.AgentLogCreatedDocument,
-    "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n    }\n  }\n": types.AgentsDocument,
-    "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n    }\n  }\n": types.AgentDocument,
+    "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n      retired\n    }\n  }\n": types.AgentsDocument,
+    "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n      retired\n    }\n  }\n": types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      id\n      name\n      avatar\n      soul\n    }\n  }\n": types.UpdateAgentDocument,
     "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n": types.CreateAgentDocument,
+    "\n  mutation RetireAgent($id: ID!) {\n    retireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": types.RetireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      id\n      name\n    }\n  }\n": types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": types.IntegrationProvidersDocument,
     "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      description\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
@@ -114,11 +116,11 @@ export function graphql(source: "\n  subscription AgentLogCreated($agentId: ID!)
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n    }\n  }\n"): typeof import('./graphql').AgentsDocument;
+export function graphql(source: "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n      retired\n    }\n  }\n"): typeof import('./graphql').AgentsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n    }\n  }\n"): typeof import('./graphql').AgentDocument;
+export function graphql(source: "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      id\n      name\n      avatar\n      portraitId\n      imageUrl(width: 200)\n      soul\n      retired\n    }\n  }\n"): typeof import('./graphql').AgentDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -127,6 +129,10 @@ export function graphql(source: "\n  mutation UpdateAgent($id: ID!, $input: Upda
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) {\n      id\n      name\n      soul\n    }\n  }\n"): typeof import('./graphql').CreateAgentDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RetireAgent($id: ID!) {\n    retireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n"): typeof import('./graphql').RetireAgentDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

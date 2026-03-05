@@ -31,6 +31,7 @@ type Mutation {
   sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
+  retireAgent(id: ID!): Agent!
   connectIntegration(providerId: String!, scopes: [String!]!): String!
   connectApiKey(providerId: String!, apiKey: String!): ID!
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
@@ -143,6 +144,7 @@ type Agent {
   portraitId: String!
   imageUrl(width: Int): String!
   soul: String!
+  retired: Boolean!
 }
 
 input UpdateAgentInput {

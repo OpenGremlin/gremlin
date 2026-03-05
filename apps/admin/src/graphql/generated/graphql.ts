@@ -23,6 +23,7 @@ export type Agent = {
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
   portraitId: Scalars['String']['output'];
+  retired: Scalars['Boolean']['output'];
   soul: Scalars['String']['output'];
 };
 
@@ -195,6 +196,7 @@ export type Mutation = {
   installSkill?: Maybe<Skill>;
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
+  retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setDefaultModel: Scalars['Boolean']['output'];
@@ -269,6 +271,11 @@ export type MutationRenameIntegrationConnectionArgs = {
 
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRetireAgentArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -635,14 +642,14 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
 export type AgentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AgentsQuery = { __typename?: 'Query', agents: Array<{ __typename?: 'Agent', id: string, name: string, soul: string }> };
+export type AgentsQuery = { __typename?: 'Query', agents: Array<{ __typename?: 'Agent', id: string, name: string, soul: string, retired: boolean }> };
 
 export type AgentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string } | null };
+export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean } | null };
 
 export type UpdateAgentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -658,6 +665,13 @@ export type CreateAgentMutationVariables = Exact<{
 
 
 export type CreateAgentMutation = { __typename?: 'Mutation', createAgent: { __typename?: 'Agent', id: string, name: string, soul: string } };
+
+export type RetireAgentMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RetireAgentMutation = { __typename?: 'Mutation', retireAgent: { __typename?: 'Agent', id: string, retired: boolean } };
 
 export type AgentUpdatedSubscriptionVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -974,6 +988,7 @@ export const AgentsDocument = new TypedDocumentString(`
     id
     name
     soul
+    retired
   }
 }
     `) as unknown as TypedDocumentString<AgentsQuery, AgentsQueryVariables>;
@@ -986,6 +1001,7 @@ export const AgentDocument = new TypedDocumentString(`
     portraitId
     imageUrl(width: 200)
     soul
+    retired
   }
 }
     `) as unknown as TypedDocumentString<AgentQuery, AgentQueryVariables>;
@@ -1008,6 +1024,14 @@ export const CreateAgentDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CreateAgentMutation, CreateAgentMutationVariables>;
+export const RetireAgentDocument = new TypedDocumentString(`
+    mutation RetireAgent($id: ID!) {
+  retireAgent(id: $id) {
+    id
+    retired
+  }
+}
+    `) as unknown as TypedDocumentString<RetireAgentMutation, RetireAgentMutationVariables>;
 export const AgentUpdatedDocument = new TypedDocumentString(`
     subscription AgentUpdated($agentId: ID!) {
   agentUpdated(agentId: $agentId) {

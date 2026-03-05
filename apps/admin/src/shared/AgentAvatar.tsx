@@ -9,10 +9,12 @@ export function AgentAvatar({
   const agent = data?.agent;
   const name = agent?.name ?? "";
 
+  const isRetired = agent?.retired ?? false;
+
   return (
     <div
       style={{ width: size, height: size }}
-      className="shrink-0 flex items-center justify-center"
+      className={`shrink-0 flex items-center justify-center ${isRetired ? "grayscale opacity-50" : ""}`}
     >
       <div
         className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium"

@@ -37,6 +37,7 @@ export type Agent = {
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
   portraitId: Scalars['String']['output'];
+  retired: Scalars['Boolean']['output'];
   soul: Scalars['String']['output'];
 };
 
@@ -209,6 +210,7 @@ export type Mutation = {
   installSkill?: Maybe<Skill>;
   renameIntegrationConnection: Scalars['Boolean']['output'];
   resolveNotification?: Maybe<Notification>;
+  retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: AgentLog;
   setDefaultModel: Scalars['Boolean']['output'];
@@ -283,6 +285,11 @@ export type MutationRenameIntegrationConnectionArgs = {
 
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRetireAgentArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -793,6 +800,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -916,6 +924,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'id'>>;
   renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
+  retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;

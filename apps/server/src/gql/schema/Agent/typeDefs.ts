@@ -6,6 +6,7 @@ export const agentTypeDefs = /* GraphQL */ `
     portraitId: String!
     imageUrl(width: Int): String!
     soul: String!
+    retired: Boolean!
   }
 
   extend type Query {
@@ -28,6 +29,7 @@ export const agentTypeDefs = /* GraphQL */ `
   extend type Mutation {
     createAgent(input: CreateAgentInput!): Agent!
     updateAgent(id: ID!, input: UpdateAgentInput!): Agent
+    retireAgent(id: ID!): Agent!
   }
 
   extend type Subscription {

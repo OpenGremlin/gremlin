@@ -45,6 +45,7 @@ export async function runTaskLane(
     ctx.services.profile.getProfile(ctx, "default"),
   ]);
   if (!agent) throw new Error(`Agent ${task.agentId} not found`);
+  if (agent.retired) throw new Error(`Agent ${task.agentId} is retired`);
 
   // Log the prompt as a system message (only for initial delegation;
   // user follow-ups are already logged as USER by sendMessage)

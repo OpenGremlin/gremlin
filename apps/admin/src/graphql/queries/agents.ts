@@ -6,6 +6,7 @@ export const AgentsQuery = graphql(`
       id
       name
       soul
+      retired
     }
   }
 `);
@@ -19,6 +20,7 @@ export const AgentQuery = graphql(`
       portraitId
       imageUrl(width: 200)
       soul
+      retired
     }
   }
 `);
@@ -44,6 +46,15 @@ export const CreateAgentMutation = graphql(`
   }
 `);
 
+
+export const RetireAgentMutation = graphql(`
+  mutation RetireAgent($id: ID!) {
+    retireAgent(id: $id) {
+      id
+      retired
+    }
+  }
+`);
 
 export const AgentUpdatedSubscription = graphql(`
   subscription AgentUpdated($agentId: ID!) {

@@ -1,3 +1,4 @@
+import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
@@ -13,6 +14,7 @@ export const AgentEntity = new Entity({
     avatar: string(),
     portraitId: string(),
     soul: string(),
+    retired: boolean().optional().default(false),
   }),
   computeKey: ({ id }) => ({
     pk: "AGENT",
