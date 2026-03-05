@@ -84,7 +84,7 @@ export function AgentChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-40" : "pt-32"}`}
+        className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"}`}
       >
         <div className="flex flex-col gap-1">
           {chat.hasMore && (
