@@ -2,12 +2,21 @@ import type {
   MutationResolvers,
   QueryResolvers,
   SkillResolvers,
+  SkillTemplateResolvers,
 } from "../../resolverTypes.js";
 import { providers } from "../../../services/integrations/providers.js";
 import { parseConnectionBindings } from "../../../services/skills/parseConnectionBindings.js";
-import { getSkillDef } from "../../../services/skills/skillCatalog.js";
+import {
+  getSkillTemplate,
+  skillCatalog,
+} from "../../../services/skills/skillCatalog.js";
 
 // --- Queries ---
+
+const skillTemplates: QueryResolvers["skillTemplates"] = () => skillCatalog;
+
+const skillTemplate: QueryResolvers["skillTemplate"] = (_parent, { id }) =>
+  getSkillTemplate(id) ?? null;
 
 const skills: QueryResolvers["skills"] = (_parent, _args, ctx) =>
   ctx.services.skills.getSkills(ctx);
@@ -15,19 +24,13 @@ const skills: QueryResolvers["skills"] = (_parent, _args, ctx) =>
 const skill: QueryResolvers["skill"] = (_parent, { id }, ctx) =>
   ctx.services.skills.getSkill(ctx, id);
 
-const searchSkills: QueryResolvers["searchSkills"] = (
-  _parent,
-  { query },
-  ctx,
-) => ctx.services.skills.searchSkills(ctx, query);
-
 // --- Mutations ---
 
 const installSkill: MutationResolvers["installSkill"] = (
   _parent,
-  { id },
+  { templateId },
   ctx,
-) => ctx.services.skills.installSkill(ctx, id);
+) => ctx.services.skills.installSkill(ctx, templateId);
 
 const uninstallSkill: MutationResolvers["uninstallSkill"] = (
   _parent,
@@ -37,38 +40,48 @@ const uninstallSkill: MutationResolvers["uninstallSkill"] = (
 
 const bindSkillConnection: MutationResolvers["bindSkillConnection"] = (
   _parent,
-  { skillId, providerId, connectionId },
+  { id, providerId, connectionId },
   ctx,
-) => ctx.services.skills.bindSkillConnection(ctx, skillId, providerId, connectionId);
+) => ctx.services.skills.bindSkillConnection(ctx, id, providerId, connectionId);
 
 const setSkillMcpEnabled: MutationResolvers["setSkillMcpEnabled"] = (
   _parent,
-  { skillId, enabled },
+  { id, enabled },
   ctx,
-) => ctx.services.skills.setSkillMcpEnabled(ctx, skillId, enabled);
+) => ctx.services.skills.setSkillMcpEnabled(ctx, id, enabled);
 
 // --- Field resolvers ---
 
 const providerMap = new Map(providers.map((p) => [p.id, p]));
 
-const Skill: SkillResolvers = {
-  hasInstructions: (parent) => {
-    const def = getSkillDef(parent.id);
-    return !!def?.instructions;
-  },
+const SkillTemplate: SkillTemplateResolvers = {
+  hasInstructions: (parent) => !!parent.instructions,
+  hasMcp: (parent) => !!parent.mcp,
+  requiredConnections: (parent) =>
+    (parent.requiredConnections ?? []).map((req) => {
+      const provider = providerMap.get(req.providerId);
+      return {
+        providerId: req.providerId,
+        providerName: provider?.service ?? req.providerId,
+        reason: req.reason,
+        optional: req.optional ?? false,
+      };
+    }),
+};
 
-  hasMcp: (parent) => {
-    const def = getSkillDef(parent.id);
-    return !!def?.mcp;
+const Skill: SkillResolvers = {
+  template: (parent) => {
+    const tmpl = getSkillTemplate(parent.templateId);
+    if (!tmpl) throw new Error(`Template ${parent.templateId} not found`);
+    return tmpl;
   },
 
   requiredConnections: async (parent, _args, ctx) => {
-    const def = getSkillDef(parent.id);
-    if (!def?.requiredConnections?.length) return [];
+    const tmpl = getSkillTemplate(parent.templateId);
+    if (!tmpl?.requiredConnections?.length) return [];
 
     const bindings = parseConnectionBindings(parent.connectionBindings);
 
-    // Load connections to check validity
     const connections = await ctx.services.integrations.getConnections(
       ctx.resources,
     );
@@ -78,7 +91,7 @@ const Skill: SkillResolvers = {
         .map((c) => c.id),
     );
 
-    return def.requiredConnections.map((req) => {
+    return tmpl.requiredConnections.map((req) => {
       const boundId = bindings[req.providerId] ?? null;
       const provider = providerMap.get(req.providerId);
       return {
@@ -94,7 +107,8 @@ const Skill: SkillResolvers = {
 };
 
 export const skillResolvers = {
-  Query: { skills, skill, searchSkills },
+  Query: { skillTemplates, skillTemplate, skills, skill },
   Mutation: { installSkill, uninstallSkill, bindSkillConnection, setSkillMcpEnabled },
+  SkillTemplate,
   Skill,
 };

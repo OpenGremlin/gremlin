@@ -20,7 +20,7 @@ export interface SkillConnectionRequirement {
   requiredScopes?: string[];
 }
 
-export interface SkillDef {
+export interface SkillTemplate {
   id: string;
   name: string;
   description: string;

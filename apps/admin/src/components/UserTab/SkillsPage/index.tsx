@@ -11,7 +11,9 @@ export function SkillsPage() {
 
   const skills = data?.skills ?? [];
   const q = query.toLowerCase();
-  const filtered = skills.filter((s) => s.name.toLowerCase().includes(q));
+  const filtered = skills.filter((s) =>
+    s.template.name.toLowerCase().includes(q),
+  );
 
   return (
     <div className="p-6">
@@ -36,13 +38,15 @@ export function SkillsPage() {
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-medium text-neutral-100">
-                {skill.name}
+                {skill.template.name}
               </h3>
               <Badge label={skill.installed ? "Installed" : "Available"} />
             </div>
-            <p className="text-xs text-neutral-400 mb-2">{skill.description}</p>
+            <p className="text-xs text-neutral-400 mb-2">
+              {skill.template.description}
+            </p>
             <span className="text-[11px] text-neutral-500">
-              v{skill.version}
+              v{skill.template.version}
             </span>
           </Link>
         ))}

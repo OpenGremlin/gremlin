@@ -20,13 +20,10 @@ export async function bindSkillConnection(
   const bindings = parseConnectionBindings(existing.connectionBindings);
   bindings[providerId] = connectionId;
 
-  const { Attributes } = await ctx.resources.ddb.entities.Skill.build(
-    UpdateItemCommand,
-  )
+  await ctx.resources.ddb.entities.Skill.build(UpdateItemCommand)
     .item({ id: skillId, connectionBindings: JSON.stringify(bindings) })
-    .options({ returnValues: "ALL_NEW" })
     .send();
 
-  if (!Attributes) throw new Error(`Skill ${skillId} not found`);
-  return Attributes;
+  const skill = await getSkill(ctx, skillId);
+  return skill!;
 }

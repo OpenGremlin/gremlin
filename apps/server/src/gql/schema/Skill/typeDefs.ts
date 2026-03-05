@@ -1,18 +1,30 @@
 export const skillTypeDefs = /* GraphQL */ `
-  type Skill {
+  type SkillTemplate {
     id: ID!
     name: String!
     description: String!
     version: String!
     author: String!
-    installed: Boolean!
     category: String!
-    homepage: String
-    requiredEnv: [String!]!
-    installedAt: String
-    mcpEnabled: Boolean
+    icon: String
     hasInstructions: Boolean!
     hasMcp: Boolean!
+    requiredConnections: [SkillConnectionRequirement!]!
+  }
+
+  type SkillConnectionRequirement {
+    providerId: String!
+    providerName: String!
+    reason: String!
+    optional: Boolean!
+  }
+
+  type Skill {
+    id: ID!
+    template: SkillTemplate!
+    installed: Boolean!
+    installedAt: String
+    mcpEnabled: Boolean
     requiredConnections: [SkillConnectionStatus!]!
   }
 
@@ -26,15 +38,18 @@ export const skillTypeDefs = /* GraphQL */ `
   }
 
   extend type Query {
+    "All templates from the catalog"
+    skillTemplates: [SkillTemplate!]!
+    skillTemplate(id: ID!): SkillTemplate
+    "All skill instances (installed or not — one per template for now)"
     skills: [Skill!]!
     skill(id: ID!): Skill
-    searchSkills(query: String!): [Skill!]!
   }
 
   extend type Mutation {
-    installSkill(id: ID!): Skill
+    installSkill(templateId: ID!): Skill
     uninstallSkill(id: ID!): Skill
-    bindSkillConnection(skillId: ID!, providerId: String!, connectionId: ID!): Skill
-    setSkillMcpEnabled(skillId: ID!, enabled: Boolean!): Skill
+    bindSkillConnection(id: ID!, providerId: String!, connectionId: ID!): Skill
+    setSkillMcpEnabled(id: ID!, enabled: Boolean!): Skill
   }
 `;

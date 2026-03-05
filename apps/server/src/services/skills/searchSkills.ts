@@ -1,17 +1,27 @@
 import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { ServiceContext } from "../context.js";
+import { skillCatalog } from "./skillCatalog.js";
 import { getSkills } from "./getSkills.js";
 
 export async function searchSkills(
   ctx: ServiceContext,
   query: string,
 ): Promise<SkillItem[]> {
-  const all = await getSkills(ctx);
   const q = query.toLowerCase();
-  return all.filter(
-    (s) =>
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      s.category.toLowerCase().includes(q),
+
+  // Filter catalog templates first
+  const matchingIds = new Set(
+    skillCatalog
+      .filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q),
+      )
+      .map((t) => t.id),
   );
+
+  // Then merge DDB state
+  const all = await getSkills(ctx);
+  return all.filter((s) => matchingIds.has(s.templateId));
 }

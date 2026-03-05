@@ -4,7 +4,7 @@ import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { Resources } from "../../resources/index.js";
 import { getAccessToken } from "../oauth/getAccessToken.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
-import type { SkillDef } from "./registry.js";
+import type { SkillTemplate } from "./registry.js";
 
 export interface ResolvedSkillEnv {
   env: Record<string, string>;
@@ -13,13 +13,13 @@ export interface ResolvedSkillEnv {
 
 /**
  * Resolve a skill's full environment by merging:
- * 1. Static env from the SkillDef
+ * 1. Static env from the SkillTemplate
  * 2. User configOverrides
  * 3. Tokens/keys from bound IntegrationConnections via envMapping
  */
 export async function resolveSkillEnv(
   resources: Resources,
-  skillDef: SkillDef,
+  skillDef: SkillTemplate,
   skillItem: SkillItem,
 ): Promise<ResolvedSkillEnv> {
   // 1. Start with static env from the skill definition

@@ -1,6 +1,6 @@
-import type { SkillDef } from "./registry.js";
+import type { SkillTemplate } from "./registry.js";
 
-export const skillCatalog: SkillDef[] = [
+export const skillCatalog: SkillTemplate[] = [
   {
     id: "github",
     name: "GitHub",
@@ -82,6 +82,38 @@ export const skillCatalog: SkillDef[] = [
     tags: ["developer", "code-quality"],
   },
   {
+    id: "web-search",
+    name: "Web Search",
+    description:
+      "Search the web using Brave Search to find up-to-date information, articles, and answers.",
+    version: "1.0.0",
+    author: "gremlin",
+    category: "web",
+    icon: "globe",
+    instructions: [
+      "You have access to web search tools via the Brave Search MCP server.",
+      "Use them to find current information, answer factual questions, and research topics.",
+      "Prefer specific, well-formed queries over vague ones.",
+      "Summarize search results concisely and cite sources when possible.",
+      "If the first query doesn't yield good results, refine and retry with different terms.",
+    ].join(" "),
+    mcp: {
+      transport: {
+        type: "stdio",
+        command: "npx",
+        args: ["-y", "@anthropic-ai/mcp-server-brave-search"],
+      },
+    },
+    requiredConnections: [
+      {
+        providerId: "brave",
+        envMapping: { BRAVE_API_KEY: "accessToken" },
+        reason: "Authenticate with Brave Search to perform web queries.",
+      },
+    ],
+    tags: ["web", "search", "research"],
+  },
+  {
     id: "filesystem",
     name: "Filesystem",
     description:
@@ -101,7 +133,7 @@ export const skillCatalog: SkillDef[] = [
   },
 ];
 
-/** Look up a skill definition by ID */
-export function getSkillDef(id: string): SkillDef | undefined {
+/** Look up a skill template by ID */
+export function getSkillTemplate(id: string): SkillTemplate | undefined {
   return skillCatalog.find((s) => s.id === id);
 }

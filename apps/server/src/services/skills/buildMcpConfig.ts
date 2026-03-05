@@ -1,7 +1,6 @@
 import type { ServiceContext } from "../context.js";
-import type { SkillDef } from "./registry.js";
 import { resolveSkillEnv } from "./resolveSkillEnv.js";
-import { getSkillDef } from "./skillCatalog.js";
+import { getSkillTemplate } from "./skillCatalog.js";
 
 interface McpServerStdioConfig {
   command: string;
@@ -36,7 +35,7 @@ export async function buildMcpConfig(
   const skillInstructions: string[] = [];
 
   for (const skillItem of installedSkills) {
-    const skillDef = getSkillDef(skillItem.id);
+    const skillDef = getSkillTemplate(skillItem.templateId);
     if (!skillDef) continue;
 
     // Collect instructions regardless of MCP

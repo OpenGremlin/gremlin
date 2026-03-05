@@ -1,23 +1,28 @@
-import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
+import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { ServiceContext } from "../context.js";
+import { getSkillTemplate } from "./skillCatalog.js";
+import { getSkill } from "./getSkill.js";
 
 export async function installSkill(
   ctx: ServiceContext,
-  id: string,
+  templateId: string,
 ): Promise<SkillItem> {
-  const { Attributes } = await ctx.resources.ddb.entities.Skill.build(
-    UpdateItemCommand,
-  )
+  const tmpl = getSkillTemplate(templateId);
+  if (!tmpl) throw new Error(`Skill template ${templateId} not found in catalog`);
+
+  await ctx.resources.ddb.entities.Skill.build(PutItemCommand)
     .item({
-      id,
+      id: templateId,
+      templateId,
       installed: true,
       installedAt: new Date().toISOString(),
       mcpEnabled: true,
+      connectionBindings: null,
+      configOverrides: null,
     })
-    .options({ returnValues: "ALL_NEW" })
     .send();
 
-  if (!Attributes) throw new Error(`Skill ${id} not found`);
-  return Attributes;
+  const skill = await getSkill(ctx, templateId);
+  return skill!;
 }

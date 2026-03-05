@@ -37,17 +37,13 @@ export function SkillDetailPage() {
       if (skill.installed) {
         const result = await gql<{ uninstallSkill: Skill }>(
           UninstallSkillMutation,
-          {
-            id,
-          },
+          { id },
         );
         setLocalSkill(result.uninstallSkill);
       } else {
         const result = await gql<{ installSkill: Skill }>(
           InstallSkillMutation,
-          {
-            id,
-          },
+          { templateId: id },
         );
         setLocalSkill(result.installSkill);
       }
@@ -63,30 +59,32 @@ export function SkillDetailPage() {
       <div className="mt-4 flex flex-col gap-4">
         <div>
           <h1 className="text-xl font-semibold text-neutral-100 mb-2">
-            {skill.name}
+            {skill.template.name}
           </h1>
           <div className="flex items-center gap-2">
-            <Badge label={`v${skill.version}`} />
+            <Badge label={`v${skill.template.version}`} />
             <Badge label={skill.installed ? "Installed" : "Available"} />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
           <span className="text-xs text-neutral-500">Author</span>
-          <span className="text-sm text-neutral-100">{skill.author}</span>
+          <span className="text-sm text-neutral-100">
+            {skill.template.author}
+          </span>
         </div>
 
         <div className="flex flex-col gap-1">
           <span className="text-xs text-neutral-500">Category</span>
           <span className="text-sm text-neutral-100 capitalize">
-            {skill.category}
+            {skill.template.category}
           </span>
         </div>
 
         <div className="flex flex-col gap-1">
           <span className="text-xs text-neutral-500">Description</span>
           <p className="text-sm text-neutral-300 leading-relaxed">
-            {skill.description}
+            {skill.template.description}
           </p>
         </div>
 

@@ -211,8 +211,8 @@ export type Mutation = {
 
 export type MutationBindSkillConnectionArgs = {
   connectionId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
   providerId: Scalars['String']['input'];
-  skillId: Scalars['ID']['input'];
 };
 
 
@@ -259,7 +259,7 @@ export type MutationEnableBedrockModelArgs = {
 
 
 export type MutationInstallSkillArgs = {
-  id: Scalars['ID']['input'];
+  templateId: Scalars['ID']['input'];
 };
 
 
@@ -300,7 +300,7 @@ export type MutationSetDefaultModelArgs = {
 
 export type MutationSetSkillMcpEnabledArgs = {
   enabled: Scalars['Boolean']['input'];
-  skillId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -399,8 +399,11 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
-  searchSkills: Array<Skill>;
   skill?: Maybe<Skill>;
+  skillTemplate?: Maybe<SkillTemplate>;
+  /** All templates from the catalog */
+  skillTemplates: Array<SkillTemplate>;
+  /** All skill instances (installed or not — one per template for now) */
   skills: Array<Skill>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
@@ -429,12 +432,12 @@ export type QueryAgentLogsArgs = {
 };
 
 
-export type QuerySearchSkillsArgs = {
-  query: Scalars['String']['input'];
+export type QuerySkillArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
-export type QuerySkillArgs = {
+export type QuerySkillTemplateArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -472,20 +475,20 @@ export type QueryWorkspaceFileArgs = {
 
 export type Skill = {
   __typename?: 'Skill';
-  author: Scalars['String']['output'];
-  category: Scalars['String']['output'];
-  description: Scalars['String']['output'];
-  hasInstructions: Scalars['Boolean']['output'];
-  hasMcp: Scalars['Boolean']['output'];
-  homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   installed: Scalars['Boolean']['output'];
   installedAt?: Maybe<Scalars['String']['output']>;
   mcpEnabled?: Maybe<Scalars['Boolean']['output']>;
-  name: Scalars['String']['output'];
   requiredConnections: Array<SkillConnectionStatus>;
-  requiredEnv: Array<Scalars['String']['output']>;
-  version: Scalars['String']['output'];
+  template: SkillTemplate;
+};
+
+export type SkillConnectionRequirement = {
+  __typename?: 'SkillConnectionRequirement';
+  optional: Scalars['Boolean']['output'];
+  providerId: Scalars['String']['output'];
+  providerName: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
 };
 
 export type SkillConnectionStatus = {
@@ -496,6 +499,20 @@ export type SkillConnectionStatus = {
   providerId: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
+};
+
+export type SkillTemplate = {
+  __typename?: 'SkillTemplate';
+  author: Scalars['String']['output'];
+  category: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  hasInstructions: Scalars['Boolean']['output'];
+  hasMcp: Scalars['Boolean']['output'];
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  requiredConnections: Array<SkillConnectionRequirement>;
+  version: Scalars['String']['output'];
 };
 
 export type Subscription = {
@@ -825,28 +842,28 @@ export type AvatarsQuery = { __typename?: 'Query', avatars: Array<{ __typename?:
 export type SkillsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SkillsQuery = { __typename?: 'Query', skills: Array<{ __typename?: 'Skill', id: string, name: string, description: string, version: string, installed: boolean }> };
+export type SkillsQuery = { __typename?: 'Query', skills: Array<{ __typename?: 'Skill', id: string, installed: boolean, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category: string } }> };
 
 export type SkillQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type SkillQuery = { __typename?: 'Query', skill?: { __typename?: 'Skill', id: string, name: string, description: string, version: string, author: string, installed: boolean, category: string, homepage?: string | null, requiredEnv: Array<string> } | null };
+export type SkillQuery = { __typename?: 'Query', skill?: { __typename?: 'Skill', id: string, installed: boolean, installedAt?: string | null, mcpEnabled?: boolean | null, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author: string, category: string, icon?: string | null } } | null };
 
 export type InstallSkillMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  templateId: Scalars['ID']['input'];
 }>;
 
 
-export type InstallSkillMutation = { __typename?: 'Mutation', installSkill?: { __typename?: 'Skill', id: string, name: string, description: string, version: string, author: string, installed: boolean, category: string, homepage?: string | null, requiredEnv: Array<string> } | null };
+export type InstallSkillMutation = { __typename?: 'Mutation', installSkill?: { __typename?: 'Skill', id: string, installed: boolean, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author: string, category: string } } | null };
 
 export type UninstallSkillMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type UninstallSkillMutation = { __typename?: 'Mutation', uninstallSkill?: { __typename?: 'Skill', id: string, name: string, description: string, version: string, author: string, installed: boolean, category: string, homepage?: string | null, requiredEnv: Array<string> } | null };
+export type UninstallSkillMutation = { __typename?: 'Mutation', uninstallSkill?: { __typename?: 'Skill', id: string, installed: boolean, template: { __typename?: 'SkillTemplate', id: string, name: string } } | null };
 
 export type TasksQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1282,10 +1299,14 @@ export const SkillsDocument = new TypedDocumentString(`
     query Skills {
   skills {
     id
-    name
-    description
-    version
     installed
+    template {
+      id
+      name
+      description
+      version
+      category
+    }
   }
 }
     `) as unknown as TypedDocumentString<SkillsQuery, SkillsQueryVariables>;
@@ -1293,29 +1314,34 @@ export const SkillDocument = new TypedDocumentString(`
     query Skill($id: ID!) {
   skill(id: $id) {
     id
-    name
-    description
-    version
-    author
     installed
-    category
-    homepage
-    requiredEnv
+    installedAt
+    mcpEnabled
+    template {
+      id
+      name
+      description
+      version
+      author
+      category
+      icon
+    }
   }
 }
     `) as unknown as TypedDocumentString<SkillQuery, SkillQueryVariables>;
 export const InstallSkillDocument = new TypedDocumentString(`
-    mutation InstallSkill($id: ID!) {
-  installSkill(id: $id) {
+    mutation InstallSkill($templateId: ID!) {
+  installSkill(templateId: $templateId) {
     id
-    name
-    description
-    version
-    author
     installed
-    category
-    homepage
-    requiredEnv
+    template {
+      id
+      name
+      description
+      version
+      author
+      category
+    }
   }
 }
     `) as unknown as TypedDocumentString<InstallSkillMutation, InstallSkillMutationVariables>;
@@ -1323,14 +1349,11 @@ export const UninstallSkillDocument = new TypedDocumentString(`
     mutation UninstallSkill($id: ID!) {
   uninstallSkill(id: $id) {
     id
-    name
-    description
-    version
-    author
     installed
-    category
-    homepage
-    requiredEnv
+    template {
+      id
+      name
+    }
   }
 }
     `) as unknown as TypedDocumentString<UninstallSkillMutation, UninstallSkillMutationVariables>;
