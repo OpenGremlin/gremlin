@@ -1,5 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
+import { buildMcpConfig } from "../skills/buildMcpConfig.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
@@ -89,17 +90,32 @@ export async function runTaskLane(
     core: coreMemories,
   });
 
+  // Build MCP config from installed skills
+  const mcpConfig = await buildMcpConfig(ctx).catch((err) => {
+    ctx.log.error({ err, component: "skills" }, "Failed to build MCP config");
+    return { mcpServers: {}, warnings: [], skillInstructions: [] };
+  });
+
+  let systemPrompt = renderPrompt("taskSystem", {
+    name: agent.name,
+    soul: agent.soul,
+    userDisplayName: profile?.displayName ?? "the user",
+    userAbout: profile?.about,
+    taskTitle: task.title,
+    taskId,
+  });
+
+  // Append skill instructions to the system prompt
+  if (mcpConfig.skillInstructions.length > 0) {
+    systemPrompt +=
+      "\n\n# Active Skill Instructions\n\n" +
+      mcpConfig.skillInstructions.join("\n\n");
+  }
+
   const response = await runAgentTurn(ctx, {
     agentId: task.agentId,
     taskId,
-    systemPrompt: renderPrompt("taskSystem", {
-      name: agent.name,
-      soul: agent.soul,
-      userDisplayName: profile?.displayName ?? "the user",
-      userAbout: profile?.about,
-      taskTitle: task.title,
-      taskId,
-    }),
+    systemPrompt,
     timezone: profile?.timezone ?? undefined,
     memoryContext,
     messages,

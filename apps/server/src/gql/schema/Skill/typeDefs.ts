@@ -9,6 +9,20 @@ export const skillTypeDefs = /* GraphQL */ `
     category: String!
     homepage: String
     requiredEnv: [String!]!
+    installedAt: String
+    mcpEnabled: Boolean
+    hasInstructions: Boolean!
+    hasMcp: Boolean!
+    requiredConnections: [SkillConnectionStatus!]!
+  }
+
+  type SkillConnectionStatus {
+    providerId: String!
+    providerName: String!
+    reason: String!
+    optional: Boolean!
+    boundConnectionId: String
+    connected: Boolean!
   }
 
   extend type Query {
@@ -20,5 +34,7 @@ export const skillTypeDefs = /* GraphQL */ `
   extend type Mutation {
     installSkill(id: ID!): Skill
     uninstallSkill(id: ID!): Skill
+    bindSkillConnection(skillId: ID!, providerId: String!, connectionId: ID!): Skill
+    setSkillMcpEnabled(skillId: ID!, enabled: Boolean!): Skill
   }
 `;

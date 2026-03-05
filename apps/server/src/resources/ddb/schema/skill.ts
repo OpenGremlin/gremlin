@@ -21,6 +21,14 @@ export const SkillEntity = new Entity({
     category: string(),
     homepage: anyOf(string(), nul()),
     requiredEnv: list(string()),
+    /** ISO timestamp of when the skill was installed */
+    installedAt: anyOf(string(), nul()),
+    /** JSON string mapping providerId → connectionId, e.g. '{"github":"conn-123"}' */
+    connectionBindings: anyOf(string(), nul()),
+    /** Whether MCP tools are enabled (can toggle without uninstalling) */
+    mcpEnabled: anyOf(boolean(), nul()),
+    /** JSON string for user-level config overrides */
+    configOverrides: anyOf(string(), nul()),
   }),
   computeKey: ({ id }) => ({
     pk: "SKILL",
