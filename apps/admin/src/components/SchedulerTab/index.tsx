@@ -15,15 +15,7 @@ export function SchedulerTab() {
 
   return (
     <div>
-      <PageHeader title="Scheduler">
-        <Link
-          to="/jobs/new"
-          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
-        >
-          <Plus size={14} />
-          New Job
-        </Link>
-      </PageHeader>
+      <PageHeader title="Job Scheduler" />
 
       <QueryResult loading={loading} error={error} />
 
@@ -51,6 +43,14 @@ export function SchedulerTab() {
             </div>
           </Link>
         ))}
+
+        <Link
+          to="/jobs/new"
+          className="self-start flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+        >
+          <Plus size={14} />
+          New Job
+        </Link>
       </div>
     </div>
   );

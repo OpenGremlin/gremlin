@@ -55,9 +55,9 @@ export function AgentsTab() {
 
         <Link
           to="/agents/new"
-          className="bg-neutral-900 rounded-xl p-4 flex items-center justify-center gap-2 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors border border-dashed border-neutral-700"
+          className="self-start flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
         >
-          <Plus size={16} />
+          <Plus size={14} />
           New Agent
         </Link>
 
