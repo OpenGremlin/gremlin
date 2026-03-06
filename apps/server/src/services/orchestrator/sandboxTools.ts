@@ -7,6 +7,10 @@ import { cleanupBrowserSession } from "./browserTools.js";
 
 const log = createLogger("sandbox:tools");
 
+function formatOutput(stdout: string, stderr: string): string {
+  return stderr ? `${stdout}\n\n[stderr]\n${stderr}` : stdout;
+}
+
 // In-memory map of active sandbox sessions (exported for browser tools)
 export const activeSessions = new Map<string, SandboxSession>();
 
@@ -112,9 +116,7 @@ export function runCommandTool(
         };
       }
 
-      const output = result.stderr
-        ? `${result.output}\n\n[stderr]\n${result.stderr}`
-        : result.output;
+      const output = formatOutput(result.output, result.stderr);
 
       return {
         output,

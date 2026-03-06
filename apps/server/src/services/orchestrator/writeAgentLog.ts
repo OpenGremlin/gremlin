@@ -1,4 +1,5 @@
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
 
 type TextLogEntry = {
@@ -20,6 +21,19 @@ type ToolLogEntry = {
 
 export type LogEntry = TextLogEntry | ToolLogEntry;
 
+function publishLog(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string | null,
+  item: AgentLogItem,
+) {
+  if (taskId) {
+    ctx.resources.pubsub.publish(`agentLogCreated:task:${taskId}`, item);
+  } else {
+    ctx.resources.pubsub.publish(`agentLogCreated:${agentId}`, item);
+  }
+}
+
 export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
@@ -39,8 +53,6 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     createdAt: now,
   };
 
-  // Write directly via document client so we can include GSI attributes.
-  // DynamoDB Toolbox v2's computeKey doesn't project GSI keys into the item.
   const table = ctx.resources.ddb.table;
   await table.getDocumentClient().send(
     new PutCommand({
@@ -58,13 +70,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     }),
   );
 
-  // Publish to the appropriate subscription channel
-  if (entry.taskId) {
-    ctx.resources.pubsub.publish(`agentLogCreated:task:${entry.taskId}`, item);
-  } else {
-    ctx.resources.pubsub.publish(`agentLogCreated:${entry.agentId}`, item);
-  }
-
+  publishLog(ctx, entry.agentId, entry.taskId, item);
   return { id, createdAt: now };
 }
 
@@ -72,6 +78,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
 export async function updateAgentLogResult(
   ctx: ServiceContext,
   logId: string,
+  createdAt: string,
   entry: {
     agentId: string;
     taskId: string | null;
@@ -94,9 +101,7 @@ export async function updateAgentLogResult(
     }),
   );
 
-  // Re-publish so the frontend gets the updated entry
-  // We need to read back the full item for the subscription payload
-  const item = {
+  publishLog(ctx, entry.agentId, entry.taskId, {
     id: logId,
     agentId: entry.agentId,
     taskId: entry.taskId,
@@ -106,12 +111,6 @@ export async function updateAgentLogResult(
     toolInput: JSON.stringify(entry.toolInput),
     toolResult: JSON.stringify(entry.toolResult),
     internal: false,
-    createdAt: new Date().toISOString(),
-  };
-
-  if (entry.taskId) {
-    ctx.resources.pubsub.publish(`agentLogCreated:task:${entry.taskId}`, item);
-  } else {
-    ctx.resources.pubsub.publish(`agentLogCreated:${entry.agentId}`, item);
-  }
+    createdAt,
+  });
 }

@@ -19,6 +19,15 @@ export interface ExecOptions {
 
 // In-memory background task tracking, keyed by command id
 const backgroundCommands = new Map<string, BackgroundCommand>();
+const BG_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// Periodically prune stale background commands
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, bg] of backgroundCommands) {
+    if (now - bg.startTime > BG_TTL_MS) backgroundCommands.delete(id);
+  }
+}, 60_000);
 
 export async function connectToSandbox(
   session: SandboxSession,

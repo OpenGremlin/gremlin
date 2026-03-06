@@ -19,6 +19,22 @@ const TOOL_PATHS = [
   `${TOOLS_ROOT}/cargo/bin`,
 ].join(":");
 
+// Filter out undefined env values — node-pty's posix_spawnp fails if any are present
+const baseEnv: Record<string, string> = {};
+for (const [k, v] of Object.entries(process.env)) {
+  if (v !== undefined) baseEnv[k] = v;
+}
+
+const shellEnv: Record<string, string> = {
+  ...baseEnv,
+  TERM: "xterm-256color",
+  PATH: `${TOOL_PATHS}:${process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin"}`,
+  NPM_CONFIG_PREFIX: TOOLS_ROOT,
+  GOPATH: `${TOOLS_ROOT}/go`,
+  CARGO_HOME: `${TOOLS_ROOT}/cargo`,
+  PYTHONUSERBASE: `${TOOLS_ROOT}/python`,
+};
+
 let connectionCounter = 0;
 
 export function startRelay(port: number): void {
@@ -31,22 +47,6 @@ export function startRelay(port: number): void {
     const remoteAddr = req.socket.remoteAddress;
 
     log.info({ connId, remoteAddr }, "New WebSocket connection");
-
-    // Filter out undefined env values — node-pty's posix_spawnp fails if any are present
-    const baseEnv: Record<string, string> = {};
-    for (const [k, v] of Object.entries(process.env)) {
-      if (v !== undefined) baseEnv[k] = v;
-    }
-
-    const shellEnv: Record<string, string> = {
-      ...baseEnv,
-      TERM: "xterm-256color",
-      PATH: `${TOOL_PATHS}:${process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin"}`,
-      NPM_CONFIG_PREFIX: TOOLS_ROOT,
-      GOPATH: `${TOOLS_ROOT}/go`,
-      CARGO_HOME: `${TOOLS_ROOT}/cargo`,
-      PYTHONUSERBASE: `${TOOLS_ROOT}/python`,
-    };
 
     const shell = pty.spawn("/bin/bash", [], {
       name: "xterm-256color",

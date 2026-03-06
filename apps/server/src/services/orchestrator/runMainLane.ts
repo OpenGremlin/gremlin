@@ -6,6 +6,7 @@ import {
   recallMemoryTool,
   saveMemoryTool,
 } from "../tools/index.js";
+import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
 
 /**
@@ -17,12 +18,10 @@ export async function runMainLane(
   agentId: string,
   recallHint?: string,
 ): Promise<string> {
-  const [agent, profile] = await Promise.all([
-    ctx.services.agents.getAgent(ctx, agentId),
-    ctx.services.profile.getProfile(ctx, "default"),
-  ]);
-  if (!agent) throw new Error(`Agent ${agentId} not found`);
-  if (agent.retired) throw new Error(`Agent ${agentId} is retired`);
+  const { agent, profile, displayName, timezone } = await loadAgentContext(
+    ctx,
+    agentId,
+  );
 
   return runLane(ctx, {
     agentId,
@@ -30,7 +29,7 @@ export async function runMainLane(
     systemPrompt: renderPrompt("system", {
       name: agent.name,
       soul: agent.soul,
-      userDisplayName: profile?.displayName ?? "the user",
+      userDisplayName: displayName,
       userAbout: profile?.about,
     }),
     tools: {
@@ -40,6 +39,6 @@ export async function runMainLane(
       recallMemory: recallMemoryTool(ctx, agentId),
     },
     recallHint,
-    timezone: profile?.timezone ?? undefined,
+    timezone,
   });
 }

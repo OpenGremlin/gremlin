@@ -17,8 +17,11 @@ function withEagerLogging(
   ctx: ServiceContext,
   agentId: string,
   taskId: string | null,
-): { tools: Record<string, Tool>; callLogIds: Map<string, string> } {
-  const callLogIds = new Map<string, string>();
+): {
+  tools: Record<string, Tool>;
+  callLogIds: Map<string, { logId: string; createdAt: string }>;
+} {
+  const callLogIds = new Map<string, { logId: string; createdAt: string }>();
   const wrapped: Record<string, Tool> = {};
   for (const [name, t] of Object.entries(tools)) {
     if (INTERNAL_TOOLS.has(name)) {
@@ -29,7 +32,7 @@ function withEagerLogging(
       ...t,
       execute: async (input: unknown, options: unknown) => {
         // Write call log immediately (no result yet)
-        const { id: logId } = await writeAgentLog(ctx, {
+        const { id: logId, createdAt } = await writeAgentLog(ctx, {
           agentId,
           taskId,
           role: "TOOL",
@@ -40,7 +43,7 @@ function withEagerLogging(
         });
         // Track by toolCallId from the AI SDK options
         const toolCallId = (options as { toolCallId?: string })?.toolCallId;
-        if (toolCallId) callLogIds.set(toolCallId, logId);
+        if (toolCallId) callLogIds.set(toolCallId, { logId, createdAt });
         // @ts-expect-error — Tool execute signature varies
         return t.execute(input, options);
       },
@@ -104,13 +107,11 @@ export async function runAgentTurn(
           "toolCallId" in toolCall
             ? (toolCall.toolCallId as string)
             : undefined;
-        const existingLogId = toolCallId
-          ? callLogIds.get(toolCallId)
-          : undefined;
+        const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
 
-        if (existingLogId) {
+        if (existing) {
           // Update the existing call entry with the result
-          await updateAgentLogResult(ctx, existingLogId, {
+          await updateAgentLogResult(ctx, existing.logId, existing.createdAt, {
             agentId: opts.agentId,
             taskId: opts.taskId,
             toolName: toolCall.toolName,

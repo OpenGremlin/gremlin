@@ -17,6 +17,7 @@ import {
   browserScreenshotTool,
   browserTypeTool,
 } from "./browserTools.js";
+import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
 import {
   checkCommandTool,
@@ -39,12 +40,10 @@ export async function runTaskLane(
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
 
-  const [agent, profile] = await Promise.all([
-    ctx.services.agents.getAgent(ctx, task.agentId),
-    ctx.services.profile.getProfile(ctx, "default"),
-  ]);
-  if (!agent) throw new Error(`Agent ${task.agentId} not found`);
-  if (agent.retired) throw new Error(`Agent ${task.agentId} is retired`);
+  const { agent, profile, displayName, timezone } = await loadAgentContext(
+    ctx,
+    task.agentId,
+  );
 
   // Log the prompt — SYSTEM for delegated tasks, USER for follow-up messages
   await writeAgentLog(ctx, {
@@ -63,7 +62,7 @@ export async function runTaskLane(
   let systemPrompt = renderPrompt("taskSystem", {
     name: agent.name,
     soul: agent.soul,
-    userDisplayName: profile?.displayName ?? "the user",
+    userDisplayName: displayName,
     userAbout: profile?.about,
     taskTitle: task.title,
     taskId,
@@ -98,6 +97,6 @@ export async function runTaskLane(
       browserGetContent: browserGetContentTool(ctx, task.agentId),
     },
     recallHint: prompt,
-    timezone: profile?.timezone ?? undefined,
+    timezone,
   });
 }
