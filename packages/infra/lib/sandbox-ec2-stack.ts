@@ -170,27 +170,31 @@ CW_EOF`,
     // Use a private subnet (VPC-only, no public IP needed)
     const subnet = props.vpc.privateSubnets[0] ?? props.vpc.publicSubnets[0];
 
-    const launchTemplate = new ec2.LaunchTemplate(this, "SandboxLaunchTemplate", {
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T3,
-        ec2.InstanceSize.SMALL,
-      ),
-      machineImage: ec2.MachineImage.fromSsmParameter(
-        "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id",
-      ),
-      securityGroup: sandboxSg,
-      role: sandboxRole,
-      userData,
-      blockDevices: [
-        {
-          deviceName: "/dev/sda1",
-          volume: ec2.BlockDeviceVolume.ebs(20, {
-            volumeType: ec2.EbsDeviceVolumeType.GP3,
-            encrypted: true,
-          }),
-        },
-      ],
-    });
+    const launchTemplate = new ec2.LaunchTemplate(
+      this,
+      "SandboxLaunchTemplate",
+      {
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.T3,
+          ec2.InstanceSize.SMALL,
+        ),
+        machineImage: ec2.MachineImage.fromSsmParameter(
+          "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id",
+        ),
+        securityGroup: sandboxSg,
+        role: sandboxRole,
+        userData,
+        blockDevices: [
+          {
+            deviceName: "/dev/sda1",
+            volume: ec2.BlockDeviceVolume.ebs(20, {
+              volumeType: ec2.EbsDeviceVolumeType.GP3,
+              encrypted: true,
+            }),
+          },
+        ],
+      },
+    );
 
     // ── SSM parameters ─────────────────────────────────────
     new ssm.StringParameter(this, "LaunchTemplateIdParam", {
