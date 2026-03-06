@@ -70,7 +70,8 @@ async function routeBatch(
       i.type === "user_task_message" ||
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
-      i.type === "core_memory_review",
+      i.type === "core_memory_review" ||
+      i.type === "sandbox_available",
   );
 
   // --- Main lane: batch all conversational items into one turn ---
@@ -150,6 +151,12 @@ async function processTaskGroup(
         return; // scheduled jobs handle their own inference
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
+        break;
+      case "sandbox_available":
+        prompts.push({
+          content: "The sandbox is now available. Proceed with your task.",
+          role: "SYSTEM",
+        });
         break;
     }
   }

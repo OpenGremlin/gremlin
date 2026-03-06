@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import type { Construct } from "constructs";
 
@@ -48,11 +49,33 @@ export class SandboxEc2Stack extends cdk.Stack {
       }),
     );
 
+    // CloudWatch Logs permissions
+    sandboxRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+        ],
+        resources: [
+          `arn:aws:logs:${this.region}:${this.account}:log-group:/gremlin/sandbox:*`,
+        ],
+      }),
+    );
+
     const instanceProfile = new iam.CfnInstanceProfile(
       this,
       "SandboxInstanceProfile",
       { roles: [sandboxRole.roleName] },
     );
+
+    // ── CloudWatch log group ───────────────────────────────
+    new logs.LogGroup(this, "SandboxLogGroup", {
+      logGroupName: "/gremlin/sandbox",
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
 
     // ── Launch template ────────────────────────────────────
     const userData = ec2.UserData.forLinux();
@@ -89,7 +112,7 @@ export class SandboxEc2Stack extends cdk.Stack {
       "pnpm install --frozen-lockfile",
       "pnpm build",
 
-      // Create systemd service for sandbox relay
+      // Create systemd service for sandbox relay (logs to file for CloudWatch)
       `cat > /etc/systemd/system/sandbox-relay.service << 'SYSTEMD_EOF'
 [Unit]
 Description=Gremlin Sandbox Relay
@@ -105,6 +128,8 @@ Environment=WS_PORT=8080
 Environment=HEALTH_PORT=8083
 Environment=DISABLE_BROWSER_BRIDGE=true
 Environment=NODE_ENV=production
+StandardOutput=append:/var/log/sandbox-relay.log
+StandardError=append:/var/log/sandbox-relay.log
 
 [Install]
 WantedBy=multi-user.target
@@ -112,6 +137,34 @@ SYSTEMD_EOF`,
       "systemctl daemon-reload",
       "systemctl enable sandbox-relay",
       "systemctl start sandbox-relay",
+
+      // Install and configure CloudWatch agent
+      "wget -q https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "dpkg -i amazon-cloudwatch-agent.deb",
+      "rm -f amazon-cloudwatch-agent.deb",
+      `cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'CW_EOF'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/sandbox-relay.log",
+            "log_group_name": "/gremlin/sandbox",
+            "log_stream_name": "{instance_id}/sandbox-relay"
+          },
+          {
+            "file_path": "/var/log/sandbox-userdata.log",
+            "log_group_name": "/gremlin/sandbox",
+            "log_stream_name": "{instance_id}/userdata"
+          }
+        ]
+      }
+    }
+  }
+}
+CW_EOF`,
+      "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
     );
 
     // Use a private subnet (VPC-only, no public IP needed)

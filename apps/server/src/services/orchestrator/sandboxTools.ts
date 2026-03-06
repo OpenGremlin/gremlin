@@ -14,7 +14,11 @@ function formatOutput(stdout: string, stderr: string): string {
 // In-memory map of active sandbox sessions (exported for browser tools)
 export const activeSessions = new Map<string, SandboxSession>();
 
-export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
+export function launchSandboxTool(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId?: string,
+) {
   return tool({
     description:
       "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands.",
@@ -25,6 +29,28 @@ export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
       if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
         log.info({ agentId }, "Sandbox already running, reusing session");
         return { status: "already_running", wsUrl: existing.wsUrl };
+      }
+
+      // Acquire sandbox lock to prevent concurrent launches
+      const lockId = taskId ?? "main";
+      const lockResult = await ctx.services.sandbox.acquireSandboxLock(
+        ctx,
+        agentId,
+        lockId,
+      );
+      if (!lockResult.acquired) {
+        log.info(
+          { agentId, taskId: lockId, ownerTaskId: lockResult.ownerTaskId },
+          "Sandbox busy, adding waiter",
+        );
+        if (taskId) {
+          await ctx.services.sandbox.addSandboxWaiter(ctx, agentId, taskId);
+        }
+        return {
+          status: "busy",
+          message:
+            "Sandbox in use. You'll be notified when available. Stop and wait.",
+        };
       }
 
       // Read agent record to get existing instanceId
@@ -41,6 +67,14 @@ export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
       );
       await ctx.services.sandbox.connectToSandbox(session);
       activeSessions.set(agentId, session);
+
+      // Update lock status to in_use
+      await ctx.services.sandbox.updateLockStatus(
+        ctx,
+        agentId,
+        lockId,
+        "in_use",
+      );
 
       // Persist instanceId if it's new or changed
       if (
@@ -169,7 +203,11 @@ export function checkCommandTool(ctx: ServiceContext, agentId: string) {
   });
 }
 
-export function terminateSandboxTool(ctx: ServiceContext, agentId: string) {
+export function terminateSandboxTool(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId?: string,
+) {
   return tool({
     description:
       "Shut down the sandbox environment. The /workspace volume is preserved for next time. Call this when you're done with the sandbox.",
@@ -188,6 +226,10 @@ export function terminateSandboxTool(ctx: ServiceContext, agentId: string) {
       cleanupBrowserSession(ctx, agentId);
       await ctx.services.sandbox.terminateSandbox(session);
       activeSessions.delete(agentId);
+
+      // Release sandbox lock and wake next waiter
+      const lockId = taskId ?? "main";
+      await ctx.services.sandbox.releaseSandboxLock(ctx, agentId, lockId);
 
       log.info({ agentId }, "Sandbox session cleaned up");
       return { status: "terminated" };
