@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import { AgentQuery, SendMessageMutation, TaskQuery } from "../../../graphql/queries";
@@ -28,6 +29,7 @@ export function AgentChatPage() {
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -43,11 +45,23 @@ export function AgentChatPage() {
     }
   }, [chat.hasMore, chat.loadMore]);
 
+  // Clear pending messages when they appear in the log via subscription
+  useEffect(() => {
+    if (pendingMessages.length === 0) return;
+    const userMessages = chat.messages.filter((m) => m.role === "USER");
+    setPendingMessages((prev) =>
+      prev.filter(
+        (content) => !userMessages.some((m) => m.content === content),
+      ),
+    );
+  }, [chat.messages, pendingMessages.length]);
+
   const handleSend = useCallback(async () => {
     const content = input.trim();
     if (!content || !id || sending) return;
     setInput("");
     setSending(true);
+    setPendingMessages((prev) => [...prev, content]);
     scrollToBottom();
     try {
       await gql(SendMessageMutation, {
@@ -57,6 +71,7 @@ export function AgentChatPage() {
       });
     } catch (err) {
       console.error("Failed to send message:", err);
+      setPendingMessages((prev) => prev.filter((m) => m !== content));
     } finally {
       setSending(false);
     }
@@ -76,9 +91,6 @@ export function AgentChatPage() {
     ? chat.messages
     : chat.messages.filter((msg) => !msg.taskId);
 
-  const lastMsg = filteredMessages[filteredMessages.length - 1];
-  const pendingSend = lastMsg?.role === "USER" && !chat.isAgentActive;
-
   return (
     <div className="relative h-full">
       <ChatHeader agent={agent} taskId={taskId} />
@@ -86,7 +98,7 @@ export function AgentChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"}`}
+        className={`absolute inset-0 overflow-y-auto px-3 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"} ${pendingMessages.length > 0 ? "pb-28" : "pb-16"}`}
       >
         <div className="flex flex-col gap-1">
           {chat.hasMore && (
@@ -112,7 +124,6 @@ export function AgentChatPage() {
                   ? undefined
                   : (tid) => navigate(`/agents/${id}/tasks/${tid}`)
               }
-              sending={pendingSend && msg === lastMsg}
               documents={isTaskView ? taskDocs : undefined}
               sandboxStreams={isTaskView ? sandboxStreams : undefined}
             />
@@ -134,12 +145,27 @@ export function AgentChatPage() {
           </div>
         </div>
       ) : (
-        <ChatInputBar
-          value={input}
-          onChange={setInput}
-          onSend={handleSend}
-          disabled={sending}
-        />
+        <div className="absolute bottom-0 left-0 right-0 z-10">
+          {/* Pending messages */}
+          {pendingMessages.length > 0 && (
+            <div className="border-t border-neutral-800/40 bg-neutral-950/80 backdrop-blur-sm px-3 py-2 space-y-1.5">
+              {pendingMessages.map((content) => (
+                <div key={content} className="flex items-center gap-2 justify-end">
+                  <Loader2 size={12} className="animate-spin text-blue-400 shrink-0" />
+                  <div className="text-sm text-blue-300/80 bg-blue-600/20 px-3 py-1.5 rounded-2xl rounded-br-md max-w-[80%]">
+                    {content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <ChatInputBar
+            value={input}
+            onChange={setInput}
+            onSend={handleSend}
+            disabled={sending}
+          />
+        </div>
       )}
     </div>
   );

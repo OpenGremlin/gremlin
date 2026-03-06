@@ -4,7 +4,6 @@ import type { GremlinContext } from "../../context.js";
 import type {
   AgentLogEdgeResolvers,
   AgentLogResolvers,
-  MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
 
@@ -40,11 +39,14 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
-const sendMessage: MutationResolvers["sendMessage"] = async (
-  _parent,
-  { agentId, content, taskId },
-  ctx,
-) => ctx.services.orchestrator.sendMessage(ctx, agentId, content, taskId);
+const sendMessage = async (
+  _parent: unknown,
+  { agentId, content, taskId }: { agentId: string; content: string; taskId?: string | null },
+  ctx: GremlinContext,
+) => {
+  await ctx.services.orchestrator.sendMessage(ctx, agentId, content, taskId);
+  return { queued: true, content };
+};
 
 const agentLogCreated = {
   subscribe: (

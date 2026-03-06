@@ -67,6 +67,7 @@ async function routeBatch(
   const taskLaneItems = items.filter(
     (i) =>
       i.type === "run_task" ||
+      i.type === "user_task_message" ||
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
       i.type === "core_memory_review",
@@ -80,7 +81,13 @@ async function routeBatch(
       const payload = JSON.parse(item.payload);
       switch (item.type) {
         case "user_message":
-          // Already written to the log by sendMessage — just capture for recall
+          // Write the user message to the log now (at processing time, not send time)
+          await ctx.services.orchestrator.writeAgentLog(ctx, {
+            agentId,
+            taskId: null,
+            role: "USER",
+            content: payload.content,
+          });
           recallHint = payload.content;
           break;
         case "user_notification_reply":
@@ -102,7 +109,14 @@ async function routeBatch(
             ctx,
             payload.taskId,
             payload.prompt,
-            payload.skipLog ? { skipLog: true } : undefined,
+          );
+          break;
+        case "user_task_message":
+          await ctx.services.orchestrator.runTaskLane(
+            ctx,
+            payload.taskId,
+            payload.content,
+            { role: "USER" },
           );
           break;
         case "scheduled_job":

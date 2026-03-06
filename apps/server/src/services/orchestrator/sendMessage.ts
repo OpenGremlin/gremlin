@@ -1,5 +1,4 @@
 import type { ServiceContext } from "../context.js";
-import { writeAgentLog } from "./writeAgentLog.js";
 
 export async function sendMessage(
   ctx: ServiceContext,
@@ -7,19 +6,11 @@ export async function sendMessage(
   content: string,
   taskId?: string | null,
 ) {
-  // Write the user message to the log immediately
-  const entry = await writeAgentLog(ctx, {
-    agentId,
-    taskId: taskId ?? null,
-    role: "USER",
-    content,
-  });
-
-  // Enqueue to inbox — the consumer drain loop handles the agent turn
+  // Enqueue to inbox — the consumer writes the log entry and runs inference
   if (taskId) {
     await ctx.services.inbox.enqueueWork(ctx, agentId, {
-      type: "run_task",
-      payload: { taskId, prompt: content, skipLog: true },
+      type: "user_task_message",
+      payload: { taskId, content },
     });
   } else {
     await ctx.services.inbox.enqueueWork(ctx, agentId, {
@@ -29,11 +20,8 @@ export async function sendMessage(
   }
 
   return {
-    id: entry.id,
     agentId,
     taskId: taskId ?? null,
-    role: "USER" as const,
     content,
-    createdAt: entry.createdAt,
   };
 }

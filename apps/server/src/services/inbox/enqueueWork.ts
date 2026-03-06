@@ -17,6 +17,7 @@ async function getSqsClient() {
 
 export type InboxItemType =
   | "user_message"
+  | "user_task_message"
   | "run_task"
   | "scheduled_job"
   | "agent_self_followup"

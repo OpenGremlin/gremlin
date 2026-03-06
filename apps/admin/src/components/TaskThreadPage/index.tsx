@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { gql } from "../../auth";
@@ -50,6 +50,7 @@ export function TaskThreadPage() {
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -57,11 +58,23 @@ export function TaskThreadPage() {
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
+  // Clear pending messages when they appear in the log via subscription
+  useEffect(() => {
+    if (pendingMessages.length === 0) return;
+    const userMessages = messages.filter((m) => m.role === "USER");
+    setPendingMessages((prev) =>
+      prev.filter(
+        (content) => !userMessages.some((m) => m.content === content),
+      ),
+    );
+  }, [messages, pendingMessages.length]);
+
   const handleSend = useCallback(async () => {
     const content = input.trim();
     if (!content || !task || !taskId || sending) return;
     setInput("");
     setSending(true);
+    setPendingMessages((prev) => [...prev, content]);
     scrollToBottom();
     try {
       await gql(SendMessageMutation, {
@@ -71,6 +84,7 @@ export function TaskThreadPage() {
       });
     } catch (err) {
       console.error("Failed to send message:", err);
+      setPendingMessages((prev) => prev.filter((m) => m !== content));
     } finally {
       setSending(false);
     }
@@ -146,6 +160,20 @@ export function TaskThreadPage() {
           </div>
         </div>
       </div>
+
+      {/* Pending messages */}
+      {pendingMessages.length > 0 && (
+        <div className="shrink-0 border-t border-neutral-800/40 px-3 py-2 space-y-1.5">
+          {pendingMessages.map((content) => (
+            <div key={content} className="flex items-center gap-2 justify-end">
+              <Loader2 size={12} className="animate-spin text-blue-400 shrink-0" />
+              <div className="text-sm text-blue-300/80 bg-blue-600/20 px-3 py-1.5 rounded-2xl rounded-br-md max-w-[80%]">
+                {content}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <ChatInputBar
         value={input}

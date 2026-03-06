@@ -36,7 +36,7 @@ export async function runTaskLane(
   ctx: ServiceContext,
   taskId: string,
   prompt: string,
-  opts?: { skipLog?: boolean },
+  opts?: { role?: "SYSTEM" | "USER" },
 ): Promise<string> {
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
@@ -48,16 +48,13 @@ export async function runTaskLane(
   if (!agent) throw new Error(`Agent ${task.agentId} not found`);
   if (agent.retired) throw new Error(`Agent ${task.agentId} is retired`);
 
-  // Log the prompt as a system message (only for initial delegation;
-  // user follow-ups are already logged as USER by sendMessage)
-  if (!opts?.skipLog) {
-    await writeAgentLog(ctx, {
-      agentId: task.agentId,
-      taskId,
-      role: "SYSTEM",
-      content: prompt,
-    });
-  }
+  // Log the prompt — SYSTEM for delegated tasks, USER for follow-up messages
+  await writeAgentLog(ctx, {
+    agentId: task.agentId,
+    taskId,
+    role: opts?.role ?? "SYSTEM",
+    content: prompt,
+  });
 
   // Build conversation history with compaction support
   const { messages, postCompactionCount } = await buildContextMessages(ctx, {

@@ -26,20 +26,15 @@ export const AgentLogsQuery = graphql(`
   }
 `);
 
-export const SendMessageMutation = graphql(`
+// Raw string mutation (return type changed from AgentLog to SendMessageResult)
+export const SendMessageMutation = /* GraphQL */ `
   mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {
     sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {
-      id
-      role
+      queued
       content
-      toolName
-      toolInput
-      toolResult
-      taskId
-      createdAt
     }
   }
-`);
+`;
 
 export const AgentLogSubscription = graphql(`
   subscription AgentLogCreated($agentId: ID!) {

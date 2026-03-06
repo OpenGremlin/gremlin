@@ -40,8 +40,13 @@ export const agentLogTypeDefs = /* GraphQL */ `
     taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }
 
+  type SendMessageResult {
+    queued: Boolean!
+    content: String!
+  }
+
   extend type Mutation {
-    sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
+    sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   }
 
   extend type Subscription {
