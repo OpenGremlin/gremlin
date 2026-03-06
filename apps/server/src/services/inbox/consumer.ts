@@ -99,49 +99,78 @@ async function routeBatch(
     await ctx.services.orchestrator.runMainLane(ctx, agentId, recallHint);
   }
 
-  // --- Task lane: each item is independent, run in parallel ---
-  await Promise.all(
-    taskLaneItems.map(async (item) => {
-      const payload = JSON.parse(item.payload);
-      switch (item.type) {
-        case "run_task":
-          await ctx.services.orchestrator.runTaskLane(
-            ctx,
-            payload.taskId,
-            payload.prompt,
-          );
-          break;
-        case "user_task_message":
-          await ctx.services.orchestrator.runTaskLane(
-            ctx,
-            payload.taskId,
-            payload.content,
-            { role: "USER" },
-          );
-          break;
-        case "scheduled_job":
-          await handleScheduledJob(ctx, agentId, payload);
-          break;
-        case "agent_self_followup":
-          await ctx.services.orchestrator.runTaskLane(
-            ctx,
-            payload.taskId,
-            payload.prompt,
-          );
-          break;
-        case "core_memory_review":
-          await ctx.services.memory
-            .reviewCoreMemories(ctx, agentId)
-            .catch((err) =>
-              ctx.log.error(
-                { err, component: "core-memories" },
-                "Core memory review failed",
-              ),
-            );
-          break;
+  // --- Task lane: group by taskId, run different tasks in parallel,
+  // but same-task items sequentially to avoid concurrent turns ---
+  const taskGroups = new Map<string, InboxItemItem[]>();
+  const nonTaskItems: InboxItemItem[] = [];
+
+  for (const item of taskLaneItems) {
+    const payload = JSON.parse(item.payload);
+    const tid = payload.taskId;
+    if (tid) {
+      const group = taskGroups.get(tid) ?? [];
+      group.push(item);
+      taskGroups.set(tid, group);
+    } else {
+      nonTaskItems.push(item);
+    }
+  }
+
+  await Promise.all([
+    // Each task group runs its items sequentially
+    ...[...taskGroups.values()].map(async (items) => {
+      for (const item of items) {
+        await processTaskItem(ctx, agentId, item);
       }
     }),
-  );
+    // Non-task items (core_memory_review, etc.) run in parallel
+    ...nonTaskItems.map((item) => processTaskItem(ctx, agentId, item)),
+  ]);
+}
+
+async function processTaskItem(
+  ctx: ServiceContext,
+  agentId: string,
+  item: InboxItemItem,
+) {
+  const payload = JSON.parse(item.payload);
+  switch (item.type) {
+    case "run_task":
+      await ctx.services.orchestrator.runTaskLane(
+        ctx,
+        payload.taskId,
+        payload.prompt,
+      );
+      break;
+    case "user_task_message":
+      await ctx.services.orchestrator.runTaskLane(
+        ctx,
+        payload.taskId,
+        payload.content,
+        { role: "USER" },
+      );
+      break;
+    case "scheduled_job":
+      await handleScheduledJob(ctx, agentId, payload);
+      break;
+    case "agent_self_followup":
+      await ctx.services.orchestrator.runTaskLane(
+        ctx,
+        payload.taskId,
+        payload.prompt,
+      );
+      break;
+    case "core_memory_review":
+      await ctx.services.memory
+        .reviewCoreMemories(ctx, agentId)
+        .catch((err) =>
+          ctx.log.error(
+            { err, component: "core-memories" },
+            "Core memory review failed",
+          ),
+        );
+      break;
+  }
 }
 
 /**
