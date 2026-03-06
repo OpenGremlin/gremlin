@@ -83,6 +83,10 @@ export async function buildContextMessages(
 function mapEntry(node: {
   role: string;
   content: string;
+  toolName?: string | null;
+  toolInput?: string | null;
+  toolResult?: string | null;
+  internal?: boolean;
 }): ModelMessage | null {
   if (node.role === "AGENT") {
     return { role: "assistant", content: node.content };
@@ -93,7 +97,20 @@ function mapEntry(node: {
   if (node.role === "SYSTEM") {
     return { role: "user", content: node.content };
   }
-  // Skip tool entries
+  if (node.role === "TOOL" && !node.internal) {
+    // Include tool calls in history so the model knows what it already did
+    const name = node.toolName ?? "unknown";
+    const input = node.toolInput ?? "";
+    const result = node.toolResult && node.toolResult !== "null" ? node.toolResult : null;
+    if (result) {
+      return {
+        role: "assistant",
+        content: `[Tool call: ${name}]\nInput: ${input}\nResult: ${result}`,
+      };
+    }
+    // Call-only entry (no result yet) — skip to avoid confusing the model
+    return null;
+  }
   return null;
 }
 
