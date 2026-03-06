@@ -98,8 +98,6 @@ export function TaskThreadPage() {
     return <NotFound label="Task not found." />;
   }
 
-  const chatMessages = messages;
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -140,11 +138,11 @@ export function TaskThreadPage() {
 
             {/* Log entries */}
             <div className="flex flex-col gap-1">
-              {chatMessages.map((msg, i) => (
+              {messages.map((msg, i) => (
                 <LogEntryView
                   key={msg.id}
                   entry={msg}
-                  isLast={i === chatMessages.length - 1}
+                  isLast={i === messages.length - 1}
                   documents={docs}
                   sandboxStreams={sandboxStreams}
                 />
@@ -156,24 +154,22 @@ export function TaskThreadPage() {
                   </div>
                 </div>
               )}
+
+              {/* Pending messages — shown inline at the bottom of the chat */}
+              {pendingMessages.map((content) => (
+                <div key={content} className="flex justify-end py-1">
+                  <div className="max-w-[80%] flex items-start gap-2">
+                    <div className="text-white/60 text-sm px-3.5 py-2 rounded-2xl rounded-br-md bg-blue-600/40 border border-blue-500/20">
+                      {content}
+                    </div>
+                    <Loader2 size={14} className="animate-spin text-blue-400 shrink-0 mt-2.5" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Pending messages */}
-      {pendingMessages.length > 0 && (
-        <div className="shrink-0 border-t border-neutral-800/40 px-3 py-2 space-y-1.5">
-          {pendingMessages.map((content) => (
-            <div key={content} className="flex items-center gap-2 justify-end">
-              <Loader2 size={12} className="animate-spin text-blue-400 shrink-0" />
-              <div className="text-sm text-blue-300/80 bg-blue-600/20 px-3 py-1.5 rounded-2xl rounded-br-md max-w-[80%]">
-                {content}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       <ChatInputBar
         value={input}

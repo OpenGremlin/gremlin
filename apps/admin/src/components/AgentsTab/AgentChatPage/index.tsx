@@ -98,7 +98,7 @@ export function AgentChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className={`absolute inset-0 overflow-y-auto px-3 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"} ${pendingMessages.length > 0 ? "pb-28" : "pb-16"}`}
+        className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"}`}
       >
         <div className="flex flex-col gap-1">
           {chat.hasMore && (
@@ -135,6 +135,18 @@ export function AgentChatPage() {
               </div>
             </div>
           )}
+
+          {/* Pending messages — shown inline at the bottom of the chat */}
+          {pendingMessages.map((content) => (
+            <div key={content} className="flex justify-end py-1">
+              <div className="max-w-[80%] flex items-start gap-2">
+                <div className="text-white/60 text-sm px-3.5 py-2 rounded-2xl rounded-br-md bg-blue-600/40 border border-blue-500/20">
+                  {content}
+                </div>
+                <Loader2 size={14} className="animate-spin text-blue-400 shrink-0 mt-2.5" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -145,27 +157,12 @@ export function AgentChatPage() {
           </div>
         </div>
       ) : (
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          {/* Pending messages */}
-          {pendingMessages.length > 0 && (
-            <div className="border-t border-neutral-800/40 bg-neutral-950/80 backdrop-blur-sm px-3 py-2 space-y-1.5">
-              {pendingMessages.map((content) => (
-                <div key={content} className="flex items-center gap-2 justify-end">
-                  <Loader2 size={12} className="animate-spin text-blue-400 shrink-0" />
-                  <div className="text-sm text-blue-300/80 bg-blue-600/20 px-3 py-1.5 rounded-2xl rounded-br-md max-w-[80%]">
-                    {content}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <ChatInputBar
-            value={input}
-            onChange={setInput}
-            onSend={handleSend}
-            disabled={sending}
-          />
-        </div>
+        <ChatInputBar
+          value={input}
+          onChange={setInput}
+          onSend={handleSend}
+          disabled={sending}
+        />
       )}
     </div>
   );
