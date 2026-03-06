@@ -1,4 +1,4 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState } from "react";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { useSubscription } from "../useSubscription";
 
@@ -19,20 +19,11 @@ export interface CommandStream {
 /**
  * Subscribe to live sandbox output for a task.
  * Returns a map of commandId → accumulated output.
+ * Triggers re-renders on each incoming chunk.
  */
 export function useSandboxOutput(taskId: string) {
   const streamsRef = useRef(new Map<string, CommandStream>());
-  const versionRef = useRef(0);
-  const listenersRef = useRef(new Set<() => void>());
-
-  const subscribe = useCallback((listener: () => void) => {
-    listenersRef.current.add(listener);
-    return () => listenersRef.current.delete(listener);
-  }, []);
-
-  const getSnapshot = useCallback(() => versionRef.current, []);
-
-  useSyncExternalStore(subscribe, getSnapshot);
+  const [, setVersion] = useState(0);
 
   useSubscription<{ sandboxOutput: SandboxOutputChunk }>(
     SandboxOutputSubscription,
@@ -52,8 +43,7 @@ export function useSandboxOutput(taskId: string) {
       }
 
       streamsRef.current.set(chunk.commandId, existing);
-      versionRef.current++;
-      for (const listener of listenersRef.current) listener();
+      setVersion((v) => v + 1);
     }, []),
   );
 

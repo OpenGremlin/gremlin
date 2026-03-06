@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import { AgentQuery, SendMessageMutation, TaskQuery } from "../../../graphql/queries";
+import { useSandboxOutput } from "../../../hooks/useSandboxOutput";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { useTaskChatMessages } from "../../TaskThreadPage/useTaskChatMessages";
@@ -23,6 +24,7 @@ export function AgentChatPage() {
 
   const isTaskView = !!taskId;
   const chat = isTaskView ? taskChat : agentChat;
+  const sandboxStreams = useSandboxOutput(taskId ?? "");
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -112,6 +114,7 @@ export function AgentChatPage() {
               }
               sending={pendingSend && msg === lastMsg}
               documents={isTaskView ? taskDocs : undefined}
+              sandboxStreams={isTaskView ? sandboxStreams : undefined}
             />
           ))}
           {chat.isAgentActive && (

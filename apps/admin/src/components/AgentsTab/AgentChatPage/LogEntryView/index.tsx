@@ -269,14 +269,18 @@ export function LogEntryView({
         );
       }
 
-      if (tool.name === "runCommand" && sandboxStreams) {
+      if (tool.name === "runCommand") {
         const commandId = (tool.result?.commandId ?? tool.input?.commandId) as string | undefined;
-        const stream = commandId ? sandboxStreams.get(commandId) : undefined;
+        const stream = commandId ? sandboxStreams?.get(commandId) : undefined;
         const command = tool.input?.command as string | undefined;
+        const hasResult = !!tool.result;
+        const output = (tool.result?.output as string) ?? "";
+        const exitCode = tool.result?.exitCode as number | undefined;
+        const isStreaming = !hasResult && stream && !stream.done;
 
         return (
           <div id={entry.id} className="py-1">
-            <details className="group">
+            <details className="group" open={isStreaming || undefined}>
               <summary className="list-none cursor-pointer">
                 <div className="flex items-center gap-1.5 py-1">
                   <ChevronRight
@@ -286,22 +290,26 @@ export function LogEntryView({
                   <span className="text-[11px] text-neutral-500 font-mono">
                     {command ? `$ ${command.length > 80 ? `${command.slice(0, 80)}…` : command}` : "runCommand"}
                   </span>
+                  {hasResult && exitCode !== undefined && exitCode !== 0 && (
+                    <span className="text-[10px] text-red-400/70">exit {exitCode}</span>
+                  )}
                   <span className="text-[10px] text-neutral-600">
                     {formatTime(entry.createdAt)}
                   </span>
                 </div>
               </summary>
-              {tool.result && (
+              {hasResult ? (
                 <div className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
-                  <pre className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90">
-                    {JSON.stringify(tool.result, null, 2)}
+                  <pre className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90 max-h-[200px] overflow-y-auto">
+                    {output || "(no output)"}
                   </pre>
                 </div>
+              ) : (
+                commandId && (
+                  <SandboxOutputBlock commandId={commandId} stream={stream} />
+                )
               )}
             </details>
-            {commandId && (
-              <SandboxOutputBlock commandId={commandId} stream={stream} />
-            )}
           </div>
         );
       }
