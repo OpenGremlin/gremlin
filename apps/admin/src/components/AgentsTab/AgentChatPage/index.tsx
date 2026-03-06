@@ -128,14 +128,6 @@ export function AgentChatPage() {
               sandboxStreams={isTaskView ? sandboxStreams : undefined}
             />
           ))}
-          {chat.isAgentActive && (
-            <div className="flex justify-start py-1">
-              <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-                <span className="animate-pulse">Thinking...</span>
-              </div>
-            </div>
-          )}
-
           {/* Pending messages — shown inline at the bottom of the chat */}
           {pendingMessages.map((content) => (
             <div key={content} className="flex justify-end py-1">

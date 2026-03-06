@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import type { AgentLogsQuery } from "../../../graphql/generated/graphql";
 import {
   AgentLogSubscription,
@@ -19,11 +19,6 @@ export function useChatMessages(agentId: string) {
     replaceOrAppend,
   } = usePaginatedQuery(AgentLogsDoc, (d) => d.agentLogs, { agentId });
 
-  const [isAgentActive, setIsAgentActive] = useState(false);
-  const activeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
-
   // Subscribe to new messages via WebSocket
   useSubscription(
     AgentLogSubscription,
@@ -42,25 +37,10 @@ export function useChatMessages(agentId: string) {
         } else {
           appendNode(msg);
         }
-
-        // TOOL messages (status updates) mean the agent is mid-turn.
-        // AGENT messages mean the turn is complete.
-        if (msg.role === "TOOL") {
-          setIsAgentActive(true);
-          clearTimeout(activeTimerRef.current);
-        } else if (msg.role === "AGENT") {
-          setIsAgentActive(false);
-          clearTimeout(activeTimerRef.current);
-        }
       },
       [appendNode, replaceOrAppend],
     ),
   );
 
-  // Cleanup agent active timer
-  useEffect(() => {
-    return () => clearTimeout(activeTimerRef.current);
-  }, []);
-
-  return { messages, loading, hasMore, loadMore, isAgentActive };
+  return { messages, loading, hasMore, loadMore };
 }

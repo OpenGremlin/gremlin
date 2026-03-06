@@ -41,7 +41,7 @@ export function TaskThreadPage() {
     }, []),
   );
 
-  const { messages, isAgentActive, hasMore, loadMore, loadingMore } =
+  const { messages, hasMore, loadMore, loadingMore } =
     useTaskChatMessages(taskId ?? "");
 
   const sandboxStreams = useSandboxOutput(taskId ?? "");
@@ -147,14 +147,6 @@ export function TaskThreadPage() {
                   sandboxStreams={sandboxStreams}
                 />
               ))}
-              {isAgentActive && (
-                <div className="flex justify-start py-1">
-                  <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-                    <span className="animate-pulse">Thinking...</span>
-                  </div>
-                </div>
-              )}
-
               {/* Pending messages — shown inline at the bottom of the chat */}
               {pendingMessages.map((content) => (
                 <div key={content} className="flex justify-end py-1">
