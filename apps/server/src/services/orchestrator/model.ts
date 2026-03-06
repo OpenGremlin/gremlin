@@ -11,7 +11,7 @@ const bedrock = createAmazonBedrock({
   credentialProvider: fromNodeProviderChain(),
 });
 
-const BEDROCK_FALLBACK_MODEL = "us.anthropic.claude-sonnet-4-20250514-v1:0";
+const BEDROCK_FALLBACK_MODEL = "us.anthropic.claude-sonnet-4-6";
 
 // ── 30s TTL cache ────────────────────────────────────────
 let cachedModel: LanguageModel | null = null;

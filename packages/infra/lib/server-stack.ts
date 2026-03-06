@@ -63,7 +63,14 @@ export class ServerStack extends cdk.Stack {
           "bedrock:InvokeModel",
           "bedrock:InvokeModelWithResponseStream",
         ],
-        resources: [`arn:aws:bedrock:${this.region}::foundation-model/*`],
+        resources: [
+          // Foundation models (direct invocation)
+          `arn:aws:bedrock:${this.region}::foundation-model/*`,
+          // Global foundation models (cross-region inference)
+          "arn:aws:bedrock:::foundation-model/*",
+          // Cross-region inference profiles (us.*, eu.*, etc.)
+          `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
+        ],
       }),
     );
 
