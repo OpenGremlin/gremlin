@@ -99,8 +99,8 @@ async function routeBatch(
     await ctx.services.orchestrator.runMainLane(ctx, agentId, recallHint);
   }
 
-  // --- Task lane: group by taskId, run different tasks in parallel,
-  // but same-task items sequentially to avoid concurrent turns ---
+  // --- Task lane: group by taskId, write all messages per task,
+  // then run one inference per task. Different tasks run in parallel. ---
   const taskGroups = new Map<string, InboxItemItem[]>();
   const nonTaskItems: InboxItemItem[] = [];
 
@@ -117,49 +117,71 @@ async function routeBatch(
   }
 
   await Promise.all([
-    // Each task group runs its items sequentially
-    ...[...taskGroups.values()].map(async (items) => {
-      for (const item of items) {
-        await processTaskItem(ctx, agentId, item);
-      }
-    }),
-    // Non-task items (core_memory_review, etc.) run in parallel
-    ...nonTaskItems.map((item) => processTaskItem(ctx, agentId, item)),
+    // One inference per task, with all messages written to history first
+    ...[...taskGroups.entries()].map(([taskId, items]) =>
+      processTaskGroup(ctx, agentId, taskId, items),
+    ),
+    // Non-task items run in parallel
+    ...nonTaskItems.map((item) => processNonTaskItem(ctx, agentId, item)),
   ]);
 }
 
-async function processTaskItem(
+/** Write all messages for a task to the log, then run one inference. */
+async function processTaskGroup(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string,
+  items: InboxItemItem[],
+) {
+  // Collect prompts — each gets logged, but only one inference runs at the end
+  const prompts: Array<{ content: string; role: "SYSTEM" | "USER" }> = [];
+
+  for (const item of items) {
+    const payload = JSON.parse(item.payload);
+    switch (item.type) {
+      case "run_task":
+        prompts.push({ content: payload.prompt, role: "SYSTEM" });
+        break;
+      case "user_task_message":
+        prompts.push({ content: payload.content, role: "USER" });
+        break;
+      case "scheduled_job":
+        await handleScheduledJob(ctx, agentId, payload);
+        return; // scheduled jobs handle their own inference
+      case "agent_self_followup":
+        prompts.push({ content: payload.prompt, role: "SYSTEM" });
+        break;
+    }
+  }
+
+  if (prompts.length === 0) return;
+
+  // Write all prompts to the log except the last one (runTaskLane writes that)
+  for (let i = 0; i < prompts.length - 1; i++) {
+    await ctx.services.orchestrator.writeAgentLog(ctx, {
+      agentId,
+      taskId,
+      role: prompts[i].role,
+      content: prompts[i].content,
+    });
+  }
+
+  // Run one inference with the last prompt
+  const last = prompts[prompts.length - 1];
+  await ctx.services.orchestrator.runTaskLane(
+    ctx,
+    taskId,
+    last.content,
+    last.role === "USER" ? { role: "USER" } : undefined,
+  );
+}
+
+async function processNonTaskItem(
   ctx: ServiceContext,
   agentId: string,
   item: InboxItemItem,
 ) {
-  const payload = JSON.parse(item.payload);
   switch (item.type) {
-    case "run_task":
-      await ctx.services.orchestrator.runTaskLane(
-        ctx,
-        payload.taskId,
-        payload.prompt,
-      );
-      break;
-    case "user_task_message":
-      await ctx.services.orchestrator.runTaskLane(
-        ctx,
-        payload.taskId,
-        payload.content,
-        { role: "USER" },
-      );
-      break;
-    case "scheduled_job":
-      await handleScheduledJob(ctx, agentId, payload);
-      break;
-    case "agent_self_followup":
-      await ctx.services.orchestrator.runTaskLane(
-        ctx,
-        payload.taskId,
-        payload.prompt,
-      );
-      break;
     case "core_memory_review":
       await ctx.services.memory
         .reviewCoreMemories(ctx, agentId)
