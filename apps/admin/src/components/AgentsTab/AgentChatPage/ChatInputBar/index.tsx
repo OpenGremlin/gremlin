@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export function ChatInputBar({
   value,
@@ -11,10 +12,18 @@ export function ChatInputBar({
   onSend: () => void;
   disabled?: boolean;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-neutral-800/60 bg-neutral-950/70 backdrop-blur-md px-3 py-3.5">
       <div className="flex items-end gap-2">
         <input
+          ref={inputRef}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -25,6 +34,8 @@ export function ChatInputBar({
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               onSend();
+              // Refocus after send (React may blur during state update)
+              requestAnimationFrame(() => inputRef.current?.focus());
             }
           }}
         />
