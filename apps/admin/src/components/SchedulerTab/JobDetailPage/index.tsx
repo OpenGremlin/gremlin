@@ -14,6 +14,7 @@ import {
   DeleteAgentJobMutation as DeleteAgentJobDoc,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
+import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -87,6 +88,7 @@ export function JobDetailPage() {
       if (agentId !== null) input.agentId = agentId;
       if (timezone !== null) input.timezone = timezone;
 
+      clientLogger.info("Updating job", { jobId: id });
       const result = await gql<UpdateAgentJobMutation>(UpdateAgentJobDoc, {
         id,
         input,
@@ -102,7 +104,9 @@ export function JobDetailPage() {
       setAgentId(null);
       setTimezone(null);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      clientLogger.error("Failed to update job", { jobId: id, error: msg });
+      setSaveError(msg);
     } finally {
       setSaving(false);
     }
@@ -197,10 +201,14 @@ export function JobDetailPage() {
               return;
             setDeleting(true);
             try {
+              clientLogger.info("Deleting job", { jobId: id });
               await gql<DeleteAgentJobMutation>(DeleteAgentJobDoc, { id });
               navigate("/jobs");
             } catch (err) {
-              console.error("Failed to delete job:", err);
+              clientLogger.error("Failed to delete job", {
+                jobId: id,
+                error: err instanceof Error ? err.message : String(err),
+              });
               setDeleting(false);
             }
           }}

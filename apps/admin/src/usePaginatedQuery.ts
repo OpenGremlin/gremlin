@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gql } from "./auth";
 import type { TypedDocumentString } from "./graphql/generated/graphql";
+import { clientLogger } from "./logger";
 
 const PAGE_SIZE = 20;
 
@@ -63,8 +64,11 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
         cursorRef.current = conn.pageInfo.startCursor ?? null;
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : String(err));
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : String(err);
+          clientLogger.error("usePaginatedQuery failed", { error: msg });
+          setError(msg);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -97,7 +101,9 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
       setHasMore(conn.pageInfo.hasPreviousPage);
       cursorRef.current = conn.pageInfo.startCursor ?? null;
     } catch (err) {
-      console.error("Failed to load more:", err);
+      clientLogger.error("Failed to load more", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setLoadingMore(false);
     }

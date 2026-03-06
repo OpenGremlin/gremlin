@@ -13,6 +13,7 @@ import {
   RetireAgentMutation as RetireAgentDoc,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../../graphql/queries";
+import { clientLogger } from "../../../logger";
 import { preloadImages } from "../../../preloadImages";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
@@ -57,6 +58,7 @@ export function AgentConfigPage() {
   }
 
   async function onSubmit(values: AgentFormValues) {
+    clientLogger.info("Updating agent config", { agentId: id });
     await gql<UpdateAgentMutation>(UpdateAgentDoc, {
       id,
       input: {
@@ -64,6 +66,7 @@ export function AgentConfigPage() {
         soul: values.soul,
       },
     });
+    clientLogger.debug("Agent config updated", { agentId: id });
   }
 
   return (
@@ -108,6 +111,7 @@ export function AgentConfigPage() {
         <button
           type="button"
           onClick={async () => {
+            clientLogger.info("Retiring agent", { agentId: id });
             await gql<RetireAgentMutation>(RetireAgentDoc, { id });
             navigate("/agents");
           }}
@@ -123,6 +127,10 @@ export function AgentConfigPage() {
           loading={avatarsResult.loading}
           onSelect={async (avatar) => {
             setPickerOpen(false);
+            clientLogger.info("Updating agent avatar", {
+              agentId: id,
+              avatarId: avatar.id,
+            });
             await gql<UpdateAgentMutation>(UpdateAgentDoc, {
               id,
               input: { avatar: avatar.id },
@@ -137,6 +145,10 @@ export function AgentConfigPage() {
           currentVoice={agent.ttsVoice}
           onSelect={async (voice) => {
             setVoicePickerOpen(false);
+            clientLogger.info("Updating agent voice", {
+              agentId: id,
+              voice,
+            });
             await gql<UpdateAgentMutation>(UpdateAgentDoc, {
               id,
               input: { ttsVoice: voice },

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { gql } from "./auth";
 import type { TypedDocumentString } from "./graphql/generated/graphql";
+import { clientLogger } from "./logger";
 
 export function useQuery<TResult>(
   // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
@@ -36,8 +37,11 @@ export function useQuery<TResult>(
         if (!cancelled) setData(result);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : String(err));
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : String(err);
+          clientLogger.error("useQuery failed", { error: msg });
+          setError(msg);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

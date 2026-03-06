@@ -51,6 +51,7 @@ export async function gql<TResult>(
   query: { toString(): string },
   variables?: unknown,
 ): Promise<TResult> {
+  const { clientLogger } = await import("./logger");
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -64,11 +65,17 @@ export async function gql<TResult>(
     body: JSON.stringify({ query: String(query), variables }),
   });
   if (res.status === 401) {
+    clientLogger.warn("GraphQL request returned 401, redirecting to login");
     clearToken();
     window.location.href = getLoginUrl();
     throw new Error("Unauthorized");
   }
   const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0].message);
+  if (json.errors) {
+    clientLogger.error("GraphQL error", {
+      error: json.errors[0].message,
+    });
+    throw new Error(json.errors[0].message);
+  }
   return json.data;
 }

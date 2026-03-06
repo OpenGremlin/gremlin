@@ -1,5 +1,6 @@
 import { createClient } from "graphql-ws";
 import { getToken } from "./auth";
+import { clientLogger } from "./logger";
 
 const API_URL =
   (
@@ -21,6 +22,22 @@ export const wsClient = createClient({
   retryAttempts: Number.POSITIVE_INFINITY,
   retryWait: async (retries) => {
     const delay = Math.min(1000 * 2 ** retries, 30_000);
+    clientLogger.warn("WebSocket reconnecting", {
+      attempt: retries + 1,
+      delayMs: delay,
+    });
     await new Promise((resolve) => setTimeout(resolve, delay));
+  },
+  on: {
+    connected: () => clientLogger.info("WebSocket connected"),
+    closed: (event) =>
+      clientLogger.warn("WebSocket closed", {
+        code: (event as CloseEvent)?.code,
+        reason: (event as CloseEvent)?.reason,
+      }),
+    error: (error) =>
+      clientLogger.error("WebSocket error", {
+        message: String(error),
+      }),
   },
 });

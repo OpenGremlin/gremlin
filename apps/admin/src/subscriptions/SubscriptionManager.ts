@@ -1,3 +1,4 @@
+import { clientLogger } from "../logger";
 import { wsClient } from "../wsClient";
 
 type Callback = (entity: Record<string, unknown>) => void;
@@ -32,8 +33,17 @@ export class SubscriptionManager {
       }
       entry.refCount++;
       entry.callbacks.add(callback);
+      clientLogger.debug("SubscriptionManager reused subscription", {
+        variable: this.variableName,
+        id,
+        refCount: entry.refCount,
+      });
     } else {
       // Open a new individual subscription
+      clientLogger.debug("SubscriptionManager opening subscription", {
+        variable: this.variableName,
+        id,
+      });
       const callbacks = new Set<Callback>([callback]);
       const unsubscribe = wsClient.subscribe(
         {
@@ -49,7 +59,13 @@ export class SubscriptionManager {
             if (!entity || typeof entity !== "object") return;
             for (const cb of callbacks) cb(entity);
           },
-          error: () => {},
+          error: (err) => {
+            clientLogger.error("SubscriptionManager subscription error", {
+              variable: this.variableName,
+              id,
+              error: String(err),
+            });
+          },
           complete: () => {},
         },
       );
@@ -63,8 +79,16 @@ export class SubscriptionManager {
       entry.refCount--;
 
       if (entry.refCount <= 0) {
+        clientLogger.debug("SubscriptionManager lingering before teardown", {
+          variable: this.variableName,
+          id,
+        });
         // Linger for 1s before tearing down — covers page transitions
         entry.lingerTimer = setTimeout(() => {
+          clientLogger.debug("SubscriptionManager tearing down subscription", {
+            variable: this.variableName,
+            id,
+          });
           entry!.unsubscribe();
           this.entries.delete(id);
         }, 1000);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { gql } from "../../../auth";
 import { ProfileQuery, UpdateProfileMutation } from "../../../graphql/queries";
+import { clientLogger } from "../../../logger";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
@@ -42,6 +43,7 @@ export function ProfilePage() {
   }, [profile, reset]);
 
   async function onSubmit(values: ProfileFormValues) {
+    clientLogger.info("Saving profile");
     await gql(UpdateProfileMutation, {
       input: {
         displayName: values.displayName,
@@ -50,6 +52,7 @@ export function ProfilePage() {
         timezone: values.timezone || null,
       },
     });
+    clientLogger.debug("Profile saved");
     reset(values);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { TypedDocumentString } from "./graphql/generated/graphql";
+import { clientLogger } from "./logger";
 import { wsClient } from "./wsClient";
 
 /**
@@ -27,7 +28,9 @@ export function useSubscription<TResult>(
           if (data) onDataRef.current(data as TResult);
         },
         error: (err) => {
-          console.error("[useSubscription] error:", err);
+          clientLogger.error("Subscription error", {
+            error: String(err),
+          });
         },
         complete: () => {},
       },

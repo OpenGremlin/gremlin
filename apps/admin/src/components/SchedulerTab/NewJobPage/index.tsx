@@ -6,6 +6,7 @@ import {
   AgentsQuery,
   CreateAgentJobMutation as CreateAgentJobDoc,
 } from "../../../graphql/queries";
+import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
 import { useQuery } from "../../../useQuery";
 import { JobForm } from "../JobForm";
@@ -31,6 +32,7 @@ export function NewJobPage() {
     setSaving(true);
     setError(null);
     try {
+      clientLogger.info("Creating job", { name: name.trim() });
       const result = await gql<CreateAgentJobMutation>(CreateAgentJobDoc, {
         input: {
           name: name.trim(),
@@ -40,9 +42,12 @@ export function NewJobPage() {
           agentId: agentId || undefined,
         },
       });
+      clientLogger.info("Job created", { jobId: result.createAgentJob.id });
       navigate(`/jobs/${result.createAgentJob.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      clientLogger.error("Failed to create job", { error: msg });
+      setError(msg);
     } finally {
       setSaving(false);
     }

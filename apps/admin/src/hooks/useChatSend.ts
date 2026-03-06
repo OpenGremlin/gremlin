@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gql } from "../auth";
 import { SendMessageMutation } from "../graphql/queries";
+import { clientLogger } from "../logger";
 import type { ChatMessage } from "./useLogMessages";
 
 export function useChatSend({
@@ -39,14 +40,20 @@ export function useChatSend({
     setInput("");
     setPendingMessages((prev) => [...prev, content]);
     scrollToBottom();
+    clientLogger.info("Sending message", { agentId, taskId });
     try {
       await gql(SendMessageMutation, {
         agentId,
         content,
         ...(taskId ? { taskId } : {}),
       });
+      clientLogger.debug("Message sent successfully", { agentId, taskId });
     } catch (err) {
-      console.error("Failed to send message:", err);
+      clientLogger.error("Failed to send message", {
+        agentId,
+        taskId,
+        error: err instanceof Error ? err.message : String(err),
+      });
       setPendingMessages((prev) => prev.filter((m) => m !== content));
     }
   }, [input, agentId, taskId, scrollToBottom]);

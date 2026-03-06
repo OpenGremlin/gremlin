@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
+import { clientLogger } from "../logger";
 import { useSubscription } from "../useSubscription";
 
 interface SandboxOutputChunk {
@@ -38,6 +39,10 @@ export function useSandboxOutput(taskId: string) {
       if (chunk.done) {
         existing.done = true;
         existing.exitCode = chunk.exitCode;
+        clientLogger.debug("Sandbox command completed", {
+          commandId: chunk.commandId,
+          exitCode: chunk.exitCode,
+        });
       } else {
         existing.output += chunk.data;
       }
