@@ -21,6 +21,7 @@ export const AgentQuery = graphql(`
       imageUrl(width: 200)
       soul
       retired
+      ttsVoice
     }
   }
 `);
@@ -32,6 +33,7 @@ export const UpdateAgentMutation = graphql(`
       name
       avatar
       soul
+      ttsVoice
     }
   }
 `);

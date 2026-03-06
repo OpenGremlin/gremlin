@@ -40,6 +40,7 @@ export type Agent = {
   portraitId: Scalars['String']['output'];
   retired: Scalars['Boolean']['output'];
   soul: Scalars['String']['output'];
+  ttsVoice?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -213,7 +214,7 @@ export type Mutation = {
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
-  sendMessage: AgentLog;
+  sendMessage: SendMessageResult;
   setDefaultModel: Scalars['Boolean']['output'];
   setSkillMcpEnabled?: Maybe<Skill>;
   uninstallSkill?: Maybe<Skill>;
@@ -488,6 +489,21 @@ export type QueryWorkspaceFileArgs = {
   path: Scalars['String']['input'];
 };
 
+export type SandboxOutput = {
+  __typename?: 'SandboxOutput';
+  commandId: Scalars['String']['output'];
+  data: Scalars['String']['output'];
+  done?: Maybe<Scalars['Boolean']['output']>;
+  exitCode?: Maybe<Scalars['Int']['output']>;
+  stream: Scalars['String']['output'];
+};
+
+export type SendMessageResult = {
+  __typename?: 'SendMessageResult';
+  content: Scalars['String']['output'];
+  queued: Scalars['Boolean']['output'];
+};
+
 export type Skill = {
   __typename?: 'Skill';
   id: Scalars['ID']['output'];
@@ -537,6 +553,7 @@ export type Subscription = {
   agentLogCreated: AgentLog;
   agentUpdated: Agent;
   agentsUpdated: Agent;
+  sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
   tasksUpdated: Task;
@@ -555,6 +572,11 @@ export type SubscriptionAgentUpdatedArgs = {
 
 export type SubscriptionAgentsUpdatedArgs = {
   agentIds: Array<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionSandboxOutputArgs = {
+  taskId: Scalars['ID']['input'];
 };
 
 
@@ -625,6 +647,7 @@ export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   soul?: InputMaybe<Scalars['String']['input']>;
+  ttsVoice?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateAgentJobInput = {
@@ -757,6 +780,8 @@ export type ResolversTypes = {
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  SandboxOutput: ResolverTypeWrapper<SandboxOutput>;
+  SendMessageResult: ResolverTypeWrapper<SendMessageResult>;
   Skill: ResolverTypeWrapper<SkillItem>;
   SkillConnectionRequirement: ResolverTypeWrapper<SkillConnectionRequirement>;
   SkillConnectionStatus: ResolverTypeWrapper<SkillConnectionStatus>;
@@ -802,6 +827,8 @@ export type ResolversParentTypes = {
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
   Query: Record<PropertyKey, never>;
+  SandboxOutput: SandboxOutput;
+  SendMessageResult: SendMessageResult;
   Skill: SkillItem;
   SkillConnectionRequirement: SkillConnectionRequirement;
   SkillConnectionStatus: SkillConnectionStatus;
@@ -825,6 +852,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ttsVoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
@@ -949,7 +977,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
-  sendMessage?: Resolver<ResolversTypes['AgentLog'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
+  sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
   setSkillMcpEnabled?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSetSkillMcpEnabledArgs, 'enabled' | 'id'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
@@ -1016,6 +1044,19 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   workspaceFile?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryWorkspaceFileArgs, 'path'>>;
 };
 
+export type SandboxOutputResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SandboxOutput'] = ResolversParentTypes['SandboxOutput']> = {
+  commandId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  data?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  done?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  exitCode?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  stream?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type SendMessageResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SendMessageResult'] = ResolversParentTypes['SendMessageResult']> = {
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  queued?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   installed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1060,6 +1101,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   agentLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "agentLogCreated", ParentType, ContextType, RequireFields<SubscriptionAgentLogCreatedArgs, 'agentId'>>;
   agentUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentUpdatedArgs, 'agentId'>>;
   agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
+  sandboxOutput?: SubscriptionResolver<ResolversTypes['SandboxOutput'], "sandboxOutput", ParentType, ContextType, RequireFields<SubscriptionSandboxOutputArgs, 'taskId'>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;
   taskUpdated?: SubscriptionResolver<ResolversTypes['Task'], "taskUpdated", ParentType, ContextType, RequireFields<SubscriptionTaskUpdatedArgs, 'taskId'>>;
   tasksUpdated?: SubscriptionResolver<ResolversTypes['Task'], "tasksUpdated", ParentType, ContextType, RequireFields<SubscriptionTasksUpdatedArgs, 'taskIds'>>;
@@ -1128,6 +1170,8 @@ export type Resolvers<ContextType = GremlinContext> = {
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  SandboxOutput?: SandboxOutputResolvers<ContextType>;
+  SendMessageResult?: SendMessageResultResolvers<ContextType>;
   Skill?: SkillResolvers<ContextType>;
   SkillConnectionRequirement?: SkillConnectionRequirementResolvers<ContextType>;
   SkillConnectionStatus?: SkillConnectionStatusResolvers<ContextType>;

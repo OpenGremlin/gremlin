@@ -7,6 +7,7 @@ interface UpdateAgentInput {
   soul?: string | null;
   avatar?: string | null;
   sandboxInstanceId?: string | null;
+  ttsVoice?: string | null;
 }
 
 export async function updateAgent(
@@ -21,6 +22,7 @@ export async function updateAgent(
   if (input.avatar != null) updates.avatar = input.avatar;
   if (input.sandboxInstanceId != null)
     updates.sandboxInstanceId = input.sandboxInstanceId;
+  if (input.ttsVoice != null) updates.ttsVoice = input.ttsVoice;
 
   const { Attributes } = await ctx.resources.ddb.entities.Agent.build(
     UpdateItemCommand,

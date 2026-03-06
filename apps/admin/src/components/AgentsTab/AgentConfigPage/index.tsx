@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { Pencil, Volume2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
@@ -21,6 +21,7 @@ import { useQuery } from "../../../useQuery";
 import { useSubscription } from "../../../useSubscription";
 import { AgentForm, type AgentFormValues } from "../AgentForm";
 import { AvatarPicker } from "./AvatarPicker";
+import { VoicePicker } from "./VoicePicker";
 
 export function AgentConfigPage() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export function AgentConfigPage() {
   });
   const avatarsResult = useQuery(AvatarsQuery);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
 
   useSubscription(
     AgentUpdatedSubscription,
@@ -80,6 +82,17 @@ export function AgentConfigPage() {
           </div>
         </button>
 
+        <button
+          type="button"
+          onClick={() => setVoicePickerOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-colors self-start"
+        >
+          <Volume2 size={16} className="text-neutral-400" />
+          <span className="text-sm text-neutral-200">
+            {agent.ttsVoice ?? "No voice"}
+          </span>
+        </button>
+
         <AgentForm
           defaultValues={{ id: agent.id, name: agent.name, soul: agent.soul }}
           onSubmit={onSubmit}
@@ -116,6 +129,20 @@ export function AgentConfigPage() {
             });
           }}
           onClose={() => setPickerOpen(false)}
+        />
+      )}
+
+      {voicePickerOpen && (
+        <VoicePicker
+          currentVoice={agent.ttsVoice}
+          onSelect={async (voice) => {
+            setVoicePickerOpen(false);
+            await gql<UpdateAgentMutation>(UpdateAgentDoc, {
+              id,
+              input: { ttsVoice: voice },
+            });
+          }}
+          onClose={() => setVoicePickerOpen(false)}
         />
       )}
     </div>

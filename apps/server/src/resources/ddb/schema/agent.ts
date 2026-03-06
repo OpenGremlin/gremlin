@@ -16,6 +16,7 @@ export const AgentEntity = new Entity({
     soul: string(),
     retired: boolean().optional().default(false),
     sandboxInstanceId: string().optional(),
+    ttsVoice: string().optional(),
   }),
   computeKey: ({ id }) => ({
     pk: "AGENT",

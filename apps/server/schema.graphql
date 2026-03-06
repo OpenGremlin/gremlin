@@ -31,7 +31,7 @@ type Mutation {
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
-  sendMessage(agentId: ID!, content: String!, taskId: String): AgentLog!
+  sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
@@ -59,6 +59,7 @@ type Subscription {
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
+  sandboxOutput(taskId: ID!): SandboxOutput!
 }
 
 type Document {
@@ -140,6 +141,11 @@ type AgentLogConnection {
   pageInfo: AgentLogPageInfo!
 }
 
+type SendMessageResult {
+  queued: Boolean!
+  content: String!
+}
+
 type Agent {
   id: ID!
   name: String!
@@ -148,12 +154,14 @@ type Agent {
   imageUrl(width: Int): String!
   soul: String!
   retired: Boolean!
+  ttsVoice: String
 }
 
 input UpdateAgentInput {
   name: String
   soul: String
   avatar: String
+  ttsVoice: String
 }
 
 input CreateAgentInput {
@@ -334,6 +342,14 @@ type TaskPageInfo {
 type TaskConnection {
   edges: [TaskEdge!]!
   pageInfo: TaskPageInfo!
+}
+
+type SandboxOutput {
+  commandId: String!
+  stream: String!
+  data: String!
+  done: Boolean
+  exitCode: Int
 }
 
 type WorkspaceEntry {

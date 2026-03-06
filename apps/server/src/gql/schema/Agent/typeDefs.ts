@@ -7,6 +7,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageUrl(width: Int): String!
     soul: String!
     retired: Boolean!
+    ttsVoice: String
   }
 
   extend type Query {
@@ -18,6 +19,7 @@ export const agentTypeDefs = /* GraphQL */ `
     name: String
     soul: String
     avatar: String
+    ttsVoice: String
   }
 
   input CreateAgentInput {
