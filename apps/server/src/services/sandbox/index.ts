@@ -7,7 +7,9 @@ import {
   browserStatus,
   browserType,
 } from "./browserCommands.js";
-import { checkCommand, connectToSandbox, execCommand } from "./execCommand.js";
+import { checkCommand } from "./checkCommand.js";
+import { connectToSandbox } from "./connectToSandbox.js";
+import { execCommand } from "./execCommand.js";
 import { launchBrowser } from "./launchBrowser.js";
 import { launchSandbox } from "./launchSandbox.js";
 import {

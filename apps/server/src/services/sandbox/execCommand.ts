@@ -1,87 +1,17 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
-import type { PubSub } from "../../resources/pubsub.js";
-import type {
-  BackgroundCommand,
-  CommandResult,
-  SandboxSession,
-} from "./types.js";
+import type { BackgroundCommand, CommandResult, SandboxSession } from "./types.js";
+import {
+  SOFT_TIMEOUT_MS,
+  HARD_TIMEOUT_MS,
+  backgroundCommands,
+  truncate,
+} from "./shared.js";
+import type { ExecOptions } from "./shared.js";
 
 const log = createLogger("sandbox:exec");
-const SOFT_TIMEOUT_MS = 30_000;
-const HARD_TIMEOUT_MS = 120_000;
-const MAX_OUTPUT_CHARS = 8_000;
 
-export interface ExecOptions {
-  pubsub?: PubSub;
-  taskId?: string;
-}
-
-// In-memory background task tracking, keyed by command id
-const backgroundCommands = new Map<string, BackgroundCommand>();
-const BG_TTL_MS = 10 * 60 * 1000; // 10 minutes
-
-// Periodically prune stale background commands
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, bg] of backgroundCommands) {
-    if (now - bg.startTime > BG_TTL_MS) backgroundCommands.delete(id);
-  }
-}, 60_000);
-
-export async function connectToSandbox(
-  session: SandboxSession,
-): Promise<WebSocket> {
-  log.info(
-    { agentId: session.agentId, wsUrl: session.wsUrl },
-    "Connecting to sandbox WebSocket",
-  );
-
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(session.wsUrl);
-    const timeout = setTimeout(() => {
-      log.error(
-        { agentId: session.agentId, wsUrl: session.wsUrl },
-        "WebSocket connection timed out (15s)",
-      );
-      ws.close();
-      reject(new Error("WebSocket connection timed out"));
-    }, 15_000);
-
-    ws.on("open", () => {
-      log.debug(
-        { agentId: session.agentId },
-        "WebSocket TCP connection opened, waiting for ready signal",
-      );
-    });
-
-    ws.on("message", (raw) => {
-      try {
-        const msg = JSON.parse(raw.toString());
-        if (msg.type === "ready") {
-          clearTimeout(timeout);
-          session.ws = ws;
-          log.info(
-            { agentId: session.agentId },
-            "Sandbox WebSocket connected and ready",
-          );
-          resolve(ws);
-        }
-      } catch {
-        // ignore parse errors during handshake
-      }
-    });
-
-    ws.on("error", (err) => {
-      clearTimeout(timeout);
-      log.error(
-        { agentId: session.agentId, error: err.message },
-        "WebSocket connection error",
-      );
-      reject(err);
-    });
-  });
-}
+export type { ExecOptions };
 
 export async function execCommand(
   session: SandboxSession,
@@ -292,47 +222,4 @@ export async function execCommand(
     ws.on("message", onMessage);
     ws.send(JSON.stringify({ type: "exec", id, command }));
   });
-}
-
-export function checkCommand(commandId: string): {
-  output: string;
-  stderr: string;
-  exitCode: number;
-  finished: boolean;
-} {
-  const bg = backgroundCommands.get(commandId);
-  if (!bg) {
-    return {
-      output: "",
-      stderr: "Unknown command ID",
-      exitCode: -1,
-      finished: true,
-    };
-  }
-
-  if (bg.done) {
-    backgroundCommands.delete(commandId);
-    return {
-      output: truncate(bg.stdout),
-      stderr: truncate(bg.stderr),
-      exitCode: bg.exitCode ?? -1,
-      finished: true,
-    };
-  }
-
-  return {
-    output: truncate(bg.stdout),
-    stderr: truncate(bg.stderr),
-    exitCode: -1,
-    finished: false,
-  };
-}
-
-function truncate(s: string): string {
-  if (s.length <= MAX_OUTPUT_CHARS) return s;
-  return (
-    s.slice(0, MAX_OUTPUT_CHARS / 2) +
-    "\n... [output truncated] ...\n" +
-    s.slice(-MAX_OUTPUT_CHARS / 2)
-  );
 }

@@ -2,11 +2,9 @@ import { ringDoorbell } from "./consumer.js";
 import { enqueueWork } from "./enqueueWork.js";
 import { getUnreadItems } from "./getUnreadItems.js";
 import { markRead } from "./markRead.js";
-import {
-  createCronSchedule,
-  createFollowUpSchedule,
-  deleteCronSchedule,
-} from "./scheduler.js";
+import { createCronSchedule } from "./createCronSchedule.js";
+import { createFollowUpSchedule } from "./createFollowUpSchedule.js";
+import { deleteCronSchedule } from "./deleteCronSchedule.js";
 
 export const inboxService = {
   enqueueWork,
