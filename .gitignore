@@ -11,3 +11,4 @@ cdk.out/
 .DS_Store
 /reference
 **/graphql/generated/
+logs/
