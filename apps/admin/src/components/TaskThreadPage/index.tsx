@@ -1,21 +1,21 @@
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { gql } from "../../auth";
 import type { TaskQuery as TaskQueryType } from "../../graphql/generated/graphql";
 import {
-  SendMessageMutation,
   TaskQuery,
   TaskUpdatedSubscription,
 } from "../../graphql/queries";
+import { useChatSend } from "../../hooks/useChatSend";
+import { useLogMessages } from "../../hooks/useLogMessages";
 import { useSandboxOutput } from "../../hooks/useSandboxOutput";
 import { AgentAvatar } from "../../shared/AgentAvatar";
+import { PendingMessageBubble } from "../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
-import { useTaskChatMessages } from "./useTaskChatMessages";
 
 type Task = NonNullable<TaskQueryType["task"]>;
 
@@ -42,49 +42,18 @@ export function TaskThreadPage() {
   );
 
   const { messages, hasMore, loadMore, loadingMore } =
-    useTaskChatMessages(taskId ?? "");
+    useLogMessages({ taskId: taskId ?? "" });
 
   const sandboxStreams = useSandboxOutput(taskId ?? "");
 
   const docs = task?.documents ?? [];
 
-  const [input, setInput] = useState("");
-  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = useCallback(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, []);
-
-  // Clear pending messages when they appear in the log via subscription
-  useEffect(() => {
-    if (pendingMessages.length === 0) return;
-    const userMessages = messages.filter((m) => m.role === "USER");
-    setPendingMessages((prev) =>
-      prev.filter(
-        (content) => !userMessages.some((m) => m.content === content),
-      ),
-    );
-  }, [messages, pendingMessages.length]);
-
-  const handleSend = useCallback(async () => {
-    const content = input.trim();
-    if (!content || !task || !taskId) return;
-    setInput("");
-    setPendingMessages((prev) => [...prev, content]);
-    scrollToBottom();
-    try {
-      await gql(SendMessageMutation, {
-        agentId: task.agent.id,
-        content,
-        taskId,
-      });
-    } catch (err) {
-      console.error("Failed to send message:", err);
-      setPendingMessages((prev) => prev.filter((m) => m !== content));
-    }
-  }, [input, task, taskId, scrollToBottom]);
+  const { input, setInput, pendingMessages, scrollRef, handleSend } =
+    useChatSend({
+      agentId: task?.agent.id ?? "",
+      taskId,
+      messages,
+    });
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -143,16 +112,8 @@ export function TaskThreadPage() {
                   sandboxStreams={sandboxStreams}
                 />
               ))}
-              {/* Pending messages — shown inline at the bottom of the chat */}
               {pendingMessages.map((content) => (
-                <div key={content} className="flex justify-end py-1">
-                  <div className="max-w-[80%] flex items-start gap-2">
-                    <div className="text-white/60 text-sm px-3.5 py-2 rounded-2xl rounded-br-md bg-blue-600/40 border border-blue-500/20">
-                      {content}
-                    </div>
-                    <Loader2 size={14} className="animate-spin text-blue-400 shrink-0 mt-2.5" />
-                  </div>
-                </div>
+                <PendingMessageBubble key={content} content={content} />
               ))}
             </div>
           </div>

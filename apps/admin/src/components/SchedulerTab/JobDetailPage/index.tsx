@@ -14,12 +14,12 @@ import {
   DeleteAgentJobMutation as DeleteAgentJobDoc,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
-import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { TaskCard } from "../../TasksTab/TaskCard";
+import { JobForm } from "../JobForm";
 
 type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 
@@ -56,8 +56,6 @@ export function JobDetailPage() {
   const currentRecurrence = recurrence ?? job.recurrence;
   const currentDescription = description ?? job.description;
   const currentAgentId = agentId ?? job.agent.id;
-  const currentAgent = agents.find((a) => a.id === currentAgentId) ?? job.agent;
-
   const currentTimezone = timezone ?? job.timezone;
 
   const isDirty =
@@ -114,62 +112,20 @@ export function JobDetailPage() {
     <div className="p-6">
       <BackButton />
 
-      {/* Job Name */}
-      <section className="mt-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Job Name
-        </h2>
-        <input
-          type="text"
-          value={currentName}
-          onChange={(e) => {
-            const val = e.target.value;
-            setName(val === job.name ? null : val);
-          }}
-          className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
-          placeholder="Job name"
-        />
-      </section>
-
-      {/* Agent Picker */}
-      <section className="mt-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Agent
-        </h2>
-        <div className="flex items-center gap-3">
-          <AgentAvatar id={currentAgent.id} />
-          <select
-            value={currentAgentId}
-            onChange={(e) => {
-              const val = e.target.value;
-              setAgentId(val === job.agent.id ? null : val);
-            }}
-            className="bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
-          >
-            {agents.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
-
-      {/* Schedule */}
-      <section className="mt-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Schedule
-        </h2>
-        <input
-          type="text"
-          value={currentRecurrence}
-          onChange={(e) => {
-            const val = e.target.value;
-            setRecurrence(val === job.recurrence ? null : val);
-          }}
-          className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
-          placeholder="e.g. every day, every hour, weekly..."
-        />
+      <JobForm
+        name={currentName}
+        onNameChange={(val) => setName(val === job.name ? null : val)}
+        agentId={currentAgentId}
+        onAgentIdChange={(val) => setAgentId(val === job.agent.id ? null : val)}
+        agents={agents}
+        showAvatar
+        recurrence={currentRecurrence}
+        onRecurrenceChange={(val) => setRecurrence(val === job.recurrence ? null : val)}
+        timezone={currentTimezone}
+        onTimezoneChange={(val) => setTimezone(val === job.timezone ? null : val)}
+        description={currentDescription}
+        onDescriptionChange={(val) => setDescription(val === job.description ? null : val)}
+      >
         {cronDisplay && (
           <div className="mt-2 space-y-1">
             <p className="text-xs font-mono text-neutral-500">
@@ -180,44 +136,7 @@ export function JobDetailPage() {
             )}
           </div>
         )}
-      </section>
-
-      {/* Timezone */}
-      <section className="mt-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Timezone
-        </h2>
-        <select
-          value={currentTimezone}
-          onChange={(e) => {
-            const val = e.target.value;
-            setTimezone(val === job.timezone ? null : val);
-          }}
-          className="w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500"
-        >
-          {Intl.supportedValuesOf("timeZone").map((tz) => (
-            <option key={tz} value={tz}>
-              {tz.replaceAll("_", " ")}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      {/* Describe Job */}
-      <section className="mt-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
-          Job Description
-        </h2>
-        <textarea
-          value={currentDescription}
-          onChange={(e) => {
-            const val = e.target.value;
-            setDescription(val === job.description ? null : val);
-          }}
-          rows={4}
-          className="w-full bg-neutral-800 text-sm text-neutral-300 leading-relaxed rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500 resize-none"
-        />
-      </section>
+      </JobForm>
 
       {/* Save */}
       {isDirty && (

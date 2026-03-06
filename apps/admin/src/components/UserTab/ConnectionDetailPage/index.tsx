@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import * as logos from "../../../assets/logos";
 import { gql } from "../../../auth";
 import {
   IntegrationConnectionsQuery,
@@ -9,42 +8,9 @@ import {
 } from "../../../graphql/queries";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
+import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-
-const logoMap: Record<string, string> = {
-  google: logos.googleLogo,
-  notion: logos.notionLogo,
-  linear: logos.linearLogo,
-  trello: logos.trelloLogo,
-  slack: logos.slackLogo,
-  discord: logos.discordLogo,
-  teams: logos.teamsLogo,
-  telegram: logos.telegramLogo,
-  whatsapp: logos.whatsappLogo,
-  github: logos.githubLogo,
-  gitlab: logos.gitlabLogo,
-  jira: logos.jiraLogo,
-  spotify: logos.spotifyLogo,
-  hue: logos.hueLogo,
-  homeassistant: logos.homeAssistantLogo,
-};
-
-function IntegrationLogo({ id }: { id: string }) {
-  const logo = logoMap[id];
-  if (logo) {
-    return (
-      <div className="h-12 w-12 flex items-center justify-center">
-        <img src={logo} alt={id} className="h-12 w-12 object-contain" />
-      </div>
-    );
-  }
-  return (
-    <div className="h-12 w-12 rounded-full bg-neutral-800 flex items-center justify-center text-xl text-neutral-400">
-      {id[0]?.toUpperCase()}
-    </div>
-  );
-}
 
 export function ConnectionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -124,7 +90,7 @@ export function ConnectionDetailPage() {
       </div>
 
       <div className="mt-4 flex items-center gap-4">
-        <IntegrationLogo id={connection.providerId} />
+        <IntegrationLogo id={connection.providerId} size={12} />
         <div>
           {editing ? (
             <input

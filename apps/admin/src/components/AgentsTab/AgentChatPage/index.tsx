@@ -1,24 +1,23 @@
-import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { gql } from "../../../auth";
-import { AgentQuery, SendMessageMutation, TaskQuery } from "../../../graphql/queries";
+import { AgentQuery, TaskQuery } from "../../../graphql/queries";
+import { useChatSend } from "../../../hooks/useChatSend";
+import { useLogMessages } from "../../../hooks/useLogMessages";
 import { useSandboxOutput } from "../../../hooks/useSandboxOutput";
+import { PendingMessageBubble } from "../../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
-import { useTaskChatMessages } from "../../TaskThreadPage/useTaskChatMessages";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
 import { LogEntryView } from "./LogEntryView";
-import { useChatMessages } from "./useChatMessages";
 
 export function AgentChatPage() {
   const { id, taskId } = useParams<{ id: string; taskId?: string }>();
   const navigate = useNavigate();
   const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
 
-  const agentChat = useChatMessages(id ?? "");
-  const taskChat = useTaskChatMessages(taskId ?? "");
+  const agentChat = useLogMessages({ agentId: id ?? "" });
+  const taskChat = useLogMessages({ taskId: taskId ?? "" });
 
   const { data: taskData } = useQuery(TaskQuery, { id: taskId ?? "" });
   const taskDocs = taskData?.task?.documents ?? [];
@@ -27,51 +26,20 @@ export function AgentChatPage() {
   const chat = isTaskView ? taskChat : agentChat;
   const sandboxStreams = useSandboxOutput(taskId ?? "");
 
-  const [input, setInput] = useState("");
-  const [pendingMessages, setPendingMessages] = useState<string[]>([]);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = useCallback(() => {
-    const el = scrollContainerRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, []);
+  const { input, setInput, pendingMessages, scrollRef, handleSend } =
+    useChatSend({
+      agentId: id ?? "",
+      taskId,
+      messages: chat.messages,
+    });
 
   const handleScroll = useCallback(() => {
-    const el = scrollContainerRef.current;
+    const el = scrollRef.current;
     if (!el || !chat.hasMore) return;
     if (el.scrollTop < 50) {
       chat.loadMore();
     }
-  }, [chat.hasMore, chat.loadMore]);
-
-  // Clear pending messages when they appear in the log via subscription
-  useEffect(() => {
-    if (pendingMessages.length === 0) return;
-    const userMessages = chat.messages.filter((m) => m.role === "USER");
-    setPendingMessages((prev) =>
-      prev.filter(
-        (content) => !userMessages.some((m) => m.content === content),
-      ),
-    );
-  }, [chat.messages, pendingMessages.length]);
-
-  const handleSend = useCallback(async () => {
-    const content = input.trim();
-    if (!content || !id) return;
-    setInput("");
-    setPendingMessages((prev) => [...prev, content]);
-    scrollToBottom();
-    try {
-      await gql(SendMessageMutation, {
-        agentId: id,
-        content,
-        ...(taskId ? { taskId } : {}),
-      });
-    } catch (err) {
-      console.error("Failed to send message:", err);
-      setPendingMessages((prev) => prev.filter((m) => m !== content));
-    }
-  }, [input, id, taskId, scrollToBottom]);
+  }, [chat.hasMore, chat.loadMore, scrollRef]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -92,7 +60,7 @@ export function AgentChatPage() {
       <ChatHeader agent={agent} taskId={taskId} />
 
       <div
-        ref={scrollContainerRef}
+        ref={scrollRef}
         onScroll={handleScroll}
         className={`absolute inset-0 overflow-y-auto px-3 pb-16 flex flex-col-reverse ${isTaskView ? "pt-44" : "pt-32"}`}
       >
@@ -124,16 +92,8 @@ export function AgentChatPage() {
               sandboxStreams={isTaskView ? sandboxStreams : undefined}
             />
           ))}
-          {/* Pending messages — shown inline at the bottom of the chat */}
           {pendingMessages.map((content) => (
-            <div key={content} className="flex justify-end py-1">
-              <div className="max-w-[80%] flex items-start gap-2">
-                <div className="text-white/60 text-sm px-3.5 py-2 rounded-2xl rounded-br-md bg-blue-600/40 border border-blue-500/20">
-                  {content}
-                </div>
-                <Loader2 size={14} className="animate-spin text-blue-400 shrink-0 mt-2.5" />
-              </div>
-            </div>
+            <PendingMessageBubble key={content} content={content} />
           ))}
         </div>
       </div>

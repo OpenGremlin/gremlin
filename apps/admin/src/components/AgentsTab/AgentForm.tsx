@@ -1,7 +1,7 @@
-import { Check } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { AutoTextarea } from "../../shared/AutoTextarea";
+import { SavedIndicator } from "../../shared/SavedIndicator";
 
 export interface AgentFormValues {
   id: string;
@@ -110,12 +110,7 @@ export function AgentForm({
             {isSubmitting ? `${submitLabel === "Save" ? "Saving" : "Creating"}…` : submitLabel}
           </button>
         )}
-        {saved && (
-          <span className="flex items-center gap-1 text-xs text-green-400">
-            <Check size={14} />
-            Saved
-          </span>
-        )}
+        {saved && <SavedIndicator />}
       </div>
     </form>
   );

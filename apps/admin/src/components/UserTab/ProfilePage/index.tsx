@@ -1,10 +1,10 @@
-import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { gql } from "../../../auth";
 import { ProfileQuery, UpdateProfileMutation } from "../../../graphql/queries";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
+import { SavedIndicator } from "../../../shared/SavedIndicator";
 import { useQuery } from "../../../useQuery";
 
 const TIMEZONES = Intl.supportedValuesOf("timeZone");
@@ -130,12 +130,7 @@ export function ProfilePage() {
             {isSubmitting ? "Saving…" : "Save"}
           </button>
         )}
-        {saved && (
-          <span className="flex items-center gap-1 text-xs text-green-400">
-            <Check size={14} />
-            Saved
-          </span>
-        )}
+        {saved && <SavedIndicator />}
       </div>
     </form>
   );

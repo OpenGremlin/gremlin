@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import * as logos from "../../../assets/logos";
+import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import type {
   BindSkillConnectionMutation as BindMutationType,
-  IntegrationConnectionsQuery as ConnectionsQueryType,
   SkillQuery as SkillQueryType,
 } from "../../../graphql/generated/graphql";
 import {
@@ -15,53 +13,11 @@ import {
 import { IntegrationConnectionsQuery } from "../../../graphql/queries/integrations";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
+import { ConnectionPicker } from "../../../shared/ConnectionPicker";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
 type Skill = NonNullable<SkillQueryType["skill"]>;
-type Connection = ConnectionsQueryType["integrationConnections"][number];
-
-const logoMap: Record<string, string> = {
-  google: logos.googleLogo,
-  notion: logos.notionLogo,
-  linear: logos.linearLogo,
-  trello: logos.trelloLogo,
-  slack: logos.slackLogo,
-  discord: logos.discordLogo,
-  teams: logos.teamsLogo,
-  telegram: logos.telegramLogo,
-  whatsapp: logos.whatsappLogo,
-  github: logos.githubLogo,
-  gitlab: logos.gitlabLogo,
-  jira: logos.jiraLogo,
-  spotify: logos.spotifyLogo,
-  hue: logos.hueLogo,
-  homeassistant: logos.homeAssistantLogo,
-  anthropic: logos.anthropicLogo,
-  openai: logos.openaiLogo,
-  google_ai: logos.geminiLogo,
-  mistral: logos.mistralLogo,
-  deepseek: logos.deepseekLogo,
-  xai: logos.xaiLogo,
-  bedrock: logos.bedrockLogo,
-  brave: logos.braveLogo,
-};
-
-function ProviderLogo({ id }: { id: string }) {
-  const logo = logoMap[id];
-  if (logo) {
-    return (
-      <div className="h-8 w-8 flex items-center justify-center">
-        <img src={logo} alt={id} className="h-8 w-8 object-contain" />
-      </div>
-    );
-  }
-  return (
-    <div className="h-8 w-8 rounded-full bg-neutral-800 flex items-center justify-center text-sm text-neutral-400">
-      {id[0]?.toUpperCase()}
-    </div>
-  );
-}
 
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -73,12 +29,11 @@ export function SkillDetailPage() {
     error: connectionsError,
   } = useQuery(IntegrationConnectionsQuery);
   const [uninstalling, setUninstalling] = useState(false);
-  const [localSkill, setLocalSkill] = useState<Skill | null>(null);
   const [selectedConnections, setSelectedConnections] = useState<
     Record<string, string>
   >({});
 
-  const skill = localSkill ?? data?.skill ?? null;
+  const skill = data?.skill ?? null;
   const connections = connectionsData?.integrationConnections ?? [];
 
   useEffect(() => {
@@ -110,16 +65,6 @@ export function SkillDetailPage() {
 
   const templateReqs = skill.template.requiredConnections;
 
-  function selectConnection(providerId: string, connectionId: string) {
-    setSelectedConnections((prev) => ({ ...prev, [providerId]: connectionId }));
-  }
-
-  function connectionsByProvider(providerId: string): Connection[] {
-    return connections.filter(
-      (c) => c.providerId === providerId && !c.isRevoked,
-    );
-  }
-
   async function handleBindConnection(
     providerId: string,
     connectionId: string,
@@ -129,7 +74,7 @@ export function SkillDetailPage() {
       providerId,
       connectionId,
     });
-    selectConnection(providerId, connectionId);
+    setSelectedConnections((prev) => ({ ...prev, [providerId]: connectionId }));
   }
 
   async function handleUninstall() {
@@ -180,61 +125,15 @@ export function SkillDetailPage() {
         )}
 
         {templateReqs.length > 0 && (
-          <div className="flex flex-col gap-3">
+          <>
             <span className="text-xs text-neutral-500">Connections</span>
-            {templateReqs.map((req) => {
-              const available = connectionsByProvider(req.providerId);
-              const selected = selectedConnections[req.providerId];
-              return (
-                <div key={req.providerId} className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-neutral-100">
-                      {req.providerName}
-                    </span>
-                    {req.optional && (
-                      <span className="text-xs text-neutral-500">
-                        (optional)
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-neutral-400">{req.reason}</p>
-                  {available.length > 0 ? (
-                    <div className="flex flex-col gap-2">
-                      {available.map((conn) => (
-                        <button
-                          key={conn.id}
-                          type="button"
-                          onClick={() =>
-                            handleBindConnection(req.providerId, conn.id)
-                          }
-                          className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
-                            selected === conn.id
-                              ? "border-emerald-500 ring-2 ring-emerald-500 bg-neutral-800/50"
-                              : "border-neutral-700 bg-neutral-800/30 hover:border-neutral-600"
-                          }`}
-                        >
-                          <ProviderLogo id={req.providerId} />
-                          <span className="text-sm text-neutral-200">
-                            {conn.description || conn.id}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-neutral-500">
-                      No {req.providerName} connections.{" "}
-                      <Link
-                        to={`/settings/integrations/${req.providerId}`}
-                        className="text-indigo-400 hover:underline"
-                      >
-                        Set up a connection
-                      </Link>
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+            <ConnectionPicker
+              requirements={templateReqs}
+              connections={connections}
+              selected={selectedConnections}
+              onSelect={handleBindConnection}
+            />
+          </>
         )}
 
         <button

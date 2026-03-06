@@ -8,7 +8,7 @@ import {
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
-import type { ChatMessage } from "../useChatMessages";
+import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import { SandboxOutputBlock } from "./SandboxOutputBlock";
 import { useTaskInfo } from "./useTaskInfo";
 
