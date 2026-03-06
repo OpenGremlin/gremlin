@@ -4,7 +4,9 @@ import { dirname } from "node:path";
 import { homedir } from "node:os";
 import pty from "node-pty";
 import { type WebSocket, WebSocketServer } from "ws";
-import { log } from "./log.js";
+import { createLogger } from "./log.js";
+
+const log = createLogger("relay");
 
 const WORKSPACE_DIR = existsSync("/workspace") ? "/workspace" : process.env.SANDBOX_WORKSPACE ?? homedir();
 const TOOLS_ROOT = `${WORKSPACE_DIR}/.tools`;
@@ -20,13 +22,13 @@ let connectionCounter = 0;
 export function startRelay(port: number): void {
   const wss = new WebSocketServer({ port });
 
-  log("relay", "WebSocket server listening", { port });
+  log.info({ port }, "WebSocket server listening");
 
   wss.on("connection", (ws: WebSocket, req) => {
     const connId = ++connectionCounter;
     const remoteAddr = req.socket.remoteAddress;
 
-    log("relay", "New WebSocket connection", { connId, remoteAddr });
+    log.info({ connId, remoteAddr }, "New WebSocket connection");
 
     // Filter out undefined env values — node-pty's posix_spawnp fails if any are present
     const baseEnv: Record<string, string> = {};
@@ -52,11 +54,11 @@ export function startRelay(port: number): void {
       env: shellEnv,
     });
 
-    log("relay", "PTY spawned", { connId, pid: shell.pid });
+    log.info({ connId, pid: shell.pid }, "PTY spawned");
 
     // Signal readiness
     ws.send(JSON.stringify({ type: "ready" }));
-    log("relay", "Sent ready signal", { connId });
+    log.debug({ connId }, "Sent ready signal");
 
     // PTY -> WS
     shell.onData((data: string) => {
@@ -66,7 +68,7 @@ export function startRelay(port: number): void {
     });
 
     shell.onExit(({ exitCode }) => {
-      log("relay", "PTY exited", { connId, exitCode, pid: shell.pid });
+      log.info({ connId, exitCode, pid: shell.pid }, "PTY exited");
       if (ws.readyState === ws.OPEN) {
         ws.send(JSON.stringify({ type: "exit", exitCode }));
         ws.close();
@@ -78,51 +80,39 @@ export function startRelay(port: number): void {
       try {
         const msg = JSON.parse(raw.toString());
         if (msg.type === "input" && typeof msg.data === "string") {
-          // Log the command (strip trailing newline for readability)
           const cmd = msg.data.replace(/\n$/, "");
-          log("relay", "Input received", {
+          log.debug({
             connId,
             commandLength: cmd.length,
             commandPreview: cmd.slice(0, 200),
-          });
+          }, "Input received");
           shell.write(msg.data);
         } else if (msg.type === "resize" && msg.cols && msg.rows) {
-          log("relay", "Terminal resized", {
-            connId,
-            cols: msg.cols,
-            rows: msg.rows,
-          });
+          log.debug({ connId, cols: msg.cols, rows: msg.rows }, "Terminal resized");
           shell.resize(msg.cols, msg.rows);
         } else if (msg.type === "exec" && typeof msg.id === "string" && typeof msg.command === "string") {
           handleExec(ws, connId, msg, shellEnv);
         }
       } catch (err) {
-        log("relay", "Failed to parse WS message", {
+        log.warn({
           connId,
-          error: err instanceof Error ? err.message : String(err),
-        });
+          err,
+        }, "Failed to parse WS message");
       }
     });
 
     ws.on("close", (code, reason) => {
-      log("relay", "WebSocket closed", {
-        connId,
-        code,
-        reason: reason.toString(),
-      });
+      log.info({ connId, code, reason: reason.toString() }, "WebSocket closed");
       shell.kill();
     });
 
     ws.on("error", (err) => {
-      log("relay", "WebSocket error", {
-        connId,
-        error: err.message,
-      });
+      log.error({ connId, err }, "WebSocket error");
     });
   });
 
   wss.on("error", (err) => {
-    log("relay", "WebSocket server error", { error: err.message });
+    log.error({ err }, "WebSocket server error");
   });
 }
 
@@ -138,12 +128,12 @@ function handleExec(
 ): void {
   const { id, command, timeout, env } = msg;
 
-  log("relay", "Exec command received", {
+  log.info({
     connId,
     id,
     commandLength: command.length,
     commandPreview: command.slice(0, 200),
-  });
+  }, "Exec command received");
 
   const proc = spawn("/bin/bash", ["-c", command], {
     cwd: WORKSPACE_DIR,
@@ -194,7 +184,7 @@ function handleExec(
     clearTimeout(timer);
     const exitCode = code ?? (signal ? 128 : -1);
 
-    log("relay", "Exec command completed", { connId, id, exitCode, killed });
+    log.info({ connId, id, exitCode, killed }, "Exec command completed");
 
     if (ws.readyState !== ws.OPEN) return;
 
@@ -209,11 +199,7 @@ function handleExec(
           writeFileSync(`${outputPath}.stderr`, stderr);
         }
       } catch (err) {
-        log("relay", "Failed to spill output to disk", {
-          connId,
-          id,
-          error: err instanceof Error ? err.message : String(err),
-        });
+        log.error({ connId, id, err }, "Failed to spill output to disk");
       }
 
       ws.send(JSON.stringify({
@@ -238,7 +224,7 @@ function handleExec(
 
   proc.on("error", (err) => {
     clearTimeout(timer);
-    log("relay", "Exec command error", { connId, id, error: err.message });
+    log.error({ connId, id, err }, "Exec command error");
 
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({

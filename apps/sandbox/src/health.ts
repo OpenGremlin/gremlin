@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
-import { log } from "./log.js";
+import { createLogger } from "./log.js";
+
+const log = createLogger("health");
 
 export function startHealthServer(port: number): void {
   const server = createServer((req, res) => {
@@ -13,5 +15,5 @@ export function startHealthServer(port: number): void {
   });
 
   server.listen(port);
-  log("health", "Health server listening", { port });
+  log.info({ port }, "Health server listening");
 }

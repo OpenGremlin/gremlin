@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import WebSocket from "ws";
-import { log } from "./log.js";
+import { createLogger } from "./log.js";
+
+const log = createLogger("browser");
 
 const CDP_URL = "ws://localhost:9222";
 const CDP_HTTP = "http://localhost:9222";
@@ -11,17 +13,17 @@ let cdpReqId = 1;
 // ── CDP helpers ────────────────────────────────────────────
 
 async function getCdpWsUrl(): Promise<string> {
-  log("browser", "Fetching CDP WebSocket URL");
+  log.debug("Fetching CDP WebSocket URL");
   const res = await fetch(`${CDP_HTTP}/json/version`);
   const data = (await res.json()) as { webSocketDebuggerUrl: string };
-  log("browser", "Got CDP WebSocket URL", { wsUrl: data.webSocketDebuggerUrl });
+  log.debug({ wsUrl: data.webSocketDebuggerUrl }, "Got CDP WebSocket URL");
   return data.webSocketDebuggerUrl;
 }
 
 async function ensureCdp(): Promise<WebSocket> {
   if (cdpWs && cdpWs.readyState === WebSocket.OPEN) return cdpWs;
 
-  log("browser", "Opening CDP connection");
+  log.info("Opening CDP connection");
   const wsUrl = await getCdpWsUrl();
   cdpWs = new WebSocket(wsUrl);
 
@@ -30,7 +32,7 @@ async function ensureCdp(): Promise<WebSocket> {
     cdpWs!.once("error", reject);
   });
 
-  log("browser", "CDP connection established");
+  log.info("CDP connection established");
   return cdpWs;
 }
 
@@ -310,7 +312,7 @@ export function startBrowserBridge(port: number): void {
     const { method, url } = req;
     const start = Date.now();
 
-    log("browser", "Request received", { method, url });
+    log.debug({ method, url }, "Request received");
 
     try {
       let result: Record<string, unknown>;
@@ -330,22 +332,21 @@ export function startBrowserBridge(port: number): void {
       } else if (method === "GET" && url === "/browser/content") {
         result = await handleContent();
       } else {
-        log("browser", "Route not found", { method, url });
+        log.warn({ method, url }, "Route not found");
         sendJson(res, 404, { error: "Not found" });
         return;
       }
 
       const durationMs = Date.now() - start;
-      log("browser", "Request completed", { method, url, durationMs });
+      log.info({ method, url, durationMs }, "Request completed");
       sendJson(res, 200, result);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
       const durationMs = Date.now() - start;
-      log("browser", "Request failed", { method, url, durationMs, error: message });
-      sendJson(res, 500, { error: message });
+      log.error({ method, url, durationMs, err }, "Request failed");
+      sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
     }
   });
 
   server.listen(port);
-  log("browser", "Browser bridge listening", { port });
+  log.info({ port }, "Browser bridge listening");
 }
