@@ -1,29 +1,21 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
-import { buildMemoryContext } from "./buildMemoryContext.js";
-import { buildContextMessages, maybeCompact } from "./compaction.js";
-import { runAgentTurn } from "./runAgentTurn.js";
 import {
   defaultTools,
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
 } from "../tools/index.js";
-import { writeAgentLog } from "./writeAgentLog.js";
+import { runLane } from "./runLane.js";
 
 /**
  * Run an agent turn on the main lane (user conversation thread).
- *
- * @param recallHint - Text used for memory recall. When called from the
- *   inbox consumer the user message is already in the log, so only the
- *   hint is needed (no log write). When a userMessage needs to be logged,
- *   pass `opts.userMessage`.
+ * All user messages are already in the log — this just runs inference.
  */
 export async function runMainLane(
   ctx: ServiceContext,
   agentId: string,
   recallHint?: string,
-  opts?: { userMessage?: string },
 ): Promise<string> {
   const [agent, profile] = await Promise.all([
     ctx.services.agents.getAgent(ctx, agentId),
@@ -32,43 +24,7 @@ export async function runMainLane(
   if (!agent) throw new Error(`Agent ${agentId} not found`);
   if (agent.retired) throw new Error(`Agent ${agentId} is retired`);
 
-  // Only write the user message when explicitly provided (legacy path).
-  // The inbox consumer writes messages before enqueueing, so it skips this.
-  if (opts?.userMessage) {
-    await writeAgentLog(ctx, {
-      agentId,
-      taskId: null,
-      role: "USER",
-      content: opts.userMessage,
-    });
-  }
-
-  // Build conversation history with compaction support
-  const { messages, postCompactionCount } = await buildContextMessages(ctx, {
-    agentId,
-    taskId: null,
-  });
-
-  // Recall recent journals, semantically relevant older memories, and core memories
-  const [memories, coreMemories] = await Promise.all([
-    ctx.services.memory
-      .recallMemories(ctx, agentId, recallHint ?? "")
-      .catch((err) => {
-        ctx.log.error({ err, component: "memory" }, "Memory recall failed");
-        return { recent: [], relevant: [] };
-      }),
-    ctx.services.memory.getCoreMemories(ctx, agentId).catch((err) => {
-      ctx.log.error({ err, component: "memory" }, "Core memory fetch failed");
-      return [];
-    }),
-  ]);
-
-  const memoryContext = buildMemoryContext({
-    ...memories,
-    core: coreMemories,
-  });
-
-  const response = await runAgentTurn(ctx, {
+  return runLane(ctx, {
     agentId,
     taskId: null,
     systemPrompt: renderPrompt("system", {
@@ -77,26 +33,13 @@ export async function runMainLane(
       userDisplayName: profile?.displayName ?? "the user",
       userAbout: profile?.about,
     }),
-    timezone: profile?.timezone ?? undefined,
-    memoryContext,
-    messages,
     tools: {
       ...defaultTools,
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),
     },
+    recallHint,
+    timezone: profile?.timezone ?? undefined,
   });
-
-  // Fire-and-forget compaction
-  maybeCompact(ctx, {
-    agentId,
-    taskId: null,
-    messages,
-    postCompactionCount,
-  }).catch((err) =>
-    ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
-  );
-
-  return response;
 }

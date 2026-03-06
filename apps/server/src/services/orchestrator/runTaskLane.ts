@@ -1,9 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { buildMcpConfig } from "../skills/buildMcpConfig.js";
-import { buildMemoryContext } from "./buildMemoryContext.js";
-import { buildContextMessages, maybeCompact } from "./compaction.js";
-import { runAgentTurn } from "./runAgentTurn.js";
 import {
   browserClickTool,
   browserEvaluateTool,
@@ -27,10 +24,11 @@ import {
   updateTaskMessageTool,
 } from "../tools/index.js";
 import { writeAgentLog } from "./writeAgentLog.js";
+import { runLane } from "./runLane.js";
 
 /**
  * Run an agent turn on a task's lane.
- * Called when starting a new task or resuming from a scheduled follow-up.
+ * Writes the prompt to the log, then runs inference via shared runLane.
  */
 export async function runTaskLane(
   ctx: ServiceContext,
@@ -56,39 +54,6 @@ export async function runTaskLane(
     content: prompt,
   });
 
-  // Build conversation history with compaction support
-  const { messages, postCompactionCount } = await buildContextMessages(ctx, {
-    agentId: task.agentId,
-    taskId,
-  });
-
-  // Ensure the prompt is included (DDB eventual consistency may miss it)
-  if (
-    messages.length === 0 ||
-    messages[messages.length - 1].content !== prompt
-  ) {
-    messages.push({ role: "user", content: prompt });
-  }
-
-  // Recall memories and core memories using task prompt
-  const [memories, coreMemories] = await Promise.all([
-    ctx.services.memory
-      .recallMemories(ctx, task.agentId, prompt)
-      .catch((err) => {
-        ctx.log.error({ err, component: "memory" }, "Memory recall failed");
-        return { recent: [], relevant: [] };
-      }),
-    ctx.services.memory.getCoreMemories(ctx, task.agentId).catch((err) => {
-      ctx.log.error({ err, component: "memory" }, "Core memory fetch failed");
-      return [];
-    }),
-  ]);
-
-  const memoryContext = buildMemoryContext({
-    ...memories,
-    core: coreMemories,
-  });
-
   // Build MCP config from installed skills
   const mcpConfig = await buildMcpConfig(ctx).catch((err) => {
     ctx.log.error({ err, component: "skills" }, "Failed to build MCP config");
@@ -104,20 +69,16 @@ export async function runTaskLane(
     taskId,
   });
 
-  // Append skill instructions to the system prompt
   if (mcpConfig.skillInstructions.length > 0) {
     systemPrompt +=
       "\n\n# Active Skill Instructions\n\n" +
       mcpConfig.skillInstructions.join("\n\n");
   }
 
-  const response = await runAgentTurn(ctx, {
+  return runLane(ctx, {
     agentId: task.agentId,
     taskId,
     systemPrompt,
-    timezone: profile?.timezone ?? undefined,
-    memoryContext,
-    messages,
     tools: {
       ...defaultTools,
       updateTaskMessage: updateTaskMessageTool(ctx, taskId),
@@ -136,17 +97,7 @@ export async function runTaskLane(
       browserEvaluate: browserEvaluateTool(ctx, task.agentId),
       browserGetContent: browserGetContentTool(ctx, task.agentId),
     },
+    recallHint: prompt,
+    timezone: profile?.timezone ?? undefined,
   });
-
-  // Fire-and-forget compaction
-  maybeCompact(ctx, {
-    agentId: task.agentId,
-    taskId,
-    messages,
-    postCompactionCount,
-  }).catch((err) =>
-    ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
-  );
-
-  return response;
 }
