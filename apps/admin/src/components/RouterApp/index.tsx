@@ -88,7 +88,7 @@ function AppShell() {
         </div>
         <div className="mt-auto">
           <NavLink
-            to="/settings/files"
+            to="/settings/profile"
             className={`flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
               isSettingsRoute ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
             }`}
@@ -149,7 +149,7 @@ export function RouterApp() {
 
           <Route
             path="settings"
-            element={<Navigate to="/settings/files" replace />}
+            element={<Navigate to="/settings/profile" replace />}
           />
           <Route path="settings/files" element={<FilesTab />} />
           <Route path="settings/files/view" element={<FileViewPage />} />
