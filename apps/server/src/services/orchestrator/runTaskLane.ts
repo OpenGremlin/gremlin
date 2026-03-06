@@ -129,7 +129,7 @@ export async function runTaskLane(
       saveMemory: saveMemoryTool(ctx, task.agentId),
       recallMemory: recallMemoryTool(ctx, task.agentId),
       launchSandbox: launchSandboxTool(ctx, task.agentId),
-      runCommand: runCommandTool(ctx, task.agentId),
+      runCommand: runCommandTool(ctx, task.agentId, taskId),
       checkCommand: checkCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),
       browserNavigate: browserNavigateTool(ctx, task.agentId),

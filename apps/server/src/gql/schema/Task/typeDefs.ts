@@ -36,9 +36,18 @@ export const taskTypeDefs = /* GraphQL */ `
     task(id: ID!): Task
   }
 
+  type SandboxOutput {
+    commandId: String!
+    stream: String!
+    data: String!
+    done: Boolean
+    exitCode: Int
+  }
+
   extend type Subscription {
     taskUpdated(taskId: ID!): Task!
     tasksUpdated(taskIds: [ID!]!): Task!
     taskLogCreated(taskId: ID!): AgentLog!
+    sandboxOutput(taskId: ID!): SandboxOutput!
   }
 `;

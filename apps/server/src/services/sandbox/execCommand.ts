@@ -1,11 +1,17 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
+import type { PubSub } from "../../resources/pubsub.js";
 import type { BackgroundCommand, CommandResult, SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:exec");
 const SOFT_TIMEOUT_MS = 30_000;
 const HARD_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;
+
+export interface ExecOptions {
+  pubsub?: PubSub;
+  taskId?: string;
+}
 
 // In-memory background task tracking, keyed by command id
 const backgroundCommands = new Map<string, BackgroundCommand>();
@@ -52,6 +58,7 @@ export async function connectToSandbox(
 export async function execCommand(
   session: SandboxSession,
   command: string,
+  options?: ExecOptions,
 ): Promise<CommandResult> {
   const ws = session.ws;
   if (!ws || ws.readyState !== WebSocket.OPEN) {
@@ -153,6 +160,14 @@ export async function execCommand(
         if (msg.type === "exec:output") {
           if (msg.stream === "stdout") stdoutBuf += msg.data;
           if (msg.stream === "stderr") stderrBuf += msg.data;
+
+          if (options?.pubsub && options?.taskId) {
+            options.pubsub.publish(`sandboxOutput:${options.taskId}`, {
+              commandId: id,
+              stream: msg.stream,
+              data: msg.data,
+            });
+          }
         }
 
         if (msg.type === "exec:done") {
@@ -186,6 +201,17 @@ export async function execCommand(
             );
           }
 
+          // Publish a done signal so the frontend stops streaming
+          if (options?.pubsub && options?.taskId) {
+            options.pubsub.publish(`sandboxOutput:${options.taskId}`, {
+              commandId: id,
+              stream: "stdout",
+              data: "",
+              done: true,
+              exitCode,
+            });
+          }
+
           if (backgrounded) {
             // Update background task state for checkCommand to read
             const bg = backgroundCommands.get(id);
@@ -203,6 +229,7 @@ export async function execCommand(
               stderr: truncate(finalStderr),
               exitCode,
               timedOut: false,
+              commandId: id,
               durationMs,
             });
           }

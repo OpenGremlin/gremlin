@@ -1,5 +1,6 @@
 import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
+import type { SandboxOutputEvent } from "../../../resources/pubsub.js";
 import type { TaskItem } from "../../../resources/ddb/schema/task.js";
 import { readFile } from "../../../services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
@@ -110,9 +111,18 @@ const taskLogCreated = {
   resolve: (payload: AgentLogItem) => payload,
 };
 
+const sandboxOutput = {
+  subscribe: (
+    _parent: unknown,
+    { taskId }: { taskId: string },
+    ctx: GremlinContext,
+  ) => ctx.resources.pubsub.subscribe(`sandboxOutput:${taskId}`),
+  resolve: (payload: SandboxOutputEvent) => payload,
+};
+
 export const taskResolvers = {
   Query: { tasks, task },
   Task: { agent, imageUrl, artifacts, documents, logs },
   TaskEdge: { node },
-  Subscription: { taskUpdated, tasksUpdated, taskLogCreated },
+  Subscription: { taskUpdated, tasksUpdated, taskLogCreated, sandboxOutput },
 };

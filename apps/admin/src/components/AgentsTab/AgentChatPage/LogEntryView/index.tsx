@@ -5,9 +5,11 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
 import type { ChatMessage } from "../useChatMessages";
+import { SandboxOutputBlock } from "./SandboxOutputBlock";
 import { useTaskInfo } from "./useTaskInfo";
 
 function safeParseJson(
@@ -172,12 +174,14 @@ export function LogEntryView({
   isLast,
   sending,
   documents,
+  sandboxStreams,
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
   isLast?: boolean;
   sending?: boolean;
   documents?: Array<{ path: string; title: string; body?: string | null }>;
+  sandboxStreams?: Map<string, CommandStream>;
 }) {
   switch (entry.role) {
     case "SYSTEM": {
@@ -262,6 +266,43 @@ export function LogEntryView({
             createdAt={entry.createdAt}
             onTaskClick={onTaskClick}
           />
+        );
+      }
+
+      if (tool.name === "runCommand" && sandboxStreams) {
+        const commandId = (tool.result?.commandId ?? tool.input?.commandId) as string | undefined;
+        const stream = commandId ? sandboxStreams.get(commandId) : undefined;
+        const command = tool.input?.command as string | undefined;
+
+        return (
+          <div id={entry.id} className="py-1">
+            <details className="group">
+              <summary className="list-none cursor-pointer">
+                <div className="flex items-center gap-1.5 py-1">
+                  <ChevronRight
+                    size={12}
+                    className="text-neutral-600 shrink-0 transition-transform group-open:rotate-90"
+                  />
+                  <span className="text-[11px] text-neutral-500 font-mono">
+                    {command ? `$ ${command.length > 80 ? `${command.slice(0, 80)}…` : command}` : "runCommand"}
+                  </span>
+                  <span className="text-[10px] text-neutral-600">
+                    {formatTime(entry.createdAt)}
+                  </span>
+                </div>
+              </summary>
+              {tool.result && (
+                <div className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
+                  <pre className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90">
+                    {JSON.stringify(tool.result, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </details>
+            {commandId && (
+              <SandboxOutputBlock commandId={commandId} stream={stream} />
+            )}
+          </div>
         );
       }
 

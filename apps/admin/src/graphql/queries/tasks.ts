@@ -114,3 +114,16 @@ export const TaskUpdatedSubscription = graphql(`
     }
   }
 `);
+
+// Raw string subscription (avoids codegen dependency)
+export const SandboxOutputSubscription = /* GraphQL */ `
+  subscription SandboxOutput($taskId: ID!) {
+    sandboxOutput(taskId: $taskId) {
+      commandId
+      stream
+      data
+      done
+      exitCode
+    }
+  }
+`;

@@ -8,6 +8,7 @@ import {
   TaskQuery,
   TaskUpdatedSubscription,
 } from "../../graphql/queries";
+import { useSandboxOutput } from "../../hooks/useSandboxOutput";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { NotFound, QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
@@ -42,6 +43,8 @@ export function TaskThreadPage() {
 
   const { messages, isAgentActive, hasMore, loadMore, loadingMore } =
     useTaskChatMessages(taskId ?? "");
+
+  const sandboxStreams = useSandboxOutput(taskId ?? "");
 
   const docs = task?.documents ?? [];
 
@@ -129,6 +132,7 @@ export function TaskThreadPage() {
                   entry={msg}
                   isLast={i === chatMessages.length - 1}
                   documents={docs}
+                  sandboxStreams={sandboxStreams}
                 />
               ))}
               {isAgentActive && (
