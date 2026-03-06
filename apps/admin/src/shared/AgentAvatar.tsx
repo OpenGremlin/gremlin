@@ -1,10 +1,7 @@
 import { AgentQuery } from "../graphql/queries";
 import { useQuery } from "../useQuery";
 
-export function AgentAvatar({
-  id,
-  size = 48,
-}: { id: string; size?: number }) {
+export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
   const { data } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
   const name = agent?.name ?? "";
@@ -16,9 +13,7 @@ export function AgentAvatar({
       style={{ width: size, height: size }}
       className={`shrink-0 flex items-center justify-center ${isRetired ? "grayscale opacity-50" : ""}`}
     >
-      <div
-        className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium"
-      >
+      <div className="w-full h-full rounded-full bg-neutral-800 flex items-center justify-center overflow-hidden text-sm text-neutral-400 font-medium">
         {agent?.imageUrl && (
           <img
             src={agent.imageUrl}

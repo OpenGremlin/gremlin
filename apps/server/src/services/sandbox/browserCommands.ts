@@ -17,7 +17,10 @@ async function browserFetch(
   const url = browserUrl(session, path);
   const start = Date.now();
 
-  log.info({ agentId: session.agentId, path, method: options?.method ?? "GET" }, "Browser bridge request");
+  log.info(
+    { agentId: session.agentId, path, method: options?.method ?? "GET" },
+    "Browser bridge request",
+  );
 
   const res = await fetch(url, {
     ...options,
@@ -29,13 +32,25 @@ async function browserFetch(
   const durationMs = Date.now() - start;
 
   if (!res.ok) {
-    log.error({ agentId: session.agentId, path, status: res.status, durationMs, error: data.error }, "Browser bridge request failed");
+    log.error(
+      {
+        agentId: session.agentId,
+        path,
+        status: res.status,
+        durationMs,
+        error: data.error,
+      },
+      "Browser bridge request failed",
+    );
     throw new Error(
       (data.error as string) ?? `Browser bridge error: ${res.status}`,
     );
   }
 
-  log.info({ agentId: session.agentId, path, status: res.status, durationMs }, "Browser bridge request completed");
+  log.info(
+    { agentId: session.agentId, path, status: res.status, durationMs },
+    "Browser bridge request completed",
+  );
   return data;
 }
 

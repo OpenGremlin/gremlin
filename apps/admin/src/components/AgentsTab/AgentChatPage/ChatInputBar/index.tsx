@@ -38,7 +38,9 @@ export function ChatInputBar({
         />
         <button
           type="button"
-          onClick={() => { if (!isEmpty) onSend(); }}
+          onClick={() => {
+            if (!isEmpty) onSend();
+          }}
           disabled={isEmpty}
           className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 hover:bg-blue-500 transition-colors disabled:opacity-50"
         >

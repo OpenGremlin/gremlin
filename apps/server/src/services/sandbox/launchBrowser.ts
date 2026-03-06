@@ -35,13 +35,14 @@ async function getBrowserConfig(): Promise<{
       ssm.send(
         new GetParameterCommand({ Name: "/gremlin/browser-task-def-arn" }),
       ),
-      ssm.send(
-        new GetParameterCommand({ Name: "/gremlin/browser-sg-id" }),
-      ),
+      ssm.send(new GetParameterCommand({ Name: "/gremlin/browser-sg-id" })),
     ]);
     cachedTaskDefArn = taskDefRes.Parameter?.Value;
     cachedSgId = sgRes.Parameter?.Value;
-    log.info({ taskDefArn: cachedTaskDefArn, sgId: cachedSgId }, "Browser SSM config loaded");
+    log.info(
+      { taskDefArn: cachedTaskDefArn, sgId: cachedSgId },
+      "Browser SSM config loaded",
+    );
   }
 
   if (!cachedTaskDefArn || !cachedSgId) {
@@ -77,7 +78,10 @@ export async function launchBrowser(agentId: string): Promise<BrowserSession> {
 
   const taskArn = runResult.tasks?.[0]?.taskArn;
   if (!taskArn) {
-    log.error({ agentId, failures: runResult.failures }, "Browser RunTask failed");
+    log.error(
+      { agentId, failures: runResult.failures },
+      "Browser RunTask failed",
+    );
     throw new Error(
       `Failed to launch browser task: ${JSON.stringify(runResult.failures)}`,
     );
@@ -97,7 +101,10 @@ export async function launchBrowser(agentId: string): Promise<BrowserSession> {
     const task = desc.tasks?.[0];
     if (!task) continue;
 
-    log.debug({ agentId, attempt: i + 1, status: task.lastStatus }, "Polling browser task");
+    log.debug(
+      { agentId, attempt: i + 1, status: task.lastStatus },
+      "Polling browser task",
+    );
 
     if (task.lastStatus === "STOPPED") {
       throw new Error(`Browser task stopped: ${task.stoppedReason}`);
@@ -109,7 +116,10 @@ export async function launchBrowser(agentId: string): Promise<BrowserSession> {
         ?.details?.find((d) => d.name === "privateIPv4Address");
       if (eni?.value) {
         privateIp = eni.value;
-        log.info({ agentId, taskArn, privateIp, attempts: i + 1 }, "Browser task running");
+        log.info(
+          { agentId, taskArn, privateIp, attempts: i + 1 },
+          "Browser task running",
+        );
         break;
       }
     }

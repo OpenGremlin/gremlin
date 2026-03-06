@@ -1,7 +1,7 @@
 import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { ServiceContext } from "../context.js";
-import { skillCatalog } from "./skillCatalog.js";
 import { getSkills } from "./getSkills.js";
+import { skillCatalog } from "./skillCatalog.js";
 
 export async function searchSkills(
   ctx: ServiceContext,

@@ -40,9 +40,7 @@ export function ConnectionPicker({
                 {req.providerName}
               </span>
               {req.optional && (
-                <span className="text-xs text-neutral-500">
-                  (optional)
-                </span>
+                <span className="text-xs text-neutral-500">(optional)</span>
               )}
             </div>
             <p className="text-xs text-neutral-400">{req.reason}</p>

@@ -2,12 +2,12 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { TaskQuery as TaskQueryType } from "../../graphql/generated/graphql";
-import {
-  TaskQuery,
-  TaskUpdatedSubscription,
-} from "../../graphql/queries";
+import { TaskQuery, TaskUpdatedSubscription } from "../../graphql/queries";
 import { useChatSend } from "../../hooks/useChatSend";
-import { useLogMessages } from "../../hooks/useLogMessages";
+import {
+  shouldShowTimestamp,
+  useLogMessages,
+} from "../../hooks/useLogMessages";
 import { useSandboxOutput } from "../../hooks/useSandboxOutput";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { PendingMessageBubble } from "../../shared/PendingMessageBubble";
@@ -15,7 +15,6 @@ import { NotFound, QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
-import { shouldShowTimestamp } from "../../hooks/useLogMessages";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
 
 type Task = NonNullable<TaskQueryType["task"]>;
@@ -42,8 +41,9 @@ export function TaskThreadPage() {
     }, []),
   );
 
-  const { messages, hasMore, loadMore, loadingMore } =
-    useLogMessages({ taskId: taskId ?? "" });
+  const { messages, hasMore, loadMore, loadingMore } = useLogMessages({
+    taskId: taskId ?? "",
+  });
 
   const sandboxStreams = useSandboxOutput(taskId ?? "");
 
@@ -89,7 +89,6 @@ export function TaskThreadPage() {
       >
         <div>
           <div className="px-3 pt-4 pb-3">
-
             {/* Load older messages */}
             {hasMore && (
               <button
@@ -108,7 +107,6 @@ export function TaskThreadPage() {
                 <LogEntryView
                   key={msg.id}
                   entry={msg}
-                  isLast={i === messages.length - 1}
                   documents={docs}
                   sandboxStreams={sandboxStreams}
                   showTimestamp={shouldShowTimestamp(msg, messages[i + 1])}
@@ -122,11 +120,7 @@ export function TaskThreadPage() {
         </div>
       </div>
 
-      <ChatInputBar
-        value={input}
-        onChange={setInput}
-        onSend={handleSend}
-      />
+      <ChatInputBar value={input} onChange={setInput} onSend={handleSend} />
     </div>
   );
 }

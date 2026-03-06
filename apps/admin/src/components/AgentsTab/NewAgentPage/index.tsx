@@ -29,7 +29,12 @@ export function NewAgentPage() {
         New Agent
       </h2>
 
-      <AgentForm onSubmit={onSubmit} submitLabel="Create" isAlwaysVisible isNew />
+      <AgentForm
+        onSubmit={onSubmit}
+        submitLabel="Create"
+        isAlwaysVisible
+        isNew
+      />
     </div>
   );
 }

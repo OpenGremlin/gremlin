@@ -41,7 +41,9 @@ export function AgentsTab() {
               onClick={() => setShowRetired((v) => !v)}
               className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors self-start"
             >
-              {showRetired ? "Hide retired agents" : `Show retired agents (${retiredAgents.length})`}
+              {showRetired
+                ? "Hide retired agents"
+                : `Show retired agents (${retiredAgents.length})`}
             </button>
 
             {showRetired &&

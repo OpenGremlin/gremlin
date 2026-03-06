@@ -18,24 +18,23 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AgentsTab } from "../AgentsTab";
-import { FilesTab } from "../FilesTab";
-import { FileViewPage } from "../FilesTab/FileViewPage";
 import { AgentChatPage } from "../AgentsTab/AgentChatPage";
 import { AgentConfigPage } from "../AgentsTab/AgentConfigPage";
 import { NewAgentPage } from "../AgentsTab/NewAgentPage";
+import { FilesTab } from "../FilesTab";
+import { FileViewPage } from "../FilesTab/FileViewPage";
 import { SchedulerTab } from "../SchedulerTab";
 import { JobDetailPage } from "../SchedulerTab/JobDetailPage";
 import { NewJobPage } from "../SchedulerTab/NewJobPage";
 import { TasksTab } from "../TasksTab";
-
 
 import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { IntegrationsPage } from "../UserTab/IntegrationsPage";
 import { ProfilePage } from "../UserTab/ProfilePage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
-import { SkillTemplatePage } from "../UserTab/SkillTemplatePage";
 import { SkillsPage } from "../UserTab/SkillsPage";
+import { SkillTemplatePage } from "../UserTab/SkillTemplatePage";
 
 const settingsItems = [
   { to: "/settings/profile", label: "Profile", icon: User },
@@ -57,7 +56,9 @@ function AppShell() {
             to="/home"
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+                isActive
+                  ? "text-indigo-400"
+                  : "text-neutral-500 hover:text-neutral-300"
               }`
             }
           >
@@ -68,7 +69,9 @@ function AppShell() {
             to="/agents"
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+                isActive
+                  ? "text-indigo-400"
+                  : "text-neutral-500 hover:text-neutral-300"
               }`
             }
           >
@@ -79,7 +82,9 @@ function AppShell() {
             to="/jobs"
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+                isActive
+                  ? "text-indigo-400"
+                  : "text-neutral-500 hover:text-neutral-300"
               }`
             }
           >
@@ -91,7 +96,9 @@ function AppShell() {
           <NavLink
             to="/settings/profile"
             className={`flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-              isSettingsRoute ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+              isSettingsRoute
+                ? "text-indigo-400"
+                : "text-neutral-500 hover:text-neutral-300"
             }`}
           >
             <Settings size={22} />
@@ -172,10 +179,7 @@ export function RouterApp() {
           />
 
           {/* Legacy redirects */}
-          <Route
-            path="scheduler/*"
-            element={<Navigate to="/jobs" replace />}
-          />
+          <Route path="scheduler/*" element={<Navigate to="/jobs" replace />} />
           <Route
             path="files/*"
             element={<Navigate to="/settings/files" replace />}

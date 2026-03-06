@@ -41,7 +41,11 @@ const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
 const sendMessage = async (
   _parent: unknown,
-  { agentId, content, taskId }: { agentId: string; content: string; taskId?: string | null },
+  {
+    agentId,
+    content,
+    taskId,
+  }: { agentId: string; content: string; taskId?: string | null },
   ctx: GremlinContext,
 ) => {
   await ctx.services.orchestrator.sendMessage(ctx, agentId, content, taskId);

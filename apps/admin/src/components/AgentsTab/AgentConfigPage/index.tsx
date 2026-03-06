@@ -101,21 +101,21 @@ export function AgentConfigPage() {
       </div>
 
       {agent.retired ? (
-          <div className="mt-6 rounded-lg bg-neutral-800/50 border border-neutral-700 px-4 py-3 text-sm text-neutral-400">
-            This agent is retired.
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={async () => {
-              await gql<RetireAgentMutation>(RetireAgentDoc, { id });
-              navigate("/agents");
-            }}
-            className="mt-6 px-4 py-2 rounded-lg bg-red-600/10 text-red-400 text-sm font-medium hover:bg-red-600/20 transition-colors"
-          >
-            Retire Agent
-          </button>
-        )}
+        <div className="mt-6 rounded-lg bg-neutral-800/50 border border-neutral-700 px-4 py-3 text-sm text-neutral-400">
+          This agent is retired.
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={async () => {
+            await gql<RetireAgentMutation>(RetireAgentDoc, { id });
+            navigate("/agents");
+          }}
+          className="mt-6 px-4 py-2 rounded-lg bg-red-600/10 text-red-400 text-sm font-medium hover:bg-red-600/20 transition-colors"
+        >
+          Retire Agent
+        </button>
+      )}
 
       {pickerOpen && (
         <AvatarPicker

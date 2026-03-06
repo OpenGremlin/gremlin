@@ -60,10 +60,7 @@ export function ProfilePage() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-4 p-6"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-6">
       <div className="flex flex-col gap-1">
         <label
           htmlFor="profile-displayName"

@@ -26,9 +26,7 @@ export function AgentCard({ agent }: { agent: Agent }) {
               <span className="text-xs text-neutral-500">Retired</span>
             )}
           </div>
-          <p className="text-xs text-neutral-400 line-clamp-2">
-            {agent.soul}
-          </p>
+          <p className="text-xs text-neutral-400 line-clamp-2">{agent.soul}</p>
         </div>
       </Link>
       <Link

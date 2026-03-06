@@ -102,7 +102,8 @@ function mapEntry(node: {
     // Using "user" role to avoid the model mimicking the format in its own output.
     const name = node.toolName ?? "unknown";
     const input = node.toolInput ?? "";
-    const result = node.toolResult && node.toolResult !== "null" ? node.toolResult : null;
+    const result =
+      node.toolResult && node.toolResult !== "null" ? node.toolResult : null;
     if (result) {
       return {
         role: "user",

@@ -60,9 +60,7 @@ export function JobForm({
           Agent
         </h2>
         <div className="flex items-center gap-3">
-          {showAvatar && currentAgent && (
-            <AgentAvatar id={currentAgent.id} />
-          )}
+          {showAvatar && currentAgent && <AgentAvatar id={currentAgent.id} />}
           <select
             value={agentId}
             onChange={(e) => onAgentIdChange(e.target.value)}

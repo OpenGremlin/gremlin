@@ -1,15 +1,15 @@
-import type {
-  MutationResolvers,
-  QueryResolvers,
-  SkillResolvers,
-  SkillTemplateResolvers,
-} from "../../resolverTypes.js";
 import { providers } from "../../../services/integrations/providers.js";
 import { parseConnectionBindings } from "../../../services/skills/parseConnectionBindings.js";
 import {
   getSkillTemplate,
   skillCatalog,
 } from "../../../services/skills/skillCatalog.js";
+import type {
+  MutationResolvers,
+  QueryResolvers,
+  SkillResolvers,
+  SkillTemplateResolvers,
+} from "../../resolverTypes.js";
 
 // --- Queries ---
 
@@ -88,9 +88,7 @@ const Skill: SkillResolvers = {
       ctx.resources,
     );
     const connectionSet = new Set(
-      connections
-        .filter((c) => !c.isRevoked)
-        .map((c) => c.id),
+      connections.filter((c) => !c.isRevoked).map((c) => c.id),
     );
 
     return tmpl.requiredConnections.map((req) => {
@@ -110,7 +108,12 @@ const Skill: SkillResolvers = {
 
 export const skillResolvers = {
   Query: { skillTemplates, skillTemplate, skills, skill },
-  Mutation: { installSkill, uninstallSkill, bindSkillConnection, setSkillMcpEnabled },
+  Mutation: {
+    installSkill,
+    uninstallSkill,
+    bindSkillConnection,
+    setSkillMcpEnabled,
+  },
   SkillTemplate,
   Skill,
 };

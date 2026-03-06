@@ -23,7 +23,10 @@ async function getSandboxConfig(): Promise<{
 }> {
   if (cachedLaunchTemplateId && cachedSubnetId) {
     log.debug("Using cached sandbox config");
-    return { launchTemplateId: cachedLaunchTemplateId, subnetId: cachedSubnetId };
+    return {
+      launchTemplateId: cachedLaunchTemplateId,
+      subnetId: cachedSubnetId,
+    };
   }
 
   if (
@@ -73,9 +76,7 @@ const SANDBOX_LOCAL = process.env.SANDBOX_LOCAL === "true";
 const SANDBOX_LOCAL_WS_URL =
   process.env.SANDBOX_LOCAL_WS_URL ?? "ws://localhost:8080";
 
-async function getInstanceState(
-  instanceId: string,
-): Promise<{
+async function getInstanceState(instanceId: string): Promise<{
   state: string | undefined;
   privateIp: string | undefined;
 }> {
@@ -126,7 +127,10 @@ async function pollHealthEndpoint(
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
-        log.info({ agentId, privateIp, attempts: i + 1 }, "Health check passed");
+        log.info(
+          { agentId, privateIp, attempts: i + 1 },
+          "Health check passed",
+        );
         return;
       }
     } catch {
@@ -135,7 +139,9 @@ async function pollHealthEndpoint(
     log.debug({ agentId, privateIp, attempt: i + 1 }, "Health check pending");
     await sleep(3000);
   }
-  throw new Error(`Sandbox relay at ${privateIp} did not become healthy within 120s`);
+  throw new Error(
+    `Sandbox relay at ${privateIp} did not become healthy within 120s`,
+  );
 }
 
 export async function launchSandbox(
@@ -154,10 +160,16 @@ export async function launchSandbox(
 
   // Try to reuse existing instance
   if (existingInstanceId) {
-    log.info({ agentId, instanceId: existingInstanceId }, "Checking existing instance");
+    log.info(
+      { agentId, instanceId: existingInstanceId },
+      "Checking existing instance",
+    );
     try {
       const { state, privateIp } = await getInstanceState(existingInstanceId);
-      log.info({ agentId, instanceId: existingInstanceId, state }, "Existing instance state");
+      log.info(
+        { agentId, instanceId: existingInstanceId, state },
+        "Existing instance state",
+      );
 
       if (state === "running" && privateIp) {
         await pollHealthEndpoint(privateIp, agentId);
@@ -170,7 +182,10 @@ export async function launchSandbox(
       }
 
       if (state === "stopped") {
-        log.info({ agentId, instanceId: existingInstanceId }, "Starting stopped instance");
+        log.info(
+          { agentId, instanceId: existingInstanceId },
+          "Starting stopped instance",
+        );
         await ec2.send(
           new StartInstancesCommand({ InstanceIds: [existingInstanceId] }),
         );
@@ -191,7 +206,11 @@ export async function launchSandbox(
       );
     } catch (err) {
       log.warn(
-        { agentId, instanceId: existingInstanceId, error: (err as Error).message },
+        {
+          agentId,
+          instanceId: existingInstanceId,
+          error: (err as Error).message,
+        },
         "Failed to check existing instance, creating new one",
       );
     }
@@ -224,7 +243,10 @@ export async function launchSandbox(
     throw new Error("Failed to launch EC2 sandbox instance");
   }
 
-  log.info({ agentId, instanceId }, "EC2 instance launched, polling until running");
+  log.info(
+    { agentId, instanceId },
+    "EC2 instance launched, polling until running",
+  );
   const privateIp = await pollUntilRunning(instanceId, agentId);
   await pollHealthEndpoint(privateIp, agentId);
 

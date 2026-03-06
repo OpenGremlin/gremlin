@@ -7,7 +7,10 @@ const ecs = new ECSClient({});
 const CLUSTER_NAME = process.env.ECS_CLUSTER_NAME ?? "";
 
 export async function terminateBrowser(session: BrowserSession): Promise<void> {
-  log.info({ agentId: session.agentId, taskArn: session.taskArn }, "Terminating browser task");
+  log.info(
+    { agentId: session.agentId, taskArn: session.taskArn },
+    "Terminating browser task",
+  );
 
   await ecs.send(
     new StopTaskCommand({
@@ -17,5 +20,8 @@ export async function terminateBrowser(session: BrowserSession): Promise<void> {
     }),
   );
 
-  log.info({ agentId: session.agentId, taskArn: session.taskArn }, "Browser task stopped");
+  log.info(
+    { agentId: session.agentId, taskArn: session.taskArn },
+    "Browser task stopped",
+  );
 }

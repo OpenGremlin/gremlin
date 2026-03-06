@@ -120,11 +120,17 @@ export function JobDetailPage() {
         agents={agents}
         showAvatar
         recurrence={currentRecurrence}
-        onRecurrenceChange={(val) => setRecurrence(val === job.recurrence ? null : val)}
+        onRecurrenceChange={(val) =>
+          setRecurrence(val === job.recurrence ? null : val)
+        }
         timezone={currentTimezone}
-        onTimezoneChange={(val) => setTimezone(val === job.timezone ? null : val)}
+        onTimezoneChange={(val) =>
+          setTimezone(val === job.timezone ? null : val)
+        }
         description={currentDescription}
-        onDescriptionChange={(val) => setDescription(val === job.description ? null : val)}
+        onDescriptionChange={(val) =>
+          setDescription(val === job.description ? null : val)
+        }
       >
         {cronDisplay && (
           <div className="mt-2 space-y-1">

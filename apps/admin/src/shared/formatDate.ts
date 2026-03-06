@@ -32,7 +32,12 @@ export function formatTime(iso: string): string {
   // Yesterday
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  if (d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear()) return "Yesterday";
+  if (
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear()
+  )
+    return "Yesterday";
   // Day of week (within ~5 days)
   const diffDays = Math.floor(diffMs / 86400000);
   if (diffDays < 6) return DAYS[d.getDay()];
@@ -41,7 +46,11 @@ export function formatTime(iso: string): string {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
   // Different year
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function timeAgo(dateStr: string): string {

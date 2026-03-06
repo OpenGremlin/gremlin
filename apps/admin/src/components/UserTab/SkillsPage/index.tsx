@@ -79,8 +79,11 @@ function InstallCountBadge({ count }: { count: number }) {
 
 export function SkillsPage() {
   const [query, setQuery] = useState("");
-  const { data: skillsData, loading: skillsLoading, error: skillsError } =
-    useQuery(SkillsQuery);
+  const {
+    data: skillsData,
+    loading: skillsLoading,
+    error: skillsError,
+  } = useQuery(SkillsQuery);
   const {
     data: templatesData,
     loading: templatesLoading,

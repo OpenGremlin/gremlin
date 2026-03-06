@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  agentSubscriptionManager,
-  taskSubscriptionManager,
-} from "./managers";
+import { agentSubscriptionManager, taskSubscriptionManager } from "./managers";
 
 type Callback<T> = (entity: T) => void;
 

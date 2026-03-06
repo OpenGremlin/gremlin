@@ -137,5 +137,14 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     [direction],
   );
 
-  return { nodes, loading, loadingMore, error, hasMore, loadMore, appendNode, replaceOrAppend };
+  return {
+    nodes,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    loadMore,
+    appendNode,
+    replaceOrAppend,
+  };
 }

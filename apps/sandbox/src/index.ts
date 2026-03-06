@@ -9,13 +9,16 @@ const WS_PORT = Number(process.env.WS_PORT ?? 8080);
 const HEALTH_PORT = Number(process.env.HEALTH_PORT ?? 8083);
 const BROWSER_BRIDGE_PORT = Number(process.env.BROWSER_BRIDGE_PORT ?? 9090);
 
-log.info({
-  wsPort: WS_PORT,
-  healthPort: HEALTH_PORT,
-  browserBridgePort: BROWSER_BRIDGE_PORT,
-  nodeVersion: process.version,
-  pid: process.pid,
-}, "Sandbox starting");
+log.info(
+  {
+    wsPort: WS_PORT,
+    healthPort: HEALTH_PORT,
+    browserBridgePort: BROWSER_BRIDGE_PORT,
+    nodeVersion: process.version,
+    pid: process.pid,
+  },
+  "Sandbox starting",
+);
 
 startRelay(WS_PORT);
 startHealthServer(HEALTH_PORT);

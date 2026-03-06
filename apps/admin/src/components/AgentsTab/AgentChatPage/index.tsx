@@ -2,14 +2,16 @@ import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AgentQuery, TaskQuery } from "../../../graphql/queries";
 import { useChatSend } from "../../../hooks/useChatSend";
-import { useLogMessages } from "../../../hooks/useLogMessages";
+import {
+  shouldShowTimestamp,
+  useLogMessages,
+} from "../../../hooks/useLogMessages";
 import { useSandboxOutput } from "../../../hooks/useSandboxOutput";
 import { PendingMessageBubble } from "../../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
-import { shouldShowTimestamp } from "../../../hooks/useLogMessages";
 import { LogEntryView } from "./LogEntryView";
 
 export function AgentChatPage() {
@@ -107,11 +109,7 @@ export function AgentChatPage() {
           </div>
         </div>
       ) : (
-        <ChatInputBar
-          value={input}
-          onChange={setInput}
-          onSend={handleSend}
-        />
+        <ChatInputBar value={input} onChange={setInput} onSend={handleSend} />
       )}
     </div>
   );

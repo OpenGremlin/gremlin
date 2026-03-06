@@ -1,7 +1,11 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
 import type { PubSub } from "../../resources/pubsub.js";
-import type { BackgroundCommand, CommandResult, SandboxSession } from "./types.js";
+import type {
+  BackgroundCommand,
+  CommandResult,
+  SandboxSession,
+} from "./types.js";
 
 const log = createLogger("sandbox:exec");
 const SOFT_TIMEOUT_MS = 30_000;
@@ -19,18 +23,27 @@ const backgroundCommands = new Map<string, BackgroundCommand>();
 export async function connectToSandbox(
   session: SandboxSession,
 ): Promise<WebSocket> {
-  log.info({ agentId: session.agentId, wsUrl: session.wsUrl }, "Connecting to sandbox WebSocket");
+  log.info(
+    { agentId: session.agentId, wsUrl: session.wsUrl },
+    "Connecting to sandbox WebSocket",
+  );
 
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(session.wsUrl);
     const timeout = setTimeout(() => {
-      log.error({ agentId: session.agentId, wsUrl: session.wsUrl }, "WebSocket connection timed out (15s)");
+      log.error(
+        { agentId: session.agentId, wsUrl: session.wsUrl },
+        "WebSocket connection timed out (15s)",
+      );
       ws.close();
       reject(new Error("WebSocket connection timed out"));
     }, 15_000);
 
     ws.on("open", () => {
-      log.debug({ agentId: session.agentId }, "WebSocket TCP connection opened, waiting for ready signal");
+      log.debug(
+        { agentId: session.agentId },
+        "WebSocket TCP connection opened, waiting for ready signal",
+      );
     });
 
     ws.on("message", (raw) => {
@@ -39,7 +52,10 @@ export async function connectToSandbox(
         if (msg.type === "ready") {
           clearTimeout(timeout);
           session.ws = ws;
-          log.info({ agentId: session.agentId }, "Sandbox WebSocket connected and ready");
+          log.info(
+            { agentId: session.agentId },
+            "Sandbox WebSocket connected and ready",
+          );
           resolve(ws);
         }
       } catch {
@@ -49,7 +65,10 @@ export async function connectToSandbox(
 
     ws.on("error", (err) => {
       clearTimeout(timeout);
-      log.error({ agentId: session.agentId, error: err.message }, "WebSocket connection error");
+      log.error(
+        { agentId: session.agentId, error: err.message },
+        "WebSocket connection error",
+      );
       reject(err);
     });
   });
@@ -62,14 +81,22 @@ export async function execCommand(
 ): Promise<CommandResult> {
   const ws = session.ws;
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    log.error({ agentId: session.agentId, readyState: ws?.readyState }, "WebSocket not connected");
+    log.error(
+      { agentId: session.agentId, readyState: ws?.readyState },
+      "WebSocket not connected",
+    );
     throw new Error("Sandbox WebSocket not connected");
   }
 
   const id = crypto.randomUUID();
 
   log.info(
-    { agentId: session.agentId, id, commandLength: command.length, commandPreview: command.slice(0, 200) },
+    {
+      agentId: session.agentId,
+      id,
+      commandLength: command.length,
+      commandPreview: command.slice(0, 200),
+    },
     "Executing command via exec mode",
   );
 
@@ -99,7 +126,12 @@ export async function execCommand(
 
       const durationMs = Date.now() - startTime;
       log.info(
-        { agentId: session.agentId, id, durationMs, stdoutLength: stdoutBuf.length },
+        {
+          agentId: session.agentId,
+          id,
+          durationMs,
+          stdoutLength: stdoutBuf.length,
+        },
         "Command auto-backgrounded at soft timeout",
       );
 
@@ -196,7 +228,12 @@ export async function execCommand(
 
           if (exitCode !== 0) {
             log.warn(
-              { agentId: session.agentId, id, exitCode, stderrTail: finalStderr.slice(-500) },
+              {
+                agentId: session.agentId,
+                id,
+                exitCode,
+                stderrTail: finalStderr.slice(-500),
+              },
               "Command exited with non-zero code",
             );
           }
@@ -256,7 +293,12 @@ export function checkCommand(commandId: string): {
 } {
   const bg = backgroundCommands.get(commandId);
   if (!bg) {
-    return { output: "", stderr: "Unknown command ID", exitCode: -1, finished: true };
+    return {
+      output: "",
+      stderr: "Unknown command ID",
+      exitCode: -1,
+      finished: true,
+    };
   }
 
   if (bg.done) {

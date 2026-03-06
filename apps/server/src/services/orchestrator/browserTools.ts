@@ -2,7 +2,6 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import type { BrowserSession } from "../sandbox/types.js";
 import {
   browserClick,
   browserEvaluate,
@@ -11,6 +10,7 @@ import {
   browserScreenshot,
   browserType,
 } from "../sandbox/browserCommands.js";
+import type { BrowserSession } from "../sandbox/types.js";
 import { activeSessions } from "./sandboxTools.js";
 
 const log = createLogger("browser:tools");
@@ -43,9 +43,15 @@ export function cleanupBrowserSession(
 ): void {
   const session = activeBrowserSessions.get(agentId);
   if (session) {
-    log.info({ agentId, taskArn: session.taskArn }, "Cleaning up browser session");
+    log.info(
+      { agentId, taskArn: session.taskArn },
+      "Cleaning up browser session",
+    );
     ctx.services.sandbox.terminateBrowser(session).catch((err) => {
-      log.error({ agentId, error: (err as Error).message }, "Failed to terminate browser");
+      log.error(
+        { agentId, error: (err as Error).message },
+        "Failed to terminate browser",
+      );
     });
     activeBrowserSessions.delete(agentId);
   }

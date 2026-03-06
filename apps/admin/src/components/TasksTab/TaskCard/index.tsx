@@ -48,7 +48,6 @@ export function TaskCard({ item }: { item: TaskItem }) {
           <AgentAvatar id={agent.id} />
         </button>
         <div className="min-w-0 flex-1">
-
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               {agent.name && (

@@ -1,4 +1,8 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+} from "node:http";
 import WebSocket from "ws";
 import { createLogger } from "./log.js";
 
@@ -188,8 +192,9 @@ async function handleClick(
       })()`,
       returnByValue: true,
     });
-    const value = (docResult as { result?: { value?: { x: number; y: number } } })
-      .result?.value;
+    const value = (
+      docResult as { result?: { value?: { x: number; y: number } } }
+    ).result?.value;
     if (!value) throw new Error(`Selector not found: ${body.selector}`);
     x = value.x;
     y = value.y;
@@ -308,44 +313,48 @@ function sendJson(res: ServerResponse, status: number, data: unknown): void {
 }
 
 export function startBrowserBridge(port: number): void {
-  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    const { method, url } = req;
-    const start = Date.now();
+  const server = createServer(
+    async (req: IncomingMessage, res: ServerResponse) => {
+      const { method, url } = req;
+      const start = Date.now();
 
-    log.debug({ method, url }, "Request received");
+      log.debug({ method, url }, "Request received");
 
-    try {
-      let result: Record<string, unknown>;
+      try {
+        let result: Record<string, unknown>;
 
-      if (method === "GET" && url === "/browser/status") {
-        result = await handleStatus();
-      } else if (method === "POST" && url === "/browser/navigate") {
-        result = await handleNavigate(await readBody(req));
-      } else if (method === "POST" && url === "/browser/screenshot") {
-        result = await handleScreenshot(await readBody(req));
-      } else if (method === "POST" && url === "/browser/click") {
-        result = await handleClick(await readBody(req));
-      } else if (method === "POST" && url === "/browser/type") {
-        result = await handleType(await readBody(req));
-      } else if (method === "POST" && url === "/browser/evaluate") {
-        result = await handleEvaluate(await readBody(req));
-      } else if (method === "GET" && url === "/browser/content") {
-        result = await handleContent();
-      } else {
-        log.warn({ method, url }, "Route not found");
-        sendJson(res, 404, { error: "Not found" });
-        return;
+        if (method === "GET" && url === "/browser/status") {
+          result = await handleStatus();
+        } else if (method === "POST" && url === "/browser/navigate") {
+          result = await handleNavigate(await readBody(req));
+        } else if (method === "POST" && url === "/browser/screenshot") {
+          result = await handleScreenshot(await readBody(req));
+        } else if (method === "POST" && url === "/browser/click") {
+          result = await handleClick(await readBody(req));
+        } else if (method === "POST" && url === "/browser/type") {
+          result = await handleType(await readBody(req));
+        } else if (method === "POST" && url === "/browser/evaluate") {
+          result = await handleEvaluate(await readBody(req));
+        } else if (method === "GET" && url === "/browser/content") {
+          result = await handleContent();
+        } else {
+          log.warn({ method, url }, "Route not found");
+          sendJson(res, 404, { error: "Not found" });
+          return;
+        }
+
+        const durationMs = Date.now() - start;
+        log.info({ method, url, durationMs }, "Request completed");
+        sendJson(res, 200, result);
+      } catch (err) {
+        const durationMs = Date.now() - start;
+        log.error({ method, url, durationMs, err }, "Request failed");
+        sendJson(res, 500, {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
-
-      const durationMs = Date.now() - start;
-      log.info({ method, url, durationMs }, "Request completed");
-      sendJson(res, 200, result);
-    } catch (err) {
-      const durationMs = Date.now() - start;
-      log.error({ method, url, durationMs, err }, "Request failed");
-      sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
-    }
-  });
+    },
+  );
 
   server.listen(port);
   log.info({ port }, "Browser bridge listening");

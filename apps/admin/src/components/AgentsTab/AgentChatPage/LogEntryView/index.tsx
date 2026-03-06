@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   ChevronRight,
@@ -7,10 +6,11 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
-import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import { SandboxOutputBlock } from "./SandboxOutputBlock";
 import { useTaskInfo } from "./useTaskInfo";
 
@@ -25,7 +25,15 @@ function safeParseJson(
   }
 }
 
-function ScrolledPre({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function ScrolledPre({
+  children,
+  className,
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const ref = useRef<HTMLPreElement>(null);
   const [edges, setEdges] = useState({ top: false, bottom: false });
 
@@ -34,7 +42,9 @@ function ScrolledPre({ children, className, style }: { children: React.ReactNode
     if (!el) return;
     const top = el.scrollTop > 2;
     const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
-    setEdges((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }));
+    setEdges((prev) =>
+      prev.top === top && prev.bottom === bottom ? prev : { top, bottom },
+    );
   }, []);
 
   useEffect(() => {
@@ -46,9 +56,15 @@ function ScrolledPre({ children, className, style }: { children: React.ReactNode
 
   return (
     <div className="relative">
-      {edges.top && <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-t-lg" />}
-      {edges.bottom && <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-b-lg" />}
-      <pre ref={ref} className={className} style={style} onScroll={updateEdges}>{children}</pre>
+      {edges.top && (
+        <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-t-lg" />
+      )}
+      {edges.bottom && (
+        <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-b-lg" />
+      )}
+      <pre ref={ref} className={className} style={style} onScroll={updateEdges}>
+        {children}
+      </pre>
     </div>
   );
 }
@@ -142,16 +158,12 @@ function resolveToolFields(entry: ChatMessage) {
 }
 
 function DelegateTaskCard({
-  id,
   taskId,
   taskTitle,
-  createdAt,
   onTaskClick,
 }: {
-  id: string;
   taskId: string | null;
   taskTitle: string;
-  createdAt: string;
   onTaskClick?: (taskId: string) => void;
 }) {
   const task = useTaskInfo(taskId);
@@ -159,7 +171,7 @@ function DelegateTaskCard({
   const clickable = !!(taskId && onTaskClick);
 
   return (
-    <div id={id} className="py-1">
+    <div className="py-1">
       {/* biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally "button" when clickable */}
       <div
         role={clickable ? "button" : undefined}
@@ -179,7 +191,8 @@ function DelegateTaskCard({
             radial-gradient(ellipse 70% 60% at 80% 90%, rgba(56,189,248,0.12) 0%, transparent 50%),
             linear-gradient(140deg, rgb(8,10,28) 0%, rgb(25,8,55) 50%, rgb(40,8,48) 100%)
           `,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 20px rgba(99,102,241,0.08)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 20px rgba(99,102,241,0.08)",
         }}
         className={`w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
       >
@@ -188,19 +201,23 @@ function DelegateTaskCard({
             <span className="text-sm text-indigo-100 font-medium line-clamp-2 leading-snug">
               {taskTitle}
               {clickable && (
-                <ExternalLink size={12} className="text-indigo-400 inline ml-1 align-baseline" />
+                <ExternalLink
+                  size={12}
+                  className="text-indigo-400 inline ml-1 align-baseline"
+                />
               )}
             </span>
             <div className="mt-2 space-y-1.5 max-h-[4.5rem] overflow-hidden relative">
-              {task?.messages && [...task.messages].reverse().map((msg, i) => (
-                <div
-                  key={`${msg}-${i}`}
-                  className={`text-xs flex items-center gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
-                >
-                  <Check size={10} className="shrink-0 opacity-40" />
-                  <span>{msg}</span>
-                </div>
-              ))}
+              {task?.messages &&
+                [...task.messages].reverse().map((msg, i) => (
+                  <div
+                    key={`${msg}-${i}`}
+                    className={`text-xs flex items-center gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
+                  >
+                    <Check size={10} className="shrink-0 opacity-40" />
+                    <span>{msg}</span>
+                  </div>
+                ))}
               {(!task?.messages || task.messages.length === 0) && (
                 <span className="text-xs text-neutral-500">Delegated task</span>
               )}
@@ -228,7 +245,6 @@ function DelegateTaskCard({
 export function LogEntryView({
   entry,
   onTaskClick,
-  isLast,
   sending,
   documents,
   sandboxStreams,
@@ -236,7 +252,6 @@ export function LogEntryView({
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
-  isLast?: boolean;
   sending?: boolean;
   documents?: Array<{ path: string; title: string; body?: string | null }>;
   sandboxStreams?: Map<string, CommandStream>;
@@ -246,9 +261,7 @@ export function LogEntryView({
     case "SYSTEM": {
       const parsed = safeParseJson(entry.content);
       const label = parsed?.type ? String(parsed.type) : "system";
-      const display = parsed
-        ? JSON.stringify(parsed, null, 2)
-        : entry.content;
+      const display = parsed ? JSON.stringify(parsed, null, 2) : entry.content;
 
       return (
         <ToolBlock
@@ -303,7 +316,10 @@ export function LogEntryView({
     case "TOOL": {
       const tool = resolveToolFields(entry);
 
-      if (tool.name === "updateTaskStatus" || tool.name === "updateTaskMessage") {
+      if (
+        tool.name === "updateTaskStatus" ||
+        tool.name === "updateTaskMessage"
+      ) {
         const message = tool.input?.message as string | undefined;
         return (
           <div id={entry.id} className="flex items-start gap-1.5 py-1.5 px-1">
@@ -316,7 +332,9 @@ export function LogEntryView({
 
       if (tool.name === "createDocument" && documents) {
         const docPath = tool.result?.path as string | undefined;
-        const doc = docPath ? documents.find((d) => d.path === docPath) : undefined;
+        const doc = docPath
+          ? documents.find((d) => d.path === docPath)
+          : undefined;
         if (doc) {
           return (
             <div id={entry.id} className="py-1">
@@ -329,17 +347,17 @@ export function LogEntryView({
       if (tool.name === "delegateTask") {
         return (
           <DelegateTaskCard
-            id={entry.id}
             taskId={(tool.result?.taskId as string) ?? null}
             taskTitle={(tool.input?.title as string) ?? "Untitled task"}
-            createdAt={entry.createdAt}
             onTaskClick={onTaskClick}
           />
         );
       }
 
       if (tool.name === "runCommand") {
-        const commandId = (tool.result?.commandId ?? tool.input?.commandId) as string | undefined;
+        const commandId = (tool.result?.commandId ?? tool.input?.commandId) as
+          | string
+          | undefined;
         const command = tool.input?.command as string | undefined;
         const hasResult = !!tool.result;
         const output = (tool.result?.output as string) ?? "";
@@ -358,15 +376,31 @@ export function LogEntryView({
           return (
             <ToolBlock
               id={entry.id}
-              label={<>runCommand(<span className="font-normal text-neutral-400 break-all">$ {command ?? "…"}</span>)</>}
+              label={
+                <>
+                  runCommand(
+                  <span className="font-normal text-neutral-400 break-all">
+                    $ {command ?? "…"}
+                  </span>
+                  )
+                </>
+              }
               content=""
               createdAt={entry.createdAt}
               showTimestamp={showTimestamp}
-              badges={<>
-                {isStreaming && <Loader2 size={10} className="animate-spin text-neutral-500" />}
-              </>}
+              badges={
+                isStreaming ? (
+                  <Loader2
+                    size={10}
+                    className="animate-spin text-neutral-500"
+                  />
+                ) : undefined
+              }
             >
-              <SandboxOutputBlock commandId={commandId ?? "pending"} stream={stream} />
+              <SandboxOutputBlock
+                commandId={commandId ?? "pending"}
+                stream={stream}
+              />
             </ToolBlock>
           );
         }
@@ -374,7 +408,20 @@ export function LogEntryView({
         return (
           <ToolBlock
             id={entry.id}
-            label={<>runCommand(<span className="font-normal text-neutral-400 break-all">$ {command ?? "…"}</span>){exitCode !== undefined && exitCode !== 0 && <span className="font-normal text-red-400/70 text-[10px] ml-1">exit {exitCode}</span>}</>}
+            label={
+              <>
+                runCommand(
+                <span className="font-normal text-neutral-400 break-all">
+                  $ {command ?? "…"}
+                </span>
+                )
+                {exitCode !== undefined && exitCode !== 0 && (
+                  <span className="font-normal text-red-400/70 text-[10px] ml-1">
+                    exit {exitCode}
+                  </span>
+                )}
+              </>
+            }
             content={output || "(no output)"}
             createdAt={entry.createdAt}
             showTimestamp={showTimestamp}

@@ -48,7 +48,6 @@ export const CreateAgentMutation = graphql(`
   }
 `);
 
-
 export const RetireAgentMutation = graphql(`
   mutation RetireAgent($id: ID!) {
     retireAgent(id: $id) {

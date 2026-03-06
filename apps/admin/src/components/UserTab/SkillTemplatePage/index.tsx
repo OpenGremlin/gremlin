@@ -2,9 +2,7 @@ import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import type {
-  BindSkillConnectionMutation as BindMutationType,
-} from "../../../graphql/generated/graphql";
+import type { BindSkillConnectionMutation as BindMutationType } from "../../../graphql/generated/graphql";
 import {
   BindSkillConnectionMutation,
   InstallSkillMutation,
@@ -50,13 +48,7 @@ export function SkillTemplatePage() {
   const anyError = error || skillsError || connectionsError;
 
   if (anyLoading || anyError) {
-    return (
-      <QueryResult
-        loading={anyLoading}
-        error={anyError}
-        backButton
-      />
-    );
+    return <QueryResult loading={anyLoading} error={anyError} backButton />;
   }
 
   if (!template) {

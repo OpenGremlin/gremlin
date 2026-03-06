@@ -1,7 +1,7 @@
 import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
-import type { SandboxOutputEvent } from "../../../resources/pubsub.js";
 import type { TaskItem } from "../../../resources/ddb/schema/task.js";
+import type { SandboxOutputEvent } from "../../../resources/pubsub.js";
 import { readFile } from "../../../services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {

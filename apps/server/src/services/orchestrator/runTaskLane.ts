@@ -2,20 +2,6 @@ import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { buildMcpConfig } from "../skills/buildMcpConfig.js";
 import {
-  browserClickTool,
-  browserEvaluateTool,
-  browserGetContentTool,
-  browserNavigateTool,
-  browserScreenshotTool,
-  browserTypeTool,
-} from "./browserTools.js";
-import {
-  checkCommandTool,
-  launchSandboxTool,
-  runCommandTool,
-  terminateSandboxTool,
-} from "./sandboxTools.js";
-import {
   createDocumentTool,
   defaultTools,
   recallMemoryTool,
@@ -23,8 +9,22 @@ import {
   updateDocumentTool,
   updateTaskMessageTool,
 } from "../tools/index.js";
-import { writeAgentLog } from "./writeAgentLog.js";
+import {
+  browserClickTool,
+  browserEvaluateTool,
+  browserGetContentTool,
+  browserNavigateTool,
+  browserScreenshotTool,
+  browserTypeTool,
+} from "./browserTools.js";
 import { runLane } from "./runLane.js";
+import {
+  checkCommandTool,
+  launchSandboxTool,
+  runCommandTool,
+  terminateSandboxTool,
+} from "./sandboxTools.js";
+import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
  * Run an agent turn on a task's lane.

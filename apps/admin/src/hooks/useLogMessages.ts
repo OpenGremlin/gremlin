@@ -12,10 +12,14 @@ import { useSubscription } from "../useSubscription";
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 
 /** Should this message show a timestamp, or coalesce with the next same-role message within 1 min? */
-export function shouldShowTimestamp(msg: ChatMessage, next: ChatMessage | undefined): boolean {
+export function shouldShowTimestamp(
+  msg: ChatMessage,
+  next: ChatMessage | undefined,
+): boolean {
   if (!next) return true;
   if (msg.role !== next.role) return true;
-  const gap = new Date(next.createdAt).getTime() - new Date(msg.createdAt).getTime();
+  const gap =
+    new Date(next.createdAt).getTime() - new Date(msg.createdAt).getTime();
   return Math.abs(gap) >= 60_000;
 }
 
@@ -57,10 +61,12 @@ export function useLogMessages(
 
         // TOOL entries with a result replace the matching call-only entry
         if (msg.role === "TOOL" && msg.toolResult) {
-          replaceOrAppend(msg as any, ((existing: ChatMessage) =>
-            existing.role === "TOOL" &&
-            existing.toolName === msg.toolName &&
-            !existing.toolResult) as any,
+          replaceOrAppend(
+            msg as any,
+            ((existing: ChatMessage) =>
+              existing.role === "TOOL" &&
+              existing.toolName === msg.toolName &&
+              !existing.toolResult) as any,
           );
         } else {
           appendNode(msg as any);
@@ -70,5 +76,11 @@ export function useLogMessages(
     ),
   );
 
-  return { messages: messages as ChatMessage[], loading, hasMore, loadMore, loadingMore };
+  return {
+    messages: messages as ChatMessage[],
+    loading,
+    hasMore,
+    loadMore,
+    loadingMore,
+  };
 }

@@ -14,8 +14,11 @@ const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
 const agent: QueryResolvers["agent"] = (_parent, { id }, ctx) =>
   ctx.services.agents.getAgent(ctx, id);
 
-const createAgent: MutationResolvers["createAgent"] = (_parent, { input }, ctx) =>
-  ctx.services.agents.createAgent(ctx, input);
+const createAgent: MutationResolvers["createAgent"] = (
+  _parent,
+  { input },
+  ctx,
+) => ctx.services.agents.createAgent(ctx, input);
 
 const updateAgent: MutationResolvers["updateAgent"] = (
   _parent,

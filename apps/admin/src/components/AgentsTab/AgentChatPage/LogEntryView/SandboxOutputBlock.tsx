@@ -3,17 +3,18 @@ import { useEffect, useRef } from "react";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 
 export function SandboxOutputBlock({
-  commandId,
   stream,
 }: {
-  commandId: string;
+  commandId?: string;
   stream: CommandStream | undefined;
 }) {
   const preRef = useRef<HTMLPreElement>(null);
+  const output = stream?.output;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on new output
   useEffect(() => {
     if (preRef.current) preRef.current.scrollTop = preRef.current.scrollHeight;
-  }, [stream?.output]);
+  }, [output]);
 
   if (!stream || (!stream.output && !stream.done)) return null;
 
@@ -32,11 +33,13 @@ export function SandboxOutputBlock({
           <span>Running...</span>
         </div>
       )}
-      {stream.done && stream.exitCode !== undefined && stream.exitCode !== 0 && (
-        <div className="px-3 py-1 border-t border-neutral-800/50 text-[10px] text-red-400/70">
-          exit code {stream.exitCode}
-        </div>
-      )}
+      {stream.done &&
+        stream.exitCode !== undefined &&
+        stream.exitCode !== 0 && (
+          <div className="px-3 py-1 border-t border-neutral-800/50 text-[10px] text-red-400/70">
+            exit code {stream.exitCode}
+          </div>
+        )}
     </div>
   );
 }

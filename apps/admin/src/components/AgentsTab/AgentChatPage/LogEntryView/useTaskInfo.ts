@@ -19,15 +19,24 @@ interface TaskInfo {
 const MESSAGE_TOOLS = new Set(["updateTaskStatus", "updateTaskMessage"]);
 
 function extractMessages(
-  logs: Array<{ node: { role: string; toolName?: string | null; toolInput?: string | null } }>,
+  logs: Array<{
+    node: { role: string; toolName?: string | null; toolInput?: string | null };
+  }>,
 ): string[] {
   const msgs: string[] = [];
   for (const { node } of logs) {
-    if (node.role !== "TOOL" || !node.toolName || !MESSAGE_TOOLS.has(node.toolName)) continue;
+    if (
+      node.role !== "TOOL" ||
+      !node.toolName ||
+      !MESSAGE_TOOLS.has(node.toolName)
+    )
+      continue;
     try {
       const input = JSON.parse(node.toolInput ?? "{}");
       if (input.message) msgs.push(input.message);
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   return msgs;
 }
@@ -42,11 +51,21 @@ export function useTaskInfo(taskId: string | null) {
   useEffect(() => {
     if (!taskId) return;
     let cancelled = false;
-    gql<{ task: {
-      message: string | null;
-      imageUrl: string | null;
-      logs: { edges: Array<{ node: { role: string; toolName?: string | null; toolInput?: string | null } }> };
-    } | null }>(TASK_QUERY, { id: taskId })
+    gql<{
+      task: {
+        message: string | null;
+        imageUrl: string | null;
+        logs: {
+          edges: Array<{
+            node: {
+              role: string;
+              toolName?: string | null;
+              toolInput?: string | null;
+            };
+          }>;
+        };
+      } | null;
+    }>(TASK_QUERY, { id: taskId })
       .then((data) => {
         if (!cancelled && data.task) {
           const messages = extractMessages(data.task.logs.edges);

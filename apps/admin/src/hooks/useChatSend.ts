@@ -50,5 +50,12 @@ export function useChatSend({
     }
   }, [input, agentId, taskId, scrollToBottom]);
 
-  return { input, setInput, pendingMessages, scrollRef, scrollToBottom, handleSend };
+  return {
+    input,
+    setInput,
+    pendingMessages,
+    scrollRef,
+    scrollToBottom,
+    handleSend,
+  };
 }

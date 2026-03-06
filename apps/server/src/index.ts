@@ -1,7 +1,7 @@
 import "./env.js";
+import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createServer } from "node:http";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import express from "express";
@@ -266,7 +266,10 @@ loadSchedulerConfig().then(async () => {
           }
           setTimeout(() => {
             server.listen(PORT, () => {
-              logger.info({ port: PORT }, "Gremlin server started (reclaimed port)");
+              logger.info(
+                { port: PORT },
+                "Gremlin server started (reclaimed port)",
+              );
             });
           }, 500);
         });

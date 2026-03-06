@@ -1,4 +1,7 @@
-import { GetVectorsCommand, PutVectorsCommand } from "@aws-sdk/client-s3vectors";
+import {
+  GetVectorsCommand,
+  PutVectorsCommand,
+} from "@aws-sdk/client-s3vectors";
 import { generateText } from "ai";
 import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
@@ -78,10 +81,7 @@ export async function saveCoreMemories(
     }),
   );
 
-  log.info(
-    { agentId, count: memories.length },
-    "Saved core memories",
-  );
+  log.info({ agentId, count: memories.length }, "Saved core memories");
 }
 
 /**
@@ -126,7 +126,10 @@ export async function reviewCoreMemories(
 
   // If there are no yesterday memories and no existing core memories, nothing to do
   if (!yesterdayContent && currentCore.length === 0) {
-    log.info({ agentId }, "No memories to review — skipping core memory update");
+    log.info(
+      { agentId },
+      "No memories to review — skipping core memory update",
+    );
     return [];
   }
 
@@ -209,7 +212,10 @@ function parseReviewResponse(
 ): CoreMemory[] {
   try {
     // Strip markdown fences if present
-    const cleaned = text.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+    const cleaned = text
+      .replace(/^```(?:json)?\n?/m, "")
+      .replace(/\n?```$/m, "")
+      .trim();
     const parsed = JSON.parse(cleaned);
 
     if (!Array.isArray(parsed)) {
@@ -234,7 +240,10 @@ function parseReviewResponse(
 
     return validated;
   } catch (err) {
-    log.error({ err, text: text.slice(0, 200) }, "Failed to parse core memory review response");
+    log.error(
+      { err, text: text.slice(0, 200) },
+      "Failed to parse core memory review response",
+    );
     return fallback;
   }
 }

@@ -6,7 +6,10 @@ const log = createLogger("sandbox:terminate");
 const ec2 = new EC2Client({});
 
 export async function terminateSandbox(session: SandboxSession): Promise<void> {
-  log.info({ agentId: session.agentId, instanceId: session.instanceId }, "Terminating sandbox");
+  log.info(
+    { agentId: session.agentId, instanceId: session.instanceId },
+    "Terminating sandbox",
+  );
 
   // Close WebSocket
   if (session.ws && session.ws.readyState === session.ws.OPEN) {
@@ -22,12 +25,18 @@ export async function terminateSandbox(session: SandboxSession): Promise<void> {
   }
 
   // Stop EC2 instance (not terminate — preserves EBS for next start)
-  log.info({ agentId: session.agentId, instanceId: session.instanceId }, "Stopping EC2 instance");
+  log.info(
+    { agentId: session.agentId, instanceId: session.instanceId },
+    "Stopping EC2 instance",
+  );
   await ec2.send(
     new StopInstancesCommand({
       InstanceIds: [session.instanceId],
     }),
   );
 
-  log.info({ agentId: session.agentId, instanceId: session.instanceId }, "Sandbox stopped");
+  log.info(
+    { agentId: session.agentId, instanceId: session.instanceId },
+    "Sandbox stopped",
+  );
 }

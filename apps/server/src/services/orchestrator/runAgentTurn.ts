@@ -1,7 +1,7 @@
 import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
 import type { ServiceContext } from "../context.js";
-import { getModel } from "./model.js";
 import { requestApprovalTool } from "../tools/index.js";
+import { getModel } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
 /** Tools marked as internal — logged for audit but hidden from the UI. */
@@ -67,7 +67,12 @@ export async function runAgentTurn(
   };
 
   // Wrap tools to emit a call log immediately when execution starts
-  const { tools: allTools, callLogIds } = withEagerLogging(baseTools, ctx, opts.agentId, opts.taskId);
+  const { tools: allTools, callLogIds } = withEagerLogging(
+    baseTools,
+    ctx,
+    opts.agentId,
+    opts.taskId,
+  );
 
   const tz = opts.timezone ?? "UTC";
   const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
@@ -95,8 +100,13 @@ export async function runAgentTurn(
         const toolCall = step.toolCalls[i];
         const toolResult = step.toolResults[i];
         const isInternal = INTERNAL_TOOLS.has(toolCall.toolName);
-        const toolCallId = "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
-        const existingLogId = toolCallId ? callLogIds.get(toolCallId) : undefined;
+        const toolCallId =
+          "toolCallId" in toolCall
+            ? (toolCall.toolCallId as string)
+            : undefined;
+        const existingLogId = toolCallId
+          ? callLogIds.get(toolCallId)
+          : undefined;
 
         if (existingLogId) {
           // Update the existing call entry with the result

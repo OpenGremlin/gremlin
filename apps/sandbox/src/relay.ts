@@ -1,14 +1,16 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
 import { homedir } from "node:os";
+import { dirname } from "node:path";
 import pty from "node-pty";
 import { type WebSocket, WebSocketServer } from "ws";
 import { createLogger } from "./log.js";
 
 const log = createLogger("relay");
 
-const WORKSPACE_DIR = existsSync("/workspace") ? "/workspace" : process.env.SANDBOX_WORKSPACE ?? homedir();
+const WORKSPACE_DIR = existsSync("/workspace")
+  ? "/workspace"
+  : (process.env.SANDBOX_WORKSPACE ?? homedir());
 const TOOLS_ROOT = `${WORKSPACE_DIR}/.tools`;
 
 const TOOL_PATHS = [
@@ -84,23 +86,36 @@ export function startRelay(port: number): void {
         const msg = JSON.parse(raw.toString());
         if (msg.type === "input" && typeof msg.data === "string") {
           const cmd = msg.data.replace(/\n$/, "");
-          log.debug({
-            connId,
-            commandLength: cmd.length,
-            commandPreview: cmd.slice(0, 200),
-          }, "Input received");
+          log.debug(
+            {
+              connId,
+              commandLength: cmd.length,
+              commandPreview: cmd.slice(0, 200),
+            },
+            "Input received",
+          );
           shell.write(msg.data);
         } else if (msg.type === "resize" && msg.cols && msg.rows) {
-          log.debug({ connId, cols: msg.cols, rows: msg.rows }, "Terminal resized");
+          log.debug(
+            { connId, cols: msg.cols, rows: msg.rows },
+            "Terminal resized",
+          );
           shell.resize(msg.cols, msg.rows);
-        } else if (msg.type === "exec" && typeof msg.id === "string" && typeof msg.command === "string") {
+        } else if (
+          msg.type === "exec" &&
+          typeof msg.id === "string" &&
+          typeof msg.command === "string"
+        ) {
           handleExec(ws, connId, msg, shellEnv, execState);
         }
       } catch (err) {
-        log.warn({
-          connId,
-          err,
-        }, "Failed to parse WS message");
+        log.warn(
+          {
+            connId,
+            err,
+          },
+          "Failed to parse WS message",
+        );
       }
     });
 
@@ -133,19 +148,27 @@ interface ExecState {
 function handleExec(
   ws: WebSocket,
   connId: number,
-  msg: { id: string; command: string; timeout?: number; env?: Record<string, string> },
+  msg: {
+    id: string;
+    command: string;
+    timeout?: number;
+    env?: Record<string, string>;
+  },
   shellEnv: Record<string, string>,
   execState: ExecState,
 ): void {
   const { id, command, timeout, env } = msg;
 
-  log.info({
-    connId,
-    id,
-    commandLength: command.length,
-    commandPreview: command.slice(0, 200),
-    cwd: execState.cwd,
-  }, "Exec command received");
+  log.info(
+    {
+      connId,
+      id,
+      commandLength: command.length,
+      commandPreview: command.slice(0, 200),
+      cwd: execState.cwd,
+    },
+    "Exec command received",
+  );
 
   // Wrap command to capture cwd after execution
   const wrappedCommand = `${command}\n__gremlin_exit=$?; echo "${CWD_SENTINEL}" >&2; pwd >&2; exit $__gremlin_exit`;
@@ -171,12 +194,14 @@ function handleExec(
       stdout += text;
     }
     if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({
-        type: "exec:output",
-        id,
-        stream: "stdout",
-        data: text.slice(0, MAX_CHUNK_BYTES),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "exec:output",
+          id,
+          stream: "stdout",
+          data: text.slice(0, MAX_CHUNK_BYTES),
+        }),
+      );
     }
   });
 
@@ -186,12 +211,14 @@ function handleExec(
       stderr += text;
     }
     if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({
-        type: "exec:output",
-        id,
-        stream: "stderr",
-        data: text.slice(0, MAX_CHUNK_BYTES),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "exec:output",
+          id,
+          stream: "stderr",
+          data: text.slice(0, MAX_CHUNK_BYTES),
+        }),
+      );
     }
   });
 
@@ -211,7 +238,10 @@ function handleExec(
       stderr = stderr.slice(0, cwdIdx).trimEnd();
     }
 
-    log.info({ connId, id, exitCode, killed, cwd: execState.cwd }, "Exec command completed");
+    log.info(
+      { connId, id, exitCode, killed, cwd: execState.cwd },
+      "Exec command completed",
+    );
 
     if (ws.readyState !== ws.OPEN) return;
 
@@ -229,23 +259,30 @@ function handleExec(
         log.error({ connId, id, err }, "Failed to spill output to disk");
       }
 
-      ws.send(JSON.stringify({
-        type: "exec:done",
-        id,
-        exitCode,
-        stdout: stdout.slice(0, 4096) + "\n...[truncated]...\n" + stdout.slice(-4096),
-        stderr: stderr.slice(0, 2048),
-        fullOutputPath: outputPath,
-        fullOutputBytes: stdout.length,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "exec:done",
+          id,
+          exitCode,
+          stdout:
+            stdout.slice(0, 4096) +
+            "\n...[truncated]...\n" +
+            stdout.slice(-4096),
+          stderr: stderr.slice(0, 2048),
+          fullOutputPath: outputPath,
+          fullOutputBytes: stdout.length,
+        }),
+      );
     } else {
-      ws.send(JSON.stringify({
-        type: "exec:done",
-        id,
-        exitCode,
-        stdout,
-        stderr,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "exec:done",
+          id,
+          exitCode,
+          stdout,
+          stderr,
+        }),
+      );
     }
   });
 
@@ -254,14 +291,16 @@ function handleExec(
     log.error({ connId, id, err }, "Exec command error");
 
     if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({
-        type: "exec:done",
-        id,
-        exitCode: -1,
-        stdout,
-        stderr: `${stderr}\n${err.message}`,
-        error: err.message,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "exec:done",
+          id,
+          exitCode: -1,
+          stdout,
+          stderr: `${stderr}\n${err.message}`,
+          error: err.message,
+        }),
+      );
     }
   });
 }
