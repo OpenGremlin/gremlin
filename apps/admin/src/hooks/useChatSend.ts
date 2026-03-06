@@ -25,11 +25,12 @@ export function useChatSend({
   useEffect(() => {
     if (pendingMessages.length === 0) return;
     const userMessages = messages.filter((m) => m.role === "USER");
-    setPendingMessages((prev) =>
-      prev.filter(
+    setPendingMessages((prev) => {
+      const next = prev.filter(
         (content) => !userMessages.some((m) => m.content === content),
-      ),
-    );
+      );
+      return next.length === prev.length ? prev : next;
+    });
   }, [messages, pendingMessages.length]);
 
   const handleSend = useCallback(async () => {
