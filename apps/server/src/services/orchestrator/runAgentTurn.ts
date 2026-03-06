@@ -80,8 +80,10 @@ export async function runAgentTurn(
   const tz = opts.timezone ?? "UTC";
   const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
 
+  const model = await getModel(ctx);
+  ctx.log.info({ model: String(model) }, "Starting agent turn with model");
   const result = await generateText({
-    model: await getModel(ctx),
+    model,
     messages: [
       {
         role: "system",

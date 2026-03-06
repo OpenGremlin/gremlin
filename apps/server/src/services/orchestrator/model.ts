@@ -5,7 +5,10 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import type { LanguageModel } from "ai";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
+import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
+
+const log = createLogger("model");
 
 const bedrock = createAmazonBedrock({
   credentialProvider: fromNodeProviderChain(),
@@ -56,8 +59,11 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
 
   if (!defaultModel) {
     // No default model configured — fall back to Bedrock
+    log.info({ modelId: BEDROCK_FALLBACK_MODEL, reason: "no_default" }, "Using Bedrock fallback model");
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
+
+  log.info({ providerId: defaultModel.providerId, modelId: defaultModel.modelId }, "Resolved default model");
 
   // Bedrock provider uses server-side credentials — no API key needed
   if (defaultModel.providerId === "bedrock") {
@@ -75,6 +81,7 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
 
   if (!keyItem) {
     // API key was removed but setting not cleaned up — fall back to Bedrock
+    log.warn({ providerId: defaultModel.providerId, modelId: BEDROCK_FALLBACK_MODEL }, "API key missing, falling back to Bedrock");
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
 
