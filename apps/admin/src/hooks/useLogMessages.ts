@@ -1,5 +1,11 @@
 import { useCallback } from "react";
-import type { AgentLogsQuery } from "../graphql/generated/graphql";
+import type {
+  AgentLogCreatedSubscription,
+  AgentLogsQuery,
+  TaskLogCreatedSubscription,
+  TaskLogsQuery as TaskLogsResult,
+  TypedDocumentString,
+} from "../graphql/generated/graphql";
 import {
   AgentLogSubscription,
   AgentLogsQuery as AgentLogsDoc,
@@ -10,6 +16,9 @@ import { usePaginatedQuery } from "../usePaginatedQuery";
 import { useSubscription } from "../useSubscription";
 
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
+
+type LogsResult = AgentLogsQuery | TaskLogsResult;
+type SubResult = AgentLogCreatedSubscription | TaskLogCreatedSubscription;
 
 /** Should this message show a timestamp, or coalesce with the next same-role message within 1 min? */
 export function shouldShowTimestamp(
@@ -29,9 +38,6 @@ export function useLogMessages(
   const isTask = "taskId" in scope;
 
   const query = isTask ? TaskLogsQuery : AgentLogsDoc;
-  const selector = isTask
-    ? (d: { taskLogs: unknown }) => d.taskLogs
-    : (d: { agentLogs: unknown }) => d.agentLogs;
 
   const {
     nodes: messages,
@@ -41,43 +47,44 @@ export function useLogMessages(
     loadingMore,
     appendNode,
     replaceOrAppend,
-    // biome-ignore lint/suspicious/noExplicitAny: query/selector types diverge by scope
-  } = usePaginatedQuery(query as any, selector as any, scope);
+  } = usePaginatedQuery<LogsResult, ChatMessage>(
+    query as TypedDocumentString<LogsResult, Record<string, unknown>>,
+    (d) => ("taskLogs" in d ? d.taskLogs : d.agentLogs),
+    scope,
+  );
 
   const subscription = isTask ? TaskLogSubscription : AgentLogSubscription;
   const subVars = isTask
     ? { taskId: (scope as { taskId: string }).taskId }
     : { agentId: (scope as { agentId: string }).agentId };
 
-  useSubscription(
-    // biome-ignore lint/suspicious/noExplicitAny: subscription variable types diverge
-    subscription as any,
+  useSubscription<SubResult>(
+    String(subscription),
     subVars,
     useCallback(
-      // biome-ignore lint/suspicious/noExplicitAny: subscription event shape varies
-      (data: any) => {
-        const key = isTask ? "taskLogCreated" : "agentLogCreated";
-        const msg = data[key] as ChatMessage;
+      (data: SubResult) => {
+        const msg: ChatMessage =
+          "taskLogCreated" in data ? data.taskLogCreated : data.agentLogCreated;
 
         // TOOL entries with a result replace the matching call-only entry
         if (msg.role === "TOOL" && msg.toolResult) {
           replaceOrAppend(
-            msg as any,
-            ((existing: ChatMessage) =>
+            msg,
+            (existing) =>
               existing.role === "TOOL" &&
               existing.toolName === msg.toolName &&
-              !existing.toolResult) as any,
+              !existing.toolResult,
           );
         } else {
-          appendNode(msg as any);
+          appendNode(msg);
         }
       },
-      [isTask, appendNode, replaceOrAppend],
+      [appendNode, replaceOrAppend],
     ),
   );
 
   return {
-    messages: messages as ChatMessage[],
+    messages,
     loading,
     hasMore,
     loadMore,
