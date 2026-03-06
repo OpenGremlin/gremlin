@@ -11,19 +11,9 @@ import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
+import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 import { SandboxOutputBlock } from "./SandboxOutputBlock";
 import { useTaskInfo } from "./useTaskInfo";
-
-function safeParseJson(
-  s: string | null | undefined,
-): Record<string, unknown> | null {
-  if (!s) return null;
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
 
 function ScrolledPre({
   children,
@@ -136,26 +126,6 @@ function ToolBlock({
   );
 }
 
-/** Normalize tool fields — handles both typed columns and legacy JSON-in-content */
-function resolveToolFields(entry: ChatMessage) {
-  if (entry.toolName) {
-    return {
-      name: entry.toolName,
-      input: safeParseJson(entry.toolInput),
-      result: safeParseJson(entry.toolResult),
-    };
-  }
-  // Legacy: tool data was JSON-stringified into content
-  const parsed = safeParseJson(entry.content);
-  if (parsed?.name) {
-    return {
-      name: parsed.name as string,
-      input: (parsed.input as Record<string, unknown>) ?? null,
-      result: (parsed.result as Record<string, unknown>) ?? null,
-    };
-  }
-  return { name: "tool", input: null, result: null };
-}
 
 function DelegateTaskCard({
   taskId,
