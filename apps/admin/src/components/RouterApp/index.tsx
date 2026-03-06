@@ -34,6 +34,7 @@ import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { IntegrationsPage } from "../UserTab/IntegrationsPage";
 import { ProfilePage } from "../UserTab/ProfilePage";
 import { SkillDetailPage } from "../UserTab/SkillDetailPage";
+import { SkillTemplatePage } from "../UserTab/SkillTemplatePage";
 import { SkillsPage } from "../UserTab/SkillsPage";
 
 const settingsItems = [
@@ -159,6 +160,10 @@ export function RouterApp() {
             element={<IntegrationDetailPage />}
           />
           <Route path="settings/skills" element={<SkillsPage />} />
+          <Route
+            path="settings/skills/catalog/:templateId"
+            element={<SkillTemplatePage />}
+          />
           <Route path="settings/skills/:id" element={<SkillDetailPage />} />
           <Route path="settings/profile" element={<ProfilePage />} />
           <Route

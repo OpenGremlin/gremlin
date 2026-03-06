@@ -50,13 +50,15 @@ const setSkillMcpEnabled: MutationResolvers["setSkillMcpEnabled"] = (
   ctx,
 ) => ctx.services.skills.setSkillMcpEnabled(ctx, id, enabled);
 
-// --- Field resolvers ---
-
 const providerMap = new Map(providers.map((p) => [p.id, p]));
 
 const SkillTemplate: SkillTemplateResolvers = {
   hasInstructions: (parent) => !!parent.instructions,
   hasMcp: (parent) => !!parent.mcp,
+  installCount: async (parent, _args, ctx) => {
+    const allSkills = await ctx.services.skills.getSkills(ctx);
+    return allSkills.filter((s) => s.templateId === parent.id).length;
+  },
   requiredConnections: (parent) =>
     (parent.requiredConnections ?? []).map((req) => {
       const provider = providerMap.get(req.providerId);

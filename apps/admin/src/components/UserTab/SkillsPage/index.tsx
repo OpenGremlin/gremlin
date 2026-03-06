@@ -1,19 +1,112 @@
+import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { SkillsQuery } from "../../../graphql/queries";
-import { Badge } from "../../../shared/Badge";
+import * as logos from "../../../assets/logos";
+import { SkillsQuery, SkillTemplatesQuery } from "../../../graphql/queries";
 import { QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 
+const logoMap: Record<string, string> = {
+  google: logos.googleLogo,
+  notion: logos.notionLogo,
+  linear: logos.linearLogo,
+  trello: logos.trelloLogo,
+  slack: logos.slackLogo,
+  discord: logos.discordLogo,
+  teams: logos.teamsLogo,
+  telegram: logos.telegramLogo,
+  whatsapp: logos.whatsappLogo,
+  github: logos.githubLogo,
+  gitlab: logos.gitlabLogo,
+  jira: logos.jiraLogo,
+  spotify: logos.spotifyLogo,
+  hue: logos.hueLogo,
+  homeassistant: logos.homeAssistantLogo,
+  anthropic: logos.anthropicLogo,
+  openai: logos.openaiLogo,
+  google_ai: logos.geminiLogo,
+  mistral: logos.mistralLogo,
+  deepseek: logos.deepseekLogo,
+  xai: logos.xaiLogo,
+  bedrock: logos.bedrockLogo,
+  brave: logos.braveLogo,
+};
+
+function SkillLogo({ icon }: { icon?: string | null }) {
+  const logo = icon ? logoMap[icon] : undefined;
+  if (logo) {
+    return (
+      <div className="h-10 w-10 flex items-center justify-center">
+        <img src={logo} alt={icon!} className="h-10 w-10 object-contain" />
+      </div>
+    );
+  }
+  return (
+    <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">
+      {icon?.[0]?.toUpperCase() ?? "S"}
+    </div>
+  );
+}
+
+const categoryLabels: Record<string, string> = {
+  developer: "Developer",
+  web: "Web",
+  productivity: "Productivity",
+  communication: "Communication",
+  entertainment: "Entertainment",
+  smart_home: "Smart Home",
+};
+
+const categoryOrder = [
+  "developer",
+  "web",
+  "productivity",
+  "communication",
+  "entertainment",
+  "smart_home",
+];
+
+function InstallCountBadge({ count }: { count: number }) {
+  if (count === 0) {
+    return <span className="text-xs text-neutral-500">Connect</span>;
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+      <CircleCheck size={12} /> {count} installed
+    </span>
+  );
+}
+
 export function SkillsPage() {
   const [query, setQuery] = useState("");
-  const { data, loading, error } = useQuery(SkillsQuery);
+  const { data: skillsData, loading: skillsLoading, error: skillsError } =
+    useQuery(SkillsQuery);
+  const {
+    data: templatesData,
+    loading: templatesLoading,
+    error: templatesError,
+  } = useQuery(SkillTemplatesQuery);
 
-  const skills = data?.skills ?? [];
+  const loading = skillsLoading || templatesLoading;
+  const error = skillsError || templatesError;
+  const installedSkills = skillsData?.skills ?? [];
+  const templates = templatesData?.skillTemplates ?? [];
+
   const q = query.toLowerCase();
-  const filtered = skills.filter((s) =>
+  const filteredInstalled = installedSkills.filter((s) =>
     s.template.name.toLowerCase().includes(q),
   );
+  const filteredTemplates = templates.filter((t) =>
+    t.name.toLowerCase().includes(q),
+  );
+
+  const grouped = categoryOrder
+    .map((cat) => ({
+      category: cat,
+      label: categoryLabels[cat] ?? cat,
+      items: filteredTemplates.filter((t) => t.category === cat),
+    }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div className="p-6">
@@ -29,26 +122,66 @@ export function SkillsPage() {
 
       <QueryResult loading={loading} error={error} />
 
-      <div className="flex flex-col gap-3">
-        {filtered.map((skill) => (
-          <Link
-            key={skill.id}
-            to={`/settings/skills/${skill.id}`}
-            className="bg-neutral-900 rounded-xl p-4 block transition-colors hover:bg-neutral-800/60"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-sm font-medium text-neutral-100">
-                {skill.template.name}
-              </h3>
-              <Badge label={skill.installed ? "Installed" : "Available"} />
+      <div className="flex flex-col gap-5">
+        {/* Installed Skills */}
+        {filteredInstalled.length > 0 && (
+          <div>
+            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
+              Installed Skills
+            </h3>
+            <div className="flex flex-col gap-2">
+              {filteredInstalled.map((skill) => (
+                <Link
+                  key={skill.id}
+                  to={`/settings/skills/${skill.id}`}
+                  className="flex items-center gap-3 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800"
+                >
+                  <SkillLogo icon={skill.template.icon} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-100 truncate">
+                      {skill.template.name}
+                    </p>
+                    <p className="text-xs text-neutral-400 truncate">
+                      {skill.template.description}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-400 shrink-0">
+                    <CircleCheck size={12} /> Installed
+                  </span>
+                </Link>
+              ))}
             </div>
-            <p className="text-xs text-neutral-400 mb-2">
-              {skill.template.description}
-            </p>
-            <span className="text-[11px] text-neutral-500">
-              v{skill.template.version}
-            </span>
-          </Link>
+          </div>
+        )}
+
+        {filteredInstalled.length > 0 && <hr className="border-neutral-800" />}
+
+        {/* Skill Catalog grouped by category */}
+        {grouped.map((group) => (
+          <div key={group.category}>
+            <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
+              {group.label}
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {group.items.map((template) => (
+                <Link
+                  key={template.id}
+                  to={`/settings/skills/catalog/${template.id}`}
+                  className={`flex flex-col items-center gap-2 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer ${
+                    template.installCount > 0
+                      ? "ring-1 ring-emerald-500/40"
+                      : ""
+                  }`}
+                >
+                  <SkillLogo icon={template.icon} />
+                  <span className="text-sm font-medium text-neutral-100">
+                    {template.name}
+                  </span>
+                  <InstallCountBadge count={template.installCount} />
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

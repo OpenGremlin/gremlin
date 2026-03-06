@@ -418,7 +418,7 @@ export type Query = {
   skillTemplate?: Maybe<SkillTemplate>;
   /** All templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
-  /** All skill instances (installed or not — one per template for now) */
+  /** All installed skill instances */
   skills: Array<Skill>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
@@ -525,6 +525,7 @@ export type SkillTemplate = {
   hasMcp: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  installCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   requiredConnections: Array<SkillConnectionRequirement>;
   version: Scalars['String']['output'];
@@ -1048,6 +1049,7 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   hasMcp?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  installCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   requiredConnections?: Resolver<Array<ResolversTypes['SkillConnectionRequirement']>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

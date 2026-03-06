@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { ServiceContext } from "../context.js";
@@ -11,9 +12,11 @@ export async function installSkill(
   const tmpl = getSkillTemplate(templateId);
   if (!tmpl) throw new Error(`Skill template ${templateId} not found in catalog`);
 
+  const id = randomUUID();
+
   await ctx.resources.ddb.entities.Skill.build(PutItemCommand)
     .item({
-      id: templateId,
+      id,
       templateId,
       installed: true,
       installedAt: new Date().toISOString(),
@@ -23,6 +26,6 @@ export async function installSkill(
     })
     .send();
 
-  const skill = await getSkill(ctx, templateId);
+  const skill = await getSkill(ctx, id);
   return skill!;
 }

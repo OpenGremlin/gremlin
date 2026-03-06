@@ -9,6 +9,7 @@ export const skillTypeDefs = /* GraphQL */ `
     icon: String
     hasInstructions: Boolean!
     hasMcp: Boolean!
+    installCount: Int!
     requiredConnections: [SkillConnectionRequirement!]!
   }
 
@@ -41,7 +42,7 @@ export const skillTypeDefs = /* GraphQL */ `
     "All templates from the catalog"
     skillTemplates: [SkillTemplate!]!
     skillTemplate(id: ID!): SkillTemplate
-    "All skill instances (installed or not — one per template for now)"
+    "All installed skill instances"
     skills: [Skill!]!
     skill(id: ID!): Skill
   }

@@ -16,7 +16,7 @@ type Query {
   "All templates from the catalog"
   skillTemplates: [SkillTemplate!]!
   skillTemplate(id: ID!): SkillTemplate
-  "All skill instances (installed or not — one per template for now)"
+  "All installed skill instances"
   skills: [Skill!]!
   skill(id: ID!): Skill
   tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
@@ -275,6 +275,7 @@ type SkillTemplate {
   icon: String
   hasInstructions: Boolean!
   hasMcp: Boolean!
+  installCount: Int!
   requiredConnections: [SkillConnectionRequirement!]!
 }
 
