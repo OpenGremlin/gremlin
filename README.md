@@ -22,6 +22,10 @@ pnpm install
 pnpm dev
 ```
 
+### Logs
+
+Set `ENABLE_FILE_LOGS=true` in your root `.env` to write structured JSON logs to disk. Files are written to `logs/{server,sandbox}/{YYYY-MM-DDTHH}.log`, organized by app and hour. The `logs/` directory is gitignored.
+
 ## Conventions
 
 **Prompts**: All LLM prompts live in `apps/server/src/services/prompts/`. Templates go in the `templates/` subfolder as Handlebars strings. The `renderPrompt(key, data)` function is the single entry point — add new prompts by extending the `PromptRegistry` type and adding a corresponding template. Never inline prompts in implementation files.
