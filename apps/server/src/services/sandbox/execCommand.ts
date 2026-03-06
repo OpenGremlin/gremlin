@@ -1,10 +1,14 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
-import type { CommandResult, SandboxSession } from "./types.js";
+import type { BackgroundCommand, CommandResult, SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:exec");
-const COMMAND_TIMEOUT_MS = 120_000;
+const SOFT_TIMEOUT_MS = 30_000;
+const HARD_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;
+
+// In-memory background task tracking, keyed by command id
+const backgroundCommands = new Map<string, BackgroundCommand>();
 
 export async function connectToSandbox(
   session: SandboxSession,
@@ -64,27 +68,82 @@ export async function execCommand(
 
   return new Promise((resolve) => {
     let settled = false;
+    let backgrounded = false;
     const startTime = Date.now();
     let stdoutBuf = "";
     let stderrBuf = "";
 
-    const timer = setTimeout(() => {
+    // Soft timeout: background the command and return to the model
+    const softTimer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      cleanup();
+      backgrounded = true;
+
+      const bg: BackgroundCommand = {
+        id,
+        command,
+        agentId: session.agentId,
+        startTime,
+        stdout: stdoutBuf,
+        stderr: stderrBuf,
+        done: false,
+      };
+      backgroundCommands.set(id, bg);
+
       const durationMs = Date.now() - startTime;
-      log.warn(
-        { agentId: session.agentId, id, durationMs, stdoutLength: stdoutBuf.length, stderrLength: stderrBuf.length },
-        "Command timed out",
+      log.info(
+        { agentId: session.agentId, id, durationMs, stdoutLength: stdoutBuf.length },
+        "Command auto-backgrounded at soft timeout",
       );
+
       resolve({
         output: truncate(stdoutBuf),
         stderr: truncate(stderrBuf),
         exitCode: -1,
-        timedOut: true,
+        timedOut: false,
+        backgrounded: true,
+        commandId: id,
         durationMs,
       });
-    }, COMMAND_TIMEOUT_MS);
+      // Note: onMessage listener stays attached to keep accumulating output
+    }, SOFT_TIMEOUT_MS);
+
+    // Hard timeout: kill the process
+    const hardTimer = setTimeout(() => {
+      if (settled && !backgrounded) return;
+      cleanup();
+
+      const durationMs = Date.now() - startTime;
+
+      if (!settled) {
+        // Never got soft-timeout either (shouldn't happen since soft < hard, but safety)
+        settled = true;
+        log.warn(
+          { agentId: session.agentId, id, durationMs },
+          "Command hit hard timeout",
+        );
+        resolve({
+          output: truncate(stdoutBuf),
+          stderr: truncate(stderrBuf),
+          exitCode: -1,
+          timedOut: true,
+          durationMs,
+        });
+      } else {
+        // Was backgrounded, now finishing due to hard timeout
+        const bg = backgroundCommands.get(id);
+        if (bg) {
+          bg.done = true;
+          bg.exitCode = -1;
+          bg.stdout = stdoutBuf;
+          bg.stderr = stderrBuf;
+          log.warn(
+            { agentId: session.agentId, id, durationMs },
+            "Backgrounded command hit hard timeout",
+          );
+        }
+      }
+    }, HARD_TIMEOUT_MS);
 
     function onMessage(raw: Buffer) {
       try {
@@ -97,12 +156,14 @@ export async function execCommand(
         }
 
         if (msg.type === "exec:done") {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
+          clearTimeout(softTimer);
+          clearTimeout(hardTimer);
           cleanup();
+
           const durationMs = Date.now() - startTime;
           const exitCode = msg.exitCode ?? -1;
+          const finalStdout = msg.stdout ?? stdoutBuf;
+          const finalStderr = msg.stderr ?? stderrBuf;
 
           log.info(
             {
@@ -110,8 +171,9 @@ export async function execCommand(
               id,
               exitCode,
               durationMs,
-              stdoutLength: (msg.stdout ?? stdoutBuf).length,
-              stderrLength: (msg.stderr ?? stderrBuf).length,
+              stdoutLength: finalStdout.length,
+              stderrLength: finalStderr.length,
+              backgrounded,
               fullOutputPath: msg.fullOutputPath,
             },
             "Command completed",
@@ -119,18 +181,31 @@ export async function execCommand(
 
           if (exitCode !== 0) {
             log.warn(
-              { agentId: session.agentId, id, exitCode, stderrTail: (msg.stderr ?? stderrBuf).slice(-500) },
+              { agentId: session.agentId, id, exitCode, stderrTail: finalStderr.slice(-500) },
               "Command exited with non-zero code",
             );
           }
 
-          resolve({
-            output: truncate(msg.stdout ?? stdoutBuf),
-            stderr: truncate(msg.stderr ?? stderrBuf),
-            exitCode,
-            timedOut: false,
-            durationMs,
-          });
+          if (backgrounded) {
+            // Update background task state for checkCommand to read
+            const bg = backgroundCommands.get(id);
+            if (bg) {
+              bg.done = true;
+              bg.exitCode = exitCode;
+              bg.stdout = finalStdout;
+              bg.stderr = finalStderr;
+            }
+          } else {
+            // Not backgrounded yet — resolve the promise directly
+            settled = true;
+            resolve({
+              output: truncate(finalStdout),
+              stderr: truncate(finalStderr),
+              exitCode,
+              timedOut: false,
+              durationMs,
+            });
+          }
         }
       } catch {
         // ignore parse errors
@@ -144,6 +219,35 @@ export async function execCommand(
     ws.on("message", onMessage);
     ws.send(JSON.stringify({ type: "exec", id, command }));
   });
+}
+
+export function checkCommand(commandId: string): {
+  output: string;
+  stderr: string;
+  exitCode: number;
+  finished: boolean;
+} {
+  const bg = backgroundCommands.get(commandId);
+  if (!bg) {
+    return { output: "", stderr: "Unknown command ID", exitCode: -1, finished: true };
+  }
+
+  if (bg.done) {
+    backgroundCommands.delete(commandId);
+    return {
+      output: truncate(bg.stdout),
+      stderr: truncate(bg.stderr),
+      exitCode: bg.exitCode ?? -1,
+      finished: true,
+    };
+  }
+
+  return {
+    output: truncate(bg.stdout),
+    stderr: truncate(bg.stderr),
+    exitCode: -1,
+    finished: false,
+  };
 }
 
 function truncate(s: string): string {

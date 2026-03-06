@@ -13,6 +13,7 @@ import {
   browserTypeTool,
 } from "./browserTools.js";
 import {
+  checkCommandTool,
   launchSandboxTool,
   runCommandTool,
   terminateSandboxTool,
@@ -129,6 +130,7 @@ export async function runTaskLane(
       recallMemory: recallMemoryTool(ctx, task.agentId),
       launchSandbox: launchSandboxTool(ctx, task.agentId),
       runCommand: runCommandTool(ctx, task.agentId),
+      checkCommand: checkCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),
       browserNavigate: browserNavigateTool(ctx, task.agentId),
       browserScreenshot: browserScreenshotTool(ctx, task.agentId),
