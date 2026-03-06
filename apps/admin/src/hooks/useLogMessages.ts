@@ -11,6 +11,14 @@ import { useSubscription } from "../useSubscription";
 
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 
+/** Should this message show a timestamp, or coalesce with the next same-role message within 1 min? */
+export function shouldShowTimestamp(msg: ChatMessage, next: ChatMessage | undefined): boolean {
+  if (!next) return true;
+  if (msg.role !== next.role) return true;
+  const gap = new Date(next.createdAt).getTime() - new Date(msg.createdAt).getTime();
+  return Math.abs(gap) >= 60_000;
+}
+
 export function useLogMessages(
   scope: { agentId: string } | { taskId: string },
 ) {

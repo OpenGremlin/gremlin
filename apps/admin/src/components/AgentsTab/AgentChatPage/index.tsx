@@ -9,6 +9,7 @@ import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
+import { shouldShowTimestamp } from "../../../hooks/useLogMessages";
 import { LogEntryView } from "./LogEntryView";
 
 export function AgentChatPage() {
@@ -79,7 +80,7 @@ export function AgentChatPage() {
               Loading...
             </div>
           )}
-          {filteredMessages.map((msg) => (
+          {filteredMessages.map((msg, i) => (
             <LogEntryView
               key={msg.id}
               entry={msg}
@@ -90,6 +91,7 @@ export function AgentChatPage() {
               }
               documents={isTaskView ? taskDocs : undefined}
               sandboxStreams={isTaskView ? sandboxStreams : undefined}
+              showTimestamp={shouldShowTimestamp(msg, filteredMessages[i + 1])}
             />
           ))}
           {pendingMessages.map((content) => (

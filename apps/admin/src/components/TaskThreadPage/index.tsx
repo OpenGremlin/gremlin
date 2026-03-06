@@ -15,6 +15,7 @@ import { NotFound, QueryResult } from "../../shared/QueryResult";
 import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
+import { shouldShowTimestamp } from "../../hooks/useLogMessages";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
 
 type Task = NonNullable<TaskQueryType["task"]>;
@@ -110,6 +111,7 @@ export function TaskThreadPage() {
                   isLast={i === messages.length - 1}
                   documents={docs}
                   sandboxStreams={sandboxStreams}
+                  showTimestamp={shouldShowTimestamp(msg, messages[i + 1])}
                 />
               ))}
               {pendingMessages.map((content) => (

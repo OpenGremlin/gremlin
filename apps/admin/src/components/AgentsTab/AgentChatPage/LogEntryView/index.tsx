@@ -31,6 +31,7 @@ function CollapsibleBlock({
   textClass = "text-green-400/90",
   defaultOpen = false,
   maxLines = 3,
+  showTimestamp = true,
 }: {
   id: string;
   label: string;
@@ -39,6 +40,7 @@ function CollapsibleBlock({
   textClass?: string;
   defaultOpen?: boolean;
   maxLines?: number;
+  showTimestamp?: boolean;
 }) {
   return (
     <details id={id} className="py-1 group" open={defaultOpen || undefined}>
@@ -51,9 +53,11 @@ function CollapsibleBlock({
           <span className="text-[11px] text-neutral-300 font-bold font-mono">
             {label}
           </span>
-          <span className="text-[10px] text-neutral-600">
-            {formatTime(createdAt)}
-          </span>
+          {showTimestamp && (
+            <span className="text-[10px] text-neutral-600">
+              {formatTime(createdAt)}
+            </span>
+          )}
         </div>
         <div className="hidden group-open:block bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
           <pre
@@ -180,6 +184,7 @@ export function LogEntryView({
   sending,
   documents,
   sandboxStreams,
+  showTimestamp = true,
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
@@ -187,6 +192,7 @@ export function LogEntryView({
   sending?: boolean;
   documents?: Array<{ path: string; title: string; body?: string | null }>;
   sandboxStreams?: Map<string, CommandStream>;
+  showTimestamp?: boolean;
 }) {
   switch (entry.role) {
     case "SYSTEM": {
@@ -202,37 +208,46 @@ export function LogEntryView({
           label={label}
           content={display}
           createdAt={entry.createdAt}
+          showTimestamp={showTimestamp}
         />
       );
     }
     case "USER":
       return (
-        <div id={entry.id} className="flex justify-end py-1">
+        <div id={entry.id} className="flex justify-end">
           <div className="max-w-[80%]">
             <div
               className={`text-white text-sm px-3.5 py-2 rounded-2xl rounded-br-md ${sending ? "bg-blue-600/70" : "bg-blue-600"}`}
             >
               {entry.content}
             </div>
-            <div className="text-[10px] text-neutral-500 mt-0.5 text-right pr-1 flex items-center justify-end gap-1">
-              {sending && (
-                <Loader2 size={9} className="animate-spin text-blue-400" />
-              )}
-              {formatTime(entry.createdAt)}
-            </div>
+            {showTimestamp ? (
+              <div className="text-[10px] text-neutral-500 mt-0.5 mb-1 text-right pr-1 flex items-center justify-end gap-1">
+                {sending && (
+                  <Loader2 size={9} className="animate-spin text-blue-400" />
+                )}
+                {formatTime(entry.createdAt)}
+              </div>
+            ) : (
+              <div className="mb-0.5" />
+            )}
           </div>
         </div>
       );
     case "AGENT":
       return (
-        <div id={entry.id} className="flex justify-start py-1">
+        <div id={entry.id} className="flex justify-start">
           <div className="max-w-[80%]">
             <div className="bg-neutral-800 text-neutral-100 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
               {entry.content}
             </div>
-            <div className="text-[10px] text-neutral-500 mt-0.5 pl-1">
-              {formatTime(entry.createdAt)}
-            </div>
+            {showTimestamp ? (
+              <div className="text-[10px] text-neutral-500 mt-0.5 mb-1 pl-1">
+                {formatTime(entry.createdAt)}
+              </div>
+            ) : (
+              <div className="mb-0.5" />
+            )}
           </div>
         </div>
       );
@@ -315,9 +330,11 @@ export function LogEntryView({
                   {isStreaming && (
                     <Loader2 size={10} className="animate-spin text-neutral-500" />
                   )}
-                  <span className="text-[10px] text-neutral-600">
-                    {formatTime(entry.createdAt)}
-                  </span>
+                  {showTimestamp && (
+                    <span className="text-[10px] text-neutral-600">
+                      {formatTime(entry.createdAt)}
+                    </span>
+                  )}
                 </div>
               </summary>
               {hasResult ? (
@@ -350,6 +367,7 @@ export function LogEntryView({
           label={tool.name}
           content={sections.join("\n") || entry.content}
           createdAt={entry.createdAt}
+          showTimestamp={showTimestamp}
         />
       );
     }
