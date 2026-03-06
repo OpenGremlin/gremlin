@@ -6,13 +6,6 @@ const log = createLogger("sandbox:exec");
 const COMMAND_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;
 
-// Strip ANSI escape sequences so sentinel matching works through PTY color/cursor codes
-// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ANSI stripping
-const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?(?:\x07|\x1b\\)|\x1b[()][0-9A-B]|\r/g;
-function stripAnsi(s: string): string {
-  return s.replace(ANSI_RE, "");
-}
-
 export async function connectToSandbox(
   session: SandboxSession,
 ): Promise<WebSocket> {
@@ -62,75 +55,82 @@ export async function execCommand(
     throw new Error("Sandbox WebSocket not connected");
   }
 
-  const sentinel = `__GREMLIN_DONE_${crypto.randomUUID()}__`;
-  const wrappedCommand = `${command}; echo "${sentinel}$?__"`;
+  const id = crypto.randomUUID();
 
   log.info(
-    { agentId: session.agentId, commandLength: command.length, commandPreview: command.slice(0, 200) },
-    "Executing command",
+    { agentId: session.agentId, id, commandLength: command.length, commandPreview: command.slice(0, 200) },
+    "Executing command via exec mode",
   );
 
-  let output = "";
-  let _timedOut = false;
-
   return new Promise((resolve) => {
+    let settled = false;
     const startTime = Date.now();
+    let stdoutBuf = "";
+    let stderrBuf = "";
 
-    const timeout = setTimeout(() => {
-      _timedOut = true;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
       cleanup();
+      const durationMs = Date.now() - startTime;
       log.warn(
-        { agentId: session.agentId, durationMs: Date.now() - startTime, outputLength: output.length },
+        { agentId: session.agentId, id, durationMs, stdoutLength: stdoutBuf.length, stderrLength: stderrBuf.length },
         "Command timed out",
       );
       resolve({
-        output: truncate(output),
+        output: truncate(stdoutBuf),
+        stderr: truncate(stderrBuf),
         exitCode: -1,
         timedOut: true,
+        durationMs,
       });
     }, COMMAND_TIMEOUT_MS);
 
     function onMessage(raw: Buffer) {
       try {
         const msg = JSON.parse(raw.toString());
-        if (msg.type === "output" && typeof msg.data === "string") {
-          output += msg.data;
+        if (msg.id !== id) return;
 
-          // Check for sentinel (strip ANSI codes so PTY escapes don't break the match)
-          const sentinelPattern = new RegExp(
-            `${sentinel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\d+)__`,
-          );
-          const clean = stripAnsi(output);
-          const match = clean.match(sentinelPattern);
-          if (match) {
-            clearTimeout(timeout);
-            const exitCode = Number.parseInt(match[1], 10);
-            // Strip sentinel and everything after from clean output
-            output = clean.slice(0, match.index);
-            cleanup();
-            const durationMs = Date.now() - startTime;
-            log.info(
-              {
-                agentId: session.agentId,
-                exitCode,
-                durationMs,
-                outputLength: output.length,
-                truncated: output.length > MAX_OUTPUT_CHARS,
-              },
-              "Command completed",
-            );
-            if (exitCode !== 0) {
-              log.warn(
-                { agentId: session.agentId, exitCode, outputTail: output.slice(-500) },
-                "Command exited with non-zero code",
-              );
-            }
-            resolve({
-              output: truncate(output),
+        if (msg.type === "exec:output") {
+          if (msg.stream === "stdout") stdoutBuf += msg.data;
+          if (msg.stream === "stderr") stderrBuf += msg.data;
+        }
+
+        if (msg.type === "exec:done") {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cleanup();
+          const durationMs = Date.now() - startTime;
+          const exitCode = msg.exitCode ?? -1;
+
+          log.info(
+            {
+              agentId: session.agentId,
+              id,
               exitCode,
-              timedOut: false,
-            });
+              durationMs,
+              stdoutLength: (msg.stdout ?? stdoutBuf).length,
+              stderrLength: (msg.stderr ?? stderrBuf).length,
+              fullOutputPath: msg.fullOutputPath,
+            },
+            "Command completed",
+          );
+
+          if (exitCode !== 0) {
+            log.warn(
+              { agentId: session.agentId, id, exitCode, stderrTail: (msg.stderr ?? stderrBuf).slice(-500) },
+              "Command exited with non-zero code",
+            );
           }
+
+          resolve({
+            output: truncate(msg.stdout ?? stdoutBuf),
+            stderr: truncate(msg.stderr ?? stderrBuf),
+            exitCode,
+            timedOut: false,
+            durationMs,
+          });
         }
       } catch {
         // ignore parse errors
@@ -142,9 +142,7 @@ export async function execCommand(
     }
 
     ws.on("message", onMessage);
-
-    // Send the wrapped command
-    ws.send(JSON.stringify({ type: "input", data: `${wrappedCommand}\n` }));
+    ws.send(JSON.stringify({ type: "exec", id, command }));
   });
 }
 

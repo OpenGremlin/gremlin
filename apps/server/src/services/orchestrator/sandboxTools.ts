@@ -55,7 +55,7 @@ export function launchSandboxTool(ctx: ServiceContext, agentId: string) {
 export function runCommandTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
-      "Execute a shell command in the sandbox. Returns the command output and exit code. The sandbox has bash, git, python3, jq, curl, and build tools available. Working directory is /workspace (persistent across sessions). Max 120s per command, output truncated to 8K chars.",
+      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). The sandbox has bash, git, python3, jq, curl, and build tools available. Working directory is /workspace (persistent across sessions). Max 120s per command.",
     inputSchema: z.object({
       command: z.string().describe("The shell command to execute"),
     }),
@@ -73,10 +73,15 @@ export function runCommandTool(ctx: ServiceContext, agentId: string) {
       log.info({ agentId, commandPreview: command.slice(0, 200) }, "Agent running command");
       const result = await ctx.services.sandbox.execCommand(session, command);
       log.info(
-        { agentId, exitCode: result.exitCode, timedOut: result.timedOut, outputLength: result.output.length },
+        { agentId, exitCode: result.exitCode, timedOut: result.timedOut, outputLength: result.output.length, durationMs: result.durationMs },
         "Command result returned to agent",
       );
-      return result;
+
+      const output = result.stderr
+        ? `${result.output}\n\n[stderr]\n${result.stderr}`
+        : result.output;
+
+      return { output, exitCode: result.exitCode, timedOut: result.timedOut };
     },
   });
 }

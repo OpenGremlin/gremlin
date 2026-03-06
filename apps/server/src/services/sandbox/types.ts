@@ -16,6 +16,8 @@ export interface BrowserSession {
 
 export interface CommandResult {
   output: string;
+  stderr: string;
   exitCode: number;
   timedOut: boolean;
+  durationMs: number;
 }
