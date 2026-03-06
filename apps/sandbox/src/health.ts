@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { log } from "./log.js";
 
 export function startHealthServer(port: number): void {
   const server = createServer((req, res) => {
@@ -12,4 +13,5 @@ export function startHealthServer(port: number): void {
   });
 
   server.listen(port);
+  log("health", "Health server listening", { port });
 }

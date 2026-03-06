@@ -1,5 +1,6 @@
 import pty from "node-pty";
 import { type WebSocket, WebSocketServer } from "ws";
+import { log } from "./log.js";
 
 const TOOLS_ROOT = "/workspace/.tools";
 
@@ -9,10 +10,19 @@ const TOOL_PATHS = [
   `${TOOLS_ROOT}/cargo/bin`,
 ].join(":");
 
+let connectionCounter = 0;
+
 export function startRelay(port: number): void {
   const wss = new WebSocketServer({ port });
 
-  wss.on("connection", (ws: WebSocket) => {
+  log("relay", "WebSocket server listening", { port });
+
+  wss.on("connection", (ws: WebSocket, req) => {
+    const connId = ++connectionCounter;
+    const remoteAddr = req.socket.remoteAddress;
+
+    log("relay", "New WebSocket connection", { connId, remoteAddr });
+
     const shell = pty.spawn("bash", [], {
       name: "xterm-256color",
       cols: 120,
@@ -29,8 +39,11 @@ export function startRelay(port: number): void {
       } as Record<string, string>,
     });
 
+    log("relay", "PTY spawned", { connId, pid: shell.pid });
+
     // Signal readiness
     ws.send(JSON.stringify({ type: "ready" }));
+    log("relay", "Sent ready signal", { connId });
 
     // PTY -> WS
     shell.onData((data: string) => {
@@ -40,6 +53,7 @@ export function startRelay(port: number): void {
     });
 
     shell.onExit(({ exitCode }) => {
+      log("relay", "PTY exited", { connId, exitCode, pid: shell.pid });
       if (ws.readyState === ws.OPEN) {
         ws.send(JSON.stringify({ type: "exit", exitCode }));
         ws.close();
@@ -51,17 +65,48 @@ export function startRelay(port: number): void {
       try {
         const msg = JSON.parse(raw.toString());
         if (msg.type === "input" && typeof msg.data === "string") {
+          // Log the command (strip trailing newline for readability)
+          const cmd = msg.data.replace(/\n$/, "");
+          log("relay", "Input received", {
+            connId,
+            commandLength: cmd.length,
+            commandPreview: cmd.slice(0, 200),
+          });
           shell.write(msg.data);
         } else if (msg.type === "resize" && msg.cols && msg.rows) {
+          log("relay", "Terminal resized", {
+            connId,
+            cols: msg.cols,
+            rows: msg.rows,
+          });
           shell.resize(msg.cols, msg.rows);
         }
-      } catch {
-        // Ignore malformed messages
+      } catch (err) {
+        log("relay", "Failed to parse WS message", {
+          connId,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     });
 
-    ws.on("close", () => {
+    ws.on("close", (code, reason) => {
+      log("relay", "WebSocket closed", {
+        connId,
+        code,
+        reason: reason.toString(),
+      });
       shell.kill();
     });
+
+    ws.on("error", (err) => {
+      log("relay", "WebSocket error", {
+        connId,
+        error: err.message,
+      });
+    });
+  });
+
+  wss.on("error", (err) => {
+    log("relay", "WebSocket server error", { error: err.message });
   });
 }

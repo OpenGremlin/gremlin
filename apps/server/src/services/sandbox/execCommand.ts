@@ -1,18 +1,27 @@
 import WebSocket from "ws";
+import { createLogger } from "../../logger.js";
 import type { CommandResult, SandboxSession } from "./types.js";
 
+const log = createLogger("sandbox:exec");
 const COMMAND_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;
 
 export async function connectToSandbox(
   session: SandboxSession,
 ): Promise<WebSocket> {
+  log.info({ agentId: session.agentId, wsUrl: session.wsUrl }, "Connecting to sandbox WebSocket");
+
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(session.wsUrl);
     const timeout = setTimeout(() => {
+      log.error({ agentId: session.agentId, wsUrl: session.wsUrl }, "WebSocket connection timed out (15s)");
       ws.close();
       reject(new Error("WebSocket connection timed out"));
     }, 15_000);
+
+    ws.on("open", () => {
+      log.debug({ agentId: session.agentId }, "WebSocket TCP connection opened, waiting for ready signal");
+    });
 
     ws.on("message", (raw) => {
       try {
@@ -20,6 +29,7 @@ export async function connectToSandbox(
         if (msg.type === "ready") {
           clearTimeout(timeout);
           session.ws = ws;
+          log.info({ agentId: session.agentId }, "Sandbox WebSocket connected and ready");
           resolve(ws);
         }
       } catch {
@@ -29,6 +39,7 @@ export async function connectToSandbox(
 
     ws.on("error", (err) => {
       clearTimeout(timeout);
+      log.error({ agentId: session.agentId, error: err.message }, "WebSocket connection error");
       reject(err);
     });
   });
@@ -40,19 +51,31 @@ export async function execCommand(
 ): Promise<CommandResult> {
   const ws = session.ws;
   if (!ws || ws.readyState !== WebSocket.OPEN) {
+    log.error({ agentId: session.agentId, readyState: ws?.readyState }, "WebSocket not connected");
     throw new Error("Sandbox WebSocket not connected");
   }
 
   const sentinel = `__GREMLIN_DONE_${crypto.randomUUID()}__`;
   const wrappedCommand = `${command}; echo "${sentinel}$?__"`;
 
+  log.info(
+    { agentId: session.agentId, commandLength: command.length, commandPreview: command.slice(0, 200) },
+    "Executing command",
+  );
+
   let output = "";
   let _timedOut = false;
 
   return new Promise((resolve) => {
+    const startTime = Date.now();
+
     const timeout = setTimeout(() => {
       _timedOut = true;
       cleanup();
+      log.warn(
+        { agentId: session.agentId, durationMs: Date.now() - startTime, outputLength: output.length },
+        "Command timed out",
+      );
       resolve({
         output: truncate(output),
         exitCode: -1,
@@ -77,6 +100,23 @@ export async function execCommand(
             // Strip sentinel and everything after from output
             output = output.slice(0, match.index);
             cleanup();
+            const durationMs = Date.now() - startTime;
+            log.info(
+              {
+                agentId: session.agentId,
+                exitCode,
+                durationMs,
+                outputLength: output.length,
+                truncated: output.length > MAX_OUTPUT_CHARS,
+              },
+              "Command completed",
+            );
+            if (exitCode !== 0) {
+              log.warn(
+                { agentId: session.agentId, exitCode, outputTail: output.slice(-500) },
+                "Command exited with non-zero code",
+              );
+            }
             resolve({
               output: truncate(output),
               exitCode,

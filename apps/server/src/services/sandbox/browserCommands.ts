@@ -1,5 +1,7 @@
+import { createLogger } from "../../logger.js";
 import type { SandboxSession } from "./types.js";
 
+const log = createLogger("sandbox:browser");
 const BROWSER_BRIDGE_PORT = 9090;
 const TIMEOUT_MS = 30_000;
 
@@ -13,6 +15,10 @@ async function browserFetch(
   options?: RequestInit,
 ): Promise<Record<string, unknown>> {
   const url = browserUrl(session, path);
+  const start = Date.now();
+
+  log.info({ agentId: session.agentId, path, method: options?.method ?? "GET" }, "Browser bridge request");
+
   const res = await fetch(url, {
     ...options,
     signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -20,11 +26,16 @@ async function browserFetch(
   });
 
   const data = (await res.json()) as Record<string, unknown>;
+  const durationMs = Date.now() - start;
+
   if (!res.ok) {
+    log.error({ agentId: session.agentId, path, status: res.status, durationMs, error: data.error }, "Browser bridge request failed");
     throw new Error(
       (data.error as string) ?? `Browser bridge error: ${res.status}`,
     );
   }
+
+  log.info({ agentId: session.agentId, path, status: res.status, durationMs }, "Browser bridge request completed");
   return data;
 }
 
