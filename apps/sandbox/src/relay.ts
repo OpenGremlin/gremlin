@@ -75,6 +75,9 @@ export function startRelay(port: number): void {
       }
     });
 
+    // Per-connection shell state for exec mode
+    const execState = { cwd: WORKSPACE_DIR, env: {} as Record<string, string> };
+
     // WS -> PTY
     ws.on("message", (raw: Buffer) => {
       try {
@@ -91,7 +94,7 @@ export function startRelay(port: number): void {
           log.debug({ connId, cols: msg.cols, rows: msg.rows }, "Terminal resized");
           shell.resize(msg.cols, msg.rows);
         } else if (msg.type === "exec" && typeof msg.id === "string" && typeof msg.command === "string") {
-          handleExec(ws, connId, msg, shellEnv);
+          handleExec(ws, connId, msg, shellEnv, execState);
         }
       } catch (err) {
         log.warn({
@@ -120,11 +123,19 @@ const MAX_BUFFER_BYTES = 5 * 1024 * 1024; // 5MB hard cap per stream
 const MAX_CHUNK_BYTES = 8192; // 8KB per streamed chunk
 const MAX_INLINE_BYTES = 50 * 1024; // 50KB — spill to disk above this
 
+const CWD_SENTINEL = "__GREMLIN_CWD__";
+
+interface ExecState {
+  cwd: string;
+  env: Record<string, string>;
+}
+
 function handleExec(
   ws: WebSocket,
   connId: number,
   msg: { id: string; command: string; timeout?: number; env?: Record<string, string> },
   shellEnv: Record<string, string>,
+  execState: ExecState,
 ): void {
   const { id, command, timeout, env } = msg;
 
@@ -133,11 +144,15 @@ function handleExec(
     id,
     commandLength: command.length,
     commandPreview: command.slice(0, 200),
+    cwd: execState.cwd,
   }, "Exec command received");
 
-  const proc = spawn("/bin/bash", ["-c", command], {
-    cwd: WORKSPACE_DIR,
-    env: { ...shellEnv, ...env },
+  // Wrap command to capture cwd after execution
+  const wrappedCommand = `${command}\n__gremlin_exit=$?; echo "${CWD_SENTINEL}" >&2; pwd >&2; exit $__gremlin_exit`;
+
+  const proc = spawn("/bin/bash", ["-c", wrappedCommand], {
+    cwd: execState.cwd,
+    env: { ...shellEnv, ...execState.env, ...env },
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -184,7 +199,19 @@ function handleExec(
     clearTimeout(timer);
     const exitCode = code ?? (signal ? 128 : -1);
 
-    log.info({ connId, id, exitCode, killed }, "Exec command completed");
+    // Extract cwd from stderr sentinel and update exec state
+    const cwdIdx = stderr.lastIndexOf(CWD_SENTINEL);
+    if (cwdIdx !== -1) {
+      const afterSentinel = stderr.slice(cwdIdx + CWD_SENTINEL.length).trim();
+      const newCwd = afterSentinel.split("\n")[0]?.trim();
+      if (newCwd && newCwd.startsWith("/")) {
+        execState.cwd = newCwd;
+      }
+      // Strip the sentinel and cwd from stderr
+      stderr = stderr.slice(0, cwdIdx).trimEnd();
+    }
+
+    log.info({ connId, id, exitCode, killed, cwd: execState.cwd }, "Exec command completed");
 
     if (ws.readyState !== ws.OPEN) return;
 
