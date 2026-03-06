@@ -249,9 +249,31 @@ loadSchedulerConfig().then(async () => {
   };
   stopSqsWorker = startSqsWorker(svcCtx);
 
-  server.listen(PORT, () => {
-    logger.info({ port: PORT }, "Gremlin server started");
-  });
+  server
+    .listen(PORT, () => {
+      logger.info({ port: PORT }, "Gremlin server started");
+    })
+    .on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "EADDRINUSE") {
+        logger.warn({ port: PORT }, "Port in use, killing existing process…");
+        import("child_process").then(({ execSync }) => {
+          try {
+            execSync(`lsof -ti tcp:${PORT} | xargs kill -9`, {
+              stdio: "ignore",
+            });
+          } catch {
+            // No process found or already dead
+          }
+          setTimeout(() => {
+            server.listen(PORT, () => {
+              logger.info({ port: PORT }, "Gremlin server started (reclaimed port)");
+            });
+          }, 500);
+        });
+      } else {
+        throw err;
+      }
+    });
 });
 
 function shutdown() {
