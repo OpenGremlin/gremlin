@@ -8,7 +8,9 @@ import {
   browserType,
 } from "./browserCommands.js";
 import { connectToSandbox, execCommand } from "./execCommand.js";
+import { launchBrowser } from "./launchBrowser.js";
 import { launchSandbox } from "./launchSandbox.js";
+import { terminateBrowser } from "./terminateBrowser.js";
 import { terminateSandbox } from "./terminateSandbox.js";
 
 export const sandboxService = {
@@ -16,6 +18,8 @@ export const sandboxService = {
   connectToSandbox,
   execCommand,
   terminateSandbox,
+  launchBrowser,
+  terminateBrowser,
   browserStatus,
   browserNavigate,
   browserScreenshot,

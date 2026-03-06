@@ -1,6 +1,8 @@
 import { tool } from "ai";
 import { z } from "zod";
-import type { SandboxSession } from "../sandbox/types.js";
+import { createLogger } from "../../logger.js";
+import type { ServiceContext } from "../context.js";
+import type { BrowserSession } from "../sandbox/types.js";
 import {
   browserClick,
   browserEvaluate,
@@ -11,24 +13,54 @@ import {
 } from "../sandbox/browserCommands.js";
 import { activeSessions } from "./sandboxTools.js";
 
-function getSession(agentId: string): SandboxSession {
-  const session = activeSessions.get(agentId);
-  if (!session) {
+const log = createLogger("browser:tools");
+
+// Separate map for browser Fargate sessions
+export const activeBrowserSessions = new Map<string, BrowserSession>();
+
+async function getOrLaunchBrowser(
+  ctx: ServiceContext,
+  agentId: string,
+): Promise<BrowserSession> {
+  const existing = activeBrowserSessions.get(agentId);
+  if (existing) return existing;
+
+  // Ensure sandbox is running (browser tools require a sandbox session)
+  if (!activeSessions.has(agentId)) {
     throw new Error("No sandbox running. Call launchSandbox first.");
   }
+
+  log.info({ agentId }, "Lazy-launching browser Fargate task");
+  const session = await ctx.services.sandbox.launchBrowser(agentId);
+  activeBrowserSessions.set(agentId, session);
+  log.info({ agentId, taskArn: session.taskArn }, "Browser session ready");
   return session;
 }
 
-export function browserNavigateTool(_agentId: string) {
+export function cleanupBrowserSession(
+  ctx: ServiceContext,
+  agentId: string,
+): void {
+  const session = activeBrowserSessions.get(agentId);
+  if (session) {
+    log.info({ agentId, taskArn: session.taskArn }, "Cleaning up browser session");
+    ctx.services.sandbox.terminateBrowser(session).catch((err) => {
+      log.error({ agentId, error: (err as Error).message }, "Failed to terminate browser");
+    });
+    activeBrowserSessions.delete(agentId);
+  }
+}
+
+export function browserNavigateTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
-      "Navigate the sandbox browser to a URL. The browser runs inside the sandbox sidecar with a full headless Chromium instance.",
+      "Navigate the browser to a URL. A headless Chromium browser will be launched on-demand the first time you use a browser tool.",
     inputSchema: z.object({
       url: z.string().describe("The URL to navigate to"),
     }),
     execute: async ({ url }) => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserNavigate(session, url);
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
@@ -37,7 +69,7 @@ export function browserNavigateTool(_agentId: string) {
   });
 }
 
-export function browserScreenshotTool(_agentId: string) {
+export function browserScreenshotTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Take a screenshot of the current browser page. Returns a base64-encoded PNG image.",
@@ -49,7 +81,7 @@ export function browserScreenshotTool(_agentId: string) {
     }),
     execute: async ({ fullPage }) => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserScreenshot(session, { fullPage });
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
@@ -58,7 +90,7 @@ export function browserScreenshotTool(_agentId: string) {
   });
 }
 
-export function browserClickTool(_agentId: string) {
+export function browserClickTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Click an element in the browser by CSS selector or x/y coordinates.",
@@ -72,7 +104,7 @@ export function browserClickTool(_agentId: string) {
     }),
     execute: async ({ selector, x, y }) => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserClick(session, { selector, x, y });
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
@@ -81,7 +113,7 @@ export function browserClickTool(_agentId: string) {
   });
 }
 
-export function browserTypeTool(_agentId: string) {
+export function browserTypeTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Type text into an element in the browser. Optionally focus a specific element by CSS selector first.",
@@ -94,7 +126,7 @@ export function browserTypeTool(_agentId: string) {
     }),
     execute: async ({ text, selector }) => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserType(session, { text, selector });
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
@@ -103,7 +135,7 @@ export function browserTypeTool(_agentId: string) {
   });
 }
 
-export function browserEvaluateTool(_agentId: string) {
+export function browserEvaluateTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Execute JavaScript in the browser page context. Returns the result of the expression.",
@@ -112,7 +144,7 @@ export function browserEvaluateTool(_agentId: string) {
     }),
     execute: async ({ expression }) => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserEvaluate(session, expression);
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
@@ -121,14 +153,14 @@ export function browserEvaluateTool(_agentId: string) {
   });
 }
 
-export function browserGetContentTool(_agentId: string) {
+export function browserGetContentTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Get the text content of the current browser page (document.body.innerText).",
     inputSchema: z.object({}),
     execute: async () => {
       try {
-        const session = getSession(_agentId);
+        const session = await getOrLaunchBrowser(ctx, agentId);
         return await browserGetContent(session);
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };

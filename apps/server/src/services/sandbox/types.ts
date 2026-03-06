@@ -1,11 +1,17 @@
 import type WebSocket from "ws";
 
 export interface SandboxSession {
-  taskArn: string;
+  instanceId: string;
   privateIp: string;
   wsUrl: string;
   agentId: string;
   ws?: WebSocket;
+}
+
+export interface BrowserSession {
+  taskArn: string;
+  privateIp: string;
+  agentId: string;
 }
 
 export interface CommandResult {

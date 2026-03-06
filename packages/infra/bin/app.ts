@@ -2,10 +2,11 @@
 import * as cdk from "aws-cdk-lib";
 import { AdminStack } from "../lib/admin-stack.js";
 import { AuthStack } from "../lib/auth-stack.js";
+import { BrowserStack } from "../lib/browser-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
 import { MessagingStack } from "../lib/messaging-stack.js";
-import { SandboxStack } from "../lib/sandbox-stack.js";
+import { SandboxEc2Stack } from "../lib/sandbox-ec2-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
 import { VpcStack } from "../lib/vpc-stack.js";
 
@@ -50,16 +51,21 @@ new MessagingStack(app, "GremlinMessagingStack", {
   serverRole: server.serverRole,
 });
 
-// 4. Sandbox — depends on VPC, Database (EFS), Server (cluster, SG)
-new SandboxStack(app, "GremlinSandboxStack", {
+// 4. Sandbox EC2 — depends on VPC, Server (SG)
+new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   env,
   vpc: network.vpc,
   serverSecurityGroup: server.serverSecurityGroup,
-  fileSystem: db.fileSystem,
-  accessPoint: db.accessPoint,
 });
 
-// 5. Admin — depends on Auth, Media, Server (for ALB)
+// 5. Browser Fargate — depends on VPC, Server (SG)
+new BrowserStack(app, "GremlinBrowserStack", {
+  env,
+  vpc: network.vpc,
+  serverSecurityGroup: server.serverSecurityGroup,
+});
+
+// 6. Admin — depends on Auth, Media, Server (for ALB)
 new AdminStack(app, "GremlinAdminStack", {
   env,
   userPoolId: auth.userPoolId,

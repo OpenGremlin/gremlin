@@ -130,12 +130,12 @@ export async function runTaskLane(
       launchSandbox: launchSandboxTool(ctx, task.agentId),
       runCommand: runCommandTool(ctx, task.agentId),
       terminateSandbox: terminateSandboxTool(ctx, task.agentId),
-      browserNavigate: browserNavigateTool(task.agentId),
-      browserScreenshot: browserScreenshotTool(task.agentId),
-      browserClick: browserClickTool(task.agentId),
-      browserType: browserTypeTool(task.agentId),
-      browserEvaluate: browserEvaluateTool(task.agentId),
-      browserGetContent: browserGetContentTool(task.agentId),
+      browserNavigate: browserNavigateTool(ctx, task.agentId),
+      browserScreenshot: browserScreenshotTool(ctx, task.agentId),
+      browserClick: browserClickTool(ctx, task.agentId),
+      browserType: browserTypeTool(ctx, task.agentId),
+      browserEvaluate: browserEvaluateTool(ctx, task.agentId),
+      browserGetContent: browserGetContentTool(ctx, task.agentId),
     },
   });
 

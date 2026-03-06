@@ -1,16 +1,16 @@
 import { createLogger } from "../../logger.js";
-import type { SandboxSession } from "./types.js";
+import type { BrowserSession } from "./types.js";
 
 const log = createLogger("sandbox:browser");
 const BROWSER_BRIDGE_PORT = 9090;
 const TIMEOUT_MS = 30_000;
 
-function browserUrl(session: SandboxSession, path: string): string {
+function browserUrl(session: BrowserSession, path: string): string {
   return `http://${session.privateIp}:${BROWSER_BRIDGE_PORT}${path}`;
 }
 
 async function browserFetch(
-  session: SandboxSession,
+  session: BrowserSession,
   path: string,
   options?: RequestInit,
 ): Promise<Record<string, unknown>> {
@@ -40,13 +40,13 @@ async function browserFetch(
 }
 
 export async function browserStatus(
-  session: SandboxSession,
+  session: BrowserSession,
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/status");
 }
 
 export async function browserNavigate(
-  session: SandboxSession,
+  session: BrowserSession,
   url: string,
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/navigate", {
@@ -56,7 +56,7 @@ export async function browserNavigate(
 }
 
 export async function browserScreenshot(
-  session: SandboxSession,
+  session: BrowserSession,
   opts?: { fullPage?: boolean },
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/screenshot", {
@@ -66,7 +66,7 @@ export async function browserScreenshot(
 }
 
 export async function browserClick(
-  session: SandboxSession,
+  session: BrowserSession,
   target: { selector?: string; x?: number; y?: number },
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/click", {
@@ -76,7 +76,7 @@ export async function browserClick(
 }
 
 export async function browserType(
-  session: SandboxSession,
+  session: BrowserSession,
   params: { selector?: string; text: string },
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/type", {
@@ -86,7 +86,7 @@ export async function browserType(
 }
 
 export async function browserEvaluate(
-  session: SandboxSession,
+  session: BrowserSession,
   expression: string,
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/evaluate", {
@@ -96,7 +96,7 @@ export async function browserEvaluate(
 }
 
 export async function browserGetContent(
-  session: SandboxSession,
+  session: BrowserSession,
 ): Promise<Record<string, unknown>> {
   return browserFetch(session, "/browser/content");
 }

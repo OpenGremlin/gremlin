@@ -15,6 +15,7 @@ export const AgentEntity = new Entity({
     portraitId: string(),
     soul: string(),
     retired: boolean().optional().default(false),
+    sandboxInstanceId: string().optional(),
   }),
   computeKey: ({ id }) => ({
     pk: "AGENT",

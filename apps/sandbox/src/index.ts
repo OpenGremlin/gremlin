@@ -17,6 +17,12 @@ log("startup", "Sandbox starting", {
 
 startRelay(WS_PORT);
 startHealthServer(HEALTH_PORT);
-startBrowserBridge(BROWSER_BRIDGE_PORT);
+
+if (process.env.DISABLE_BROWSER_BRIDGE !== "true") {
+  startBrowserBridge(BROWSER_BRIDGE_PORT);
+  log("startup", "Browser bridge started", { port: BROWSER_BRIDGE_PORT });
+} else {
+  log("startup", "Browser bridge disabled via DISABLE_BROWSER_BRIDGE");
+}
 
 log("startup", "All services started");

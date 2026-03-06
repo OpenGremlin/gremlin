@@ -78,9 +78,26 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // ECS permissions (for browser Fargate tasks)
     serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["ecs:RunTask", "ecs:StopTask", "ecs:DescribeTasks"],
+        resources: ["*"],
+      }),
+    );
+
+    // EC2 permissions (for sandbox instances)
+    serverRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "ec2:RunInstances",
+          "ec2:StartInstances",
+          "ec2:StopInstances",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus",
+          "ec2:CreateTags",
+          "ec2:TerminateInstances",
+        ],
         resources: ["*"],
       }),
     );
@@ -92,13 +109,17 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // PassRole for both ECS tasks and EC2 sandbox instances
     serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iam:PassRole"],
         resources: ["*"],
         conditions: {
           StringLike: {
-            "iam:PassedToService": "ecs-tasks.amazonaws.com",
+            "iam:PassedToService": [
+              "ecs-tasks.amazonaws.com",
+              "ec2.amazonaws.com",
+            ],
           },
         },
       }),
