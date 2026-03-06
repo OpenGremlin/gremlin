@@ -1,11 +1,10 @@
 # Local development infrastructure
 #
 # Setup:
-#   1. docker compose up -d
-#   2. pnpm --filter @gremlin/server run db:create    # DynamoDB tables + SQS queue + Scheduler group
-#   3. pnpm --filter @gremlin/server run db:seed       # Seed agent data
-#   4. Uncomment LOCALSTACK_ENDPOINT and DOORBELL_QUEUE_URL in .env
-#   5. pnpm --filter @gremlin/server dev
+#   1. docker compose up -d                            # DynamoDB, SQS, Scheduler auto-created via init hook
+#   2. pnpm --filter @gremlin/server run db:seed       # Seed agent data
+#   3. Uncomment LOCALSTACK_ENDPOINT and DOORBELL_QUEUE_URL in .env
+#   4. pnpm --filter @gremlin/server dev
 #
 # LocalStack provides local DynamoDB, SQS, and EventBridge Scheduler.
 # Bedrock and S3 Vectors remain cloud-connected.
@@ -16,5 +15,7 @@ services:
     image: localstack/localstack:latest
     ports:
       - "4566:4566"
+    volumes:
+      - ./localstack/init:/etc/localstack/init/ready.d
     environment:
       - SERVICES=dynamodb,sqs,scheduler
