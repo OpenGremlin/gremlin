@@ -29,22 +29,26 @@ function CollapsibleBlock({
   content,
   createdAt,
   textClass = "text-green-400/90",
+  defaultOpen = false,
+  maxLines = 3,
 }: {
   id: string;
   label: string;
   content: string;
   createdAt: string;
   textClass?: string;
+  defaultOpen?: boolean;
+  maxLines?: number;
 }) {
   return (
-    <details id={id} className="py-1 group">
+    <details id={id} className="py-1 group" open={defaultOpen || undefined}>
       <summary className="list-none cursor-pointer">
         <div className="flex items-center gap-1.5 py-1">
           <ChevronRight
             size={12}
-            className="text-neutral-600 shrink-0 transition-transform group-open:rotate-90"
+            className="text-neutral-300 shrink-0 transition-transform group-open:rotate-90"
           />
-          <span className="text-[11px] text-neutral-500 font-mono">
+          <span className="text-[11px] text-neutral-300 font-bold font-mono">
             {label}
           </span>
           <span className="text-[10px] text-neutral-600">
@@ -54,6 +58,7 @@ function CollapsibleBlock({
         <div className="hidden group-open:block bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
           <pre
             className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed ${textClass}`}
+            style={{ maxHeight: `${maxLines * 1.5 + 1}em`, overflow: "hidden", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
           >
             {content}
           </pre>
@@ -285,17 +290,24 @@ export function LogEntryView({
         }
         const isStreaming = !hasResult && stream && !stream.done;
 
+        const truncatedCmd = command
+          ? command.length > 30 ? `${command.slice(0, 30)}…` : command
+          : null;
+
         return (
           <div id={entry.id} className="py-1">
-            <details className="group" open={isStreaming || undefined}>
+            <details className="group" open={true}>
               <summary className="list-none cursor-pointer">
                 <div className="flex items-center gap-1.5 py-1">
                   <ChevronRight
                     size={12}
-                    className="text-neutral-600 shrink-0 transition-transform group-open:rotate-90"
+                    className="text-neutral-300 shrink-0 transition-transform group-open:rotate-90"
                   />
-                  <span className="text-[11px] text-neutral-500 font-mono">
-                    {command ? `$ ${command.length > 80 ? `${command.slice(0, 80)}…` : command}` : "runCommand"}
+                  <span className="text-[11px] font-mono font-bold text-neutral-300">
+                    <span className="group-open:hidden">
+                      runCommand(<span className="font-normal text-neutral-400">$ {truncatedCmd ?? "…"}</span>)
+                    </span>
+                    <span className="hidden group-open:inline">runCommand</span>
                   </span>
                   {hasResult && exitCode !== undefined && exitCode !== 0 && (
                     <span className="text-[10px] text-red-400/70">exit {exitCode}</span>
@@ -310,8 +322,11 @@ export function LogEntryView({
               </summary>
               {hasResult ? (
                 <div className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
-                  <pre className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90 max-h-[200px] overflow-y-auto">
-                    {output || "(no output)"}
+                  <pre
+                    className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90"
+                    style={{ maxHeight: `${3 * 1.5 + 1}em`, overflow: "hidden", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
+                  >
+                    {command && `$ ${command}\n`}{output || "(no output)"}
                   </pre>
                 </div>
               ) : (
