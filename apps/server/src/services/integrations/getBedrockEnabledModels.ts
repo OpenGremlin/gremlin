@@ -1,7 +1,7 @@
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { Resources } from "../../resources/index.js";
 
-const DEFAULT_ENABLED = ["us.anthropic.claude-sonnet-4-6"];
+const DEFAULT_ENABLED = ["us.anthropic.claude-sonnet-4-20250514-v1:0"];
 
 export async function getBedrockEnabledModels(
   resources: Resources,
