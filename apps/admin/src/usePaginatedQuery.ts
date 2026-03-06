@@ -113,11 +113,18 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     [direction],
   );
 
-  /** Replace a node matching `predicate`, or append if no match. */
+  /** Update a node by id, or replace one matching `predicate`, or append. */
   const replaceOrAppend = useCallback(
     (node: TNode, predicate: (existing: TNode) => boolean) => {
       setNodes((prev) => {
-        if (prev.some((n) => n.id === node.id)) return prev;
+        // Update in-place if same id exists (e.g. call entry updated with result)
+        const byId = prev.findIndex((n) => n.id === node.id);
+        if (byId !== -1) {
+          const next = [...prev];
+          next[byId] = node;
+          return next;
+        }
+        // Replace by predicate match
         const idx = prev.findIndex(predicate);
         if (idx !== -1) {
           const next = [...prev];

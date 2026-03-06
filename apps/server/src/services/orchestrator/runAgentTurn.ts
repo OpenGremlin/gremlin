@@ -2,18 +2,23 @@ import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
 import type { ServiceContext } from "../context.js";
 import { getModel } from "./model.js";
 import { requestApprovalTool } from "../tools/index.js";
-import { writeAgentLog } from "./writeAgentLog.js";
+import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
 /** Tools marked as internal — logged for audit but hidden from the UI. */
 const INTERNAL_TOOLS = new Set(["updateDocument"]);
 
-/** Wrap tools to emit a TOOL log entry (input only) when execution starts. */
+/**
+ * Wrap tools to emit a TOOL log entry (input only) when execution starts.
+ * Returns the wrapped tools and a map of toolCallId → logEntryId for
+ * updating the entry with the result later.
+ */
 function withEagerLogging(
   tools: Record<string, Tool>,
   ctx: ServiceContext,
   agentId: string,
   taskId: string | null,
-): Record<string, Tool> {
+): { tools: Record<string, Tool>; callLogIds: Map<string, string> } {
+  const callLogIds = new Map<string, string>();
   const wrapped: Record<string, Tool> = {};
   for (const [name, t] of Object.entries(tools)) {
     if (INTERNAL_TOOLS.has(name)) {
@@ -24,7 +29,7 @@ function withEagerLogging(
       ...t,
       execute: async (input: unknown, options: unknown) => {
         // Write call log immediately (no result yet)
-        await writeAgentLog(ctx, {
+        const { id: logId } = await writeAgentLog(ctx, {
           agentId,
           taskId,
           role: "TOOL",
@@ -33,12 +38,15 @@ function withEagerLogging(
           toolResult: null,
           internal: false,
         });
+        // Track by toolCallId from the AI SDK options
+        const toolCallId = (options as { toolCallId?: string })?.toolCallId;
+        if (toolCallId) callLogIds.set(toolCallId, logId);
         // @ts-expect-error — Tool execute signature varies
         return t.execute(input, options);
       },
     };
   }
-  return wrapped;
+  return { tools: wrapped, callLogIds };
 }
 
 export async function runAgentTurn(
@@ -59,7 +67,7 @@ export async function runAgentTurn(
   };
 
   // Wrap tools to emit a call log immediately when execution starts
-  const allTools = withEagerLogging(baseTools, ctx, opts.agentId, opts.taskId);
+  const { tools: allTools, callLogIds } = withEagerLogging(baseTools, ctx, opts.agentId, opts.taskId);
 
   const tz = opts.timezone ?? "UTC";
   const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
@@ -83,23 +91,34 @@ export async function runAgentTurn(
     tools: allTools,
     stopWhen: [hasToolCall("requestApproval")],
     onStepFinish: async (step) => {
-      // Log tool results as each step completes.
-      // For non-internal tools, the call log (input only) was already
-      // written by withEagerLogging — this writes the result entry.
-      // For internal tools, write a single combined entry (not eager-logged).
       for (let i = 0; i < step.toolCalls.length; i++) {
         const toolCall = step.toolCalls[i];
         const toolResult = step.toolResults[i];
         const isInternal = INTERNAL_TOOLS.has(toolCall.toolName);
-        await writeAgentLog(ctx, {
-          agentId: opts.agentId,
-          taskId: opts.taskId,
-          role: "TOOL",
-          toolName: toolCall.toolName,
-          toolInput: "input" in toolCall ? toolCall.input : undefined,
-          toolResult: toolResult?.output,
-          internal: isInternal,
-        });
+        const toolCallId = "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
+        const existingLogId = toolCallId ? callLogIds.get(toolCallId) : undefined;
+
+        if (existingLogId) {
+          // Update the existing call entry with the result
+          await updateAgentLogResult(ctx, existingLogId, {
+            agentId: opts.agentId,
+            taskId: opts.taskId,
+            toolName: toolCall.toolName,
+            toolInput: "input" in toolCall ? toolCall.input : undefined,
+            toolResult: toolResult?.output,
+          });
+        } else {
+          // Internal tools or missing callLogId — write a single combined entry
+          await writeAgentLog(ctx, {
+            agentId: opts.agentId,
+            taskId: opts.taskId,
+            role: "TOOL",
+            toolName: toolCall.toolName,
+            toolInput: "input" in toolCall ? toolCall.input : undefined,
+            toolResult: toolResult?.output,
+            internal: isInternal,
+          });
+        }
       }
     },
   });

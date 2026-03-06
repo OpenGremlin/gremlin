@@ -27,7 +27,7 @@ export function useTaskChatMessages(taskId: string) {
       (data) => {
         const msg = data.taskLogCreated;
 
-        // TOOL entries with a result replace the matching call-only entry
+        // TOOL entries with a result update the matching call-only entry (same id)
         if (msg.role === "TOOL" && msg.toolResult) {
           replaceOrAppend(msg, (existing) =>
             existing.role === "TOOL" &&

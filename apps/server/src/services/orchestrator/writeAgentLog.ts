@@ -1,4 +1,4 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 
 type TextLogEntry = {
@@ -66,4 +66,52 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   }
 
   return { id, createdAt: now };
+}
+
+/** Update an existing TOOL log entry with the result. */
+export async function updateAgentLogResult(
+  ctx: ServiceContext,
+  logId: string,
+  entry: {
+    agentId: string;
+    taskId: string | null;
+    toolName: string;
+    toolInput: unknown;
+    toolResult: unknown;
+  },
+) {
+  const table = ctx.resources.ddb.table;
+
+  await table.getDocumentClient().send(
+    new UpdateCommand({
+      TableName: table.getName(),
+      Key: { pk: "AGENT_LOG", sk: `AGENT_LOG#${logId}` },
+      UpdateExpression: "SET toolResult = :result, toolInput = :input",
+      ExpressionAttributeValues: {
+        ":result": JSON.stringify(entry.toolResult),
+        ":input": JSON.stringify(entry.toolInput),
+      },
+    }),
+  );
+
+  // Re-publish so the frontend gets the updated entry
+  // We need to read back the full item for the subscription payload
+  const item = {
+    id: logId,
+    agentId: entry.agentId,
+    taskId: entry.taskId,
+    role: "TOOL",
+    content: `Tool call: ${entry.toolName}`,
+    toolName: entry.toolName,
+    toolInput: JSON.stringify(entry.toolInput),
+    toolResult: JSON.stringify(entry.toolResult),
+    internal: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (entry.taskId) {
+    ctx.resources.pubsub.publish(`agentLogCreated:task:${entry.taskId}`, item);
+  } else {
+    ctx.resources.pubsub.publish(`agentLogCreated:${entry.agentId}`, item);
+  }
 }
