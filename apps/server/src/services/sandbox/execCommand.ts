@@ -6,6 +6,13 @@ const log = createLogger("sandbox:exec");
 const COMMAND_TIMEOUT_MS = 120_000;
 const MAX_OUTPUT_CHARS = 8_000;
 
+// Strip ANSI escape sequences so sentinel matching works through PTY color/cursor codes
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ANSI stripping
+const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?(?:\x07|\x1b\\)|\x1b[()][0-9A-B]|\r/g;
+function stripAnsi(s: string): string {
+  return s.replace(ANSI_RE, "");
+}
+
 export async function connectToSandbox(
   session: SandboxSession,
 ): Promise<WebSocket> {
@@ -89,16 +96,17 @@ export async function execCommand(
         if (msg.type === "output" && typeof msg.data === "string") {
           output += msg.data;
 
-          // Check for sentinel
+          // Check for sentinel (strip ANSI codes so PTY escapes don't break the match)
           const sentinelPattern = new RegExp(
             `${sentinel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\d+)__`,
           );
-          const match = output.match(sentinelPattern);
+          const clean = stripAnsi(output);
+          const match = clean.match(sentinelPattern);
           if (match) {
             clearTimeout(timeout);
             const exitCode = Number.parseInt(match[1], 10);
-            // Strip sentinel and everything after from output
-            output = output.slice(0, match.index);
+            // Strip sentinel and everything after from clean output
+            output = clean.slice(0, match.index);
             cleanup();
             const durationMs = Date.now() - startTime;
             log.info(

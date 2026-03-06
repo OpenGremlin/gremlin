@@ -4,7 +4,7 @@ import { log } from "./log.js";
 import { startRelay } from "./relay.js";
 
 const WS_PORT = Number(process.env.WS_PORT ?? 8080);
-const HEALTH_PORT = Number(process.env.HEALTH_PORT ?? 8081);
+const HEALTH_PORT = Number(process.env.HEALTH_PORT ?? 8083);
 const BROWSER_BRIDGE_PORT = Number(process.env.BROWSER_BRIDGE_PORT ?? 9090);
 
 log("startup", "Sandbox starting", {

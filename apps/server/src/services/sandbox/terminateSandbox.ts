@@ -16,6 +16,12 @@ export async function terminateSandbox(session: SandboxSession): Promise<void> {
     session.ws = undefined;
   }
 
+  // Skip ECS stop for local sandbox
+  if (session.taskArn === "local") {
+    log.info({ agentId: session.agentId }, "Local sandbox — skipping ECS stop");
+    return;
+  }
+
   // Stop ECS task
   log.info({ agentId: session.agentId, taskArn: session.taskArn, cluster: CLUSTER_NAME }, "Stopping ECS task");
   await ecs.send(

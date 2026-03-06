@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Check,
   ChevronRight,
-  Code,
   ExternalLink,
   Loader2,
 } from "lucide-react";
@@ -266,15 +265,18 @@ export function LogEntryView({
         );
       }
 
-      const formattedInput = tool.input
-        ? JSON.stringify(tool.input, null, 2)
-        : entry.content;
+      const sections: string[] = [];
+      if (tool.input) sections.push(JSON.stringify(tool.input, null, 2));
+      if (tool.result) {
+        if (sections.length > 0) sections.push("── result ──");
+        sections.push(JSON.stringify(tool.result, null, 2));
+      }
 
       return (
         <CollapsibleBlock
           id={entry.id}
           label={tool.name}
-          content={formattedInput}
+          content={sections.join("\n") || entry.content}
           createdAt={entry.createdAt}
         />
       );

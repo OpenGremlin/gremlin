@@ -1,8 +1,11 @@
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import pty from "node-pty";
 import { type WebSocket, WebSocketServer } from "ws";
 import { log } from "./log.js";
 
-const TOOLS_ROOT = "/workspace/.tools";
+const WORKSPACE_DIR = existsSync("/workspace") ? "/workspace" : process.env.SANDBOX_WORKSPACE ?? homedir();
+const TOOLS_ROOT = `${WORKSPACE_DIR}/.tools`;
 
 const TOOL_PATHS = [
   `${TOOLS_ROOT}/bin`,
@@ -23,20 +26,26 @@ export function startRelay(port: number): void {
 
     log("relay", "New WebSocket connection", { connId, remoteAddr });
 
-    const shell = pty.spawn("bash", [], {
+    // Filter out undefined env values — node-pty's posix_spawnp fails if any are present
+    const baseEnv: Record<string, string> = {};
+    for (const [k, v] of Object.entries(process.env)) {
+      if (v !== undefined) baseEnv[k] = v;
+    }
+
+    const shell = pty.spawn("/bin/bash", [], {
       name: "xterm-256color",
       cols: 120,
       rows: 40,
-      cwd: "/workspace",
+      cwd: WORKSPACE_DIR,
       env: {
-        ...process.env,
+        ...baseEnv,
         TERM: "xterm-256color",
-        PATH: `${TOOL_PATHS}:${process.env.PATH ?? ""}`,
+        PATH: `${TOOL_PATHS}:${process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin"}`,
         NPM_CONFIG_PREFIX: TOOLS_ROOT,
         GOPATH: `${TOOLS_ROOT}/go`,
         CARGO_HOME: `${TOOLS_ROOT}/cargo`,
         PYTHONUSERBASE: `${TOOLS_ROOT}/python`,
-      } as Record<string, string>,
+      },
     });
 
     log("relay", "PTY spawned", { connId, pid: shell.pid });

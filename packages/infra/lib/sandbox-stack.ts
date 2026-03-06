@@ -78,7 +78,7 @@ export class SandboxStack extends cdk.Stack {
       healthCheck: {
         command: [
           "CMD-SHELL",
-          "curl -f http://localhost:8081/health || exit 1",
+          "curl -f http://localhost:8083/health || exit 1",
         ],
         interval: cdk.Duration.seconds(15),
         timeout: cdk.Duration.seconds(5),
@@ -89,7 +89,7 @@ export class SandboxStack extends cdk.Stack {
 
     container.addPortMappings(
       { containerPort: 8080 },
-      { containerPort: 8081 },
+      { containerPort: 8083 },
       { containerPort: 9090 },
     );
 

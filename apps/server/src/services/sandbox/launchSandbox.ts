@@ -54,7 +54,20 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const SANDBOX_LOCAL = process.env.SANDBOX_LOCAL === "true";
+const SANDBOX_LOCAL_WS_URL = process.env.SANDBOX_LOCAL_WS_URL ?? "ws://localhost:8080";
+
 export async function launchSandbox(agentId: string): Promise<SandboxSession> {
+  if (SANDBOX_LOCAL) {
+    log.info({ agentId, wsUrl: SANDBOX_LOCAL_WS_URL }, "Using local sandbox");
+    return {
+      taskArn: "local",
+      privateIp: "127.0.0.1",
+      wsUrl: SANDBOX_LOCAL_WS_URL,
+      agentId,
+    };
+  }
+
   log.info({ agentId }, "Launching sandbox");
 
   const { taskDefArn, sgId } = await getSandboxConfig();

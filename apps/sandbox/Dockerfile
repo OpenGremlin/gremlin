@@ -5,7 +5,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 make g+
 RUN corepack enable
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/sandbox/package.json apps/sandbox/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile \
+    && test -f node_modules/.pnpm/node-pty@*/node_modules/node-pty/build/Release/pty.node \
+    || (echo "FATAL: node-pty native build missing" && exit 1)
 
 # Stage 2: build TypeScript
 FROM deps AS build
@@ -42,6 +44,6 @@ COPY apps/sandbox/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 RUN mkdir -p /workspace
-EXPOSE 8080 8081 9090
+EXPOSE 8080 8083 9090
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "apps/sandbox/dist/index.js"]
