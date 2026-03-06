@@ -17,11 +17,11 @@ export async function connectToSandbox(
     const timeout = setTimeout(() => {
       log.error(
         { agentId: session.agentId, wsUrl: session.wsUrl },
-        "WebSocket connection timed out (15s)",
+        "WebSocket connection timed out (120s)",
       );
       ws.close();
       reject(new Error("WebSocket connection timed out"));
-    }, 15_000);
+    }, 120_000);
 
     ws.on("open", () => {
       log.debug(

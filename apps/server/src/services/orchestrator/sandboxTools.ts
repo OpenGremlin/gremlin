@@ -14,63 +14,6 @@ function formatOutput(stdout: string, stderr: string): string {
 // In-memory map of active sandbox sessions (exported for browser tools)
 export const activeSessions = new Map<string, SandboxSession>();
 
-const CONNECT_RETRY_DELAY_MS = 3_000;
-const CONNECT_MAX_RETRIES = 20; // ~60s total
-
-function connectInBackground(
-  ctx: ServiceContext,
-  session: SandboxSession,
-  agentId: string,
-  lockId: string,
-) {
-  (async () => {
-    for (let attempt = 1; attempt <= CONNECT_MAX_RETRIES; attempt++) {
-      try {
-        log.info(
-          { agentId, attempt, wsUrl: session.wsUrl },
-          "Attempting sandbox connection",
-        );
-        await ctx.services.sandbox.connectToSandbox(session);
-        activeSessions.set(agentId, session);
-        await ctx.services.sandbox.updateLockStatus(
-          ctx,
-          agentId,
-          lockId,
-          "in_use",
-        );
-        log.info(
-          { agentId, instanceId: session.instanceId, attempt },
-          "Sandbox connected, notifying agent",
-        );
-        await ctx.services.inbox.enqueueWork(ctx, agentId, {
-          type: "sandbox_available",
-          payload: { instanceId: session.instanceId },
-        });
-        return;
-      } catch (err) {
-        log.warn(
-          { agentId, attempt, error: (err as Error).message },
-          "Sandbox connection attempt failed, retrying",
-        );
-        if (attempt < CONNECT_MAX_RETRIES) {
-          await new Promise((r) => setTimeout(r, CONNECT_RETRY_DELAY_MS));
-        }
-      }
-    }
-    // All retries exhausted
-    log.error(
-      { agentId, instanceId: session.instanceId },
-      "Sandbox connection failed after all retries",
-    );
-    await ctx.services.sandbox.releaseSandboxLock(ctx, agentId, lockId);
-  })().catch((err) => {
-    log.error(
-      { agentId, error: (err as Error).message },
-      "Unexpected error in background sandbox connect",
-    );
-  });
-}
-
 export function launchSandboxTool(
   ctx: ServiceContext,
   agentId: string,
@@ -78,7 +21,7 @@ export function launchSandboxTool(
 ) {
   return tool({
     description:
-      "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands.",
+      "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands. This may take 1-2 minutes if the sandbox needs to boot.",
     inputSchema: z.object({}),
     execute: async () => {
       // Check if already running
@@ -122,6 +65,20 @@ export function launchSandboxTool(
         agentId,
         existingInstanceId,
       );
+      log.info(
+        { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
+        "Sandbox launched, connecting WebSocket",
+      );
+      await ctx.services.sandbox.connectToSandbox(session);
+      activeSessions.set(agentId, session);
+
+      // Update lock status to in_use
+      await ctx.services.sandbox.updateLockStatus(
+        ctx,
+        agentId,
+        lockId,
+        "in_use",
+      );
 
       // Persist instanceId if it's new or changed
       if (
@@ -137,14 +94,11 @@ export function launchSandboxTool(
         });
       }
 
-      // Connect in the background — notify agent via inbox when ready
-      connectInBackground(ctx, session, agentId, lockId);
-
-      return {
-        status: "launching",
-        message:
-          "Sandbox is booting up. You'll be notified when it's ready. Stop and wait.",
-      };
+      log.info(
+        { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
+        "Sandbox session active",
+      );
+      return { status: "ready", wsUrl: session.wsUrl };
     },
   });
 }
