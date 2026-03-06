@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   ChevronRight,
   ExternalLink,
   Loader2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
@@ -23,52 +25,98 @@ function safeParseJson(
   }
 }
 
-function CollapsibleBlock({
+function ScrolledPre({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLPreElement>(null);
+  const [edges, setEdges] = useState({ top: false, bottom: false });
+
+  const updateEdges = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const top = el.scrollTop > 2;
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
+    setEdges((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }));
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    updateEdges();
+  }, [children, updateEdges]);
+
+  return (
+    <div className="relative">
+      {edges.top && <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-t-lg" />}
+      {edges.bottom && <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-b-lg" />}
+      <pre ref={ref} className={className} style={style} onScroll={updateEdges}>{children}</pre>
+    </div>
+  );
+}
+
+const BODY_MAX_HEIGHT = `${3 * 1.5 + 1}em`;
+
+function ToolBlock({
   id,
   label,
   content,
   createdAt,
   textClass = "text-green-400/90",
-  defaultOpen = false,
-  maxLines = 3,
+  defaultOpen = true,
   showTimestamp = true,
+  badges,
+  children,
 }: {
   id: string;
-  label: string;
-  content: string;
+  label: React.ReactNode;
+  content?: string;
   createdAt: string;
   textClass?: string;
   defaultOpen?: boolean;
-  maxLines?: number;
   showTimestamp?: boolean;
+  badges?: React.ReactNode;
+  children?: React.ReactNode;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <details id={id} className="py-1 group" open={defaultOpen || undefined}>
-      <summary className="list-none cursor-pointer">
-        <div className="flex items-center gap-1.5 py-1">
-          <ChevronRight
-            size={12}
-            className="text-neutral-300 shrink-0 transition-transform group-open:rotate-90"
-          />
-          <span className="text-[11px] text-neutral-300 font-bold font-mono">
-            {label}
-          </span>
-          {showTimestamp && (
-            <span className="text-[10px] text-neutral-600">
-              {formatTime(createdAt)}
+    <div id={id} className="py-1">
+      <details className="group" open={defaultOpen || undefined}>
+        <summary className="list-none cursor-pointer">
+          <div className="flex items-start gap-1.5 py-1">
+            <ChevronRight
+              size={12}
+              className="text-neutral-300 shrink-0 transition-transform group-open:rotate-90"
+            />
+            <span className="text-[11px] text-neutral-300 font-bold font-mono">
+              {label}
             </span>
-          )}
-        </div>
-        <div className="hidden group-open:block bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
-          <pre
-            className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed ${textClass}`}
-            style={{ maxHeight: `${maxLines * 1.5 + 1}em`, overflow: "hidden", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
-          >
-            {content}
-          </pre>
-        </div>
-      </summary>
-    </details>
+            {badges}
+            {showTimestamp && (
+              <span className="text-[10px] text-neutral-600 shrink-0">
+                {formatTime(createdAt)}
+              </span>
+            )}
+          </div>
+        </summary>
+        {children ?? (
+          <div className="relative bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-20"
+            >
+              {expanded ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
+            </button>
+            <ScrolledPre
+              className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed overflow-y-auto ${textClass}`}
+              style={expanded ? undefined : { maxHeight: BODY_MAX_HEIGHT }}
+            >
+              {content}
+            </ScrolledPre>
+          </div>
+        )}
+      </details>
+    </div>
   );
 }
 
@@ -203,12 +251,13 @@ export function LogEntryView({
         : entry.content;
 
       return (
-        <CollapsibleBlock
+        <ToolBlock
           id={entry.id}
           label={label}
           content={display}
           createdAt={entry.createdAt}
           showTimestamp={showTimestamp}
+          defaultOpen={false}
         />
       );
     }
@@ -296,61 +345,40 @@ export function LogEntryView({
         const output = (tool.result?.output as string) ?? "";
         const exitCode = tool.result?.exitCode as number | undefined;
 
-        // Match stream: by commandId if available, otherwise find the first active stream
+        // Match stream: by commandId if available, otherwise use the latest active stream
         let stream = commandId ? sandboxStreams?.get(commandId) : undefined;
         if (!hasResult && !stream && sandboxStreams) {
           for (const [, s] of sandboxStreams) {
-            if (!s.done || s.output) { stream = s; break; }
+            if (!s.done) stream = s;
           }
         }
         const isStreaming = !hasResult && stream && !stream.done;
 
-        const truncatedCmd = command
-          ? command.length > 30 ? `${command.slice(0, 30)}…` : command
-          : null;
+        if (!hasResult) {
+          return (
+            <ToolBlock
+              id={entry.id}
+              label={<>runCommand(<span className="font-normal text-neutral-400 break-all">$ {command ?? "…"}</span>)</>}
+              content=""
+              createdAt={entry.createdAt}
+              showTimestamp={showTimestamp}
+              badges={<>
+                {isStreaming && <Loader2 size={10} className="animate-spin text-neutral-500" />}
+              </>}
+            >
+              <SandboxOutputBlock commandId={commandId ?? "pending"} stream={stream} />
+            </ToolBlock>
+          );
+        }
 
         return (
-          <div id={entry.id} className="py-1">
-            <details className="group" open={true}>
-              <summary className="list-none cursor-pointer">
-                <div className="flex items-center gap-1.5 py-1">
-                  <ChevronRight
-                    size={12}
-                    className="text-neutral-300 shrink-0 transition-transform group-open:rotate-90"
-                  />
-                  <span className="text-[11px] font-mono font-bold text-neutral-300">
-                    <span className="group-open:hidden">
-                      runCommand(<span className="font-normal text-neutral-400">$ {truncatedCmd ?? "…"}</span>)
-                    </span>
-                    <span className="hidden group-open:inline">runCommand</span>
-                  </span>
-                  {hasResult && exitCode !== undefined && exitCode !== 0 && (
-                    <span className="text-[10px] text-red-400/70">exit {exitCode}</span>
-                  )}
-                  {isStreaming && (
-                    <Loader2 size={10} className="animate-spin text-neutral-500" />
-                  )}
-                  {showTimestamp && (
-                    <span className="text-[10px] text-neutral-600">
-                      {formatTime(entry.createdAt)}
-                    </span>
-                  )}
-                </div>
-              </summary>
-              {hasResult ? (
-                <div className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
-                  <pre
-                    className="text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed text-green-400/90"
-                    style={{ maxHeight: `${3 * 1.5 + 1}em`, overflow: "hidden", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
-                  >
-                    {command && `$ ${command}\n`}{output || "(no output)"}
-                  </pre>
-                </div>
-              ) : (
-                <SandboxOutputBlock commandId={commandId ?? "pending"} stream={stream} />
-              )}
-            </details>
-          </div>
+          <ToolBlock
+            id={entry.id}
+            label={<>runCommand(<span className="font-normal text-neutral-400 break-all">$ {command ?? "…"}</span>){exitCode !== undefined && exitCode !== 0 && <span className="font-normal text-red-400/70 text-[10px] ml-1">exit {exitCode}</span>}</>}
+            content={output || "(no output)"}
+            createdAt={entry.createdAt}
+            showTimestamp={showTimestamp}
+          />
         );
       }
 
@@ -362,7 +390,7 @@ export function LogEntryView({
       }
 
       return (
-        <CollapsibleBlock
+        <ToolBlock
           id={entry.id}
           label={tool.name}
           content={sections.join("\n") || entry.content}
