@@ -98,17 +98,18 @@ function mapEntry(node: {
     return { role: "user", content: node.content };
   }
   if (node.role === "TOOL" && !node.internal) {
-    // Include tool calls in history so the model knows what it already did
+    // Include tool calls as system context so the model knows what it already did.
+    // Using "user" role to avoid the model mimicking the format in its own output.
     const name = node.toolName ?? "unknown";
     const input = node.toolInput ?? "";
     const result = node.toolResult && node.toolResult !== "null" ? node.toolResult : null;
     if (result) {
       return {
-        role: "assistant",
-        content: `[Tool call: ${name}]\nInput: ${input}\nResult: ${result}`,
+        role: "user",
+        content: `[System: you called ${name} with ${input} and got: ${result}]`,
       };
     }
-    // Call-only entry (no result yet) — skip to avoid confusing the model
+    // Call-only entry (no result yet) — skip
     return null;
   }
   return null;
