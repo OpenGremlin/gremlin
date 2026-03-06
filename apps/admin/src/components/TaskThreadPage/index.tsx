@@ -49,7 +49,6 @@ export function TaskThreadPage() {
   const docs = task?.documents ?? [];
 
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -71,9 +70,8 @@ export function TaskThreadPage() {
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
-    if (!content || !task || !taskId || sending) return;
+    if (!content || !task || !taskId) return;
     setInput("");
-    setSending(true);
     setPendingMessages((prev) => [...prev, content]);
     scrollToBottom();
     try {
@@ -85,10 +83,8 @@ export function TaskThreadPage() {
     } catch (err) {
       console.error("Failed to send message:", err);
       setPendingMessages((prev) => prev.filter((m) => m !== content));
-    } finally {
-      setSending(false);
     }
-  }, [input, task, taskId, sending, scrollToBottom]);
+  }, [input, task, taskId, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -167,7 +163,6 @@ export function TaskThreadPage() {
         value={input}
         onChange={setInput}
         onSend={handleSend}
-        disabled={sending}
       />
     </div>
   );

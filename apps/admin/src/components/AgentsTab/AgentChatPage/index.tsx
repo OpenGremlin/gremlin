@@ -28,7 +28,6 @@ export function AgentChatPage() {
   const sandboxStreams = useSandboxOutput(taskId ?? "");
 
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -58,9 +57,8 @@ export function AgentChatPage() {
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
-    if (!content || !id || sending) return;
+    if (!content || !id) return;
     setInput("");
-    setSending(true);
     setPendingMessages((prev) => [...prev, content]);
     scrollToBottom();
     try {
@@ -72,10 +70,8 @@ export function AgentChatPage() {
     } catch (err) {
       console.error("Failed to send message:", err);
       setPendingMessages((prev) => prev.filter((m) => m !== content));
-    } finally {
-      setSending(false);
     }
-  }, [input, id, taskId, sending, scrollToBottom]);
+  }, [input, id, taskId, scrollToBottom]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -153,7 +149,6 @@ export function AgentChatPage() {
           value={input}
           onChange={setInput}
           onSend={handleSend}
-          disabled={sending}
         />
       )}
     </div>
