@@ -11,6 +11,7 @@ export function useTaskChatMessages(taskId: string) {
     loadMore,
     loadingMore,
     appendNode,
+    replaceOrAppend,
   } = usePaginatedQuery(TaskLogsQuery, (d) => d.taskLogs, { taskId });
 
   const [isAgentActive, setIsAgentActive] = useState(false);
@@ -25,7 +26,17 @@ export function useTaskChatMessages(taskId: string) {
     useCallback(
       (data) => {
         const msg = data.taskLogCreated;
-        appendNode(msg);
+
+        // TOOL entries with a result replace the matching call-only entry
+        if (msg.role === "TOOL" && msg.toolResult) {
+          replaceOrAppend(msg, (existing) =>
+            existing.role === "TOOL" &&
+            existing.toolName === msg.toolName &&
+            !existing.toolResult,
+          );
+        } else {
+          appendNode(msg);
+        }
 
         if (msg.role === "AGENT") {
           setIsAgentActive(true);
@@ -36,7 +47,7 @@ export function useTaskChatMessages(taskId: string) {
           );
         }
       },
-      [appendNode],
+      [appendNode, replaceOrAppend],
     ),
   );
 

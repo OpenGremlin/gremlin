@@ -271,11 +271,18 @@ export function LogEntryView({
 
       if (tool.name === "runCommand") {
         const commandId = (tool.result?.commandId ?? tool.input?.commandId) as string | undefined;
-        const stream = commandId ? sandboxStreams?.get(commandId) : undefined;
         const command = tool.input?.command as string | undefined;
         const hasResult = !!tool.result;
         const output = (tool.result?.output as string) ?? "";
         const exitCode = tool.result?.exitCode as number | undefined;
+
+        // Match stream: by commandId if available, otherwise find the first active stream
+        let stream = commandId ? sandboxStreams?.get(commandId) : undefined;
+        if (!hasResult && !stream && sandboxStreams) {
+          for (const [, s] of sandboxStreams) {
+            if (!s.done || s.output) { stream = s; break; }
+          }
+        }
         const isStreaming = !hasResult && stream && !stream.done;
 
         return (
@@ -293,6 +300,9 @@ export function LogEntryView({
                   {hasResult && exitCode !== undefined && exitCode !== 0 && (
                     <span className="text-[10px] text-red-400/70">exit {exitCode}</span>
                   )}
+                  {isStreaming && (
+                    <Loader2 size={10} className="animate-spin text-neutral-500" />
+                  )}
                   <span className="text-[10px] text-neutral-600">
                     {formatTime(entry.createdAt)}
                   </span>
@@ -305,9 +315,7 @@ export function LogEntryView({
                   </pre>
                 </div>
               ) : (
-                commandId && (
-                  <SandboxOutputBlock commandId={commandId} stream={stream} />
-                )
+                <SandboxOutputBlock commandId={commandId ?? "pending"} stream={stream} />
               )}
             </details>
           </div>

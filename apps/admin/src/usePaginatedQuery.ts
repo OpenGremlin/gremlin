@@ -113,5 +113,22 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     [direction],
   );
 
-  return { nodes, loading, loadingMore, error, hasMore, loadMore, appendNode };
+  /** Replace a node matching `predicate`, or append if no match. */
+  const replaceOrAppend = useCallback(
+    (node: TNode, predicate: (existing: TNode) => boolean) => {
+      setNodes((prev) => {
+        if (prev.some((n) => n.id === node.id)) return prev;
+        const idx = prev.findIndex(predicate);
+        if (idx !== -1) {
+          const next = [...prev];
+          next[idx] = node;
+          return next;
+        }
+        return direction === "newest-first" ? [node, ...prev] : [...prev, node];
+      });
+    },
+    [direction],
+  );
+
+  return { nodes, loading, loadingMore, error, hasMore, loadMore, appendNode, replaceOrAppend };
 }

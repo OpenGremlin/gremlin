@@ -1,5 +1,5 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { gql } from "../../auth";
 import type { TaskQuery as TaskQueryType } from "../../graphql/generated/graphql";
@@ -15,7 +15,6 @@ import { useQuery } from "../../useQuery";
 import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
-import { SandboxOutputBlock } from "../AgentsTab/AgentChatPage/LogEntryView/SandboxOutputBlock";
 import { useTaskChatMessages } from "./useTaskChatMessages";
 
 type Task = NonNullable<TaskQueryType["task"]>;
@@ -99,27 +98,6 @@ export function TaskThreadPage() {
     return <NotFound label="Task not found." />;
   }
 
-  // Find active streams that don't have a matching log entry yet
-  const activeStreams = (() => {
-    if (sandboxStreams.size === 0) return [];
-    const loggedCommandIds = new Set<string>();
-    for (const msg of messages) {
-      if (msg.role === "TOOL" && msg.toolName === "runCommand" && msg.toolResult) {
-        try {
-          const result = JSON.parse(msg.toolResult);
-          if (result.commandId) loggedCommandIds.add(result.commandId);
-        } catch { /* ignore */ }
-      }
-    }
-    const unmatched: Array<{ commandId: string }> = [];
-    for (const [commandId, stream] of sandboxStreams) {
-      if (!loggedCommandIds.has(commandId) && (stream.output || !stream.done)) {
-        unmatched.push({ commandId });
-      }
-    }
-    return unmatched;
-  })();
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -169,22 +147,13 @@ export function TaskThreadPage() {
                   sandboxStreams={sandboxStreams}
                 />
               ))}
-              {isAgentActive && activeStreams.length === 0 && (
+              {isAgentActive && (
                 <div className="flex justify-start py-1">
                   <div className="bg-neutral-800 text-neutral-400 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
                     <span className="animate-pulse">Thinking...</span>
                   </div>
                 </div>
               )}
-
-              {/* Live streaming output for in-progress commands */}
-              {activeStreams.map(({ commandId }) => (
-                <SandboxOutputBlock
-                  key={commandId}
-                  commandId={commandId}
-                  stream={sandboxStreams.get(commandId)}
-                />
-              ))}
 
               {/* Pending messages — shown inline at the bottom of the chat */}
               {pendingMessages.map((content) => (

@@ -16,6 +16,7 @@ export function useChatMessages(agentId: string) {
     hasMore,
     loadMore,
     appendNode,
+    replaceOrAppend,
   } = usePaginatedQuery(AgentLogsDoc, (d) => d.agentLogs, { agentId });
 
   const [isAgentActive, setIsAgentActive] = useState(false);
@@ -30,7 +31,17 @@ export function useChatMessages(agentId: string) {
     useCallback(
       (data) => {
         const msg = data.agentLogCreated;
-        appendNode(msg);
+
+        // TOOL entries with a result replace the matching call-only entry
+        if (msg.role === "TOOL" && msg.toolResult) {
+          replaceOrAppend(msg, (existing) =>
+            existing.role === "TOOL" &&
+            existing.toolName === msg.toolName &&
+            !existing.toolResult,
+          );
+        } else {
+          appendNode(msg);
+        }
 
         // TOOL messages (status updates) mean the agent is mid-turn.
         // AGENT messages mean the turn is complete.
@@ -42,7 +53,7 @@ export function useChatMessages(agentId: string) {
           clearTimeout(activeTimerRef.current);
         }
       },
-      [appendNode],
+      [appendNode, replaceOrAppend],
     ),
   );
 
