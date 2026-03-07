@@ -67,10 +67,6 @@ async function getSandboxConfig(): Promise<{
   };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 const SANDBOX_LOCAL = process.env.SANDBOX_LOCAL === "true";
 const SANDBOX_LOCAL_WS_URL =
   process.env.SANDBOX_LOCAL_WS_URL ?? "ws://localhost:8080";
@@ -87,211 +83,6 @@ async function getInstanceState(instanceId: string): Promise<{
     state: instance?.State?.Name,
     privateIp: instance?.PrivateIpAddress,
   };
-}
-
-async function pollUntilRunning(
-  instanceId: string,
-  agentId: string,
-): Promise<string> {
-  const maxAttempts = 60; // 60 * 3s = 180s
-  for (let i = 0; i < maxAttempts; i++) {
-    await sleep(3000);
-    const { state, privateIp } = await getInstanceState(instanceId);
-    log.debug(
-      { agentId, instanceId, attempt: i + 1, state },
-      "Polling instance state",
-    );
-
-    if (state === "running" && privateIp) {
-      log.info(
-        { agentId, instanceId, privateIp, attempts: i + 1 },
-        "Instance is running",
-      );
-      return privateIp;
-    }
-    if (state === "terminated" || state === "shutting-down") {
-      throw new Error(`Instance ${instanceId} is ${state}`);
-    }
-  }
-  throw new Error(`Instance ${instanceId} did not become running within 180s`);
-}
-
-async function pollHealthEndpoint(
-  privateIp: string,
-  agentId: string,
-): Promise<void> {
-  const url = `http://${privateIp}:8083/health`;
-  const maxAttempts = 40; // 40 * 3s = 120s
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
-      if (res.ok) {
-        log.info(
-          { agentId, privateIp, attempts: i + 1 },
-          "Health check passed",
-        );
-        return;
-      }
-    } catch {
-      // Connection refused or timeout — keep polling
-    }
-    log.debug({ agentId, privateIp, attempt: i + 1 }, "Health check pending");
-    await sleep(3000);
-  }
-  throw new Error(
-    `Sandbox relay at ${privateIp} did not become healthy within 120s`,
-  );
-}
-
-export async function launchSandbox(
-  agentId: string,
-  existingInstanceId?: string,
-): Promise<SandboxSession> {
-  if (SANDBOX_LOCAL) {
-    log.info({ agentId, wsUrl: SANDBOX_LOCAL_WS_URL }, "Using local sandbox");
-    return {
-      instanceId: "local",
-      privateIp: "127.0.0.1",
-      wsUrl: SANDBOX_LOCAL_WS_URL,
-      agentId,
-      lastActivityAt: Date.now(),
-    };
-  }
-
-  // Try to reuse existing instance
-  if (existingInstanceId) {
-    log.info(
-      { agentId, instanceId: existingInstanceId },
-      "Checking existing instance",
-    );
-    try {
-      const { state, privateIp } = await getInstanceState(existingInstanceId);
-      log.info(
-        { agentId, instanceId: existingInstanceId, state },
-        "Existing instance state",
-      );
-
-      if (state === "running" && privateIp) {
-        await pollHealthEndpoint(privateIp, agentId);
-        return {
-          instanceId: existingInstanceId,
-          privateIp,
-          wsUrl: `ws://${privateIp}:8080`,
-          agentId,
-          lastActivityAt: Date.now(),
-        };
-      }
-
-      if (state === "stopped") {
-        log.info(
-          { agentId, instanceId: existingInstanceId },
-          "Starting stopped instance",
-        );
-        await ec2.send(
-          new StartInstancesCommand({ InstanceIds: [existingInstanceId] }),
-        );
-        const ip = await pollUntilRunning(existingInstanceId, agentId);
-        await pollHealthEndpoint(ip, agentId);
-        return {
-          instanceId: existingInstanceId,
-          privateIp: ip,
-          wsUrl: `ws://${ip}:8080`,
-          agentId,
-          lastActivityAt: Date.now(),
-        };
-      }
-
-      // terminated or other — fall through to create new
-      log.warn(
-        { agentId, instanceId: existingInstanceId, state },
-        "Existing instance unusable, creating new one",
-      );
-    } catch (err) {
-      log.warn(
-        {
-          agentId,
-          instanceId: existingInstanceId,
-          error: (err as Error).message,
-        },
-        "Failed to check existing instance, creating new one",
-      );
-    }
-  }
-
-  // Terminate old instance before creating a new one
-  if (existingInstanceId) {
-    log.info(
-      { agentId, instanceId: existingInstanceId },
-      "Terminating old sandbox instance before creating new one",
-    );
-    try {
-      await ec2.send(
-        new TerminateInstancesCommand({
-          InstanceIds: [existingInstanceId],
-        }),
-      );
-    } catch (err) {
-      log.warn(
-        {
-          agentId,
-          instanceId: existingInstanceId,
-          error: (err as Error).message,
-        },
-        "Failed to terminate old instance, continuing with new launch",
-      );
-    }
-  }
-
-  // Create new instance
-  log.info({ agentId }, "Creating new EC2 sandbox instance");
-  const { launchTemplateId, subnetId } = await getSandboxConfig();
-
-  const runResult = await ec2.send(
-    new RunInstancesCommand({
-      LaunchTemplate: {
-        LaunchTemplateId: launchTemplateId,
-        Version: "$Latest",
-      },
-      SubnetId: subnetId,
-      MinCount: 1,
-      MaxCount: 1,
-      TagSpecifications: [
-        {
-          ResourceType: "instance",
-          Tags: [
-            { Key: "Name", Value: `gremlin-sandbox-${agentId}` },
-            { Key: "gremlin:agentId", Value: agentId },
-          ],
-        },
-      ],
-    }),
-  );
-
-  const instanceId = runResult.Instances?.[0]?.InstanceId;
-  if (!instanceId) {
-    throw new Error("Failed to launch EC2 sandbox instance");
-  }
-
-  log.info(
-    { agentId, instanceId },
-    "EC2 instance launched, polling until running",
-  );
-  const privateIp = await pollUntilRunning(instanceId, agentId);
-  await pollHealthEndpoint(privateIp, agentId);
-
-  const session: SandboxSession = {
-    instanceId,
-    privateIp,
-    wsUrl: `ws://${privateIp}:8080`,
-    agentId,
-    lastActivityAt: Date.now(),
-  };
-
-  log.info(
-    { agentId, instanceId, privateIp, wsUrl: session.wsUrl },
-    "Sandbox launched successfully",
-  );
-  return session;
 }
 
 /**
@@ -344,12 +135,93 @@ export async function tryQuickConnect(
 }
 
 /**
- * Launch a new EC2 sandbox instance (or start a stopped one).
- * Returns the instance ID immediately without waiting for it to boot.
+ * Launch a sandbox instance for the given agent. If an existing instance is
+ * on the current launch template and is stopped, it will be started instead
+ * of creating a new one. Returns the instance ID immediately without waiting
+ * for it to boot.
  */
-export async function launchInstance(agentId: string): Promise<string> {
-  log.info({ agentId }, "Launching EC2 sandbox instance (non-blocking)");
+export async function launchInstance(
+  agentId: string,
+  existingInstanceId?: string,
+): Promise<string> {
+  log.info(
+    { agentId, existingInstanceId },
+    "Launching EC2 sandbox instance (non-blocking)",
+  );
   const { launchTemplateId, subnetId } = await getSandboxConfig();
+
+  // Try to reuse existing instance if it's on the current launch template
+  if (existingInstanceId) {
+    try {
+      const desc = await ec2.send(
+        new DescribeInstancesCommand({ InstanceIds: [existingInstanceId] }),
+      );
+      const instance = desc.Reservations?.[0]?.Instances?.[0];
+      const state = instance?.State?.Name;
+      const tags = instance?.Tags ?? [];
+      const currentLtId = tags.find(
+        (t) => t.Key === "aws:ec2launchtemplate:id",
+      )?.Value;
+
+      if (currentLtId === launchTemplateId) {
+        if (state === "stopped") {
+          log.info(
+            { agentId, instanceId: existingInstanceId },
+            "Starting stopped instance (same launch template)",
+          );
+          await ec2.send(
+            new StartInstancesCommand({
+              InstanceIds: [existingInstanceId],
+            }),
+          );
+          return existingInstanceId;
+        }
+        if (state === "running" || state === "pending") {
+          log.info(
+            { agentId, instanceId: existingInstanceId, state },
+            "Existing instance still usable (same launch template)",
+          );
+          return existingInstanceId;
+        }
+      } else {
+        log.info(
+          {
+            agentId,
+            instanceId: existingInstanceId,
+            instanceLtId: currentLtId,
+            expectedLtId: launchTemplateId,
+          },
+          "Existing instance on old launch template, will create new",
+        );
+        // Terminate old instance
+        ec2
+          .send(
+            new TerminateInstancesCommand({
+              InstanceIds: [existingInstanceId],
+            }),
+          )
+          .catch((err) =>
+            log.warn(
+              {
+                agentId,
+                instanceId: existingInstanceId,
+                error: (err as Error).message,
+              },
+              "Failed to terminate old instance",
+            ),
+          );
+      }
+    } catch (err) {
+      log.warn(
+        {
+          agentId,
+          instanceId: existingInstanceId,
+          error: (err as Error).message,
+        },
+        "Failed to check existing instance",
+      );
+    }
+  }
 
   const runResult = await ec2.send(
     new RunInstancesCommand({
