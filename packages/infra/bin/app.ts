@@ -51,11 +51,13 @@ new MessagingStack(app, "GremlinMessagingStack", {
   serverRole: server.serverRole,
 });
 
-// 4. Sandbox EC2 — depends on VPC, Server (SG)
+// 4. Sandbox EC2 — depends on VPC, Server (SG, notify hook role, EIP)
 new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   env,
   vpc: network.vpc,
   serverSecurityGroup: server.serverSecurityGroup,
+  notifyHookRoleArn: server.notifyHookRoleArn,
+  serverElasticIp: server.elasticIp,
 });
 
 // 5. Browser Fargate — depends on VPC, Server (SG)

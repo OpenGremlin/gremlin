@@ -1,6 +1,10 @@
 import { TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { createLogger } from "../../logger.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
+import { activeSessions } from "../orchestrator/sandboxTools.js";
 import type { ServiceContext } from "../context.js";
+
+const sandboxLog = createLogger("sandbox:consumer");
 
 /**
  * In-memory set to enforce per-agent serialization.
@@ -152,12 +156,43 @@ async function processTaskGroup(
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
-      case "sandbox_available":
+      case "sandbox_available": {
+        // Connect the WebSocket now that the sandbox is healthy
+        const instanceId = payload.instanceId as string | undefined;
+        if (instanceId) {
+          try {
+            const session = await ctx.services.sandbox.tryQuickConnect(
+              agentId,
+              instanceId,
+            );
+            if (session) {
+              await ctx.services.sandbox.connectToSandbox(session);
+              activeSessions.set(agentId, session);
+              const lockId = (payload.taskId as string) ?? "main";
+              await ctx.services.sandbox.updateLockStatus(
+                ctx,
+                agentId,
+                lockId,
+                "in_use",
+              );
+              sandboxLog.info(
+                { agentId, instanceId },
+                "Sandbox connected via notify hook",
+              );
+            }
+          } catch (err) {
+            sandboxLog.error(
+              { agentId, instanceId, error: (err as Error).message },
+              "Failed to connect sandbox after notify",
+            );
+          }
+        }
         prompts.push({
           content: "The sandbox is now available. Proceed with your task.",
           role: "SYSTEM",
         });
         break;
+      }
     }
   }
 

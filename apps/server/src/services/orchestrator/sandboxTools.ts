@@ -21,14 +21,14 @@ export function launchSandboxTool(
 ) {
   return tool({
     description:
-      "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands. This may take 1-2 minutes if the sandbox needs to boot.",
+      "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.",
     inputSchema: z.object({}),
     execute: async () => {
       // Check if already running
       const existing = activeSessions.get(agentId);
       if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
         log.info({ agentId }, "Sandbox already running, reusing session");
-        return { status: "already_running", wsUrl: existing.wsUrl };
+        return { status: "ready" };
       }
 
       // Acquire sandbox lock to prevent concurrent launches
@@ -63,51 +63,65 @@ export function launchSandboxTool(
       );
 
       try {
-        const session = await ctx.services.sandbox.launchSandbox(
-          agentId,
-          existingInstanceId,
-        );
-        log.info(
-          { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
-          "Sandbox launched, connecting WebSocket",
-        );
-        await ctx.services.sandbox.connectToSandbox(session);
-        activeSessions.set(agentId, session);
+        // Try quick connect to an already-running instance
+        if (existingInstanceId) {
+          const session =
+            await ctx.services.sandbox.tryQuickConnect(
+              agentId,
+              existingInstanceId,
+            );
+          if (session) {
+            await ctx.services.sandbox.connectToSandbox(session);
+            activeSessions.set(agentId, session);
+            await ctx.services.sandbox.updateLockStatus(
+              ctx,
+              agentId,
+              lockId,
+              "in_use",
+            );
+            log.info(
+              { agentId, instanceId: session.instanceId },
+              "Quick-connected to existing sandbox",
+            );
+            return { status: "ready" };
+          }
+        }
 
-        // Update lock status to in_use
-        await ctx.services.sandbox.updateLockStatus(
-          ctx,
+        // Cold start — launch EC2 and return immediately
+        // The sandbox will notify via /notifyHook when ready
+        const instanceId = await ctx.services.sandbox.launchInstance(
           agentId,
-          lockId,
-          "in_use",
+          taskId,
         );
 
-        // Persist instanceId if it's new or changed
-        if (
-          session.instanceId !== "local" &&
-          session.instanceId !== existingInstanceId
-        ) {
-          log.info(
-            { agentId, instanceId: session.instanceId },
-            "Persisting new instanceId",
-          );
+        // Persist instanceId
+        if (instanceId !== existingInstanceId) {
           await ctx.services.agents.updateAgent(ctx, agentId, {
-            sandboxInstanceId: session.instanceId,
+            sandboxInstanceId: instanceId,
           });
         }
 
         log.info(
-          { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
-          "Sandbox session active",
+          { agentId, instanceId },
+          "Sandbox instance launching, agent will be notified when ready",
         );
-        return { status: "ready", wsUrl: session.wsUrl };
+        return {
+          status: "launching",
+          message:
+            "Sandbox is booting up. You'll be notified when it's ready. Stop and wait.",
+        };
       } catch (err) {
         log.error(
-          { agentId, error: (err as Error).message, stack: (err as Error).stack },
+          {
+            agentId,
+            error: (err as Error).message,
+            stack: (err as Error).stack,
+          },
           "launchSandbox failed",
         );
-        // Release lock so it's not stuck
-        await ctx.services.sandbox.releaseSandboxLock(ctx, agentId, lockId).catch(() => {});
+        await ctx.services.sandbox
+          .releaseSandboxLock(ctx, agentId, lockId)
+          .catch(() => {});
         return {
           status: "error",
           error: (err as Error).message,

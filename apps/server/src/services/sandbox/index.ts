@@ -11,7 +11,11 @@ import { checkCommand } from "./checkCommand.js";
 import { connectToSandbox } from "./connectToSandbox.js";
 import { execCommand } from "./execCommand.js";
 import { launchBrowser } from "./launchBrowser.js";
-import { launchSandbox } from "./launchSandbox.js";
+import {
+  launchInstance,
+  launchSandbox,
+  tryQuickConnect,
+} from "./launchSandbox.js";
 import {
   acquireSandboxLock,
   addSandboxWaiter,
@@ -23,6 +27,8 @@ import { terminateSandbox } from "./terminateSandbox.js";
 
 export const sandboxService = {
   launchSandbox,
+  launchInstance,
+  tryQuickConnect,
   connectToSandbox,
   execCommand,
   checkCommand,

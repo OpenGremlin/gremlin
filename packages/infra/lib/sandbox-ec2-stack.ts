@@ -14,6 +14,8 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 export interface SandboxEc2StackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   serverSecurityGroup: ec2.ISecurityGroup;
+  notifyHookRoleArn: string;
+  serverElasticIp: string;
 }
 
 export class SandboxEc2Stack extends cdk.Stack {
@@ -78,6 +80,22 @@ export class SandboxEc2Stack extends cdk.Stack {
       }),
     );
 
+    // Allow sandbox to assume the notify hook role
+    sandboxRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: [props.notifyHookRoleArn],
+      }),
+    );
+
+    // Allow sandbox to read its own tags and modify metadata options (for Docker IMDS access)
+    sandboxRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["ec2:DescribeTags", "ec2:ModifyInstanceMetadataOptions"],
+        resources: ["*"],
+      }),
+    );
+
     // ECR pull permissions
     imageAsset.repository.grantPull(sandboxRole);
 
@@ -112,6 +130,15 @@ export class SandboxEc2Stack extends cdk.Stack {
       "mkdir -p /workspace",
       // EFS mount will be configured per-agent via fstab or mount command
 
+      // Allow Docker containers to reach instance metadata (IMDSv2)
+      "TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')",
+      `aws ec2 modify-instance-metadata-options --region ${this.region} --instance-id $(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id) --http-put-response-hop-limit 2 --http-endpoint enabled`,
+
+      // Read instance tags to get agentId and taskId
+      `INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)`,
+      `AGENT_ID=$(aws ec2 describe-tags --region ${this.region} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=gremlin:agentId" --query "Tags[0].Value" --output text)`,
+      `TASK_ID=$(aws ec2 describe-tags --region ${this.region} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=gremlin:taskId" --query "Tags[0].Value" --output text || echo "")`,
+
       // Run the sandbox container
       [
         "docker run -d --restart always",
@@ -127,6 +154,12 @@ export class SandboxEc2Stack extends cdk.Stack {
         `-e HEALTH_PORT=8083`,
         `-e DISABLE_BROWSER_BRIDGE=true`,
         `-e NODE_ENV=production`,
+        `-e AWS_REGION=${this.region}`,
+        `-e NOTIFY_HOOK_ROLE_ARN=${props.notifyHookRoleArn}`,
+        `-e NOTIFY_HOOK_URL=http://${props.serverElasticIp}:3001/notifyHook`,
+        `-e INSTANCE_ID=$INSTANCE_ID`,
+        `-e AGENT_ID=$AGENT_ID`,
+        `-e TASK_ID=$TASK_ID`,
         imageAsset.imageUri,
       ].join(" "),
     );

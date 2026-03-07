@@ -222,7 +222,10 @@ export async function launchSandbox(
 
   const runResult = await ec2.send(
     new RunInstancesCommand({
-      LaunchTemplate: { LaunchTemplateId: launchTemplateId },
+      LaunchTemplate: {
+        LaunchTemplateId: launchTemplateId,
+        Version: "$Latest",
+      },
       SubnetId: subnetId,
       MinCount: 1,
       MaxCount: 1,
@@ -262,4 +265,92 @@ export async function launchSandbox(
     "Sandbox launched successfully",
   );
   return session;
+}
+
+/**
+ * Try to connect to an existing running instance without polling.
+ * Returns a session if the instance is running and healthy, null otherwise.
+ */
+export async function tryQuickConnect(
+  agentId: string,
+  existingInstanceId: string,
+): Promise<SandboxSession | null> {
+  if (SANDBOX_LOCAL) {
+    return {
+      instanceId: "local",
+      privateIp: "127.0.0.1",
+      wsUrl: SANDBOX_LOCAL_WS_URL,
+      agentId,
+    };
+  }
+
+  try {
+    const { state, privateIp } = await getInstanceState(existingInstanceId);
+    if (state !== "running" || !privateIp) {
+      log.info(
+        { agentId, instanceId: existingInstanceId, state },
+        "Instance not running for quick connect",
+      );
+      return null;
+    }
+
+    // Single health check attempt (no polling)
+    const url = `http://${privateIp}:8083/health`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
+    if (!res.ok) return null;
+
+    log.info(
+      { agentId, instanceId: existingInstanceId, privateIp },
+      "Quick connect: instance is healthy",
+    );
+    return {
+      instanceId: existingInstanceId,
+      privateIp,
+      wsUrl: `ws://${privateIp}:8080`,
+      agentId,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Launch a new EC2 sandbox instance (or start a stopped one).
+ * Returns the instance ID immediately without waiting for it to boot.
+ */
+export async function launchInstance(
+  agentId: string,
+  taskId?: string,
+): Promise<string> {
+  log.info({ agentId }, "Launching EC2 sandbox instance (non-blocking)");
+  const { launchTemplateId, subnetId } = await getSandboxConfig();
+
+  const tags = [
+    { Key: "Name", Value: `gremlin-sandbox-${agentId}` },
+    { Key: "gremlin:agentId", Value: agentId },
+  ];
+  if (taskId) {
+    tags.push({ Key: "gremlin:taskId", Value: taskId });
+  }
+
+  const runResult = await ec2.send(
+    new RunInstancesCommand({
+      LaunchTemplate: {
+        LaunchTemplateId: launchTemplateId,
+        Version: "$Latest",
+      },
+      SubnetId: subnetId,
+      MinCount: 1,
+      MaxCount: 1,
+      TagSpecifications: [{ ResourceType: "instance", Tags: tags }],
+    }),
+  );
+
+  const instanceId = runResult.Instances?.[0]?.InstanceId;
+  if (!instanceId) {
+    throw new Error("Failed to launch EC2 sandbox instance");
+  }
+
+  log.info({ agentId, instanceId }, "EC2 instance launch initiated");
+  return instanceId;
 }

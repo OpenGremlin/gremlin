@@ -9,6 +9,7 @@ import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
+import { createNotifyHookHandler } from "./notifyHook.js";
 import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
@@ -75,8 +76,12 @@ async function loadSchedulerConfig() {
 }
 
 const app = express();
+app.use(express.json());
 const resources = createResources();
 const services = createServices();
+
+// Internal notify hook endpoint (called by sandbox instances)
+app.post("/notifyHook", createNotifyHookHandler(resources, services));
 
 const schema = makeExecutableSchema({
   typeDefs: mergedTypeDefs,
