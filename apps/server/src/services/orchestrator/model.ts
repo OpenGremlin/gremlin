@@ -48,6 +48,71 @@ function createProviderModel(
   }
 }
 
+export interface ModelResult {
+  model: LanguageModel;
+  warning?: string;
+}
+
+/**
+ * Resolve the model for a specific agent. Checks the agent's configured model
+ * first, falls back to the system default, then to Bedrock.
+ */
+export async function getModelForAgent(
+  ctx: ServiceContext,
+  agentId: string,
+): Promise<ModelResult> {
+  const agent = await ctx.services.agents.getAgent(ctx, agentId);
+  const agentModel = agent?.config?.model;
+
+  if (agentModel) {
+    try {
+      if (agentModel.type === "bedrock" && agentModel.modelId) {
+        return { model: bedrock(agentModel.modelId) };
+      }
+      if (agentModel.type === "connection" && agentModel.connectionId) {
+        const [providerId, modelId] = agentModel.connectionId.split(":", 2);
+        if (providerId && modelId) {
+          const { Item: keyItem } =
+            await ctx.resources.ddb.entities.ModelProviderKey.build(
+              GetItemCommand,
+            )
+              .key({ providerId })
+              .send();
+          if (keyItem) {
+            return {
+              model: createProviderModel(providerId, modelId, keyItem.apiKey),
+            };
+          }
+          log.warn(
+            { agentId, providerId, modelId },
+            "Agent model API key missing, falling back to default",
+          );
+        }
+      }
+    } catch (err) {
+      log.warn(
+        { agentId, error: (err as Error).message },
+        "Failed to resolve agent model, falling back to default",
+      );
+    }
+
+    // Agent has a model configured but it's not available — fall back
+    const fallback = await getModel(ctx);
+    if (fallback) {
+      return {
+        model: fallback,
+        warning: "Selected model unavailable, using default.",
+      };
+    }
+    throw new Error(
+      "No model available. Configure a default model in Integrations.",
+    );
+  }
+
+  // No agent-specific model — use the system default
+  return { model: await getModel(ctx) };
+}
+
 export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
   const now = Date.now();
   if (cachedModel && now < cacheExpiresAt) {

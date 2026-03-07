@@ -22,12 +22,13 @@ import { useQuery } from "../../../useQuery";
 import { useSubscription } from "../../../useSubscription";
 import { AgentForm, type AgentFormValues } from "../AgentForm";
 import { AvatarPicker } from "./AvatarPicker";
+import { ToolsConfig } from "./ToolsConfig";
 import { VoicePicker } from "./VoicePicker";
 
 export function AgentConfigPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error, refetch } = useQuery(AgentQuery, {
+  const { data, loading, error, setData } = useQuery(AgentQuery, {
     id: id ?? "",
   });
   const avatarsResult = useQuery(AvatarsQuery);
@@ -37,7 +38,12 @@ export function AgentConfigPage() {
   useSubscription(
     AgentUpdatedSubscription,
     { agentId: id ?? "" },
-    useCallback(() => refetch(), [refetch]),
+    useCallback(
+      (sub: { agentUpdated: NonNullable<typeof data>["agent"] }) => {
+        if (sub.agentUpdated) setData({ agent: sub.agentUpdated });
+      },
+      [setData],
+    ),
   );
 
   useEffect(() => {
@@ -101,6 +107,8 @@ export function AgentConfigPage() {
           onSubmit={onSubmit}
           submitLabel="Save"
         />
+
+        <ToolsConfig agent={agent} />
       </div>
 
       {agent.retired ? (

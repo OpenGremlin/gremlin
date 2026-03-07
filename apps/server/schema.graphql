@@ -2,20 +2,8 @@ type Query {
   _empty: String
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(
-    agentId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
-  taskLogs(
-    taskId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -43,11 +31,7 @@ type Mutation {
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
-  sendMessage(
-    agentId: ID!
-    content: String!
-    taskId: String
-  ): SendMessageResult!
+  sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
@@ -162,6 +146,32 @@ type SendMessageResult {
   content: String!
 }
 
+type AgentModelConfig {
+  type: String!
+  modelId: String
+  connectionId: String
+}
+
+type AgentSandboxConfig {
+  enabled: Boolean!
+}
+
+type AgentWebSearchConfig {
+  enabled: Boolean!
+  provider: String
+}
+
+type AgentBrowserConfig {
+  enabled: Boolean!
+}
+
+type AgentConfig {
+  model: AgentModelConfig
+  sandbox: AgentSandboxConfig
+  webSearch: AgentWebSearchConfig
+  browser: AgentBrowserConfig
+}
+
 type Agent {
   id: ID!
   name: String!
@@ -171,6 +181,33 @@ type Agent {
   soul: String!
   retired: Boolean!
   ttsVoice: String
+  config: AgentConfig
+}
+
+input AgentModelConfigInput {
+  type: String!
+  modelId: String
+  connectionId: String
+}
+
+input AgentSandboxConfigInput {
+  enabled: Boolean!
+}
+
+input AgentWebSearchConfigInput {
+  enabled: Boolean!
+  provider: String
+}
+
+input AgentBrowserConfigInput {
+  enabled: Boolean!
+}
+
+input AgentConfigInput {
+  model: AgentModelConfigInput
+  sandbox: AgentSandboxConfigInput
+  webSearch: AgentWebSearchConfigInput
+  browser: AgentBrowserConfigInput
 }
 
 input UpdateAgentInput {
@@ -178,6 +215,7 @@ input UpdateAgentInput {
   soul: String
   avatar: String
   ttsVoice: String
+  config: AgentConfigInput
 }
 
 input CreateAgentInput {
@@ -340,12 +378,7 @@ type Task {
   imageUrl(width: Int): String
   artifacts: [String!]!
   documents: [Document!]!
-  logs(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
 }
 
 type TaskEdge {

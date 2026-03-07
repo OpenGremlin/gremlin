@@ -12,6 +12,7 @@ export function useQuery<TResult>(
   loading: boolean;
   error: string | null;
   refetch: () => void;
+  setData: (data: TResult) => void;
 } {
   const [data, setData] = useState<TResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +30,10 @@ export function useQuery<TResult>(
 
   useEffect(() => {
     let cancelled = false;
-    setData(null);
-    setLoading(true);
+    if (_version === 0) {
+      setData(null);
+      setLoading(true);
+    }
     setError(null);
     gql<TResult>(query, stableVars)
       .then((result) => {
@@ -49,12 +52,13 @@ export function useQuery<TResult>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars]);
+  }, [query, stableVars, _version]);
 
   return {
     data,
     loading,
     error,
     refetch: () => setVersion((v) => v + 1),
+    setData,
   };
 }

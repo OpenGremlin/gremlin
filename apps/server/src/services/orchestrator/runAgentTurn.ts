@@ -1,7 +1,7 @@
 import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
 import type { ServiceContext } from "../context.js";
 import { requestApprovalTool } from "../tools/index.js";
-import { getModel } from "./model.js";
+import { getModelForAgent } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
 /** Tools marked as internal — logged for audit but hidden from the UI. */
@@ -80,8 +80,23 @@ export async function runAgentTurn(
   const tz = opts.timezone ?? "UTC";
   const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
 
-  const model = await getModel(ctx);
+  const { model, warning: modelWarning } = await getModelForAgent(
+    ctx,
+    opts.agentId,
+  );
   ctx.log.info({ model: String(model) }, "Starting agent turn with model");
+
+  if (modelWarning) {
+    await writeAgentLog(ctx, {
+      agentId: opts.agentId,
+      taskId: opts.taskId,
+      role: "SYSTEM",
+      content: JSON.stringify({
+        type: "model_fallback",
+        message: modelWarning,
+      }),
+    });
+  }
   const result = await generateText({
     model,
     messages: [

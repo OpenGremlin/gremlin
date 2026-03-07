@@ -1,4 +1,30 @@
 export const agentTypeDefs = /* GraphQL */ `
+  type AgentModelConfig {
+    type: String!
+    modelId: String
+    connectionId: String
+  }
+
+  type AgentSandboxConfig {
+    enabled: Boolean!
+  }
+
+  type AgentWebSearchConfig {
+    enabled: Boolean!
+    provider: String
+  }
+
+  type AgentBrowserConfig {
+    enabled: Boolean!
+  }
+
+  type AgentConfig {
+    model: AgentModelConfig
+    sandbox: AgentSandboxConfig
+    webSearch: AgentWebSearchConfig
+    browser: AgentBrowserConfig
+  }
+
   type Agent {
     id: ID!
     name: String!
@@ -8,6 +34,7 @@ export const agentTypeDefs = /* GraphQL */ `
     soul: String!
     retired: Boolean!
     ttsVoice: String
+    config: AgentConfig
   }
 
   extend type Query {
@@ -15,11 +42,38 @@ export const agentTypeDefs = /* GraphQL */ `
     agent(id: ID!): Agent
   }
 
+  input AgentModelConfigInput {
+    type: String!
+    modelId: String
+    connectionId: String
+  }
+
+  input AgentSandboxConfigInput {
+    enabled: Boolean!
+  }
+
+  input AgentWebSearchConfigInput {
+    enabled: Boolean!
+    provider: String
+  }
+
+  input AgentBrowserConfigInput {
+    enabled: Boolean!
+  }
+
+  input AgentConfigInput {
+    model: AgentModelConfigInput
+    sandbox: AgentSandboxConfigInput
+    webSearch: AgentWebSearchConfigInput
+    browser: AgentBrowserConfigInput
+  }
+
   input UpdateAgentInput {
     name: String
     soul: String
     avatar: String
     ttsVoice: String
+    config: AgentConfigInput
   }
 
   input CreateAgentInput {

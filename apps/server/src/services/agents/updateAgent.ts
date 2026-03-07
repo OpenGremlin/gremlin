@@ -1,5 +1,9 @@
-import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
+import {
+  $set,
+  UpdateItemCommand,
+} from "dynamodb-toolbox/entity/actions/update";
 import type { AgentItem } from "../../resources/ddb/schema/agent.js";
+import { nullsToUndefined } from "../../utils/nullsToUndefined.js";
 import type { ServiceContext } from "../context.js";
 
 interface UpdateAgentInput {
@@ -8,6 +12,12 @@ interface UpdateAgentInput {
   avatar?: string | null;
   sandboxInstanceId?: string | null;
   ttsVoice?: string | null;
+  config?: {
+    model?: { type: string; modelId?: string; connectionId?: string } | null;
+    sandbox?: { enabled: boolean } | null;
+    webSearch?: { enabled: boolean; provider?: string } | null;
+    browser?: { enabled: boolean } | null;
+  } | null;
 }
 
 export async function updateAgent(
@@ -23,6 +33,7 @@ export async function updateAgent(
   if (input.sandboxInstanceId != null)
     updates.sandboxInstanceId = input.sandboxInstanceId;
   if (input.ttsVoice != null) updates.ttsVoice = input.ttsVoice;
+  if (input.config != null) updates.config = $set(nullsToUndefined(input.config));
 
   const { Attributes } = await ctx.resources.ddb.entities.Agent.build(
     UpdateItemCommand,

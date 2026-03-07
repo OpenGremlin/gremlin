@@ -22,6 +22,35 @@ import { runLane } from "./runLane.js";
 import { checkCommandTool, runCommandTool } from "./sandboxTools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
+function buildConfigTools(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string,
+  config?: {
+    sandbox?: { enabled: boolean } | null;
+    browser?: { enabled: boolean } | null;
+  } | null,
+) {
+  // biome-ignore lint/suspicious/noExplicitAny: tool types vary
+  const tools: Record<string, any> = {};
+
+  if (config?.sandbox?.enabled) {
+    tools.runCommand = runCommandTool(ctx, agentId, taskId);
+    tools.checkCommand = checkCommandTool(ctx, agentId);
+  }
+
+  if (config?.browser?.enabled) {
+    tools.browserNavigate = browserNavigateTool(ctx, agentId);
+    tools.browserScreenshot = browserScreenshotTool(ctx, agentId);
+    tools.browserClick = browserClickTool(ctx, agentId);
+    tools.browserType = browserTypeTool(ctx, agentId);
+    tools.browserEvaluate = browserEvaluateTool(ctx, agentId);
+    tools.browserGetContent = browserGetContentTool(ctx, agentId);
+  }
+
+  return tools;
+}
+
 /**
  * Run an agent turn on a task's lane.
  * Writes the prompt to the log, then runs inference via shared runLane.
@@ -80,14 +109,7 @@ export async function runTaskLane(
       updateDocument: updateDocumentTool(ctx),
       saveMemory: saveMemoryTool(ctx, task.agentId),
       recallMemory: recallMemoryTool(ctx, task.agentId),
-      runCommand: runCommandTool(ctx, task.agentId, taskId),
-      checkCommand: checkCommandTool(ctx, task.agentId),
-      browserNavigate: browserNavigateTool(ctx, task.agentId),
-      browserScreenshot: browserScreenshotTool(ctx, task.agentId),
-      browserClick: browserClickTool(ctx, task.agentId),
-      browserType: browserTypeTool(ctx, task.agentId),
-      browserEvaluate: browserEvaluateTool(ctx, task.agentId),
-      browserGetContent: browserGetContentTool(ctx, task.agentId),
+      ...buildConfigTools(ctx, task.agentId, taskId, agent.config),
     },
     recallHint: prompt,
     timezone,

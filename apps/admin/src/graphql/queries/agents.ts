@@ -1,5 +1,35 @@
 import { graphql } from "../generated/gql";
 
+export const AgentDetailFragment = graphql(`
+  fragment AgentDetail on Agent {
+    id
+    name
+    avatar
+    portraitId
+    imageUrl(width: 200)
+    soul
+    retired
+    ttsVoice
+    config {
+      model {
+        type
+        modelId
+        connectionId
+      }
+      sandbox {
+        enabled
+      }
+      webSearch {
+        enabled
+        provider
+      }
+      browser {
+        enabled
+      }
+    }
+  }
+`);
+
 export const AgentsQuery = graphql(`
   query Agents {
     agents {
@@ -14,14 +44,7 @@ export const AgentsQuery = graphql(`
 export const AgentQuery = graphql(`
   query Agent($id: ID!) {
     agent(id: $id) {
-      id
-      name
-      avatar
-      portraitId
-      imageUrl(width: 200)
-      soul
-      retired
-      ttsVoice
+      ...AgentDetail
     }
   }
 `);
@@ -29,11 +52,7 @@ export const AgentQuery = graphql(`
 export const UpdateAgentMutation = graphql(`
   mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {
     updateAgent(id: $id, input: $input) {
-      id
-      name
-      avatar
-      soul
-      ttsVoice
+      ...AgentDetail
     }
   }
 `);
@@ -60,8 +79,7 @@ export const RetireAgentMutation = graphql(`
 export const AgentUpdatedSubscription = graphql(`
   subscription AgentUpdated($agentId: ID!) {
     agentUpdated(agentId: $agentId) {
-      id
-      name
+      ...AgentDetail
     }
   }
 `);

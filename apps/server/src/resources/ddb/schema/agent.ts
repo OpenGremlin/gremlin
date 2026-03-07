@@ -1,6 +1,7 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
+import { map } from "dynamodb-toolbox/schema/map";
 import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
@@ -17,6 +18,23 @@ export const AgentEntity = new Entity({
     retired: boolean().optional().default(false),
     sandboxInstanceId: string().optional(),
     ttsVoice: string().optional(),
+    config: map({
+      model: map({
+        type: string(), // "bedrock" | "connection"
+        modelId: string().optional(), // for bedrock
+        connectionId: string().optional(), // for connection
+      }).optional(),
+      sandbox: map({
+        enabled: boolean(),
+      }).optional(),
+      webSearch: map({
+        enabled: boolean(),
+        provider: string().optional(),
+      }).optional(),
+      browser: map({
+        enabled: boolean(),
+      }).optional(),
+    }).optional(),
   }),
   computeKey: ({ id }) => ({
     pk: "AGENT",
