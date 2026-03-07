@@ -16,12 +16,6 @@ import {
   launchSandbox,
   tryQuickConnect,
 } from "./launchSandbox.js";
-import {
-  acquireSandboxLock,
-  addSandboxWaiter,
-  releaseSandboxLock,
-  updateLockStatus,
-} from "./sandboxLock.js";
 import { terminateBrowser } from "./terminateBrowser.js";
 import { terminateSandbox } from "./terminateSandbox.js";
 
@@ -42,10 +36,6 @@ export const sandboxService = {
   browserType,
   browserEvaluate,
   browserGetContent,
-  acquireSandboxLock,
-  addSandboxWaiter,
-  releaseSandboxLock,
-  updateLockStatus,
 };
 
 export type SandboxService = typeof sandboxService;

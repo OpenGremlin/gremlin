@@ -1,8 +1,8 @@
 import { TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { createLogger } from "../../logger.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
-import { activeSessions } from "../orchestrator/sandboxTools.js";
 import type { ServiceContext } from "../context.js";
+import { activeSessions } from "../orchestrator/sandboxTools.js";
 
 const sandboxLog = createLogger("sandbox:consumer");
 
@@ -75,7 +75,7 @@ async function routeBatch(
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
       i.type === "core_memory_review" ||
-      i.type === "sandbox_available",
+      i.type === "sandbox_available", // kept for backwards compat with in-flight items
   );
 
   // --- Main lane: batch all conversational items into one turn ---
@@ -168,13 +168,6 @@ async function processTaskGroup(
             if (session) {
               await ctx.services.sandbox.connectToSandbox(session);
               activeSessions.set(agentId, session);
-              const lockId = (payload.taskId as string) ?? "main";
-              await ctx.services.sandbox.updateLockStatus(
-                ctx,
-                agentId,
-                lockId,
-                "in_use",
-              );
               sandboxLog.info(
                 { agentId, instanceId },
                 "Sandbox connected via notify hook",

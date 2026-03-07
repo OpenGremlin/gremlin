@@ -31,40 +31,6 @@ export function launchSandboxTool(
         return { status: "ready" };
       }
 
-      // Acquire sandbox lock to prevent concurrent launches
-      const lockId = taskId ?? "main";
-      const lockResult = await ctx.services.sandbox.acquireSandboxLock(
-        ctx,
-        agentId,
-        lockId,
-      );
-      if (!lockResult.acquired) {
-        // If this task already owns the lock, the sandbox is still booting
-        if (lockResult.ownerTaskId === lockId) {
-          log.info(
-            { agentId, taskId: lockId },
-            "This task already owns the lock, sandbox still launching",
-          );
-          return {
-            status: "launching",
-            message:
-              "Sandbox is still booting up. You'll be notified when it's ready. Stop and wait.",
-          };
-        }
-        log.info(
-          { agentId, taskId: lockId, ownerTaskId: lockResult.ownerTaskId },
-          "Sandbox busy, adding waiter",
-        );
-        if (taskId) {
-          await ctx.services.sandbox.addSandboxWaiter(ctx, agentId, taskId);
-        }
-        return {
-          status: "busy",
-          message:
-            "Sandbox in use by another task. You'll be notified when available. Stop and wait.",
-        };
-      }
-
       // Read agent record to get existing instanceId
       const agent = await ctx.services.agents.getAgent(ctx, agentId);
       const existingInstanceId = agent?.sandboxInstanceId;
@@ -77,20 +43,13 @@ export function launchSandboxTool(
       try {
         // Try quick connect to an already-running instance
         if (existingInstanceId) {
-          const session =
-            await ctx.services.sandbox.tryQuickConnect(
-              agentId,
-              existingInstanceId,
-            );
+          const session = await ctx.services.sandbox.tryQuickConnect(
+            agentId,
+            existingInstanceId,
+          );
           if (session) {
             await ctx.services.sandbox.connectToSandbox(session);
             activeSessions.set(agentId, session);
-            await ctx.services.sandbox.updateLockStatus(
-              ctx,
-              agentId,
-              lockId,
-              "in_use",
-            );
             log.info(
               { agentId, instanceId: session.instanceId },
               "Quick-connected to existing sandbox",
@@ -131,9 +90,6 @@ export function launchSandboxTool(
           },
           "launchSandbox failed",
         );
-        await ctx.services.sandbox
-          .releaseSandboxLock(ctx, agentId, lockId)
-          .catch(() => {});
         return {
           status: "error",
           error: (err as Error).message,
@@ -247,11 +203,7 @@ export function checkCommandTool(ctx: ServiceContext, agentId: string) {
   });
 }
 
-export function terminateSandboxTool(
-  ctx: ServiceContext,
-  agentId: string,
-  taskId?: string,
-) {
+export function terminateSandboxTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "Shut down the sandbox environment. The /workspace volume is preserved for next time. Call this when you're done with the sandbox.",
@@ -270,10 +222,6 @@ export function terminateSandboxTool(
       cleanupBrowserSession(ctx, agentId);
       await ctx.services.sandbox.terminateSandbox(session);
       activeSessions.delete(agentId);
-
-      // Release sandbox lock and wake next waiter
-      const lockId = taskId ?? "main";
-      await ctx.services.sandbox.releaseSandboxLock(ctx, agentId, lockId);
 
       log.info({ agentId }, "Sandbox session cleaned up");
       return { status: "terminated" };
