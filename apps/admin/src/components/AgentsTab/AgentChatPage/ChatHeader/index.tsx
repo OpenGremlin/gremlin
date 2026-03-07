@@ -1,3 +1,4 @@
+import { Undo2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { AgentQuery } from "../../../../graphql/generated/graphql";
@@ -36,13 +37,19 @@ export function ChatHeader({
           <img
             src={task.imageUrl}
             alt=""
-            className="w-8 h-8 mr-1 object-contain"
+            className="w-8 h-8 ml-1.5 mr-2.5 object-contain"
             onError={() => setImgError(true)}
           />
         )}
-        <p className="text-indigo-200">
+        <span className="text-indigo-200 flex-1 min-w-0 line-clamp-2">
           <span className="font-bold">Task:</span> {task?.title}
-        </p>
+        </span>
+        <Link
+          to={`/agents/${agent.id}`}
+          className="shrink-0 flex items-center gap-1 text-xs font-bold text-indigo-300 hover:text-indigo-100 transition-colors px-2"
+        >
+          Main Chat <Undo2 size={12} />
+        </Link>
       </div>
       <Link
         to={taskId ? `/agents/${agent.id}` : `/agents/${agent.id}/config`}

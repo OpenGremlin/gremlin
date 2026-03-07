@@ -198,7 +198,7 @@ function DelegateTaskCard({
             </div>
           </div>
           {task?.imageUrl && !imgError && (
-            <div className="shrink-0 p-2.5">
+            <div className="shrink-0 p-2.5 pr-5">
               <img
                 src={task.imageUrl}
                 alt=""
