@@ -58,9 +58,14 @@ export function createNotifyHookHandler(
       const identity = await sts.send(new GetCallerIdentityCommand({}));
       const callerArn = identity.Arn;
 
-      // Verify the caller assumed the expected notify hook role
+      // Verify the caller assumed the expected notify hook role.
+      // STS returns: arn:aws:sts::ACCOUNT:assumed-role/ROLE_NAME/SESSION
+      // Expected role ARN: arn:aws:iam::ACCOUNT:role/ROLE_NAME
+      // Extract the role name from both and compare.
       const expectedRoleArn = await getNotifyHookRoleArn();
-      if (!expectedRoleArn || !callerArn?.includes("gremlin-notify-hook-role")) {
+      const expectedRoleName = expectedRoleArn?.split("/").pop();
+      const callerRoleName = callerArn?.split("/").at(-2); // assumed-role/ROLE_NAME/session → ROLE_NAME
+      if (!expectedRoleName || callerRoleName !== expectedRoleName) {
         log.warn(
           { callerArn, expectedRoleArn },
           "Caller is not the expected notify hook role",
