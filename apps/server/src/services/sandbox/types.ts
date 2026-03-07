@@ -6,6 +6,7 @@ export interface SandboxSession {
   wsUrl: string;
   agentId: string;
   ws?: WebSocket;
+  lastActivityAt: number;
 }
 
 export interface BrowserSession {

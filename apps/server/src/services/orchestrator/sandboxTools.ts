@@ -3,9 +3,10 @@ import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 import type { SandboxSession } from "../sandbox/types.js";
-import { cleanupBrowserSession } from "./browserTools.js";
 
 const log = createLogger("sandbox:tools");
+
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 function formatOutput(stdout: string, stderr: string): string {
   return stderr ? `${stdout}\n\n[stderr]\n${stderr}` : stdout;
@@ -13,6 +14,35 @@ function formatOutput(stdout: string, stderr: string): string {
 
 // In-memory map of active sandbox sessions (exported for browser tools)
 export const activeSessions = new Map<string, SandboxSession>();
+
+// Periodically stop sandboxes that have been idle for too long
+setInterval(async () => {
+  const now = Date.now();
+  for (const [agentId, session] of activeSessions) {
+    if (now - session.lastActivityAt > IDLE_TIMEOUT_MS) {
+      log.info(
+        {
+          agentId,
+          instanceId: session.instanceId,
+          idleMs: now - session.lastActivityAt,
+        },
+        "Auto-stopping idle sandbox",
+      );
+      try {
+        const { terminateSandbox } = await import(
+          "../sandbox/terminateSandbox.js"
+        );
+        await terminateSandbox(session);
+        activeSessions.delete(agentId);
+      } catch (err) {
+        log.error(
+          { agentId, error: (err as Error).message },
+          "Failed to auto-stop idle sandbox",
+        );
+      }
+    }
+  }
+}, 60_000);
 
 export function launchSandboxTool(
   ctx: ServiceContext,
@@ -49,6 +79,7 @@ export function launchSandboxTool(
           );
           if (session) {
             await ctx.services.sandbox.connectToSandbox(session);
+            session.lastActivityAt = Date.now();
             activeSessions.set(agentId, session);
             log.info(
               { agentId, instanceId: session.instanceId },
@@ -128,6 +159,7 @@ export function runCommandTool(
         };
       }
 
+      session.lastActivityAt = Date.now();
       log.info(
         { agentId, commandPreview: command.slice(0, 200) },
         "Agent running command",
@@ -206,32 +238,6 @@ export function checkCommandTool(ctx: ServiceContext, agentId: string) {
         finished: false,
         note: "Command still running. Call checkCommand again to poll.",
       };
-    },
-  });
-}
-
-export function terminateSandboxTool(ctx: ServiceContext, agentId: string) {
-  return tool({
-    description:
-      "Shut down the sandbox environment. The /workspace volume is preserved for next time. Call this when you're done with the sandbox.",
-    inputSchema: z.object({}),
-    execute: async () => {
-      const session = activeSessions.get(agentId);
-      if (!session) {
-        log.warn({ agentId }, "terminateSandbox called with no active sandbox");
-        return { status: "no_sandbox_running" };
-      }
-
-      log.info(
-        { agentId, instanceId: session.instanceId },
-        "Agent requested sandbox termination",
-      );
-      cleanupBrowserSession(ctx, agentId);
-      await ctx.services.sandbox.terminateSandbox(session);
-      activeSessions.delete(agentId);
-
-      log.info({ agentId }, "Sandbox session cleaned up");
-      return { status: "terminated" };
     },
   });
 }

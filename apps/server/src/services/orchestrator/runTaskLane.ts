@@ -23,7 +23,6 @@ import {
   checkCommandTool,
   launchSandboxTool,
   runCommandTool,
-  terminateSandboxTool,
 } from "./sandboxTools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -88,7 +87,6 @@ export async function runTaskLane(
       launchSandbox: launchSandboxTool(ctx, task.agentId, taskId),
       runCommand: runCommandTool(ctx, task.agentId, taskId),
       checkCommand: checkCommandTool(ctx, task.agentId),
-      terminateSandbox: terminateSandboxTool(ctx, task.agentId),
       browserNavigate: browserNavigateTool(ctx, task.agentId),
       browserScreenshot: browserScreenshotTool(ctx, task.agentId),
       browserClick: browserClickTool(ctx, task.agentId),

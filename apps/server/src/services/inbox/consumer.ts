@@ -167,6 +167,7 @@ async function processTaskGroup(
             );
             if (session) {
               await ctx.services.sandbox.connectToSandbox(session);
+              session.lastActivityAt = Date.now();
               activeSessions.set(agentId, session);
               sandboxLog.info(
                 { agentId, instanceId },

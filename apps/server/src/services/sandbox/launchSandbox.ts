@@ -153,6 +153,7 @@ export async function launchSandbox(
       privateIp: "127.0.0.1",
       wsUrl: SANDBOX_LOCAL_WS_URL,
       agentId,
+      lastActivityAt: Date.now(),
     };
   }
 
@@ -176,6 +177,7 @@ export async function launchSandbox(
           privateIp,
           wsUrl: `ws://${privateIp}:8080`,
           agentId,
+          lastActivityAt: Date.now(),
         };
       }
 
@@ -194,6 +196,7 @@ export async function launchSandbox(
           privateIp: ip,
           wsUrl: `ws://${ip}:8080`,
           agentId,
+          lastActivityAt: Date.now(),
         };
       }
 
@@ -256,6 +259,7 @@ export async function launchSandbox(
     privateIp,
     wsUrl: `ws://${privateIp}:8080`,
     agentId,
+    lastActivityAt: Date.now(),
   };
 
   log.info(
@@ -279,6 +283,7 @@ export async function tryQuickConnect(
       privateIp: "127.0.0.1",
       wsUrl: SANDBOX_LOCAL_WS_URL,
       agentId,
+      lastActivityAt: Date.now(),
     };
   }
 
@@ -306,6 +311,7 @@ export async function tryQuickConnect(
       privateIp,
       wsUrl: `ws://${privateIp}:8080`,
       agentId,
+      lastActivityAt: Date.now(),
     };
   } catch {
     return null;
