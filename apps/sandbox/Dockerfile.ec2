@@ -46,6 +46,7 @@ COPY --from=deps /build/apps/sandbox/node_modules/ apps/sandbox/node_modules/
 COPY package.json pnpm-workspace.yaml ./
 
 COPY apps/sandbox/entrypoint.sh /app/entrypoint.sh
+COPY apps/sandbox/notify-server.mjs /app/apps/sandbox/notify-server.mjs
 RUN chmod +x /app/entrypoint.sh
 
 RUN mkdir -p /workspace

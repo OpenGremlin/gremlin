@@ -16,6 +16,7 @@ import {
   launchSandbox,
   tryQuickConnect,
 } from "./launchSandbox.js";
+import { fanOut, subscribe } from "./notifySubscription.js";
 import { terminateBrowser } from "./terminateBrowser.js";
 import { terminateSandbox } from "./terminateSandbox.js";
 
@@ -36,6 +37,8 @@ export const sandboxService = {
   browserType,
   browserEvaluate,
   browserGetContent,
+  subscribe,
+  fanOut,
 };
 
 export type SandboxService = typeof sandboxService;

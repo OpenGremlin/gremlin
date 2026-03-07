@@ -60,16 +60,23 @@ export function launchSandboxTool(
 
         // Cold start — launch EC2 and return immediately
         // The sandbox will notify via /notifyHook when ready
-        const instanceId = await ctx.services.sandbox.launchInstance(
-          agentId,
-          taskId,
-        );
+        const instanceId = await ctx.services.sandbox.launchInstance(agentId);
 
         // Persist instanceId
         if (instanceId !== existingInstanceId) {
           await ctx.services.agents.updateAgent(ctx, agentId, {
             sandboxInstanceId: instanceId,
           });
+        }
+
+        // Subscribe so this task gets woken up when the sandbox is ready
+        if (taskId) {
+          await ctx.services.sandbox.subscribe(
+            ctx,
+            agentId,
+            taskId,
+            "sandbox_available",
+          );
         }
 
         log.info(

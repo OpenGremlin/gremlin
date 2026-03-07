@@ -11,7 +11,6 @@ const {
   NOTIFY_HOOK_URL,
   INSTANCE_ID,
   AGENT_ID,
-  TASK_ID,
   AWS_REGION,
 } = process.env;
 
@@ -57,7 +56,6 @@ try {
       agentId: AGENT_ID,
       payload: {
         instanceId: INSTANCE_ID || "unknown",
-        taskId: TASK_ID || undefined,
       },
     }),
     signal: AbortSignal.timeout(10_000),

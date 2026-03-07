@@ -1,5 +1,5 @@
-import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
 import type { Request, Response } from "express";
 import { createLogger } from "./logger.js";
 import type { Resources } from "./resources/index.js";
@@ -74,14 +74,24 @@ export function createNotifyHookHandler(
         return;
       }
 
-      log.info({ callerArn }, "Notify hook caller verified");
-
       // Process the payload
       const body = req.body as NotifyHookPayload;
       if (!body?.type || !body?.agentId) {
+        log.warn({ body }, "Invalid notify hook payload");
         res.status(400).json({ error: "Missing type or agentId" });
         return;
       }
+
+      log.info(
+        {
+          callerArn,
+          type: body.type,
+          agentId: body.agentId,
+          payload: body.payload,
+          remoteIp: req.ip,
+        },
+        "Notify hook request received",
+      );
 
       const ctx = {
         resources,
@@ -89,17 +99,19 @@ export function createNotifyHookHandler(
         log: log.child({ agentId: body.agentId }),
       };
 
-      log.info(
-        { type: body.type, agentId: body.agentId, payload: body.payload },
-        "Processing notify hook",
+      const notified = await services.sandbox.fanOut(
+        ctx as any,
+        body.agentId,
+        body.type,
+        body.payload,
       );
 
-      await services.inbox.enqueueWork(ctx as any, body.agentId, {
-        type: body.type as any,
-        payload: body.payload,
-      });
+      log.info(
+        { agentId: body.agentId, type: body.type, notified },
+        "Notify hook processed",
+      );
 
-      res.json({ ok: true });
+      res.json({ ok: true, notified });
     } catch (err) {
       log.error(
         { error: (err as Error).message },

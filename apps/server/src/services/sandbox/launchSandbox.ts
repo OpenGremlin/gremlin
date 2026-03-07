@@ -1,6 +1,4 @@
 import {
-  CreateTagsCommand,
-  DescribeInstanceStatusCommand,
   DescribeInstancesCommand,
   EC2Client,
   RunInstancesCommand,
@@ -318,20 +316,9 @@ export async function tryQuickConnect(
  * Launch a new EC2 sandbox instance (or start a stopped one).
  * Returns the instance ID immediately without waiting for it to boot.
  */
-export async function launchInstance(
-  agentId: string,
-  taskId?: string,
-): Promise<string> {
+export async function launchInstance(agentId: string): Promise<string> {
   log.info({ agentId }, "Launching EC2 sandbox instance (non-blocking)");
   const { launchTemplateId, subnetId } = await getSandboxConfig();
-
-  const tags = [
-    { Key: "Name", Value: `gremlin-sandbox-${agentId}` },
-    { Key: "gremlin:agentId", Value: agentId },
-  ];
-  if (taskId) {
-    tags.push({ Key: "gremlin:taskId", Value: taskId });
-  }
 
   const runResult = await ec2.send(
     new RunInstancesCommand({
@@ -342,7 +329,15 @@ export async function launchInstance(
       SubnetId: subnetId,
       MinCount: 1,
       MaxCount: 1,
-      TagSpecifications: [{ ResourceType: "instance", Tags: tags }],
+      TagSpecifications: [
+        {
+          ResourceType: "instance",
+          Tags: [
+            { Key: "Name", Value: `gremlin-sandbox-${agentId}` },
+            { Key: "gremlin:agentId", Value: agentId },
+          ],
+        },
+      ],
     }),
   );
 
