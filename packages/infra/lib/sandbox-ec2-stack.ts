@@ -4,6 +4,8 @@ import * as cdk from "aws-cdk-lib";
 import * as cr from "aws-cdk-lib/custom-resources";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr_assets from "aws-cdk-lib/aws-ecr-assets";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
 import type * as efs from "aws-cdk-lib/aws-efs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
@@ -247,6 +249,57 @@ exports.handler = async (event) => {
       properties: {
         launchTemplateVersion: launchTemplate.versionNumber,
       },
+    });
+
+    // ── Periodic sandbox sweeper — stop idle instances ────
+    // Runs every 5 minutes. Stops any gremlin-sandbox-* instance
+    // that has been running for longer than 30 minutes.
+    const sweeperFn = new lambda.Function(this, "SandboxSweeperFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      timeout: cdk.Duration.seconds(60),
+      code: lambda.Code.fromInline(`
+const { EC2Client, DescribeInstancesCommand, StopInstancesCommand } = require("@aws-sdk/client-ec2");
+const MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+exports.handler = async () => {
+  const ec2 = new EC2Client({});
+  const res = await ec2.send(new DescribeInstancesCommand({
+    Filters: [
+      { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
+      { Name: "instance-state-name", Values: ["running"] },
+    ],
+  }));
+  const now = Date.now();
+  const stale = [];
+  for (const r of res.Reservations || []) {
+    for (const i of r.Instances || []) {
+      const age = now - new Date(i.LaunchTime).getTime();
+      if (age > MAX_AGE_MS) {
+        stale.push(i.InstanceId);
+        console.log("Stale sandbox:", i.InstanceId, "age:", Math.round(age / 60000), "min");
+      }
+    }
+  }
+  if (stale.length > 0) {
+    console.log("Stopping", stale.length, "idle sandbox instances");
+    await ec2.send(new StopInstancesCommand({ InstanceIds: stale }));
+  } else {
+    console.log("No stale sandbox instances");
+  }
+  return { stopped: stale.length };
+};
+      `),
+    });
+    sweeperFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ec2:DescribeInstances", "ec2:StopInstances"],
+        resources: ["*"],
+      }),
+    );
+
+    new events.Rule(this, "SandboxSweeperRule", {
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+      targets: [new targets.LambdaFunction(sweeperFn)],
     });
 
     // ── Exports ────────────────────────────────────────────
