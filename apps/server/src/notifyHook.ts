@@ -3,6 +3,7 @@ import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
 import type { Request, Response } from "express";
 import { createLogger } from "./logger.js";
 import type { Resources } from "./resources/index.js";
+import type { ServiceContext } from "./services/context.js";
 import type { Services } from "./services/index.js";
 
 const log = createLogger("notifyHook");
@@ -93,14 +94,15 @@ export function createNotifyHookHandler(
         "Notify hook request received",
       );
 
-      const ctx = {
+      const ctx: ServiceContext = {
         resources,
         services,
+        mediaCdnUrl: "",
         log: log.child({ agentId: body.agentId }),
       };
 
       const notified = await services.sandbox.fanOut(
-        ctx as any,
+        ctx,
         body.agentId,
         body.type,
         body.payload,

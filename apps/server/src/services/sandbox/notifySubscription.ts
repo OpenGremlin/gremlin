@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
+import type { InboxItemType } from "../inbox/enqueueWork.js";
 
 const log = createLogger("notify:subscription");
 
@@ -87,7 +88,7 @@ export async function fanOut(
       const taskId = sub.taskId as string;
       try {
         await ctx.services.inbox.enqueueWork(ctx, agentId, {
-          type: eventType as any,
+          type: eventType as InboxItemType,
           payload: { ...payload, taskId },
         });
         log.info({ agentId, eventType, taskId }, "Enqueued inbox item");

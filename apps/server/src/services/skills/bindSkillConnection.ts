@@ -25,5 +25,6 @@ export async function bindSkillConnection(
     .send();
 
   const skill = await getSkill(ctx, skillId);
-  return skill!;
+  if (!skill) throw new Error(`Skill ${skillId} not found after update`);
+  return skill;
 }

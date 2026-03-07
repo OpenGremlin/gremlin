@@ -12,7 +12,11 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noConsole": "error"
+        "noConsole": "error",
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "error"
       }
     }
   },
@@ -45,6 +49,22 @@
         "rules": {
           "suspicious": {
             "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/generated/**"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
           }
         }
       }

@@ -98,9 +98,9 @@ export const oauthConfigs = new Map<string, OAuthProviderConfig>([
         const p = new arctic.Google(id, secret, uri);
         return {
           createAuthorizationURL: (state, cv, scopes) =>
-            p.createAuthorizationURL(state, cv!, scopes),
+            p.createAuthorizationURL(state, cv ?? "", scopes),
           validateAuthorizationCode: async (code, cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, cv!)),
+            wrapTokens(await p.validateAuthorizationCode(code, cv ?? "")),
           refreshAccessToken: async (rt) =>
             wrapTokens(await p.refreshAccessToken(rt)),
         };
@@ -207,9 +207,9 @@ export const oauthConfigs = new Map<string, OAuthProviderConfig>([
         const p = new arctic.MicrosoftEntraId("common", id, secret, uri);
         return {
           createAuthorizationURL: (state, cv, scopes) =>
-            p.createAuthorizationURL(state, cv!, scopes),
+            p.createAuthorizationURL(state, cv ?? "", scopes),
           validateAuthorizationCode: async (code, cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, cv!)),
+            wrapTokens(await p.validateAuthorizationCode(code, cv ?? "")),
           refreshAccessToken: async (rt) =>
             wrapTokens(await p.refreshAccessToken(rt, [])),
         };

@@ -28,5 +28,6 @@ export async function installSkill(
     .send();
 
   const skill = await getSkill(ctx, id);
-  return skill!;
+  if (!skill) throw new Error(`Skill ${id} not found after install`);
+  return skill;
 }

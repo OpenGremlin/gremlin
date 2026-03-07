@@ -28,7 +28,7 @@ export function buildMemoryContext(memories: Memories): string | undefined {
     lines.push(
       "These are your deeply held tenets about the user, distilled from past experiences.",
     );
-    for (const cm of memories.core!) {
+    for (const cm of memories.core ?? []) {
       lines.push(`- **${cm.tenet}**`);
       if (cm.shapedBy.length > 0) {
         for (const s of cm.shapedBy) {
