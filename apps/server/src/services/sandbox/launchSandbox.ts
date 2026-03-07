@@ -3,6 +3,7 @@ import {
   EC2Client,
   RunInstancesCommand,
   StartInstancesCommand,
+  TerminateInstancesCommand,
 } from "@aws-sdk/client-ec2";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { createLogger } from "../../logger.js";
@@ -213,6 +214,30 @@ export async function launchSandbox(
           error: (err as Error).message,
         },
         "Failed to check existing instance, creating new one",
+      );
+    }
+  }
+
+  // Terminate old instance before creating a new one
+  if (existingInstanceId) {
+    log.info(
+      { agentId, instanceId: existingInstanceId },
+      "Terminating old sandbox instance before creating new one",
+    );
+    try {
+      await ec2.send(
+        new TerminateInstancesCommand({
+          InstanceIds: [existingInstanceId],
+        }),
+      );
+    } catch (err) {
+      log.warn(
+        {
+          agentId,
+          instanceId: existingInstanceId,
+          error: (err as Error).message,
+        },
+        "Failed to terminate old instance, continuing with new launch",
       );
     }
   }

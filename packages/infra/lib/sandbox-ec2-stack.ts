@@ -1,10 +1,12 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
+import * as cr from "aws-cdk-lib/custom-resources";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr_assets from "aws-cdk-lib/aws-ecr-assets";
 import type * as efs from "aws-cdk-lib/aws-efs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import type { Construct } from "constructs";
@@ -202,6 +204,49 @@ export class SandboxEc2Stack extends cdk.Stack {
     new ssm.StringParameter(this, "SubnetIdParam", {
       parameterName: "/gremlin/sandbox-ec2-subnet-id",
       stringValue: subnet.subnetId,
+    });
+
+    // ── Terminate old sandbox instances on deploy ──────────
+    const cleanupFn = new lambda.Function(this, "SandboxCleanupFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      timeout: cdk.Duration.seconds(60),
+      code: lambda.Code.fromInline(`
+const { EC2Client, DescribeInstancesCommand, TerminateInstancesCommand } = require("@aws-sdk/client-ec2");
+exports.handler = async (event) => {
+  if (event.RequestType === "Delete") return;
+  const ec2 = new EC2Client({});
+  const res = await ec2.send(new DescribeInstancesCommand({
+    Filters: [
+      { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
+      { Name: "instance-state-name", Values: ["running", "stopped", "pending"] },
+    ],
+  }));
+  const ids = (res.Reservations || []).flatMap(r => (r.Instances || []).map(i => i.InstanceId));
+  if (ids.length > 0) {
+    console.log("Terminating sandbox instances:", ids);
+    await ec2.send(new TerminateInstancesCommand({ InstanceIds: ids }));
+  } else {
+    console.log("No sandbox instances to terminate");
+  }
+};
+      `),
+    });
+    cleanupFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ec2:DescribeInstances", "ec2:TerminateInstances"],
+        resources: ["*"],
+      }),
+    );
+
+    new cdk.CustomResource(this, "SandboxCleanup", {
+      serviceToken: new cr.Provider(this, "SandboxCleanupProvider", {
+        onEventHandler: cleanupFn,
+      }).serviceToken,
+      // Change this property whenever the launch template updates to trigger cleanup
+      properties: {
+        launchTemplateVersion: launchTemplate.versionNumber,
+      },
     });
 
     // ── Exports ────────────────────────────────────────────

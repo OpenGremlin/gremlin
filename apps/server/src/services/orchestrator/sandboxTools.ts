@@ -1,8 +1,11 @@
+import { EC2Client, TerminateInstancesCommand } from "@aws-sdk/client-ec2";
 import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 import type { CommandResult, SandboxSession } from "../sandbox/types.js";
+
+const ec2 = new EC2Client({});
 
 const log = createLogger("sandbox:tools");
 
@@ -93,11 +96,37 @@ export function launchSandboxTool(
         // The sandbox will notify via /notifyHook when ready
         const instanceId = await ctx.services.sandbox.launchInstance(agentId);
 
-        // Persist instanceId
+        // Persist instanceId and terminate old instance
         if (instanceId !== existingInstanceId) {
           await ctx.services.agents.updateAgent(ctx, agentId, {
             sandboxInstanceId: instanceId,
           });
+          if (existingInstanceId) {
+            log.info(
+              {
+                agentId,
+                oldInstanceId: existingInstanceId,
+                newInstanceId: instanceId,
+              },
+              "Terminating old sandbox instance",
+            );
+            ec2
+              .send(
+                new TerminateInstancesCommand({
+                  InstanceIds: [existingInstanceId],
+                }),
+              )
+              .catch((err) =>
+                log.warn(
+                  {
+                    agentId,
+                    instanceId: existingInstanceId,
+                    error: (err as Error).message,
+                  },
+                  "Failed to terminate old sandbox instance",
+                ),
+              );
+          }
         }
 
         // Subscribe so this task gets woken up when the sandbox is ready
