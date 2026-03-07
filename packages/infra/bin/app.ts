@@ -56,6 +56,8 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   env,
   vpc: network.vpc,
   serverSecurityGroup: server.serverSecurityGroup,
+  fileSystem: db.fileSystem,
+  accessPoint: db.accessPoint,
   notifyHookRoleArn: server.notifyHookRoleArn,
   serverElasticIp: server.elasticIp,
 });

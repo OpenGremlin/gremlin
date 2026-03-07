@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr_assets from "aws-cdk-lib/aws-ecr-assets";
+import type * as efs from "aws-cdk-lib/aws-efs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
@@ -14,6 +15,8 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 export interface SandboxEc2StackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   serverSecurityGroup: ec2.ISecurityGroup;
+  fileSystem: efs.IFileSystem;
+  accessPoint: efs.IAccessPoint;
   notifyHookRoleArn: string;
   serverElasticIp: string;
 }
@@ -128,7 +131,7 @@ export class SandboxEc2Stack extends cdk.Stack {
 
       // Mount EFS at /workspace
       "mkdir -p /workspace",
-      // EFS mount will be configured per-agent via fstab or mount command
+      `mount -t efs -o tls,accesspoint=${props.accessPoint.accessPointId} ${props.fileSystem.fileSystemId}:/ /workspace`,
 
       // Allow Docker containers to reach instance metadata (IMDSv2)
       "TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')",
