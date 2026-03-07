@@ -188,7 +188,7 @@ function DelegateTaskCard({
         <div className="flex h-[110px]">
           <div className="flex-1 min-w-0 px-3.5 py-3">
             <span className="text-sm text-indigo-100 font-medium line-clamp-2 leading-snug">
-              {taskTitle}
+              <span className="font-bold">Task:</span> {taskTitle}
               {clickable && (
                 <ExternalLink
                   size={12}

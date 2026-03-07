@@ -23,8 +23,9 @@ export function ChatHeader({
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 flex flex-col">
-      <div
-        className={`flex items-center px-2 py-2 transition-all duration-300 ease-out overflow-hidden ${hasTask ? "max-h-20 opacity-100" : "max-h-0 opacity-0 py-0"}`}
+      <Link
+        to={`/agents/${agent.id}`}
+        className={`flex items-center px-2 py-2 transition-all duration-300 ease-out overflow-hidden hover:brightness-125 ${hasTask ? "max-h-20 opacity-100" : "max-h-0 opacity-0 py-0"}`}
         style={{
           background: `
             radial-gradient(ellipse 140% 100% at 0% 100%, rgba(79,70,229,0.45) 0%, transparent 50%),
@@ -41,16 +42,13 @@ export function ChatHeader({
             onError={() => setImgError(true)}
           />
         )}
-        <span className="text-indigo-200 flex-1 min-w-0 line-clamp-2">
+        <span className="text-sm text-indigo-200 flex-1 min-w-0 line-clamp-2">
           <span className="font-bold">Task:</span> {task?.title}
         </span>
-        <Link
-          to={`/agents/${agent.id}`}
-          className="shrink-0 flex items-center gap-1 text-xs font-bold text-indigo-300 hover:text-indigo-100 transition-colors px-2"
-        >
+        <span className="shrink-0 flex items-center gap-1 text-xs font-bold text-indigo-300 px-2">
           Main Chat <Undo2 size={12} />
-        </Link>
-      </div>
+        </span>
+      </Link>
       <Link
         to={taskId ? `/agents/${agent.id}` : `/agents/${agent.id}/config`}
         className="pt-4 pb-3 flex flex-col items-center border-b border-neutral-800/60 bg-neutral-950/70 backdrop-blur-md hover:bg-neutral-900/50 transition-colors"
