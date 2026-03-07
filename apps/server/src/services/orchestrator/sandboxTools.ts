@@ -39,6 +39,18 @@ export function launchSandboxTool(
         lockId,
       );
       if (!lockResult.acquired) {
+        // If this task already owns the lock, the sandbox is still booting
+        if (lockResult.ownerTaskId === lockId) {
+          log.info(
+            { agentId, taskId: lockId },
+            "This task already owns the lock, sandbox still launching",
+          );
+          return {
+            status: "launching",
+            message:
+              "Sandbox is still booting up. You'll be notified when it's ready. Stop and wait.",
+          };
+        }
         log.info(
           { agentId, taskId: lockId, ownerTaskId: lockResult.ownerTaskId },
           "Sandbox busy, adding waiter",
@@ -49,7 +61,7 @@ export function launchSandboxTool(
         return {
           status: "busy",
           message:
-            "Sandbox in use. You'll be notified when available. Stop and wait.",
+            "Sandbox in use by another task. You'll be notified when available. Stop and wait.",
         };
       }
 
