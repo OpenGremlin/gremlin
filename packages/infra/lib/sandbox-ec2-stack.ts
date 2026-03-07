@@ -208,6 +208,29 @@ export class SandboxEc2Stack extends cdk.Stack {
       stringValue: subnet.subnetId,
     });
 
+    // ── Shared helper for sandbox Lambda inline code ──────
+    const describeSandboxInstancesFn = `
+async function describeSandboxInstances(ec2, states) {
+  const instances = [];
+  let nextToken;
+  do {
+    const res = await ec2.send(new DescribeInstancesCommand({
+      Filters: [
+        { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
+        { Name: "instance-state-name", Values: states },
+      ],
+      ...(nextToken && { NextToken: nextToken }),
+    }));
+    for (const r of res.Reservations || []) {
+      for (const i of r.Instances || []) {
+        instances.push(i);
+      }
+    }
+    nextToken = res.NextToken;
+  } while (nextToken);
+  return instances;
+}`;
+
     // ── Terminate old sandbox instances on deploy ──────────
     const cleanupFn = new lambda.Function(this, "SandboxCleanupFn", {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -215,16 +238,12 @@ export class SandboxEc2Stack extends cdk.Stack {
       timeout: cdk.Duration.seconds(60),
       code: lambda.Code.fromInline(`
 const { EC2Client, DescribeInstancesCommand, TerminateInstancesCommand } = require("@aws-sdk/client-ec2");
+const ec2 = new EC2Client({});
+${describeSandboxInstancesFn}
 exports.handler = async (event) => {
   if (event.RequestType === "Delete") return;
-  const ec2 = new EC2Client({});
-  const res = await ec2.send(new DescribeInstancesCommand({
-    Filters: [
-      { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
-      { Name: "instance-state-name", Values: ["running", "stopped", "pending"] },
-    ],
-  }));
-  const ids = (res.Reservations || []).flatMap(r => (r.Instances || []).map(i => i.InstanceId));
+  const instances = await describeSandboxInstances(ec2, ["running", "stopped", "pending"]);
+  const ids = instances.map(i => i.InstanceId);
   if (ids.length > 0) {
     console.log("Terminating sandbox instances:", ids);
     await ec2.send(new TerminateInstancesCommand({ InstanceIds: ids }));
@@ -260,24 +279,18 @@ exports.handler = async (event) => {
       timeout: cdk.Duration.seconds(60),
       code: lambda.Code.fromInline(`
 const { EC2Client, DescribeInstancesCommand, StopInstancesCommand } = require("@aws-sdk/client-ec2");
+const ec2 = new EC2Client({});
 const MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+${describeSandboxInstancesFn}
 exports.handler = async () => {
-  const ec2 = new EC2Client({});
-  const res = await ec2.send(new DescribeInstancesCommand({
-    Filters: [
-      { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
-      { Name: "instance-state-name", Values: ["running"] },
-    ],
-  }));
+  const instances = await describeSandboxInstances(ec2, ["running"]);
   const now = Date.now();
   const stale = [];
-  for (const r of res.Reservations || []) {
-    for (const i of r.Instances || []) {
-      const age = now - new Date(i.LaunchTime).getTime();
-      if (age > MAX_AGE_MS) {
-        stale.push(i.InstanceId);
-        console.log("Stale sandbox:", i.InstanceId, "age:", Math.round(age / 60000), "min");
-      }
+  for (const i of instances) {
+    const age = now - new Date(i.LaunchTime).getTime();
+    if (age > MAX_AGE_MS) {
+      stale.push(i.InstanceId);
+      console.log("Stale sandbox:", i.InstanceId, "age:", Math.round(age / 60000), "min");
     }
   }
   if (stale.length > 0) {
