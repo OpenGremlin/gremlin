@@ -27,7 +27,9 @@ async function getOrLaunchBrowser(
 
   // Ensure sandbox is running (browser tools require a sandbox session)
   if (!activeSessions.has(agentId)) {
-    throw new Error("No sandbox running. Call launchSandbox first.");
+    throw new Error(
+      "No sandbox running. Run a command first to start the sandbox.",
+    );
   }
 
   log.info({ agentId }, "Lazy-launching browser Fargate task");

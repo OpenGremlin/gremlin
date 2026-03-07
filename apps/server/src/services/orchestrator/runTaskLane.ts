@@ -19,11 +19,7 @@ import {
 } from "./browserTools.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
-import {
-  checkCommandTool,
-  launchSandboxTool,
-  runCommandTool,
-} from "./sandboxTools.js";
+import { checkCommandTool, runCommandTool } from "./sandboxTools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
@@ -84,7 +80,6 @@ export async function runTaskLane(
       updateDocument: updateDocumentTool(ctx),
       saveMemory: saveMemoryTool(ctx, task.agentId),
       recallMemory: recallMemoryTool(ctx, task.agentId),
-      launchSandbox: launchSandboxTool(ctx, task.agentId, taskId),
       runCommand: runCommandTool(ctx, task.agentId, taskId),
       checkCommand: checkCommandTool(ctx, task.agentId),
       browserNavigate: browserNavigateTool(ctx, task.agentId),

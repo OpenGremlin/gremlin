@@ -44,100 +44,75 @@ setInterval(async () => {
   }
 }, 60_000);
 
-export function launchSandboxTool(
+/**
+ * Try to ensure a connected sandbox session exists for the agent.
+ * Returns the session if connected, or null if a cold boot was initiated
+ * (the agent will be woken up via /notifyHook when the sandbox is ready).
+ */
+async function ensureSandbox(
   ctx: ServiceContext,
   agentId: string,
   taskId?: string,
-) {
-  return tool({
-    description:
-      "Launch a sandbox environment with a bash shell. The sandbox persists a /workspace directory across sessions. Call this before running any commands. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.",
-    inputSchema: z.object({}),
-    execute: async () => {
-      // Check if already running
-      const existing = activeSessions.get(agentId);
-      if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
-        log.info({ agentId }, "Sandbox already running, reusing session");
-        return { status: "ready" };
-      }
+): Promise<SandboxSession | null> {
+  // Already connected
+  const existing = activeSessions.get(agentId);
+  if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
+    return existing;
+  }
 
-      // Read agent record to get existing instanceId
-      const agent = await ctx.services.agents.getAgent(ctx, agentId);
-      const existingInstanceId = agent?.sandboxInstanceId;
+  // Read agent record to get existing instanceId
+  const agent = await ctx.services.agents.getAgent(ctx, agentId);
+  const existingInstanceId = agent?.sandboxInstanceId;
 
+  log.info({ agentId, existingInstanceId }, "Ensuring sandbox is available");
+
+  // Try quick connect to an already-running instance
+  if (existingInstanceId) {
+    const session = await ctx.services.sandbox.tryQuickConnect(
+      agentId,
+      existingInstanceId,
+    );
+    if (session) {
+      await ctx.services.sandbox.connectToSandbox(session);
+      session.lastActivityAt = Date.now();
+      activeSessions.set(agentId, session);
       log.info(
-        { agentId, existingInstanceId },
-        "Agent requested sandbox launch",
+        { agentId, instanceId: session.instanceId },
+        "Quick-connected to existing sandbox",
       );
+      return session;
+    }
+  }
 
-      try {
-        // Try quick connect to an already-running instance
-        if (existingInstanceId) {
-          const session = await ctx.services.sandbox.tryQuickConnect(
-            agentId,
-            existingInstanceId,
-          );
-          if (session) {
-            await ctx.services.sandbox.connectToSandbox(session);
-            session.lastActivityAt = Date.now();
-            activeSessions.set(agentId, session);
-            log.info(
-              { agentId, instanceId: session.instanceId },
-              "Quick-connected to existing sandbox",
-            );
-            return { status: "ready" };
-          }
-        }
+  // Cold start — launch EC2 (or start stopped instance) and return immediately
+  // The sandbox will notify via /notifyHook when ready
+  const instanceId = await ctx.services.sandbox.launchInstance(
+    agentId,
+    existingInstanceId,
+  );
 
-        // Cold start — launch EC2 (or start stopped instance) and return immediately
-        // The sandbox will notify via /notifyHook when ready
-        const instanceId = await ctx.services.sandbox.launchInstance(
-          agentId,
-          existingInstanceId,
-        );
+  // Persist instanceId if it changed
+  if (instanceId !== existingInstanceId) {
+    await ctx.services.agents.updateAgent(ctx, agentId, {
+      sandboxInstanceId: instanceId,
+    });
+  }
 
-        // Persist instanceId if it changed
-        if (instanceId !== existingInstanceId) {
-          await ctx.services.agents.updateAgent(ctx, agentId, {
-            sandboxInstanceId: instanceId,
-          });
-        }
+  // Subscribe so this task gets woken up when the sandbox is ready
+  if (taskId) {
+    await ctx.services.sandbox.subscribe(
+      ctx,
+      agentId,
+      taskId,
+      "sandbox_available",
+    );
+  }
 
-        // Subscribe so this task gets woken up when the sandbox is ready
-        if (taskId) {
-          await ctx.services.sandbox.subscribe(
-            ctx,
-            agentId,
-            taskId,
-            "sandbox_available",
-          );
-        }
-
-        log.info(
-          { agentId, instanceId },
-          "Sandbox instance launching, agent will be notified when ready",
-        );
-        return {
-          status: "launching",
-          message:
-            "Sandbox is booting up. You'll be notified when it's ready. Stop and wait.",
-        };
-      } catch (err) {
-        log.error(
-          {
-            agentId,
-            error: (err as Error).message,
-            stack: (err as Error).stack,
-          },
-          "launchSandbox failed",
-        );
-        return {
-          status: "error",
-          error: (err as Error).message,
-        };
-      }
-    },
-  });
+  log.info(
+    { agentId, instanceId },
+    "Sandbox instance launching, agent will be notified when ready",
+  );
+  return null;
 }
 
 export function runCommandTool(
@@ -147,18 +122,34 @@ export function runCommandTool(
 ) {
   return tool({
     description:
-      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). The sandbox has bash, git, python3, jq, curl, and build tools available. Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results.",
+      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). The sandbox has bash, git, python3, jq, curl, and build tools available. Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.",
     inputSchema: z.object({
       command: z.string().describe("The shell command to execute"),
     }),
     execute: async ({ command }) => {
-      const session = activeSessions.get(agentId);
-      if (!session) {
-        log.warn({ agentId }, "runCommand called with no active sandbox");
+      let session: SandboxSession | null;
+      try {
+        session = await ensureSandbox(ctx, agentId, taskId);
+      } catch (err) {
+        log.error(
+          {
+            agentId,
+            error: (err as Error).message,
+            stack: (err as Error).stack,
+          },
+          "ensureSandbox failed",
+        );
         return {
-          error: "No sandbox running. Call launchSandbox first.",
-          output: "",
-          exitCode: -1,
+          status: "error",
+          error: (err as Error).message,
+        };
+      }
+
+      if (!session) {
+        return {
+          status: "launching",
+          message:
+            "Sandbox is booting up. You'll be notified when it's ready. Stop and wait.",
         };
       }
 
@@ -181,7 +172,8 @@ export function runCommandTool(
         );
         activeSessions.delete(agentId);
         return {
-          error: "Sandbox connection lost. Call launchSandbox to reconnect.",
+          error:
+            "Sandbox connection lost. Try running the command again to reconnect.",
           output: "",
           exitCode: -1,
         };

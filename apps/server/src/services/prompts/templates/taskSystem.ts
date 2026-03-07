@@ -12,9 +12,7 @@ You have tools available:
 - createDocument: Create a document artifact attached to this task.
 - updateDocument: Revise an existing document using patches.
 - requestApproval: Ask the user for a decision before proceeding.
-- launchSandbox: Launch a sandbox environment with bash. Call this before running any commands.
-- runCommand: Execute a shell command in the sandbox.
-- terminateSandbox: Shut down the sandbox when done.
+- runCommand: Execute a shell command in the sandbox. The sandbox boots automatically if needed.
 
 You have a long-term memory. Relevant memories are automatically recalled. Use saveMemory proactively if you learn something worth knowing next time.
 
