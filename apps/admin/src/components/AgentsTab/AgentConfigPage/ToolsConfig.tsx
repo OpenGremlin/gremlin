@@ -68,20 +68,27 @@ function ConfigRow({
   );
 }
 
-function toPlainConfig(config: Agent["config"]) {
+interface PlainConfig {
+  model?: { type: string; modelId?: string; connectionId?: string };
+  sandbox?: { enabled: boolean };
+  webSearch?: { enabled: boolean; provider?: string };
+  browser?: { enabled: boolean };
+}
+
+function toPlainConfig(config: Agent["config"]): PlainConfig {
   return {
     model: config?.model
       ? {
           type: config.model.type,
-          modelId: config.model.modelId,
-          connectionId: config.model.connectionId,
+          modelId: config.model.modelId ?? undefined,
+          connectionId: config.model.connectionId ?? undefined,
         }
       : undefined,
     sandbox: config?.sandbox ? { enabled: config.sandbox.enabled } : undefined,
     webSearch: config?.webSearch
       ? {
           enabled: config.webSearch.enabled,
-          provider: config.webSearch.provider,
+          provider: config.webSearch.provider ?? undefined,
         }
       : undefined,
     browser: config?.browser ? { enabled: config.browser.enabled } : undefined,
@@ -110,7 +117,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
   const config = localConfig;
 
-  async function updateConfig(patch: Partial<AgentConfig>) {
+  async function updateConfig(patch: Partial<typeof config>) {
     const merged = { ...config, ...patch };
     setLocalConfig(merged);
     setSaving(true);

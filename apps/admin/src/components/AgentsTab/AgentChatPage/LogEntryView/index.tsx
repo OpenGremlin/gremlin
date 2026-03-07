@@ -1,12 +1,13 @@
 import {
-  Check,
   ArrowDownFromLine,
   ArrowUpFromLine,
+  Check,
   ChevronRight,
   ExternalLink,
   Loader2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
 import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
@@ -39,6 +40,7 @@ function ScrolledPre({
     );
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: style triggers shadow recompute on expand/collapse
   useEffect(() => {
     const el = innerRef.current;
     if (!el) return;
@@ -65,7 +67,12 @@ function ScrolledPre({
       {edges.bottom && (
         <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-[1] rounded-b-lg" />
       )}
-      <pre ref={mergedRef} className={className} style={style} onScroll={updateEdges}>
+      <pre
+        ref={mergedRef}
+        className={className}
+        style={style}
+        onScroll={updateEdges}
+      >
         {children}
       </pre>
     </div>
@@ -129,7 +136,11 @@ function ToolBlock({
                 onClick={() => setExpanded((e) => !e)}
                 className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-[2]"
               >
-                {expanded ? <ArrowUpFromLine size={14} /> : <ArrowDownFromLine size={14} />}
+                {expanded ? (
+                  <ArrowUpFromLine size={14} />
+                ) : (
+                  <ArrowDownFromLine size={14} />
+                )}
               </button>
             )}
             <ScrolledPre
@@ -270,9 +281,9 @@ export function LogEntryView({
         <div id={entry.id} className="flex justify-end">
           <div className="max-w-[80%]">
             <div
-              className={`text-white text-sm px-3.5 py-2 rounded-2xl rounded-br-md ${sending ? "bg-blue-600/70" : "bg-blue-600"}`}
+              className={`text-white text-sm px-3.5 py-2 rounded-2xl rounded-br-md prose prose-invert prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${sending ? "bg-blue-600/70" : "bg-blue-600"}`}
             >
-              {entry.content}
+              <Markdown>{entry.content}</Markdown>
             </div>
             {showTimestamp ? (
               <div className="text-[10px] text-neutral-500 mt-0.5 mb-1 text-right pr-1 flex items-center justify-end gap-1">
@@ -291,8 +302,8 @@ export function LogEntryView({
       return (
         <div id={entry.id} className="flex justify-start">
           <div className="max-w-[80%]">
-            <div className="bg-neutral-800 text-neutral-100 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md">
-              {entry.content}
+            <div className="bg-neutral-800 text-neutral-100 text-sm px-3.5 py-2 rounded-2xl rounded-bl-md prose prose-invert prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+              <Markdown>{entry.content}</Markdown>
             </div>
             {showTimestamp ? (
               <div className="text-[10px] text-neutral-500 mt-0.5 mb-1 pl-1">
@@ -420,8 +431,7 @@ export function LogEntryView({
         );
       }
 
-      const inputEmpty =
-        !tool.input || Object.keys(tool.input).length === 0;
+      const inputEmpty = !tool.input || Object.keys(tool.input).length === 0;
       const pending = inputEmpty && !tool.result;
 
       if (pending) {
@@ -441,8 +451,7 @@ export function LogEntryView({
       }
 
       const sections: string[] = [];
-      if (!inputEmpty)
-        sections.push(JSON.stringify(tool.input, null, 2));
+      if (!inputEmpty) sections.push(JSON.stringify(tool.input, null, 2));
       if (tool.result) {
         if (sections.length > 0) sections.push("── result ──");
         sections.push(JSON.stringify(tool.result, null, 2));
