@@ -39,26 +39,26 @@ describe("shouldShowTimestamp", () => {
     expect(shouldShowTimestamp(msg, next)).toBe(true);
   });
 
-  it("returns false for same role within 1 minute", () => {
+  it("returns false for same role within 15 minutes", () => {
     const msg = makeMsg({
       role: AgentLogRole.User,
       createdAt: "2024-01-01T12:00:00Z",
     });
     const next = makeMsg({
       role: AgentLogRole.User,
-      createdAt: "2024-01-01T12:00:30Z",
+      createdAt: "2024-01-01T12:14:00Z",
     });
     expect(shouldShowTimestamp(msg, next)).toBe(false);
   });
 
-  it("returns true for same role with >= 1 minute gap", () => {
+  it("returns true for same role with >= 15 minute gap", () => {
     const msg = makeMsg({
       role: AgentLogRole.User,
       createdAt: "2024-01-01T12:00:00Z",
     });
     const next = makeMsg({
       role: AgentLogRole.User,
-      createdAt: "2024-01-01T12:01:00Z",
+      createdAt: "2024-01-01T12:15:00Z",
     });
     expect(shouldShowTimestamp(msg, next)).toBe(true);
   });

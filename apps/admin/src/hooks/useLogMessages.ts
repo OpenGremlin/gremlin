@@ -20,7 +20,7 @@ export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 type LogsResult = AgentLogsQuery | TaskLogsResult;
 type SubResult = AgentLogCreatedSubscription | TaskLogCreatedSubscription;
 
-/** Should this message show a timestamp, or coalesce with the next same-role message within 1 min? */
+/** Should this message show a timestamp, or coalesce with the next same-role message within 15 min? */
 export function shouldShowTimestamp(
   msg: ChatMessage,
   next: ChatMessage | undefined,
@@ -29,7 +29,7 @@ export function shouldShowTimestamp(
   if (msg.role !== next.role) return true;
   const gap =
     new Date(next.createdAt).getTime() - new Date(msg.createdAt).getTime();
-  return Math.abs(gap) >= 60_000;
+  return Math.abs(gap) >= 900_000;
 }
 
 export function useLogMessages(
