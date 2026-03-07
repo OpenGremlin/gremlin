@@ -100,9 +100,8 @@ export class SandboxEc2Stack extends cdk.Stack {
       "set -euo pipefail",
       "exec > /var/log/sandbox-userdata.log 2>&1",
 
-      // Install Docker
-      "apt-get update -y",
-      "apt-get install -y docker.io amazon-efs-utils",
+      // Install Docker (Amazon Linux 2023)
+      "dnf install -y docker amazon-efs-utils",
       "systemctl enable docker && systemctl start docker",
 
       // Authenticate to ECR and pull sandbox image
@@ -143,15 +142,13 @@ export class SandboxEc2Stack extends cdk.Stack {
           ec2.InstanceClass.T3,
           ec2.InstanceSize.SMALL,
         ),
-        machineImage: ec2.MachineImage.fromSsmParameter(
-          "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id",
-        ),
+        machineImage: ec2.MachineImage.latestAmazonLinux2023(),
         securityGroup: sandboxSg,
         role: sandboxRole,
         userData,
         blockDevices: [
           {
-            deviceName: "/dev/sda1",
+            deviceName: "/dev/xvda",
             volume: ec2.BlockDeviceVolume.ebs(20, {
               volumeType: ec2.EbsDeviceVolumeType.GP3,
               encrypted: true,
