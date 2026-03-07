@@ -26,9 +26,9 @@ export class SandboxEc2Stack extends cdk.Stack {
     // ── Docker image asset (same Dockerfile used by BrowserStack) ──
     const imageAsset = new ecr_assets.DockerImageAsset(this, "SandboxImage", {
       directory: REPO_ROOT,
-      file: "apps/sandbox/Dockerfile",
+      file: "apps/sandbox/Dockerfile.ec2",
       exclude: ["**/cdk.out"],
-      platform: ecr_assets.Platform.LINUX_AMD64,
+      platform: ecr_assets.Platform.LINUX_ARM64,
     });
 
     // ── Security group ─────────────────────────────────────
@@ -139,10 +139,12 @@ export class SandboxEc2Stack extends cdk.Stack {
       "SandboxLaunchTemplate",
       {
         instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T3,
+          ec2.InstanceClass.T4G,
           ec2.InstanceSize.SMALL,
         ),
-        machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+        machineImage: ec2.MachineImage.latestAmazonLinux2023({
+          cpuType: ec2.AmazonLinuxCpuType.ARM_64,
+        }),
         securityGroup: sandboxSg,
         role: sandboxRole,
         userData,
