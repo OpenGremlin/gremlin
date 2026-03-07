@@ -160,7 +160,7 @@ function DelegateTaskCard({
   const clickable = !!(taskId && onTaskClick);
 
   return (
-    <div className="py-1">
+    <div className="py-1 mr-4 sm:mr-12">
       {/* biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally "button" when clickable */}
       <div
         role={clickable ? "button" : undefined}
@@ -203,9 +203,9 @@ function DelegateTaskCard({
                 .map(({ msg, origIdx }, i) => (
                   <div
                     key={origIdx}
-                    className={`text-xs flex items-center gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
+                    className={`text-xs flex items-start gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
                   >
-                    <Check size={10} className="shrink-0 opacity-40" />
+                    <Check size={10} className="shrink-0 opacity-40 mt-[3px]" />
                     <span>{msg}</span>
                   </div>
                 ))}
@@ -218,7 +218,7 @@ function DelegateTaskCard({
             </div>
           </div>
           {task?.imageUrl && !imgError && (
-            <div className="shrink-0 p-2.5 pr-5">
+            <div className="hidden xs:block shrink-0 p-2.5 pr-5">
               <img
                 src={task.imageUrl}
                 alt=""
