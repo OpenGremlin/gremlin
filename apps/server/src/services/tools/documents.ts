@@ -74,7 +74,7 @@ export function createDocumentTool(ctx: ServiceContext, taskId: string) {
   });
 }
 
-export function updateDocumentTool(ctx: ServiceContext) {
+export function updateDocumentTool(_ctx: ServiceContext) {
   return tool({
     description:
       "Update an existing document by applying patches. Send old_text/new_text pairs instead of the full body. To replace text, set old_text to the existing text and new_text to the replacement. To delete text, set new_text to an empty string. To insert text, include surrounding text in old_text and add the new content in new_text.",

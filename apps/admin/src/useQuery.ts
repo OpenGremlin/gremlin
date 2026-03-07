@@ -49,7 +49,7 @@ export function useQuery<TResult>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars, _version]);
+  }, [query, stableVars]);
 
   return {
     data,

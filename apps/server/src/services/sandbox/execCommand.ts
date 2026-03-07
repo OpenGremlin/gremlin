@@ -1,13 +1,17 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
-import type { BackgroundCommand, CommandResult, SandboxSession } from "./types.js";
+import type { ExecOptions } from "./shared.js";
 import {
-  SOFT_TIMEOUT_MS,
-  HARD_TIMEOUT_MS,
   backgroundCommands,
+  HARD_TIMEOUT_MS,
+  SOFT_TIMEOUT_MS,
   truncate,
 } from "./shared.js";
-import type { ExecOptions } from "./shared.js";
+import type {
+  BackgroundCommand,
+  CommandResult,
+  SandboxSession,
+} from "./types.js";
 
 const log = createLogger("sandbox:exec");
 

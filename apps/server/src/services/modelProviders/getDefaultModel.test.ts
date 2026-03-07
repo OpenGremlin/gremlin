@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { getDefaultModel } from "./getDefaultModel.js";
 
 describe("getDefaultModel", () => {
@@ -12,7 +12,10 @@ describe("getDefaultModel", () => {
   });
 
   it("returns parsed default model when setting exists", async () => {
-    const stored = { providerId: "anthropic", modelId: "claude-opus-4-20250514" };
+    const stored = {
+      providerId: "anthropic",
+      modelId: "claude-opus-4-20250514",
+    };
     const mockSend = vi.fn().mockResolvedValue({
       Item: { key: "defaultModel", value: JSON.stringify(stored) },
     });

@@ -23,12 +23,12 @@ describe("useSandboxOutput", () => {
     const { result } = renderHook(() => useSandboxOutput("task-1"));
 
     act(() => {
-      subscriptionCallback!({
+      subscriptionCallback?.({
         sandboxOutput: { commandId: "cmd1", stream: "stdout", data: "hello " },
       });
     });
     act(() => {
-      subscriptionCallback!({
+      subscriptionCallback?.({
         sandboxOutput: { commandId: "cmd1", stream: "stdout", data: "world" },
       });
     });
@@ -42,13 +42,19 @@ describe("useSandboxOutput", () => {
     const { result } = renderHook(() => useSandboxOutput("task-1"));
 
     act(() => {
-      subscriptionCallback!({
+      subscriptionCallback?.({
         sandboxOutput: { commandId: "cmd1", stream: "stdout", data: "output" },
       });
     });
     act(() => {
-      subscriptionCallback!({
-        sandboxOutput: { commandId: "cmd1", stream: "stdout", data: "", done: true, exitCode: 0 },
+      subscriptionCallback?.({
+        sandboxOutput: {
+          commandId: "cmd1",
+          stream: "stdout",
+          data: "",
+          done: true,
+          exitCode: 0,
+        },
       });
     });
 
@@ -62,12 +68,12 @@ describe("useSandboxOutput", () => {
     const { result } = renderHook(() => useSandboxOutput("task-1"));
 
     act(() => {
-      subscriptionCallback!({
+      subscriptionCallback?.({
         sandboxOutput: { commandId: "cmd1", stream: "stdout", data: "first" },
       });
     });
     act(() => {
-      subscriptionCallback!({
+      subscriptionCallback?.({
         sandboxOutput: { commandId: "cmd2", stream: "stdout", data: "second" },
       });
     });

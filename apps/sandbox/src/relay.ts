@@ -231,7 +231,7 @@ function handleExec(
     if (cwdIdx !== -1) {
       const afterSentinel = stderr.slice(cwdIdx + CWD_SENTINEL.length).trim();
       const newCwd = afterSentinel.split("\n")[0]?.trim();
-      if (newCwd && newCwd.startsWith("/")) {
+      if (newCwd?.startsWith("/")) {
         execState.cwd = newCwd;
       }
       // Strip the sentinel and cwd from stderr

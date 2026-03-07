@@ -7,7 +7,7 @@ function minutesAgo(n: number) {
 function hoursAgo(n: number) {
   return new Date(Date.now() - n * 3_600_000).toISOString();
 }
-function daysAgo(n: number) {
+function _daysAgo(n: number) {
   return new Date(Date.now() - n * 86_400_000).toISOString();
 }
 

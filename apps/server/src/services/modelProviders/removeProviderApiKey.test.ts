@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 
 vi.mock("../orchestrator/model.js", () => ({
   invalidateModelCache: vi.fn(),
 }));
 
-import { removeProviderApiKey } from "./removeProviderApiKey.js";
 import { invalidateModelCache } from "../orchestrator/model.js";
+import { removeProviderApiKey } from "./removeProviderApiKey.js";
 
 describe("removeProviderApiKey", () => {
   let ctx: DeepMockProxy<ServiceContext>;
@@ -26,7 +26,10 @@ describe("removeProviderApiKey", () => {
     } as any);
 
     // Get default model setting — matches provider being removed
-    const stored = { providerId: "anthropic", modelId: "claude-opus-4-20250514" };
+    const stored = {
+      providerId: "anthropic",
+      modelId: "claude-opus-4-20250514",
+    };
     const mockSettingGetSend = vi.fn().mockResolvedValue({
       Item: { key: "defaultModel", value: JSON.stringify(stored) },
     });

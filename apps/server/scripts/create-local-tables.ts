@@ -3,11 +3,11 @@ import {
   DynamoDBClient,
   ResourceInUseException,
 } from "@aws-sdk/client-dynamodb";
-import { CreateQueueCommand, SQSClient } from "@aws-sdk/client-sqs";
 import {
   CreateScheduleGroupCommand,
   SchedulerClient,
 } from "@aws-sdk/client-scheduler";
+import { CreateQueueCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 const endpoint = process.env.LOCALSTACK_ENDPOINT ?? "http://localhost:4566";
 const region = "us-east-1";
@@ -99,9 +99,7 @@ try {
 // --- EventBridge Scheduler group ---
 
 try {
-  await scheduler.send(
-    new CreateScheduleGroupCommand({ Name: "gremlin" }),
-  );
+  await scheduler.send(new CreateScheduleGroupCommand({ Name: "gremlin" }));
   console.log("Created scheduler group: gremlin");
 } catch (err: unknown) {
   if (err instanceof Error && err.name === "ConflictException") {

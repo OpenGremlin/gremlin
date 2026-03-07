@@ -52,8 +52,7 @@ function ApiKeyDetailView({
       });
       setApiKeyInput("");
       refetch();
-    } catch (err) {
-      console.error("Failed to save API key:", err);
+    } catch (_err) {
     } finally {
       setSaving(false);
     }
@@ -67,8 +66,7 @@ function ApiKeyDetailView({
         modelId,
       });
       refetch();
-    } catch (err) {
-      console.error("Failed to set default model:", err);
+    } catch (_err) {
     } finally {
       setSettingModel(null);
     }

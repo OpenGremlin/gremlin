@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { setProviderApiKey } from "./setProviderApiKey.js";
 
 describe("setProviderApiKey", () => {

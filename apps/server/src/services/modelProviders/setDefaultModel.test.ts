@@ -1,14 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 
 vi.mock("../orchestrator/model.js", () => ({
   invalidateModelCache: vi.fn(),
 }));
 
-import { setDefaultModel } from "./setDefaultModel.js";
 import { invalidateModelCache } from "../orchestrator/model.js";
+import { setDefaultModel } from "./setDefaultModel.js";
 
 describe("setDefaultModel", () => {
   let ctx: DeepMockProxy<ServiceContext>;
@@ -27,7 +27,9 @@ describe("setDefaultModel", () => {
   it("throws for unknown model within a valid provider", async () => {
     await expect(
       setDefaultModel(ctx, "anthropic", "nonexistent-model"),
-    ).rejects.toThrow("Unknown model: nonexistent-model for provider anthropic");
+    ).rejects.toThrow(
+      "Unknown model: nonexistent-model for provider anthropic",
+    );
   });
 
   it("throws when provider has no API key configured", async () => {

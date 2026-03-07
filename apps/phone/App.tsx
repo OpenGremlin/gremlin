@@ -15,14 +15,12 @@ export default function App() {
   const sendCommand = () => {
     if (!command.trim()) return;
 
-    const message = {
+    const _message = {
       type: "command",
       text: command.trim(),
       inputType: "text",
       profileId: "default",
     };
-
-    console.log("Would send:", message);
     setCommand("");
   };
 

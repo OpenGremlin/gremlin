@@ -42,7 +42,7 @@ function ScrolledPre({
     if (!el) return;
     el.scrollTop = el.scrollHeight;
     updateEdges();
-  }, [children, updateEdges]);
+  }, [updateEdges]);
 
   return (
     <div className="relative">
@@ -126,7 +126,6 @@ function ToolBlock({
   );
 }
 
-
 function DelegateTaskCard({
   taskId,
   taskTitle,
@@ -178,10 +177,12 @@ function DelegateTaskCard({
               )}
             </span>
             <div className="mt-2 space-y-1.5 max-h-[4.5rem] overflow-hidden relative">
-              {task?.messages &&
-                [...task.messages].reverse().map((msg, i) => (
+              {task?.messages
+                ?.map((msg, origIdx) => ({ msg, origIdx }))
+                .reverse()
+                .map(({ msg, origIdx }, i) => (
                   <div
-                    key={`${msg}-${i}`}
+                    key={origIdx}
                     className={`text-xs flex items-center gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
                   >
                     <Check size={10} className="shrink-0 opacity-40" />

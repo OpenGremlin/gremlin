@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { getNotification } from "./getNotification.js";
 
 describe("getNotification", () => {
@@ -12,7 +12,11 @@ describe("getNotification", () => {
   });
 
   it("returns the first item when found", async () => {
-    const notification = { id: "notif-1", title: "Test", createdAt: "2024-01-01T00:00:00Z" };
+    const notification = {
+      id: "notif-1",
+      title: "Test",
+      createdAt: "2024-01-01T00:00:00Z",
+    };
 
     ctx.resources.ddb.table.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({

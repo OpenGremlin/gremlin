@@ -37,9 +37,7 @@ describe("buildReviewPrompt", () => {
 });
 
 describe("parseReviewResponse", () => {
-  const fallback = [
-    { tenet: "fallback tenet", shapedBy: ["fallback reason"] },
-  ];
+  const fallback = [{ tenet: "fallback tenet", shapedBy: ["fallback reason"] }];
 
   it("parses a valid JSON array", () => {
     const input = JSON.stringify([

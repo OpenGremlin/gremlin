@@ -1,8 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { markRead } from "./markRead.js";
 
 function makeItem(overrides: Partial<InboxItemItem> = {}): InboxItemItem {
@@ -32,8 +32,16 @@ describe("markRead", () => {
 
   it("sends update for each item", async () => {
     const items = [
-      makeItem({ id: "item-1", agentId: "agent-1", createdAt: "2026-01-01T00:00:00Z" }),
-      makeItem({ id: "item-2", agentId: "agent-1", createdAt: "2026-01-02T00:00:00Z" }),
+      makeItem({
+        id: "item-1",
+        agentId: "agent-1",
+        createdAt: "2026-01-01T00:00:00Z",
+      }),
+      makeItem({
+        id: "item-2",
+        agentId: "agent-1",
+        createdAt: "2026-01-02T00:00:00Z",
+      }),
     ];
 
     await markRead(ctx, items);
@@ -51,12 +59,18 @@ describe("markRead", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-06T00:00:00Z"));
 
-    const item = makeItem({ id: "item-1", agentId: "agent-1", createdAt: "2026-01-01T00:00:00Z" });
+    const item = makeItem({
+      id: "item-1",
+      agentId: "agent-1",
+      createdAt: "2026-01-01T00:00:00Z",
+    });
 
     await markRead(ctx, [item]);
 
     const command = mockDocSend.mock.calls[0][0];
-    const expectedTtl = Math.floor(new Date("2026-03-06T00:00:00Z").getTime() / 1000) + 7 * 24 * 60 * 60;
+    const expectedTtl =
+      Math.floor(new Date("2026-03-06T00:00:00Z").getTime() / 1000) +
+      7 * 24 * 60 * 60;
 
     expect(command.input).toMatchObject({
       TableName: "test-table",

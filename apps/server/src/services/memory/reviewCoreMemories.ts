@@ -4,8 +4,8 @@ import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 import { getModel } from "../orchestrator/model.js";
 import { ensureVectorIndex } from "./ensure.js";
-import { getCoreMemories } from "./getCoreMemories.js";
 import type { CoreMemory } from "./getCoreMemories.js";
+import { getCoreMemories } from "./getCoreMemories.js";
 import { buildReviewPrompt, parseReviewResponse } from "./reviewHelpers.js";
 import { saveCoreMemories } from "./saveCoreMemories.js";
 

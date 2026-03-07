@@ -1,7 +1,6 @@
 import "./env.js";
 import { createServer } from "node:http";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import express from "express";
@@ -9,11 +8,11 @@ import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
-import { createNotifyHookHandler } from "./notifyHook.js";
 import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 import { createLogger, logger } from "./logger.js";
+import { createNotifyHookHandler } from "./notifyHook.js";
 import { createResources } from "./resources/index.js";
 import { createServices } from "./services/index.js";
 
@@ -110,7 +109,10 @@ const yoga = createYoga({
 
         const header = request.headers.get("authorization");
         if (!header?.startsWith("Bearer ")) {
-          logger.warn({ url: request.url, component: "auth" }, "Missing auth header");
+          logger.warn(
+            { url: request.url, component: "auth" },
+            "Missing auth header",
+          );
           endResponse(
             fetchAPI.Response.json(
               { errors: [{ message: "Unauthorized" }] },
@@ -294,7 +296,7 @@ loadSchedulerConfig().then(async () => {
     .on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
         logger.warn({ port: PORT }, "Port in use, killing existing process…");
-        import("child_process").then(({ execSync }) => {
+        import("node:child_process").then(({ execSync }) => {
           try {
             execSync(`lsof -ti tcp:${PORT} | xargs kill -9`, {
               stdio: "ignore",

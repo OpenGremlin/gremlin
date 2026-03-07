@@ -63,7 +63,6 @@ export async function handler(event: {
     if ((err as { name?: string }).name === "NoSuchKey") {
       return { statusCode: 404, body: "Image not found" };
     }
-    console.error("S3 fetch error:", err);
     return { statusCode: 500, body: "Failed to fetch image" };
   }
 
@@ -94,8 +93,7 @@ export async function handler(event: {
       body: outputBuffer.toString("base64"),
       isBase64Encoded: true,
     };
-  } catch (err) {
-    console.error("Processing error:", err);
+  } catch (_err) {
     return { statusCode: 500, body: "Failed to process image" };
   }
 }

@@ -15,14 +15,10 @@ const {
 } = process.env;
 
 if (!NOTIFY_HOOK_URL || !AGENT_ID) {
-  console.log(
-    "notify-server: NOTIFY_HOOK_URL or AGENT_ID not set, skipping notification",
-  );
   process.exit(0);
 }
 
 if (!NOTIFY_HOOK_ROLE_ARN) {
-  console.log("notify-server: NOTIFY_HOOK_ROLE_ARN not set, skipping");
   process.exit(0);
 }
 
@@ -65,9 +61,6 @@ try {
     const body = await res.text();
     throw new Error(`Server returned ${res.status}: ${body}`);
   }
-
-  console.log("notify-server: Successfully notified server sandbox is ready");
-} catch (err) {
-  console.error("notify-server: Failed to notify server:", err.message);
+} catch (_err) {
   process.exit(1);
 }

@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 
-function makeToolMsg(
-  overrides: Partial<ChatMessage>,
-): ChatMessage {
+function makeToolMsg(overrides: Partial<ChatMessage>): ChatMessage {
   return {
     id: "1",
     role: "TOOL",
@@ -14,7 +12,15 @@ function makeToolMsg(
     toolInput: null,
     toolResult: null,
     taskId: null,
-    agent: { id: "a1", name: "Bot", avatar: "", imageUrl: "", portraitId: "", soul: "", retired: false },
+    agent: {
+      id: "a1",
+      name: "Bot",
+      avatar: "",
+      imageUrl: "",
+      portraitId: "",
+      soul: "",
+      retired: false,
+    },
     ...overrides,
   } as ChatMessage;
 }

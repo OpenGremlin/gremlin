@@ -59,11 +59,17 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
 
   if (!defaultModel) {
     // No default model configured — fall back to Bedrock
-    log.info({ modelId: BEDROCK_FALLBACK_MODEL, reason: "no_default" }, "Using Bedrock fallback model");
+    log.info(
+      { modelId: BEDROCK_FALLBACK_MODEL, reason: "no_default" },
+      "Using Bedrock fallback model",
+    );
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
 
-  log.info({ providerId: defaultModel.providerId, modelId: defaultModel.modelId }, "Resolved default model");
+  log.info(
+    { providerId: defaultModel.providerId, modelId: defaultModel.modelId },
+    "Resolved default model",
+  );
 
   // Bedrock provider uses server-side credentials — no API key needed
   if (defaultModel.providerId === "bedrock") {
@@ -81,7 +87,10 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
 
   if (!keyItem) {
     // API key was removed but setting not cleaned up — fall back to Bedrock
-    log.warn({ providerId: defaultModel.providerId, modelId: BEDROCK_FALLBACK_MODEL }, "API key missing, falling back to Bedrock");
+    log.warn(
+      { providerId: defaultModel.providerId, modelId: BEDROCK_FALLBACK_MODEL },
+      "API key missing, falling back to Bedrock",
+    );
     return bedrock(BEDROCK_FALLBACK_MODEL);
   }
 

@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { getUnreadItems } from "./getUnreadItems.js";
 
 describe("getUnreadItems", () => {
@@ -19,8 +19,22 @@ describe("getUnreadItems", () => {
 
   it("returns items for an agent", async () => {
     const items = [
-      { id: "item-1", agentId: "agent-1", isRead: false, type: "message", payload: "{}", createdAt: "2026-01-01T00:00:00Z" },
-      { id: "item-2", agentId: "agent-1", isRead: false, type: "message", payload: "{}", createdAt: "2026-01-02T00:00:00Z" },
+      {
+        id: "item-1",
+        agentId: "agent-1",
+        isRead: false,
+        type: "message",
+        payload: "{}",
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+      {
+        id: "item-2",
+        agentId: "agent-1",
+        isRead: false,
+        type: "message",
+        payload: "{}",
+        createdAt: "2026-01-02T00:00:00Z",
+      },
     ];
     mockDocSend.mockResolvedValue({ Items: items });
 

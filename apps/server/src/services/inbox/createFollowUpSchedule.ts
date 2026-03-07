@@ -2,7 +2,11 @@ import {
   CreateScheduleCommand,
   type FlexibleTimeWindowMode,
 } from "@aws-sdk/client-scheduler";
-import { getSchedulerClient, getSchedulerConfig, log } from "./schedulerClient.js";
+import {
+  getSchedulerClient,
+  getSchedulerConfig,
+  log,
+} from "./schedulerClient.js";
 
 /**
  * Create a one-shot EventBridge schedule for an agent self-follow-up.

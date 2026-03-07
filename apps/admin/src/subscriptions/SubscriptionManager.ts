@@ -89,7 +89,7 @@ export class SubscriptionManager {
             variable: this.variableName,
             id,
           });
-          entry!.unsubscribe();
+          entry?.unsubscribe();
           this.entries.delete(id);
         }, 1000);
       }

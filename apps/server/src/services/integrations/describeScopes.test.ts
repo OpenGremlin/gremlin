@@ -3,9 +3,7 @@ import { describeScopes } from "./describeScopes.js";
 
 describe("describeScopes", () => {
   it("returns raw scopes joined for an unknown provider", () => {
-    expect(describeScopes("unknown-provider", ["a", "b", "c"])).toBe(
-      "a, b, c",
-    );
+    expect(describeScopes("unknown-provider", ["a", "b", "c"])).toBe("a, b, c");
   });
 
   it("returns the single label for one known scope", () => {

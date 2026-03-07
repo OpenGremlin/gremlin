@@ -1,9 +1,9 @@
 import { PutVectorsCommand } from "@aws-sdk/client-s3vectors";
 import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import type { CoreMemory } from "./getCoreMemories.js";
 import { embed } from "./embed.js";
 import { ensureVectorIndex } from "./ensure.js";
+import type { CoreMemory } from "./getCoreMemories.js";
 
 const log = logger.child({ component: "core-memories" });
 

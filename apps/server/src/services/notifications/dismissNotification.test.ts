@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { dismissNotification } from "./dismissNotification.js";
 
 vi.mock("../../gql/resolverTypes.js", () => ({
@@ -36,7 +36,9 @@ describe("dismissNotification", () => {
     mockedGetNotification.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({ send: mockDocSend } as any);
+    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+      send: mockDocSend,
+    } as any);
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
 
     const result = await dismissNotification(ctx, "notif-1");

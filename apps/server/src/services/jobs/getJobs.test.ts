@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { getJobs } from "./getJobs.js";
 
 describe("getJobs", () => {
@@ -13,8 +13,28 @@ describe("getJobs", () => {
 
   it("returns array of jobs", async () => {
     const jobs = [
-      { id: "job-1", name: "Daily Report", description: "desc", recurrence: "every day", cronExpression: "0 9 * * *", timezone: "UTC", agentId: "clawd", status: "IDLE" as const, lastRun: null },
-      { id: "job-2", name: "Weekly Sync", description: "desc", recurrence: "every week", cronExpression: "0 0 * * 1", timezone: "UTC", agentId: "clawd", status: "IDLE" as const, lastRun: null },
+      {
+        id: "job-1",
+        name: "Daily Report",
+        description: "desc",
+        recurrence: "every day",
+        cronExpression: "0 9 * * *",
+        timezone: "UTC",
+        agentId: "clawd",
+        status: "IDLE" as const,
+        lastRun: null,
+      },
+      {
+        id: "job-2",
+        name: "Weekly Sync",
+        description: "desc",
+        recurrence: "every week",
+        cronExpression: "0 0 * * 1",
+        timezone: "UTC",
+        agentId: "clawd",
+        status: "IDLE" as const,
+        lastRun: null,
+      },
     ];
 
     ctx.resources.ddb.table.build.mockReturnValue({

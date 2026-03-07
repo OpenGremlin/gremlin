@@ -2,7 +2,11 @@ import {
   CreateScheduleCommand,
   type FlexibleTimeWindowMode,
 } from "@aws-sdk/client-scheduler";
-import { getSchedulerClient, getSchedulerConfig, log } from "./schedulerClient.js";
+import {
+  getSchedulerClient,
+  getSchedulerConfig,
+  log,
+} from "./schedulerClient.js";
 
 /**
  * Create a recurring EventBridge schedule for a cron job.

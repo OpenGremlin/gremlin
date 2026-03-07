@@ -16,7 +16,7 @@ export function useSubscription<TResult>(
   onDataRef.current = onData;
 
   const queryStr = String(query);
-  const serializedVars = JSON.stringify(variables);
+  const _serializedVars = JSON.stringify(variables);
 
   useEffect(() => {
     if (!queryStr) return;
@@ -37,5 +37,5 @@ export function useSubscription<TResult>(
     );
 
     return unsubscribe;
-  }, [queryStr, serializedVars]);
+  }, [queryStr, variables]);
 }

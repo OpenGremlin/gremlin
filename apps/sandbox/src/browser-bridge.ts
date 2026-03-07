@@ -8,7 +8,7 @@ import { createLogger } from "./log.js";
 
 const log = createLogger("browser");
 
-const CDP_URL = "ws://localhost:9222";
+const _CDP_URL = "ws://localhost:9222";
 const CDP_HTTP = "http://localhost:9222";
 
 let cdpWs: WebSocket | null = null;
@@ -32,8 +32,8 @@ async function ensureCdp(): Promise<WebSocket> {
   cdpWs = new WebSocket(wsUrl);
 
   await new Promise<void>((resolve, reject) => {
-    cdpWs!.once("open", resolve);
-    cdpWs!.once("error", reject);
+    cdpWs?.once("open", resolve);
+    cdpWs?.once("error", reject);
   });
 
   log.info("CDP connection established");
@@ -108,8 +108,8 @@ async function ensurePageSession(): Promise<WebSocket> {
   }
 
   await new Promise<void>((resolve, reject) => {
-    pageSessionWs!.once("open", resolve);
-    pageSessionWs!.once("error", reject);
+    pageSessionWs?.once("open", resolve);
+    pageSessionWs?.once("error", reject);
   });
 
   // Enable Page domain

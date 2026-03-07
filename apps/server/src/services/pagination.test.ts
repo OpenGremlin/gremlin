@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildConnection,
-  decodeCursor,
-  encodeCursor,
-} from "./pagination.js";
+import { buildConnection, decodeCursor, encodeCursor } from "./pagination.js";
 
 function makeItem(id: string, createdAt: string) {
   return { id, createdAt };
@@ -40,7 +36,11 @@ describe("buildConnection", () => {
     });
 
     it("hasPreviousPage is true when after cursor is provided", () => {
-      const conn = buildConnection(items, { first: 3, after: "somecursor" }, false);
+      const conn = buildConnection(
+        items,
+        { first: 3, after: "somecursor" },
+        false,
+      );
       expect(conn.pageInfo.hasNextPage).toBe(false);
       expect(conn.pageInfo.hasPreviousPage).toBe(true);
     });
@@ -64,7 +64,11 @@ describe("buildConnection", () => {
     });
 
     it("hasNextPage is true when before cursor is provided", () => {
-      const conn = buildConnection(items, { last: 3, before: "somecursor" }, false);
+      const conn = buildConnection(
+        items,
+        { last: 3, before: "somecursor" },
+        false,
+      );
       expect(conn.pageInfo.hasNextPage).toBe(true);
       expect(conn.pageInfo.hasPreviousPage).toBe(false);
     });

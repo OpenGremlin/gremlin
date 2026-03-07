@@ -13,14 +13,24 @@ function makeMsg(
     toolInput: null,
     toolResult: null,
     taskId: null,
-    agent: { id: "a1", name: "Bot", avatar: "", imageUrl: "", portraitId: "", soul: "", retired: false },
+    agent: {
+      id: "a1",
+      name: "Bot",
+      avatar: "",
+      imageUrl: "",
+      portraitId: "",
+      soul: "",
+      retired: false,
+    },
     ...overrides,
   } as ChatMessage;
 }
 
 describe("shouldShowTimestamp", () => {
   it("returns true when there is no next message", () => {
-    expect(shouldShowTimestamp(makeMsg({ role: AgentLogRole.User }), undefined)).toBe(true);
+    expect(
+      shouldShowTimestamp(makeMsg({ role: AgentLogRole.User }), undefined),
+    ).toBe(true);
   });
 
   it("returns true when roles differ", () => {
@@ -30,20 +40,38 @@ describe("shouldShowTimestamp", () => {
   });
 
   it("returns false for same role within 1 minute", () => {
-    const msg = makeMsg({ role: AgentLogRole.User, createdAt: "2024-01-01T12:00:00Z" });
-    const next = makeMsg({ role: AgentLogRole.User, createdAt: "2024-01-01T12:00:30Z" });
+    const msg = makeMsg({
+      role: AgentLogRole.User,
+      createdAt: "2024-01-01T12:00:00Z",
+    });
+    const next = makeMsg({
+      role: AgentLogRole.User,
+      createdAt: "2024-01-01T12:00:30Z",
+    });
     expect(shouldShowTimestamp(msg, next)).toBe(false);
   });
 
   it("returns true for same role with >= 1 minute gap", () => {
-    const msg = makeMsg({ role: AgentLogRole.User, createdAt: "2024-01-01T12:00:00Z" });
-    const next = makeMsg({ role: AgentLogRole.User, createdAt: "2024-01-01T12:01:00Z" });
+    const msg = makeMsg({
+      role: AgentLogRole.User,
+      createdAt: "2024-01-01T12:00:00Z",
+    });
+    const next = makeMsg({
+      role: AgentLogRole.User,
+      createdAt: "2024-01-01T12:01:00Z",
+    });
     expect(shouldShowTimestamp(msg, next)).toBe(true);
   });
 
   it("uses absolute gap (handles out-of-order timestamps)", () => {
-    const msg = makeMsg({ role: AgentLogRole.Agent, createdAt: "2024-01-01T12:01:30Z" });
-    const next = makeMsg({ role: AgentLogRole.Agent, createdAt: "2024-01-01T12:00:00Z" });
+    const msg = makeMsg({
+      role: AgentLogRole.Agent,
+      createdAt: "2024-01-01T12:01:30Z",
+    });
+    const next = makeMsg({
+      role: AgentLogRole.Agent,
+      createdAt: "2024-01-01T12:00:00Z",
+    });
     expect(shouldShowTimestamp(msg, next)).toBe(true);
   });
 });

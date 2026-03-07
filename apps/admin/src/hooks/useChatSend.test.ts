@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 vi.mock("../auth", () => ({
   gql: vi.fn(),
@@ -21,7 +21,15 @@ function makeUserMsg(content: string) {
     toolInput: null,
     toolResult: null,
     taskId: null,
-    agent: { id: "a1", name: "Bot", avatar: "", imageUrl: "", portraitId: "", soul: "", retired: false },
+    agent: {
+      id: "a1",
+      name: "Bot",
+      avatar: "",
+      imageUrl: "",
+      portraitId: "",
+      soul: "",
+      retired: false,
+    },
   };
 }
 
@@ -100,7 +108,11 @@ describe("useChatSend", () => {
 
     expect(mockGql).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ agentId: "a1", taskId: "t1", content: "hello" }),
+      expect.objectContaining({
+        agentId: "a1",
+        taskId: "t1",
+        content: "hello",
+      }),
     );
   });
 });

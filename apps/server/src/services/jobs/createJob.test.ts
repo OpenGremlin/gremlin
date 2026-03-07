@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { createJob } from "./createJob.js";
 
 vi.mock("./recurrenceToCron.js", () => ({
@@ -83,7 +83,9 @@ describe("createJob", () => {
   });
 
   it("does not throw when createCronSchedule fails", async () => {
-    ctx.services.inbox.createCronSchedule.mockRejectedValue(new Error("schedule error"));
+    ctx.services.inbox.createCronSchedule.mockRejectedValue(
+      new Error("schedule error"),
+    );
 
     const result = await createJob(ctx, {
       name: "Test",

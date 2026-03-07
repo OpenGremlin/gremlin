@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { getAgents } from "./getAgents.js";
 
 describe("getAgents", () => {
@@ -13,8 +13,20 @@ describe("getAgents", () => {
 
   it("returns array of agents", async () => {
     const agents = [
-      { id: "agent-1", name: "Agent One", soul: "", avatar: "default", portraitId: "default" },
-      { id: "agent-2", name: "Agent Two", soul: "", avatar: "default", portraitId: "default" },
+      {
+        id: "agent-1",
+        name: "Agent One",
+        soul: "",
+        avatar: "default",
+        portraitId: "default",
+      },
+      {
+        id: "agent-2",
+        name: "Agent Two",
+        soul: "",
+        avatar: "default",
+        portraitId: "default",
+      },
     ];
 
     ctx.resources.ddb.table.build.mockReturnValue({

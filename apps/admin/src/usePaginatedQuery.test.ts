@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 vi.mock("./auth", () => ({
   gql: vi.fn(),
@@ -10,7 +10,10 @@ import { usePaginatedQuery } from "./usePaginatedQuery";
 
 const mockGql = gql as Mock;
 
-const QUERY = { toString: () => "query Tasks { tasks { edges { cursor node { id } } pageInfo { hasNextPage hasPreviousPage startCursor endCursor } } }" } as any;
+const QUERY = {
+  toString: () =>
+    "query Tasks { tasks { edges { cursor node { id } } pageInfo { hasNextPage hasPreviousPage startCursor endCursor } } }",
+} as any;
 
 function makeConnection(
   nodes: Array<{ id: string }>,
@@ -40,9 +43,7 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }, { id: "2" }]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
 
     expect(result.current.loading).toBe(true);
 
@@ -69,9 +70,7 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }, { id: "2" }], true, "cursor0"),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     // Second page has overlap (id: "1") and new item (id: "0")
@@ -81,7 +80,11 @@ describe("usePaginatedQuery", () => {
 
     await act(() => result.current.loadMore());
 
-    expect(result.current.nodes).toEqual([{ id: "0" }, { id: "1" }, { id: "2" }]);
+    expect(result.current.nodes).toEqual([
+      { id: "0" },
+      { id: "1" },
+      { id: "2" },
+    ]);
   });
 
   it("appendNode adds to end for oldest-first", async () => {
@@ -89,9 +92,7 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => result.current.appendNode({ id: "2" }));
@@ -117,9 +118,7 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => result.current.appendNode({ id: "1" }));
@@ -131,9 +130,7 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }, { id: "2" }]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() =>
@@ -153,9 +150,7 @@ describe("usePaginatedQuery", () => {
       ]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() =>
@@ -177,23 +172,17 @@ describe("usePaginatedQuery", () => {
       tasks: makeConnection([{ id: "1" }]),
     });
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() =>
-      result.current.replaceOrAppend({ id: "new" }, () => false),
-    );
+    act(() => result.current.replaceOrAppend({ id: "new" }, () => false));
     expect(result.current.nodes).toEqual([{ id: "1" }, { id: "new" }]);
   });
 
   it("sets error on fetch failure", async () => {
     mockGql.mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(() =>
-      usePaginatedQuery(QUERY, selector, {}),
-    );
+    const { result } = renderHook(() => usePaginatedQuery(QUERY, selector, {}));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBe("Network error");

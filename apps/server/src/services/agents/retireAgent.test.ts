@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
-import type { ServiceContext } from "../context.js";
 import { createMockContext } from "../__testing__/mockContext.js";
+import type { ServiceContext } from "../context.js";
 import { retireAgent } from "./retireAgent.js";
 
 describe("retireAgent", () => {
@@ -14,7 +14,9 @@ describe("retireAgent", () => {
 
     mockSend = vi.fn();
     const mockOptions = vi.fn().mockReturnValue({ send: mockSend });
-    mockItem = vi.fn().mockReturnValue({ options: mockOptions, send: mockSend });
+    mockItem = vi
+      .fn()
+      .mockReturnValue({ options: mockOptions, send: mockSend });
     ctx.resources.ddb.entities.Agent.build.mockReturnValue({
       item: mockItem,
     } as any);

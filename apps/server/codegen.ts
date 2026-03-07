@@ -27,7 +27,8 @@ const config: CodegenConfig = {
             "../resources/ddb/schema/notification.js#NotificationItem",
           Profile: "../resources/ddb/schema/profile.js#ProfileItem",
           Skill: "../resources/ddb/schema/skill.js#SkillItem",
-          SkillTemplate: "../services/skills/registry.js#SkillTemplate as SkillTemplateModel",
+          SkillTemplate:
+            "../services/skills/registry.js#SkillTemplate as SkillTemplateModel",
           Task: "../resources/ddb/schema/task.js#TaskItem",
           TaskConnection: "../services/tasks/pagination.js#TaskConnectionModel",
           TaskEdge: "../services/tasks/pagination.js#TaskEdgeModel",
