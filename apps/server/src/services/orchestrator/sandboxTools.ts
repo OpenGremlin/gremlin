@@ -61,44 +61,58 @@ export function launchSandboxTool(
         { agentId, existingInstanceId },
         "Agent requested sandbox launch",
       );
-      const session = await ctx.services.sandbox.launchSandbox(
-        agentId,
-        existingInstanceId,
-      );
-      log.info(
-        { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
-        "Sandbox launched, connecting WebSocket",
-      );
-      await ctx.services.sandbox.connectToSandbox(session);
-      activeSessions.set(agentId, session);
 
-      // Update lock status to in_use
-      await ctx.services.sandbox.updateLockStatus(
-        ctx,
-        agentId,
-        lockId,
-        "in_use",
-      );
-
-      // Persist instanceId if it's new or changed
-      if (
-        session.instanceId !== "local" &&
-        session.instanceId !== existingInstanceId
-      ) {
-        log.info(
-          { agentId, instanceId: session.instanceId },
-          "Persisting new instanceId",
+      try {
+        const session = await ctx.services.sandbox.launchSandbox(
+          agentId,
+          existingInstanceId,
         );
-        await ctx.services.agents.updateAgent(ctx, agentId, {
-          sandboxInstanceId: session.instanceId,
-        });
-      }
+        log.info(
+          { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
+          "Sandbox launched, connecting WebSocket",
+        );
+        await ctx.services.sandbox.connectToSandbox(session);
+        activeSessions.set(agentId, session);
 
-      log.info(
-        { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
-        "Sandbox session active",
-      );
-      return { status: "ready", wsUrl: session.wsUrl };
+        // Update lock status to in_use
+        await ctx.services.sandbox.updateLockStatus(
+          ctx,
+          agentId,
+          lockId,
+          "in_use",
+        );
+
+        // Persist instanceId if it's new or changed
+        if (
+          session.instanceId !== "local" &&
+          session.instanceId !== existingInstanceId
+        ) {
+          log.info(
+            { agentId, instanceId: session.instanceId },
+            "Persisting new instanceId",
+          );
+          await ctx.services.agents.updateAgent(ctx, agentId, {
+            sandboxInstanceId: session.instanceId,
+          });
+        }
+
+        log.info(
+          { agentId, instanceId: session.instanceId, wsUrl: session.wsUrl },
+          "Sandbox session active",
+        );
+        return { status: "ready", wsUrl: session.wsUrl };
+      } catch (err) {
+        log.error(
+          { agentId, error: (err as Error).message, stack: (err as Error).stack },
+          "launchSandbox failed",
+        );
+        // Release lock so it's not stuck
+        await ctx.services.sandbox.releaseSandboxLock(ctx, agentId, lockId).catch(() => {});
+        return {
+          status: "error",
+          error: (err as Error).message,
+        };
+      }
     },
   });
 }
