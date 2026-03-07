@@ -1,10 +1,10 @@
 import {
   Check,
+  ArrowDownFromLine,
+  ArrowUpFromLine,
   ChevronRight,
   ExternalLink,
   Loader2,
-  Maximize2,
-  Minimize2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "../../../../hooks/useLogMessages";
@@ -16,19 +16,21 @@ import { SandboxOutputBlock } from "./SandboxOutputBlock";
 import { useTaskInfo } from "./useTaskInfo";
 
 function ScrolledPre({
+  ref: externalRef,
   children,
   className,
   style,
 }: {
+  ref?: React.Ref<HTMLPreElement>;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const ref = useRef<HTMLPreElement>(null);
+  const innerRef = useRef<HTMLPreElement>(null);
   const [edges, setEdges] = useState({ top: false, bottom: false });
 
   const updateEdges = useCallback(() => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el) return;
     const top = el.scrollTop > 2;
     const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2;
@@ -38,11 +40,22 @@ function ScrolledPre({
   }, []);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = innerRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
     updateEdges();
-  }, [updateEdges]);
+  }, [updateEdges, style]);
+
+  const mergedRef = useCallback(
+    (el: HTMLPreElement | null) => {
+      (innerRef as React.MutableRefObject<HTMLPreElement | null>).current = el;
+      if (typeof externalRef === "function") externalRef(el);
+      else if (externalRef)
+        (externalRef as React.MutableRefObject<HTMLPreElement | null>).current =
+          el;
+    },
+    [externalRef],
+  );
 
   return (
     <div className="relative">
@@ -52,7 +65,7 @@ function ScrolledPre({
       {edges.bottom && (
         <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-[1] rounded-b-lg" />
       )}
-      <pre ref={ref} className={className} style={style} onScroll={updateEdges}>
+      <pre ref={mergedRef} className={className} style={style} onScroll={updateEdges}>
         {children}
       </pre>
     </div>
@@ -83,6 +96,10 @@ function ToolBlock({
   children?: React.ReactNode;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const preRef = useCallback((el: HTMLPreElement | null) => {
+    if (el) setOverflows(el.scrollHeight > el.clientHeight);
+  }, []);
 
   return (
     <div id={id} className="py-1">
@@ -106,14 +123,17 @@ function ToolBlock({
         </summary>
         {children ?? (
           <div className="relative bg-neutral-950 border border-neutral-800 rounded-lg mb-1">
-            <button
-              type="button"
-              onClick={() => setExpanded((e) => !e)}
-              className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-[2]"
-            >
-              {expanded ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
-            </button>
+            {(overflows || expanded) && (
+              <button
+                type="button"
+                onClick={() => setExpanded((e) => !e)}
+                className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-[2]"
+              >
+                {expanded ? <ArrowUpFromLine size={14} /> : <ArrowDownFromLine size={14} />}
+              </button>
+            )}
             <ScrolledPre
+              ref={preRef}
               className={`text-xs font-mono px-3 py-2 whitespace-pre-wrap leading-relaxed overflow-y-auto ${textClass}`}
               style={expanded ? undefined : { maxHeight: BODY_MAX_HEIGHT }}
             >
@@ -400,8 +420,29 @@ export function LogEntryView({
         );
       }
 
+      const inputEmpty =
+        !tool.input || Object.keys(tool.input).length === 0;
+      const pending = inputEmpty && !tool.result;
+
+      if (pending) {
+        return (
+          <ToolBlock
+            id={entry.id}
+            label={tool.name}
+            createdAt={entry.createdAt}
+            showTimestamp={showTimestamp}
+          >
+            <div className="flex items-center gap-2 px-3 py-2 text-xs text-neutral-400">
+              <Loader2 size={12} className="animate-spin" />
+              Running…
+            </div>
+          </ToolBlock>
+        );
+      }
+
       const sections: string[] = [];
-      if (tool.input) sections.push(JSON.stringify(tool.input, null, 2));
+      if (!inputEmpty)
+        sections.push(JSON.stringify(tool.input, null, 2));
       if (tool.result) {
         if (sections.length > 0) sections.push("── result ──");
         sections.push(JSON.stringify(tool.result, null, 2));
