@@ -47,10 +47,10 @@ function ScrolledPre({
   return (
     <div className="relative">
       {edges.top && (
-        <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-t-lg" />
+        <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-neutral-950/80 to-transparent pointer-events-none z-[1] rounded-t-lg" />
       )}
       {edges.bottom && (
-        <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-10 rounded-b-lg" />
+        <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none z-[1] rounded-b-lg" />
       )}
       <pre ref={ref} className={className} style={style} onScroll={updateEdges}>
         {children}
@@ -109,7 +109,7 @@ function ToolBlock({
             <button
               type="button"
               onClick={() => setExpanded((e) => !e)}
-              className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-20"
+              className="absolute top-1.5 right-1.5 p-0.5 text-neutral-600 hover:text-neutral-300 transition-colors z-[2]"
             >
               {expanded ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
             </button>
