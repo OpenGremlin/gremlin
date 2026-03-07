@@ -2,7 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import type { SandboxSession } from "../sandbox/types.js";
+import type { CommandResult, SandboxSession } from "../sandbox/types.js";
 
 const log = createLogger("sandbox:tools");
 
@@ -164,10 +164,26 @@ export function runCommandTool(
         { agentId, commandPreview: command.slice(0, 200) },
         "Agent running command",
       );
-      const result = await ctx.services.sandbox.execCommand(session, command, {
-        pubsub: ctx.resources.pubsub,
-        taskId,
-      });
+
+      let result: CommandResult;
+      try {
+        result = await ctx.services.sandbox.execCommand(session, command, {
+          pubsub: ctx.resources.pubsub,
+          taskId,
+        });
+      } catch (err) {
+        log.error(
+          { agentId, error: (err as Error).message },
+          "execCommand failed",
+        );
+        activeSessions.delete(agentId);
+        return {
+          error: "Sandbox connection lost. Call launchSandbox to reconnect.",
+          output: "",
+          exitCode: -1,
+        };
+      }
+
       log.info(
         {
           agentId,
