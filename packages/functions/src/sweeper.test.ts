@@ -1,35 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockDdbSend = vi.fn();
-const mockSqsSend = vi.fn().mockResolvedValue({});
+const mockGetStaleUnreadAgentIds = vi.fn();
+const mockRingSqsDoorbells = vi.fn();
 
-vi.mock("@aws-sdk/client-dynamodb", () => {
-  return {
-    DynamoDBClient: class {
-      send = mockDdbSend;
-    },
-    QueryCommand: class {
-      input: unknown;
-      constructor(input: unknown) {
-        this.input = input;
-      }
-    },
-  };
-});
+vi.mock("@gremlin/lib/services/inbox/getStaleUnreadAgentIds.js", () => ({
+  getStaleUnreadAgentIds: (...args: unknown[]) =>
+    mockGetStaleUnreadAgentIds(...args),
+}));
 
-vi.mock("@aws-sdk/client-sqs", () => {
-  return {
-    SQSClient: class {
-      send = mockSqsSend;
-    },
-    SendMessageCommand: class {
-      input: unknown;
-      constructor(input: unknown) {
-        this.input = input;
-      }
-    },
-  };
-});
+vi.mock("@gremlin/lib/services/inbox/ringSqsDoorbells.js", () => ({
+  ringSqsDoorbells: (...args: unknown[]) => mockRingSqsDoorbells(...args),
+}));
+
+vi.mock("@gremlin/lib/resources/ddb/index.js", () => ({
+  ddb: { table: {} },
+}));
 
 vi.mock("@gremlin/lib/logger.js", () => ({
   createLogger: () => ({
@@ -43,91 +28,40 @@ vi.mock("@gremlin/lib/logger.js", () => ({
 const { handler } = await import("./sweeper.js");
 
 beforeEach(() => {
-  mockDdbSend.mockReset();
-  mockSqsSend.mockClear();
+  mockGetStaleUnreadAgentIds.mockReset();
+  mockRingSqsDoorbells.mockReset().mockResolvedValue(undefined);
 });
 
 describe("sweeper", () => {
   it("returns early when no stale items", async () => {
-    mockDdbSend.mockResolvedValueOnce({
-      Items: [],
-      LastEvaluatedKey: undefined,
-    });
+    mockGetStaleUnreadAgentIds.mockResolvedValueOnce([]);
 
     const result = await handler();
 
     expect(result).toEqual({ statusCode: 200, stale: 0 });
-    expect(mockSqsSend).not.toHaveBeenCalled();
+    expect(mockRingSqsDoorbells).not.toHaveBeenCalled();
   });
 
   it("re-rings doorbells for agents with stale items", async () => {
-    mockDdbSend.mockResolvedValueOnce({
-      Items: [{ agentId: { S: "agent-1" } }, { agentId: { S: "agent-2" } }],
-      LastEvaluatedKey: undefined,
-    });
+    mockGetStaleUnreadAgentIds.mockResolvedValueOnce(["agent-1", "agent-2"]);
 
     const result = await handler();
 
     expect(result).toEqual({ statusCode: 200, agents: 2 });
-    expect(mockSqsSend).toHaveBeenCalledTimes(2);
-
-    const bodies = mockSqsSend.mock.calls.map((call: unknown[]) =>
-      JSON.parse(
-        (call[0] as { input: { MessageBody: string } }).input.MessageBody,
-      ),
-    );
-    expect(bodies).toContainEqual({ agentId: "agent-1" });
-    expect(bodies).toContainEqual({ agentId: "agent-2" });
+    expect(mockRingSqsDoorbells).toHaveBeenCalledTimes(1);
+    const [, agentIds] = mockRingSqsDoorbells.mock.calls[0];
+    expect(agentIds).toEqual(["agent-1", "agent-2"]);
   });
 
-  it("deduplicates agents across items", async () => {
-    mockDdbSend.mockResolvedValueOnce({
-      Items: [
-        { agentId: { S: "agent-1" } },
-        { agentId: { S: "agent-1" } },
-        { agentId: { S: "agent-1" } },
-      ],
-      LastEvaluatedKey: undefined,
-    });
-
-    const result = await handler();
-
-    expect(result).toEqual({ statusCode: 200, agents: 1 });
-    expect(mockSqsSend).toHaveBeenCalledTimes(1);
-  });
-
-  it("paginates through multiple DDB pages", async () => {
-    mockDdbSend
-      .mockResolvedValueOnce({
-        Items: [{ agentId: { S: "agent-1" } }],
-        LastEvaluatedKey: { pk: { S: "x" } },
-      })
-      .mockResolvedValueOnce({
-        Items: [{ agentId: { S: "agent-2" } }],
-        LastEvaluatedKey: undefined,
-      });
-
-    const result = await handler();
-
-    expect(mockDdbSend).toHaveBeenCalledTimes(2);
-    expect(result).toEqual({ statusCode: 200, agents: 2 });
-    expect(mockSqsSend).toHaveBeenCalledTimes(2);
-  });
-
-  it("queries GSI2 with correct key condition", async () => {
-    mockDdbSend.mockResolvedValueOnce({
-      Items: [],
-      LastEvaluatedKey: undefined,
-    });
+  it("passes context to service functions", async () => {
+    mockGetStaleUnreadAgentIds.mockResolvedValueOnce(["agent-1"]);
 
     await handler();
 
-    const queryInput = mockDdbSend.mock.calls[0][0].input;
-    expect(queryInput.IndexName).toBe("gsi2");
-    expect(queryInput.KeyConditionExpression).toBe(
-      "gsi2pk = :pk AND gsi2sk < :cutoff",
-    );
-    expect(queryInput.ExpressionAttributeValues[":pk"].S).toBe("INBOX_UNREAD");
-    expect(queryInput.ProjectionExpression).toBe("agentId");
+    // Both functions receive the context as first arg
+    const staleCtx = mockGetStaleUnreadAgentIds.mock.calls[0][0];
+    const doorbellCtx = mockRingSqsDoorbells.mock.calls[0][0];
+    expect(staleCtx).toBe(doorbellCtx);
+    expect(staleCtx.resources.ddb).toBeDefined();
   });
 });

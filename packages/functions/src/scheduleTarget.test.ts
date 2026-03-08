@@ -1,35 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockDdbSend = vi.fn().mockResolvedValue({});
-const mockSqsSend = vi.fn().mockResolvedValue({});
+const mockEnqueueWork = vi.fn();
 
-vi.mock("@aws-sdk/client-dynamodb", () => {
-  return {
-    DynamoDBClient: class {
-      send = mockDdbSend;
-    },
-    PutItemCommand: class {
-      input: unknown;
-      constructor(input: unknown) {
-        this.input = input;
-      }
-    },
-  };
-});
+vi.mock("@gremlin/lib/services/inbox/enqueueWork.js", () => ({
+  enqueueWork: (...args: unknown[]) => mockEnqueueWork(...args),
+}));
 
-vi.mock("@aws-sdk/client-sqs", () => {
-  return {
-    SQSClient: class {
-      send = mockSqsSend;
-    },
-    SendMessageCommand: class {
-      input: unknown;
-      constructor(input: unknown) {
-        this.input = input;
-      }
-    },
-  };
-});
+vi.mock("@gremlin/lib/resources/ddb/index.js", () => ({
+  ddb: { table: {} },
+}));
 
 vi.mock("@gremlin/lib/logger.js", () => ({
   createLogger: () => ({
@@ -43,12 +22,16 @@ vi.mock("@gremlin/lib/logger.js", () => ({
 const { handler } = await import("./scheduleTarget.js");
 
 beforeEach(() => {
-  mockDdbSend.mockClear();
-  mockSqsSend.mockClear();
+  mockEnqueueWork.mockReset();
 });
 
 describe("scheduleTarget", () => {
-  it("writes an inbox item to DDB and sends SQS message", async () => {
+  it("enqueues an inbox item via inboxService", async () => {
+    mockEnqueueWork.mockResolvedValueOnce({
+      id: "inbox-1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
     const result = await handler({
       type: "scheduled_job",
       agentId: "agent-1",
@@ -56,28 +39,21 @@ describe("scheduleTarget", () => {
     });
 
     expect(result.statusCode).toBe(200);
-    expect(result.id).toBeDefined();
+    expect(result.id).toBe("inbox-1");
 
-    // DDB PutItem
-    expect(mockDdbSend).toHaveBeenCalledTimes(1);
-    const ddbInput = mockDdbSend.mock.calls[0][0].input;
-    expect(ddbInput.Item._et.S).toBe("InboxItem");
-    expect(ddbInput.Item.pk.S).toBe("AGENT_INBOX#agent-1");
-    expect(ddbInput.Item.agentId.S).toBe("agent-1");
-    expect(ddbInput.Item.type.S).toBe("scheduled_job");
-    expect(ddbInput.Item.payload.S).toBe('{"jobId":"job-1"}');
-    expect(ddbInput.Item.isRead.BOOL).toBe(false);
-    expect(ddbInput.Item.gsi2pk.S).toBe("INBOX_UNREAD");
-
-    // SQS SendMessage
-    expect(mockSqsSend).toHaveBeenCalledTimes(1);
-    const sqsInput = mockSqsSend.mock.calls[0][0].input;
-    expect(JSON.parse(sqsInput.MessageBody)).toEqual({
-      agentId: "agent-1",
-    });
+    expect(mockEnqueueWork).toHaveBeenCalledTimes(1);
+    const [, agentId, input] = mockEnqueueWork.mock.calls[0];
+    expect(agentId).toBe("agent-1");
+    expect(input.type).toBe("scheduled_job");
+    expect(input.payload).toEqual({ jobId: "job-1" });
   });
 
   it("handles agent_self_followup event type", async () => {
+    mockEnqueueWork.mockResolvedValueOnce({
+      id: "inbox-2",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
     const result = await handler({
       type: "agent_self_followup",
       agentId: "agent-2",
@@ -85,11 +61,16 @@ describe("scheduleTarget", () => {
     });
 
     expect(result.statusCode).toBe(200);
-    const ddbInput = mockDdbSend.mock.calls[0][0].input;
-    expect(ddbInput.Item.type.S).toBe("agent_self_followup");
+    const [, , input] = mockEnqueueWork.mock.calls[0];
+    expect(input.type).toBe("agent_self_followup");
   });
 
   it("handles core_memory_review event type", async () => {
+    mockEnqueueWork.mockResolvedValueOnce({
+      id: "inbox-3",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
     const result = await handler({
       type: "core_memory_review",
       agentId: "clawd",
@@ -97,16 +78,19 @@ describe("scheduleTarget", () => {
     });
 
     expect(result.statusCode).toBe(200);
-    const ddbInput = mockDdbSend.mock.calls[0][0].input;
-    expect(ddbInput.Item.type.S).toBe("core_memory_review");
+    const [, , input] = mockEnqueueWork.mock.calls[0];
+    expect(input.type).toBe("core_memory_review");
   });
 
-  it("generates unique ids for each invocation", async () => {
+  it("returns the id from enqueueWork", async () => {
+    mockEnqueueWork.mockResolvedValueOnce({ id: "id-a", createdAt: "" });
     const r1 = await handler({
       type: "scheduled_job",
       agentId: "agent-1",
       payload: {},
     });
+
+    mockEnqueueWork.mockResolvedValueOnce({ id: "id-b", createdAt: "" });
     const r2 = await handler({
       type: "scheduled_job",
       agentId: "agent-1",

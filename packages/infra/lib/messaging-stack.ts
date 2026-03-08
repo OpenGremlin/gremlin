@@ -55,18 +55,15 @@ export class MessagingStack extends cdk.Stack {
       this,
       "ScheduleTargetFn",
       {
-        entry: path.join(
-          REPO_ROOT,
-          "packages/functions/src/scheduleTarget.ts",
-        ),
+        entry: path.join(REPO_ROOT, "packages/functions/src/scheduleTarget.ts"),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         architecture: lambda.Architecture.ARM_64,
         memorySize: 256,
         timeout: cdk.Duration.seconds(15),
         environment: {
-          TABLE_NAME: props.tableName,
-          QUEUE_URL: queue.queueUrl,
+          DYNAMODB_TABLE_NAME: props.tableName,
+          DOORBELL_QUEUE_URL: queue.queueUrl,
         },
       },
     );
@@ -91,8 +88,8 @@ export class MessagingStack extends cdk.Stack {
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
       environment: {
-        TABLE_NAME: props.tableName,
-        QUEUE_URL: queue.queueUrl,
+        DYNAMODB_TABLE_NAME: props.tableName,
+        DOORBELL_QUEUE_URL: queue.queueUrl,
       },
     });
 

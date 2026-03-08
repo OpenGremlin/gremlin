@@ -64,7 +64,7 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "warn"
+            "noExplicitAny": "off"
           }
         }
       }
