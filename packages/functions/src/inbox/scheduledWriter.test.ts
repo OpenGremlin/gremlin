@@ -19,13 +19,13 @@ vi.mock("@gremlin/lib/logger.js", () => ({
   }),
 }));
 
-const { handler } = await import("./scheduleTarget.js");
+const { handler } = await import("./scheduledWriter.js");
 
 beforeEach(() => {
   mockEnqueueWork.mockReset();
 });
 
-describe("scheduleTarget", () => {
+describe("scheduledWriter", () => {
   it("enqueues an inbox item via inboxService", async () => {
     mockEnqueueWork.mockResolvedValueOnce({
       id: "inbox-1",

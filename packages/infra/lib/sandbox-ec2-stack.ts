@@ -217,7 +217,10 @@ export class SandboxEc2Stack extends cdk.Stack {
       this,
       "SandboxDeployTerminatorFn",
       {
-        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxDeployTerminator.ts"),
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/sandbox/sandboxDeployTerminator.ts",
+        ),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
@@ -251,7 +254,10 @@ export class SandboxEc2Stack extends cdk.Stack {
       this,
       "SandboxIdleShutdownFn",
       {
-        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxIdleShutdown.ts"),
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/sandbox/sandboxIdleShutdown.ts",
+        ),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),

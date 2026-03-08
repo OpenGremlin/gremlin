@@ -55,7 +55,10 @@ export class MessagingStack extends cdk.Stack {
       this,
       "ScheduleTargetFn",
       {
-        entry: path.join(REPO_ROOT, "packages/functions/src/scheduleTarget.ts"),
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/inbox/scheduledWriter.ts",
+        ),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         architecture: lambda.Architecture.ARM_64,
@@ -77,29 +80,36 @@ export class MessagingStack extends cdk.Stack {
       action: "lambda:InvokeFunction",
     });
 
-    // ── Sweeper Lambda ──────────────────────────────────────
+    // ── Stale inbox renotifier ─────────────────────────────
     // Runs every 3 minutes, queries GSI2 for stale unread inbox items,
     // and re-rings doorbells for agents with stuck work.
-    const sweeperFn = new nodejs.NodejsFunction(this, "SweeperFn", {
-      entry: path.join(REPO_ROOT, "packages/functions/src/sweeper.ts"),
-      handler: "handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
-      architecture: lambda.Architecture.ARM_64,
-      memorySize: 256,
-      timeout: cdk.Duration.seconds(30),
-      environment: {
-        DYNAMODB_TABLE_NAME: props.tableName,
-        DOORBELL_QUEUE_URL: queue.queueUrl,
+    const staleRenotifierFn = new nodejs.NodejsFunction(
+      this,
+      "StaleRenotifierFn",
+      {
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/inbox/staleRenotifier.ts",
+        ),
+        handler: "handler",
+        runtime: lambda.Runtime.NODEJS_20_X,
+        architecture: lambda.Architecture.ARM_64,
+        memorySize: 256,
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          DYNAMODB_TABLE_NAME: props.tableName,
+          DOORBELL_QUEUE_URL: queue.queueUrl,
+        },
       },
-    });
+    );
 
-    props.table.grantReadData(sweeperFn);
-    queue.grantSendMessages(sweeperFn);
+    props.table.grantReadData(staleRenotifierFn);
+    queue.grantSendMessages(staleRenotifierFn);
 
     // EventBridge rule: run sweeper every 3 minutes
-    new events.Rule(this, "SweeperRule", {
+    new events.Rule(this, "StaleRenotifierRule", {
       schedule: events.Schedule.rate(cdk.Duration.minutes(3)),
-      targets: [new targets.LambdaFunction(sweeperFn)],
+      targets: [new targets.LambdaFunction(staleRenotifierFn)],
     });
 
     // EventBridge rule: daily core memory review (8 AM UTC = midnight PST)

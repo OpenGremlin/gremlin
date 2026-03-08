@@ -25,14 +25,14 @@ vi.mock("@gremlin/lib/logger.js", () => ({
   }),
 }));
 
-const { handler } = await import("./sweeper.js");
+const { handler } = await import("./staleRenotifier.js");
 
 beforeEach(() => {
   mockGetStaleUnreadAgentIds.mockReset();
   mockRingSqsDoorbells.mockReset().mockResolvedValue(undefined);
 });
 
-describe("sweeper", () => {
+describe("staleRenotifier", () => {
   it("returns early when no stale items", async () => {
     mockGetStaleUnreadAgentIds.mockResolvedValueOnce([]);
 
