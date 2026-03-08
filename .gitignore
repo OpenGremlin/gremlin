@@ -6,6 +6,7 @@ dist/
 .expo/
 .vite/
 cdk.out/
+cdk.context.json
 *.docx
 ~$*
 .DS_Store
