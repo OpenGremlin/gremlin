@@ -1,10 +1,10 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import {
-  defaultTools,
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
+  webSearch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
@@ -33,7 +33,7 @@ export async function runMainLane(
       userAbout: profile?.about,
     }),
     tools: {
-      ...defaultTools,
+      ...(agent.config?.webSearch?.enabled ? { webSearch } : {}),
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),

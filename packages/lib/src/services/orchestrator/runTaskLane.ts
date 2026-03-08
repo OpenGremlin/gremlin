@@ -3,11 +3,11 @@ import { renderPrompt } from "../prompts/index.js";
 import { buildMcpConfig } from "../skills/buildMcpConfig.js";
 import {
   createDocumentTool,
-  defaultTools,
   recallMemoryTool,
   saveMemoryTool,
   updateDocumentTool,
   updateTaskMessageTool,
+  webSearch,
 } from "../tools/index.js";
 import {
   browserClickTool,
@@ -103,7 +103,7 @@ export async function runTaskLane(
     taskId,
     systemPrompt,
     tools: {
-      ...defaultTools,
+      ...(agent.config?.webSearch?.enabled ? { webSearch } : {}),
       updateTaskMessage: updateTaskMessageTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
