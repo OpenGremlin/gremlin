@@ -213,6 +213,7 @@ if (!process.env.MEDIA_CDN_URL) {
     "../../../packages/media-server/assets",
   );
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
+  app.use("/tasks", express.static(path.join(mediaAssets, "tasks")));
 }
 
 // Generic OAuth callback — handles all providers
