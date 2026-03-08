@@ -205,7 +205,7 @@ export class SandboxEc2Stack extends cdk.Stack {
     // ── SSM parameters ─────────────────────────────────────
     new ssm.StringParameter(this, "LaunchTemplateIdParam", {
       parameterName: "/gremlin/sandbox-launch-template-id",
-      stringValue: launchTemplate.launchTemplateId!,
+      stringValue: launchTemplate.launchTemplateId ?? "",
     });
     new ssm.StringParameter(this, "SubnetIdParam", {
       parameterName: "/gremlin/sandbox-ec2-subnet-id",
@@ -288,7 +288,7 @@ export class SandboxEc2Stack extends cdk.Stack {
     this.instanceProfileArn = instanceProfile.attrArn;
 
     new cdk.CfnOutput(this, "SandboxLaunchTemplateId", {
-      value: launchTemplate.launchTemplateId!,
+      value: launchTemplate.launchTemplateId ?? "",
     });
     new cdk.CfnOutput(this, "SandboxSgId", {
       value: sandboxSg.securityGroupId,

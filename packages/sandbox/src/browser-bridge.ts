@@ -107,15 +107,20 @@ async function ensurePageSession(): Promise<WebSocket> {
     pageSessionWs = new WebSocket(page.webSocketDebuggerUrl);
   }
 
+  const ws = pageSessionWs;
+  if (!ws) {
+    throw new Error("Failed to create page WebSocket session");
+  }
+
   await new Promise<void>((resolve, reject) => {
-    pageSessionWs?.once("open", resolve);
-    pageSessionWs?.once("error", reject);
+    ws.once("open", resolve);
+    ws.once("error", reject);
   });
 
   // Enable Page domain
-  await sendCdp(pageSessionWs!, "Page.enable");
+  await sendCdp(ws, "Page.enable");
 
-  return pageSessionWs!;
+  return ws;
 }
 
 // ── Route handlers ─────────────────────────────────────────
