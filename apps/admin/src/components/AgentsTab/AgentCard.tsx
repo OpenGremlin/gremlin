@@ -1,13 +1,9 @@
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import type { AgentsQuery } from "../../graphql/generated/graphql";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 
-interface Agent {
-  id: string;
-  name: string;
-  soul: string;
-  retired: boolean;
-}
+type Agent = AgentsQuery["agents"][number];
 
 export function AgentCard({ agent }: { agent: Agent }) {
   return (

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import type { Document } from "../../../graphql/generated/graphql";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { DocumentCard } from "../../../shared/DocumentCard";
 import { timeAgo } from "../../../shared/formatDate";
@@ -13,11 +14,7 @@ type TaskItem = {
   agent: { id: string; name?: string };
   message?: string | null;
   imageUrl?: string | null;
-  documents?: Array<{
-    path: string;
-    title: string;
-    body?: string | null;
-  }>;
+  documents?: Array<Document>;
 };
 
 export function TaskCard({ item }: { item: TaskItem }) {

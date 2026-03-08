@@ -1,10 +1,5 @@
 import { X } from "lucide-react";
-
-export interface Avatar {
-  id: string;
-  name: string;
-  url: string;
-}
+import type { Avatar } from "../../../../graphql/generated/graphql";
 
 export function AvatarPicker({
   avatars,

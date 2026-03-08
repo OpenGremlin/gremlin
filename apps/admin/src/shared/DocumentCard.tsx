@@ -1,12 +1,7 @@
 import { FileText, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-
-type Document = {
-  path: string;
-  title: string;
-  body?: string | null;
-};
+import type { Document } from "../graphql/generated/graphql";
 
 function DocumentModal({
   doc,

@@ -1,12 +1,4 @@
-export interface ModelInfo {
-  id: string;
-  name: string;
-  contextWindow: number;
-  maxTokens: number;
-  reasoning: boolean;
-  inputCost?: number | null;
-  outputCost?: number | null;
-}
+import type { ModelInfo } from "../../../graphql/generated/graphql";
 
 export function ModelCard({
   model,

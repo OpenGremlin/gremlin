@@ -1,11 +1,9 @@
+import type { Agent as GqlAgent } from "../../graphql/generated/graphql";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 
-const TIMEZONES = Intl.supportedValuesOf("timeZone");
+type Agent = Pick<GqlAgent, "id" | "name">;
 
-interface Agent {
-  id: string;
-  name: string;
-}
+const TIMEZONES = Intl.supportedValuesOf("timeZone");
 
 export function JobForm({
   name,
