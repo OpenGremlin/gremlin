@@ -33,7 +33,8 @@ export async function updateAgent(
   if (input.sandboxInstanceId != null)
     updates.sandboxInstanceId = input.sandboxInstanceId;
   if (input.ttsVoice != null) updates.ttsVoice = input.ttsVoice;
-  if (input.config != null) updates.config = $set(nullsToUndefined(input.config));
+  if (input.config != null)
+    updates.config = $set(nullsToUndefined(input.config));
 
   const { Attributes } = await ctx.resources.ddb.entities.Agent.build(
     UpdateItemCommand,

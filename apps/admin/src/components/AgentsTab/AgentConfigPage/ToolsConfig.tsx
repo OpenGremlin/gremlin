@@ -264,7 +264,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             : undefined
         }
       />
-
     </div>
   );
 }

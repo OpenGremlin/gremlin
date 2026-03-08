@@ -1,3 +1,6 @@
+import type { AgentItem } from "@gremlin/lib/resources/ddb/schema/agent.js";
+import type { TaskItem } from "@gremlin/lib/resources/ddb/schema/task.js";
+import type { Resources } from "@gremlin/lib/resources/index.js";
 import DataLoader from "dataloader";
 import type { Entity, FormattedItem } from "dynamodb-toolbox/entity";
 import { BatchGetRequest } from "dynamodb-toolbox/entity/actions/batchGet";
@@ -6,9 +9,6 @@ import {
   execute,
 } from "dynamodb-toolbox/table/actions/batchGet";
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { AgentItem } from "@gremlin/lib/resources/ddb/schema/agent.js";
-import type { TaskItem } from "@gremlin/lib/resources/ddb/schema/task.js";
-import type { Resources } from "@gremlin/lib/resources/index.js";
 
 export interface Loaders {
   agentLoader: DataLoader<string, AgentItem | null>;

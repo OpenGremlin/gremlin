@@ -31,6 +31,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @gremlin/lib build
       - run: pnpm --filter @gremlin/server exec tsc --noEmit
 
   test:

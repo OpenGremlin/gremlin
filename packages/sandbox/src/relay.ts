@@ -12,11 +12,14 @@ const WORKSPACE_DIR = existsSync("/workspace")
   ? "/workspace"
   : (process.env.SANDBOX_WORKSPACE ?? homedir());
 const SANDBOX_USER = process.env.SANDBOX_USER ?? "sandbox";
-const SANDBOX_HOME = SANDBOX_USER === "root" ? homedir() : `/home/${SANDBOX_USER}`;
+const SANDBOX_HOME =
+  SANDBOX_USER === "root" ? homedir() : `/home/${SANDBOX_USER}`;
 const TOOLS_ROOT = `${SANDBOX_HOME}/.tools`;
 
 // Resolve UID/GID for the sandbox user (relay runs as root, shell drops privileges)
-function resolveUser(username: string): { uid: number; gid: number } | undefined {
+function resolveUser(
+  username: string,
+): { uid: number; gid: number } | undefined {
   if (username === "root") return undefined;
   const lines = execSync(`id -u ${username} && id -g ${username}`, {
     encoding: "utf-8",
