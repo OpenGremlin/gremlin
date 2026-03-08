@@ -7,6 +7,8 @@ export const agentTypeDefs = /* GraphQL */ `
 
   type AgentSandboxConfig {
     enabled: Boolean!
+    idleTimeoutMinutes: Int
+    alwaysOn: Boolean
   }
 
   type AgentWebSearchConfig {
@@ -50,6 +52,8 @@ export const agentTypeDefs = /* GraphQL */ `
 
   input AgentSandboxConfigInput {
     enabled: Boolean!
+    idleTimeoutMinutes: Int
+    alwaysOn: Boolean
   }
 
   input AgentWebSearchConfigInput {

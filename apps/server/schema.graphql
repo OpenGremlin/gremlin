@@ -154,6 +154,8 @@ type AgentModelConfig {
 
 type AgentSandboxConfig {
   enabled: Boolean!
+  idleTimeoutMinutes: Int
+  alwaysOn: Boolean
 }
 
 type AgentWebSearchConfig {
@@ -192,6 +194,8 @@ input AgentModelConfigInput {
 
 input AgentSandboxConfigInput {
   enabled: Boolean!
+  idleTimeoutMinutes: Int
+  alwaysOn: Boolean
 }
 
 input AgentWebSearchConfigInput {

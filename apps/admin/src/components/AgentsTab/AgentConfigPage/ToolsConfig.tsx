@@ -70,7 +70,11 @@ function ConfigRow({
 
 interface PlainConfig {
   model?: { type: string; modelId?: string; connectionId?: string };
-  sandbox?: { enabled: boolean };
+  sandbox?: {
+    enabled: boolean;
+    idleTimeoutMinutes?: number;
+    alwaysOn?: boolean;
+  };
   webSearch?: { enabled: boolean; provider?: string };
   browser?: { enabled: boolean };
 }
@@ -84,7 +88,13 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           connectionId: config.model.connectionId ?? undefined,
         }
       : undefined,
-    sandbox: config?.sandbox ? { enabled: config.sandbox.enabled } : undefined,
+    sandbox: config?.sandbox
+      ? {
+          enabled: config.sandbox.enabled,
+          idleTimeoutMinutes: config.sandbox.idleTimeoutMinutes ?? undefined,
+          alwaysOn: config.sandbox.alwaysOn ?? undefined,
+        }
+      : undefined,
     webSearch: config?.webSearch
       ? {
           enabled: config.webSearch.enabled,
@@ -93,6 +103,59 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
       : undefined,
     browser: config?.browser ? { enabled: config.browser.enabled } : undefined,
   };
+}
+
+function SandboxSettings({
+  sandbox,
+  onChange,
+}: {
+  sandbox: NonNullable<PlainConfig["sandbox"]>;
+  onChange: (v: NonNullable<PlainConfig["sandbox"]>) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm text-neutral-300">Keep running</div>
+          <div className="text-xs text-neutral-500">
+            Don't shut down sandbox after idle timeout
+          </div>
+        </div>
+        <Toggle
+          enabled={sandbox.alwaysOn ?? false}
+          onChange={(v) => onChange({ ...sandbox, alwaysOn: v })}
+        />
+      </div>
+      {!sandbox.alwaysOn && (
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-neutral-300">Idle shutdown</span>
+            <span className="text-sm text-neutral-400 tabular-nums">
+              {sandbox.idleTimeoutMinutes ?? 20} min
+            </span>
+          </div>
+          <input
+            type="range"
+            min={10}
+            max={120}
+            step={5}
+            value={sandbox.idleTimeoutMinutes ?? 20}
+            onChange={(e) =>
+              onChange({
+                ...sandbox,
+                idleTimeoutMinutes: Number(e.target.value),
+              })
+            }
+            className="w-full accent-indigo-500"
+          />
+          <div className="flex justify-between text-xs text-neutral-600 mt-0.5">
+            <span>10 min</span>
+            <span>120 min</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ToolsConfig({ agent }: { agent: Agent }) {
@@ -168,8 +231,25 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         label="Sandbox"
         description="Bash shell for running commands"
         enabled={config?.sandbox?.enabled ?? false}
-        onToggle={(v) => updateConfig({ sandbox: { enabled: v } })}
-      />
+        onToggle={(v) =>
+          updateConfig({
+            sandbox: v
+              ? {
+                  enabled: true,
+                  idleTimeoutMinutes: config?.sandbox?.idleTimeoutMinutes ?? 20,
+                  alwaysOn: config?.sandbox?.alwaysOn ?? false,
+                }
+              : { enabled: false },
+          })
+        }
+      >
+        {config?.sandbox?.enabled && (
+          <SandboxSettings
+            sandbox={config.sandbox}
+            onChange={(sandbox) => updateConfig({ sandbox })}
+          />
+        )}
+      </ConfigRow>
 
       <ConfigRow
         icon={<Globe size={18} />}

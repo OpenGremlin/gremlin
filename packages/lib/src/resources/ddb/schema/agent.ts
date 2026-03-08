@@ -2,6 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
 import { map } from "dynamodb-toolbox/schema/map";
+import { number } from "dynamodb-toolbox/schema/number";
 import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
@@ -26,6 +27,8 @@ export const AgentEntity = new Entity({
       }).optional(),
       sandbox: map({
         enabled: boolean(),
+        idleTimeoutMinutes: number().optional(),
+        alwaysOn: boolean().optional(),
       }).optional(),
       webSearch: map({
         enabled: boolean(),

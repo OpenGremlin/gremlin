@@ -18,6 +18,8 @@ export const AgentDetailFragment = graphql(`
       }
       sandbox {
         enabled
+        idleTimeoutMinutes
+        alwaysOn
       }
       webSearch {
         enabled
