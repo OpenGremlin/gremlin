@@ -57,7 +57,7 @@ export class MessagingStack extends cdk.Stack {
       {
         entry: path.join(
           REPO_ROOT,
-          "apps/server/src/functions/scheduleTarget.ts",
+          "packages/functions/src/scheduleTarget.ts",
         ),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
@@ -84,7 +84,7 @@ export class MessagingStack extends cdk.Stack {
     // Runs every 3 minutes, queries GSI2 for stale unread inbox items,
     // and re-rings doorbells for agents with stuck work.
     const sweeperFn = new nodejs.NodejsFunction(this, "SweeperFn", {
-      entry: path.join(REPO_ROOT, "apps/server/src/functions/sweeper.ts"),
+      entry: path.join(REPO_ROOT, "packages/functions/src/sweeper.ts"),
       handler: "handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,

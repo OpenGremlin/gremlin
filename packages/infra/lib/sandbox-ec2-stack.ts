@@ -209,51 +209,24 @@ export class SandboxEc2Stack extends cdk.Stack {
       stringValue: subnet.subnetId,
     });
 
-    // ── Shared helper for sandbox Lambda inline code ──────
-    const describeSandboxInstancesFn = `
-async function describeSandboxInstances(ec2, states) {
-  const instances = [];
-  let nextToken;
-  do {
-    const res = await ec2.send(new DescribeInstancesCommand({
-      Filters: [
-        { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
-        { Name: "instance-state-name", Values: states },
-      ],
-      ...(nextToken && { NextToken: nextToken }),
-    }));
-    for (const r of res.Reservations || []) {
-      for (const i of r.Instances || []) {
-        instances.push(i);
-      }
-    }
-    nextToken = res.NextToken;
-  } while (nextToken);
-  return instances;
-}`;
-
     // ── Terminate old sandbox instances on deploy ──────────
-    const cleanupFn = new lambda.Function(this, "SandboxCleanupFn", {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
-      timeout: cdk.Duration.seconds(60),
-      code: lambda.Code.fromInline(`
-const { EC2Client, DescribeInstancesCommand, TerminateInstancesCommand } = require("@aws-sdk/client-ec2");
-const ec2 = new EC2Client({});
-${describeSandboxInstancesFn}
-exports.handler = async (event) => {
-  if (event.RequestType === "Delete") return;
-  const instances = await describeSandboxInstances(ec2, ["running", "stopped", "pending"]);
-  const ids = instances.map(i => i.InstanceId);
-  if (ids.length > 0) {
-    console.log("Terminating sandbox instances:", ids);
-    await ec2.send(new TerminateInstancesCommand({ InstanceIds: ids }));
-  } else {
-    console.log("No sandbox instances to terminate");
-  }
-};
-      `),
-    });
+    const cleanupFn = new lambda_nodejs.NodejsFunction(
+      this,
+      "SandboxCleanupFn",
+      {
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/sandboxCleanup.ts",
+        ),
+        handler: "handler",
+        runtime: lambda.Runtime.NODEJS_20_X,
+        timeout: cdk.Duration.seconds(60),
+        bundling: {
+          format: lambda_nodejs.OutputFormat.ESM,
+          mainFields: ["module", "main"],
+        },
+      },
+    );
     cleanupFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ec2:DescribeInstances", "ec2:TerminateInstances"],
@@ -278,7 +251,10 @@ exports.handler = async (event) => {
       this,
       "SandboxSweeperFn",
       {
-        entry: path.join(__dirname, "functions/sandboxSweeper.ts"),
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/sandboxSweeper.ts",
+        ),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),

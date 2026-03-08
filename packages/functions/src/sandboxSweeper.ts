@@ -1,37 +1,7 @@
-import {
-  DescribeInstancesCommand,
-  EC2Client,
-  StopInstancesCommand,
-} from "@aws-sdk/client-ec2";
+import { StopInstancesCommand } from "@aws-sdk/client-ec2";
+import { describeSandboxInstances, ec2 } from "./sandboxHelpers.js";
 
-const ec2 = new EC2Client({});
 const MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
-
-async function describeSandboxInstances(states: string[]) {
-  const instances: Array<{
-    InstanceId?: string;
-    LaunchTime?: Date;
-  }> = [];
-  let nextToken: string | undefined;
-  do {
-    const res = await ec2.send(
-      new DescribeInstancesCommand({
-        Filters: [
-          { Name: "tag:Name", Values: ["gremlin-sandbox-*"] },
-          { Name: "instance-state-name", Values: states },
-        ],
-        ...(nextToken && { NextToken: nextToken }),
-      }),
-    );
-    for (const r of res.Reservations || []) {
-      for (const i of r.Instances || []) {
-        instances.push(i);
-      }
-    }
-    nextToken = res.NextToken;
-  } while (nextToken);
-  return instances;
-}
 
 export async function handler() {
   const instances = await describeSandboxInstances(["running"]);
