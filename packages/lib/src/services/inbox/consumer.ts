@@ -75,7 +75,8 @@ async function routeBatch(
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
       i.type === "core_memory_review" ||
-      i.type === "sandbox_available", // kept for backwards compat with in-flight items
+      i.type === "sandbox_available" || // kept for backwards compat with in-flight items
+      i.type === "file_upload",
   );
 
   // --- Main lane: batch all conversational items into one turn ---
@@ -187,6 +188,11 @@ async function processTaskGroup(
         });
         break;
       }
+      case "file_upload": {
+        // Write log entry only — do not trigger inference
+        await writeFileUploadLog(ctx, agentId, taskId, payload);
+        break;
+      }
     }
   }
 
@@ -228,6 +234,11 @@ async function processNonTaskItem(
           ),
         );
       break;
+    case "file_upload": {
+      const payload = JSON.parse(item.payload);
+      await writeFileUploadLog(ctx, agentId, null, payload);
+      break;
+    }
   }
 }
 
@@ -349,6 +360,36 @@ async function formatAndWriteNotificationReply(
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId,
     taskId: null,
+    role: "SYSTEM",
+    content,
+  });
+}
+
+/**
+ * Write a SYSTEM log entry for a file upload. Does NOT trigger inference.
+ */
+async function writeFileUploadLog(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string | null,
+  payload: {
+    filename: string;
+    path: string;
+    sizeBytes: number;
+    contentType: string;
+  },
+) {
+  const content = JSON.stringify({
+    type: "file_upload",
+    filename: payload.filename,
+    path: payload.path,
+    sizeBytes: payload.sizeBytes,
+    contentType: payload.contentType,
+  });
+
+  await ctx.services.orchestrator.writeAgentLog(ctx, {
+    agentId,
+    taskId,
     role: "SYSTEM",
     content,
   });

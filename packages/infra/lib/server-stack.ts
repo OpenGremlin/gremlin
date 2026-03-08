@@ -8,6 +8,7 @@ import * as ecs from "aws-cdk-lib/aws-ecs";
 import type * as efs from "aws-cdk-lib/aws-efs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
+import type * as s3 from "aws-cdk-lib/aws-s3";
 import type { Construct } from "constructs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +25,8 @@ export interface ServerStackProps extends cdk.StackProps {
   userPoolId: string;
   userPoolClientId: string;
   mediaCdnUrl: string;
+  uploadsBucket: s3.IBucket;
+  uploadsBucketName: string;
 }
 
 export class ServerStack extends cdk.Stack {
@@ -84,6 +87,8 @@ export class ServerStack extends cdk.Stack {
         ],
       }),
     );
+
+    props.uploadsBucket.grantReadWrite(serverRole);
 
     props.fileSystem.grant(serverRole, "elasticfilesystem:ClientMount");
 
@@ -200,6 +205,7 @@ export class ServerStack extends cdk.Stack {
         `-e COGNITO_CLIENT_ID=${props.userPoolClientId}`,
         `-e MEDIA_CDN_URL=${props.mediaCdnUrl}`,
         `-e S3_VECTORS_BUCKET_NAME=gremlin-vectors`,
+        `-e UPLOADS_BUCKET_NAME=${props.uploadsBucketName}`,
         `-e WORKSPACE_PATH=/workspace`,
         `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
         `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,

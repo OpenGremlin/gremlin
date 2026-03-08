@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as efs from "aws-cdk-lib/aws-efs";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import type { Construct } from "constructs";
 
 export interface DatabaseStackProps extends cdk.StackProps {
@@ -15,6 +16,8 @@ export class DatabaseStack extends cdk.Stack {
   readonly secretsTableName: string;
   readonly fileSystem: efs.IFileSystem;
   readonly accessPoint: efs.IAccessPoint;
+  readonly uploadsBucket: s3.IBucket;
+  readonly uploadsBucketName: string;
 
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
@@ -86,5 +89,30 @@ export class DatabaseStack extends cdk.Stack {
 
     this.fileSystem = fileSystem;
     this.accessPoint = accessPoint;
+
+    // ── S3 uploads staging bucket ─────────────────────────────
+    const uploadsBucket = new s3.Bucket(this, "UploadsBucket", {
+      bucketName: `gremlin-uploads-staging-${this.account}-${this.region}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(1),
+        },
+      ],
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          allowedHeaders: ["Content-Type", "Content-Disposition", "x-amz-*"],
+          maxAge: 3600,
+        },
+      ],
+    });
+
+    this.uploadsBucket = uploadsBucket;
+    this.uploadsBucketName = uploadsBucket.bucketName;
   }
 }

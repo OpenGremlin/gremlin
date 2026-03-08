@@ -15,15 +15,17 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@gremlin/lib": "workspace:*",
     "@aws-sdk/client-dynamodb": "^3.1000.0",
+    "@aws-sdk/client-s3": "^3.1000.0",
     "@aws-sdk/client-sqs": "^3.1001.0",
     "@aws-sdk/client-ssm": "^3.1000.0",
     "@aws-sdk/client-sts": "^3.1004.0",
     "@aws-sdk/lib-dynamodb": "^3.1000.0",
+    "@aws-sdk/s3-request-presigner": "^3.1004.0",
     "@graphql-tools/merge": "^9.1.7",
     "@graphql-tools/schema": "^10.0.31",
     "@graphql-yoga/subscription": "^5.0.5",
+    "@gremlin/lib": "workspace:*",
     "cron-parser": "^5.5.0",
     "dataloader": "^2.2.3",
     "dotenv": "^17.3.1",

@@ -36,6 +36,28 @@ export const SendMessageMutation = /* GraphQL */ `
   }
 `;
 
+// Raw string mutations for file upload (avoids codegen dependency)
+export const RequestFileUploadsMutation = /* GraphQL */ `
+  mutation RequestFileUploads($agentId: String!, $taskId: String, $files: [FileUploadRequest!]!) {
+    requestFileUploads(agentId: $agentId, taskId: $taskId, files: $files) {
+      uploadId
+      presignedUrl
+      key
+    }
+  }
+`;
+
+export const CompleteFileUploadMutation = /* GraphQL */ `
+  mutation CompleteFileUpload($input: CompleteFileUploadInput!) {
+    completeFileUpload(input: $input) {
+      path
+      filename
+      sizeBytes
+      contentType
+    }
+  }
+`;
+
 export const AgentLogSubscription = graphql(`
   subscription AgentLogCreated($agentId: ID!) {
     agentLogCreated(agentId: $agentId) {

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AgentQuery, TaskQuery } from "../../../graphql/queries";
 import { useChatSend } from "../../../hooks/useChatSend";
+import { useFileUpload } from "../../../hooks/useFileUpload";
 import {
   shouldShowTimestamp,
   useLogMessages,
@@ -36,6 +37,9 @@ export function AgentChatPage() {
       messages: chat.messages,
     });
 
+  const { uploads, uploadFiles, cancelUpload, clearUploads, isUploading } =
+    useFileUpload(id ?? "", taskId);
+
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el || !chat.hasMore) return;
@@ -43,6 +47,14 @@ export function AgentChatPage() {
       chat.loadMore();
     }
   }, [chat.hasMore, chat.loadMore, scrollRef]);
+
+  const handleFileClick = useCallback(
+    (path: string) => {
+      // Navigate to the files tab for this agent with the file path
+      navigate(`/agents/${id}/files?path=${encodeURIComponent(path)}`);
+    },
+    [id, navigate],
+  );
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -91,6 +103,7 @@ export function AgentChatPage() {
                   ? undefined
                   : (tid) => navigate(`/agents/${id}/tasks/${tid}`)
               }
+              onFileClick={handleFileClick}
               documents={isTaskView ? taskDocs : undefined}
               sandboxStreams={isTaskView ? sandboxStreams : undefined}
               showTimestamp={shouldShowTimestamp(msg, filteredMessages[i + 1])}
@@ -109,7 +122,16 @@ export function AgentChatPage() {
           </div>
         </div>
       ) : (
-        <ChatInputBar value={input} onChange={setInput} onSend={handleSend} />
+        <ChatInputBar
+          value={input}
+          onChange={setInput}
+          onSend={handleSend}
+          uploads={uploads}
+          isUploading={isUploading}
+          onFilesSelected={uploadFiles}
+          onCancelUpload={cancelUpload}
+          onClearUploads={clearUploads}
+        />
       )}
     </div>
   );

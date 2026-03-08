@@ -1,6 +1,7 @@
-import { Check, ExternalLink, Loader2 } from "lucide-react";
+import { Check, ExternalLink, File, Loader2 } from "lucide-react";
 import { useState } from "react";
 import Markdown from "react-markdown";
+import { formatFileSize } from "../../../../hooks/useFileUpload";
 import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
@@ -9,6 +10,75 @@ import { RunCommandBlock } from "./RunCommandBlock";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 import { ToolBlock } from "./ToolBlock";
 import { useTaskInfo } from "./useTaskInfo";
+
+function FileUploadCard({
+  data,
+  onFileClick,
+}: {
+  data: {
+    filename?: string;
+    path?: string;
+    sizeBytes?: number;
+    contentType?: string;
+    files?: Array<{
+      filename?: string;
+      path?: string;
+      sizeBytes?: number;
+      contentType?: string;
+    }>;
+  };
+  onFileClick?: (path: string) => void;
+}) {
+  const files = data.files ?? [data];
+
+  return (
+    <div className="py-1 space-y-1">
+      {files.map((file, i) => {
+        const clickable = !!(file.path && onFileClick);
+        return (
+          // biome-ignore lint/a11y/noStaticElementInteractions: role is conditionally "button" when clickable
+          <div
+            key={file.path ?? i}
+            role={clickable ? "button" : undefined}
+            tabIndex={clickable ? 0 : undefined}
+            onClick={
+              clickable && file.path
+                ? () => onFileClick(file.path as string)
+                : undefined
+            }
+            onKeyDown={
+              clickable && file.path
+                ? (e) => {
+                    if (e.key === "Enter") onFileClick(file.path as string);
+                  }
+                : undefined
+            }
+            className={`flex items-center gap-2.5 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg ${clickable ? "cursor-pointer hover:border-neutral-700 transition-colors" : ""}`}
+          >
+            <File size={16} className="text-blue-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-sm text-neutral-200 block truncate">
+                {file.filename ?? "Unknown file"}
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                {file.sizeBytes != null && (
+                  <span className="text-[10px] text-neutral-500">
+                    {formatFileSize(file.sizeBytes)}
+                  </span>
+                )}
+                {file.contentType && (
+                  <span className="text-[10px] text-neutral-500">
+                    {file.contentType}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function DelegateTaskCard({
   taskId,
@@ -100,6 +170,7 @@ function DelegateTaskCard({
 export function LogEntryView({
   entry,
   onTaskClick,
+  onFileClick,
   sending,
   documents,
   sandboxStreams,
@@ -107,6 +178,7 @@ export function LogEntryView({
 }: {
   entry: ChatMessage;
   onTaskClick?: (taskId: string) => void;
+  onFileClick?: (path: string) => void;
   sending?: boolean;
   documents?: Array<{ path: string; title: string; body?: string | null }>;
   sandboxStreams?: Map<string, CommandStream>;
@@ -115,6 +187,17 @@ export function LogEntryView({
   switch (entry.role) {
     case "SYSTEM": {
       const parsed = safeParseJson(entry.content);
+
+      // Handle file_upload entries with a dedicated card
+      if (parsed?.type === "file_upload") {
+        return (
+          <FileUploadCard
+            data={parsed as Parameters<typeof FileUploadCard>[0]["data"]}
+            onFileClick={onFileClick}
+          />
+        );
+      }
+
       const label = parsed?.type ? String(parsed.type) : "system";
       const display = parsed ? JSON.stringify(parsed, null, 2) : entry.content;
 

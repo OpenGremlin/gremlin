@@ -40,6 +40,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   mediaCdnUrl: media.cdnUrl,
+  uploadsBucket: db.uploadsBucket,
+  uploadsBucketName: db.uploadsBucketName,
 });
 
 // 3. Messaging — depends on Database, Server
