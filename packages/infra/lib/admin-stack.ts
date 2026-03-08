@@ -125,7 +125,7 @@ export class AdminStack extends cdk.Stack {
                 "cp /asset-input/pnpm-workspace.yaml /asset-input/pnpm-lock.yaml /asset-input/package.json /asset-input/tsconfig.base.json /tmp/build/",
                 "cp /asset-input/apps/admin/package.json /tmp/build/apps/admin/",
                 "cd /tmp/build && pnpm install --frozen-lockfile",
-                "cp -r /asset-input/apps/admin/src /asset-input/apps/admin/index.html /asset-input/apps/admin/vite.config.ts /asset-input/apps/admin/tsconfig.json /tmp/build/apps/admin/",
+                "cp -r /asset-input/apps/admin/src /asset-input/apps/admin/public /asset-input/apps/admin/index.html /asset-input/apps/admin/vite.config.ts /asset-input/apps/admin/tsconfig.json /tmp/build/apps/admin/",
                 "cd /tmp/build && pnpm --filter @gremlin/admin build",
                 "cp -r /tmp/build/apps/admin/dist/. /asset-output/",
               ].join(" && "),
