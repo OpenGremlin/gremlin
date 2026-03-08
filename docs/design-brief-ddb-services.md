@@ -10,10 +10,9 @@ The Gremlin server uses a three-layer architecture for data access and business 
 
 ## Key Decisions
 
-- **Single-table design**: One DynamoDB table (`gremlin`) with PK/SK patterns per entity
+- **Single-table design**: One DynamoDB table (`gremlin`) with PK/SK patterns per entity; sensitive entities use a separate `SecretsTable`
 - **Normalized references**: Entities store IDs (e.g., `agentId`), service layer fetches related entities
 - **Avatars stay static**: No DDB entity — avatar list is a compile-time constant
-- **No seed script**: Data is seeded manually in cloud DDB; local dev connects to cloud
 
 ## Table Schema
 
@@ -25,23 +24,32 @@ Table name: `gremlin`
 | `sk` | String | Sort key |
 | `gsi1pk` | String | GSI1 partition key |
 | `gsi1sk` | String | GSI1 sort key |
+| `gsi2pk` | String | GSI2 partition key |
+| `gsi2sk` | String | GSI2 sort key |
 
 ### Entity Key Patterns
 
-| Entity | PK | SK | GSI1PK | GSI1SK |
-|--------|----|----|--------|--------|
-| Agent | `AGENT` | `AGENT#<id>` | — | — |
-| AgentJob | `AGENT_JOB` | `AGENT_JOB#<id>` | — | — |
-| FeedItem | `FEED_ITEM` | `FEED_ITEM#<id>` | `FEED_AGENT#<agentId>` | `<completedAt>` |
-| Integration | `INTEGRATION` | `INTEGRATION#<id>` | — | — |
-| Notification | `NOTIFICATION` | `NOTIFICATION#<id>` | `NOTIF_STATUS#<status>` | `<createdAt>` |
-| Profile | `PROFILE` | `PROFILE#<name>` | — | — |
-| Skill | `SKILL` | `SKILL#<id>` | — | — |
+| Entity | PK | SK | GSI1 PK | GSI1 SK | GSI2 PK | GSI2 SK |
+|--------|----|----|---------|---------|---------|---------|
+| Agent | `AGENT` | `AGENT#{id}` | — | — | — | — |
+| AgentJob | `AGENT_JOB` | `AGENT_JOB#{id}` | — | — | — | — |
+| AgentLog | `AGENT_LOG` | `AGENT_LOG#{id}` | `LOG_AGENT#{agentId}` or `LOG_TASK#{taskId}` | `{createdAt}#{id}` | — | — |
+| CronJobTrigger | `AGENT_JOB#{jobId}` | `TRIGGER#{triggerTimeMs}` | — | — | — | — |
+| InboxItem | `AGENT_INBOX#{agentId}` | `ITEM#{createdAt}#{id}` | — | — | `INBOX_UNREAD` | `{agentId}#{createdAt}#{id}` |
+| IntegrationConnection* | `INTEGRATION_CONNECTION` | `INTEGRATION_CONNECTION#{id}` | — | — | — | — |
+| ModelProviderKey* | `MODEL_PROVIDER_KEY` | `MODEL_PROVIDER_KEY#{providerId}` | — | — | — | — |
+| Notification | `NOTIFICATION` | `NOTIFICATION#{id}` | `NOTIF_STATUS#{status}` | `{createdAt}` | — | — |
+| Profile | `PROFILE` | `PROFILE#{name}` | — | — | — | — |
+| Setting | `SETTING` | `SETTING#{key}` | — | — | — | — |
+| Skill | `SKILL` | `SKILL#{id}` | — | — | — | — |
+| Task | `TASK` | `TASK#{id}` | `TASK_AGENT#{agentId}` | `{createdAt}` | `TASK_ALL` | `{createdAt}#{id}` |
+
+\* Stored in `SecretsTable`
 
 ## Directory Structure
 
 ```
-apps/server/src/
+packages/lib/src/
 ├── resources/
 │   ├── index.ts              # Resources interface + createResources()
 │   └── ddb/
@@ -50,26 +58,37 @@ apps/server/src/
 │       └── schema/
 │           ├── agent.ts
 │           ├── agentJob.ts
-│           ├── feedItem.ts
-│           ├── integration.ts
+│           ├── agentLog.ts
+│           ├── cronJobTrigger.ts
+│           ├── inboxItem.ts
+│           ├── integrationConnection.ts
+│           ├── modelProviderKey.ts
 │           ├── notification.ts
 │           ├── profile.ts
-│           └── skill.ts
+│           ├── setting.ts
+│           ├── skill.ts
+│           └── task.ts
 ├── services/
 │   ├── index.ts              # Services interface + createServices()
 │   ├── context.ts            # ServiceContext type
 │   ├── agents/
-│   │   ├── index.ts
-│   │   ├── getAgents.ts
-│   │   ├── getAgent.ts
-│   │   └── updateAgentStatus.ts
-│   ├── jobs/index.ts
-│   ├── feed/index.ts
-│   ├── integrations/index.ts
-│   ├── notifications/index.ts
-│   ├── profile/index.ts
-│   ├── skills/index.ts
-│   └── media/index.ts
+│   ├── agentLogs/
+│   ├── inbox/
+│   ├── integrations/
+│   ├── jobs/
+│   ├── media/
+│   ├── memory/
+│   ├── modelProviders/
+│   ├── notifications/
+│   ├── oauth/
+│   ├── orchestrator/
+│   ├── profile/
+│   ├── prompts/
+│   ├── sandbox/
+│   ├── skills/
+│   ├── tasks/
+│   ├── tools/
+│   └── workspace/
 └── gql/
     ├── context.ts            # GremlinContext (replaces old Context)
     └── schema/
@@ -81,7 +100,7 @@ apps/server/src/
 ```
 Server startup
   ├── createResources() → { ddb }
-  ├── createServices()  → { agents, jobs, feed, ... }
+  ├── createServices()  → { agents, jobs, inbox, ... }
   └── Yoga context factory
         └── Per request: { user, mediaCdnUrl, resources, services }
 ```
@@ -119,10 +138,10 @@ const agents: QueryResolvers["agents"] = (_parent, _args, ctx) =>
   ctx.services.agents.getAgents(ctx);
 ```
 
-Field resolvers for cross-entity references (e.g., `FeedItem.agent`) call the agent service:
+Field resolvers for cross-entity references (e.g., `Task.agent`) call the agent service:
 
 ```ts
-const agent: FeedItemResolvers["agent"] = async (parent, _args, ctx) => {
+const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.services.agents.getAgent(ctx, parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
   return a;
@@ -137,11 +156,15 @@ GraphQL codegen uses DDB entity types as mappers so resolver parent types match 
 mappers: {
   Agent: "../resources/ddb/schema/agent.js#AgentItem",
   AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
-  FeedItem: "../resources/ddb/schema/feedItem.js#FeedItemItem",
-  Integration: "../resources/ddb/schema/integration.js#IntegrationItem",
+  AgentLog: "../resources/ddb/schema/agentLog.js#AgentLogItem",
+  InboxItem: "../resources/ddb/schema/inboxItem.js#InboxItemItem",
+  IntegrationConnection: "../resources/ddb/schema/integrationConnection.js#IntegrationConnectionItem",
+  ModelProviderKey: "../resources/ddb/schema/modelProviderKey.js#ModelProviderKeyItem",
   Notification: "../resources/ddb/schema/notification.js#NotificationItem",
   Profile: "../resources/ddb/schema/profile.js#ProfileItem",
+  Setting: "../resources/ddb/schema/setting.js#SettingItem",
   Skill: "../resources/ddb/schema/skill.js#SkillItem",
+  Task: "../resources/ddb/schema/task.js#TaskItem",
   Avatar: "./schema/Avatar/resolvers.js#AvatarModel",  // static, no DDB
 }
 ```

@@ -4,6 +4,9 @@
 
 ```
 pnpm install
+cp .env.example .env
+docker compose up -d
+pnpm --filter server db:seed
 pnpm dev
 ```
 
@@ -42,14 +45,13 @@ pnpm run deploy    # deploy all stacks
 |---|---|
 | `apps/server` | Node.js backend — Express, GraphQL, DynamoDB, SQS |
 | `apps/admin` | React dashboard |
-| `apps/phone` | React Native mobile app |
 | `packages/lib` | Shared services and business logic |
 | `packages/sandbox` | EC2 sandbox agent and WebSocket handler |
 | `packages/infra` | AWS CDK infrastructure stacks |
 
 ## Conventions
 
-**Prompts** — All LLM prompts live in `apps/server/src/services/prompts/`. Templates use Handlebars. The `renderPrompt(key, data)` function is the single entry point. Never inline prompts in implementation files.
+**Prompts** — All LLM prompts live in `packages/lib/src/services/prompts/`. Templates use Handlebars. The `renderPrompt(key, data)` function is the single entry point. Never inline prompts in implementation files.
 
 **Pagination** — The admin UI uses backward cursor-based pagination via `usePaginatedQuery()`. Fetches the most recent page first (`last`/`before`), with `loadMore()` for older pages. Page size is 20.
 

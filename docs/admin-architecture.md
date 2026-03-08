@@ -3,7 +3,7 @@
 ## Overview
 
 Mobile-first responsive React app for managing Gremlin agents, jobs, integrations, and skills.
-Four tabs: Feed, Scheduler, Integrations, Skills.
+Main navigation tabs: Home, Agents, Jobs. A Settings submenu provides access to Profile, Skills, Connect, and Files.
 
 ## Tech Stack
 
@@ -15,55 +15,95 @@ Four tabs: Feed, Scheduler, Integrations, Skills.
 
 ```
 apps/admin/src/
-├── App.tsx                    # Router setup + TabShell
+├── App.tsx                    # Root component
 ├── main.tsx                   # Entry point
 ├── index.css                  # Tailwind + global styles
 ├── types.ts                   # Shared domain types
 ├── components/
-│   ├── TabShell.tsx           # Bottom tab bar + page slot layout
-│   ├── feed/
-│   │   ├── FeedPage.tsx       # Scrollable job feed
-│   │   ├── FeedCard.tsx       # Individual job card (avatar, summary, timestamp)
-│   │   └── FeedDetailPage.tsx # Full detail view (rendered markdown, etc.)
-│   ├── scheduler/
-│   │   ├── SchedulerPage.tsx  # List of agent jobs with status badges
-│   │   └── JobDetailPage.tsx  # Recurrence + prompt description
-│   ├── integrations/
-│   │   ├── IntegrationsPage.tsx   # Grid of linked services
-│   │   └── IntegrationDetailPage.tsx  # Service permissions list
-│   └── skills/
-│       ├── SkillsPage.tsx     # Installed skills + search
-│       └── SkillDetailPage.tsx    # Skill detail view
-└── shared/
-    ├── Avatar.tsx             # Small agent avatar (reuse dust-sprite style)
-    ├── Badge.tsx              # Status badge (running, completed, etc.)
-    ├── BackButton.tsx         # Detail page back navigation
-    └── PageHeader.tsx         # Consistent page title bar
+│   ├── RouterApp/             # BrowserRouter, AppShell layout, route definitions
+│   │   └── index.tsx
+│   ├── AgentsTab/             # Agents list + agent management
+│   │   ├── index.tsx          # Agent list page
+│   │   ├── AgentCard.tsx
+│   │   ├── AgentForm.tsx
+│   │   ├── NewAgentPage/
+│   │   ├── AgentChatPage/     # Conversational agent view
+│   │   │   ├── ChatHeader/
+│   │   │   ├── ChatInputBar/
+│   │   │   └── LogEntryView/  # Tool blocks, sandbox output, command results
+│   │   └── AgentConfigPage/   # Agent settings (avatar, model, tools, voice)
+│   │       ├── AvatarPicker/
+│   │       ├── ModelPicker.tsx
+│   │       ├── ToolsConfig.tsx
+│   │       └── VoicePicker/
+│   ├── TasksTab/              # Home tab — task feed
+│   │   ├── index.tsx
+│   │   └── TaskCard/
+│   ├── TaskThreadPage/        # Full task thread detail view
+│   │   └── index.tsx
+│   ├── SchedulerTab/          # Jobs list + job management
+│   │   ├── index.tsx
+│   │   ├── JobForm.tsx
+│   │   ├── NewJobPage/
+│   │   └── JobDetailPage/
+│   ├── FilesTab/              # File browser (under Settings)
+│   │   ├── index.tsx
+│   │   └── FileViewPage/
+│   └── UserTab/               # Settings pages
+│       ├── ProfilePage/
+│       ├── SkillsPage/
+│       ├── SkillDetailPage/
+│       ├── SkillTemplatePage/
+│       ├── IntegrationsPage/
+│       ├── IntegrationDetailPage/
+│       │   └── ModelCard.tsx
+│       ├── ConnectionDetailPage/
+│       └── NotificationsPage/
+│           └── NotificationCard/
 ```
 
 ## Routing
 
 ```
-/                → redirect to /feed
-/feed            → FeedPage
-/feed/:id        → FeedDetailPage
-/scheduler       → SchedulerPage
-/scheduler/:id   → JobDetailPage
-/integrations    → IntegrationsPage
-/integrations/:id → IntegrationDetailPage
-/skills          → SkillsPage
-/skills/:id      → SkillDetailPage
+/                              → redirect to /home
+/home                          → TasksTab (task feed)
+
+/agents                        → AgentsTab (agent list)
+/agents/new                    → NewAgentPage
+/agents/:id                    → AgentChatPage
+/agents/:id/tasks/:taskId      → AgentChatPage (task-scoped)
+/agents/:id/config             → AgentConfigPage
+
+/jobs                          → SchedulerTab (job list)
+/jobs/new                      → NewJobPage
+/jobs/:id                      → JobDetailPage
+
+/settings                      → redirect to /settings/profile
+/settings/profile              → ProfilePage
+/settings/skills               → SkillsPage
+/settings/skills/:id           → SkillDetailPage
+/settings/skills/catalog/:templateId → SkillTemplatePage
+/settings/integrations         → IntegrationsPage
+/settings/integrations/:id     → IntegrationDetailPage
+/settings/connections/:id      → ConnectionDetailPage
+/settings/files                → FilesTab
+/settings/files/view           → FileViewPage
+
+# Legacy redirects
+/scheduler/*                   → /jobs
+/files/*                       → /settings/files
+/user/*                        → /settings/profile
 ```
 
 ## Component Conventions
 
 1. **One component per file**, named export matching filename
-2. **Page components** receive no props — they own their mock data for now
+2. **Page components** receive no props — they fetch their own data
 3. **Card/list item components** receive typed props
-4. **Shared components** live in `shared/` — only truly reusable pieces
+4. **Shared components** — only truly reusable pieces
 5. **Types** — domain types in `types.ts`, component-local types co-located
 6. **Styling** — Tailwind utility classes, no CSS modules
-7. **No context/state management** — just useState with mock data for now
+7. **Data fetching** — components use `useQuery` to fetch live data from the GraphQL server
 
 ## Design Tokens (Tailwind classes)
 
@@ -75,13 +115,6 @@ apps/admin/src/
 - Spacing: `p-4` standard padding, `gap-3` between list items
 - Max width: `max-w-lg mx-auto` to constrain on desktop
 
-## Mock Data
+## Navigation
 
-Each page owns its own mock data array at the top of the page file.
-Use the types from `types.ts` for consistency.
-
-## Tab Bar
-
-Fixed bottom bar with 4 icons+labels. Active tab highlighted with accent color.
-Tabs: Feed, Scheduler, Integrations, Skills.
-Use simple inline SVG icons (no icon library).
+Left icon rail with three main tabs: Home, Agents, Jobs. A Settings icon at the bottom opens a secondary icon rail with Profile, Skills, Connect, and Files. Active tab is highlighted with the accent color. Icons from `lucide-react`.

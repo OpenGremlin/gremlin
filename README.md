@@ -33,8 +33,19 @@ OpenGremlin runs on your AWS account. Your keys, your data, your infrastructure 
 
 ```
 pnpm install
+cp .env.example .env
+
+# Start LocalStack (DynamoDB, SQS, Scheduler)
+docker compose up -d
+
+# Seed sample data
+pnpm --filter server db:seed
+
+# Start the server (with hot reload) and admin UI
 pnpm dev
 ```
+
+> **Note:** AWS credentials are still needed for Bedrock (LLM calls) and S3 vectors — LocalStack handles DynamoDB and SQS only.
 
 ### Deploy
 
