@@ -57,6 +57,9 @@
       "includes": ["**/generated/**"],
       "linter": {
         "enabled": false
+      },
+      "formatter": {
+        "enabled": false
       }
     },
     {
