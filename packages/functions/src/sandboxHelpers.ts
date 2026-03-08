@@ -5,6 +5,14 @@ export const ec2 = new EC2Client({});
 export interface SandboxInstance {
   InstanceId?: string;
   LaunchTime?: Date;
+  Tags?: Array<{ Key?: string; Value?: string }>;
+}
+
+export function getTag(
+  instance: SandboxInstance,
+  key: string,
+): string | undefined {
+  return instance.Tags?.find((t) => t.Key === key)?.Value;
 }
 
 export async function describeSandboxInstances(

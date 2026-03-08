@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
+import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr_assets from "aws-cdk-lib/aws-ecr-assets";
 import type * as efs from "aws-cdk-lib/aws-efs";
@@ -22,6 +23,8 @@ export interface SandboxEc2StackProps extends cdk.StackProps {
   serverSecurityGroup: ec2.ISecurityGroup;
   fileSystem: efs.IFileSystem;
   accessPoint: efs.IAccessPoint;
+  table: dynamodb.ITable;
+  tableName: string;
   notifyHookRoleArn: string;
   serverElasticIp: string;
 }
@@ -214,10 +217,7 @@ export class SandboxEc2Stack extends cdk.Stack {
       this,
       "SandboxCleanupFn",
       {
-        entry: path.join(
-          REPO_ROOT,
-          "packages/functions/src/sandboxCleanup.ts",
-        ),
+        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxCleanup.ts"),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
@@ -245,19 +245,19 @@ export class SandboxEc2Stack extends cdk.Stack {
     });
 
     // ── Periodic sandbox sweeper — stop idle instances ────
-    // Runs every 5 minutes. Stops any gremlin-sandbox-* instance
-    // that has been running for longer than 30 minutes.
+    // Runs every 5 minutes. Reads per-agent config from DDB to
+    // determine idle timeout; respects alwaysOn flag.
     const sweeperFn = new lambda_nodejs.NodejsFunction(
       this,
       "SandboxSweeperFn",
       {
-        entry: path.join(
-          REPO_ROOT,
-          "packages/functions/src/sandboxSweeper.ts",
-        ),
+        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxSweeper.ts"),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
+        environment: {
+          DYNAMODB_TABLE_NAME: props.tableName,
+        },
         bundling: {
           format: lambda_nodejs.OutputFormat.ESM,
           mainFields: ["module", "main"],
@@ -270,6 +270,7 @@ export class SandboxEc2Stack extends cdk.Stack {
         resources: ["*"],
       }),
     );
+    props.table.grantReadData(sweeperFn);
 
     new events.Rule(this, "SandboxSweeperRule", {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),

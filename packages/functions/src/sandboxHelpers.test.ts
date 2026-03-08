@@ -1,6 +1,6 @@
 import type { DescribeInstancesCommand } from "@aws-sdk/client-ec2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { describeSandboxInstances, ec2 } from "./sandboxHelpers.js";
+import { describeSandboxInstances, ec2, getTag } from "./sandboxHelpers.js";
 
 vi.spyOn(ec2, "send").mockImplementation(vi.fn());
 const mockSend = vi.mocked(ec2.send);
@@ -74,5 +74,28 @@ describe("describeSandboxInstances", () => {
 
     const result = await describeSandboxInstances(["running"]);
     expect(result).toHaveLength(3);
+  });
+});
+
+describe("getTag", () => {
+  it("returns the value for a matching tag key", () => {
+    const instance = {
+      InstanceId: "i-1",
+      Tags: [
+        { Key: "Name", Value: "gremlin-sandbox-1" },
+        { Key: "gremlin:agentId", Value: "agent-1" },
+      ],
+    };
+    expect(getTag(instance, "gremlin:agentId")).toBe("agent-1");
+  });
+
+  it("returns undefined for missing tag", () => {
+    const instance = { InstanceId: "i-1", Tags: [{ Key: "Name", Value: "x" }] };
+    expect(getTag(instance, "gremlin:agentId")).toBeUndefined();
+  });
+
+  it("returns undefined when Tags is undefined", () => {
+    const instance = { InstanceId: "i-1" };
+    expect(getTag(instance, "gremlin:agentId")).toBeUndefined();
   });
 });

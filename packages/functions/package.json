@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@gremlin/lib": "workspace:*",
-    "@aws-sdk/client-ec2": "^3.1003.0"
+    "@aws-sdk/client-ec2": "^3.1003.0",
+    "dynamodb-toolbox": "^2.8.0"
   },
   "devDependencies": {
     "@types/node": "^22",

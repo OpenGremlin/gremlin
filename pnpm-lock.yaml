@@ -221,6 +221,9 @@ importers:
       '@gremlin/lib':
         specifier: workspace:*
         version: link:../lib
+      dynamodb-toolbox:
+        specifier: ^2.8.0
+        version: 2.8.0(@aws-sdk/client-dynamodb@3.1000.0)(@aws-sdk/lib-dynamodb@3.1000.0(@aws-sdk/client-dynamodb@3.1000.0))
     devDependencies:
       '@types/node':
         specifier: ^22
