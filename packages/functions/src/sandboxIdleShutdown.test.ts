@@ -52,9 +52,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const { handler } = await import("./sandboxSweeper.js");
+const { handler } = await import("./sandboxIdleShutdown.js");
 
-describe("sandboxSweeper", () => {
+describe("sandboxIdleShutdown", () => {
   it("uses default 20 min timeout when agent has no config", async () => {
     mockDescribe.mockResolvedValueOnce([
       {

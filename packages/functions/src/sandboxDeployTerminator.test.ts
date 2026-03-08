@@ -1,6 +1,6 @@
 import type { TerminateInstancesCommand } from "@aws-sdk/client-ec2";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handler } from "./sandboxCleanup.js";
+import { handler } from "./sandboxDeployTerminator.js";
 import * as helpers from "./sandboxHelpers.js";
 
 vi.spyOn(helpers.ec2, "send").mockImplementation(vi.fn());
@@ -13,7 +13,7 @@ beforeEach(() => {
   mockSend.mockReset().mockResolvedValue({} as never);
 });
 
-describe("sandboxCleanup", () => {
+describe("sandboxDeployTerminator", () => {
   it("terminates running, stopped, and pending instances on Create", async () => {
     mockDescribe.mockResolvedValueOnce([
       { InstanceId: "i-1" },

@@ -212,12 +212,12 @@ export class SandboxEc2Stack extends cdk.Stack {
       stringValue: subnet.subnetId,
     });
 
-    // ── Terminate old sandbox instances on deploy ──────────
-    const cleanupFn = new lambda_nodejs.NodejsFunction(
+    // ── Terminate all sandbox instances on deploy ──────────
+    const deployTerminatorFn = new lambda_nodejs.NodejsFunction(
       this,
-      "SandboxCleanupFn",
+      "SandboxDeployTerminatorFn",
       {
-        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxCleanup.ts"),
+        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxDeployTerminator.ts"),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
@@ -227,16 +227,16 @@ export class SandboxEc2Stack extends cdk.Stack {
         },
       },
     );
-    cleanupFn.addToRolePolicy(
+    deployTerminatorFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ec2:DescribeInstances", "ec2:TerminateInstances"],
         resources: ["*"],
       }),
     );
 
-    new cdk.CustomResource(this, "SandboxCleanup", {
-      serviceToken: new cr.Provider(this, "SandboxCleanupProvider", {
-        onEventHandler: cleanupFn,
+    new cdk.CustomResource(this, "SandboxDeployTerminator", {
+      serviceToken: new cr.Provider(this, "SandboxDeployTerminatorProvider", {
+        onEventHandler: deployTerminatorFn,
       }).serviceToken,
       // Change this property whenever the launch template updates to trigger cleanup
       properties: {
@@ -244,14 +244,14 @@ export class SandboxEc2Stack extends cdk.Stack {
       },
     });
 
-    // ── Periodic sandbox sweeper — stop idle instances ────
+    // ── Stop idle sandbox instances on a schedule ──────────
     // Runs every 5 minutes. Reads per-agent config from DDB to
     // determine idle timeout; respects alwaysOn flag.
-    const sweeperFn = new lambda_nodejs.NodejsFunction(
+    const idleShutdownFn = new lambda_nodejs.NodejsFunction(
       this,
-      "SandboxSweeperFn",
+      "SandboxIdleShutdownFn",
       {
-        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxSweeper.ts"),
+        entry: path.join(REPO_ROOT, "packages/functions/src/sandboxIdleShutdown.ts"),
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
@@ -264,17 +264,17 @@ export class SandboxEc2Stack extends cdk.Stack {
         },
       },
     );
-    sweeperFn.addToRolePolicy(
+    idleShutdownFn.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ec2:DescribeInstances", "ec2:StopInstances"],
         resources: ["*"],
       }),
     );
-    props.table.grantReadData(sweeperFn);
+    props.table.grantReadData(idleShutdownFn);
 
-    new events.Rule(this, "SandboxSweeperRule", {
+    new events.Rule(this, "SandboxIdleShutdownRule", {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
-      targets: [new targets.LambdaFunction(sweeperFn)],
+      targets: [new targets.LambdaFunction(idleShutdownFn)],
     });
 
     // ── Exports ────────────────────────────────────────────
