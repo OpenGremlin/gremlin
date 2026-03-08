@@ -1,4 +1,4 @@
-import { Bot, Globe, MonitorSmartphone, Terminal } from "lucide-react";
+import { Bot, Globe, Terminal } from "lucide-react";
 import { useState } from "react";
 import { gql } from "../../../auth";
 import type {
@@ -76,7 +76,6 @@ interface PlainConfig {
     alwaysOn?: boolean;
   };
   webSearch?: { enabled: boolean; provider?: string };
-  browser?: { enabled: boolean };
 }
 
 function toPlainConfig(config: Agent["config"]): PlainConfig {
@@ -101,7 +100,6 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           provider: config.webSearch.provider ?? undefined,
         }
       : undefined,
-    browser: config?.browser ? { enabled: config.browser.enabled } : undefined,
   };
 }
 
@@ -267,13 +265,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         }
       />
 
-      <ConfigRow
-        icon={<MonitorSmartphone size={18} />}
-        label="Browser"
-        description="Navigate and interact with web pages"
-        enabled={config?.browser?.enabled ?? false}
-        onToggle={(v) => updateConfig({ browser: { enabled: v } })}
-      />
     </div>
   );
 }

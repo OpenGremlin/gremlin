@@ -4,6 +4,7 @@ import {
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
+  webFetch,
   webSearch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
@@ -33,7 +34,7 @@ export async function runMainLane(
       userAbout: profile?.about,
     }),
     tools: {
-      ...(agent.config?.webSearch?.enabled ? { webSearch } : {}),
+      ...(agent.config?.webSearch?.enabled ? { webSearch, webFetch } : {}),
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),

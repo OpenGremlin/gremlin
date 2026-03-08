@@ -16,15 +16,10 @@ export const agentTypeDefs = /* GraphQL */ `
     provider: String
   }
 
-  type AgentBrowserConfig {
-    enabled: Boolean!
-  }
-
   type AgentConfig {
     model: AgentModelConfig
     sandbox: AgentSandboxConfig
     webSearch: AgentWebSearchConfig
-    browser: AgentBrowserConfig
   }
 
   type Agent {
@@ -61,15 +56,10 @@ export const agentTypeDefs = /* GraphQL */ `
     provider: String
   }
 
-  input AgentBrowserConfigInput {
-    enabled: Boolean!
-  }
-
   input AgentConfigInput {
     model: AgentModelConfigInput
     sandbox: AgentSandboxConfigInput
     webSearch: AgentWebSearchConfigInput
-    browser: AgentBrowserConfigInput
   }
 
   input UpdateAgentInput {

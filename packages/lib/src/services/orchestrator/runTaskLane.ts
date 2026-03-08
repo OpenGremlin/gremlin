@@ -7,16 +7,9 @@ import {
   saveMemoryTool,
   updateDocumentTool,
   updateTaskMessageTool,
+  webFetch,
   webSearch,
 } from "../tools/index.js";
-import {
-  browserClickTool,
-  browserEvaluateTool,
-  browserGetContentTool,
-  browserNavigateTool,
-  browserScreenshotTool,
-  browserTypeTool,
-} from "./browserTools.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
 import { checkCommandTool, runCommandTool } from "./sandboxTools.js";
@@ -28,7 +21,6 @@ function buildConfigTools(
   taskId: string,
   config?: {
     sandbox?: { enabled: boolean } | null;
-    browser?: { enabled: boolean } | null;
   } | null,
 ) {
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
@@ -37,15 +29,6 @@ function buildConfigTools(
   if (config?.sandbox?.enabled) {
     tools.runCommand = runCommandTool(ctx, agentId, taskId);
     tools.checkCommand = checkCommandTool(ctx, agentId);
-  }
-
-  if (config?.browser?.enabled) {
-    tools.browserNavigate = browserNavigateTool(ctx, agentId);
-    tools.browserScreenshot = browserScreenshotTool(ctx, agentId);
-    tools.browserClick = browserClickTool(ctx, agentId);
-    tools.browserType = browserTypeTool(ctx, agentId);
-    tools.browserEvaluate = browserEvaluateTool(ctx, agentId);
-    tools.browserGetContent = browserGetContentTool(ctx, agentId);
   }
 
   return tools;
@@ -103,7 +86,7 @@ export async function runTaskLane(
     taskId,
     systemPrompt,
     tools: {
-      ...(agent.config?.webSearch?.enabled ? { webSearch } : {}),
+      ...(agent.config?.webSearch?.enabled ? { webSearch, webFetch } : {}),
       updateTaskMessage: updateTaskMessageTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),

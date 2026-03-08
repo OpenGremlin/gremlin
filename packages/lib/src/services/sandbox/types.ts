@@ -9,12 +9,6 @@ export interface SandboxSession {
   lastActivityAt: number;
 }
 
-export interface BrowserSession {
-  taskArn: string;
-  privateIp: string;
-  agentId: string;
-}
-
 export interface CommandResult {
   output: string;
   stderr: string;

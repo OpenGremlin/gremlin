@@ -55,15 +55,11 @@ async function loadSchedulerConfig() {
       "/gremlin/schedule-target-lambda-arn",
       "/gremlin/scheduler-role-arn",
       "/gremlin/doorbell-queue-url",
-      "/gremlin/browser-task-def-arn",
-      "/gremlin/browser-sg-id",
     ];
     const envKeys = [
       "SCHEDULE_TARGET_LAMBDA_ARN",
       "SCHEDULER_ROLE_ARN",
       "DOORBELL_QUEUE_URL",
-      "SANDBOX_TASK_DEF_ARN",
-      "SANDBOX_SG_ID",
     ];
     await Promise.all(
       params.map(async (name, i) => {

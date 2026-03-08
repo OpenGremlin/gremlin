@@ -15,8 +15,8 @@ COPY packages/sandbox/ packages/sandbox/
 COPY tsconfig.base.json ./
 RUN pnpm --filter @gremlin/sandbox build
 
-# Stage 3: runtime with Playwright/Chromium
-FROM mcr.microsoft.com/playwright:v1.52.0-noble AS runtime
+# Stage 3: runtime
+FROM node:20-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
       jq curl wget git python3 python3-pip \
       build-essential pkg-config libssl-dev \
@@ -44,6 +44,6 @@ COPY packages/sandbox/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 RUN mkdir -p /workspace
-EXPOSE 8080 8083 9090
+EXPOSE 8080 8083
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "packages/sandbox/dist/index.js"]

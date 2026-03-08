@@ -25,9 +25,6 @@ export const AgentDetailFragment = graphql(`
         enabled
         provider
       }
-      browser {
-        enabled
-      }
     }
   }
 `);
