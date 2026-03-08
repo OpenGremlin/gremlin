@@ -4,7 +4,7 @@ import {
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
-import { createLogger } from "../logger.js";
+import { createLogger } from "@gremlin/lib/logger.js";
 
 /**
  * Sweeper Lambda — runs every 3 minutes via EventBridge rule.

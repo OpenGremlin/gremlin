@@ -11,6 +11,7 @@
     "clean": "rm -rf dist cdk.out"
   },
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1003.0",
     "aws-cdk-lib": "^2",
     "constructs": "^10"
   },

@@ -8,31 +8,41 @@ const config: CodegenConfig = {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
         contextType: "./context.js#GremlinContext",
+        enumValues: {
+          JobStatus: "@gremlin/lib/enums.js#JobStatus",
+          NotificationStatus: "@gremlin/lib/enums.js#NotificationStatus",
+        },
         mappers: {
-          Agent: "../resources/ddb/schema/agent.js#AgentItem",
-          AgentJob: "../resources/ddb/schema/agentJob.js#AgentJobItem",
-          AgentLog: "../resources/ddb/schema/agentLog.js#AgentLogItem",
+          Agent: "@gremlin/lib/resources/ddb/schema/agent.js#AgentItem",
+          AgentJob:
+            "@gremlin/lib/resources/ddb/schema/agentJob.js#AgentJobItem",
+          AgentLog:
+            "@gremlin/lib/resources/ddb/schema/agentLog.js#AgentLogItem",
           AgentLogConnection:
-            "../services/agentLogs/pagination.js#AgentLogConnectionModel",
-          AgentLogEdge: "../services/agentLogs/pagination.js#AgentLogEdgeModel",
-          AgentLogPageInfo: "../services/agentLogs/pagination.js#PageInfoModel",
+            "@gremlin/lib/services/agentLogs/pagination.js#AgentLogConnectionModel",
+          AgentLogEdge:
+            "@gremlin/lib/services/agentLogs/pagination.js#AgentLogEdgeModel",
+          AgentLogPageInfo:
+            "@gremlin/lib/services/agentLogs/pagination.js#PageInfoModel",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
           IntegrationProvider:
-            "../services/integrations/providers.js#IntegrationProviderDef",
+            "@gremlin/lib/services/integrations/providers.js#IntegrationProviderDef",
           IntegrationConnection:
-            "../services/integrations/getConnections.js#SafeIntegrationConnection",
+            "@gremlin/lib/services/integrations/getConnections.js#SafeIntegrationConnection",
           DefaultModel:
-            "../services/integrations/getDefaultModel.js#DefaultModelResult",
+            "@gremlin/lib/services/integrations/getDefaultModel.js#DefaultModelResult",
           Notification:
-            "../resources/ddb/schema/notification.js#NotificationItem",
-          Profile: "../resources/ddb/schema/profile.js#ProfileItem",
-          Skill: "../resources/ddb/schema/skill.js#SkillItem",
+            "@gremlin/lib/resources/ddb/schema/notification.js#NotificationItem",
+          Profile: "@gremlin/lib/resources/ddb/schema/profile.js#ProfileItem",
+          Skill: "@gremlin/lib/resources/ddb/schema/skill.js#SkillItem",
           SkillTemplate:
-            "../services/skills/registry.js#SkillTemplate as SkillTemplateModel",
-          Task: "../resources/ddb/schema/task.js#TaskItem",
-          TaskConnection: "../services/tasks/pagination.js#TaskConnectionModel",
-          TaskEdge: "../services/tasks/pagination.js#TaskEdgeModel",
-          TaskPageInfo: "../services/tasks/pagination.js#TaskPageInfoModel",
+            "@gremlin/lib/services/skills/registry.js#SkillTemplate as SkillTemplateModel",
+          Task: "@gremlin/lib/resources/ddb/schema/task.js#TaskItem",
+          TaskConnection:
+            "@gremlin/lib/services/tasks/pagination.js#TaskConnectionModel",
+          TaskEdge: "@gremlin/lib/services/tasks/pagination.js#TaskEdgeModel",
+          TaskPageInfo:
+            "@gremlin/lib/services/tasks/pagination.js#TaskPageInfoModel",
         },
       },
     },

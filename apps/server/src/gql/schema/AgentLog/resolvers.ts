@@ -1,5 +1,5 @@
 import { filter, pipe } from "@graphql-yoga/subscription";
-import type { AgentLogItem } from "../../../resources/ddb/schema/agentLog.js";
+import type { AgentLogItem } from "@gremlin/lib/resources/ddb/schema/agentLog.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentLogEdgeResolvers,

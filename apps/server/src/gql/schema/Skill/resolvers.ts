@@ -1,9 +1,9 @@
-import { providers } from "../../../services/integrations/providers.js";
-import { parseConnectionBindings } from "../../../services/skills/parseConnectionBindings.js";
+import { providers } from "@gremlin/lib/services/integrations/providers.js";
+import { parseConnectionBindings } from "@gremlin/lib/services/skills/parseConnectionBindings.js";
 import {
   getSkillTemplate,
   skillCatalog,
-} from "../../../services/skills/skillCatalog.js";
+} from "@gremlin/lib/services/skills/skillCatalog.js";
 import type {
   MutationResolvers,
   QueryResolvers,

@@ -1,4 +1,4 @@
-import { createPubSub } from "@graphql-yoga/subscription";
+import type { Repeater } from "@repeaterjs/repeater";
 import type { AgentItem } from "./ddb/schema/agent.js";
 import type { AgentLogItem } from "./ddb/schema/agentLog.js";
 import type { InboxItemItem } from "./ddb/schema/inboxItem.js";
@@ -21,6 +21,12 @@ export type PubSubEvents = {
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
 };
 
-export const pubsub = createPubSub<PubSubEvents>();
-
-export type PubSub = typeof pubsub;
+export interface PubSub {
+  publish<K extends keyof PubSubEvents & string>(
+    topic: K,
+    ...args: PubSubEvents[K]
+  ): void;
+  subscribe<K extends keyof PubSubEvents & string>(
+    topic: K,
+  ): Repeater<PubSubEvents[K][0]>;
+}

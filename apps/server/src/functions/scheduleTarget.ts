@@ -1,6 +1,6 @@
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
-import { createLogger } from "../logger.js";
+import { createLogger } from "@gremlin/lib/logger.js";
 
 /**
  * Lambda invoked by EventBridge Scheduler for:

@@ -3,6 +3,10 @@ import { createServer } from "node:http";
 import path from "node:path";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { createLogger, logger } from "@gremlin/lib/logger.js";
+import type { PubSub } from "@gremlin/lib/resources/pubsub.js";
+import { createResources } from "@gremlin/lib/resources/index.js";
+import { createServices } from "@gremlin/lib/services/index.js";
 import express from "express";
 import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
@@ -11,10 +15,8 @@ import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
-import { createLogger, logger } from "./logger.js";
 import { createNotifyHookHandler } from "./notifyHook.js";
-import { createResources } from "./resources/index.js";
-import { createServices } from "./services/index.js";
+import { pubsub } from "./pubsub.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -76,7 +78,9 @@ async function loadSchedulerConfig() {
 
 const app = express();
 app.use(express.json());
-const resources = createResources();
+// yoga's PubSub and lib's PubSub are structurally identical but use
+// separately-defined conditional mapped types that TS can't unify generically.
+const resources = createResources(pubsub as unknown as PubSub);
 const services = createServices();
 
 // Internal notify hook endpoint (called by sandbox instances)
@@ -280,7 +284,9 @@ let stopSqsWorker: (() => void) | undefined;
 
 loadSchedulerConfig().then(async () => {
   // Start SQS worker if queue URL is available (deployed environment)
-  const { startSqsWorker } = await import("./services/inbox/sqsWorker.js");
+  const { startSqsWorker } = await import(
+    "@gremlin/lib/services/inbox/sqsWorker.js"
+  );
   const svcCtx = {
     resources,
     services,

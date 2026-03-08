@@ -6,9 +6,9 @@ import {
   execute,
 } from "dynamodb-toolbox/table/actions/batchGet";
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { AgentItem } from "../resources/ddb/schema/agent.js";
-import type { TaskItem } from "../resources/ddb/schema/task.js";
-import type { Resources } from "../resources/index.js";
+import type { AgentItem } from "@gremlin/lib/resources/ddb/schema/agent.js";
+import type { TaskItem } from "@gremlin/lib/resources/ddb/schema/task.js";
+import type { Resources } from "@gremlin/lib/resources/index.js";
 
 export interface Loaders {
   agentLoader: DataLoader<string, AgentItem | null>;

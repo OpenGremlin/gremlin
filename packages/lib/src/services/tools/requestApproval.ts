@@ -1,7 +1,7 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { tool } from "ai";
 import { z } from "zod";
-import { NotificationStatus } from "../../gql/resolverTypes.js";
+import { NotificationStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 
 export function requestApprovalTool(ctx: ServiceContext, agentId: string) {

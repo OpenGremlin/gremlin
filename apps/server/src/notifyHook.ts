@@ -1,10 +1,10 @@
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
+import { createLogger } from "@gremlin/lib/logger.js";
+import type { Resources } from "@gremlin/lib/resources/index.js";
+import type { ServiceContext } from "@gremlin/lib/services/context.js";
+import type { Services } from "@gremlin/lib/services/index.js";
 import type { Request, Response } from "express";
-import { createLogger } from "./logger.js";
-import type { Resources } from "./resources/index.js";
-import type { ServiceContext } from "./services/context.js";
-import type { Services } from "./services/index.js";
 
 const log = createLogger("notifyHook");
 

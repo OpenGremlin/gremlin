@@ -1,9 +1,6 @@
+import type { AuthUser } from "@gremlin/lib/services/context.js";
 import * as jose from "jose";
-
-export interface AuthUser {
-  sub: string;
-  email: string;
-}
+export type { AuthUser };
 
 let jwks: ReturnType<typeof jose.createRemoteJWKSet> | null = null;
 let cachedIssuer: string | null = null;

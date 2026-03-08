@@ -22,7 +22,7 @@ export function nullsToUndefined<T>(
     Array.isArray(obj)
   ) {
     for (const key in obj) {
-      obj[key] = nullsToUndefined(obj[key]) as typeof obj[typeof key];
+      obj[key] = nullsToUndefined(obj[key]) as (typeof obj)[typeof key];
     }
   }
   return obj as RecursivelyReplaceNullWithUndefined<T>;

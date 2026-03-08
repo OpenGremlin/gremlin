@@ -1,5 +1,5 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
-import type { JobStatus } from "../../gql/resolverTypes.js";
+import type { JobStatus } from "../../enums.js";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
 import type { ServiceContext } from "../context.js";
 

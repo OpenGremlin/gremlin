@@ -1,18 +1,20 @@
+import { JobStatus } from '@gremlin/lib/enums.js';
+import { NotificationStatus } from '@gremlin/lib/enums.js';
 import { GraphQLResolveInfo } from 'graphql';
-import { AgentItem } from '../resources/ddb/schema/agent.js';
-import { AgentJobItem } from '../resources/ddb/schema/agentJob.js';
-import { AgentLogItem } from '../resources/ddb/schema/agentLog.js';
-import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '../services/agentLogs/pagination.js';
+import { AgentItem } from '@gremlin/lib/resources/ddb/schema/agent.js';
+import { AgentJobItem } from '@gremlin/lib/resources/ddb/schema/agentJob.js';
+import { AgentLogItem } from '@gremlin/lib/resources/ddb/schema/agentLog.js';
+import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '@gremlin/lib/services/agentLogs/pagination.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
-import { IntegrationProviderDef } from '../services/integrations/providers.js';
-import { SafeIntegrationConnection } from '../services/integrations/getConnections.js';
-import { DefaultModelResult } from '../services/integrations/getDefaultModel.js';
-import { NotificationItem } from '../resources/ddb/schema/notification.js';
-import { ProfileItem } from '../resources/ddb/schema/profile.js';
-import { SkillItem } from '../resources/ddb/schema/skill.js';
-import { SkillTemplate as SkillTemplateModel } from '../services/skills/registry.js';
-import { TaskItem } from '../resources/ddb/schema/task.js';
-import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '../services/tasks/pagination.js';
+import { IntegrationProviderDef } from '@gremlin/lib/services/integrations/providers.js';
+import { SafeIntegrationConnection } from '@gremlin/lib/services/integrations/getConnections.js';
+import { DefaultModelResult } from '@gremlin/lib/services/integrations/getDefaultModel.js';
+import { NotificationItem } from '@gremlin/lib/resources/ddb/schema/notification.js';
+import { ProfileItem } from '@gremlin/lib/resources/ddb/schema/profile.js';
+import { SkillItem } from '@gremlin/lib/resources/ddb/schema/skill.js';
+import { SkillTemplate as SkillTemplateModel } from '@gremlin/lib/services/skills/registry.js';
+import { TaskItem } from '@gremlin/lib/resources/ddb/schema/task.js';
+import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '@gremlin/lib/services/tasks/pagination.js';
 import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -179,12 +181,7 @@ export type IntegrationProvider = {
   service: Scalars['String']['output'];
 };
 
-export enum JobStatus {
-  Error = 'ERROR',
-  Idle = 'IDLE',
-  Paused = 'PAUSED',
-  Running = 'RUNNING'
-}
+export { JobStatus };
 
 export type ModelInfo = {
   __typename?: 'ModelInfo';
@@ -367,11 +364,7 @@ export type NotificationAction = {
   style: Scalars['String']['output'];
 };
 
-export enum NotificationStatus {
-  Dismissed = 'DISMISSED',
-  Pending = 'PENDING',
-  Resolved = 'RESOLVED'
-}
+export { NotificationStatus };
 
 export enum NotificationType {
   Approval = 'APPROVAL',

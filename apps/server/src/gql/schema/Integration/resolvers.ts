@@ -1,4 +1,4 @@
-import type { SafeIntegrationConnection } from "../../../services/integrations/getConnections.js";
+import type { SafeIntegrationConnection } from "@gremlin/lib/services/integrations/getConnections.js";
 import type {
   IntegrationConnectionResolvers,
   IntegrationProviderResolvers,

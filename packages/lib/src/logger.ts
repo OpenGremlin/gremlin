@@ -1,17 +1,16 @@
 import { mkdirSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
 import type { TransportTargetOptions } from "pino";
 import pino from "pino";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === "production";
 const enableFileLogs = process.env.ENABLE_FILE_LOGS === "true";
 
 function getLogFilePath(app: string): string {
   const now = new Date();
   const hour = now.toISOString().slice(0, 13); // "2026-03-06T14"
-  const dir = resolve(__dirname, "../../../logs", app);
+  const base = process.env.LOG_DIR || resolve(process.cwd(), "logs");
+  const dir = join(base, app);
   mkdirSync(dir, { recursive: true });
   return join(dir, `${hour}.log`);
 }
