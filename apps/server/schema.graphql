@@ -39,6 +39,12 @@ type Query {
 
 type Mutation {
   _empty: String
+  requestFileUploads(
+    agentId: String!
+    taskId: String
+    files: [FileUploadRequest!]!
+  ): [FileUploadUrl!]!
+  completeFileUpload(input: CompleteFileUploadInput!): CompletedFileUpload!
   updateJobStatus(id: ID!, status: JobStatus!): AgentJob
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
@@ -82,6 +88,34 @@ type Document {
   path: String!
   title: String!
   body: String
+}
+
+input FileUploadRequest {
+  filename: String!
+  contentType: String!
+  sizeBytes: Int!
+}
+
+type FileUploadUrl {
+  uploadId: String!
+  presignedUrl: String!
+  key: String!
+}
+
+input CompleteFileUploadInput {
+  agentId: String!
+  taskId: String
+  key: String!
+  filename: String!
+  contentType: String!
+  sizeBytes: Int!
+}
+
+type CompletedFileUpload {
+  path: String!
+  filename: String!
+  sizeBytes: Int!
+  contentType: String!
 }
 
 enum JobStatus {
@@ -179,15 +213,10 @@ type AgentWebSearchConfig {
   provider: String
 }
 
-type AgentBrowserConfig {
-  enabled: Boolean!
-}
-
 type AgentConfig {
   model: AgentModelConfig
   sandbox: AgentSandboxConfig
   webSearch: AgentWebSearchConfig
-  browser: AgentBrowserConfig
 }
 
 type Agent {
@@ -219,15 +248,10 @@ input AgentWebSearchConfigInput {
   provider: String
 }
 
-input AgentBrowserConfigInput {
-  enabled: Boolean!
-}
-
 input AgentConfigInput {
   model: AgentModelConfigInput
   sandbox: AgentSandboxConfigInput
   webSearch: AgentWebSearchConfigInput
-  browser: AgentBrowserConfigInput
 }
 
 input UpdateAgentInput {
