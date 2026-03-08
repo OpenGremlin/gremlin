@@ -25,7 +25,7 @@ export class MediaStack extends cdk.Stack {
     });
 
     const handler = new nodejs.NodejsFunction(this, "ResizeHandler", {
-      entry: path.join(REPO_ROOT, "apps/media-server/src/index.ts"),
+      entry: path.join(REPO_ROOT, "packages/media-server/src/index.ts"),
       handler: "handler",
       runtime: lambda.Runtime.NODEJS_20_X,
       architecture: lambda.Architecture.ARM_64,
@@ -49,7 +49,9 @@ export class MediaStack extends cdk.Stack {
 
     new s3deploy.BucketDeployment(this, "DeployAssets", {
       sources: [
-        s3deploy.Source.asset(path.join(REPO_ROOT, "apps/media-server/assets")),
+        s3deploy.Source.asset(
+          path.join(REPO_ROOT, "packages/media-server/assets"),
+        ),
       ],
       destinationBucket: bucket,
       memoryLimit: 1024,

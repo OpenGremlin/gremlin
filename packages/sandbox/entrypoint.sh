@@ -18,7 +18,7 @@ if [ -n "$NOTIFY_HOOK_URL" ] && [ -n "$AGENT_ID" ]; then
     for i in $(seq 1 60); do
       if curl -sf "$HEALTH_URL" > /dev/null 2>&1; then
         echo "entrypoint: Relay is healthy, notifying server"
-        node /app/apps/sandbox/notify-server.mjs
+        node /app/packages/sandbox/notify-server.mjs
         break
       fi
       sleep 1

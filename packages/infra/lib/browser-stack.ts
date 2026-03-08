@@ -43,7 +43,7 @@ export class BrowserStack extends cdk.Stack {
     // Headless Chromium sidecar (CDP on port 9222)
     taskDef.addContainer("browser", {
       image: ecs.ContainerImage.fromAsset(
-        path.join(REPO_ROOT, "apps/sandbox-browser"),
+        path.join(REPO_ROOT, "packages/sandbox-browser"),
       ),
       essential: true,
       logging: ecs.LogDrivers.awsLogs({
@@ -65,7 +65,7 @@ export class BrowserStack extends cdk.Stack {
     // Browser bridge container (talks to CDP, exposes HTTP on 9090)
     const bridgeContainer = taskDef.addContainer("browser-bridge", {
       image: ecs.ContainerImage.fromAsset(REPO_ROOT, {
-        file: "apps/sandbox/Dockerfile",
+        file: "packages/sandbox/Dockerfile",
         exclude: ["**/cdk.out"],
       }),
       essential: true,

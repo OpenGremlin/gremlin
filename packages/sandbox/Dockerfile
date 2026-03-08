@@ -4,14 +4,14 @@ WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/sandbox/package.json apps/sandbox/
+COPY packages/sandbox/package.json packages/sandbox/
 RUN pnpm install --frozen-lockfile \
     && test -f node_modules/.pnpm/node-pty@*/node_modules/node-pty/build/Release/pty.node \
     || (echo "FATAL: node-pty native build missing" && exit 1)
 
 # Stage 2: build TypeScript
 FROM deps AS build
-COPY apps/sandbox/ apps/sandbox/
+COPY packages/sandbox/ packages/sandbox/
 COPY tsconfig.base.json ./
 RUN pnpm --filter @gremlin/sandbox build
 
@@ -34,16 +34,16 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --no-modify-path
 ENV PATH="/usr/local/cargo/bin:${PATH}"
 WORKDIR /app
-COPY --from=build /build/apps/sandbox/dist/ apps/sandbox/dist/
-COPY --from=build /build/apps/sandbox/package.json apps/sandbox/
+COPY --from=build /build/packages/sandbox/dist/ packages/sandbox/dist/
+COPY --from=build /build/packages/sandbox/package.json packages/sandbox/
 COPY --from=deps /build/node_modules/ node_modules/
-COPY --from=deps /build/apps/sandbox/node_modules/ apps/sandbox/node_modules/
+COPY --from=deps /build/packages/sandbox/node_modules/ packages/sandbox/node_modules/
 COPY package.json pnpm-workspace.yaml ./
 
-COPY apps/sandbox/entrypoint.sh /app/entrypoint.sh
+COPY packages/sandbox/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 RUN mkdir -p /workspace
 EXPOSE 8080 8083 9090
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["node", "apps/sandbox/dist/index.js"]
+CMD ["node", "packages/sandbox/dist/index.js"]

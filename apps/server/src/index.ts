@@ -214,7 +214,7 @@ server.on("upgrade", (req, socket, head) => {
 if (!process.env.MEDIA_CDN_URL) {
   const mediaAssets = path.resolve(
     __dirname,
-    "../../../apps/media-server/assets",
+    "../../../packages/media-server/assets",
   );
   app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
 }
