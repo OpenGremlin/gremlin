@@ -1,11 +1,21 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
-vi.mock("./auth", () => ({
+vi.mock("../auth", () => ({
   gql: vi.fn(),
+  getToken: vi.fn(),
 }));
 
-import { gql } from "./auth";
+vi.mock("../logger", () => ({
+  clientLogger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
+import { gql } from "../auth";
 import { usePaginatedQuery } from "./usePaginatedQuery";
 
 const mockGql = gql as Mock;

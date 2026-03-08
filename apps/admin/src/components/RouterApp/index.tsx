@@ -36,12 +36,24 @@ import { SkillDetailPage } from "../UserTab/SkillDetailPage";
 import { SkillsPage } from "../UserTab/SkillsPage";
 import { SkillTemplatePage } from "../UserTab/SkillTemplatePage";
 
+const mainNavItems = [
+  { to: "/home", label: "Home", icon: Home },
+  { to: "/agents", label: "Agents", icon: Bot },
+  { to: "/jobs", label: "Jobs", icon: Calendar },
+];
+
 const settingsItems = [
   { to: "/settings/profile", label: "Profile", icon: User },
   { to: "/settings/skills", label: "Skills", icon: Sparkles },
   { to: "/settings/integrations", label: "Connect", icon: Plug },
   { to: "/settings/files", label: "Files", icon: FolderOpen },
 ];
+
+function navLinkClass({ isActive }: { isActive: boolean }) {
+  return `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
+    isActive ? "text-indigo-400" : "text-neutral-500 hover:text-neutral-300"
+  }`;
+}
 
 function AppShell() {
   const location = useLocation();
@@ -52,54 +64,17 @@ function AppShell() {
       {/* Left icon rail */}
       <nav className="w-16 shrink-0 bg-neutral-950 border-r border-neutral-800 flex flex-col items-center pt-4 pb-4">
         <div className="flex flex-col items-center gap-1">
-          <NavLink
-            to="/home"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? "text-indigo-400"
-                  : "text-neutral-500 hover:text-neutral-300"
-              }`
-            }
-          >
-            <Home size={22} />
-            Home
-          </NavLink>
-          <NavLink
-            to="/agents"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? "text-indigo-400"
-                  : "text-neutral-500 hover:text-neutral-300"
-              }`
-            }
-          >
-            <Bot size={22} />
-            Agents
-          </NavLink>
-          <NavLink
-            to="/jobs"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? "text-indigo-400"
-                  : "text-neutral-500 hover:text-neutral-300"
-              }`
-            }
-          >
-            <Calendar size={22} />
-            Jobs
-          </NavLink>
+          {mainNavItems.map((item) => (
+            <NavLink key={item.to} to={item.to} className={navLinkClass}>
+              <item.icon size={22} />
+              {item.label}
+            </NavLink>
+          ))}
         </div>
         <div className="mt-auto">
           <NavLink
             to="/settings/profile"
-            className={`flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-              isSettingsRoute
-                ? "text-indigo-400"
-                : "text-neutral-500 hover:text-neutral-300"
-            }`}
+            className={navLinkClass({ isActive: isSettingsRoute })}
           >
             <Settings size={22} />
             Settings
@@ -111,17 +86,7 @@ function AppShell() {
       {isSettingsRoute && (
         <nav className="w-16 shrink-0 bg-neutral-900 border-r border-neutral-800 flex flex-col items-center gap-1 justify-end pb-4">
           {settingsItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 text-[11px] px-3 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? "text-indigo-400"
-                    : "text-neutral-500 hover:text-neutral-300"
-                }`
-              }
-            >
+            <NavLink key={item.to} to={item.to} className={navLinkClass}>
               <item.icon size={20} />
               {item.label}
             </NavLink>

@@ -4,10 +4,11 @@ import {
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
+import { groupByCategory } from "../../../shared/categories";
 import { formatDate } from "../../../shared/formatDate";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 
 function ConnectionCountBadge({ count }: { count: number }) {
   if (count === 0) {
@@ -28,26 +29,6 @@ function getAccountId(
   return meta.accountId ?? null;
 }
 
-const categoryLabels: Record<string, string> = {
-  ai: "AI Models",
-  web: "Web",
-  productivity: "Productivity",
-  communication: "Communication",
-  developer: "Developer",
-  entertainment: "Entertainment",
-  smart_home: "Smart Home",
-};
-
-const categoryOrder = [
-  "ai",
-  "web",
-  "productivity",
-  "communication",
-  "developer",
-  "entertainment",
-  "smart_home",
-];
-
 export function IntegrationsPage() {
   const providers = useQuery(IntegrationProvidersQuery);
   const connections = useQuery(IntegrationConnectionsQuery);
@@ -59,13 +40,7 @@ export function IntegrationsPage() {
   const defaultModel = providers.data?.defaultModel ?? null;
   const connectionList = connections.data?.integrationConnections ?? [];
 
-  const grouped = categoryOrder
-    .map((cat) => ({
-      category: cat,
-      label: categoryLabels[cat] ?? cat,
-      items: providerList.filter((p) => p.category === cat),
-    }))
-    .filter((g) => g.items.length > 0);
+  const grouped = groupByCategory(providerList);
 
   return (
     <div className="p-6">

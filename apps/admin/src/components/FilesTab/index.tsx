@@ -1,8 +1,8 @@
 import { File, Folder } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { WorkspaceEntriesQuery } from "../../graphql/queries";
+import { useQuery } from "../../hooks/useQuery";
 import { QueryResult } from "../../shared/QueryResult";
-import { useQuery } from "../../useQuery";
 
 function Breadcrumbs({
   dirPath,

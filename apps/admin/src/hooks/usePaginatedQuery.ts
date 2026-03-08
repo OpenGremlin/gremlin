@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { gql } from "./auth";
-import type { TypedDocumentString } from "./graphql/generated/graphql";
-import { clientLogger } from "./logger";
+import { gql } from "../auth";
+import type { TypedDocumentString } from "../graphql/generated/graphql";
+import { clientLogger } from "../logger";
 
 const PAGE_SIZE = 20;
 

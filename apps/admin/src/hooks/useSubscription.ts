@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import type { TypedDocumentString } from "./graphql/generated/graphql";
-import { clientLogger } from "./logger";
-import { wsClient } from "./wsClient";
+import type { TypedDocumentString } from "../graphql/generated/graphql";
+import { clientLogger } from "../logger";
+import { wsClient } from "../wsClient";
 
 /**
  * WebSocket-based GraphQL subscription hook.

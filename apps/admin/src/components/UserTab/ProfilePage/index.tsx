@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { gql } from "../../../auth";
 import { ProfileQuery, UpdateProfileMutation } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { clientLogger } from "../../../logger";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
-import { useQuery } from "../../../useQuery";
 
 const TIMEZONES = Intl.supportedValuesOf("timeZone");
 

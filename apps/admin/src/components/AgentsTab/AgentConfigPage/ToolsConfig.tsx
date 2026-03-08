@@ -10,7 +10,7 @@ import {
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../../graphql/queries";
-import { useQuery } from "../../../useQuery";
+import { useQuery } from "../../../hooks/useQuery";
 import { ModelPicker } from "./ModelPicker";
 
 type Agent = NonNullable<AgentQuery["agent"]>;

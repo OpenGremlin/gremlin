@@ -6,10 +6,10 @@ import {
   shouldShowTimestamp,
   useLogMessages,
 } from "../../../hooks/useLogMessages";
+import { useQuery } from "../../../hooks/useQuery";
 import { useSandboxOutput } from "../../../hooks/useSandboxOutput";
 import { PendingMessageBubble } from "../../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInputBar } from "./ChatInputBar";
 import { LogEntryView } from "./LogEntryView";

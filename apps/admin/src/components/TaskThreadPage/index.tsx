@@ -8,12 +8,12 @@ import {
   shouldShowTimestamp,
   useLogMessages,
 } from "../../hooks/useLogMessages";
+import { useQuery } from "../../hooks/useQuery";
 import { useSandboxOutput } from "../../hooks/useSandboxOutput";
+import { useSubscription } from "../../hooks/useSubscription";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { PendingMessageBubble } from "../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../shared/QueryResult";
-import { useQuery } from "../../useQuery";
-import { useSubscription } from "../../useSubscription";
 import { ChatInputBar } from "../AgentsTab/AgentChatPage/ChatInputBar";
 import { LogEntryView } from "../AgentsTab/AgentChatPage/LogEntryView";
 

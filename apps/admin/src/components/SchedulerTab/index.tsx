@@ -1,12 +1,12 @@
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AgentJobsQuery } from "../../graphql/queries";
+import { useQuery } from "../../hooks/useQuery";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
-import { useQuery } from "../../useQuery";
 
 export function SchedulerTab() {
   const { data, loading, error } = useQuery(AgentJobsQuery);

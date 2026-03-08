@@ -6,9 +6,9 @@ import {
   AgentsQuery,
   CreateAgentJobMutation as CreateAgentJobDoc,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
-import { useQuery } from "../../../useQuery";
 import { JobForm } from "../JobForm";
 
 export function NewJobPage() {

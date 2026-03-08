@@ -1,8 +1,8 @@
 import { useSearchParams } from "react-router-dom";
 import { WorkspaceFileQuery } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { BackButton } from "../../../shared/BackButton";
 import { QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 
 export function FileViewPage() {
   const [params] = useSearchParams();

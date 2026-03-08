@@ -6,11 +6,11 @@ import {
   RenameConnectionMutation,
   RevokeConnectionMutation,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 
 export function ConnectionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,7 @@ export function ConnectionDetailPage() {
     IntegrationConnectionsQuery,
   );
   const [revoking, setRevoking] = useState(false);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -64,13 +65,17 @@ export function ConnectionDetailPage() {
 
   async function handleRevoke() {
     setRevoking(true);
+    setRevokeError(null);
     try {
       await gql<{ revokeIntegrationConnection: boolean }>(
         RevokeConnectionMutation,
         { id },
       );
       navigate("/settings/integrations");
-    } catch {
+    } catch (err) {
+      setRevokeError(
+        err instanceof Error ? err.message : "Failed to revoke connection",
+      );
       setRevoking(false);
     }
   }
@@ -88,6 +93,12 @@ export function ConnectionDetailPage() {
           {revoking ? "Revoking..." : "Revoke"}
         </button>
       </div>
+
+      {revokeError && (
+        <div className="mt-3 bg-red-900/30 border border-red-800/50 rounded-xl p-3 text-sm text-red-300">
+          {revokeError}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center gap-4">
         <IntegrationLogo id={connection.providerId} size={12} />

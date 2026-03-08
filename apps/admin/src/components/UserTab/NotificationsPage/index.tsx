@@ -4,8 +4,8 @@ import {
   NotificationsQuery,
   ResolveNotificationMutation,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 import { NotificationCard } from "./NotificationCard";
 
 export function NotificationsPage() {

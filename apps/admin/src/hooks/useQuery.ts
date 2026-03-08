@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { gql } from "./auth";
-import type { TypedDocumentString } from "./graphql/generated/graphql";
-import { clientLogger } from "./logger";
+import { gql } from "../auth";
+import type { TypedDocumentString } from "../graphql/generated/graphql";
+import { clientLogger } from "../logger";
 
 export function useQuery<TResult>(
   // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types

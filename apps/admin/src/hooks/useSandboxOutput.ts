@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { clientLogger } from "../logger";
-import { useSubscription } from "../useSubscription";
+import { useSubscription } from "./useSubscription";
 
 interface SandboxOutputChunk {
   commandId: string;

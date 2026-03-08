@@ -12,8 +12,8 @@ import {
   TaskLogSubscription,
   TaskLogsQuery,
 } from "../graphql/queries";
-import { usePaginatedQuery } from "../usePaginatedQuery";
-import { useSubscription } from "../useSubscription";
+import { usePaginatedQuery } from "./usePaginatedQuery";
+import { useSubscription } from "./useSubscription";
 
 export type ChatMessage = AgentLogsQuery["agentLogs"]["edges"][number]["node"];
 

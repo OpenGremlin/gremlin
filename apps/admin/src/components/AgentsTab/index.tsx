@@ -2,9 +2,9 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AgentsQuery } from "../../graphql/queries";
+import { useQuery } from "../../hooks/useQuery";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
-import { useQuery } from "../../useQuery";
 import { AgentCard } from "./AgentCard";
 
 export function AgentsTab() {

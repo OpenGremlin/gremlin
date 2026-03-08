@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { AgentQuery } from "../../../../graphql/generated/graphql";
 import { TaskQuery } from "../../../../graphql/queries";
+import { useQuery } from "../../../../hooks/useQuery";
 import { AgentAvatar } from "../../../../shared/AgentAvatar";
-import { useQuery } from "../../../../useQuery";
 
 type Agent = NonNullable<AgentQuery["agent"]>;
 

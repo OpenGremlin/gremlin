@@ -13,13 +13,13 @@ import {
   RetireAgentMutation as RetireAgentDoc,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
+import { useSubscription } from "../../../hooks/useSubscription";
 import { clientLogger } from "../../../logger";
 import { preloadImages } from "../../../preloadImages";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
-import { useSubscription } from "../../../useSubscription";
 import { AgentForm, type AgentFormValues } from "../AgentForm";
 import { AvatarPicker } from "./AvatarPicker";
 import { ToolsConfig } from "./ToolsConfig";

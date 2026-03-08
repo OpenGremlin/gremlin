@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { TasksQuery } from "../../graphql/queries";
+import { usePaginatedQuery } from "../../hooks/usePaginatedQuery";
 import { QueryResult } from "../../shared/QueryResult";
-import { usePaginatedQuery } from "../../usePaginatedQuery";
 import { TaskCard } from "./TaskCard";
 
 export function TasksTab() {

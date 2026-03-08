@@ -1,70 +1,11 @@
 import { CircleCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import * as logos from "../../../assets/logos";
 import { SkillsQuery, SkillTemplatesQuery } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
+import { groupByCategory } from "../../../shared/categories";
+import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
-
-const logoMap: Record<string, string> = {
-  google: logos.googleLogo,
-  notion: logos.notionLogo,
-  linear: logos.linearLogo,
-  trello: logos.trelloLogo,
-  slack: logos.slackLogo,
-  discord: logos.discordLogo,
-  teams: logos.teamsLogo,
-  telegram: logos.telegramLogo,
-  whatsapp: logos.whatsappLogo,
-  github: logos.githubLogo,
-  gitlab: logos.gitlabLogo,
-  jira: logos.jiraLogo,
-  spotify: logos.spotifyLogo,
-  hue: logos.hueLogo,
-  homeassistant: logos.homeAssistantLogo,
-  anthropic: logos.anthropicLogo,
-  openai: logos.openaiLogo,
-  google_ai: logos.geminiLogo,
-  mistral: logos.mistralLogo,
-  deepseek: logos.deepseekLogo,
-  xai: logos.xaiLogo,
-  bedrock: logos.bedrockLogo,
-  brave: logos.braveLogo,
-};
-
-function SkillLogo({ icon }: { icon?: string | null }) {
-  const logo = icon ? logoMap[icon] : undefined;
-  if (logo) {
-    return (
-      <div className="h-10 w-10 flex items-center justify-center">
-        <img src={logo} alt={icon!} className="h-10 w-10 object-contain" />
-      </div>
-    );
-  }
-  return (
-    <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400">
-      {icon?.[0]?.toUpperCase() ?? "S"}
-    </div>
-  );
-}
-
-const categoryLabels: Record<string, string> = {
-  developer: "Developer",
-  web: "Web",
-  productivity: "Productivity",
-  communication: "Communication",
-  entertainment: "Entertainment",
-  smart_home: "Smart Home",
-};
-
-const categoryOrder = [
-  "developer",
-  "web",
-  "productivity",
-  "communication",
-  "entertainment",
-  "smart_home",
-];
 
 function InstallCountBadge({ count }: { count: number }) {
   if (count === 0) {
@@ -103,13 +44,7 @@ export function SkillsPage() {
     t.name.toLowerCase().includes(q),
   );
 
-  const grouped = categoryOrder
-    .map((cat) => ({
-      category: cat,
-      label: categoryLabels[cat] ?? cat,
-      items: filteredTemplates.filter((t) => t.category === cat),
-    }))
-    .filter((g) => g.items.length > 0);
+  const grouped = groupByCategory(filteredTemplates);
 
   return (
     <div className="p-6">
@@ -139,7 +74,7 @@ export function SkillsPage() {
                   to={`/settings/skills/${skill.id}`}
                   className="flex items-center gap-3 bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 active:bg-neutral-800"
                 >
-                  <SkillLogo icon={skill.template.icon} />
+                  <IntegrationLogo id={skill.template.icon ?? ""} size={10} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-neutral-100 truncate">
                       {skill.template.name}
@@ -176,7 +111,7 @@ export function SkillsPage() {
                       : ""
                   }`}
                 >
-                  <SkillLogo icon={template.icon} />
+                  <IntegrationLogo id={template.icon ?? ""} size={10} />
                   <span className="text-sm font-medium text-neutral-100">
                     {template.name}
                   </span>

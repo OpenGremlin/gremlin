@@ -14,11 +14,11 @@ import {
   DeleteAgentJobMutation as DeleteAgentJobDoc,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 import { TaskCard } from "../../TasksTab/TaskCard";
 import { JobForm } from "../JobForm";
 

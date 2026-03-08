@@ -10,10 +10,11 @@ import {
   IntegrationProvidersQuery,
   SetDefaultModelMutation,
 } from "../../../graphql/queries";
+import { useQuery } from "../../../hooks/useQuery";
 import { BackButton } from "../../../shared/BackButton";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
+import { ModelCard } from "./ModelCard";
 
 function ApiKeyDetailView({
   provider,
@@ -41,10 +42,12 @@ function ApiKeyDetailView({
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [settingModel, setSettingModel] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSaveApiKey() {
     if (!apiKeyInput.trim()) return;
     setSaving(true);
+    setError(null);
     try {
       await gql<{ connectApiKey: string }>(ConnectApiKeyMutation, {
         providerId: provider.id,
@@ -52,7 +55,10 @@ function ApiKeyDetailView({
       });
       setApiKeyInput("");
       refetch();
-    } catch (_err) {
+    } catch (err) {
+      setError(
+        `Failed to save API key: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
     } finally {
       setSaving(false);
     }
@@ -60,13 +66,17 @@ function ApiKeyDetailView({
 
   async function handleSelectModel(modelId: string) {
     setSettingModel(modelId);
+    setError(null);
     try {
       await gql<{ setDefaultModel: boolean }>(SetDefaultModelMutation, {
         providerId: provider.id,
         modelId,
       });
       refetch();
-    } catch (_err) {
+    } catch (err) {
+      setError(
+        `Failed to set default model: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
     } finally {
       setSettingModel(null);
     }
@@ -119,6 +129,12 @@ function ApiKeyDetailView({
         </div>
       )}
 
+      {error && (
+        <div className="mt-3 bg-red-900/30 border border-red-800/50 rounded-xl p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
       {/* Models Section */}
       {models.length > 0 && (
         <div className="mt-5">
@@ -135,51 +151,32 @@ function ApiKeyDetailView({
                   type="button"
                   onClick={() => canSelect && handleSelectModel(model.id)}
                   disabled={!canSelect || settingModel === model.id}
-                  className={`flex items-center justify-between bg-neutral-900 rounded-xl p-4 text-left transition-colors ${
+                  className={`text-left transition-colors ${
                     canSelect
                       ? "hover:bg-neutral-800/80 active:bg-neutral-800 cursor-pointer"
                       : "cursor-default"
-                  } ${isDefault ? "ring-1 ring-indigo-500/50" : ""}`}
+                  }`}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-neutral-100">
-                        {model.name}
-                      </span>
-                      {model.reasoning && (
-                        <span className="text-[10px] font-medium bg-violet-500/20 text-violet-400 rounded px-1.5 py-0.5">
-                          Reasoning
+                  <ModelCard
+                    model={model}
+                    isDefault={isDefault}
+                    actions={
+                      settingModel === model.id ? (
+                        <span className="text-xs text-neutral-400">
+                          Setting...
                         </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-neutral-500">
-                        {(model.contextWindow / 1000).toFixed(0)}k context
-                      </span>
-                      {model.inputCost != null && (
-                        <span className="text-xs text-neutral-500">
-                          ${model.inputCost}/M in
+                      ) : isDefault ? (
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
+                          <span className="text-indigo-400">Default</span>
                         </span>
-                      )}
-                      {model.outputCost != null && (
-                        <span className="text-xs text-neutral-500">
-                          ${model.outputCost}/M out
+                      ) : !provider.hasConnection ? (
+                        <span className="text-xs text-neutral-600">
+                          Add key first
                         </span>
-                      )}
-                    </div>
-                  </div>
-                  {settingModel === model.id ? (
-                    <span className="text-xs text-neutral-400">Setting...</span>
-                  ) : isDefault ? (
-                    <span className="flex items-center gap-1.5 text-xs">
-                      <span className="inline-block w-2 h-2 rounded-full bg-indigo-400" />
-                      <span className="text-indigo-400">Default</span>
-                    </span>
-                  ) : !provider.hasConnection ? (
-                    <span className="text-xs text-neutral-600">
-                      Add key first
-                    </span>
-                  ) : null}
+                      ) : null
+                    }
+                  />
                 </button>
               );
             })}
@@ -308,31 +305,12 @@ function BedrockDetailView({
               const isSetting = settingModel === model.id;
 
               return (
-                <div
+                <ModelCard
                   key={model.id}
-                  className={`flex items-center justify-between bg-neutral-900 rounded-xl p-4 ${
-                    isDefault ? "ring-1 ring-indigo-500/50" : ""
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-neutral-100">
-                        {model.name}
-                      </span>
-                      {model.reasoning && (
-                        <span className="text-[10px] font-medium bg-violet-500/20 text-violet-400 rounded px-1.5 py-0.5">
-                          Reasoning
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-neutral-500">
-                        {(model.contextWindow / 1000).toFixed(0)}k context
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isEnabling ? (
+                  model={model}
+                  isDefault={isDefault}
+                  actions={
+                    isEnabling ? (
                       <span className="text-xs text-neutral-400">
                         Testing...
                       </span>
@@ -374,9 +352,9 @@ function BedrockDetailView({
                       >
                         Enable
                       </button>
-                    )}
-                  </div>
-                </div>
+                    )
+                  }
+                />
               );
             })}
           </div>
@@ -398,6 +376,7 @@ function OAuthDetailView({
 }) {
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(new Set());
   const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function toggleScope(scope: string) {
     setSelectedScopes((prev) => {
@@ -415,13 +394,17 @@ function OAuthDetailView({
   async function handleConnect() {
     if (selectedScopes.size === 0) return;
     setConnecting(true);
+    setError(null);
     try {
       const result = await gql<{ connectIntegration: string }>(
         ConnectIntegrationMutation,
         { providerId: id, scopes: Array.from(selectedScopes) },
       );
       window.location.href = result.connectIntegration;
-    } catch {
+    } catch (err) {
+      setError(
+        `Failed to connect: ${err instanceof Error ? err.message : "unknown error"}`,
+      );
       setConnecting(false);
     }
   }
@@ -479,6 +462,12 @@ function OAuthDetailView({
           ))}
         </div>
       </div>
+
+      {error && (
+        <div className="mt-3 bg-red-900/30 border border-red-800/50 rounded-xl p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       <button
         type="button"

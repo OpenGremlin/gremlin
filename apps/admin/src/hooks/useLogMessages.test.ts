@@ -66,12 +66,13 @@ describe("shouldShowTimestamp", () => {
   it("uses absolute gap (handles out-of-order timestamps)", () => {
     const msg = makeMsg({
       role: AgentLogRole.Agent,
-      createdAt: "2024-01-01T12:01:30Z",
+      createdAt: "2024-01-01T12:20:00Z",
     });
     const next = makeMsg({
       role: AgentLogRole.Agent,
       createdAt: "2024-01-01T12:00:00Z",
     });
+    // 20 minute gap even though timestamps are reversed
     expect(shouldShowTimestamp(msg, next)).toBe(true);
   });
 });

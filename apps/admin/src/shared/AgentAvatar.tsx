@@ -1,5 +1,5 @@
 import { AgentQuery } from "../graphql/queries";
-import { useQuery } from "../useQuery";
+import { useQuery } from "../hooks/useQuery";
 
 export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
   const { data } = useQuery(AgentQuery, { id });

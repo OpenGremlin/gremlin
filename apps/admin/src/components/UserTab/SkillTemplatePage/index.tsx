@@ -10,11 +10,11 @@ import {
   SkillTemplateQuery,
 } from "../../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../../graphql/queries/integrations";
+import { useQuery } from "../../../hooks/useQuery";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { ConnectionPicker } from "../../../shared/ConnectionPicker";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-import { useQuery } from "../../../useQuery";
 
 export function SkillTemplatePage() {
   const { templateId } = useParams<{ templateId: string }>();
