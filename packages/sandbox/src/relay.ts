@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
@@ -11,7 +11,25 @@ const log = createLogger("relay");
 const WORKSPACE_DIR = existsSync("/workspace")
   ? "/workspace"
   : (process.env.SANDBOX_WORKSPACE ?? homedir());
-const TOOLS_ROOT = `${WORKSPACE_DIR}/.tools`;
+const SANDBOX_USER = process.env.SANDBOX_USER ?? "sandbox";
+const SANDBOX_HOME = SANDBOX_USER === "root" ? homedir() : `/home/${SANDBOX_USER}`;
+const TOOLS_ROOT = `${SANDBOX_HOME}/.tools`;
+
+// Resolve UID/GID for the sandbox user (relay runs as root, shell drops privileges)
+function resolveUser(username: string): { uid: number; gid: number } | undefined {
+  if (username === "root") return undefined;
+  try {
+    const lines = execSync(`id -u ${username} && id -g ${username}`, {
+      encoding: "utf-8",
+    })
+      .trim()
+      .split("\n");
+    return { uid: Number(lines[0]), gid: Number(lines[1]) };
+  } catch {
+    return undefined;
+  }
+}
+const sandboxIds = resolveUser(SANDBOX_USER);
 
 const TOOL_PATHS = [
   `${TOOLS_ROOT}/bin`,
@@ -28,6 +46,8 @@ for (const [k, v] of Object.entries(process.env)) {
 const shellEnv: Record<string, string> = {
   ...baseEnv,
   TERM: "xterm-256color",
+  HOME: SANDBOX_HOME,
+  USER: SANDBOX_USER,
   PATH: `${TOOL_PATHS}:${process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin"}`,
   NPM_CONFIG_PREFIX: TOOLS_ROOT,
   GOPATH: `${TOOLS_ROOT}/go`,
@@ -54,6 +74,7 @@ export function startRelay(port: number): void {
       rows: 40,
       cwd: WORKSPACE_DIR,
       env: shellEnv,
+      ...(sandboxIds && { uid: sandboxIds.uid, gid: sandboxIds.gid }),
     });
 
     log.info({ connId, pid: shell.pid }, "PTY spawned");
@@ -177,6 +198,7 @@ function handleExec(
     cwd: execState.cwd,
     env: { ...shellEnv, ...execState.env, ...env },
     stdio: ["ignore", "pipe", "pipe"],
+    ...(sandboxIds && { uid: sandboxIds.uid, gid: sandboxIds.gid }),
   });
 
   let stdout = "";
@@ -248,7 +270,7 @@ function handleExec(
     const totalSize = stdout.length + stderr.length;
 
     if (totalSize > MAX_INLINE_BYTES) {
-      const outputPath = `/workspace/.gremlin/output/${id}.txt`;
+      const outputPath = `${homedir()}/.gremlin/output/${id}.txt`;
       try {
         mkdirSync(dirname(outputPath), { recursive: true });
         writeFileSync(outputPath, stdout);

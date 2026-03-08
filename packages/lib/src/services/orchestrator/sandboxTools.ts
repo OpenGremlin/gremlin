@@ -122,7 +122,7 @@ export function runCommandTool(
 ) {
   return tool({
     description:
-      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). The sandbox has bash, git, python3, jq, curl, and build tools available. Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.",
+      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
     inputSchema: z.object({
       command: z.string().describe("The shell command to execute"),
     }),

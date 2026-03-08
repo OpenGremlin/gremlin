@@ -190,7 +190,7 @@ export class ServerStack extends cdk.Stack {
         `--log-opt awslogs-group=${logGroup.logGroupName}`,
         `--log-opt awslogs-create-group=false`,
         `-p 3001:3001`,
-        `-v /workspace:/workspace:ro`,
+        `-v /workspace:/workspace`,
         `-e PORT=3001`,
         `-e TABLE_NAME=${props.tableName}`,
         `-e SECRETS_TABLE_NAME=${props.secretsTableName}`,

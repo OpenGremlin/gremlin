@@ -49,7 +49,12 @@ COPY packages/sandbox/entrypoint.sh /app/entrypoint.sh
 COPY packages/sandbox/notify-server.mjs /app/packages/sandbox/notify-server.mjs
 RUN chmod +x /app/entrypoint.sh
 
-RUN mkdir -p /workspace
+# Non-root user for agent shell (relay stays root to protect /app)
+RUN apt-get update && apt-get install -y --no-install-recommends sudo && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -s /bin/bash -u 1000 sandbox \
+    && echo "sandbox ALL=(root) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt" > /etc/sudoers.d/sandbox \
+    && mkdir -p /workspace \
+    && chown sandbox:sandbox /workspace
 EXPOSE 8080 8083
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "packages/sandbox/dist/index.js"]

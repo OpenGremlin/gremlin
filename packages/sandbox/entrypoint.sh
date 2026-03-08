@@ -1,11 +1,13 @@
 #!/bin/sh
 set -e
 
-# Create persistent tool directories on EFS-backed /workspace
-mkdir -p /workspace/.tools/bin \
-         /workspace/.tools/go/bin \
-         /workspace/.tools/cargo/bin \
-         /workspace/.tools/python
+# Create tool directories under sandbox user's home
+SANDBOX_HOME="/home/${SANDBOX_USER:-sandbox}"
+mkdir -p "$SANDBOX_HOME/.tools/bin" \
+         "$SANDBOX_HOME/.tools/go/bin" \
+         "$SANDBOX_HOME/.tools/cargo/bin" \
+         "$SANDBOX_HOME/.tools/python"
+chown -R "${SANDBOX_USER:-sandbox}:${SANDBOX_USER:-sandbox}" "$SANDBOX_HOME/.tools"
 
 # Start the relay process in the background
 "$@" &
