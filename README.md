@@ -2,19 +2,6 @@
 
 AI agent platform with long-term memory, task delegation, and tool use.
 
-## Structure
-
-```
-apps/
-  server/       GraphQL API, orchestrator, memory, agent runtime
-  admin/        Admin UI
-  phone/        Mobile app (Expo)
-  media-server/ Media handling
-  sandbox/      Sandboxed code execution environment
-packages/
-  infra/        AWS CDK infrastructure
-```
-
 ## Development
 
 ```
