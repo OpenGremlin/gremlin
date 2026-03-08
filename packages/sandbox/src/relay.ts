@@ -18,18 +18,20 @@ const TOOLS_ROOT = `${SANDBOX_HOME}/.tools`;
 // Resolve UID/GID for the sandbox user (relay runs as root, shell drops privileges)
 function resolveUser(username: string): { uid: number; gid: number } | undefined {
   if (username === "root") return undefined;
-  try {
-    const lines = execSync(`id -u ${username} && id -g ${username}`, {
-      encoding: "utf-8",
-    })
-      .trim()
-      .split("\n");
-    return { uid: Number(lines[0]), gid: Number(lines[1]) };
-  } catch {
-    return undefined;
+  const lines = execSync(`id -u ${username} && id -g ${username}`, {
+    encoding: "utf-8",
+  })
+    .trim()
+    .split("\n");
+  const uid = Number(lines[0]);
+  const gid = Number(lines[1]);
+  if (Number.isNaN(uid) || Number.isNaN(gid)) {
+    throw new Error(`Failed to resolve uid/gid for user "${username}"`);
   }
+  return { uid, gid };
 }
 const sandboxIds = resolveUser(SANDBOX_USER);
+log.info({ SANDBOX_USER, sandboxIds }, "Resolved sandbox user");
 
 const TOOL_PATHS = [
   `${TOOLS_ROOT}/bin`,
