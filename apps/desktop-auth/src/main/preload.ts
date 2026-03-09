@@ -11,5 +11,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cognitoLogin: (config: { cognitoDomain: string; clientId: string }) =>
     ipcRenderer.invoke("cognito-login", config),
 
+  cancelAuthFlow: () => ipcRenderer.invoke("cancel-auth-flow"),
+
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
 });

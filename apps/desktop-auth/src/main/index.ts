@@ -1,5 +1,6 @@
 import path from "node:path";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { cancelActiveFlow } from "./callback-server.js";
 import { handleCognitoLogin } from "./cognito.js";
 import { handleOAuthFlow } from "./oauth.js";
 
@@ -62,6 +63,10 @@ ipcMain.handle(
     return handleCognitoLogin(config);
   },
 );
+
+ipcMain.handle("cancel-auth-flow", () => {
+  cancelActiveFlow();
+});
 
 ipcMain.handle("open-external", async (_event, url: string) => {
   await shell.openExternal(url);

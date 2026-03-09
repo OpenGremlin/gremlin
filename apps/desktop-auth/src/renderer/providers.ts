@@ -4,6 +4,8 @@ export interface ProviderMeta {
   description: string;
   scopes: { scope: string; label: string }[];
   logo: string;
+  defaultClientId?: string;
+  defaultClientSecret?: string;
 }
 
 export const oauthProviders: ProviderMeta[] = [
@@ -12,6 +14,9 @@ export const oauthProviders: ProviderMeta[] = [
     service: "Google",
     description: "Gmail & Google Docs",
     logo: "Google.svg",
+    defaultClientId:
+      "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
+    defaultClientSecret: "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",
     scopes: [
       { scope: "gmail.readonly", label: "Read Gmail" },
       { scope: "gmail.send", label: "Send Gmail" },

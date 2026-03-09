@@ -1,21 +1,15 @@
 import { randomBytes } from "node:crypto";
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { URL } from "node:url";
 import { decodeIdToken } from "arctic";
-import { shell } from "electron";
+import { REDIRECT_PORT, startCallbackServer } from "./callback-server.js";
 import {
   desktopOAuthConfigs,
   type TokenResult,
   type UserInfoConfig,
 } from "./oauth-configs.js";
 
-const REDIRECT_PORT = 19284;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/callback`;
-const TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 interface OAuthFlowConfig {
   providerId: string;
@@ -122,7 +116,53 @@ export async function handleOAuthFlow(
   }
 
   // Start local callback server and wait for the code
-  const { code } = await waitForCallback(state, authUrl.toString());
+  const code = await startCallbackServer<string>({
+    authUrl: authUrl.toString(),
+    handler(
+      req: IncomingMessage,
+      res: ServerResponse,
+      resolve,
+      reject,
+      cleanup,
+    ) {
+      const url = new URL(req.url ?? "/", `http://localhost:${REDIRECT_PORT}`);
+
+      if (url.pathname !== "/callback") {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+
+      const reqCode = url.searchParams.get("code");
+      const reqState = url.searchParams.get("state");
+      const error = url.searchParams.get("error");
+
+      if (error) {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(
+          "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Authorization failed. You can close this tab.</h2></body></html>",
+        );
+        cleanup();
+        reject(new Error(`OAuth error: ${error}`));
+        return;
+      }
+
+      if (!reqCode || reqState !== state) {
+        res.writeHead(400, { "Content-Type": "text/html" });
+        res.end(
+          "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Invalid callback. You can close this tab.</h2></body></html>",
+        );
+        return;
+      }
+
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(
+        "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Authorization successful! You can close this tab.</h2></body></html>",
+      );
+      cleanup();
+      resolve(reqCode);
+    },
+  });
 
   // Exchange code for tokens
   const tokens = await adapter.validateAuthorizationCode(code, codeVerifier);
@@ -137,69 +177,4 @@ export async function handleOAuthFlow(
     accountId,
     scopes: config.scopes,
   };
-}
-
-function waitForCallback(
-  expectedState: string,
-  authUrl: string,
-): Promise<{ code: string }> {
-  return new Promise((resolve, reject) => {
-    const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-      const url = new URL(req.url ?? "/", `http://localhost:${REDIRECT_PORT}`);
-
-      if (url.pathname !== "/callback") {
-        res.writeHead(404);
-        res.end("Not found");
-        return;
-      }
-
-      const code = url.searchParams.get("code");
-      const state = url.searchParams.get("state");
-      const error = url.searchParams.get("error");
-
-      if (error) {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(
-          "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Authorization failed. You can close this tab.</h2></body></html>",
-        );
-        cleanup();
-        reject(new Error(`OAuth error: ${error}`));
-        return;
-      }
-
-      if (!code || state !== expectedState) {
-        res.writeHead(400, { "Content-Type": "text/html" });
-        res.end(
-          "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Invalid callback. You can close this tab.</h2></body></html>",
-        );
-        return;
-      }
-
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(
-        "<html><body style='background:#0a0a0a;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0'><h2>Authorization successful! You can close this tab.</h2></body></html>",
-      );
-      cleanup();
-      resolve({ code });
-    });
-
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("OAuth flow timed out (5 minutes)"));
-    }, TIMEOUT_MS);
-
-    function cleanup() {
-      clearTimeout(timeout);
-      server.close();
-    }
-
-    server.listen(REDIRECT_PORT, () => {
-      shell.openExternal(authUrl);
-    });
-
-    server.on("error", (err) => {
-      cleanup();
-      reject(new Error(`Failed to start callback server: ${err.message}`));
-    });
-  });
 }

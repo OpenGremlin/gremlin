@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ConnectModal } from "./ConnectModal.js";
+import { isCancelled } from "./errors.js";
 import { oauthProviders, type ProviderMeta } from "./providers.js";
 
 type ConnectionStatus = "disconnected" | "connected" | "error";
@@ -65,6 +66,8 @@ export function App() {
     },
     [serverUrl, authToken],
   );
+  const graphqlFetchRef = useRef(graphqlFetch);
+  graphqlFetchRef.current = graphqlFetch;
 
   // When we have a token, test connection automatically
   useEffect(() => {
@@ -72,7 +75,7 @@ export function App() {
     let cancelled = false;
     (async () => {
       try {
-        const data = await graphqlFetch(`{
+        const data = await graphqlFetchRef.current(`{
           integrationProviders {
             id
             connectionType
@@ -97,7 +100,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [authToken, serverUrl, graphqlFetch]);
+  }, [authToken, serverUrl]);
 
   async function handleLogin() {
     setLoggingIn(true);
@@ -117,7 +120,9 @@ export function App() {
       });
       setAuthToken(idToken);
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : "Login failed");
+      if (!isCancelled(err)) {
+        setLoginError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
       setLoggingIn(false);
     }
@@ -208,9 +213,30 @@ export function App() {
           </h2>
           <div className="space-y-3 rounded-xl border border-neutral-800 bg-neutral-900 p-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-neutral-300">
-                Server URL
-              </span>
+              <div className="group relative mb-1 flex items-center gap-1.5">
+                <span className="text-sm font-medium text-neutral-300">
+                  Your Gremlin Server
+                </span>
+                <span
+                  className="cursor-help text-neutral-500"
+                  title="Deploy Gremlin using CDK first, then paste your CloudFront URL here (e.g. https://abc123.cloudfront.net)."
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="h-4 w-4"
+                    role="img"
+                    aria-label="Help"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 .75.75 0 0 1 1.06 1.06ZM10 8.75a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </div>
               <input
                 type="text"
                 value={serverUrl}
@@ -221,7 +247,7 @@ export function App() {
                 }}
                 disabled={isLoggedIn}
                 className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500 disabled:opacity-50"
-                placeholder="https://your-server.example.com"
+                placeholder="https://your-deployment.cloudfront.net"
               />
             </label>
             <div className="flex items-center gap-3">
@@ -233,14 +259,22 @@ export function App() {
                 >
                   Log out
                 </button>
+              ) : loggingIn ? (
+                <button
+                  type="button"
+                  onClick={() => window.electronAPI.cancelAuthFlow()}
+                  className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-600"
+                >
+                  Cancel
+                </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleLogin}
-                  disabled={loggingIn || !serverUrl.trim()}
+                  disabled={!serverUrl.trim()}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
                 >
-                  {loggingIn ? "Logging in..." : "Log in"}
+                  Log in
                 </button>
               )}
               {isLoggedIn && (
@@ -313,10 +347,16 @@ export function App() {
       {activeProvider && (
         <ConnectModal
           provider={activeProvider}
-          initialClientId={loadSaved(`gremlin-${activeProvider.id}-clientId`)}
-          initialClientSecret={loadSaved(
-            `gremlin-${activeProvider.id}-clientSecret`,
-          )}
+          initialClientId={
+            loadSaved(`gremlin-${activeProvider.id}-clientId`) ||
+            activeProvider.defaultClientId ||
+            ""
+          }
+          initialClientSecret={
+            loadSaved(`gremlin-${activeProvider.id}-clientSecret`) ||
+            activeProvider.defaultClientSecret ||
+            ""
+          }
           onClose={() => setActiveProvider(null)}
           onConnect={(config) => handleConnect(activeProvider, config)}
         />

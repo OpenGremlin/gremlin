@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isCancelled } from "./errors.js";
 import type { ProviderMeta } from "./providers.js";
 
 interface ConnectModalProps {
@@ -67,9 +68,16 @@ export function ConnectModal({
         scopes: [...selectedScopes],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (!isCancelled(err)) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
       setLoading(false);
     }
+  }
+
+  function handleCancel() {
+    window.electronAPI.cancelAuthFlow();
+    onClose();
   }
 
   return (
@@ -186,22 +194,32 @@ export function ConnectModal({
 
         {/* Actions */}
         <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleConnect}
-            disabled={loading}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-          >
-            {loading ? "Connecting..." : "Connect"}
-          </button>
+          {loading ? (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+            >
+              Cancel
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={handleConnect}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              >
+                Connect
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

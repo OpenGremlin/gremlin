@@ -1,15 +1,9 @@
 import { randomBytes } from "node:crypto";
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { URL } from "node:url";
-import { shell } from "electron";
+import { REDIRECT_PORT, startCallbackServer } from "./callback-server.js";
 
-const REDIRECT_PORT = 19284;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/cognito-callback`;
-const TIMEOUT_MS = 5 * 60 * 1000;
 
 interface CognitoLoginConfig {
   cognitoDomain: string;
@@ -31,13 +25,18 @@ export function handleCognitoLogin(
 
   const loginUrl = `https://${config.cognitoDomain}/login?client_id=${config.clientId}&response_type=token&scope=openid+email&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&nonce=${nonce}`;
 
-  return new Promise((resolve, reject) => {
-    const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+  return startCallbackServer<string>({
+    authUrl: loginUrl,
+    handler(
+      req: IncomingMessage,
+      res: ServerResponse,
+      resolve,
+      _reject,
+      cleanup,
+    ) {
       const url = new URL(req.url ?? "/", `http://localhost:${REDIRECT_PORT}`);
 
       if (url.pathname === "/cognito-callback" && req.method === "GET") {
-        // Serve a page that extracts the id_token from the hash fragment
-        // and forwards it to /cognito-token as a query param
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(`<!DOCTYPE html>
 <html>
@@ -82,25 +81,6 @@ export function handleCognitoLogin(
 
       res.writeHead(404);
       res.end("Not found");
-    });
-
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("Cognito login timed out (5 minutes)"));
-    }, TIMEOUT_MS);
-
-    function cleanup() {
-      clearTimeout(timeout);
-      server.close();
-    }
-
-    server.listen(REDIRECT_PORT, () => {
-      shell.openExternal(loginUrl);
-    });
-
-    server.on("error", (err) => {
-      cleanup();
-      reject(new Error(`Failed to start callback server: ${err.message}`));
-    });
+    },
   });
 }

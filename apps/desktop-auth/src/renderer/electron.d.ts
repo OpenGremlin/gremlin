@@ -15,6 +15,7 @@ interface ElectronAPI {
     cognitoDomain: string;
     clientId: string;
   }): Promise<string>;
+  cancelAuthFlow(): Promise<void>;
   openExternal(url: string): Promise<void>;
 }
 
