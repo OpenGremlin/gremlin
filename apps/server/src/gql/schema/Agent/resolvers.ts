@@ -24,7 +24,7 @@ const updateAgent: MutationResolvers["updateAgent"] = (
   _parent,
   { id, input },
   ctx,
-) => ctx.services.agents.updateAgent(ctx, id, input);
+) => ctx.services.agents.updateAgent(ctx, id, input as Parameters<typeof ctx.services.agents.updateAgent>[2]);
 
 const retireAgent: MutationResolvers["retireAgent"] = (_parent, { id }, ctx) =>
   ctx.services.agents.retireAgent(ctx, id);
