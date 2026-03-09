@@ -1,5 +1,6 @@
 import { FileText, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Markdown from "react-markdown";
 import type { Document } from "../graphql/generated/graphql";
 
@@ -76,13 +77,16 @@ function DocumentModal({
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
-  // Dismiss on Escape
+  // Dismiss on Escape (capture phase to beat other handlers)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [onClose]);
 
   return (
@@ -151,7 +155,7 @@ export function DocumentCard({ doc }: { doc: Document }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="cursor-pointer w-full text-left bg-neutral-900 border border-neutral-800 rounded-lg hover:border-neutral-700 transition-colors"
+        className="cursor-pointer w-full text-left bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden hover:border-neutral-700 transition-colors"
       >
         <div className="flex items-center gap-2 px-3 py-2">
           <FileText size={14} className="text-indigo-400 shrink-0" />
@@ -159,16 +163,13 @@ export function DocumentCard({ doc }: { doc: Document }) {
             {doc.title}
           </span>
         </div>
-        <div className="border-t border-neutral-800/60" />
-        <div className="relative px-3 py-2 max-h-36 overflow-hidden">
-          <div className="document-body text-xs text-neutral-500">
-            <Markdown>{doc.body ?? ""}</Markdown>
-          </div>
-          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-neutral-900 to-transparent" />
-        </div>
       </button>
 
-      {open && <DocumentModal doc={doc} onClose={() => setOpen(false)} />}
+      {open &&
+        createPortal(
+          <DocumentModal doc={doc} onClose={() => setOpen(false)} />,
+          document.body,
+        )}
     </>
   );
 }

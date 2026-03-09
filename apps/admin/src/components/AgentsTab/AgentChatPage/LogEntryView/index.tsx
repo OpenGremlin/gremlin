@@ -92,6 +92,7 @@ function DelegateTaskCard({
   const task = useTaskInfo(taskId);
   const [imgError, setImgError] = useState(false);
   const clickable = !!(taskId && onTaskClick);
+  const docs = task?.documents ?? [];
 
   return (
     <div className="py-1 mr-4 sm:mr-12">
@@ -119,8 +120,8 @@ function DelegateTaskCard({
         }}
         className={`w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
       >
-        <div className="flex h-[110px]">
-          <div className="flex-1 min-w-0 px-3.5 py-3">
+        <div className="flex min-h-[110px]">
+          <div className="flex-1 min-w-0 px-3.5 pt-3">
             <span className="text-sm text-indigo-100 font-medium line-clamp-2 leading-snug">
               <span className="font-bold">Task:</span> {taskTitle}
               {clickable && (
@@ -134,20 +135,24 @@ function DelegateTaskCard({
               {task?.messages
                 ?.map((msg, origIdx) => ({ msg, origIdx }))
                 .reverse()
-                .map(({ msg, origIdx }, i) => (
-                  <div
-                    key={origIdx}
-                    className={`text-xs flex items-start gap-1.5 ${i === 0 ? "text-neutral-400" : "text-neutral-500"}`}
-                  >
-                    <Check size={10} className="shrink-0 opacity-40 mt-[3px]" />
-                    <span>{msg}</span>
-                  </div>
-                ))}
+                .map(({ msg, origIdx }, i) => {
+                  const opacity = i === 0 ? 1 : Math.max(0.25, 1 - i * 0.35);
+                  return (
+                    <div
+                      key={origIdx}
+                      className="text-xs flex items-start gap-1.5 text-neutral-400"
+                      style={{ opacity }}
+                    >
+                      <Check
+                        size={10}
+                        className="shrink-0 opacity-40 mt-[3px]"
+                      />
+                      <span>{msg}</span>
+                    </div>
+                  );
+                })}
               {(!task?.messages || task.messages.length === 0) && (
                 <span className="text-xs text-neutral-500">Delegated task</span>
-              )}
-              {task?.messages && task.messages.length > 2 && (
-                <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-indigo-950 to-transparent pointer-events-none" />
               )}
             </div>
           </div>
@@ -162,6 +167,17 @@ function DelegateTaskCard({
             </div>
           )}
         </div>
+        {docs.length > 0 && (
+          <div
+            className="px-3.5 pb-3 space-y-1.5"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            {docs.map((doc) => (
+              <DocumentCard key={doc.path} doc={doc} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -5,15 +5,23 @@ import { useTaskUpdates } from "../../../../subscriptions";
 const TASK_QUERY = `query($id: ID!) {
   task(id: $id) {
     message imageUrl(width: 180)
+    documents { path title body }
     logs(first: 200) {
       edges { node { role toolName toolInput } }
     }
   }
 }`;
 
+export interface TaskDocument {
+  path: string;
+  title: string;
+  body?: string | null;
+}
+
 interface TaskInfo {
   imageUrl: string | null;
   messages: string[];
+  documents: TaskDocument[];
 }
 
 const MESSAGE_TOOLS = new Set(["updateTaskStatus", "updateTaskMessage"]);
@@ -55,6 +63,7 @@ export function useTaskInfo(taskId: string | null) {
       task: {
         message: string | null;
         imageUrl: string | null;
+        documents: TaskDocument[];
         logs: {
           edges: Array<{
             node: {
@@ -73,7 +82,11 @@ export function useTaskInfo(taskId: string | null) {
           if (messages.length === 0 && data.task.message) {
             messages.push(data.task.message);
           }
-          setState({ imageUrl: data.task.imageUrl, messages });
+          setState({
+            imageUrl: data.task.imageUrl,
+            messages,
+            documents: data.task.documents ?? [],
+          });
         }
       })
       .catch(() => {});
@@ -83,13 +96,18 @@ export function useTaskInfo(taskId: string | null) {
   }, [taskId]);
 
   useTaskUpdates(taskId ?? "", (update) => {
-    const u = update as { message?: string | null; imageUrl?: string | null };
-    if (u.message) {
-      setState((prev) => ({
-        imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
-        messages: [...(prev?.messages ?? []), u.message as string],
-      }));
-    }
+    const u = update as {
+      message?: string | null;
+      imageUrl?: string | null;
+      documents?: TaskDocument[];
+    };
+    setState((prev) => ({
+      imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
+      messages: u.message
+        ? [...(prev?.messages ?? []), u.message]
+        : prev?.messages ?? [],
+      documents: u.documents ?? prev?.documents ?? [],
+    }));
   });
 
   return state;
