@@ -67,6 +67,32 @@ async function searchTavily(
   );
 }
 
+const WEB_SEARCH_PROVIDERS = ["brave", "tavily"];
+
+async function resolveProvider(
+  ctx: ServiceContext,
+  preferred: string,
+): Promise<{ provider: string; apiKey: string } | null> {
+  // Try preferred provider first
+  const key = await ctx.services.integrations.getProviderApiKey(
+    ctx.resources,
+    preferred,
+  );
+  if (key) return { provider: preferred, apiKey: key };
+
+  // Fall back to any connected web search provider
+  for (const id of WEB_SEARCH_PROVIDERS) {
+    if (id === preferred) continue;
+    const fallback = await ctx.services.integrations.getProviderApiKey(
+      ctx.resources,
+      id,
+    );
+    if (fallback) return { provider: id, apiKey: fallback };
+  }
+
+  return null;
+}
+
 export function createWebSearchTool(ctx: ServiceContext, provider: string) {
   return tool({
     description:
@@ -75,18 +101,17 @@ export function createWebSearchTool(ctx: ServiceContext, provider: string) {
       query: z.string().describe("The search query"),
     }),
     execute: async ({ query }) => {
-      const apiKey = await ctx.services.integrations.getProviderApiKey(
-        ctx.resources,
-        provider,
-      );
-      if (!apiKey) {
+      const resolved = await resolveProvider(ctx, provider);
+      if (!resolved) {
         return {
-          error: `Web search failed: no API key found for "${provider}". The user must connect a ${provider} API key in Integrations before web search can be used. Do not retry — inform the user that this integration needs to be configured.`,
+          error:
+            "Web search failed: no search provider API key is configured. The user must connect a Brave Search or Tavily API key in Integrations before web search can be used. Do not retry — inform the user that this integration needs to be configured.",
         };
       }
 
+      const { provider: activeProvider, apiKey } = resolved;
       const results =
-        provider === "tavily"
+        activeProvider === "tavily"
           ? await searchTavily(query, apiKey)
           : await searchBrave(query, apiKey);
 
