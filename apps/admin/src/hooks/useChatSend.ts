@@ -19,8 +19,26 @@ export function useChatSend({
 
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    // flex-col-reverse: scrollTop 0 = bottom
+    if (el) el.scrollTop = 0;
   }, []);
+
+  // Auto-scroll to bottom when new messages arrive (if already near bottom)
+  const prevCountRef = useRef(messages.length);
+  useEffect(() => {
+    if (messages.length > prevCountRef.current) {
+      const el = scrollRef.current;
+      if (el) {
+        // flex-col-reverse: scrollTop 0 = bottom, negative = scrolled up
+        // scrollTop is 0 at bottom and goes negative as you scroll up
+        const distanceFromBottom = Math.abs(el.scrollTop);
+        if (distanceFromBottom < 150) {
+          el.scrollTop = 0;
+        }
+      }
+    }
+    prevCountRef.current = messages.length;
+  }, [messages.length]);
 
   // Clear pending messages when they appear in the log via subscription
   useEffect(() => {
