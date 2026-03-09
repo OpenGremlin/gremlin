@@ -4,8 +4,9 @@
 # Stage 1: install dependencies
 FROM node:20-slim AS deps
 WORKDIR /build
-RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
+RUN git init
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/sandbox/package.json packages/sandbox/
 RUN pnpm install --frozen-lockfile \
@@ -51,6 +52,7 @@ RUN chmod +x /app/entrypoint.sh
 
 # Non-root user for agent shell (relay stays root to protect /app)
 RUN apt-get update && apt-get install -y --no-install-recommends sudo && rm -rf /var/lib/apt/lists/* \
+    && (userdel -r node 2>/dev/null || true) \
     && useradd -m -s /bin/bash -u 1000 sandbox \
     && echo "sandbox ALL=(root) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt" > /etc/sudoers.d/sandbox \
     && mkdir -p /workspace \
