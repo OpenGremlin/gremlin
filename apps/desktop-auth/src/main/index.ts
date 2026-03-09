@@ -1,5 +1,5 @@
 import path from "node:path";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
 import { cancelActiveFlow } from "./callback-server.js";
 import { handleCognitoLogin, refreshCognitoToken } from "./cognito.js";
 import { handleOAuthFlow } from "./oauth.js";
@@ -14,6 +14,7 @@ function createWindow() {
     minHeight: 600,
     backgroundColor: "#0a0a0a",
     titleBarStyle: "hiddenInset",
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -29,7 +30,14 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(createWindow);
+const iconPath = path.join(__dirname, "../../icon.png");
+
+app.whenReady().then(() => {
+  if (process.platform === "darwin" && app.dock) {
+    app.dock.setIcon(nativeImage.createFromPath(iconPath));
+  }
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   app.quit();
