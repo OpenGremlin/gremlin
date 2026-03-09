@@ -10,6 +10,15 @@ interface ProviderState {
   accountId?: string;
 }
 
+interface ConnectionInfo {
+  id: string;
+  providerId: string;
+  description: string;
+  connectedAt: string;
+  accountId?: string;
+  scopes: string[];
+}
+
 function loadSaved(key: string, fallback = ""): string {
   try {
     return localStorage.getItem(key) ?? fallback;
@@ -43,6 +52,11 @@ export function App() {
   const [activeProvider, setActiveProvider] = useState<ProviderMeta | null>(
     null,
   );
+  const [connections, setConnections] = useState<ConnectionInfo[]>([]);
+  const [expandedConnectionId, setExpandedConnectionId] = useState<
+    string | null
+  >(null);
+  const [showServerHelp, setShowServerHelp] = useState(false);
 
   // Persist server URL and auth token
   useEffect(() => savePersistent("gremlin-server-url", serverUrl), [serverUrl]);
@@ -81,6 +95,20 @@ export function App() {
             connectionType
             hasConnection
           }
+          integrationConnections {
+            id
+            providerId
+            connectionType
+            description
+            connectedAt
+            isRevoked
+            meta {
+              ... on OAuthConnectionMeta {
+                accountId
+                scopes
+              }
+            }
+          }
         }`);
         if (cancelled) return;
         const states: Record<string, ProviderState> = {};
@@ -91,6 +119,28 @@ export function App() {
             };
           }
         }
+        const conns: ConnectionInfo[] = data.integrationConnections
+          .filter(
+            (c: { connectionType: string; isRevoked: boolean }) =>
+              c.connectionType === "oauth" && !c.isRevoked,
+          )
+          .map(
+            (c: {
+              id: string;
+              providerId: string;
+              description: string;
+              connectedAt: string;
+              meta: { accountId?: string; scopes?: string[] };
+            }) => ({
+              id: c.id,
+              providerId: c.providerId,
+              description: c.description,
+              connectedAt: c.connectedAt,
+              accountId: c.meta?.accountId,
+              scopes: c.meta?.scopes ?? [],
+            }),
+          );
+        setConnections(conns);
         setProviderStates(states);
         setConnectionOk(true);
       } catch {
@@ -132,6 +182,7 @@ export function App() {
     setAuthToken("");
     setConnectionOk(null);
     setProviderStates({});
+    setConnections([]);
     localStorage.removeItem("gremlin-auth-token");
   }
 
@@ -188,6 +239,17 @@ export function App() {
         accountId: result.accountId,
       },
     }));
+    setConnections((prev) => [
+      ...prev,
+      {
+        id: `temp-${Date.now()}`,
+        providerId: provider.id,
+        description: provider.service,
+        connectedAt: new Date().toISOString(),
+        accountId: result.accountId,
+        scopes: result.scopes,
+      },
+    ]);
     setActiveProvider(null);
   }
 
@@ -217,9 +279,13 @@ export function App() {
                 <span className="text-sm font-medium text-neutral-300">
                   Your Gremlin Server
                 </span>
-                <span
-                  className="cursor-help text-neutral-500"
-                  title="Deploy Gremlin using CDK first, then paste your CloudFront URL here (e.g. https://abc123.cloudfront.net)."
+                <button
+                  type="button"
+                  className="relative cursor-help text-neutral-500 hover:text-neutral-300"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowServerHelp((v) => !v);
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -235,7 +301,14 @@ export function App() {
                       clipRule="evenodd"
                     />
                   </svg>
-                </span>
+                  {showServerHelp && (
+                    <div className="absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-normal text-neutral-300 shadow-lg">
+                      Deploy Gremlin using CDK first, then paste your
+                      CloudFront URL here (e.g.
+                      https://abc123.cloudfront.net).
+                    </div>
+                  )}
+                </button>
               </div>
               <input
                 type="text"
@@ -289,6 +362,104 @@ export function App() {
             </div>
           </div>
         </div>
+
+        {/* Connected providers */}
+        {isLoggedIn && connections.length > 0 && (
+          <div className="mb-8">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-400">
+              Connected
+            </h2>
+            <div className="space-y-2">
+              {connections.map((conn) => {
+                const provider = oauthProviders.find(
+                  (p) => p.id === conn.providerId,
+                );
+                if (!provider) return null;
+                const isExpanded = expandedConnectionId === conn.id;
+                const scopeLabels = conn.scopes.map((s) => {
+                  const match = provider.scopes.find((ps) => ps.scope === s);
+                  return match ? match.label : s;
+                });
+                return (
+                  <div
+                    key={conn.id}
+                    className="rounded-xl border border-neutral-800 bg-neutral-900"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedConnectionId(isExpanded ? null : conn.id)
+                      }
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                    >
+                      <img
+                        src={
+                          new URL(
+                            `../../../admin/src/assets/logos/${provider.logo}`,
+                            import.meta.url,
+                          ).href
+                        }
+                        alt={provider.service}
+                        className="h-6 w-6"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-sm font-medium text-white">
+                          {provider.service}
+                        </span>
+                        {conn.accountId && conn.accountId !== "unknown" && (
+                          <span className="ml-2 text-xs text-neutral-400">
+                            {conn.accountId}
+                          </span>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-xs text-neutral-500">
+                        {new Date(conn.connectedAt).toLocaleDateString()}
+                      </span>
+                      <span className="shrink-0 rounded-full bg-emerald-900/50 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                        Connected
+                      </span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                    {isExpanded && (
+                      <div className="border-t border-neutral-800 px-4 py-3">
+                        <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                          Enabled Scopes
+                        </span>
+                        {scopeLabels.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {scopeLabels.map((label) => (
+                              <span
+                                key={label}
+                                className="rounded-md bg-neutral-800 px-2 py-1 text-xs text-neutral-300"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-neutral-500">
+                            No scopes recorded
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Provider grid */}
         <div>

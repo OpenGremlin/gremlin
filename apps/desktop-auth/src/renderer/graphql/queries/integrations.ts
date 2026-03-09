@@ -1,6 +1,4 @@
-import { graphql } from "../generated/index.js";
-
-export const IntegrationProvidersQuery = graphql(`
+export const IntegrationProvidersQuery = `
   query IntegrationProviders {
     integrationProviders {
       id
@@ -9,9 +7,9 @@ export const IntegrationProvidersQuery = graphql(`
       hasConnection
     }
   }
-`);
+`;
 
-export const SubmitOAuthConnectionMutation = graphql(`
+export const SubmitOAuthConnectionMutation = `
   mutation SubmitOAuthConnection(
     $providerId: String!
     $accessToken: String!
@@ -29,4 +27,4 @@ export const SubmitOAuthConnectionMutation = graphql(`
       accountId: $accountId
     )
   }
-`);
+`;
