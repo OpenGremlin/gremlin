@@ -34,17 +34,23 @@ export function IntegrationLogo({
   size?: number;
 }) {
   const logo = logoMap[id];
-  const cls = `h-${size} w-${size}`;
+  const px = size * 4;
+  const sizeStyle = { width: px, height: px, minWidth: px, minHeight: px };
   if (logo) {
     return (
-      <div className={`${cls} flex items-center justify-center`}>
-        <img src={logo} alt={id} className={`${cls} object-contain`} />
+      <div className="flex items-center justify-center" style={sizeStyle}>
+        <img
+          src={logo}
+          alt={id}
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
   return (
     <div
-      className={`${cls} rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400`}
+      className="rounded-full bg-neutral-800 flex items-center justify-center text-lg text-neutral-400"
+      style={sizeStyle}
     >
       {id[0]?.toUpperCase()}
     </div>
