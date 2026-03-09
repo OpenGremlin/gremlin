@@ -10,6 +10,7 @@ import { integrationResolvers } from "./Integration/resolvers.js";
 
 import { notificationResolvers } from "./Notification/resolvers.js";
 import { profileResolvers } from "./Profile/resolvers.js";
+import { settingsResolvers } from "./Settings/resolvers.js";
 import { skillResolvers } from "./Skill/resolvers.js";
 import { taskResolvers } from "./Task/resolvers.js";
 import { workspaceResolvers } from "./Workspace/resolvers.js";
@@ -24,6 +25,7 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   integrationResolvers,
   notificationResolvers,
   profileResolvers,
+  settingsResolvers,
   skillResolvers,
   taskResolvers,
   workspaceResolvers,

@@ -239,6 +239,11 @@ export type FileUploadUrl = {
   uploadId: Scalars['String']['output'];
 };
 
+export type GlobalSettings = {
+  __typename?: 'GlobalSettings';
+  signupDisabled: Scalars['Boolean']['output'];
+};
+
 export type IntegrationConnection = {
   __typename?: 'IntegrationConnection';
   connectedAt: Scalars['String']['output'];
@@ -301,6 +306,7 @@ export type Mutation = {
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
+  updateGlobalSettings: GlobalSettings;
   updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
 };
@@ -434,6 +440,11 @@ export type MutationUpdateAgentJobArgs = {
 };
 
 
+export type MutationUpdateGlobalSettingsArgs = {
+  signupDisabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
 export type MutationUpdateJobStatusArgs = {
   id: Scalars['ID']['input'];
   status: JobStatus;
@@ -504,6 +515,7 @@ export type Query = {
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
+  globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
@@ -871,6 +883,7 @@ export type ResolversTypes = {
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  GlobalSettings: ResolverTypeWrapper<GlobalSettings>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   IntegrationConnection: ResolverTypeWrapper<SafeIntegrationConnection>;
@@ -933,6 +946,7 @@ export type ResolversParentTypes = {
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: FileUploadUrl;
   Float: Scalars['Float']['output'];
+  GlobalSettings: GlobalSettings;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   IntegrationConnection: SafeIntegrationConnection;
@@ -1084,6 +1098,10 @@ export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType exte
   uploadId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type GlobalSettingsResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['GlobalSettings'] = ResolversParentTypes['GlobalSettings']> = {
+  signupDisabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['IntegrationConnection'] = ResolversParentTypes['IntegrationConnection']> = {
   connectedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   connectionType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1142,6 +1160,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
+  updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
   updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
 };
@@ -1190,6 +1209,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
+  globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
@@ -1328,6 +1348,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
   FileUploadUrl?: FileUploadUrlResolvers<ContextType>;
+  GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
   JobStatus?: JobStatusResolvers;

@@ -9,9 +9,15 @@ vi.mock("./logger", () => ({
   },
 }));
 
-import { getToken, gql, setToken } from "./auth";
-
-const _TOKEN_KEY = "gremlin_admin_token";
+import {
+  clearToken,
+  cognitoConfirmSignup,
+  cognitoLogin,
+  cognitoSignup,
+  getToken,
+  gql,
+  setToken,
+} from "./auth";
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -95,12 +101,12 @@ describe("gql", () => {
   it("on 401, clears token and throws", async () => {
     setToken("expired-token");
 
-    // Mock window.location.href setter to prevent jsdom navigation error
-    const locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
+    // Mock reload to prevent jsdom error
+    const reloadMock = vi.fn();
+    vi.spyOn(window, "location", "get").mockReturnValue({
       ...window.location,
-      href: window.location.href,
-      origin: window.location.origin,
-    } as Location);
+      reload: reloadMock,
+    } as unknown as Location);
 
     fetchMock.mockResolvedValueOnce({
       status: 401,
@@ -109,7 +115,120 @@ describe("gql", () => {
 
     await expect(gql(query)).rejects.toThrow("Unauthorized");
     expect(getToken()).toBeNull();
+  });
+});
 
-    locationSpy.mockRestore();
+describe("token management", () => {
+  it("setToken stores and getToken retrieves", () => {
+    expect(getToken()).toBeNull();
+    setToken("abc");
+    expect(getToken()).toBe("abc");
+  });
+
+  it("clearToken removes the token", () => {
+    setToken("abc");
+    clearToken();
+    expect(getToken()).toBeNull();
+  });
+});
+
+describe("cognitoLogin", () => {
+  it("calls Cognito InitiateAuth and returns idToken", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () =>
+        Promise.resolve({
+          AuthenticationResult: { IdToken: "id-token-123" },
+        }),
+    });
+
+    const result = await cognitoLogin("user@example.com", "password123");
+    expect(result.idToken).toBe("id-token-123");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("cognito-idp"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("USER_PASSWORD_AUTH"),
+      }),
+    );
+  });
+
+  it("throws on Cognito error", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () =>
+        Promise.resolve({
+          __type: "NotAuthorizedException",
+          message: "Incorrect username or password.",
+        }),
+    });
+
+    await expect(cognitoLogin("user@example.com", "wrong")).rejects.toThrow(
+      "Incorrect username or password.",
+    );
+  });
+});
+
+describe("cognitoSignup", () => {
+  it("calls Cognito SignUp and returns confirmation status", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () => Promise.resolve({ UserConfirmed: false }),
+    });
+
+    const result = await cognitoSignup("new@example.com", "password123");
+    expect(result.userConfirmed).toBe(false);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("cognito-idp"),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "X-Amz-Target": "AWSCognitoIdentityProviderService.SignUp",
+        }),
+      }),
+    );
+  });
+
+  it("throws on duplicate email", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () =>
+        Promise.resolve({
+          __type: "UsernameExistsException",
+          message: "An account with the given email already exists.",
+        }),
+    });
+
+    await expect(
+      cognitoSignup("existing@example.com", "password123"),
+    ).rejects.toThrow("An account with the given email already exists.");
+  });
+});
+
+describe("cognitoConfirmSignup", () => {
+  it("calls Cognito ConfirmSignUp", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () => Promise.resolve({}),
+    });
+
+    await cognitoConfirmSignup("user@example.com", "123456");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("cognito-idp"),
+      expect.objectContaining({
+        body: expect.stringContaining("123456"),
+      }),
+    );
+  });
+
+  it("throws on invalid code", async () => {
+    fetchMock.mockResolvedValueOnce({
+      json: () =>
+        Promise.resolve({
+          __type: "CodeMismatchException",
+          message: "Invalid verification code.",
+        }),
+    });
+
+    await expect(
+      cognitoConfirmSignup("user@example.com", "wrong"),
+    ).rejects.toThrow("Invalid verification code.");
   });
 });

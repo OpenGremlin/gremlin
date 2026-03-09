@@ -11,6 +11,7 @@ import { notificationTypeDefs } from "./Notification/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { taskTypeDefs } from "./Task/typeDefs.js";
+import { settingsTypeDefs } from "./Settings/typeDefs.js";
 import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
@@ -24,6 +25,7 @@ export const allTypeDefs = [
   integrationTypeDefs,
   notificationTypeDefs,
   profileTypeDefs,
+  settingsTypeDefs,
   skillTypeDefs,
   taskTypeDefs,
   workspaceTypeDefs,

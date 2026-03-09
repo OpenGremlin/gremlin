@@ -2,6 +2,7 @@ import {
   Bot,
   Calendar,
   FolderOpen,
+  Globe,
   Home,
   Plug,
   Settings,
@@ -29,6 +30,7 @@ import { NewJobPage } from "../SchedulerTab/NewJobPage";
 import { TasksTab } from "../TasksTab";
 
 import { ConnectionDetailPage } from "../UserTab/ConnectionDetailPage";
+import { GlobalSettingsPage } from "../UserTab/GlobalSettingsPage";
 import { IntegrationDetailPage } from "../UserTab/IntegrationDetailPage";
 import { IntegrationsPage } from "../UserTab/IntegrationsPage";
 import { ProfilePage } from "../UserTab/ProfilePage";
@@ -47,6 +49,7 @@ const settingsItems = [
   { to: "/settings/skills", label: "Skills", icon: Sparkles },
   { to: "/settings/integrations", label: "Connect", icon: Plug },
   { to: "/settings/files", label: "Files", icon: FolderOpen },
+  { to: "/settings/global", label: "Global", icon: Globe },
 ];
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
@@ -138,6 +141,7 @@ export function RouterApp() {
           />
           <Route path="settings/skills/:id" element={<SkillDetailPage />} />
           <Route path="settings/profile" element={<ProfilePage />} />
+          <Route path="settings/global" element={<GlobalSettingsPage />} />
           <Route
             path="settings/connections/:id"
             element={<ConnectionDetailPage />}

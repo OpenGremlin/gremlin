@@ -39,6 +39,10 @@ export class AuthStack extends cdk.Stack {
       supportedIdentityProviders: [
         cognito.UserPoolClientIdentityProvider.COGNITO,
       ],
+      authFlows: {
+        userPassword: true,
+        userSrp: true,
+      },
       oAuth: {
         flows: { implicitCodeGrant: true },
         scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL],

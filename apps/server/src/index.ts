@@ -241,8 +241,8 @@ app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {
   res.status(204).end();
 });
 
-// Auth config (unauthenticated — needed by desktop app before login)
-app.get("/api/auth-config", (_req, res) => {
+// Auth config (unauthenticated — needed by admin and desktop app before login)
+app.get("/api/auth-config", async (_req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const cognitoDomain = process.env.COGNITO_DOMAIN;
   const clientId = process.env.COGNITO_CLIENT_ID;
@@ -250,7 +250,23 @@ app.get("/api/auth-config", (_req, res) => {
     res.status(503).json({ error: "Auth not configured" });
     return;
   }
-  res.json({ cognitoDomain, clientId });
+  // Check if signup is disabled
+  let signupDisabled = false;
+  try {
+    const { GetItemCommand } = await import(
+      "dynamodb-toolbox/entity/actions/get"
+    );
+    const { Item } = await resources.ddb.entities.Setting.build(GetItemCommand)
+      .key({ key: "globalSettings" })
+      .send();
+    if (Item) {
+      const settings = JSON.parse(Item.value);
+      signupDisabled = settings.signupDisabled === true;
+    }
+  } catch {
+    // Settings not available yet — default to allowing signup
+  }
+  res.json({ cognitoDomain, clientId, signupDisabled });
 });
 
 // Health check
