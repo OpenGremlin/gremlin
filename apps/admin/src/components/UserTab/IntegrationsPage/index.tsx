@@ -16,7 +16,7 @@ function ConnectionCountBadge({ count }: { count: number }) {
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
-      <CircleCheck size={12} /> {count}
+      <CircleCheck size={12} /> {count > 1 ? `${count} ` : ""}Connected
     </span>
   );
 }
