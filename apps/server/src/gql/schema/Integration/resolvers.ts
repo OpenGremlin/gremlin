@@ -108,6 +108,21 @@ const disableBedrockModel: MutationResolvers["disableBedrockModel"] = async (
   ctx,
 ) => ctx.services.integrations.disableBedrockModel(ctx.resources, modelId);
 
+const submitOAuthConnection: MutationResolvers["submitOAuthConnection"] = (
+  _parent,
+  { providerId, accessToken, refreshToken, expiresAt, scopes, accountId },
+  ctx,
+) =>
+  ctx.services.integrations.submitOAuthConnection(
+    ctx.resources,
+    providerId,
+    accessToken,
+    refreshToken ?? undefined,
+    expiresAt ?? undefined,
+    scopes,
+    accountId ?? undefined,
+  );
+
 export const integrationResolvers = {
   Query: {
     integrationProviders,
@@ -123,6 +138,7 @@ export const integrationResolvers = {
     setDefaultModel,
     enableBedrockModel,
     disableBedrockModel,
+    submitOAuthConnection,
   },
   IntegrationProvider: { connectionCount, hasConnection },
   IntegrationConnection: { meta },

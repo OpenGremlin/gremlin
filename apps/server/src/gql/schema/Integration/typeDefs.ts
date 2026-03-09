@@ -68,5 +68,6 @@ export const integrationTypeDefs = /* GraphQL */ `
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!
     disableBedrockModel(modelId: String!): Boolean!
+    submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String): ID!
   }
 `;

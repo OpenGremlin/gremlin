@@ -23,6 +23,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -36,6 +37,7 @@ export type Scalars = {
 export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
+  config?: Maybe<AgentConfig>;
   id: Scalars['ID']['output'];
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -48,6 +50,19 @@ export type Agent = {
 
 export type AgentImageUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AgentConfig = {
+  __typename?: 'AgentConfig';
+  model?: Maybe<AgentModelConfig>;
+  sandbox?: Maybe<AgentSandboxConfig>;
+  webSearch?: Maybe<AgentWebSearchConfig>;
+};
+
+export type AgentConfigInput = {
+  model?: InputMaybe<AgentModelConfigInput>;
+  sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  webSearch?: InputMaybe<AgentWebSearchConfigInput>;
 };
 
 export type AgentJob = {
@@ -105,6 +120,43 @@ export enum AgentLogRole {
   User = 'USER'
 }
 
+export type AgentModelConfig = {
+  __typename?: 'AgentModelConfig';
+  connectionId?: Maybe<Scalars['String']['output']>;
+  modelId?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
+};
+
+export type AgentModelConfigInput = {
+  connectionId?: InputMaybe<Scalars['String']['input']>;
+  modelId?: InputMaybe<Scalars['String']['input']>;
+  type: Scalars['String']['input'];
+};
+
+export type AgentSandboxConfig = {
+  __typename?: 'AgentSandboxConfig';
+  alwaysOn?: Maybe<Scalars['Boolean']['output']>;
+  enabled: Scalars['Boolean']['output'];
+  idleTimeoutMinutes?: Maybe<Scalars['Int']['output']>;
+};
+
+export type AgentSandboxConfigInput = {
+  alwaysOn?: InputMaybe<Scalars['Boolean']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AgentWebSearchConfig = {
+  __typename?: 'AgentWebSearchConfig';
+  enabled: Scalars['Boolean']['output'];
+  provider?: Maybe<Scalars['String']['output']>;
+};
+
+export type AgentWebSearchConfigInput = {
+  enabled: Scalars['Boolean']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -126,6 +178,23 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CompleteFileUploadInput = {
+  agentId: Scalars['String']['input'];
+  contentType: Scalars['String']['input'];
+  filename: Scalars['String']['input'];
+  key: Scalars['String']['input'];
+  sizeBytes: Scalars['Int']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CompletedFileUpload = {
+  __typename?: 'CompletedFileUpload';
+  contentType: Scalars['String']['output'];
+  filename: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  sizeBytes: Scalars['Int']['output'];
 };
 
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
@@ -155,6 +224,19 @@ export type Document = {
   body?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
   title: Scalars['String']['output'];
+};
+
+export type FileUploadRequest = {
+  contentType: Scalars['String']['input'];
+  filename: Scalars['String']['input'];
+  sizeBytes: Scalars['Int']['input'];
+};
+
+export type FileUploadUrl = {
+  __typename?: 'FileUploadUrl';
+  key: Scalars['String']['output'];
+  presignedUrl: Scalars['String']['output'];
+  uploadId: Scalars['String']['output'];
 };
 
 export type IntegrationConnection = {
@@ -198,6 +280,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   bindSkillConnection?: Maybe<Skill>;
+  completeFileUpload: CompletedFileUpload;
   connectApiKey: Scalars['ID']['output'];
   connectIntegration: Scalars['String']['output'];
   createAgent: Agent;
@@ -208,12 +291,14 @@ export type Mutation = {
   enableBedrockModel: Scalars['Boolean']['output'];
   installSkill?: Maybe<Skill>;
   renameIntegrationConnection: Scalars['Boolean']['output'];
+  requestFileUploads: Array<FileUploadUrl>;
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
   setDefaultModel: Scalars['Boolean']['output'];
   setSkillMcpEnabled?: Maybe<Skill>;
+  submitOAuthConnection: Scalars['ID']['output'];
   uninstallSkill?: Maybe<Skill>;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -226,6 +311,11 @@ export type MutationBindSkillConnectionArgs = {
   connectionId: Scalars['ID']['input'];
   id: Scalars['ID']['input'];
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteFileUploadArgs = {
+  input: CompleteFileUploadInput;
 };
 
 
@@ -282,6 +372,13 @@ export type MutationRenameIntegrationConnectionArgs = {
 };
 
 
+export type MutationRequestFileUploadsArgs = {
+  agentId: Scalars['String']['input'];
+  files: Array<FileUploadRequest>;
+  taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationResolveNotificationArgs = {
   actionId: Scalars['String']['input'];
   id: Scalars['ID']['input'];
@@ -314,6 +411,16 @@ export type MutationSetDefaultModelArgs = {
 export type MutationSetSkillMcpEnabledArgs = {
   enabled: Scalars['Boolean']['input'];
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSubmitOAuthConnectionArgs = {
+  accessToken: Scalars['String']['input'];
+  accountId?: InputMaybe<Scalars['String']['input']>;
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  providerId: Scalars['String']['input'];
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
+  scopes: Array<Scalars['String']['input']>;
 };
 
 
@@ -638,6 +745,7 @@ export type TaskPageInfo = {
 
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
+  config?: InputMaybe<AgentConfigInput>;
   name?: InputMaybe<Scalars['String']['input']>;
   soul?: InputMaybe<Scalars['String']['input']>;
   ttsVoice?: InputMaybe<Scalars['String']['input']>;
@@ -742,21 +850,33 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentItem>;
+  AgentConfig: ResolverTypeWrapper<AgentConfig>;
+  AgentConfigInput: AgentConfigInput;
   AgentJob: ResolverTypeWrapper<AgentJobItem>;
   AgentLog: ResolverTypeWrapper<AgentLogItem>;
   AgentLogConnection: ResolverTypeWrapper<AgentLogConnectionModel>;
   AgentLogEdge: ResolverTypeWrapper<AgentLogEdgeModel>;
   AgentLogPageInfo: ResolverTypeWrapper<PageInfoModel>;
   AgentLogRole: AgentLogRole;
+  AgentModelConfig: ResolverTypeWrapper<AgentModelConfig>;
+  AgentModelConfigInput: AgentModelConfigInput;
+  AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
+  AgentSandboxConfigInput: AgentSandboxConfigInput;
+  AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
+  AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CompleteFileUploadInput: CompleteFileUploadInput;
+  CompletedFileUpload: ResolverTypeWrapper<CompletedFileUpload>;
   ConnectionMeta: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ConnectionMeta']>;
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   Document: ResolverTypeWrapper<Document>;
+  FileUploadRequest: FileUploadRequest;
+  FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -793,20 +913,32 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Agent: AgentItem;
+  AgentConfig: AgentConfig;
+  AgentConfigInput: AgentConfigInput;
   AgentJob: AgentJobItem;
   AgentLog: AgentLogItem;
   AgentLogConnection: AgentLogConnectionModel;
   AgentLogEdge: AgentLogEdgeModel;
   AgentLogPageInfo: PageInfoModel;
+  AgentModelConfig: AgentModelConfig;
+  AgentModelConfigInput: AgentModelConfigInput;
+  AgentSandboxConfig: AgentSandboxConfig;
+  AgentSandboxConfigInput: AgentSandboxConfigInput;
+  AgentWebSearchConfig: AgentWebSearchConfig;
+  AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
   AvailableScope: AvailableScope;
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
+  CompleteFileUploadInput: CompleteFileUploadInput;
+  CompletedFileUpload: CompletedFileUpload;
   ConnectionMeta: ResolversUnionTypes<ResolversParentTypes>['ConnectionMeta'];
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: DefaultModelResult;
   Document: Document;
+  FileUploadRequest: FileUploadRequest;
+  FileUploadUrl: FileUploadUrl;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -839,6 +971,7 @@ export type ResolversParentTypes = {
 
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  config?: Resolver<Maybe<ResolversTypes['AgentConfig']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -846,6 +979,12 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   soul?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   ttsVoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
+  model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
+  sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
+  webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
 };
 
 export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
@@ -891,6 +1030,23 @@ export type AgentLogPageInfoResolvers<ContextType = GremlinContext, ParentType e
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type AgentModelConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentModelConfig'] = ResolversParentTypes['AgentModelConfig']> = {
+  connectionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  modelId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AgentSandboxConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentSandboxConfig'] = ResolversParentTypes['AgentSandboxConfig']> = {
+  alwaysOn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  idleTimeoutMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type AgentWebSearchConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentWebSearchConfig'] = ResolversParentTypes['AgentWebSearchConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  provider?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type ApiKeyConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ApiKeyConnectionMeta'] = ResolversParentTypes['ApiKeyConnectionMeta']> = {
   accountId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -907,6 +1063,13 @@ export type AvatarResolvers<ContextType = GremlinContext, ParentType extends Res
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
 };
 
+export type CompletedFileUploadResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CompletedFileUpload'] = ResolversParentTypes['CompletedFileUpload']> = {
+  contentType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  filename?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ConnectionMeta'] = ResolversParentTypes['ConnectionMeta']> = {
   __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
 };
@@ -920,6 +1083,12 @@ export type DocumentResolvers<ContextType = GremlinContext, ParentType extends R
   body?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileUploadUrl'] = ResolversParentTypes['FileUploadUrl']> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  presignedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['IntegrationConnection'] = ResolversParentTypes['IntegrationConnection']> = {
@@ -944,6 +1113,8 @@ export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentTyp
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type JobStatusResolvers = EnumResolverSignature<{ ERROR?: any, IDLE?: any, PAUSED?: any, RUNNING?: any }, ResolversTypes['JobStatus']>;
+
 export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelInfo'] = ResolversParentTypes['ModelInfo']> = {
   contextWindow?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -957,6 +1128,7 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   bindSkillConnection?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationBindSkillConnectionArgs, 'connectionId' | 'id' | 'providerId'>>;
+  completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
@@ -967,12 +1139,14 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
   installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'templateId'>>;
   renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
+  requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
   setSkillMcpEnabled?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSetSkillMcpEnabledArgs, 'enabled' | 'id'>>;
+  submitOAuthConnection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationSubmitOAuthConnectionArgs, 'accessToken' | 'providerId' | 'scopes'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -997,6 +1171,8 @@ export type NotificationActionResolvers<ContextType = GremlinContext, ParentType
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
+
+export type NotificationStatusResolvers = EnumResolverSignature<{ DISMISSED?: any, PENDING?: any, RESOLVED?: any }, ResolversTypes['NotificationStatus']>;
 
 export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthConnectionMeta'] = ResolversParentTypes['OAuthConnectionMeta']> = {
   accountId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1143,23 +1319,31 @@ export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType ext
 
 export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
+  AgentConfig?: AgentConfigResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
   AgentLog?: AgentLogResolvers<ContextType>;
   AgentLogConnection?: AgentLogConnectionResolvers<ContextType>;
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
+  AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
+  AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
+  AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
+  CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
+  FileUploadUrl?: FileUploadUrlResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
+  JobStatus?: JobStatusResolvers;
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   NotificationAction?: NotificationActionResolvers<ContextType>;
+  NotificationStatus?: NotificationStatusResolvers;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
