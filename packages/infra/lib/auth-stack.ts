@@ -1,6 +1,5 @@
 import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import type { Construct } from "constructs";
 
 export class AuthStack extends cdk.Stack {
@@ -14,6 +13,13 @@ export class AuthStack extends cdk.Stack {
     const userPool = new cognito.UserPool(this, "AdminUsers", {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
+      autoVerify: { email: true },
+      passwordPolicy: {
+        minLength: 8,
+        requireUppercase: false,
+        requireDigits: false,
+        requireSymbols: false,
+      },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -23,29 +29,6 @@ export class AuthStack extends cdk.Stack {
       description: "Users authorized to access the admin app",
     });
 
-    const googleOAuthSecret = secretsmanager.Secret.fromSecretNameV2(
-      this,
-      "GoogleOAuth",
-      "gremlin/google-oauth",
-    );
-
-    const googleProvider = new cognito.UserPoolIdentityProviderGoogle(
-      this,
-      "Google",
-      {
-        userPool,
-        clientId: googleOAuthSecret
-          .secretValueFromJson("clientId")
-          .unsafeUnwrap(),
-        clientSecretValue:
-          googleOAuthSecret.secretValueFromJson("clientSecret"),
-        scopes: ["email", "openid", "profile"],
-        attributeMapping: {
-          email: cognito.ProviderAttribute.GOOGLE_EMAIL,
-        },
-      },
-    );
-
     const userPoolDomain = userPool.addDomain("Domain", {
       cognitoDomain: { domainPrefix: "gremlin-admin" },
     });
@@ -54,7 +37,7 @@ export class AuthStack extends cdk.Stack {
 
     const userPoolClient = userPool.addClient("AdminApp", {
       supportedIdentityProviders: [
-        cognito.UserPoolClientIdentityProvider.GOOGLE,
+        cognito.UserPoolClientIdentityProvider.COGNITO,
       ],
       oAuth: {
         flows: { implicitCodeGrant: true },
@@ -62,7 +45,6 @@ export class AuthStack extends cdk.Stack {
         callbackUrls: ["http://localhost:5173"],
       },
     });
-    userPoolClient.node.addDependency(googleProvider);
 
     this.userPoolId = userPool.userPoolId;
     this.userPoolClientId = userPoolClient.userPoolClientId;

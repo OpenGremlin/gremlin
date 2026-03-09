@@ -56,7 +56,6 @@ export class AdminStack extends cdk.Stack {
       additionalBehaviors: {
         "/graphql": apiBehavior,
         "/api/*": apiBehavior,
-        "/auth/*": apiBehavior,
       },
       defaultRootObject: "index.html",
       errorResponses: [
@@ -87,7 +86,7 @@ export class AdminStack extends cdk.Stack {
           CallbackURLs: [cfUrl, "http://localhost:5173"],
           AllowedOAuthFlows: ["implicit"],
           AllowedOAuthScopes: ["openid", "email"],
-          SupportedIdentityProviders: ["Google"],
+          SupportedIdentityProviders: ["COGNITO"],
           AllowedOAuthFlowsUserPoolClient: true,
         },
         physicalResourceId: cr.PhysicalResourceId.of("CallbackUrlUpdate"),
