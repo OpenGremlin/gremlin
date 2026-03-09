@@ -1,3 +1,4 @@
+export { createBraveSearchTool } from "./braveSearch.js";
 export { delegateTaskTool } from "./delegateTask.js";
 export {
   createDocumentTool,
@@ -10,6 +11,6 @@ export {
 } from "./documents.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { requestApprovalTool } from "./requestApproval.js";
+export { createTavilySearchTool } from "./tavilySearch.js";
 export { updateTaskMessageTool } from "./updateTaskMessage.js";
 export { webFetch } from "./webFetch.js";
-export { createWebSearchTool, webSearch } from "./webSearch.js";

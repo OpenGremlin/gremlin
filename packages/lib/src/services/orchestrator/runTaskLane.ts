@@ -2,8 +2,9 @@ import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { buildMcpConfig } from "../skills/buildMcpConfig.js";
 import {
+  createBraveSearchTool,
   createDocumentTool,
-  createWebSearchTool,
+  createTavilySearchTool,
   recallMemoryTool,
   saveMemoryTool,
   updateDocumentTool,
@@ -88,10 +89,10 @@ export async function runTaskLane(
     tools: {
       ...(agent.config?.webSearch?.enabled
         ? {
-            webSearch: createWebSearchTool(
-              ctx,
-              agent.config.webSearch.provider ?? "brave",
-            ),
+            webSearch:
+              (agent.config.webSearch.provider ?? "brave") === "tavily"
+                ? createTavilySearchTool(ctx)
+                : createBraveSearchTool(ctx),
             webFetch,
           }
         : {}),

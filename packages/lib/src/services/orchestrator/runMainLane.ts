@@ -1,7 +1,8 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import {
-  createWebSearchTool,
+  createBraveSearchTool,
+  createTavilySearchTool,
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
@@ -9,6 +10,14 @@ import {
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
+
+function webSearchTools(ctx: ServiceContext, provider: string) {
+  const searchTool =
+    provider === "tavily"
+      ? createTavilySearchTool(ctx)
+      : createBraveSearchTool(ctx);
+  return { webSearch: searchTool, webFetch };
+}
 
 /**
  * Run an agent turn on the main lane (user conversation thread).
@@ -35,13 +44,7 @@ export async function runMainLane(
     }),
     tools: {
       ...(agent.config?.webSearch?.enabled
-        ? {
-            webSearch: createWebSearchTool(
-              ctx,
-              agent.config.webSearch.provider ?? "brave",
-            ),
-            webFetch,
-          }
+        ? webSearchTools(ctx, agent.config.webSearch.provider ?? "brave")
         : {}),
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
