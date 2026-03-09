@@ -44,7 +44,7 @@ export class AuthStack extends cdk.Stack {
         userSrp: true,
       },
       oAuth: {
-        flows: { implicitCodeGrant: true },
+        flows: { authorizationCodeGrant: true, implicitCodeGrant: true },
         scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL],
         callbackUrls: [
           "http://localhost:5173",

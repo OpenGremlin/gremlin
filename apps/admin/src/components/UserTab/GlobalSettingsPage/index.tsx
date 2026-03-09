@@ -1,24 +1,12 @@
 import { useState } from "react";
 import { gql } from "../../../auth";
+import {
+  GlobalSettingsQuery,
+  UpdateGlobalSettingsMutation,
+} from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
-
-const GlobalSettingsQuery = `
-  query GlobalSettings {
-    globalSettings {
-      signupDisabled
-    }
-  }
-`;
-
-const UpdateGlobalSettingsMutation = `
-  mutation UpdateGlobalSettings($signupDisabled: Boolean) {
-    updateGlobalSettings(signupDisabled: $signupDisabled) {
-      signupDisabled
-    }
-  }
-`;
 
 export function GlobalSettingsPage() {
   const { data, loading, error, refetch } = useQuery(GlobalSettingsQuery);

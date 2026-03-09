@@ -2,20 +2,8 @@ type Query {
   _empty: String
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(
-    agentId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
-  taskLogs(
-    taskId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -25,6 +13,7 @@ type Query {
   bedrockEnabledModels: [String!]!
   notifications: [Notification!]!
   profile: Profile!
+  globalSettings: GlobalSettings!
   "All templates from the catalog"
   skillTemplates: [SkillTemplate!]!
   skillTemplate(id: ID!): SkillTemplate
@@ -39,34 +28,27 @@ type Query {
 
 type Mutation {
   _empty: String
-  requestFileUploads(
-    agentId: String!
-    taskId: String
-    files: [FileUploadRequest!]!
-  ): [FileUploadUrl!]!
+  requestFileUploads(agentId: String!, taskId: String, files: [FileUploadRequest!]!): [FileUploadUrl!]!
   completeFileUpload(input: CompleteFileUploadInput!): CompletedFileUpload!
   updateJobStatus(id: ID!, status: JobStatus!): AgentJob
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
-  sendMessage(
-    agentId: ID!
-    content: String!
-    taskId: String
-  ): SendMessageResult!
+  sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
-  connectIntegration(providerId: String!, scopes: [String!]!): String!
   connectApiKey(providerId: String!, apiKey: String!): ID!
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
   enableBedrockModel(modelId: String!): Boolean!
   disableBedrockModel(modelId: String!): Boolean!
+  submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String): ID!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
+  updateGlobalSettings(signupDisabled: Boolean): GlobalSettings!
   installSkill(templateId: ID!): Skill
   uninstallSkill(id: ID!): Skill
   bindSkillConnection(id: ID!, providerId: String!, connectionId: ID!): Skill
@@ -371,6 +353,10 @@ input ProfileInput {
   timezone: String
 }
 
+type GlobalSettings {
+  signupDisabled: Boolean!
+}
+
 type SkillTemplate {
   id: ID!
   name: String!
@@ -422,12 +408,7 @@ type Task {
   imageUrl(width: Int): String
   artifacts: [String!]!
   documents: [Document!]!
-  logs(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
 }
 
 type TaskEdge {
