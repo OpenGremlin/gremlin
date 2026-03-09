@@ -8,5 +8,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     scopes: string[];
   }) => ipcRenderer.invoke("start-oauth", config),
 
+  cognitoLogin: (config: { cognitoDomain: string; clientId: string }) =>
+    ipcRenderer.invoke("cognito-login", config),
+
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
 });

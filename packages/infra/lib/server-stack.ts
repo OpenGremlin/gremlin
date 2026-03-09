@@ -24,6 +24,7 @@ export interface ServerStackProps extends cdk.StackProps {
   accessPoint: efs.IAccessPoint;
   userPoolId: string;
   userPoolClientId: string;
+  cognitoDomain: string;
   mediaCdnUrl: string;
   uploadsBucket: s3.IBucket;
   uploadsBucketName: string;
@@ -203,6 +204,7 @@ export class ServerStack extends cdk.Stack {
         `-e AWS_REGION=${this.region}`,
         `-e COGNITO_USER_POOL_ID=${props.userPoolId}`,
         `-e COGNITO_CLIENT_ID=${props.userPoolClientId}`,
+        `-e COGNITO_DOMAIN=${props.cognitoDomain}`,
         `-e MEDIA_CDN_URL=${props.mediaCdnUrl}`,
         `-e S3_VECTORS_BUCKET_NAME=gremlin-vectors`,
         `-e UPLOADS_BUCKET_NAME=${props.uploadsBucketName}`,

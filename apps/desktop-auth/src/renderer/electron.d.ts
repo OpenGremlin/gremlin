@@ -11,6 +11,10 @@ interface ElectronAPI {
     accountId?: string;
     scopes: string[];
   }>;
+  cognitoLogin(config: {
+    cognitoDomain: string;
+    clientId: string;
+  }): Promise<string>;
   openExternal(url: string): Promise<void>;
 }
 

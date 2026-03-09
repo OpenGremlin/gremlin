@@ -1,5 +1,6 @@
 import path from "node:path";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { handleCognitoLogin } from "./cognito.js";
 import { handleOAuthFlow } from "./oauth.js";
 
 let mainWindow: BrowserWindow | null = null;
@@ -52,6 +53,13 @@ ipcMain.handle(
     },
   ) => {
     return handleOAuthFlow(config);
+  },
+);
+
+ipcMain.handle(
+  "cognito-login",
+  async (_event, config: { cognitoDomain: string; clientId: string }) => {
+    return handleCognitoLogin(config);
   },
 );
 

@@ -33,7 +33,8 @@ export function App() {
     loadSaved("gremlin-auth-token"),
   );
   const [connectionOk, setConnectionOk] = useState<boolean | null>(null);
-  const [testingConnection, setTestingConnection] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const [providerStates, setProviderStates] = useState<
     Record<string, ProviderState>
@@ -65,33 +66,68 @@ export function App() {
     [serverUrl, authToken],
   );
 
-  async function testConnection() {
-    setTestingConnection(true);
-    try {
-      const data = await graphqlFetch(`{
-        integrationProviders {
-          id
-          connectionType
-          hasConnection
+  // When we have a token, test connection automatically
+  useEffect(() => {
+    if (!authToken || !serverUrl.trim()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await graphqlFetch(`{
+          integrationProviders {
+            id
+            connectionType
+            hasConnection
+          }
+        }`);
+        if (cancelled) return;
+        const states: Record<string, ProviderState> = {};
+        for (const p of data.integrationProviders) {
+          if (p.connectionType === "oauth") {
+            states[p.id] = {
+              status: p.hasConnection ? "connected" : "disconnected",
+            };
+          }
         }
-      }`);
-
-      // Update provider states from server
-      const states: Record<string, ProviderState> = {};
-      for (const p of data.integrationProviders) {
-        if (p.connectionType === "oauth") {
-          states[p.id] = {
-            status: p.hasConnection ? "connected" : "disconnected",
-          };
-        }
+        setProviderStates(states);
+        setConnectionOk(true);
+      } catch {
+        if (!cancelled) setConnectionOk(false);
       }
-      setProviderStates(states);
-      setConnectionOk(true);
-    } catch {
-      setConnectionOk(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken, serverUrl, graphqlFetch]);
+
+  async function handleLogin() {
+    setLoggingIn(true);
+    setLoginError(null);
+    try {
+      const url = serverUrl.replace(/\/+$/, "");
+      const res = await fetch(`${url}/api/auth-config`);
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const { cognitoDomain, clientId } = await res.json();
+      if (!cognitoDomain || !clientId) {
+        throw new Error("Server auth not configured");
+      }
+
+      const idToken = await window.electronAPI.cognitoLogin({
+        cognitoDomain,
+        clientId,
+      });
+      setAuthToken(idToken);
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : "Login failed");
     } finally {
-      setTestingConnection(false);
+      setLoggingIn(false);
     }
+  }
+
+  function handleLogout() {
+    setAuthToken("");
+    setConnectionOk(null);
+    setProviderStates({});
+    localStorage.removeItem("gremlin-auth-token");
   }
 
   async function handleConnect(
@@ -150,6 +186,8 @@ export function App() {
     setActiveProvider(null);
   }
 
+  const isLoggedIn = connectionOk === true && !!authToken;
+
   return (
     <div className="flex h-screen flex-col bg-neutral-950 text-white">
       {/* Title bar drag region */}
@@ -179,40 +217,40 @@ export function App() {
                 onChange={(e) => {
                   setServerUrl(e.target.value);
                   setConnectionOk(null);
+                  setLoginError(null);
                 }}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500"
+                disabled={isLoggedIn}
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500 disabled:opacity-50"
                 placeholder="https://your-server.example.com"
               />
             </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-neutral-300">
-                Auth Token
-              </span>
-              <input
-                type="password"
-                value={authToken}
-                onChange={(e) => {
-                  setAuthToken(e.target.value);
-                  setConnectionOk(null);
-                }}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500"
-                placeholder="Bearer token for your server"
-              />
-            </label>
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={testConnection}
-                disabled={testingConnection || !serverUrl.trim()}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-              >
-                {testingConnection ? "Testing..." : "Test Connection"}
-              </button>
-              {connectionOk === true && (
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-600"
+                >
+                  Log out
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleLogin}
+                  disabled={loggingIn || !serverUrl.trim()}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+                >
+                  {loggingIn ? "Logging in..." : "Log in"}
+                </button>
+              )}
+              {isLoggedIn && (
                 <span className="text-sm text-emerald-400">Connected</span>
               )}
-              {connectionOk === false && (
+              {connectionOk === false && authToken && (
                 <span className="text-sm text-red-400">Connection failed</span>
+              )}
+              {loginError && (
+                <span className="text-sm text-red-400">{loginError}</span>
               )}
             </div>
           </div>
@@ -233,7 +271,7 @@ export function App() {
                   key={provider.id}
                   type="button"
                   onClick={() => setActiveProvider(provider)}
-                  disabled={!connectionOk}
+                  disabled={!isLoggedIn}
                   className="group flex flex-col items-start rounded-xl border border-neutral-800 bg-neutral-900 p-4 text-left transition hover:border-neutral-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <div className="mb-3 flex w-full items-center justify-between">

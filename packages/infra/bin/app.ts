@@ -39,6 +39,7 @@ const server = new ServerStack(app, "GremlinServerStack", {
   accessPoint: db.accessPoint,
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
+  cognitoDomain: auth.cognitoDomain,
   mediaCdnUrl: media.cdnUrl,
   uploadsBucket: db.uploadsBucket,
   uploadsBucketName: db.uploadsBucketName,

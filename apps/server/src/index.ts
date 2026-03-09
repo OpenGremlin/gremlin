@@ -90,7 +90,7 @@ const schema = makeExecutableSchema({
 const yoga = createYoga({
   schema,
   cors: {
-    origin: [process.env.ADMIN_ORIGIN, "http://localhost:5173"].filter(
+    origin: [process.env.ADMIN_ORIGIN, "http://localhost:5173", "http://localhost:5174"].filter(
       (o): o is string => Boolean(o),
     ),
     credentials: true,
@@ -237,6 +237,18 @@ app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {
     else clientLog.info(meta, msg);
   }
   res.status(204).end();
+});
+
+// Auth config (unauthenticated — needed by desktop app before login)
+app.get("/api/auth-config", (_req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  const cognitoDomain = process.env.COGNITO_DOMAIN;
+  const clientId = process.env.COGNITO_CLIENT_ID;
+  if (!cognitoDomain || !clientId) {
+    res.status(503).json({ error: "Auth not configured" });
+    return;
+  }
+  res.json({ cognitoDomain, clientId });
 });
 
 // Health check
