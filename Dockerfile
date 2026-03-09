@@ -6,7 +6,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/server/package.json apps/server/
 COPY packages/lib/package.json packages/lib/
 COPY packages/infra/package.json packages/infra/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Stage 2: build lib + server
 FROM deps AS build
@@ -17,7 +17,7 @@ RUN pnpm --filter @gremlin/lib build && pnpm --filter @gremlin/server build
 
 # Stage 3: production dependencies only
 FROM deps AS prod-deps
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Stage 4: runtime
 FROM node:20-slim AS runtime
