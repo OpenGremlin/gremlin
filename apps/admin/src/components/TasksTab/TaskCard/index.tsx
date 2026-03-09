@@ -69,15 +69,17 @@ export function TaskCard({ item }: { item: TaskItem }) {
             // biome-ignore lint/a11y/noStaticElementInteractions: presentation role prevents parent link navigation
             <div
               role="presentation"
-              className="mt-2 flex flex-col gap-1.5"
+              className="@container mt-2"
               onClick={(e) => e.preventDefault()}
               onKeyDown={(e) => {
                 if (e.key === "Enter") e.preventDefault();
               }}
             >
-              {task.documents.map((doc) => (
-                <DocumentCard key={doc.path} doc={doc} />
-              ))}
+              <div className="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-1.5">
+                {task.documents.map((doc) => (
+                  <DocumentCard key={doc.path} doc={doc} />
+                ))}
+              </div>
             </div>
           )}
         </div>

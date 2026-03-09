@@ -118,7 +118,7 @@ function DelegateTaskCard({
           boxShadow:
             "inset 0 1px 0 rgba(255,255,255,0.06), 0 0 20px rgba(99,102,241,0.08)",
         }}
-        className={`w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
+        className={`@container w-full text-left border border-indigo-500/20 rounded-xl overflow-hidden transition-all ${clickable ? "cursor-pointer hover:border-indigo-400/35 hover:brightness-115" : "opacity-70"}`}
       >
         <div className="flex min-h-[110px]">
           <div className="flex-1 min-w-0 px-3.5 pt-3">
@@ -169,7 +169,7 @@ function DelegateTaskCard({
         </div>
         {docs.length > 0 && (
           <div
-            className="px-3.5 pb-3 space-y-1.5"
+            className="px-3.5 pb-3 grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-1.5"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >

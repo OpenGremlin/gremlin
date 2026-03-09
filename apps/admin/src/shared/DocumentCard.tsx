@@ -121,7 +121,7 @@ function DocumentModal({
         >
           <div className="w-10 h-1 rounded-full bg-neutral-700 mx-auto mb-3" />
           <div className="flex items-center gap-2 px-[60px]">
-            <h2 className="text-base font-semibold text-neutral-100 flex-1 truncate">
+            <h2 className="text-base font-semibold text-neutral-100 flex-1">
               {doc.title}
             </h2>
             <button
