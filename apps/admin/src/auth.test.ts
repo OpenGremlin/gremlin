@@ -9,9 +9,9 @@ vi.mock("./logger", () => ({
   },
 }));
 
-import { clearToken, getToken, gql, setToken } from "./auth";
+import { getToken, gql, setToken } from "./auth";
 
-const TOKEN_KEY = "gremlin_admin_token";
+const _TOKEN_KEY = "gremlin_admin_token";
 
 let fetchMock: ReturnType<typeof vi.fn>;
 

@@ -26,7 +26,7 @@ const MEDIA_CDN_URL = (
 ).replace(/\/$/, "");
 
 let cachedAdminOrigin: string | undefined;
-async function getAdminOrigin(): Promise<string> {
+async function _getAdminOrigin(): Promise<string> {
   if (cachedAdminOrigin) return cachedAdminOrigin;
   if (!SKIP_AUTH) {
     try {
@@ -90,9 +90,11 @@ const schema = makeExecutableSchema({
 const yoga = createYoga({
   schema,
   cors: {
-    origin: [process.env.ADMIN_ORIGIN, "http://localhost:5173", "http://localhost:5174"].filter(
-      (o): o is string => Boolean(o),
-    ),
+    origin: [
+      process.env.ADMIN_ORIGIN,
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ].filter((o): o is string => Boolean(o)),
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

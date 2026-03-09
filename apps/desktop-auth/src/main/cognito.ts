@@ -53,7 +53,9 @@ export function handleCognitoLogin(
 
         if (error) {
           res.writeHead(200, { "Content-Type": "text/html" });
-          res.end(resultPage(`Login failed: ${error}. You can close this tab.`));
+          res.end(
+            resultPage(`Login failed: ${error}. You can close this tab.`),
+          );
           cleanup();
           reject(new Error(`Cognito login error: ${error}`));
           return;
@@ -61,7 +63,11 @@ export function handleCognitoLogin(
 
         if (!code) {
           res.writeHead(200, { "Content-Type": "text/html" });
-          res.end(resultPage("No authorization code received. You can close this tab."));
+          res.end(
+            resultPage(
+              "No authorization code received. You can close this tab.",
+            ),
+          );
           cleanup();
           reject(new Error("No authorization code received"));
           return;
@@ -77,7 +83,9 @@ export function handleCognitoLogin(
           })
           .catch((err) => {
             res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(resultPage("Token exchange failed. You can close this tab."));
+            res.end(
+              resultPage("Token exchange failed. You can close this tab."),
+            );
             cleanup();
             reject(err);
           });

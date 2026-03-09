@@ -14,7 +14,6 @@ import { useQuery } from "../../../hooks/useQuery";
 import { ModelPicker } from "./ModelPicker";
 
 type Agent = NonNullable<AgentQuery["agent"]>;
-type AgentConfig = NonNullable<Agent["config"]>;
 
 function Toggle({
   enabled,

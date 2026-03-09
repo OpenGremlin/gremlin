@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
-import type {
-  BindSkillConnectionMutation as BindMutationType,
-  SkillQuery as SkillQueryType,
-} from "../../../graphql/generated/graphql";
+import type { BindSkillConnectionMutation as BindMutationType } from "../../../graphql/generated/graphql";
 import {
   BindSkillConnectionMutation,
   SkillQuery,
@@ -16,8 +13,6 @@ import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { ConnectionPicker } from "../../../shared/ConnectionPicker";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
-
-type Skill = NonNullable<SkillQueryType["skill"]>;
 
 export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();

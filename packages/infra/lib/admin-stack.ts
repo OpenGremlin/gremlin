@@ -83,7 +83,11 @@ export class AdminStack extends cdk.Stack {
         parameters: {
           UserPoolId: props.userPoolId,
           ClientId: props.userPoolClientId,
-          CallbackURLs: [cfUrl, "http://localhost:5173", "http://localhost:19284/cognito-callback"],
+          CallbackURLs: [
+            cfUrl,
+            "http://localhost:5173",
+            "http://localhost:19284/cognito-callback",
+          ],
           AllowedOAuthFlows: ["implicit", "code"],
           AllowedOAuthScopes: ["openid", "email"],
           SupportedIdentityProviders: ["COGNITO"],

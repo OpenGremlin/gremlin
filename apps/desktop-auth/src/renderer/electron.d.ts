@@ -11,10 +11,7 @@ interface ElectronAPI {
     accountId?: string;
     scopes: string[];
   }>;
-  cognitoLogin(config: {
-    cognitoDomain: string;
-    clientId: string;
-  }): Promise<{
+  cognitoLogin(config: { cognitoDomain: string; clientId: string }): Promise<{
     idToken: string;
     refreshToken: string;
     expiresIn: number;

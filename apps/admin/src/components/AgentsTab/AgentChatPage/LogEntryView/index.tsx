@@ -168,6 +168,7 @@ function DelegateTaskCard({
           )}
         </div>
         {docs.length > 0 && (
+          // biome-ignore lint/a11y/noStaticElementInteractions: stop click propagation on document cards
           <div
             className="px-3.5 pb-3 grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-1.5"
             onClick={(e) => e.stopPropagation()}

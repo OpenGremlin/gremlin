@@ -105,7 +105,7 @@ export function useTaskInfo(taskId: string | null) {
       imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
       messages: u.message
         ? [...(prev?.messages ?? []), u.message]
-        : prev?.messages ?? [],
+        : (prev?.messages ?? []),
       documents: u.documents ?? prev?.documents ?? [],
     }));
   });

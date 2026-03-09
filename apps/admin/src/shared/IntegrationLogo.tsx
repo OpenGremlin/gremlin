@@ -39,11 +39,7 @@ export function IntegrationLogo({
   if (logo) {
     return (
       <div className="flex items-center justify-center" style={sizeStyle}>
-        <img
-          src={logo}
-          alt={id}
-          className="w-full h-full object-contain"
-        />
+        <img src={logo} alt={id} className="w-full h-full object-contain" />
       </div>
     );
   }

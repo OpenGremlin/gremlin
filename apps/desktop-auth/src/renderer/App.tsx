@@ -124,7 +124,8 @@ export function App() {
           handleLogout();
         });
     }
-  }, [authToken]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: refresh should re-run when token changes, handleLogout is stable
+  }, [authToken, handleLogout]);
 
   const graphqlFetch = useCallback(
     async (query: string, variables?: Record<string, unknown>) => {
@@ -376,9 +377,8 @@ export function App() {
                   </svg>
                   {showServerHelp && (
                     <div className="absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-normal text-neutral-300 shadow-lg">
-                      Deploy Gremlin using CDK first, then paste your
-                      CloudFront URL here (e.g.
-                      https://abc123.cloudfront.net).
+                      Deploy Gremlin using CDK first, then paste your CloudFront
+                      URL here (e.g. https://abc123.cloudfront.net).
                     </div>
                   )}
                 </button>
@@ -496,6 +496,8 @@ export function App() {
                         viewBox="0 0 20 20"
                         fill="currentColor"
                         className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        role="img"
+                        aria-label="Toggle"
                       >
                         <path
                           fillRule="evenodd"

@@ -14,5 +14,3 @@ await esbuild.build({
   ...common,
   entryPoints: ["src/main/index.ts", "src/main/preload.ts"],
 });
-
-console.log("Main process built successfully.");
