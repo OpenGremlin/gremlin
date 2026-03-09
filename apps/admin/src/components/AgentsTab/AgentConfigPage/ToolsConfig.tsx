@@ -256,8 +256,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         label="Web Search"
         description={
           hasWebSearch
-            ? `Search the web via ${webSearchProviders.map((p) => p.service).join(" or ")}`
-            : "Connect a web search provider in Integrations to enable"
+            ? "Search the web for information"
+            : "Connect Brave Search or Tavily in Integrations to enable"
         }
         enabled={config?.webSearch?.enabled ?? false}
         onToggle={(v) =>
@@ -274,24 +274,37 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             : undefined
         }
       >
-        {config?.webSearch?.enabled && webSearchProviders.length > 1 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-400">Provider</span>
-            <select
-              value={config.webSearch.provider ?? webSearchProviders[0]?.id}
-              onChange={(e) =>
-                updateConfig({
-                  webSearch: { enabled: true, provider: e.target.value },
-                })
-              }
-              className="bg-neutral-800 text-sm text-neutral-200 rounded-lg px-2 py-1 border border-neutral-700 outline-none"
-            >
-              {webSearchProviders.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.service}
-                </option>
-              ))}
-            </select>
+        {config?.webSearch?.enabled && (
+          <div className="flex flex-col gap-2">
+            {hasWebSearch ? (
+              <div className="flex flex-col gap-1.5">
+                {webSearchProviders.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() =>
+                      updateConfig({
+                        webSearch: { enabled: true, provider: p.id },
+                      })
+                    }
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                      (
+                        config.webSearch?.provider ?? webSearchProviders[0]?.id
+                      ) === p.id
+                        ? "bg-indigo-600/20 border border-indigo-500/40 text-neutral-100"
+                        : "bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-neutral-200"
+                    }`}
+                  >
+                    {p.service}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-amber-400">
+                No search provider connected. Add a Brave Search or Tavily API
+                key in Integrations.
+              </p>
+            )}
           </div>
         )}
       </ConfigRow>

@@ -81,7 +81,7 @@ export function createWebSearchTool(ctx: ServiceContext, provider: string) {
       );
       if (!apiKey) {
         return {
-          results: `Web search not available — no ${provider} API key configured.`,
+          error: `Web search failed: no API key found for "${provider}". The user must connect a ${provider} API key in Integrations before web search can be used. Do not retry — inform the user that this integration needs to be configured.`,
         };
       }
 
