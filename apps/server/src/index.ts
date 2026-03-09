@@ -216,39 +216,6 @@ if (!process.env.MEDIA_CDN_URL) {
   app.use("/tasks", express.static(path.join(mediaAssets, "tasks")));
 }
 
-// Generic OAuth callback — handles all providers
-// Google's redirect URI is registered as /auth/google/callback, which matches this pattern
-app.get("/auth/:provider/callback", async (req, res) => {
-  const adminOrigin = await getAdminOrigin();
-  const provider = req.params.provider;
-  const code = req.query.code as string | undefined;
-  const state = req.query.state as string | undefined;
-
-  if (!code || !state) {
-    res.redirect(
-      `${adminOrigin}/user/integrations?error=${provider}_oauth_failed`,
-    );
-    return;
-  }
-
-  try {
-    const { connectionId } = await services.oauth.handleOAuthCallback(
-      resources,
-      code,
-      state,
-    );
-    res.redirect(`${adminOrigin}/connections/${connectionId}?connected=true`);
-  } catch (err) {
-    logger.error(
-      { err, provider, component: "oauth" },
-      "OAuth callback failed",
-    );
-    res.redirect(
-      `${adminOrigin}/user/integrations?error=${provider}_oauth_failed`,
-    );
-  }
-});
-
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");
 app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {

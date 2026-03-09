@@ -67,12 +67,6 @@ const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
   };
 };
 
-const connectIntegration: MutationResolvers["connectIntegration"] = (
-  _parent,
-  { providerId, scopes },
-  ctx,
-) => ctx.services.integrations.connectIntegration(ctx, providerId, scopes);
-
 const connectApiKey: MutationResolvers["connectApiKey"] = (
   _parent,
   { providerId, apiKey },
@@ -131,7 +125,6 @@ export const integrationResolvers = {
     bedrockEnabledModels,
   },
   Mutation: {
-    connectIntegration,
     connectApiKey,
     renameIntegrationConnection,
     revokeIntegrationConnection,

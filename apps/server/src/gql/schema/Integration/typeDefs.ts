@@ -61,7 +61,6 @@ export const integrationTypeDefs = /* GraphQL */ `
   }
 
   extend type Mutation {
-    connectIntegration(providerId: String!, scopes: [String!]!): String!
     connectApiKey(providerId: String!, apiKey: String!): ID!
     renameIntegrationConnection(id: ID!, description: String!): Boolean!
     revokeIntegrationConnection(id: ID!): Boolean!

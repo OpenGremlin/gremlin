@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
-import { oauthConfigs } from "../oauth/configs.js";
 import { describeScopes } from "./describeScopes.js";
 import { providers } from "./providers.js";
 
@@ -21,9 +20,6 @@ export async function submitOAuthConnection(
       `Provider "${providerId}" does not support OAuth connections`,
     );
   }
-
-  const config = oauthConfigs.get(providerId);
-  if (!config) throw new Error(`No OAuth config for provider: ${providerId}`);
 
   const id = randomUUID();
   const description = describeScopes(providerId, scopes);

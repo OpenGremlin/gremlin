@@ -282,7 +282,6 @@ export type Mutation = {
   bindSkillConnection?: Maybe<Skill>;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: Scalars['ID']['output'];
-  connectIntegration: Scalars['String']['output'];
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
@@ -322,12 +321,6 @@ export type MutationCompleteFileUploadArgs = {
 export type MutationConnectApiKeyArgs = {
   apiKey: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
-};
-
-
-export type MutationConnectIntegrationArgs = {
-  providerId: Scalars['String']['input'];
-  scopes: Array<Scalars['String']['input']>;
 };
 
 
@@ -1130,7 +1123,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   bindSkillConnection?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationBindSkillConnectionArgs, 'connectionId' | 'id' | 'providerId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
-  connectIntegration?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationConnectIntegrationArgs, 'providerId' | 'scopes'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;

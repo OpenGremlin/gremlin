@@ -1,5 +1,4 @@
 import { connectApiKey } from "./connectApiKey.js";
-import { connectIntegration } from "./connectIntegration.js";
 import { describeScopes } from "./describeScopes.js";
 import { disableBedrockModel } from "./disableBedrockModel.js";
 import { enableBedrockModel } from "./enableBedrockModel.js";
@@ -16,7 +15,6 @@ import { submitOAuthConnection } from "./submitOAuthConnection.js";
 
 export const integrationService = {
   connectApiKey,
-  connectIntegration,
   describeScopes,
   disableBedrockModel,
   enableBedrockModel,

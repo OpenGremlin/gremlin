@@ -55,12 +55,6 @@ export const IntegrationConnectionsQuery = graphql(`
   }
 `);
 
-export const ConnectIntegrationMutation = graphql(`
-  mutation ConnectIntegration($providerId: String!, $scopes: [String!]!) {
-    connectIntegration(providerId: $providerId, scopes: $scopes)
-  }
-`);
-
 export const ConnectApiKeyMutation = graphql(`
   mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
     connectApiKey(providerId: $providerId, apiKey: $apiKey)
