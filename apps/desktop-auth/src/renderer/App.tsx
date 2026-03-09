@@ -58,9 +58,73 @@ export function App() {
   >(null);
   const [showServerHelp, setShowServerHelp] = useState(false);
 
+  // Cognito refresh state (not persisted — refresh token is kept in localStorage)
+  const cognitoConfigRef = useRef<{
+    cognitoDomain: string;
+    clientId: string;
+  } | null>(null);
+
   // Persist server URL and auth token
   useEffect(() => savePersistent("gremlin-server-url", serverUrl), [serverUrl]);
   useEffect(() => savePersistent("gremlin-auth-token", authToken), [authToken]);
+
+  // On mount with existing token, fetch auth config so we can refresh later
+  useEffect(() => {
+    if (!authToken || !serverUrl.trim() || cognitoConfigRef.current) return;
+    const url = serverUrl.replace(/\/+$/, "");
+    fetch(`${url}/api/auth-config`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.cognitoDomain && data?.clientId) {
+          cognitoConfigRef.current = {
+            cognitoDomain: data.cognitoDomain,
+            clientId: data.clientId,
+          };
+        }
+      })
+      .catch(() => {});
+  }, [authToken, serverUrl]);
+
+  // Auto-refresh Cognito token before expiry
+  useEffect(() => {
+    const refreshToken = loadSaved("gremlin-cognito-refresh-token");
+    const expiresAt = Number(loadSaved("gremlin-cognito-expires-at", "0"));
+    const config = cognitoConfigRef.current;
+
+    if (!authToken || !refreshToken || !config || !expiresAt) return;
+
+    // Refresh 5 minutes before expiry
+    const msUntilRefresh = expiresAt - Date.now() - 5 * 60 * 1000;
+    if (msUntilRefresh <= 0) {
+      // Already past the refresh window — try immediately
+      doRefresh();
+      return;
+    }
+
+    const timer = setTimeout(doRefresh, msUntilRefresh);
+    return () => clearTimeout(timer);
+
+    function doRefresh() {
+      if (!config) return;
+      window.electronAPI
+        .cognitoRefresh({
+          cognitoDomain: config.cognitoDomain,
+          clientId: config.clientId,
+          refreshToken,
+        })
+        .then((result) => {
+          setAuthToken(result.idToken);
+          savePersistent(
+            "gremlin-cognito-expires-at",
+            String(Date.now() + result.expiresIn * 1000),
+          );
+        })
+        .catch(() => {
+          // Refresh failed — force re-login
+          handleLogout();
+        });
+    }
+  }, [authToken]);
 
   const graphqlFetch = useCallback(
     async (query: string, variables?: Record<string, unknown>) => {
@@ -164,11 +228,17 @@ export function App() {
         throw new Error("Server auth not configured");
       }
 
-      const idToken = await window.electronAPI.cognitoLogin({
+      const result = await window.electronAPI.cognitoLogin({
         cognitoDomain,
         clientId,
       });
-      setAuthToken(idToken);
+      cognitoConfigRef.current = { cognitoDomain, clientId };
+      savePersistent("gremlin-cognito-refresh-token", result.refreshToken);
+      savePersistent(
+        "gremlin-cognito-expires-at",
+        String(Date.now() + result.expiresIn * 1000),
+      );
+      setAuthToken(result.idToken);
     } catch (err) {
       if (!isCancelled(err)) {
         setLoginError(err instanceof Error ? err.message : String(err));
@@ -183,7 +253,10 @@ export function App() {
     setConnectionOk(null);
     setProviderStates({});
     setConnections([]);
+    cognitoConfigRef.current = null;
     localStorage.removeItem("gremlin-auth-token");
+    localStorage.removeItem("gremlin-cognito-refresh-token");
+    localStorage.removeItem("gremlin-cognito-expires-at");
   }
 
   async function handleConnect(

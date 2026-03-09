@@ -1,7 +1,7 @@
 import path from "node:path";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { cancelActiveFlow } from "./callback-server.js";
-import { handleCognitoLogin } from "./cognito.js";
+import { handleCognitoLogin, refreshCognitoToken } from "./cognito.js";
 import { handleOAuthFlow } from "./oauth.js";
 
 let mainWindow: BrowserWindow | null = null;
@@ -67,6 +67,24 @@ ipcMain.handle(
 ipcMain.handle("cancel-auth-flow", () => {
   cancelActiveFlow();
 });
+
+ipcMain.handle(
+  "cognito-refresh",
+  async (
+    _event,
+    config: {
+      cognitoDomain: string;
+      clientId: string;
+      refreshToken: string;
+    },
+  ) => {
+    return refreshCognitoToken(
+      config.cognitoDomain,
+      config.clientId,
+      config.refreshToken,
+    );
+  },
+);
 
 ipcMain.handle("open-external", async (_event, url: string) => {
   await shell.openExternal(url);

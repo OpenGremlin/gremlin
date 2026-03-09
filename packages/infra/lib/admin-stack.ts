@@ -83,13 +83,13 @@ export class AdminStack extends cdk.Stack {
         parameters: {
           UserPoolId: props.userPoolId,
           ClientId: props.userPoolClientId,
-          CallbackURLs: [cfUrl, "http://localhost:5173"],
-          AllowedOAuthFlows: ["implicit"],
+          CallbackURLs: [cfUrl, "http://localhost:5173", "http://localhost:19284/cognito-callback"],
+          AllowedOAuthFlows: ["implicit", "code"],
           AllowedOAuthScopes: ["openid", "email"],
           SupportedIdentityProviders: ["COGNITO"],
           AllowedOAuthFlowsUserPoolClient: true,
         },
-        physicalResourceId: cr.PhysicalResourceId.of("CallbackUrlUpdate"),
+        physicalResourceId: cr.PhysicalResourceId.of("CallbackUrlUpdate-v2"),
       },
       policy: cr.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({

@@ -14,7 +14,19 @@ interface ElectronAPI {
   cognitoLogin(config: {
     cognitoDomain: string;
     clientId: string;
-  }): Promise<string>;
+  }): Promise<{
+    idToken: string;
+    refreshToken: string;
+    expiresIn: number;
+  }>;
+  cognitoRefresh(config: {
+    cognitoDomain: string;
+    clientId: string;
+    refreshToken: string;
+  }): Promise<{
+    idToken: string;
+    expiresIn: number;
+  }>;
   cancelAuthFlow(): Promise<void>;
   openExternal(url: string): Promise<void>;
 }
