@@ -12,4 +12,4 @@ export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { requestApprovalTool } from "./requestApproval.js";
 export { updateTaskMessageTool } from "./updateTaskMessage.js";
 export { webFetch } from "./webFetch.js";
-export { webSearch } from "./webSearch.js";
+export { createWebSearchTool, webSearch } from "./webSearch.js";

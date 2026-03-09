@@ -1,11 +1,11 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import {
+  createWebSearchTool,
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
   webFetch,
-  webSearch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
@@ -34,7 +34,15 @@ export async function runMainLane(
       userAbout: profile?.about,
     }),
     tools: {
-      ...(agent.config?.webSearch?.enabled ? { webSearch, webFetch } : {}),
+      ...(agent.config?.webSearch?.enabled
+        ? {
+            webSearch: createWebSearchTool(
+              ctx,
+              agent.config.webSearch.provider ?? "brave",
+            ),
+            webFetch,
+          }
+        : {}),
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),

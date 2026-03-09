@@ -160,7 +160,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const { data: bedrockData } = useQuery(BedrockEnabledModelsQuery);
   const providers = providersData?.integrationProviders ?? [];
   const bedrockModels = bedrockData?.bedrockEnabledModels ?? [];
-  const hasBrave = providers.some((p) => p.id === "brave" && p.hasConnection);
+  const webSearchProviders = providers.filter(
+    (p) => p.category === "web" && p.hasConnection,
+  );
+  const hasWebSearch = webSearchProviders.length > 0;
 
   const [localConfig, setLocalConfig] = useState(() =>
     toPlainConfig(agent.config),
@@ -252,17 +255,46 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         icon={<Globe size={18} />}
         label="Web Search"
         description={
-          hasBrave
-            ? "Search the web via Brave Search"
-            : "Connect Brave Search in Integrations to enable"
+          hasWebSearch
+            ? `Search the web via ${webSearchProviders.map((p) => p.service).join(" or ")}`
+            : "Connect a web search provider in Integrations to enable"
         }
         enabled={config?.webSearch?.enabled ?? false}
         onToggle={(v) =>
-          hasBrave
-            ? updateConfig({ webSearch: { enabled: v, provider: "brave" } })
+          hasWebSearch
+            ? updateConfig({
+                webSearch: {
+                  enabled: v,
+                  provider:
+                    config?.webSearch?.provider ??
+                    webSearchProviders[0]?.id ??
+                    "brave",
+                },
+              })
             : undefined
         }
-      />
+      >
+        {config?.webSearch?.enabled && webSearchProviders.length > 1 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-neutral-400">Provider</span>
+            <select
+              value={config.webSearch.provider ?? webSearchProviders[0]?.id}
+              onChange={(e) =>
+                updateConfig({
+                  webSearch: { enabled: true, provider: e.target.value },
+                })
+              }
+              className="bg-neutral-800 text-sm text-neutral-200 rounded-lg px-2 py-1 border border-neutral-700 outline-none"
+            >
+              {webSearchProviders.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.service}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </ConfigRow>
     </div>
   );
 }

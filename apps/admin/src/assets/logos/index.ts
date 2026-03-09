@@ -16,6 +16,7 @@ export { default as notionLogo } from "./Notion.svg";
 export { default as openaiLogo } from "./OpenAI.svg";
 export { default as slackLogo } from "./Slack.svg";
 export { default as spotifyLogo } from "./Spotify.svg";
+export { default as tavilyLogo } from "./Tavily.svg";
 export { default as teamsLogo } from "./Teams.svg";
 export { default as telegramLogo } from "./Telegram.svg";
 export { default as trelloLogo } from "./Trello.svg";

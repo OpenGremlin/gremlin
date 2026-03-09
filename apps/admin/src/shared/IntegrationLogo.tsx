@@ -24,6 +24,7 @@ export const logoMap: Record<string, string> = {
   xai: logos.xaiLogo,
   bedrock: logos.bedrockLogo,
   brave: logos.braveLogo,
+  tavily: logos.tavilyLogo,
 };
 
 export function IntegrationLogo({

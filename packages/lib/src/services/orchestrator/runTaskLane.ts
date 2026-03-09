@@ -3,12 +3,12 @@ import { renderPrompt } from "../prompts/index.js";
 import { buildMcpConfig } from "../skills/buildMcpConfig.js";
 import {
   createDocumentTool,
+  createWebSearchTool,
   recallMemoryTool,
   saveMemoryTool,
   updateDocumentTool,
   updateTaskMessageTool,
   webFetch,
-  webSearch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
@@ -86,7 +86,15 @@ export async function runTaskLane(
     taskId,
     systemPrompt,
     tools: {
-      ...(agent.config?.webSearch?.enabled ? { webSearch, webFetch } : {}),
+      ...(agent.config?.webSearch?.enabled
+        ? {
+            webSearch: createWebSearchTool(
+              ctx,
+              agent.config.webSearch.provider ?? "brave",
+            ),
+            webFetch,
+          }
+        : {}),
       updateTaskMessage: updateTaskMessageTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),

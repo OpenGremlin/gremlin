@@ -306,6 +306,14 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "apikey",
     availableScopes: [],
   },
+  {
+    id: "tavily",
+    service: "Tavily",
+    category: "web",
+    description: "AI-optimized web search API",
+    connectionType: "apikey",
+    availableScopes: [],
+  },
   // Productivity
   {
     id: "google",
