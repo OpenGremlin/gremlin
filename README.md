@@ -37,12 +37,12 @@ Most agent platforms ask you to hand over your OAuth credentials to a central se
 2. The app opens your browser for the standard OAuth consent screen
 3. Your browser redirects back to `localhost` — your machine, not a remote server
 4. Gremlin Connect exchanges the authorization code for tokens locally
-5. The resulting access token is sent to your deployed server over HTTPS
+5. The resulting tokens are sent to your deployed server over HTTPS
 
 This means:
 
 - **Your OAuth client secrets stay on your machine.** The server never sees them, stores them, or needs them. There's no secrets vault to manage, no credentials to rotate on the server side.
-- **The AI agents only get access tokens.** They can read your Gmail or create a Linear issue, but they can't mint new tokens, escalate their own permissions, or access services you haven't explicitly connected.
+- **Agents never see your credentials.** The server stores access tokens (and refresh tokens, for providers that issue them), but during inference the agent only receives the short-lived access token needed for the current task. It can read your Gmail or create a Linear issue, but it can't mint new tokens, escalate its own permissions, or access services you haven't explicitly connected.
 - **You don't need to trust anyone's redirect URI.** The OAuth callback goes to `localhost:19284` on your own computer. No DNS hijacking, no shared callback endpoints, no hoping that someone else's server is handling your auth codes correctly.
 
 This is the difference between giving someone a house key and letting them in through the front door while you watch. The agents work for you, but the locks are still yours.
