@@ -1,10 +1,12 @@
 export { default as anthropicLogo } from "./Anthropic.svg";
+export { default as anthropicLogoWhite } from "./Anthropic_white.svg";
 export { default as bedrockLogo } from "./Bedrock.svg";
 export { default as braveLogo } from "./Brave.svg";
 export { default as deepseekLogo } from "./DeepSeek.svg";
 export { default as discordLogo } from "./Discord.svg";
 export { default as geminiLogo } from "./Gemini.svg";
 export { default as githubLogo } from "./GitHub.svg";
+export { default as githubLogoWhite } from "./GitHub_white.svg";
 export { default as gitlabLogo } from "./GitLab.svg";
 export { default as googleLogo } from "./Google.svg";
 export { default as homeAssistantLogo } from "./HomeAssistant.svg";
