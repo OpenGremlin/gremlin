@@ -26,7 +26,7 @@ function Breadcrumbs({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerClassName="flex-row items-center gap-1 px-4 py-3"
-      className="border-b border-neutral-800"
+      className="border-b border-neutral-800 shrink-0 grow-0"
     >
       <Pressable onPress={() => onNavigate("")}>
         <Text className="text-sm text-indigo-400">/workspace</Text>

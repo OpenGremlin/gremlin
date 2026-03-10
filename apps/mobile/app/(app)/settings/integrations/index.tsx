@@ -8,6 +8,7 @@ import {
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
+import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 
 function ConnectionCountBadge({ count }: { count: number }) {
@@ -51,6 +52,7 @@ export default function IntegrationsScreen() {
               onPress={() => router.push(`/settings/connections/${conn.id}`)}
               className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800"
             >
+              <IntegrationLogo id={conn.providerId} size={32} />
               <View className="flex-1 min-w-0">
                 <Text
                   className="text-sm font-medium text-neutral-100"
@@ -94,30 +96,33 @@ export default function IntegrationsScreen() {
                 onPress={() =>
                   router.push(`/settings/integrations/${provider.id}`)
                 }
-                className={`bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
+                className={`flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
                   connected ? "border border-emerald-500/40" : ""
                 }`}
               >
-                <Text className="text-sm font-medium text-neutral-100">
-                  {provider.service}
-                </Text>
-                <Text
-                  className="text-xs text-neutral-400 mt-0.5"
-                  numberOfLines={2}
-                >
-                  {provider.description}
-                </Text>
-                <View className="mt-2">
-                  {provider.connectionType === "bedrock" ? (
-                    <View className="flex-row items-center gap-1">
-                      <CircleCheck size={12} color="#34d399" />
-                      <Text className="text-xs text-emerald-400">
-                        Connected
-                      </Text>
-                    </View>
-                  ) : (
-                    <ConnectionCountBadge count={provider.connectionCount} />
-                  )}
+                <IntegrationLogo id={provider.id} size={36} />
+                <View className="flex-1 min-w-0">
+                  <Text className="text-sm font-medium text-neutral-100">
+                    {provider.service}
+                  </Text>
+                  <Text
+                    className="text-xs text-neutral-400 mt-0.5"
+                    numberOfLines={1}
+                  >
+                    {provider.description}
+                  </Text>
+                  <View className="mt-1">
+                    {provider.connectionType === "bedrock" ? (
+                      <View className="flex-row items-center gap-1">
+                        <CircleCheck size={12} color="#34d399" />
+                        <Text className="text-xs text-emerald-400">
+                          Connected
+                        </Text>
+                      </View>
+                    ) : (
+                      <ConnectionCountBadge count={provider.connectionCount} />
+                    )}
+                  </View>
                 </View>
               </Pressable>
             );

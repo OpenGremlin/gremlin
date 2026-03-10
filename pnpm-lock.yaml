@@ -17,6 +17,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@gremlin/logos':
+        specifier: workspace:*
+        version: link:../../packages/logos
       cronstrue:
         specifier: ^3.13.0
         version: 3.13.0
@@ -151,6 +154,9 @@ importers:
       '@expo/vector-icons':
         specifier: ^15.0.2
         version: 15.1.1(expo-font@55.0.4)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      '@gremlin/logos':
+        specifier: workspace:*
+        version: link:../../packages/logos
       cronstrue:
         specifier: ^3.13.0
         version: 3.13.0
@@ -498,6 +504,8 @@ importers:
       vitest-mock-extended:
         specifier: ^3.1.0
         version: 3.1.0(typescript@5.9.3)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@22.19.13)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+
+  packages/logos: {}
 
   packages/media-server:
     dependencies:
