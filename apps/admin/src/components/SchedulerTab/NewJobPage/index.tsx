@@ -62,19 +62,21 @@ export function NewJobPage() {
         New Job
       </h1>
 
-      <JobForm
-        name={name}
-        onNameChange={setName}
-        agentId={agentId}
-        onAgentIdChange={setAgentId}
-        agents={agents}
-        recurrence={recurrence}
-        onRecurrenceChange={setRecurrence}
-        timezone={timezone}
-        onTimezoneChange={setTimezone}
-        description={description}
-        onDescriptionChange={setDescription}
-      />
+      <div className="space-y-5">
+        <JobForm
+          name={name}
+          onNameChange={setName}
+          agentId={agentId}
+          onAgentIdChange={setAgentId}
+          agents={agents}
+          recurrence={recurrence}
+          onRecurrenceChange={setRecurrence}
+          timezone={timezone}
+          onTimezoneChange={setTimezone}
+          description={description}
+          onDescriptionChange={setDescription}
+        />
+      </div>
 
       {/* Create */}
       <div className="mt-6">

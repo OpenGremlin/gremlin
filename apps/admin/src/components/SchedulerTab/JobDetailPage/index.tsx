@@ -1,5 +1,5 @@
 import cronstrue from "cronstrue";
-import { Play, Trash2 } from "lucide-react";
+import { Calendar, Clock, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
@@ -16,7 +16,9 @@ import {
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
 import { clientLogger } from "../../../logger";
+import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
+import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { TaskCard } from "../../TasksTab/TaskCard";
@@ -115,60 +117,53 @@ export function JobDetailPage() {
   }
 
   return (
-    <div className="p-6">
-      <BackButton />
+    <div className="p-6 max-w-2xl">
+      <BackButton to="/jobs" label="Jobs" />
 
-      <JobForm
-        name={currentName}
-        onNameChange={(val) => setName(val === job.name ? null : val)}
-        agentId={currentAgentId}
-        onAgentIdChange={(val) => setAgentId(val === job.agent.id ? null : val)}
-        agents={agents}
-        showAvatar
-        recurrence={currentRecurrence}
-        onRecurrenceChange={(val) =>
-          setRecurrence(val === job.recurrence ? null : val)
-        }
-        timezone={currentTimezone}
-        onTimezoneChange={(val) =>
-          setTimezone(val === job.timezone ? null : val)
-        }
-        description={currentDescription}
-        onDescriptionChange={(val) =>
-          setDescription(val === job.description ? null : val)
-        }
-      >
-        {cronDisplay && (
-          <div className="mt-2 space-y-1">
-            <p className="text-xs font-mono text-neutral-500">
-              cron: {cronDisplay}
+      {/* Header */}
+      <div className="mt-4 flex items-center gap-4">
+        <AgentAvatar id={job.agent.id} size={48} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold text-neutral-100 truncate">
+              {job.name}
+            </h1>
+            <Badge label={job.status} />
+          </div>
+          <p className="text-sm text-neutral-400 mt-0.5">{job.agent.name}</p>
+        </div>
+      </div>
+
+      {/* Schedule summary card */}
+      <div className="mt-6 bg-neutral-900 rounded-xl p-4 flex flex-wrap gap-x-8 gap-y-3">
+        <div className="flex items-center gap-2">
+          <Calendar size={14} className="text-neutral-500 shrink-0" />
+          <div>
+            <p className="text-xs text-neutral-500">Schedule</p>
+            <p className="text-sm text-neutral-200">
+              {cronHuman ?? job.recurrence}
             </p>
-            {cronHuman && (
-              <p className="text-xs text-neutral-400">{cronHuman}</p>
-            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock size={14} className="text-neutral-500 shrink-0" />
+          <div>
+            <p className="text-xs text-neutral-500">Next run</p>
+            <p className="text-sm text-neutral-200">
+              {formatDate(job.nextRun, "Not scheduled", currentTimezone)}
+            </p>
+          </div>
+        </div>
+        {cronDisplay && (
+          <div>
+            <p className="text-xs text-neutral-500">Cron</p>
+            <p className="text-sm font-mono text-neutral-400">{cronDisplay}</p>
           </div>
         )}
-      </JobForm>
+      </div>
 
-      {/* Save */}
-      {isDirty && (
-        <div className="mt-4">
-          <button
-            type="button"
-            disabled={saving}
-            onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-medium text-white rounded-lg transition-colors"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-          {saveError && (
-            <p className="mt-2 text-sm text-red-400">{saveError}</p>
-          )}
-        </div>
-      )}
-
-      {/* Run now */}
-      <div className="mt-4">
+      {/* Actions */}
+      <div className="mt-4 flex items-center gap-3">
         <button
           type="button"
           disabled={triggering}
@@ -199,34 +194,83 @@ export function JobDetailPage() {
         </button>
       </div>
 
-      {/* Run info */}
-      <div className="mt-4 text-xs text-neutral-400">
-        <p>
-          Next run:{" "}
-          <span className="text-neutral-300">
-            {formatDate(job.nextRun, "Never", currentTimezone)}
-          </span>
-        </p>
+      {/* Edit form */}
+      <div className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-4">
+          Configuration
+        </h2>
+        <div className="bg-neutral-900 rounded-xl p-5 space-y-5">
+          <JobForm
+            name={currentName}
+            onNameChange={(val) => setName(val === job.name ? null : val)}
+            agentId={currentAgentId}
+            onAgentIdChange={(val) =>
+              setAgentId(val === job.agent.id ? null : val)
+            }
+            agents={agents}
+            recurrence={currentRecurrence}
+            onRecurrenceChange={(val) =>
+              setRecurrence(val === job.recurrence ? null : val)
+            }
+            timezone={currentTimezone}
+            onTimezoneChange={(val) =>
+              setTimezone(val === job.timezone ? null : val)
+            }
+            description={currentDescription}
+            onDescriptionChange={(val) =>
+              setDescription(val === job.description ? null : val)
+            }
+          />
+
+          {isDirty && (
+            <div className="flex items-center gap-3 pt-2 border-t border-neutral-800">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-medium text-white rounded-lg transition-colors"
+              >
+                {saving ? "Saving..." : "Save changes"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setName(null);
+                  setRecurrence(null);
+                  setDescription(null);
+                  setAgentId(null);
+                  setTimezone(null);
+                }}
+                className="px-4 py-2 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+              >
+                Discard
+              </button>
+              {saveError && <p className="text-sm text-red-400">{saveError}</p>}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Previous Runs */}
-      <section className="mt-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-2">
+      {/* History */}
+      <div className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-3">
           History
         </h2>
         {job.tasks.length === 0 ? (
-          <p className="text-sm text-neutral-500">No previous runs yet.</p>
+          <div className="bg-neutral-900 rounded-xl p-6 text-center">
+            <p className="text-sm text-neutral-500">No previous runs yet.</p>
+          </div>
         ) : (
-          <div className="divide-y divide-neutral-800 -mx-4">
+          <div className="bg-neutral-900 rounded-xl overflow-hidden divide-y divide-neutral-800">
             {job.tasks.map((t) => (
               <TaskCard key={t.id} item={t} />
             ))}
           </div>
         )}
-      </section>
+      </div>
 
-      {/* Delete Job */}
-      <section className="mt-8 mb-4">
+      {/* Danger zone */}
+      <div className="mt-8 mb-4 pt-6 border-t border-neutral-800/60">
         <button
           type="button"
           disabled={deleting}
@@ -249,9 +293,9 @@ export function JobDetailPage() {
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-50"
         >
           <Trash2 size={16} />
-          {deleting ? "Deleting…" : "Delete Job"}
+          {deleting ? "Deleting..." : "Delete Job"}
         </button>
-      </section>
+      </div>
     </div>
   );
 }
