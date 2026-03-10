@@ -5,14 +5,18 @@ import type { ServiceContext } from "../context.js";
 export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
-      "Delegate a task to run in the background. Use this when the user's request involves work that can be done asynchronously (e.g., writing a document, research). The task runs in a separate thread and the user can check on it later.",
+      "Delegate work to a background task. The task runs asynchronously with access to a sandbox shell, MCP skills, and document tools. Use for: sandbox/shell work, bulk file processing, multi-step workflows, or anything requiring skills. Include all relevant context and file paths in the prompt — the task cannot see the conversation history.",
     inputSchema: z.object({
       title: z
         .string()
         .describe(
           'Short title for the task. Start with a verb and only uppercase the beginning, like a commit message (e.g. "Write a space cat story", "Research competitor pricing").',
         ),
-      prompt: z.string().describe("Detailed instructions for the task"),
+      prompt: z
+        .string()
+        .describe(
+          "Detailed instructions for the task. Include all necessary context, file paths, and requirements — the task runs independently and cannot see the main conversation.",
+        ),
     }),
     execute: async ({ title, prompt }) => {
       const task = await ctx.services.tasks.createTask(ctx, {
