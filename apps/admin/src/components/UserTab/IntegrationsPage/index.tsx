@@ -5,6 +5,7 @@ import {
   IntegrationProvidersQuery,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { groupByCategory } from "../../../shared/categories";
 import { formatDate } from "../../../shared/formatDate";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
@@ -30,6 +31,7 @@ function getAccountId(
 }
 
 export function IntegrationsPage() {
+  useTitle("Integrations");
   const providers = useQuery(IntegrationProvidersQuery);
   const connections = useQuery(IntegrationConnectionsQuery);
 

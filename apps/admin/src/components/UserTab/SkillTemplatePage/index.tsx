@@ -11,6 +11,7 @@ import {
 } from "../../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../../graphql/queries/integrations";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { ConnectionPicker } from "../../../shared/ConnectionPicker";
@@ -22,6 +23,7 @@ export function SkillTemplatePage() {
   const { data, loading, error } = useQuery(SkillTemplateQuery, {
     id: templateId ?? "",
   });
+  useTitle(data?.skillTemplate?.name ?? "Skill");
   const {
     data: skillsData,
     loading: skillsLoading,

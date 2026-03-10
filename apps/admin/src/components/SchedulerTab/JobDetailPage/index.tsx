@@ -15,6 +15,7 @@ import {
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
@@ -30,6 +31,7 @@ export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useQuery(AgentJobQuery, { id: id ?? "" });
   const { data: agentsData } = useQuery(AgentsQuery);
+  useTitle(data?.agentJob?.name ?? "Job");
 
   const [name, setName] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<string | null>(null);

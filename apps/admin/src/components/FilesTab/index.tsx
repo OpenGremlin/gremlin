@@ -2,6 +2,7 @@ import { File, Folder } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { WorkspaceEntriesQuery } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
+import { useTitle } from "../../hooks/useTitle";
 import { QueryResult } from "../../shared/QueryResult";
 
 function Breadcrumbs({
@@ -47,6 +48,7 @@ function Breadcrumbs({
 }
 
 export function FilesTab() {
+  useTitle("Files");
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const dirPath = params.get("path") ?? "";

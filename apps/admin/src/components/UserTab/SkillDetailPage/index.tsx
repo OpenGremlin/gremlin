@@ -9,6 +9,7 @@ import {
 } from "../../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../../graphql/queries/integrations";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { BackButton } from "../../../shared/BackButton";
 import { Badge } from "../../../shared/Badge";
 import { ConnectionPicker } from "../../../shared/ConnectionPicker";
@@ -18,6 +19,7 @@ export function SkillDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, loading, error } = useQuery(SkillQuery, { id: id ?? "" });
+  useTitle(data?.skill?.template?.name ?? "Skill");
   const {
     data: connectionsData,
     loading: connectionsLoading,

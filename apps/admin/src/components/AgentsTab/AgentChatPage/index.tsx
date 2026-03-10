@@ -9,6 +9,7 @@ import {
 } from "../../../hooks/useLogMessages";
 import { useQuery } from "../../../hooks/useQuery";
 import { useSandboxOutput } from "../../../hooks/useSandboxOutput";
+import { useTitle } from "../../../hooks/useTitle";
 import { PendingMessageBubble } from "../../../shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
 import { ChatHeader } from "./ChatHeader";
@@ -19,6 +20,7 @@ export function AgentChatPage() {
   const { id, taskId } = useParams<{ id: string; taskId?: string }>();
   const navigate = useNavigate();
   const { data, loading, error } = useQuery(AgentQuery, { id: id ?? "" });
+  useTitle(data?.agent?.name ?? "Chat");
 
   const agentChat = useLogMessages({ agentId: id ?? "" });
   const taskChat = useLogMessages({ taskId: taskId ?? "" });

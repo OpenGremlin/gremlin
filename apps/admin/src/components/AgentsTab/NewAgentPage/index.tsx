@@ -2,11 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { gql } from "../../../auth";
 import type { CreateAgentMutation } from "../../../graphql/generated/graphql";
 import { CreateAgentMutation as CreateAgentDoc } from "../../../graphql/queries";
+import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
 import { AgentForm, type AgentFormValues } from "../AgentForm";
 
 export function NewAgentPage() {
+  useTitle("New Agent");
   const navigate = useNavigate();
 
   async function onSubmit(values: AgentFormValues) {

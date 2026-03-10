@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { WorkspaceFileQuery } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { BackButton } from "../../../shared/BackButton";
 import { QueryResult } from "../../../shared/QueryResult";
 
@@ -8,6 +9,7 @@ export function FileViewPage() {
   const [params] = useSearchParams();
   const filePath = params.get("path") ?? "";
   const fileName = filePath.split("/").pop() ?? filePath;
+  useTitle(fileName || "File");
 
   const { data, loading, error } = useQuery(WorkspaceFileQuery, {
     path: filePath,

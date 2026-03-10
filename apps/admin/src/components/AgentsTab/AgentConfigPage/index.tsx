@@ -15,6 +15,7 @@ import {
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
 import { useSubscription } from "../../../hooks/useSubscription";
+import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { preloadImages } from "../../../preloadImages";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
@@ -32,6 +33,7 @@ export function AgentConfigPage() {
     id: id ?? "",
   });
   const avatarsResult = useQuery(AvatarsQuery);
+  useTitle(data?.agent ? `${data.agent.name} Config` : "Agent Config");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [voicePickerOpen, setVoicePickerOpen] = useState(false);
 

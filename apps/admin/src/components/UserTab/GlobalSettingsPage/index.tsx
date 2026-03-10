@@ -5,10 +5,12 @@ import {
   UpdateGlobalSettingsMutation,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
 
 export function GlobalSettingsPage() {
+  useTitle("Global Settings");
   const { data, loading, error, refetch } = useQuery(GlobalSettingsQuery);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);

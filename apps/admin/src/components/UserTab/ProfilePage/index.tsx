@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { gql } from "../../../auth";
 import { ProfileQuery, UpdateProfileMutation } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
@@ -18,6 +19,7 @@ interface ProfileFormValues {
 }
 
 export function ProfilePage() {
+  useTitle("Profile");
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
 

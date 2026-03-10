@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { gql } from "../../auth";
 import { AgentJobsQuery } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
+import { useTitle } from "../../hooks/useTitle";
 import { AgentAvatar } from "../../shared/AgentAvatar";
 import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
@@ -46,6 +47,7 @@ function RunNowButton({ jobId }: { jobId: string }) {
 }
 
 export function SchedulerTab() {
+  useTitle("Jobs");
   const { data, loading, error } = useQuery(AgentJobsQuery);
 
   const jobs = data?.agentJobs ?? [];

@@ -10,6 +10,7 @@ import {
   SetDefaultModelMutation,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { BackButton } from "../../../shared/BackButton";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
@@ -379,12 +380,13 @@ function OAuthDetailView({ provider }: { provider: { service: string } }) {
 export function IntegrationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error, refetch } = useQuery(IntegrationProvidersQuery);
+  const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
+  useTitle(provider?.service ?? "Integration");
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
 
-  const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
   const defaultModel = data?.defaultModel ?? null;
 
   if (!provider) {

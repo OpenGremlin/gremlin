@@ -7,6 +7,7 @@ import {
   RevokeConnectionMutation,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { BackButton } from "../../../shared/BackButton";
 import { formatDate } from "../../../shared/formatDate";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
@@ -18,6 +19,9 @@ export function ConnectionDetailPage() {
   const { data, loading, error, refetch } = useQuery(
     IntegrationConnectionsQuery,
   );
+  const connection =
+    data?.integrationConnections.find((c) => c.id === id) ?? null;
+  useTitle(connection?.description ?? "Connection");
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -31,9 +35,6 @@ export function ConnectionDetailPage() {
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
   }
-
-  const connection =
-    data?.integrationConnections.find((c) => c.id === id) ?? null;
 
   if (!connection) {
     return <NotFound label="Connection not found." />;

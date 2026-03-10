@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AgentsQuery } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
+import { useTitle } from "../../hooks/useTitle";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
 import { AgentCard } from "./AgentCard";
 
 export function AgentsTab() {
+  useTitle("Agents");
   const { data, loading, error } = useQuery(AgentsQuery);
   const [showRetired, setShowRetired] = useState(false);
 

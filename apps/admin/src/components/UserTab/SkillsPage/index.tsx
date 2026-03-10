@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { SkillsQuery, SkillTemplatesQuery } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { groupByCategory } from "../../../shared/categories";
 import { IntegrationLogo } from "../../../shared/IntegrationLogo";
 import { QueryResult } from "../../../shared/QueryResult";
@@ -19,6 +20,7 @@ function InstallCountBadge({ count }: { count: number }) {
 }
 
 export function SkillsPage() {
+  useTitle("Skills");
   const [query, setQuery] = useState("");
   const {
     data: skillsData,

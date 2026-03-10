@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import { TasksQuery } from "../../graphql/queries";
 import { usePaginatedQuery } from "../../hooks/usePaginatedQuery";
+import { useTitle } from "../../hooks/useTitle";
 import { QueryResult } from "../../shared/QueryResult";
 import { TaskCard } from "./TaskCard";
 
 export function TasksTab() {
+  useTitle("Gremlin");
   const { nodes, loading, loadingMore, error, hasMore, loadMore } =
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",

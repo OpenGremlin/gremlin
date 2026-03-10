@@ -7,11 +7,13 @@ import {
   CreateAgentJobMutation as CreateAgentJobDoc,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { BackButton } from "../../../shared/BackButton";
 import { JobForm } from "../JobForm";
 
 export function NewJobPage() {
+  useTitle("New Job");
   const { data: agentsData } = useQuery(AgentsQuery);
   const agents = agentsData?.agents ?? [];
 
