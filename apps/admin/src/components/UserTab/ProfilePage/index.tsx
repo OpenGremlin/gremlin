@@ -8,6 +8,7 @@ import { clientLogger } from "../../../logger";
 import { AutoTextarea } from "../../../shared/AutoTextarea";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
+import { SelectWrapper } from "../../../shared/SelectWrapper";
 
 const TIMEZONES = Intl.supportedValuesOf("timeZone");
 
@@ -109,17 +110,19 @@ export function ProfilePage() {
         <label htmlFor="profile-timezone" className="text-xs text-neutral-500">
           Timezone
         </label>
-        <select
-          id="profile-timezone"
-          {...register("timezone")}
-          className="w-full bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
-        >
-          {TIMEZONES.map((tz) => (
-            <option key={tz} value={tz}>
-              {tz.replace(/_/g, " ")}
-            </option>
-          ))}
-        </select>
+        <SelectWrapper>
+          <select
+            id="profile-timezone"
+            {...register("timezone")}
+            className="w-full appearance-none bg-neutral-900 text-sm text-neutral-100 rounded-lg px-3 py-2 pr-9 outline-none border border-neutral-800 focus:border-neutral-700 transition-colors"
+          >
+            {TIMEZONES.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </SelectWrapper>
       </div>
 
       <div className="flex items-center gap-3">

@@ -1,4 +1,5 @@
 import type { Agent as GqlAgent } from "../../graphql/generated/graphql";
+import { SelectWrapper } from "../../shared/SelectWrapper";
 
 type Agent = Pick<GqlAgent, "id" | "name">;
 
@@ -7,6 +8,7 @@ const TIMEZONES = Intl.supportedValuesOf("timeZone");
 const labelClass = "text-xs font-medium text-neutral-400 mb-1.5 block";
 const inputClass =
   "w-full bg-neutral-800 text-sm text-neutral-100 rounded-lg px-3 py-2 border border-neutral-700 focus:outline-none focus:border-neutral-500";
+const selectClass = `${inputClass} appearance-none pr-9`;
 
 export function JobForm({
   name,
@@ -59,19 +61,21 @@ export function JobForm({
         <label htmlFor="job-agent" className={labelClass}>
           Agent
         </label>
-        <select
-          id="job-agent"
-          value={agentId}
-          onChange={(e) => onAgentIdChange(e.target.value)}
-          className={inputClass}
-        >
-          {!showAvatar && <option value="">Default</option>}
-          {agents.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
+        <SelectWrapper>
+          <select
+            id="job-agent"
+            value={agentId}
+            onChange={(e) => onAgentIdChange(e.target.value)}
+            className={selectClass}
+          >
+            {!showAvatar && <option value="">Default</option>}
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </SelectWrapper>
       </div>
 
       {/* Schedule + Timezone row */}
@@ -94,18 +98,20 @@ export function JobForm({
           <label htmlFor="job-timezone" className={labelClass}>
             Timezone
           </label>
-          <select
-            id="job-timezone"
-            value={timezone}
-            onChange={(e) => onTimezoneChange(e.target.value)}
-            className={inputClass}
-          >
-            {TIMEZONES.map((tz) => (
-              <option key={tz} value={tz}>
-                {tz.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
+          <SelectWrapper>
+            <select
+              id="job-timezone"
+              value={timezone}
+              onChange={(e) => onTimezoneChange(e.target.value)}
+              className={selectClass}
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </SelectWrapper>
         </div>
       </div>
 
