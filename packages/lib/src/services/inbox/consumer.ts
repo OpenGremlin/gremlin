@@ -1,4 +1,3 @@
-import { TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { createLogger } from "../../logger.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
@@ -223,7 +222,11 @@ async function processNonTaskItem(
   agentId: string,
   item: InboxItemItem,
 ) {
+  const payload = JSON.parse(item.payload);
   switch (item.type) {
+    case "scheduled_job":
+      await handleScheduledJob(ctx, agentId, payload);
+      break;
     case "core_memory_review":
       await ctx.services.memory
         .reviewCoreMemories(ctx, agentId)
@@ -234,17 +237,15 @@ async function processNonTaskItem(
           ),
         );
       break;
-    case "file_upload": {
-      const payload = JSON.parse(item.payload);
+    case "file_upload":
       await writeFileUploadLog(ctx, agentId, null, payload);
       break;
-    }
   }
 }
 
 /**
- * Process a scheduled job: dedup via TransactWrite, create task,
- * anchor in main-lane log, then run.
+ * Process a scheduled job: write the job description as a system message
+ * to the main lane and let the agent decide how to handle it.
  */
 async function handleScheduledJob(
   ctx: ServiceContext,
@@ -257,80 +258,19 @@ async function handleScheduledJob(
     return;
   }
 
-  const taskId = crypto.randomUUID();
-  const now = new Date().toISOString();
-  const table = ctx.resources.ddb.table;
-  const tableName = table.getName();
-
-  try {
-    await table.getDocumentClient().send(
-      new TransactWriteCommand({
-        TransactItems: [
-          {
-            Put: {
-              TableName: tableName,
-              Item: {
-                _et: "CronJobTrigger",
-                pk: `AGENT_JOB#${job.id}`,
-                sk: `TRIGGER#${payload.triggerTimeMs}`,
-                jobId: job.id,
-                triggerTimeMs: String(payload.triggerTimeMs),
-                taskId,
-                createdAt: now,
-              },
-              ConditionExpression: "attribute_not_exists(pk)",
-            },
-          },
-          {
-            Put: {
-              TableName: tableName,
-              Item: {
-                _et: "Task",
-                pk: "TASK",
-                sk: `TASK#${taskId}`,
-                gsi1pk: `TASK_AGENT#${agentId}`,
-                gsi1sk: now,
-                gsi2pk: "TASK_ALL",
-                gsi2sk: `${now}#${taskId}`,
-                id: taskId,
-                agentId,
-                title: job.name,
-                status: "PENDING",
-                message: null,
-                image: null,
-                createdAt: now,
-                updatedAt: now,
-                completedAt: null,
-                originJobId: job.id,
-                artifacts: [],
-              },
-            },
-          },
-        ],
-      }),
-    );
-  } catch (err: unknown) {
-    // Transaction cancelled = CronJobTrigger already exists → skip
-    if (err instanceof Error && err.name === "TransactionCanceledException") {
-      return;
-    }
-    throw err;
-  }
-
   ctx.log.info(
-    { jobId: job.id, jobName: job.name, taskId },
-    "Triggered job → task created",
+    { jobId: job.id, jobName: job.name },
+    "Triggered scheduled job → main lane",
   );
 
-  // Anchor in main-lane log so the UI can attach the sub-thread
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId,
     taskId: null,
     role: "SYSTEM",
-    content: `Scheduled task started: ${job.name}`,
+    content: `[Scheduled Job: ${job.name}]\n\n${job.description}`,
   });
 
-  await ctx.services.orchestrator.runTaskLane(ctx, taskId, job.description);
+  await ctx.services.orchestrator.runMainLane(ctx, agentId, job.description);
 }
 
 /**
