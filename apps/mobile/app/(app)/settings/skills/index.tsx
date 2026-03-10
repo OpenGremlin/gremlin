@@ -61,9 +61,7 @@ export default function SkillsScreen() {
           {filteredInstalled.map((skill) => (
             <Pressable
               key={skill.id}
-              onPress={() =>
-                router.push(`/(app)/(settings)/skills/${skill.id}`)
-              }
+              onPress={() => router.push(`/settings/skills/${skill.id}`)}
               className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800"
             >
               <View className="flex-1 min-w-0">
@@ -99,7 +97,7 @@ export default function SkillsScreen() {
             <Pressable
               key={template.id}
               onPress={() =>
-                router.push(`/(app)/(settings)/skills/catalog/${template.id}`)
+                router.push(`/settings/skills/catalog/${template.id}`)
               }
               className={`bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
                 template.installCount > 0 ? "border border-emerald-500/40" : ""

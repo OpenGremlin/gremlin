@@ -8,15 +8,15 @@ const items: Array<{
   icon: LucideIcon;
   href: string;
 }> = [
-  { label: "Profile", icon: User, href: "/(app)/(settings)/profile" },
-  { label: "Skills", icon: Sparkles, href: "/(app)/(settings)/skills" },
+  { label: "Profile", icon: User, href: "/settings/profile" },
+  { label: "Skills", icon: Sparkles, href: "/settings/skills" },
   {
     label: "Integrations",
     icon: Plug,
-    href: "/(app)/(settings)/integrations",
+    href: "/settings/integrations",
   },
-  { label: "Files", icon: FolderOpen, href: "/(app)/(settings)/files" },
-  { label: "Global", icon: Globe, href: "/(app)/(settings)/global" },
+  { label: "Files", icon: FolderOpen, href: "/settings/files" },
+  { label: "Global", icon: Globe, href: "/settings/global" },
 ];
 
 export default function SettingsScreen() {

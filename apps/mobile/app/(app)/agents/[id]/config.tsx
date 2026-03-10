@@ -88,7 +88,7 @@ export default function AgentConfigScreen() {
           setRetiring(true);
           try {
             await gql(RetireAgentMutation, { id });
-            router.replace("/(app)/(agents)");
+            router.replace("/agents");
           } catch (err) {
             setSaveError(
               err instanceof Error ? err.message : "Failed to retire agent",

@@ -26,7 +26,7 @@ export default function NewAgentScreen() {
         CreateAgentMutation,
         { name: name.trim(), soul: soul.trim() },
       );
-      router.replace(`/(app)/(agents)/${result.createAgent.id}/config`);
+      router.replace(`/agents/${result.createAgent.id}/config`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create agent");
     } finally {

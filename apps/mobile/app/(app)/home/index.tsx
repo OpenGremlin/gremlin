@@ -39,13 +39,11 @@ function TaskCard({ item }: { item: TaskItem }) {
 
   return (
     <Pressable
-      onPress={() =>
-        router.push(`/(app)/(agents)/${agent.id}/tasks/${task.id}`)
-      }
+      onPress={() => router.push(`/agents/${agent.id}/tasks/${task.id}`)}
       className="px-4 py-4 active:bg-neutral-900/50"
     >
       <View className="flex-row items-start gap-3">
-        <Pressable onPress={() => router.push(`/(app)/(agents)/${agent.id}`)}>
+        <Pressable onPress={() => router.push(`/agents/${agent.id}`)}>
           <AgentAvatar id={agent.id} />
         </Pressable>
         <View className="flex-1 min-w-0">

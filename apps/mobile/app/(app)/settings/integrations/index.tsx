@@ -48,9 +48,7 @@ export default function IntegrationsScreen() {
           {connectionList.map((conn) => (
             <Pressable
               key={conn.id}
-              onPress={() =>
-                router.push(`/(app)/(settings)/connections/${conn.id}`)
-              }
+              onPress={() => router.push(`/settings/connections/${conn.id}`)}
               className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800"
             >
               <View className="flex-1 min-w-0">
@@ -94,7 +92,7 @@ export default function IntegrationsScreen() {
               <Pressable
                 key={provider.id}
                 onPress={() =>
-                  router.push(`/(app)/(settings)/integrations/${provider.id}`)
+                  router.push(`/settings/integrations/${provider.id}`)
                 }
                 className={`bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
                   connected ? "border border-emerald-500/40" : ""

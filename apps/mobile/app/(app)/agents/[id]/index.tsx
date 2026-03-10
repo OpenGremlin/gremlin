@@ -188,7 +188,7 @@ export default function AgentChatScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <Pressable
-        onPress={() => router.push(`/(app)/(agents)/${id}/config`)}
+        onPress={() => router.push(`/agents/${id}/config`)}
         className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800"
       >
         <AgentAvatar id={id} size={32} />

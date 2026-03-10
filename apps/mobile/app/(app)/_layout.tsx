@@ -6,6 +6,7 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        href: null,
         tabBarStyle: {
           backgroundColor: "#0a0a0a",
           borderTopColor: "#262626",
@@ -18,36 +19,36 @@ export default function AppLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name="home"
         options={{
+          href: "/home",
           title: "Home",
-          href: "/(app)/(home)",
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="(agents)"
+        name="agents"
         options={{
+          href: "/agents",
           title: "Agents",
-          href: "/(app)/(agents)",
           tabBarIcon: ({ color, size }) => <Bot size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="(jobs)"
+        name="jobs"
         options={{
+          href: "/jobs",
           title: "Jobs",
-          href: "/(app)/(jobs)",
           tabBarIcon: ({ color, size }) => (
             <Calendar size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="(settings)"
+        name="settings"
         options={{
+          href: "/settings",
           title: "Settings",
-          href: "/(app)/(settings)",
           tabBarIcon: ({ color, size }) => (
             <Settings size={size} color={color} />
           ),

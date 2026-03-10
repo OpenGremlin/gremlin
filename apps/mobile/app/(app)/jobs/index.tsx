@@ -52,7 +52,7 @@ export default function JobsScreen() {
       {jobs.map((job) => (
         <Pressable
           key={job.id}
-          onPress={() => router.push(`/(app)/(jobs)/${job.id}`)}
+          onPress={() => router.push(`/jobs/${job.id}`)}
           className={`bg-neutral-900 rounded-xl p-4 ${job.paused ? "opacity-50" : ""}`}
         >
           <View className="flex-row items-center gap-3">
@@ -89,7 +89,7 @@ export default function JobsScreen() {
       ))}
 
       <Pressable
-        onPress={() => router.push("/(app)/(jobs)/new")}
+        onPress={() => router.push("/jobs/new")}
         className="self-start flex-row items-center gap-1.5 py-2"
       >
         <Plus size={14} color="#737373" />

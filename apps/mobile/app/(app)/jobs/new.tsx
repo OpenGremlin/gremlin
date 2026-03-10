@@ -42,7 +42,7 @@ export default function NewJobScreen() {
           },
         },
       );
-      router.replace(`/(app)/(jobs)/${result.createAgentJob.id}`);
+      router.replace(`/jobs/${result.createAgentJob.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create job");
     } finally {

@@ -33,7 +33,7 @@ export default function LoginScreen() {
     try {
       const { idToken } = await cognitoLogin(email, password);
       await login(idToken);
-      router.replace("/(app)/(home)");
+      router.replace("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -49,7 +49,7 @@ export default function LoginScreen() {
       if (userConfirmed) {
         const { idToken } = await cognitoLogin(email, password);
         await login(idToken);
-        router.replace("/(app)/(home)");
+        router.replace("/home");
       } else {
         setMode("confirm");
       }
@@ -67,7 +67,7 @@ export default function LoginScreen() {
       await cognitoConfirmSignup(email, code);
       const { idToken } = await cognitoLogin(email, password);
       await login(idToken);
-      router.replace("/(app)/(home)");
+      router.replace("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Confirmation failed");
     } finally {

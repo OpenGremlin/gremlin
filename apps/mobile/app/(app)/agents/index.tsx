@@ -14,7 +14,7 @@ function AgentCard({ agent }: { agent: Agent }) {
   return (
     <View className="bg-neutral-900 rounded-xl p-4 flex-row items-start gap-3">
       <Pressable
-        onPress={() => router.push(`/(app)/(agents)/${agent.id}`)}
+        onPress={() => router.push(`/agents/${agent.id}`)}
         className="flex-1 min-w-0 flex-row items-start gap-3"
       >
         <AgentAvatar id={agent.id} />
@@ -33,7 +33,7 @@ function AgentCard({ agent }: { agent: Agent }) {
         </View>
       </Pressable>
       <Pressable
-        onPress={() => router.push(`/(app)/(agents)/${agent.id}/config`)}
+        onPress={() => router.push(`/agents/${agent.id}/config`)}
         className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-neutral-800"
       >
         <Settings size={16} color="#737373" />
@@ -59,7 +59,7 @@ export default function AgentsScreen() {
       ))}
 
       <Pressable
-        onPress={() => router.push("/(app)/(agents)/new")}
+        onPress={() => router.push("/agents/new")}
         className="self-start flex-row items-center gap-1.5 py-2"
       >
         <Plus size={14} color="#737373" />

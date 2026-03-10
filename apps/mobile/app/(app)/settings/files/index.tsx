@@ -74,7 +74,7 @@ export default function FilesScreen() {
                 setDirPath(entry.path);
               } else {
                 router.push(
-                  `/(app)/(settings)/files/view?path=${encodeURIComponent(entry.path)}`,
+                  `/settings/files/view?path=${encodeURIComponent(entry.path)}`,
                 );
               }
             }}

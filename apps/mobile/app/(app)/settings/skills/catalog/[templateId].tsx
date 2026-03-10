@@ -40,7 +40,7 @@ export default function SkillTemplateScreen() {
         InstallSkillMutation,
         { templateId },
       );
-      router.replace(`/(app)/(settings)/skills/${result.installSkill.id}`);
+      router.replace(`/settings/skills/${result.installSkill.id}`);
     } finally {
       setInstalling(false);
     }
