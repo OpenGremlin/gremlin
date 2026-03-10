@@ -50,10 +50,7 @@ export function formatWithFrontmatter(title: string, body: string): string {
   return `---\ntitle: ${title}\n---\n${body}`;
 }
 
-export function createDocumentTool(
-  ctx: ServiceContext,
-  taskId: string | null,
-) {
+export function createDocumentTool(ctx: ServiceContext, taskId: string | null) {
   return tool({
     description:
       "Create a new document. Use this for any substantial written output (stories, reports, plans, etc.).",
