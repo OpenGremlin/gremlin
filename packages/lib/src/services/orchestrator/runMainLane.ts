@@ -2,10 +2,12 @@ import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import {
   createBraveSearchTool,
+  createDocumentTool,
   createTavilySearchTool,
   delegateTaskTool,
   recallMemoryTool,
   saveMemoryTool,
+  updateDocumentTool,
   webFetch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
@@ -46,6 +48,8 @@ export async function runMainLane(
       ...(agent.config?.webSearch?.enabled
         ? webSearchTools(ctx, agent.config.webSearch.provider ?? "brave")
         : {}),
+      createDocument: createDocumentTool(ctx, null),
+      updateDocument: updateDocumentTool(ctx),
       delegateTask: delegateTaskTool(ctx, agentId),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),

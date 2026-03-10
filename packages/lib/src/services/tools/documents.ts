@@ -50,10 +50,13 @@ export function formatWithFrontmatter(title: string, body: string): string {
   return `---\ntitle: ${title}\n---\n${body}`;
 }
 
-export function createDocumentTool(ctx: ServiceContext, taskId: string) {
+export function createDocumentTool(
+  ctx: ServiceContext,
+  taskId: string | null,
+) {
   return tool({
     description:
-      "Create a new document artifact attached to this task. Use this for any substantial written output (stories, reports, plans, etc.).",
+      "Create a new document. Use this for any substantial written output (stories, reports, plans, etc.).",
     inputSchema: z.object({
       title: z.string().describe("Document title"),
       body: z.string().describe("Document body in markdown"),
@@ -68,7 +71,9 @@ export function createDocumentTool(ctx: ServiceContext, taskId: string) {
       const relativePath = path.relative(workspace, filePath);
 
       await fs.writeFile(filePath, formatWithFrontmatter(title, body), "utf-8");
-      await ctx.services.tasks.addTaskArtifact(ctx, taskId, relativePath);
+      if (taskId) {
+        await ctx.services.tasks.addTaskArtifact(ctx, taskId, relativePath);
+      }
       return { path: relativePath, title };
     },
   });
