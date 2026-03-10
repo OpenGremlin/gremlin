@@ -19,9 +19,9 @@ import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
 import { BackButton } from "../../../shared/BackButton";
-import { Badge } from "../../../shared/Badge";
 import { formatDate } from "../../../shared/formatDate";
 import { NotFound, QueryResult } from "../../../shared/QueryResult";
+import { Toggle } from "../../../shared/Toggle";
 import { TaskCard } from "../../TasksTab/TaskCard";
 import { JobForm } from "../JobForm";
 
@@ -29,9 +29,11 @@ type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error } = useQuery(AgentJobQuery, { id: id ?? "" });
+  const { data, loading, error, refetch } = useQuery(AgentJobQuery, {
+    id: id ?? "",
+  });
   const { data: agentsData } = useQuery(AgentsQuery);
-  useTitle(data?.agentJob?.name ?? "Job");
+  useTitle(data?.agentJob ? `Job - ${data.agentJob.name}` : "Job");
 
   const [name, setName] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function JobDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [triggering, setTriggering] = useState(false);
   const [triggered, setTriggered] = useState(false);
+  const [togglingPause, setTogglingPause] = useState(false);
   const navigate = useNavigate();
 
   // Snapshot from server
@@ -126,74 +129,104 @@ export function JobDetailPage() {
       <div className="mt-4 flex items-center gap-4">
         <AgentAvatar id={job.agent.id} size={48} />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-neutral-100 truncate">
-              {job.name}
-            </h1>
-            <Badge label={job.status} />
-          </div>
+          <h1 className="text-xl font-semibold text-neutral-100 truncate">
+            {job.name}
+          </h1>
           <p className="text-sm text-neutral-400 mt-0.5">{job.agent.name}</p>
         </div>
       </div>
 
       {/* Schedule summary card */}
-      <div className="mt-6 bg-neutral-900 rounded-xl p-4 flex flex-wrap gap-x-8 gap-y-3">
-        <div className="flex items-center gap-2">
-          <Calendar size={14} className="text-neutral-500 shrink-0" />
-          <div>
-            <p className="text-xs text-neutral-500">Schedule</p>
-            <p className="text-sm text-neutral-200">
-              {cronHuman ?? job.recurrence}
-            </p>
+      <div className={`mt-6 bg-neutral-900 rounded-xl p-4 transition-opacity ${job.paused ? "opacity-40" : ""}`}>
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-neutral-500 shrink-0" />
+            <div>
+              <p className="text-xs text-neutral-500">Schedule</p>
+              <p className="text-sm text-neutral-200">
+                {cronHuman ?? job.recurrence}
+              </p>
+            </div>
           </div>
+          <div className="flex items-center gap-2">
+            <Clock size={14} className="text-neutral-500 shrink-0" />
+            <div>
+              <p className="text-xs text-neutral-500">Next run</p>
+              <p className="text-sm text-neutral-200">
+                {job.paused ? "Paused" : formatDate(job.nextRun, "Not scheduled", currentTimezone)}
+              </p>
+            </div>
+          </div>
+          {cronDisplay && (
+            <div>
+              <p className="text-xs text-neutral-500">Cron</p>
+              <p className="text-sm font-mono text-neutral-400">{cronDisplay}</p>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Clock size={14} className="text-neutral-500 shrink-0" />
-          <div>
-            <p className="text-xs text-neutral-500">Next run</p>
-            <p className="text-sm text-neutral-200">
-              {formatDate(job.nextRun, "Not scheduled", currentTimezone)}
-            </p>
-          </div>
-        </div>
-        {cronDisplay && (
-          <div>
-            <p className="text-xs text-neutral-500">Cron</p>
-            <p className="text-sm font-mono text-neutral-400">{cronDisplay}</p>
-          </div>
-        )}
       </div>
 
-      {/* Actions */}
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          type="button"
-          disabled={triggering}
-          onClick={async () => {
-            setTriggering(true);
-            try {
-              await gql(
-                `mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`,
-                { id },
-              );
-              setTriggered(true);
-              setTimeout(() => setTriggered(false), 3000);
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              clientLogger.error("Failed to trigger job", {
-                jobId: id,
-                error: msg,
-              });
-              setSaveError(msg);
-            } finally {
-              setTriggering(false);
-            }
-          }}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
-        >
-          <Play size={14} />
-          {triggering ? "Triggering..." : triggered ? "Triggered" : "Run now"}
-        </button>
+      {/* Pause toggle + actions */}
+      <div className="mt-4 flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Toggle
+            enabled={job.paused}
+            disabled={togglingPause}
+            onChange={async () => {
+              setTogglingPause(true);
+              try {
+                const result = await gql<UpdateAgentJobMutation>(UpdateAgentJobDoc, {
+                  id,
+                  input: { paused: !job.paused },
+                });
+                setSavedJob({
+                  ...job,
+                  ...result.updateAgentJob,
+                  tasks: job.tasks,
+                } as Job);
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                setSaveError(msg);
+              } finally {
+                setTogglingPause(false);
+              }
+            }}
+          />
+          <span className="text-sm text-neutral-300">Pause schedule</span>
+        </div>
+
+        <div className="flex-1" />
+
+        {!job.paused && (
+          <button
+            type="button"
+            disabled={triggering}
+            onClick={async () => {
+              setTriggering(true);
+              try {
+                await gql(
+                  `mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`,
+                  { id },
+                );
+                setTriggered(true);
+                setTimeout(() => setTriggered(false), 3000);
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                clientLogger.error("Failed to trigger job", {
+                  jobId: id,
+                  error: msg,
+                });
+                setSaveError(msg);
+              } finally {
+                setTriggering(false);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Play size={14} />
+            {triggering ? "Triggering..." : triggered ? "Triggered" : "Run now"}
+          </button>
+        )}
       </div>
 
       {/* Edit form */}

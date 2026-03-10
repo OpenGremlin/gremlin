@@ -1,11 +1,4 @@
 export const agentJobTypeDefs = /* GraphQL */ `
-  enum JobStatus {
-    RUNNING
-    IDLE
-    ERROR
-    PAUSED
-  }
-
   type AgentJob {
     id: ID!
     name: String!
@@ -14,7 +7,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     cronExpression: String
     timezone: String!
     agent: Agent!
-    status: JobStatus!
+    paused: Boolean!
     lastRun: String
     nextRun: String
     tasks: [Task!]!
@@ -26,6 +19,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     recurrence: String
     agentId: String
     timezone: String
+    paused: Boolean
   }
 
   input CreateAgentJobInput {
@@ -42,7 +36,6 @@ export const agentJobTypeDefs = /* GraphQL */ `
   }
 
   extend type Mutation {
-    updateJobStatus(id: ID!, status: JobStatus!): AgentJob
     updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
     createAgentJob(input: CreateAgentJobInput!): AgentJob!
     deleteAgentJob(id: ID!): AgentJob

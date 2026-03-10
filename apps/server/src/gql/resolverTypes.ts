@@ -1,4 +1,3 @@
-import { JobStatus } from '@gremlin/lib/enums.js';
 import { NotificationStatus } from '@gremlin/lib/enums.js';
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentItem } from '@gremlin/lib/resources/ddb/schema/agent.js';
@@ -23,8 +22,8 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
+export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -74,8 +73,8 @@ export type AgentJob = {
   lastRun?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   nextRun?: Maybe<Scalars['String']['output']>;
+  paused: Scalars['Boolean']['output'];
   recurrence: Scalars['String']['output'];
-  status: JobStatus;
   tasks: Array<Task>;
   timezone: Scalars['String']['output'];
 };
@@ -268,8 +267,6 @@ export type IntegrationProvider = {
   service: Scalars['String']['output'];
 };
 
-export { JobStatus };
-
 export type ModelInfo = {
   __typename?: 'ModelInfo';
   contextWindow: Scalars['Int']['output'];
@@ -308,7 +305,6 @@ export type Mutation = {
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
-  updateJobStatus?: Maybe<AgentJob>;
   updateProfile: Profile;
 };
 
@@ -448,12 +444,6 @@ export type MutationUpdateAgentJobArgs = {
 
 export type MutationUpdateGlobalSettingsArgs = {
   signupDisabled?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-
-export type MutationUpdateJobStatusArgs = {
-  id: Scalars['ID']['input'];
-  status: JobStatus;
 };
 
 
@@ -766,6 +756,7 @@ export type UpdateAgentJobInput = {
   agentId?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  paused?: InputMaybe<Scalars['Boolean']['input']>;
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
 };
@@ -894,7 +885,6 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   IntegrationConnection: ResolverTypeWrapper<SafeIntegrationConnection>;
   IntegrationProvider: ResolverTypeWrapper<IntegrationProviderDef>;
-  JobStatus: JobStatus;
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Notification: ResolverTypeWrapper<NotificationItem>;
@@ -1008,8 +998,8 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
   lastRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   nextRun?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  paused?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   recurrence?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['JobStatus'], ParentType, ContextType>;
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>;
   timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -1130,8 +1120,6 @@ export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentTyp
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type JobStatusResolvers = EnumResolverSignature<{ ERROR?: any, IDLE?: any, PAUSED?: any, RUNNING?: any }, ResolversTypes['JobStatus']>;
-
 export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelInfo'] = ResolversParentTypes['ModelInfo']> = {
   contextWindow?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1168,7 +1156,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
-  updateJobStatus?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateJobStatusArgs, 'id' | 'status'>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
 };
 
@@ -1358,7 +1345,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
-  JobStatus?: JobStatusResolvers;
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;

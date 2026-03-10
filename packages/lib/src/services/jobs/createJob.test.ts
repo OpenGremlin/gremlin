@@ -43,7 +43,6 @@ describe("createJob", () => {
       cronExpression: "0 9 * * *",
       timezone: "America/New_York",
       agentId: "agent-123",
-      status: "IDLE",
       lastRun: null,
     });
   });

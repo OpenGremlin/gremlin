@@ -9,6 +9,7 @@ interface UpdateJobInput {
   recurrence?: string | null;
   agentId?: string | null;
   timezone?: string | null;
+  paused?: boolean | null;
 }
 
 export async function updateJob(
@@ -22,6 +23,7 @@ export async function updateJob(
   if (input.description != null) updates.description = input.description;
   if (input.agentId != null) updates.agentId = input.agentId;
   if (input.timezone != null) updates.timezone = input.timezone;
+  if (input.paused != null) updates.paused = input.paused;
 
   if (input.recurrence != null) {
     const timezone =
@@ -50,7 +52,7 @@ export async function updateJob(
     ctx.services.inbox
       .deleteCronSchedule(id)
       .then(() => {
-        if (Attributes.cronExpression && Attributes.status !== "PAUSED") {
+        if (Attributes.cronExpression) {
           return ctx.services.inbox.createCronSchedule({
             ...Attributes,
             cronExpression: Attributes.cronExpression,

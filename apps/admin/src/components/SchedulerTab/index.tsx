@@ -1,3 +1,4 @@
+import cronstrue from "cronstrue";
 import { Play, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -6,7 +7,6 @@ import { AgentJobsQuery } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
 import { useTitle } from "../../hooks/useTitle";
 import { AgentAvatar } from "../../shared/AgentAvatar";
-import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
@@ -63,7 +63,7 @@ export function SchedulerTab() {
           <Link
             key={job.id}
             to={`/jobs/${job.id}`}
-            className="block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80"
+            className={`block bg-neutral-900 rounded-xl p-4 transition-colors hover:bg-neutral-800/80 ${job.paused ? "opacity-50" : ""}`}
           >
             <div className="flex items-center gap-3">
               <AgentAvatar id={job.agent.id} />
@@ -73,14 +73,22 @@ export function SchedulerTab() {
                     {job.name}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <RunNowButton jobId={job.id} />
-                    <Badge label={job.status} />
+                    {job.paused && (
+                      <span className="text-xs text-amber-400">Paused</span>
+                    )}
+                    {!job.paused && <RunNowButton jobId={job.id} />}
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400">{job.recurrence}</p>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  Next: {formatDate(job.nextRun, "Not scheduled")}
+                <p className="text-xs text-neutral-400">
+                  {job.cronExpression
+                    ? cronstrue.toString(job.cronExpression)
+                    : job.recurrence}
                 </p>
+                {!job.paused && (
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Next: {formatDate(job.nextRun, "Not scheduled")}
+                  </p>
+                )}
               </div>
             </div>
           </Link>

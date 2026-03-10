@@ -9,7 +9,6 @@ const config: CodegenConfig = {
       config: {
         contextType: "./context.js#GremlinContext",
         enumValues: {
-          JobStatus: "@gremlin/lib/enums.js#JobStatus",
           NotificationStatus: "@gremlin/lib/enums.js#NotificationStatus",
         },
         mappers: {

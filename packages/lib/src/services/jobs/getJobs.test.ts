@@ -21,7 +21,6 @@ describe("getJobs", () => {
         cronExpression: "0 9 * * *",
         timezone: "UTC",
         agentId: "clawd",
-        status: "IDLE" as const,
         lastRun: null,
       },
       {
@@ -32,7 +31,6 @@ describe("getJobs", () => {
         cronExpression: "0 0 * * 1",
         timezone: "UTC",
         agentId: "clawd",
-        status: "IDLE" as const,
         lastRun: null,
       },
     ];

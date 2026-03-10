@@ -30,7 +30,7 @@ export async function createJob(
     cronExpression,
     timezone: input.timezone,
     agentId: input.agentId,
-    status: "IDLE" as const,
+    paused: false,
     lastRun: null,
   };
 

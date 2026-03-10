@@ -258,6 +258,11 @@ async function handleScheduledJob(
     return;
   }
 
+  if (job.paused) {
+    ctx.log.info({ jobId: job.id, jobName: job.name }, "Skipping paused job");
+    return;
+  }
+
   ctx.log.info(
     { jobId: job.id, jobName: job.name },
     "Triggered scheduled job → main lane",

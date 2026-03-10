@@ -8,6 +8,7 @@ import { useQuery } from "../../../hooks/useQuery";
 import { useTitle } from "../../../hooks/useTitle";
 import { QueryResult } from "../../../shared/QueryResult";
 import { SavedIndicator } from "../../../shared/SavedIndicator";
+import { Toggle } from "../../../shared/Toggle";
 
 export function GlobalSettingsPage() {
   useTitle("Global Settings");
@@ -54,20 +55,11 @@ export function GlobalSettingsPage() {
         </div>
         <div className="flex items-center gap-3">
           {saved && <SavedIndicator />}
-          <button
-            type="button"
-            onClick={toggleSignupDisabled}
+          <Toggle
+            enabled={!!settings?.signupDisabled}
             disabled={saving}
-            className={`relative h-6 w-11 rounded-full transition-colors ${
-              settings?.signupDisabled ? "bg-indigo-600" : "bg-neutral-700"
-            } disabled:opacity-50`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                settings?.signupDisabled ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
+            onChange={toggleSignupDisabled}
+          />
         </div>
       </div>
     </div>

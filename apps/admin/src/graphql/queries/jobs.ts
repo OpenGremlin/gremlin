@@ -12,7 +12,7 @@ export const AgentJobsQuery = graphql(`
       agent {
         id
       }
-      status
+      paused
       lastRun
       nextRun
     }
@@ -32,7 +32,7 @@ export const AgentJobQuery = graphql(`
         id
         name
       }
-      status
+      paused
       lastRun
       nextRun
       tasks {
@@ -65,7 +65,7 @@ export const UpdateAgentJobMutation = graphql(`
       agent {
         id
       }
-      status
+      paused
       lastRun
       nextRun
     }

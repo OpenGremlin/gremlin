@@ -11,12 +11,6 @@ const agentJobs: QueryResolvers["agentJobs"] = (_parent, _args, ctx) =>
 const agentJob: QueryResolvers["agentJob"] = (_parent, { id }, ctx) =>
   ctx.services.jobs.getJob(ctx, id);
 
-const updateJobStatus: MutationResolvers["updateJobStatus"] = (
-  _parent,
-  { id, status },
-  ctx,
-) => ctx.services.jobs.updateJobStatus(ctx, id, status);
-
 const updateAgentJob: MutationResolvers["updateAgentJob"] = (
   _parent,
   { id, input },
@@ -73,14 +67,16 @@ const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
   }
 };
 
+const paused: AgentJobResolvers["paused"] = (parent) =>
+  parent.paused ?? false;
+
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
   Mutation: {
-    updateJobStatus,
     updateAgentJob,
     createAgentJob,
     deleteAgentJob,
     triggerJob,
   },
-  AgentJob: { agent, tasks, nextRun },
+  AgentJob: { agent, tasks, nextRun, paused },
 };

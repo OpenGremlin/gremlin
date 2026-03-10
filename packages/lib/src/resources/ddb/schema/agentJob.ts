@@ -1,5 +1,6 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
+import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
@@ -17,7 +18,7 @@ export const AgentJobEntity = new Entity({
     cronExpression: anyOf(string(), nul()).optional(),
     timezone: string(),
     agentId: string(),
-    status: string(),
+    paused: boolean().optional().default(false),
     lastRun: anyOf(string(), nul()),
   }),
   computeKey: ({ id }) => ({

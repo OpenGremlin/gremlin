@@ -20,7 +20,6 @@ describe("getJob", () => {
       cronExpression: "0 9 * * *",
       timezone: "UTC",
       agentId: "clawd",
-      status: "IDLE" as const,
       lastRun: null,
     };
 
