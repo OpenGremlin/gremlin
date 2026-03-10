@@ -88,12 +88,17 @@ export class AdminStack extends cdk.Stack {
             "http://localhost:5173",
             "http://localhost:19284/cognito-callback",
           ],
+          ExplicitAuthFlows: [
+            "ALLOW_USER_PASSWORD_AUTH",
+            "ALLOW_USER_SRP_AUTH",
+            "ALLOW_REFRESH_TOKEN_AUTH",
+          ],
           AllowedOAuthFlows: ["implicit", "code"],
           AllowedOAuthScopes: ["openid", "email"],
           SupportedIdentityProviders: ["COGNITO"],
           AllowedOAuthFlowsUserPoolClient: true,
         },
-        physicalResourceId: cr.PhysicalResourceId.of("CallbackUrlUpdate-v2"),
+        physicalResourceId: cr.PhysicalResourceId.of("CallbackUrlUpdate-v3"),
       },
       policy: cr.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({
