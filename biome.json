@@ -54,7 +54,7 @@
       }
     },
     {
-      "includes": ["**/generated/**"],
+      "includes": ["**/generated/**", "apps/mobile/global.css"],
       "linter": {
         "enabled": false
       },

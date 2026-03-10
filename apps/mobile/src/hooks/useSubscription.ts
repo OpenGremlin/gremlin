@@ -1,0 +1,38 @@
+import { useEffect, useRef } from "react";
+import type { TypedDocumentString } from "../graphql/generated/graphql";
+import { clientLogger } from "../lib/logger";
+import { wsClient } from "../lib/wsClient";
+
+export function useSubscription<TResult>(
+  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
+  query: TypedDocumentString<TResult, any> | string,
+  variables: Record<string, unknown>,
+  onData: (data: TResult) => void,
+) {
+  const onDataRef = useRef(onData);
+  onDataRef.current = onData;
+
+  const queryStr = String(query);
+  const _serializedVars = JSON.stringify(variables);
+
+  useEffect(() => {
+    if (!queryStr) return;
+
+    const unsubscribe = wsClient.subscribe(
+      { query: queryStr, variables },
+      {
+        next: ({ data }) => {
+          if (data) onDataRef.current(data as TResult);
+        },
+        error: (err) => {
+          clientLogger.error("Subscription error", {
+            error: String(err),
+          });
+        },
+        complete: () => {},
+      },
+    );
+
+    return unsubscribe;
+  }, [queryStr, variables]);
+}

@@ -94,6 +94,7 @@ const yoga = createYoga({
       process.env.ADMIN_ORIGIN,
       "http://localhost:5173",
       "http://localhost:5174",
+      "http://localhost:8081",
     ].filter((o): o is string => Boolean(o)),
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
