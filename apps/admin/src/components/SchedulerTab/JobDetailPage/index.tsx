@@ -1,5 +1,5 @@
 import cronstrue from "cronstrue";
-import { Trash2 } from "lucide-react";
+import { Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
@@ -37,6 +37,8 @@ export function JobDetailPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [triggering, setTriggering] = useState(false);
+  const [triggered, setTriggered] = useState(false);
   const navigate = useNavigate();
 
   // Snapshot from server
@@ -165,8 +167,40 @@ export function JobDetailPage() {
         </div>
       )}
 
+      {/* Run now */}
+      <div className="mt-4">
+        <button
+          type="button"
+          disabled={triggering}
+          onClick={async () => {
+            setTriggering(true);
+            try {
+              await gql(
+                `mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`,
+                { id },
+              );
+              setTriggered(true);
+              setTimeout(() => setTriggered(false), 3000);
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              clientLogger.error("Failed to trigger job", {
+                jobId: id,
+                error: msg,
+              });
+              setSaveError(msg);
+            } finally {
+              setTriggering(false);
+            }
+          }}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <Play size={14} />
+          {triggering ? "Triggering..." : triggered ? "Triggered" : "Run now"}
+        </button>
+      </div>
+
       {/* Run info */}
-      <div className="mt-6 text-xs text-neutral-400">
+      <div className="mt-4 text-xs text-neutral-400">
         <p>
           Next run:{" "}
           <span className="text-neutral-300">

@@ -35,6 +35,20 @@ const deleteAgentJob: MutationResolvers["deleteAgentJob"] = (
   ctx,
 ) => ctx.services.jobs.deleteJob(ctx, id);
 
+const triggerJob: MutationResolvers["triggerJob"] = async (
+  _parent,
+  { id },
+  ctx,
+) => {
+  const job = await ctx.services.jobs.getJob(ctx, id);
+  if (!job) throw new Error("Job not found");
+  await ctx.services.inbox.enqueueWork(ctx, job.agentId, {
+    type: "scheduled_job",
+    payload: { jobId: id, triggerTimeMs: Date.now() },
+  });
+  return true;
+};
+
 const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.loaders.agentLoader.load(parent.agentId);
   if (!a) throw new Error(`Agent ${parent.agentId} not found`);
@@ -61,6 +75,12 @@ const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
 
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
-  Mutation: { updateJobStatus, updateAgentJob, createAgentJob, deleteAgentJob },
+  Mutation: {
+    updateJobStatus,
+    updateAgentJob,
+    createAgentJob,
+    deleteAgentJob,
+    triggerJob,
+  },
   AgentJob: { agent, tasks, nextRun },
 };
