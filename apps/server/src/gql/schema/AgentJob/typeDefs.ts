@@ -33,7 +33,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     description: String!
     recurrence: String!
     timezone: String!
-    agentId: String
+    agentId: String!
   }
 
   extend type Query {

@@ -32,6 +32,7 @@ describe("createJob", () => {
       description: "Generate report",
       recurrence: "every day at 9am",
       timezone: "America/New_York",
+      agentId: "agent-123",
     });
 
     expect(result).toEqual({
@@ -41,25 +42,13 @@ describe("createJob", () => {
       recurrence: "every day at 9am",
       cronExpression: "0 9 * * *",
       timezone: "America/New_York",
-      agentId: "clawd",
+      agentId: "agent-123",
       status: "IDLE",
       lastRun: null,
     });
   });
 
-  it("defaults agentId to 'clawd' when null", async () => {
-    const result = await createJob(ctx, {
-      name: "Test",
-      description: "desc",
-      recurrence: "every day",
-      timezone: "UTC",
-      agentId: null,
-    });
-
-    expect(result.agentId).toBe("clawd");
-  });
-
-  it("uses provided agentId when given", async () => {
+  it("uses provided agentId", async () => {
     const result = await createJob(ctx, {
       name: "Test",
       description: "desc",
@@ -77,6 +66,7 @@ describe("createJob", () => {
       description: "desc",
       recurrence: "every day",
       timezone: "UTC",
+      agentId: "agent-123",
     });
 
     expect(ctx.services.inbox.createCronSchedule).toHaveBeenCalled();
@@ -92,6 +82,7 @@ describe("createJob", () => {
       description: "desc",
       recurrence: "every day",
       timezone: "UTC",
+      agentId: "agent-123",
     });
 
     expect(result.id).toBe("test-uuid-123");

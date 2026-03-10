@@ -8,7 +8,7 @@ interface CreateJobInput {
   description: string;
   recurrence: string;
   timezone: string;
-  agentId?: string | null;
+  agentId: string;
 }
 
 export async function createJob(
@@ -29,7 +29,7 @@ export async function createJob(
     recurrence: input.recurrence,
     cronExpression,
     timezone: input.timezone,
-    agentId: input.agentId ?? "clawd",
+    agentId: input.agentId,
     status: "IDLE" as const,
     lastRun: null,
   };

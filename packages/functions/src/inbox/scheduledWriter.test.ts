@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockEnqueueWork = vi.fn();
+const mockGetAgents = vi.fn();
 
 vi.mock("@gremlin/lib/services/inbox/enqueueWork.js", () => ({
   enqueueWork: (...args: unknown[]) => mockEnqueueWork(...args),
+}));
+
+vi.mock("@gremlin/lib/services/agents/getAgents.js", () => ({
+  getAgents: (...args: unknown[]) => mockGetAgents(...args),
 }));
 
 vi.mock("@gremlin/lib/resources/ddb/index.js", () => ({
@@ -23,6 +28,7 @@ const { handler } = await import("./scheduledWriter.js");
 
 beforeEach(() => {
   mockEnqueueWork.mockReset();
+  mockGetAgents.mockReset();
 });
 
 describe("scheduledWriter", () => {
@@ -65,21 +71,38 @@ describe("scheduledWriter", () => {
     expect(input.type).toBe("agent_self_followup");
   });
 
-  it("handles core_memory_review event type", async () => {
-    mockEnqueueWork.mockResolvedValueOnce({
+  it("fans out core_memory_review to all active agents", async () => {
+    mockGetAgents.mockResolvedValueOnce([
+      { id: "agent-1", retired: false },
+      { id: "agent-2", retired: true },
+      { id: "agent-3", retired: false },
+    ]);
+    mockEnqueueWork.mockResolvedValue({
       id: "inbox-3",
       createdAt: "2026-01-01T00:00:00.000Z",
     });
 
     const result = await handler({
       type: "core_memory_review",
-      agentId: "clawd",
       payload: {},
     });
 
     expect(result.statusCode).toBe(200);
-    const [, , input] = mockEnqueueWork.mock.calls[0];
-    expect(input.type).toBe("core_memory_review");
+    expect(result.ids).toHaveLength(2);
+    expect(mockEnqueueWork).toHaveBeenCalledTimes(2);
+
+    const agentIds = mockEnqueueWork.mock.calls.map(
+      ([, agentId]: unknown[]) => agentId,
+    );
+    expect(agentIds).toContain("agent-1");
+    expect(agentIds).toContain("agent-3");
+    expect(agentIds).not.toContain("agent-2");
+  });
+
+  it("throws when agentId is missing for non-fanout event types", async () => {
+    await expect(
+      handler({ type: "scheduled_job", payload: {} }),
+    ).rejects.toThrow('agentId is required for event type "scheduled_job"');
   });
 
   it("returns the id from enqueueWork", async () => {

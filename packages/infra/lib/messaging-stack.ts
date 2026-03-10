@@ -119,7 +119,6 @@ export class MessagingStack extends cdk.Stack {
         new targets.LambdaFunction(scheduleTargetFn, {
           event: events.RuleTargetInput.fromObject({
             type: "core_memory_review",
-            agentId: "clawd",
             payload: {},
           }),
         }),

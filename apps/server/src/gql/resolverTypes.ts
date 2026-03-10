@@ -206,7 +206,7 @@ export type CreateAgentInput = {
 };
 
 export type CreateAgentJobInput = {
-  agentId?: InputMaybe<Scalars['String']['input']>;
+  agentId: Scalars['String']['input'];
   description: Scalars['String']['input'];
   name: Scalars['String']['input'];
   recurrence: Scalars['String']['input'];
