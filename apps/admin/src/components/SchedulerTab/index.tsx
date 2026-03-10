@@ -1,5 +1,7 @@
-import { Plus } from "lucide-react";
+import { Play, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { gql } from "../../auth";
 import { AgentJobsQuery } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
 import { AgentAvatar } from "../../shared/AgentAvatar";
@@ -7,6 +9,41 @@ import { Badge } from "../../shared/Badge";
 import { formatDate } from "../../shared/formatDate";
 import { PageHeader } from "../../shared/PageHeader";
 import { QueryResult } from "../../shared/QueryResult";
+
+function RunNowButton({ jobId }: { jobId: string }) {
+  const [triggering, setTriggering] = useState(false);
+  const [triggered, setTriggered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      disabled={triggering}
+      onClick={async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setTriggering(true);
+        try {
+          await gql(
+            `mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`,
+            { id: jobId },
+          );
+          setTriggered(true);
+          setTimeout(() => setTriggered(false), 3000);
+        } finally {
+          setTriggering(false);
+        }
+      }}
+      className="shrink-0 p-1.5 rounded-lg text-neutral-500 hover:text-neutral-200 hover:bg-neutral-700/50 transition-colors disabled:opacity-50"
+      title="Run now"
+    >
+      {triggered ? (
+        <span className="text-xs text-green-400">Queued</span>
+      ) : (
+        <Play size={14} />
+      )}
+    </button>
+  );
+}
 
 export function SchedulerTab() {
   const { data, loading, error } = useQuery(AgentJobsQuery);
@@ -33,7 +70,10 @@ export function SchedulerTab() {
                   <h2 className="text-sm font-medium text-neutral-100 truncate">
                     {job.name}
                   </h2>
-                  <Badge label={job.status} />
+                  <div className="flex items-center gap-2">
+                    <RunNowButton jobId={job.id} />
+                    <Badge label={job.status} />
+                  </div>
                 </div>
                 <p className="text-xs text-neutral-400">{job.recurrence}</p>
                 <p className="text-xs text-neutral-500 mt-0.5">
