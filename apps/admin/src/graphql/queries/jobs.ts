@@ -72,6 +72,19 @@ export const UpdateAgentJobMutation = graphql(`
   }
 `);
 
+export const JobTaskCreatedSubscription = graphql(`
+  subscription JobTaskCreated($jobId: ID!) {
+    jobTaskCreated(jobId: $jobId) {
+      id
+      agent {
+        id
+      }
+      title
+      createdAt
+    }
+  }
+`);
+
 export const CreateAgentJobMutation = graphql(`
   mutation CreateAgentJob($input: CreateAgentJobInput!) {
     createAgentJob(input: $input) {

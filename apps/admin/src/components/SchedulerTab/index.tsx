@@ -24,10 +24,9 @@ function RunNowButton({ jobId }: { jobId: string }) {
         e.stopPropagation();
         setTriggering(true);
         try {
-          await gql(
-            `mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`,
-            { id: jobId },
-          );
+          await gql(`mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`, {
+            id: jobId,
+          });
           setTriggered(true);
           setTimeout(() => setTriggered(false), 3000);
         } finally {

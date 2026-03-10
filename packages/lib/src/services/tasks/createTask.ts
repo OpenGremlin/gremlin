@@ -45,5 +45,9 @@ export async function createTask(
     }),
   );
 
+  if (input.originJobId) {
+    ctx.resources.pubsub.publish(`jobTaskCreated:${input.originJobId}`, item);
+  }
+
   return item;
 }

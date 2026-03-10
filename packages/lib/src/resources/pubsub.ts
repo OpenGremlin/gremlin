@@ -17,6 +17,7 @@ export type PubSubEvents = {
   [key: `agentLogCreated:task:${string}`]: [AgentLogItem];
   [key: `agentUpdated:${string}`]: [AgentItem];
   [key: `taskUpdated:${string}`]: [TaskItem];
+  [key: `jobTaskCreated:${string}`]: [TaskItem];
   [key: `inboxItemCreated:${string}`]: [InboxItemItem];
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
 };

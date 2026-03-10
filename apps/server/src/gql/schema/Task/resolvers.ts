@@ -98,6 +98,15 @@ const tasksUpdated = {
   resolve: (payload: TaskItem) => payload,
 };
 
+const jobTaskCreated = {
+  subscribe: (
+    _parent: unknown,
+    { jobId }: { jobId: string },
+    ctx: GremlinContext,
+  ) => ctx.resources.pubsub.subscribe(`jobTaskCreated:${jobId}`),
+  resolve: (payload: TaskItem) => payload,
+};
+
 const taskLogCreated = {
   subscribe: (
     _parent: unknown,
@@ -124,5 +133,11 @@ export const taskResolvers = {
   Query: { tasks, task },
   Task: { agent, imageUrl, artifacts, documents, logs },
   TaskEdge: { node },
-  Subscription: { taskUpdated, tasksUpdated, taskLogCreated, sandboxOutput },
+  Subscription: {
+    taskUpdated,
+    tasksUpdated,
+    jobTaskCreated,
+    taskLogCreated,
+    sandboxOutput,
+  },
 };

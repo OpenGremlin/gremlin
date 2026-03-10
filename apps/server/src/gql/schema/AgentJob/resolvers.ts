@@ -51,7 +51,10 @@ const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {
 
 const tasks: AgentJobResolvers["tasks"] = async (parent, _args, ctx) => {
   const agentTasks = await ctx.loaders.tasksByAgentLoader.load(parent.agentId);
-  return agentTasks.filter((t) => t.originJobId === parent.id);
+  return agentTasks
+    .filter((t) => t.originJobId === parent.id)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 10);
 };
 
 const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
@@ -67,8 +70,7 @@ const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
   }
 };
 
-const paused: AgentJobResolvers["paused"] = (parent) =>
-  parent.paused ?? false;
+const paused: AgentJobResolvers["paused"] = (parent) => parent.paused ?? false;
 
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },

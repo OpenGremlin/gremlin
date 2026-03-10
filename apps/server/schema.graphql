@@ -2,8 +2,20 @@ type Query {
   _empty: String
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
-  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  agentLogs(
+    agentId: ID!
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
+  taskLogs(
+    taskId: ID!
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -28,13 +40,21 @@ type Query {
 
 type Mutation {
   _empty: String
-  requestFileUploads(agentId: String!, taskId: String, files: [FileUploadRequest!]!): [FileUploadUrl!]!
+  requestFileUploads(
+    agentId: String!
+    taskId: String
+    files: [FileUploadRequest!]!
+  ): [FileUploadUrl!]!
   completeFileUpload(input: CompleteFileUploadInput!): CompletedFileUpload!
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
   triggerJob(id: ID!): Boolean!
-  sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
+  sendMessage(
+    agentId: ID!
+    content: String!
+    taskId: String
+  ): SendMessageResult!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
@@ -44,7 +64,14 @@ type Mutation {
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
   enableBedrockModel(modelId: String!): Boolean!
   disableBedrockModel(modelId: String!): Boolean!
-  submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String): ID!
+  submitOAuthConnection(
+    providerId: String!
+    accessToken: String!
+    refreshToken: String
+    expiresAt: String
+    scopes: [String!]!
+    accountId: String
+  ): ID!
   resolveNotification(id: ID!, actionId: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
@@ -62,6 +89,7 @@ type Subscription {
   agentsUpdated(agentIds: [ID!]!): Agent!
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
+  jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
 }
@@ -402,7 +430,12 @@ type Task {
   imageUrl(width: Int): String
   artifacts: [String!]!
   documents: [Document!]!
-  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  logs(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): AgentLogConnection!
 }
 
 type TaskEdge {

@@ -1,20 +1,23 @@
 import cronstrue from "cronstrue";
 import { Calendar, Clock, Play, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql } from "../../../auth";
 import type {
   AgentJobQuery as AgentJobQueryType,
   DeleteAgentJobMutation,
+  JobTaskCreatedSubscription as JobTaskCreatedType,
   UpdateAgentJobMutation,
 } from "../../../graphql/generated/graphql";
 import {
   AgentJobQuery,
   AgentsQuery,
   DeleteAgentJobMutation as DeleteAgentJobDoc,
+  JobTaskCreatedSubscription,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../graphql/queries";
 import { useQuery } from "../../../hooks/useQuery";
+import { useSubscription } from "../../../hooks/useSubscription";
 import { useTitle } from "../../../hooks/useTitle";
 import { clientLogger } from "../../../logger";
 import { AgentAvatar } from "../../../shared/AgentAvatar";
@@ -29,7 +32,7 @@ type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error, refetch } = useQuery(AgentJobQuery, {
+  const { data, loading, error } = useQuery(AgentJobQuery, {
     id: id ?? "",
   });
   const { data: agentsData } = useQuery(AgentsQuery);
@@ -50,6 +53,20 @@ export function JobDetailPage() {
 
   // Snapshot from server
   const [savedJob, setSavedJob] = useState<Job | null>(null);
+
+  // Live tasks from subscription (prepended to server-loaded tasks)
+  type JobTask = Job["tasks"][number];
+  const [liveTasks, setLiveTasks] = useState<JobTask[]>([]);
+  useSubscription<JobTaskCreatedType>(
+    JobTaskCreatedSubscription,
+    { jobId: id ?? "" },
+    useCallback((update) => {
+      setLiveTasks((prev) => {
+        if (prev.some((t) => t.id === update.jobTaskCreated.id)) return prev;
+        return [update.jobTaskCreated, ...prev];
+      });
+    }, []),
+  );
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} backButton />;
@@ -137,7 +154,9 @@ export function JobDetailPage() {
       </div>
 
       {/* Schedule summary card */}
-      <div className={`mt-6 bg-neutral-900 rounded-xl p-4 transition-opacity ${job.paused ? "opacity-40" : ""}`}>
+      <div
+        className={`mt-6 bg-neutral-900 rounded-xl p-4 transition-opacity ${job.paused ? "opacity-40" : ""}`}
+      >
         <div className="flex flex-wrap gap-x-8 gap-y-3">
           <div className="flex items-center gap-2">
             <Calendar size={14} className="text-neutral-500 shrink-0" />
@@ -153,14 +172,18 @@ export function JobDetailPage() {
             <div>
               <p className="text-xs text-neutral-500">Next run</p>
               <p className="text-sm text-neutral-200">
-                {job.paused ? "Paused" : formatDate(job.nextRun, "Not scheduled", currentTimezone)}
+                {job.paused
+                  ? "Paused"
+                  : formatDate(job.nextRun, "Not scheduled", currentTimezone)}
               </p>
             </div>
           </div>
           {cronDisplay && (
             <div>
               <p className="text-xs text-neutral-500">Cron</p>
-              <p className="text-sm font-mono text-neutral-400">{cronDisplay}</p>
+              <p className="text-sm font-mono text-neutral-400">
+                {cronDisplay}
+              </p>
             </div>
           )}
         </div>
@@ -175,10 +198,13 @@ export function JobDetailPage() {
             onChange={async () => {
               setTogglingPause(true);
               try {
-                const result = await gql<UpdateAgentJobMutation>(UpdateAgentJobDoc, {
-                  id,
-                  input: { paused: !job.paused },
-                });
+                const result = await gql<UpdateAgentJobMutation>(
+                  UpdateAgentJobDoc,
+                  {
+                    id,
+                    input: { paused: !job.paused },
+                  },
+                );
                 setSavedJob({
                   ...job,
                   ...result.updateAgentJob,
@@ -291,17 +317,29 @@ export function JobDetailPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400 mb-3">
           History
         </h2>
-        {job.tasks.length === 0 ? (
-          <div className="bg-neutral-900 rounded-xl p-6 text-center">
-            <p className="text-sm text-neutral-500">No previous runs yet.</p>
-          </div>
-        ) : (
-          <div className="bg-neutral-900 rounded-xl overflow-hidden divide-y divide-neutral-800">
-            {job.tasks.map((t) => (
-              <TaskCard key={t.id} item={t} />
-            ))}
-          </div>
-        )}
+        {(() => {
+          const serverIds = new Set(job.tasks.map((t) => t.id));
+          const allTasks = [
+            ...liveTasks.filter((t) => !serverIds.has(t.id)),
+            ...job.tasks,
+          ].slice(0, 10);
+          if (allTasks.length === 0) {
+            return (
+              <div className="bg-neutral-900 rounded-xl p-6 text-center">
+                <p className="text-sm text-neutral-500">
+                  No previous runs yet.
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="bg-neutral-900 rounded-xl overflow-hidden divide-y divide-neutral-800">
+              {allTasks.map((t) => (
+                <TaskCard key={t.id} item={t} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Danger zone */}
