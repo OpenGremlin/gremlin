@@ -26,7 +26,8 @@ export function NewJobPage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const canSubmit = name.trim() && recurrence.trim() && description.trim();
+  const canSubmit =
+    name.trim() && agentId && recurrence.trim() && description.trim();
 
   async function handleCreate() {
     setSaving(true);
