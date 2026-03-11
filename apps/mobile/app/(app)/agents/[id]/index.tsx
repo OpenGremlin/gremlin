@@ -317,7 +317,11 @@ export default function AgentChatScreen() {
         inverted
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 120,
+        }}
         keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           loadingMore ? (

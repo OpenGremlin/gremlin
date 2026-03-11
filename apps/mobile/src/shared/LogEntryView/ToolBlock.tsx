@@ -25,7 +25,10 @@ function CollapsedContent({
       style={{ backgroundColor: "#0a0a0a" }}
     >
       <View style={{ maxHeight: COLLAPSED_MAX_HEIGHT, overflow: "hidden" }}>
-        <Text className="text-xs font-mono px-3 py-2 leading-5" style={{ color: "rgba(74,222,128,0.9)" }}>
+        <Text
+          className="text-xs font-mono px-3 py-2 leading-5"
+          style={{ color: "rgba(74,222,128,0.9)" }}
+        >
           {content}
         </Text>
       </View>
@@ -62,7 +65,10 @@ function ExpandedContent({
       className="rounded-lg mb-1 overflow-hidden"
       style={{ backgroundColor: "#0a0a0a" }}
     >
-      <Text className="text-xs font-mono px-3 py-2 leading-5" style={{ color: "rgba(74,222,128,0.9)" }}>
+      <Text
+        className="text-xs font-mono px-3 py-2 leading-5"
+        style={{ color: "rgba(74,222,128,0.9)" }}
+      >
         {content}
       </Text>
       {streaming && children}
