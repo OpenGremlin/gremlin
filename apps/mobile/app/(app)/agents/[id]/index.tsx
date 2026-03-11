@@ -26,7 +26,7 @@ import {
 } from "../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../src/hooks/useSandboxOutput";
-import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
+import { ChatHeaderTitle } from "../../../../src/shared/ChatHeaderTitle";
 import { LogEntryView } from "../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../src/shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -288,15 +288,11 @@ export default function AgentChatScreen() {
       <Stack.Screen
         options={{
           headerTitle: () => (
-            <Pressable
+            <ChatHeaderTitle
+              agentId={id}
+              title={agent.name}
               onPress={() => router.push(`/agents/${id}/config`)}
-              className="items-center"
-            >
-              <AgentAvatar id={id} size={64} />
-              <Text className="text-sm text-neutral-100 mt-1.5 font-semibold">
-                {agent.name}
-              </Text>
-            </Pressable>
+            />
           ),
         }}
       />

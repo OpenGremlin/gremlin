@@ -1,8 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
-import { router, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import {
   ArrowUp,
-  ChevronRight,
   Paperclip,
   Terminal,
 } from "lucide-react-native";
@@ -31,8 +30,8 @@ import {
 } from "../../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
-import { AgentAvatar } from "../../../../../src/shared/AgentAvatar";
-import { formatTime } from "../../../../../src/shared/formatDate";
+import { ChatHeaderTitle } from "../../../../../src/shared/ChatHeaderTitle";
+
 import { LogEntryView } from "../../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../../src/shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
@@ -291,23 +290,16 @@ export default function TaskThreadScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <Pressable
-        onPress={() => router.navigate(`/agents/${id}`)}
-        className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800"
-      >
-        <AgentAvatar id={id} size={32} />
-        <View className="flex-1">
-          <Text className="text-neutral-100 font-medium" numberOfLines={1}>
-            {task.title ?? task.message}
-          </Text>
-          {task.completedAt && (
-            <Text className="text-xs text-neutral-500 mt-0.5">
-              Completed {formatTime(task.completedAt)}
-            </Text>
-          )}
-        </View>
-        <ChevronRight size={16} color="#525252" />
-      </Pressable>
+      <Stack.Screen
+        options={{
+          headerTitle: () => (
+            <ChatHeaderTitle
+              agentId={id}
+              title={task.title ?? task.message ?? "Task"}
+            />
+          ),
+        }}
+      />
 
       <SandboxPanel taskId={taskId} />
 

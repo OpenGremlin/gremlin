@@ -1,6 +1,12 @@
 import { Stack } from "expo-router";
 import { Platform } from "react-native";
 
+// headerStyle on web accepts height but the native-stack type doesn't include it
+const chatHeaderStyle =
+  Platform.OS === "ios"
+    ? { backgroundColor: "transparent" }
+    : ({ backgroundColor: "#0a0a0a", height: 120 } as { backgroundColor: string });
+
 export default function AgentsLayout() {
   return (
     <Stack
@@ -20,9 +26,7 @@ export default function AgentsLayout() {
           headerTransparent: true,
           headerBlurEffect: Platform.OS === "ios" ? "dark" : undefined,
           headerTitleAlign: "center",
-          headerStyle: Platform.OS === "ios"
-            ? { backgroundColor: "transparent" }
-            : { backgroundColor: "#0a0a0a", height: 120 },
+          headerStyle: chatHeaderStyle,
           title: "",
         }}
       />
@@ -32,7 +36,14 @@ export default function AgentsLayout() {
       />
       <Stack.Screen
         name="[id]/tasks/[taskId]"
-        options={{ title: "Task", headerBackTitle: "Back" }}
+        options={{
+          headerBackTitle: "Chat",
+          headerTransparent: true,
+          headerBlurEffect: Platform.OS === "ios" ? "dark" : undefined,
+          headerTitleAlign: "center",
+          headerStyle: chatHeaderStyle,
+          title: "",
+        }}
       />
     </Stack>
   );
