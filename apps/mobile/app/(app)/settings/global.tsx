@@ -22,7 +22,7 @@ const themeOptions: { value: ThemeMode; label: string; icon: LucideIcon }[] = [
 
 export default function GlobalSettingsScreen() {
   const colors = useNavigationTheme();
-  const { mode, isDark, setMode } = useTheme();
+  const { mode, setMode } = useTheme();
   const { data, loading, error, refetch } = useQuery(GlobalSettingsQuery);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);

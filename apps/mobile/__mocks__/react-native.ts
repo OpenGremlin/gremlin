@@ -3,4 +3,3 @@ export const AppState = {
   addEventListener: () => ({ remove: () => {} }),
   currentState: "active",
 };
-

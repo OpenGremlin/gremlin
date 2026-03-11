@@ -7,10 +7,8 @@ export default defineConfig({
   test: {
     environment: "node",
     alias: {
-      "react-native": new URL(
-        "./__mocks__/react-native.ts",
-        import.meta.url,
-      ).pathname,
+      "react-native": new URL("./__mocks__/react-native.ts", import.meta.url)
+        .pathname,
       "expo-constants": new URL(
         "./__mocks__/expo-constants.ts",
         import.meta.url,

@@ -87,8 +87,7 @@ describe("gql", () => {
   it("throws on GraphQL errors", async () => {
     mockFetch.mockResolvedValue({
       status: 200,
-      json: () =>
-        Promise.resolve({ errors: [{ message: "Something broke" }] }),
+      json: () => Promise.resolve({ errors: [{ message: "Something broke" }] }),
     });
     await expect(gql(fakeQuery)).rejects.toThrow("Something broke");
   });

@@ -1,12 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import {
   BindSkillConnectionMutation,
   SkillQuery,
@@ -15,14 +9,12 @@ import {
 import { IntegrationConnectionsQuery } from "../../../../src/graphql/queries/integrations";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
-import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Badge } from "../../../../src/shared/Badge";
 import { ConnectionPicker } from "../../../../src/shared/ConnectionPicker";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function SkillDetailScreen() {
-  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(SkillQuery, {
     id: id ?? "",
