@@ -11,7 +11,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { AgentLogRole } from "../../../../src/graphql/generated/graphql";
 import { AgentQuery, TaskQuery } from "../../../../src/graphql/queries";
 import { useChatSend } from "../../../../src/hooks/useChatSend";
 import {
@@ -21,76 +20,9 @@ import {
 } from "../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
-import { formatTime } from "../../../../src/shared/formatDate";
+import { LogEntryView } from "../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../src/shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
-
-function LogEntryView({
-  message,
-  showTimestamp,
-}: {
-  message: ChatMessage;
-  showTimestamp: boolean;
-}) {
-  if (message.role === AgentLogRole.User) {
-    return (
-      <View className="py-1">
-        <View className="flex-row justify-end">
-          <View className="max-w-[80%] bg-blue-600 rounded-2xl rounded-br-md px-3.5 py-2">
-            <Text className="text-white text-sm">{message.content}</Text>
-          </View>
-        </View>
-        {showTimestamp && (
-          <Text className="text-[10px] text-neutral-500 text-right mt-1 mr-1">
-            {formatTime(message.createdAt)}
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  if (message.role === AgentLogRole.Agent) {
-    return (
-      <View className="py-1">
-        <View className="flex-row justify-start">
-          <View className="max-w-[85%]">
-            <Text className="text-neutral-100 text-sm leading-5">
-              {message.content}
-            </Text>
-          </View>
-        </View>
-        {showTimestamp && (
-          <Text className="text-[10px] text-neutral-500 mt-1 ml-1">
-            {formatTime(message.createdAt)}
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  if (message.role === AgentLogRole.Tool) {
-    const status = message.toolResult ? "done" : "running";
-    return (
-      <View className="py-0.5 px-1">
-        <Text className="text-xs text-neutral-500">
-          {message.toolName} <Text className="text-neutral-600">{status}</Text>
-        </Text>
-      </View>
-    );
-  }
-
-  if (message.role === AgentLogRole.System) {
-    return (
-      <View className="py-1 items-center">
-        <Text className="text-xs text-neutral-500 text-center">
-          {message.content}
-        </Text>
-      </View>
-    );
-  }
-
-  return null;
-}
 
 function ChatInputBar({
   input,
@@ -159,14 +91,22 @@ export default function AgentChatScreen() {
 
   const agent = agentData?.agent;
   const task = taskData?.task;
+  const taskDocs = task?.documents;
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
       const next = index > 0 ? messages[index - 1] : undefined;
       const show = shouldShowTimestamp(item, next);
-      return <LogEntryView message={item} showTimestamp={show} />;
+      return (
+        <LogEntryView
+          message={item}
+          agentId={id}
+          showTimestamp={show}
+          documents={taskDocs}
+        />
+      );
     },
-    [messages],
+    [messages, id, taskDocs],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
