@@ -3,7 +3,6 @@ import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   Text,
@@ -21,6 +20,7 @@ import { gql } from "../../../../src/lib/auth";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
+import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
@@ -75,26 +75,20 @@ export default function AgentConfigScreen() {
     }
   }, [id, agent, name, soul, setData]);
 
-  const handleRetire = useCallback(() => {
-    Alert.alert("Retire Agent", "Are you sure you want to retire this agent?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Retire",
-        style: "destructive",
-        onPress: async () => {
-          setRetiring(true);
-          try {
-            await gql(RetireAgentMutation, { id });
-            router.replace("/agents");
-          } catch (err) {
-            setSaveError(
-              err instanceof Error ? err.message : "Failed to retire agent",
-            );
-            setRetiring(false);
-          }
-        },
-      },
-    ]);
+  const [showRetireConfirm, setShowRetireConfirm] = useState(false);
+
+  const doRetire = useCallback(async () => {
+    setShowRetireConfirm(false);
+    setRetiring(true);
+    try {
+      await gql(RetireAgentMutation, { id });
+      router.replace("/agents");
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to retire agent",
+      );
+      setRetiring(false);
+    }
   }, [id]);
 
   if (loading) {
@@ -183,7 +177,7 @@ export default function AgentConfigScreen() {
 
       {!agent.retired && (
         <Pressable
-          onPress={handleRetire}
+          onPress={() => setShowRetireConfirm(true)}
           disabled={retiring}
           className="rounded-lg py-3 items-center border border-red-800 mt-4"
         >
@@ -194,6 +188,16 @@ export default function AgentConfigScreen() {
           )}
         </Pressable>
       )}
+
+      <ConfirmDialog
+        visible={showRetireConfirm}
+        title="Retire Agent"
+        message="Are you sure? This agent will no longer be able to receive messages."
+        confirmLabel="Retire"
+        destructive
+        onConfirm={doRetire}
+        onCancel={() => setShowRetireConfirm(false)}
+      />
 
       {voicePickerOpen && (
         <VoicePicker
