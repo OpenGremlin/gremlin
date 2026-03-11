@@ -1,4 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ArrowUp, Paperclip } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -339,6 +340,20 @@ export default function AgentChatScreen() {
             </View>
           ) : null
         }
+      />
+
+      <LinearGradient
+        colors={[colors.background, colors.background, "transparent"]}
+        locations={[0, 0.6, 1]}
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: Platform.OS === "web" ? 140 : 120,
+          zIndex: 1,
+        }}
       />
 
       <ChatInputBar

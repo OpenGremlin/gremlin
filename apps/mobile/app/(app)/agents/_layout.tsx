@@ -11,7 +11,7 @@ export default function AgentsLayout() {
   const chatHeaderStyle =
     Platform.OS === "ios"
       ? { backgroundColor: "transparent" }
-      : ({ backgroundColor: colors.headerBackground, height: 120 } as {
+      : ({ backgroundColor: "transparent", height: 120 } as {
           backgroundColor: string;
         });
 
