@@ -13,7 +13,7 @@ Thanks for your interest in contributing!
 - Run the linter: `pnpm lint`
 - Fix lint issues: `pnpm lint:fix`
 - Typecheck the server: `cd apps/server && pnpm exec tsc --noEmit`
-- Run tests: `pnpm --filter @gremlin/admin test`
+- Run tests: `pnpm --filter @gremlin/server test`
 
 ## Pull Requests
 

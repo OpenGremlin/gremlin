@@ -13,7 +13,7 @@ pnpm dev
 ## Testing
 
 ```
-pnpm --filter @gremlin/admin test
+pnpm --filter @gremlin/server test
 ```
 
 ## Linting & Formatting
@@ -44,7 +44,6 @@ pnpm run deploy    # deploy all stacks
 | Path | What it is |
 |---|---|
 | `apps/server` | Node.js backend — Express, GraphQL, DynamoDB, SQS |
-| `apps/admin` | React dashboard |
 | `apps/desktop-auth` | Electron app for desktop OAuth flows (Gremlin Connect) |
 | `packages/lib` | Shared services and business logic |
 | `packages/sandbox` | EC2 sandbox agent and WebSocket handler |
@@ -64,8 +63,6 @@ pnpm build          # builds main process + renderer
 ## Conventions
 
 **Prompts** — All LLM prompts live in `packages/lib/src/services/prompts/`. Templates use Handlebars. The `renderPrompt(key, data)` function is the single entry point. Never inline prompts in implementation files.
-
-**Pagination** — The admin UI uses backward cursor-based pagination via `usePaginatedQuery()`. Fetches the most recent page first (`last`/`before`), with `loadMore()` for older pages. Page size is 20.
 
 **DynamoDB** — Single-table design with `pk`/`sk` keys and `_et` for entity type discrimination.
 

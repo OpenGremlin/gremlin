@@ -45,5 +45,4 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @gremlin/admin codegen
-      - run: pnpm --filter @gremlin/admin test
+      - run: pnpm --filter @gremlin/server exec vitest run

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { AdminStack } from "../lib/admin-stack.js";
 import { AuthStack } from "../lib/auth-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
@@ -66,12 +65,3 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   serverElasticIp: server.elasticIp,
 });
 
-// 5. Admin — depends on Auth, Media, Server (for ALB)
-new AdminStack(app, "GremlinAdminStack", {
-  env,
-  userPoolId: auth.userPoolId,
-  userPoolClientId: auth.userPoolClientId,
-  cognitoDomain: auth.cognitoDomain,
-  mediaCdnUrl: media.cdnUrl,
-  serverDns: server.serverDns,
-});

@@ -11,7 +11,6 @@ pnpm --filter @gremlin/lib build
 pnpm --filter @gremlin/server exec tsc --noEmit
 
 echo "→ Tests"
-pnpm --filter @gremlin/admin codegen
-pnpm --filter @gremlin/admin test
+pnpm --filter @gremlin/server test
 
 echo "All checks passed."
