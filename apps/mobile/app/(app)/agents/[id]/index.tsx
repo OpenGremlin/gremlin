@@ -100,13 +100,13 @@ function ChatInputBar({
 }) {
   const colors = useNavigationTheme();
   const inputRef = useRef<TextInput>(null);
-  const [inputHeight, setInputHeight] = useState(36);
+  const [inputHeight, setInputHeight] = useState(42);
   const canSend = input.trim().length > 0;
   const hasUploads = uploads.length > 0;
 
   // Reset height when input is cleared
   useEffect(() => {
-    if (input === "") setInputHeight(36);
+    if (input === "") setInputHeight(42);
   }, [input]);
 
   // Auto-focus on mount
@@ -144,19 +144,19 @@ function ChatInputBar({
         <Pressable
           onPress={onPickFiles}
           disabled={isUploading}
-          className={`w-8 h-8 rounded-full items-center justify-center mb-0.5 bg-surface-alt ${isUploading ? "opacity-50" : ""}`}
+          className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 bg-surface-alt ${isUploading ? "opacity-50" : ""}`}
         >
           {isUploading ? (
             <ActivityIndicator size="small" color={colors.iconDefault} />
           ) : (
-            <Paperclip size={16} color={colors.iconDefault} />
+            <Paperclip size={18} color={colors.iconDefault} />
           )}
         </Pressable>
 
         <TextInput
           ref={inputRef}
-          className="flex-1 bg-surface-alt rounded-2xl px-4 py-2 text-text-primary text-sm"
-          style={{ height: Math.min(112, Math.max(36, inputHeight)) }}
+          className="flex-1 bg-surface-alt rounded-2xl px-4 py-2.5 text-text-primary text-sm"
+          style={{ height: Math.min(120, Math.max(42, inputHeight)) }}
           value={input}
           onChangeText={setInput}
           onContentSizeChange={(e) =>
@@ -172,11 +172,11 @@ function ChatInputBar({
         <Pressable
           onPress={onSend}
           disabled={!canSend}
-          className={`w-8 h-8 rounded-full items-center justify-center mb-0.5 ${
+          className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 ${
             canSend ? "bg-blue-600" : "bg-surface-alt"
           }`}
         >
-          <ArrowUp size={18} color={canSend ? "#fff" : colors.iconMuted} />
+          <ArrowUp size={20} color={canSend ? "#fff" : colors.iconMuted} />
         </Pressable>
       </View>
     </View>

@@ -30,7 +30,7 @@ export function DelegateTaskCard({
     : ["#eef2ff", "#e8e0f7", "#f0e8f5"];
 
   return (
-    <View className="py-2 mr-10">
+    <View className="py-2 max-w-[85%]">
       <Pressable
         onPress={taskId ? handlePress : undefined}
         disabled={!taskId}
