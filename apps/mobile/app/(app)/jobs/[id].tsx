@@ -316,7 +316,7 @@ export default function JobDetailScreen() {
             />
           </View>
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Cron Expression</Text>
+            <Text className="text-xs text-neutral-500">Recurrence</Text>
             <TextInput
               className={inputClass}
               value={currentRecurrence}

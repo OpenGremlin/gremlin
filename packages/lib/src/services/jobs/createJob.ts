@@ -34,21 +34,14 @@ export async function createJob(
     lastRun: null,
   };
 
+  // Create EventBridge schedule first — if it fails, no orphaned DDB record
+  if (cronExpression) {
+    await ctx.services.inbox.createCronSchedule(item);
+  }
+
   await ctx.resources.ddb.entities.AgentJob.build(PutItemCommand)
     .item(item)
     .send();
-
-  // Create EventBridge cron schedule
-  if (cronExpression) {
-    ctx.services.inbox
-      .createCronSchedule(item)
-      .catch((err) =>
-        ctx.log.error(
-          { err, jobId: id, component: "jobs" },
-          "Failed to create schedule",
-        ),
-      );
-  }
 
   return item;
 }

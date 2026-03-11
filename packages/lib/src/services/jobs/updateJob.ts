@@ -44,22 +44,13 @@ export async function updateJob(
 
   // Recreate EventBridge schedule if cron or timezone changed
   if (input.recurrence != null || input.timezone != null) {
-    ctx.services.inbox
-      .deleteCronSchedule(id)
-      .then(() => {
-        if (Attributes.cronExpression) {
-          return ctx.services.inbox.createCronSchedule({
-            ...Attributes,
-            cronExpression: Attributes.cronExpression,
-          });
-        }
-      })
-      .catch((err) =>
-        ctx.log.error(
-          { err, jobId: id, component: "jobs" },
-          "Failed to update schedule",
-        ),
-      );
+    await ctx.services.inbox.deleteCronSchedule(id).catch(() => {});
+    if (Attributes.cronExpression) {
+      await ctx.services.inbox.createCronSchedule({
+        ...Attributes,
+        cronExpression: Attributes.cronExpression,
+      });
+    }
   }
 
   return Attributes;

@@ -72,19 +72,19 @@ describe("createJob", () => {
     expect(ctx.services.inbox.createCronSchedule).toHaveBeenCalled();
   });
 
-  it("does not throw when createCronSchedule fails", async () => {
+  it("throws when createCronSchedule fails", async () => {
     ctx.services.inbox.createCronSchedule.mockRejectedValue(
       new Error("schedule error"),
     );
 
-    const result = await createJob(ctx, {
-      name: "Test",
-      description: "desc",
-      recurrence: "every day",
-      timezone: "UTC",
-      agentId: "agent-123",
-    });
-
-    expect(result.id).toBe("test-uuid-123");
+    await expect(
+      createJob(ctx, {
+        name: "Test",
+        description: "desc",
+        recurrence: "every day",
+        timezone: "UTC",
+        agentId: "agent-123",
+      }),
+    ).rejects.toThrow("schedule error");
   });
 });

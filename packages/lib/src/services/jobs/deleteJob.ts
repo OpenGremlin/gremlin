@@ -13,15 +13,8 @@ export async function deleteJob(
     .key({ id })
     .send();
 
-  // Delete EventBridge schedule
-  ctx.services.inbox
-    .deleteCronSchedule(id)
-    .catch((err) =>
-      ctx.log.error(
-        { err, jobId: id, component: "jobs" },
-        "Failed to delete schedule",
-      ),
-    );
+  // Delete EventBridge schedule (best-effort — may not exist)
+  await ctx.services.inbox.deleteCronSchedule(id).catch(() => {});
 
   return job;
 }

@@ -9,6 +9,24 @@ import {
 } from "./schedulerClient.js";
 
 /**
+ * Convert a standard 5-field cron expression to AWS EventBridge 6-field format.
+ * AWS requires: min hour day-of-month month day-of-week year
+ * and one of day-of-month or day-of-week must be "?" when the other is set.
+ */
+function toAwsCron(expr: string): string {
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length === 6) return expr; // already 6-field
+  if (parts.length !== 5) return expr; // let AWS reject it
+  const [min, hour, dom, month, dow] = parts;
+  // If day-of-week is specified (not *), use ? for day-of-month
+  if (dow !== "*") return `${min} ${hour} ? ${month} ${dow} *`;
+  // If day-of-month is specified (not *), use ? for day-of-week
+  if (dom !== "*") return `${min} ${hour} ${dom} ${month} ? *`;
+  // Both are *, default to ? for day-of-week
+  return `${min} ${hour} ${dom} ${month} ? *`;
+}
+
+/**
  * Create a recurring EventBridge schedule for a cron job.
  */
 export async function createCronSchedule(job: {
@@ -26,7 +44,7 @@ export async function createCronSchedule(job: {
     new CreateScheduleCommand({
       Name: `gremlin-job-${job.id}`,
       GroupName: "gremlin",
-      ScheduleExpression: `cron(${job.cronExpression})`,
+      ScheduleExpression: `cron(${toAwsCron(job.cronExpression)})`,
       ScheduleExpressionTimezone: job.timezone ?? "UTC",
       FlexibleTimeWindow: { Mode: "OFF" as FlexibleTimeWindowMode },
       Target: {

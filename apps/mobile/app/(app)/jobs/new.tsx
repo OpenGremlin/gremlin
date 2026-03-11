@@ -112,15 +112,14 @@ export default function NewJobScreen() {
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-neutral-300">
-          Cron Expression
+          Recurrence
         </Text>
         <TextInput
           className={inputClass}
           value={recurrence}
           onChangeText={setRecurrence}
-          placeholder="0 9 * * *"
+          placeholder="Every weekday at 9am"
           placeholderTextColor="#737373"
-          autoCapitalize="none"
         />
       </View>
 
