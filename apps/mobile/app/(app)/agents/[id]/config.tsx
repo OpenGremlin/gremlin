@@ -19,6 +19,7 @@ import {
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
+import { AvatarPicker } from "../../../../src/shared/AvatarPicker";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { Toggle } from "../../../../src/shared/Toggle";
 
@@ -30,7 +31,7 @@ export default function AgentConfigScreen() {
 
   const { data, loading, error, setData } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
-  const _avatarsResult = useQuery(AvatarsQuery);
+  const avatarsResult = useQuery(AvatarsQuery);
 
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
@@ -39,7 +40,7 @@ export default function AgentConfigScreen() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
-  const [_pickerOpen, setPickerOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!agent) return;
@@ -222,6 +223,28 @@ export default function AgentConfigScreen() {
             <Text className="text-red-400 font-semibold">Retire Agent</Text>
           )}
         </Pressable>
+      )}
+
+      {pickerOpen && (
+        <AvatarPicker
+          avatars={avatarsResult.data?.avatars ?? []}
+          loading={avatarsResult.loading}
+          onSelect={async (avatar) => {
+            setPickerOpen(false);
+            try {
+              const result = await gql<{ updateAgent: typeof agent }>(
+                UpdateAgentMutation,
+                { id, input: { avatar: avatar.id } },
+              );
+              setData({ agent: result.updateAgent });
+            } catch (err) {
+              setSaveError(
+                err instanceof Error ? err.message : "Failed to update avatar",
+              );
+            }
+          }}
+          onClose={() => setPickerOpen(false)}
+        />
       )}
     </ScrollView>
   );
