@@ -94,30 +94,30 @@ const darkUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
 };
 
 const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
-  body: { color: "#171717", fontSize: 14, lineHeight: 20 },
+  body: { color: "#4b5563", fontSize: 14, lineHeight: 20 },
   paragraph: { marginTop: 0, marginBottom: 6 },
   heading1: {
-    color: "#0a0a0a",
+    color: "#374151",
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 8,
     marginTop: 12,
   },
   heading2: {
-    color: "#0a0a0a",
+    color: "#374151",
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 6,
     marginTop: 10,
   },
   heading3: {
-    color: "#0a0a0a",
+    color: "#374151",
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
     marginTop: 8,
   },
-  strong: { fontWeight: "700", color: "#0a0a0a" },
+  strong: { fontWeight: "700", color: "#374151" },
   em: { fontStyle: "italic" },
   link: { color: "#2563eb", textDecorationLine: "underline" },
   blockquote: {
@@ -175,8 +175,8 @@ const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
     marginVertical: 6,
   },
   tr: { borderBottomWidth: 1, borderColor: "#e5e5e5" },
-  th: { padding: 6, color: "#0a0a0a", fontWeight: "600" },
-  td: { padding: 6, color: "#171717" },
+  th: { padding: 6, color: "#374151", fontWeight: "600" },
+  td: { padding: 6, color: "#4b5563" },
 };
 
 const lightUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
