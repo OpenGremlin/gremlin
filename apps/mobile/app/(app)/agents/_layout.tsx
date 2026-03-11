@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { Platform } from "react-native";
 
 export default function AgentsLayout() {
   return (
@@ -14,7 +15,16 @@ export default function AgentsLayout() {
       <Stack.Screen name="new" options={{ title: "New Agent" }} />
       <Stack.Screen
         name="[id]/index"
-        options={{ title: "", headerBackTitle: "Agents" }}
+        options={{
+          headerBackTitle: "Agents",
+          headerTransparent: true,
+          headerBlurEffect: Platform.OS === "ios" ? "dark" : undefined,
+          headerTitleAlign: "center",
+          headerStyle: Platform.OS === "ios"
+            ? { backgroundColor: "transparent" }
+            : { backgroundColor: "#0a0a0a", height: 120 },
+          title: "",
+        }}
       />
       <Stack.Screen
         name="[id]/config"

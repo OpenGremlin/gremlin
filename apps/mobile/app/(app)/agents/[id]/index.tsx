@@ -1,6 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
-import { router, useLocalSearchParams } from "expo-router";
-import { ArrowUp, ChevronRight, Paperclip } from "lucide-react-native";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import { ArrowUp, Paperclip } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -285,19 +285,24 @@ export default function AgentChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <Pressable
-        onPress={() => router.push(`/agents/${id}/config`)}
-        className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800"
-      >
-        <AgentAvatar id={id} size={32} />
-        <Text className="text-neutral-100 font-medium flex-1">
-          {agent.name}
-        </Text>
-        <ChevronRight size={16} color="#525252" />
-      </Pressable>
+      <Stack.Screen
+        options={{
+          headerTitle: () => (
+            <Pressable
+              onPress={() => router.push(`/agents/${id}/config`)}
+              className="items-center"
+            >
+              <AgentAvatar id={id} size={64} />
+              <Text className="text-sm text-neutral-100 mt-1.5 font-semibold">
+                {agent.name}
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       {taskId && task && (
-        <View className="px-4 py-2 bg-neutral-900 border-b border-neutral-800">
+        <View className="px-4 py-2 bg-neutral-900/80 border-b border-neutral-800">
           <Text className="text-xs text-neutral-400">Task</Text>
           <Text className="text-sm text-neutral-200" numberOfLines={1}>
             {task.title ?? task.message}
