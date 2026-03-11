@@ -59,7 +59,7 @@ export function DelegateTaskCard({
                     const opacity = i === 0 ? 1 : Math.max(0.25, 1 - i * 0.35);
                     return (
                       <View
-                        key={msg}
+                        key={i}
                         className="flex-row items-start gap-1.5"
                         style={{ opacity }}
                       >

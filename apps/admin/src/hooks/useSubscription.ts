@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { clientLogger } from "../logger";
 import { wsClient } from "../wsClient";
@@ -16,13 +16,17 @@ export function useSubscription<TResult>(
   onDataRef.current = onData;
 
   const queryStr = String(query);
-  const _serializedVars = JSON.stringify(variables);
+  const serializedVars = JSON.stringify(variables);
+  const stableVars = useMemo(
+    () => JSON.parse(serializedVars) as Record<string, unknown>,
+    [serializedVars],
+  );
 
   useEffect(() => {
     if (!queryStr) return;
 
     const unsubscribe = wsClient.subscribe(
-      { query: queryStr, variables },
+      { query: queryStr, variables: stableVars },
       {
         next: ({ data }) => {
           if (data) onDataRef.current(data as TResult);
@@ -37,5 +41,5 @@ export function useSubscription<TResult>(
     );
 
     return unsubscribe;
-  }, [queryStr, variables]);
+  }, [queryStr, stableVars]);
 }
