@@ -14,6 +14,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { PickerModal } from "../../../src/shared/PickerModal";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
 
@@ -24,9 +25,15 @@ interface ProfileFormValues {
   timezone: string;
 }
 
+const timezoneOptions = Intl.supportedValuesOf("timeZone").map((tz) => ({
+  value: tz,
+  label: tz.replaceAll("_", " "),
+}));
+
 export default function ProfileScreen() {
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
+  const [tzPickerOpen, setTzPickerOpen] = useState(false);
 
   const {
     control,
@@ -144,13 +151,25 @@ export default function ProfileScreen() {
           control={control}
           name="timezone"
           render={({ field: { onChange, value } }) => (
-            <TextInput
-              className={inputClass}
-              value={value}
-              onChangeText={onChange}
-              placeholderTextColor="#525252"
-              autoCapitalize="none"
-            />
+            <>
+              <Pressable
+                className={inputClass}
+                onPress={() => setTzPickerOpen(true)}
+              >
+                <Text className="text-sm text-neutral-100">
+                  {value?.replaceAll("_", " ") || "Select timezone"}
+                </Text>
+              </Pressable>
+              <PickerModal
+                visible={tzPickerOpen}
+                title="Select Timezone"
+                options={timezoneOptions}
+                selected={value}
+                onSelect={onChange}
+                onClose={() => setTzPickerOpen(false)}
+                searchable
+              />
+            </>
           )}
         />
       </View>

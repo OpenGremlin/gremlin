@@ -41,6 +41,53 @@ export default function IntegrationsScreen() {
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-4 gap-5">
       <QueryResult loading={loading} error={error} />
 
+      {!loading &&
+        !error &&
+        (() => {
+          const defaultModel = providers.data?.defaultModel;
+          const allProviders = providerList;
+          const aiProviders = allProviders.filter((p) => p.category === "ai");
+
+          if (defaultModel) {
+            const modelProvider = allProviders.find(
+              (p) => p.id === defaultModel.providerId,
+            );
+            const model = modelProvider?.models?.find(
+              (m) => m.id === defaultModel.modelId,
+            );
+            return (
+              <View className="bg-neutral-900 rounded-xl p-4">
+                <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+                  Default Model
+                </Text>
+                <Text className="text-sm font-medium text-neutral-100">
+                  {model?.name ?? defaultModel.modelId}
+                </Text>
+                {modelProvider && (
+                  <Text className="text-xs text-neutral-400 mt-0.5">
+                    {modelProvider.service}
+                  </Text>
+                )}
+              </View>
+            );
+          }
+
+          if (aiProviders.length > 0) {
+            return (
+              <View className="bg-neutral-900 rounded-xl p-4">
+                <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+                  Default Model
+                </Text>
+                <Text className="text-sm text-neutral-400">
+                  No default model selected. Using Bedrock Claude Sonnet 4.
+                </Text>
+              </View>
+            );
+          }
+
+          return null;
+        })()}
+
       {connectionList.length > 0 && (
         <View className="gap-2">
           <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider">

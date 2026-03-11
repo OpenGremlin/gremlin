@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,10 +8,26 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { CreateAgentJobMutation } from "../../../src/graphql/queries";
+import {
+  AgentsQuery,
+  CreateAgentJobMutation,
+} from "../../../src/graphql/queries";
+import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { PickerModal } from "../../../src/shared/PickerModal";
 
 export default function NewJobScreen() {
+  const { data: agentsData } = useQuery(AgentsQuery);
+  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+
+  const agentOptions = useMemo(
+    () =>
+      (agentsData?.agents ?? [])
+        .filter((a) => !a.retired)
+        .map((a) => ({ value: a.id, label: a.name })),
+    [agentsData],
+  );
+
   const [name, setName] = useState("");
   const [agentId, setAgentId] = useState("");
   const [recurrence, setRecurrence] = useState("");
@@ -71,13 +87,25 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Agent ID</Text>
-        <TextInput
+        <Text className="text-sm font-medium text-neutral-300">Agent</Text>
+        <Pressable
           className={inputClass}
-          value={agentId}
-          onChangeText={setAgentId}
-          placeholder="Agent ID"
-          placeholderTextColor="#737373"
+          onPress={() => setAgentPickerOpen(true)}
+        >
+          <Text
+            className={`text-sm ${agentId ? "text-neutral-100" : "text-neutral-500"}`}
+          >
+            {agentOptions.find((a) => a.value === agentId)?.label ??
+              "Select agent"}
+          </Text>
+        </Pressable>
+        <PickerModal
+          visible={agentPickerOpen}
+          title="Select Agent"
+          options={agentOptions}
+          selected={agentId}
+          onSelect={setAgentId}
+          onClose={() => setAgentPickerOpen(false)}
         />
       </View>
 

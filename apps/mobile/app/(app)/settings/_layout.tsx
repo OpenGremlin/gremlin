@@ -11,6 +11,10 @@ export default function SettingsLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Settings" }} />
+      <Stack.Screen
+        name="notifications"
+        options={{ title: "Notifications", headerBackTitle: "Settings" }}
+      />
       <Stack.Screen name="profile" options={{ title: "Profile" }} />
       <Stack.Screen name="global" options={{ title: "Global" }} />
       <Stack.Screen

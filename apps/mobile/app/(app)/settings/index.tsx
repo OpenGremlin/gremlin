@@ -1,6 +1,13 @@
 import { router } from "expo-router";
 import type { LucideIcon } from "lucide-react-native";
-import { FolderOpen, Globe, Plug, Sparkles, User } from "lucide-react-native";
+import {
+  Bell,
+  FolderOpen,
+  Globe,
+  Plug,
+  Sparkles,
+  User,
+} from "lucide-react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 const items: Array<{
@@ -8,6 +15,7 @@ const items: Array<{
   icon: LucideIcon;
   href: string;
 }> = [
+  { label: "Notifications", icon: Bell, href: "/settings/notifications" },
   { label: "Profile", icon: User, href: "/settings/profile" },
   { label: "Skills", icon: Sparkles, href: "/settings/skills" },
   {

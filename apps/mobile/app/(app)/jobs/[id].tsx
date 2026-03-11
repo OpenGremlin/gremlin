@@ -1,7 +1,7 @@
 import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play, Trash2 } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -17,6 +17,7 @@ import type {
 } from "../../../src/graphql/generated/graphql";
 import {
   AgentJobQuery,
+  AgentsQuery,
   DeleteAgentJobMutation as DeleteAgentJobDoc,
   JobTaskCreatedSubscription,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
@@ -26,6 +27,7 @@ import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { formatDate } from "../../../src/shared/formatDate";
+import { PickerModal } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
 import { Toggle } from "../../../src/shared/Toggle";
 
@@ -35,8 +37,19 @@ type JobTask = Job["tasks"][number];
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(AgentJobQuery, { id: id ?? "" });
+  const { data: agentsData } = useQuery(AgentsQuery);
+  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+
+  const agentOptions = useMemo(
+    () =>
+      (agentsData?.agents ?? [])
+        .filter((a) => !a.retired)
+        .map((a) => ({ value: a.id, label: a.name })),
+    [agentsData],
+  );
 
   const [name, setName] = useState<string | null>(null);
+  const [agentId, setAgentId] = useState<string | null>(null);
   const [recurrence, setRecurrence] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [timezone, setTimezone] = useState<string | null>(null);
@@ -74,12 +87,14 @@ export default function JobDetailScreen() {
   const currentRecurrence = recurrence ?? job.recurrence;
   const currentDescription = description ?? job.description;
   const currentTimezone = timezone ?? job.timezone;
+  const currentAgentId = agentId ?? job.agent.id;
 
   const isDirty =
     name !== null ||
     recurrence !== null ||
     description !== null ||
-    timezone !== null;
+    timezone !== null ||
+    agentId !== null;
 
   let cronHuman: string | null = null;
   if (job.cronExpression) {
@@ -98,6 +113,7 @@ export default function JobDetailScreen() {
       if (recurrence !== null) input.recurrence = recurrence;
       if (description !== null) input.description = description;
       if (timezone !== null) input.timezone = timezone;
+      if (agentId !== null) input.agentId = agentId;
 
       const result = await gql<UpdateAgentJobType>(UpdateAgentJobDoc, {
         id,
@@ -111,6 +127,7 @@ export default function JobDetailScreen() {
         } as Job);
       }
       setName(null);
+      setAgentId(null);
       setRecurrence(null);
       setDescription(null);
       setTimezone(null);
@@ -268,6 +285,26 @@ export default function JobDetailScreen() {
         </Text>
         <View className="bg-neutral-900 rounded-xl p-4 gap-4">
           <View className="gap-2">
+            <Text className="text-xs text-neutral-500">Agent</Text>
+            <Pressable
+              className={inputClass}
+              onPress={() => setAgentPickerOpen(true)}
+            >
+              <Text className="text-sm text-neutral-100">
+                {agentOptions.find((a) => a.value === currentAgentId)?.label ??
+                  job.agent.name}
+              </Text>
+            </Pressable>
+            <PickerModal
+              visible={agentPickerOpen}
+              title="Select Agent"
+              options={agentOptions}
+              selected={currentAgentId}
+              onSelect={(val) => setAgentId(val === job.agent.id ? null : val)}
+              onClose={() => setAgentPickerOpen(false)}
+            />
+          </View>
+          <View className="gap-2">
             <Text className="text-xs text-neutral-500">Name</Text>
             <TextInput
               className={inputClass}
@@ -329,6 +366,7 @@ export default function JobDetailScreen() {
               <Pressable
                 onPress={() => {
                   setName(null);
+                  setAgentId(null);
                   setRecurrence(null);
                   setDescription(null);
                   setTimezone(null);
