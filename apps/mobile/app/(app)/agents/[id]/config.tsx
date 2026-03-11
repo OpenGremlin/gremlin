@@ -21,7 +21,7 @@ import { gql } from "../../../../src/lib/auth";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
-import { Toggle } from "../../../../src/shared/Toggle";
+import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
 const INPUT_CLASS =
   "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-sm";
@@ -29,14 +29,14 @@ const INPUT_CLASS =
 export default function AgentConfigScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data, loading, error, setData } = useQuery(AgentQuery, { id });
+  const { data, loading, error, setData, refetch } = useQuery(AgentQuery, {
+    id,
+  });
   const agent = data?.agent;
   const avatarsResult = useQuery(AvatarsQuery);
 
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
-  const [sandboxEnabled, setSandboxEnabled] = useState(false);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
@@ -46,8 +46,6 @@ export default function AgentConfigScreen() {
     if (!agent) return;
     setName(agent.name);
     setSoul(agent.soul ?? "");
-    setSandboxEnabled(agent.config?.sandbox?.enabled ?? false);
-    setWebSearchEnabled(agent.config?.webSearch?.enabled ?? false);
   }, [agent]);
 
   const handleSave = useCallback(async () => {
@@ -62,14 +60,6 @@ export default function AgentConfigScreen() {
           input: {
             name: name.trim(),
             soul: soul.trim(),
-            config: {
-              sandbox: {
-                enabled: sandboxEnabled,
-              },
-              webSearch: {
-                enabled: webSearchEnabled,
-              },
-            },
           },
         },
       );
@@ -81,7 +71,7 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, soul, sandboxEnabled, webSearchEnabled, setData]);
+  }, [id, agent, name, soul, setData]);
 
   const handleRetire = useCallback(() => {
     Alert.alert("Retire Agent", "Are you sure you want to retire this agent?", [
@@ -116,10 +106,7 @@ export default function AgentConfigScreen() {
   }
 
   const hasChanges =
-    name.trim() !== agent.name ||
-    soul.trim() !== (agent.soul ?? "") ||
-    sandboxEnabled !== (agent.config?.sandbox?.enabled ?? false) ||
-    webSearchEnabled !== (agent.config?.webSearch?.enabled ?? false);
+    name.trim() !== agent.name || soul.trim() !== (agent.soul ?? "");
 
   return (
     <ScrollView
@@ -162,37 +149,6 @@ export default function AgentConfigScreen() {
         />
       </View>
 
-      <View className="gap-4">
-        <Text className="text-sm font-medium text-neutral-300">Tools</Text>
-
-        <View className="bg-neutral-900 rounded-xl overflow-hidden">
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-800">
-            <View>
-              <Text className="text-sm text-neutral-100">Model</Text>
-              <Text className="text-xs text-neutral-500">
-                {agent.config?.model?.modelId ?? "Default"}
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-800">
-            <Text className="text-sm text-neutral-100">Sandbox</Text>
-            <Toggle
-              enabled={sandboxEnabled}
-              onChange={() => setSandboxEnabled((v) => !v)}
-            />
-          </View>
-
-          <View className="flex-row items-center justify-between px-4 py-3">
-            <Text className="text-sm text-neutral-100">Web Search</Text>
-            <Toggle
-              enabled={webSearchEnabled}
-              onChange={() => setWebSearchEnabled((v) => !v)}
-            />
-          </View>
-        </View>
-      </View>
-
       {saveError ? (
         <Text className="text-red-400 text-sm">{saveError}</Text>
       ) : null}
@@ -210,6 +166,8 @@ export default function AgentConfigScreen() {
           <Text className="text-white font-semibold">Save Changes</Text>
         )}
       </Pressable>
+
+      <ToolsConfig agent={agent} />
 
       {!agent.retired && (
         <Pressable
@@ -232,11 +190,11 @@ export default function AgentConfigScreen() {
           onSelect={async (avatar) => {
             setPickerOpen(false);
             try {
-              const result = await gql<{ updateAgent: typeof agent }>(
-                UpdateAgentMutation,
-                { id, input: { avatar: avatar.id } },
-              );
-              setData({ agent: result.updateAgent });
+              await gql<{ updateAgent: typeof agent }>(UpdateAgentMutation, {
+                id,
+                input: { avatar: avatar.id },
+              });
+              refetch();
             } catch (err) {
               setSaveError(
                 err instanceof Error ? err.message : "Failed to update avatar",
