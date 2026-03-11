@@ -6,6 +6,7 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // @ts-expect-error — href is an Expo Router extension not in BottomTabNavigationOptions
         href: null,
         tabBarStyle: {
           backgroundColor: "#0a0a0a",

@@ -11,6 +11,7 @@ import type { Document } from "../../../src/graphql/generated/graphql";
 import { TasksQuery } from "../../../src/graphql/queries";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { DocumentCard } from "../../../src/shared/DocumentCard";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { useTaskUpdates } from "../../../src/subscriptions";
@@ -70,14 +71,7 @@ function TaskCard({ item }: { item: TaskItem }) {
           {task.documents && task.documents.length > 0 ? (
             <View className="mt-2 gap-1">
               {task.documents.map((doc) => (
-                <View
-                  key={doc.path}
-                  className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2"
-                >
-                  <Text className="text-sm text-neutral-200" numberOfLines={1}>
-                    {doc.title}
-                  </Text>
-                </View>
+                <DocumentCard key={doc.path} doc={doc} />
               ))}
             </View>
           ) : null}
