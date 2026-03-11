@@ -15,6 +15,7 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { PickerModal } from "../../../src/shared/PickerModal";
+import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 export default function NewJobScreen() {
   const { data: agentsData } = useQuery(AgentsQuery);
@@ -125,13 +126,10 @@ export default function NewJobScreen() {
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-neutral-300">Timezone</Text>
-        <TextInput
-          className={inputClass}
+        <TimezonePicker
           value={timezone}
-          onChangeText={setTimezone}
-          placeholder="America/New_York"
-          placeholderTextColor="#737373"
-          autoCapitalize="none"
+          onChange={setTimezone}
+          className={inputClass}
         />
       </View>
 

@@ -29,6 +29,7 @@ import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { formatDate } from "../../../src/shared/formatDate";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
+import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 import { Toggle } from "../../../src/shared/Toggle";
 
 type Job = NonNullable<AgentJobQueryType["agentJob"]>;
@@ -327,14 +328,10 @@ export default function JobDetailScreen() {
           </View>
           <View className="gap-2">
             <Text className="text-xs text-neutral-500">Timezone</Text>
-            <TextInput
-              className={inputClass}
+            <TimezonePicker
               value={currentTimezone}
-              onChangeText={(val) =>
-                setTimezone(val === job.timezone ? null : val)
-              }
-              placeholderTextColor="#737373"
-              autoCapitalize="none"
+              onChange={(val) => setTimezone(val === job.timezone ? null : val)}
+              className={inputClass}
             />
           </View>
           <View className="gap-2">
