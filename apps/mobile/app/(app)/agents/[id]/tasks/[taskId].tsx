@@ -292,6 +292,7 @@ export default function TaskThreadScreen() {
             <ChatHeaderTitle
               agentId={id}
               title={task.title ?? task.message ?? "Task"}
+              onPress={() => router.navigate(`/agents/${id}`)}
             />
           ),
         }}

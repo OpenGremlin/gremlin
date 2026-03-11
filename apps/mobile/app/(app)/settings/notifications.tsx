@@ -9,6 +9,7 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { EmptyState } from "../../../src/shared/EmptyState";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
@@ -119,11 +120,7 @@ export default function NotificationsScreen() {
   }
 
   if (notifications.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center px-4 py-20">
-        <Text className="text-sm text-neutral-500">No notifications yet</Text>
-      </View>
-    );
+    return <EmptyState message="No notifications yet" />;
   }
 
   return (

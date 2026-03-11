@@ -1,42 +1,9 @@
-import { FileText, X } from "lucide-react-native";
+import { FileText } from "lucide-react-native";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import type { Document } from "../graphql/generated/graphql";
 import { Markdown } from "./LogEntryView/Markdown";
-
-function DocumentModal({
-  doc,
-  onClose,
-}: {
-  doc: Document;
-  onClose: () => void;
-}) {
-  return (
-    <Modal
-      visible
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 bg-neutral-900">
-        <View className="flex-row items-center px-4 pt-4 pb-3 border-b border-neutral-800">
-          <Text
-            className="flex-1 text-base font-semibold text-neutral-100"
-            numberOfLines={1}
-          >
-            {doc.title}
-          </Text>
-          <Pressable onPress={onClose} className="p-1">
-            <X size={20} color="#a3a3a3" />
-          </Pressable>
-        </View>
-        <ScrollView className="flex-1 px-4 py-4">
-          <Markdown>{doc.body ?? ""}</Markdown>
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
+import { SheetModal } from "./SheetModal";
 
 export function DocumentCard({ doc }: { doc: Document }) {
   const [open, setOpen] = useState(false);
@@ -58,7 +25,15 @@ export function DocumentCard({ doc }: { doc: Document }) {
         </View>
       </Pressable>
 
-      {open && <DocumentModal doc={doc} onClose={() => setOpen(false)} />}
+      <SheetModal
+        visible={open}
+        title={doc.title}
+        onClose={() => setOpen(false)}
+      >
+        <ScrollView className="flex-1 px-4 py-4">
+          <Markdown>{doc.body ?? ""}</Markdown>
+        </ScrollView>
+      </SheetModal>
     </>
   );
 }

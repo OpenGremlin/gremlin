@@ -12,6 +12,7 @@ import { TasksQuery } from "../../../src/graphql/queries";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { DocumentCard } from "../../../src/shared/DocumentCard";
+import { EmptyState } from "../../../src/shared/EmptyState";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { useTaskUpdates } from "../../../src/subscriptions";
@@ -111,11 +112,7 @@ export default function HomeScreen() {
         ) : null
       }
       ListEmptyComponent={
-        !loading ? (
-          <View className="items-center py-12">
-            <Text className="text-neutral-500 text-sm">No tasks yet</Text>
-          </View>
-        ) : null
+        !loading ? <EmptyState message="No tasks yet" /> : null
       }
     />
   );
