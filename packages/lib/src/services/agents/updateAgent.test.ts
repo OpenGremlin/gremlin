@@ -1,3 +1,4 @@
+import { $remove } from "dynamodb-toolbox/entity/actions/update";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
@@ -63,7 +64,7 @@ describe("updateAgent", () => {
     );
   });
 
-  it("only includes non-null fields in update", async () => {
+  it("skips undefined fields, removes null fields", async () => {
     const updated = {
       id: "agent-1",
       name: "Test",
@@ -79,6 +80,11 @@ describe("updateAgent", () => {
       avatar: null,
     });
 
-    expect(mockItem).toHaveBeenCalledWith({ id: "agent-1", name: "Test" });
+    expect(mockItem).toHaveBeenCalledWith({
+      id: "agent-1",
+      name: "Test",
+      soul: $remove(),
+      avatar: $remove(),
+    });
   });
 });

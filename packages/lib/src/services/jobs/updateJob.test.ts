@@ -1,3 +1,4 @@
+import { $remove } from "dynamodb-toolbox/entity/actions/update";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
@@ -44,7 +45,7 @@ describe("updateJob", () => {
     expect(result).toEqual(updatedJob);
   });
 
-  it("only includes non-null fields in update", async () => {
+  it("skips undefined fields, removes null fields", async () => {
     await updateJob(ctx, "job-1", {
       name: "Updated Name",
       description: null,
@@ -54,6 +55,8 @@ describe("updateJob", () => {
     expect(mockItem).toHaveBeenCalledWith({
       id: "job-1",
       name: "Updated Name",
+      description: $remove(),
+      agentId: $remove(),
     });
   });
 

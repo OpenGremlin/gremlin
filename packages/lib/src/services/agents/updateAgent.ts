@@ -1,10 +1,6 @@
-import {
-  $remove,
-  $set,
-  UpdateItemCommand,
-} from "dynamodb-toolbox/entity/actions/update";
+import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { AgentItem } from "../../resources/ddb/schema/agent.js";
-import { nullsToUndefined } from "../../utils/nullsToUndefined.js";
+import { patchUpdates } from "../../utils/patchUpdates.js";
 import type { ServiceContext } from "../context.js";
 
 interface UpdateAgentInput {
@@ -26,17 +22,7 @@ export async function updateAgent(
   id: string,
   input: UpdateAgentInput,
 ): Promise<AgentItem> {
-  const updates: Record<string, unknown> = { id };
-
-  if (input.name != null) updates.name = input.name;
-  if (input.soul != null) updates.soul = input.soul;
-  if (input.avatar != null) updates.avatar = input.avatar;
-  if (input.sandboxInstanceId != null)
-    updates.sandboxInstanceId = input.sandboxInstanceId;
-  if (input.ttsVoice !== undefined)
-    updates.ttsVoice = input.ttsVoice === null ? $remove() : input.ttsVoice;
-  if (input.config != null)
-    updates.config = $set(nullsToUndefined(input.config));
+  const updates = { id, ...patchUpdates(input) };
 
   const { Attributes } = await ctx.resources.ddb.entities.Agent.build(
     UpdateItemCommand,

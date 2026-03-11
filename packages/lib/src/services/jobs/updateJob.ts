@@ -1,5 +1,6 @@
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { AgentJobItem } from "../../resources/ddb/schema/agentJob.js";
+import { patchUpdates } from "../../utils/patchUpdates.js";
 import type { ServiceContext } from "../context.js";
 import { recurrenceToCron } from "./recurrenceToCron.js";
 
@@ -17,20 +18,14 @@ export async function updateJob(
   id: string,
   input: UpdateJobInput,
 ): Promise<AgentJobItem> {
-  const updates: Record<string, unknown> = { id };
+  const updates: Record<string, unknown> = { id, ...patchUpdates(input) };
 
-  if (input.name != null) updates.name = input.name;
-  if (input.description != null) updates.description = input.description;
-  if (input.agentId != null) updates.agentId = input.agentId;
-  if (input.timezone != null) updates.timezone = input.timezone;
-  if (input.paused != null) updates.paused = input.paused;
-
+  // Recompute cron expression when recurrence changes
   if (input.recurrence != null) {
     const timezone =
       input.timezone ??
       (await ctx.services.jobs.getJob(ctx, id))?.timezone ??
       "UTC";
-    updates.recurrence = input.recurrence;
     updates.cronExpression = await recurrenceToCron(
       ctx,
       input.recurrence,
