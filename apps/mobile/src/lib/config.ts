@@ -20,7 +20,7 @@ function getConfig(): AppConfig {
   const extra = Constants.expoConfig?.extra ?? {};
   // On web, config.js (injected by CDK at deploy time) sets window.__GREMLIN_CONFIG__
   const webConfig =
-    Platform.OS === "web" ? window.__GREMLIN_CONFIG__ ?? {} : {};
+    Platform.OS === "web" ? (window.__GREMLIN_CONFIG__ ?? {}) : {};
   return {
     apiUrl: extra.apiUrl ?? process.env.EXPO_PUBLIC_API_URL ?? "",
     cognitoDomain:

@@ -138,7 +138,7 @@ export class AdminStack extends cdk.Stack {
                 "cp -r /asset-input/packages/logos/*.svg /tmp/build/packages/logos/",
                 "cd /tmp/build/apps/mobile && npx expo export --platform web",
                 // Inject <script src="/config.js"> before </head> so runtime config loads first
-                'sed -i \'s|</head>|<script src="/config.js"></script></head>|\' /tmp/build/apps/mobile/dist/index.html',
+                "sed -i 's|</head>|<script src=\"/config.js\"></script></head>|' /tmp/build/apps/mobile/dist/index.html",
                 "cp -r /tmp/build/apps/mobile/dist/. /asset-output/",
               ].join(" && "),
             ],

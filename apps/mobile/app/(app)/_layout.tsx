@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
 

@@ -47,11 +47,7 @@ export function PickerModal({
   }, [options, search]);
 
   return (
-    <SheetModal
-      visible={visible}
-      title={title}
-      onClose={onClose}
-    >
+    <SheetModal visible={visible} title={title} onClose={onClose}>
       {searchable && (
         <View className="px-4 py-2 border-b border-neutral-800">
           <TextInput

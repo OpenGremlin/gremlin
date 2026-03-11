@@ -1,7 +1,4 @@
-import {
-  $remove,
-  $set,
-} from "dynamodb-toolbox/entity/actions/update";
+import { $remove, $set } from "dynamodb-toolbox/entity/actions/update";
 
 /**
  * Convert a GraphQL patch input into a dynamodb-toolbox update item.
@@ -11,9 +8,7 @@ import {
  * - plain object                           → $set() with recursive null→$remove() handling
  * - any other value                        → passed through as-is
  */
-export function patchUpdates(
-  input: object,
-): Record<string, unknown> {
+export function patchUpdates(input: object): Record<string, unknown> {
   const updates: Record<string, unknown> = {};
 
   for (const key in input) {
