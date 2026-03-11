@@ -222,7 +222,7 @@ export default function AgentConfigScreen() {
           <Pressable
             onPress={() => setShowRetireConfirm(true)}
             disabled={retiring}
-            className="rounded-lg py-3 items-center border border-red-800 mt-4"
+            className="self-start rounded-lg px-5 py-3 items-center border border-red-800 mt-4"
           >
             {retiring ? (
               <ActivityIndicator color="#f87171" />
