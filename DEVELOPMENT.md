@@ -10,6 +10,31 @@ pnpm --filter server db:seed
 pnpm dev
 ```
 
+## Mobile App
+
+The web frontend is the Expo mobile app (`apps/mobile`) running in web mode. It also targets iOS and Android via Expo.
+
+```
+cd apps/mobile
+pnpm start              # Expo dev server (all platforms)
+pnpm web                # web only
+npx expo export --platform web  # production web build
+```
+
+### GraphQL Codegen
+
+After changing GraphQL queries or the server schema, regenerate types:
+
+```
+pnpm --filter @gremlin/mobile codegen
+```
+
+### Typecheck
+
+```
+cd apps/mobile && npx tsc --noEmit
+```
+
 ## Testing
 
 ```
@@ -43,6 +68,7 @@ pnpm run deploy    # deploy all stacks
 
 | Path | What it is |
 |---|---|
+| `apps/mobile` | React Native / Expo app — web, iOS, and Android |
 | `apps/server` | Node.js backend — Express, GraphQL, DynamoDB, SQS |
 | `apps/desktop-auth` | Electron app for desktop OAuth flows (Gremlin Connect) |
 | `packages/lib` | Shared services and business logic |

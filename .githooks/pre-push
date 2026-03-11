@@ -9,6 +9,10 @@ pnpm lint
 echo "→ Typecheck"
 pnpm --filter @gremlin/lib build
 pnpm --filter @gremlin/server exec tsc --noEmit
+pnpm --filter @gremlin/mobile exec tsc --noEmit
+
+echo "→ Codegen"
+pnpm --filter @gremlin/mobile codegen
 
 echo "→ Tests"
 pnpm --filter @gremlin/server test

@@ -13,6 +13,8 @@ Thanks for your interest in contributing!
 - Run the linter: `pnpm lint`
 - Fix lint issues: `pnpm lint:fix`
 - Typecheck the server: `cd apps/server && pnpm exec tsc --noEmit`
+- Typecheck the mobile app: `cd apps/mobile && npx tsc --noEmit`
+- Regenerate GraphQL types: `pnpm --filter @gremlin/mobile codegen`
 - Run tests: `pnpm --filter @gremlin/server test`
 
 ## Pull Requests
