@@ -80,6 +80,7 @@ export const agentTypeDefs = /* GraphQL */ `
     createAgent(input: CreateAgentInput!): Agent!
     updateAgent(id: ID!, input: UpdateAgentInput!): Agent
     retireAgent(id: ID!): Agent!
+    unretireAgent(id: ID!): Agent!
   }
 
   extend type Subscription {

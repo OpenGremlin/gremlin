@@ -13,6 +13,7 @@ import {
   AgentQuery,
   AvatarsQuery,
   RetireAgentMutation,
+  UnretireAgentMutation,
   UpdateAgentMutation,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
@@ -82,14 +83,29 @@ export default function AgentConfigScreen() {
     setRetiring(true);
     try {
       await gql(RetireAgentMutation, { id });
-      router.replace("/agents");
+      refetch();
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to retire agent",
       );
+    } finally {
       setRetiring(false);
     }
-  }, [id]);
+  }, [id, refetch]);
+
+  const doUnretire = useCallback(async () => {
+    setRetiring(true);
+    try {
+      await gql(UnretireAgentMutation, { id });
+      refetch();
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to restore agent",
+      );
+    } finally {
+      setRetiring(false);
+    }
+  }, [id, refetch]);
 
   if (loading) {
     return <QueryResult loading error={null} />;
@@ -110,18 +126,44 @@ export default function AgentConfigScreen() {
       contentContainerClassName="px-4 py-6 gap-6"
       keyboardShouldPersistTaps="handled"
     >
+      {agent.retired && (
+        <View className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 flex-row items-center justify-between">
+          <Text className="text-sm text-neutral-400">
+            This agent is retired.
+          </Text>
+          <Pressable
+            onPress={doUnretire}
+            disabled={retiring}
+            className="px-3 py-1.5 bg-blue-600 rounded-lg"
+          >
+            {retiring ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text className="text-sm text-white font-medium">Restore</Text>
+            )}
+          </Pressable>
+        </View>
+      )}
+
       <View className="items-center">
-        <Pressable onPress={() => setPickerOpen(true)} className="relative">
-          <AgentAvatar id={id} size={80} />
-          <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-neutral-700 border-2 border-neutral-950 items-center justify-center">
-            <Pencil size={12} color="#e5e5e5" />
-          </View>
+        <Pressable
+          onPress={agent.retired ? undefined : () => setPickerOpen(true)}
+          disabled={!!agent.retired}
+          className="relative"
+        >
+          <AgentAvatar key={`${id}-${agent.retired}-${agent.avatar}`} id={id} size={80} />
+          {!agent.retired && (
+            <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-neutral-700 border-2 border-neutral-950 items-center justify-center">
+              <Pencil size={12} color="#e5e5e5" />
+            </View>
+          )}
         </Pressable>
       </View>
 
       <Pressable
-        onPress={() => setVoicePickerOpen(true)}
-        className="self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 active:bg-neutral-700"
+        onPress={agent.retired ? undefined : () => setVoicePickerOpen(true)}
+        disabled={!!agent.retired}
+        className={`self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 ${agent.retired ? "opacity-50" : "active:bg-neutral-700"}`}
       >
         <Volume2 size={16} color="#a3a3a3" />
         <Text className="text-sm text-neutral-200">
@@ -129,7 +171,7 @@ export default function AgentConfigScreen() {
         </Text>
       </Pressable>
 
-      <View className="gap-2">
+      <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-neutral-300">Name</Text>
         <TextInput
           className={INPUT_CLASS}
@@ -137,10 +179,11 @@ export default function AgentConfigScreen() {
           onChangeText={setName}
           placeholder="Agent name"
           placeholderTextColor="#737373"
+          editable={!agent.retired}
         />
       </View>
 
-      <View className="gap-2">
+      <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-neutral-300">Soul</Text>
         <TextInput
           className={INPUT_CLASS}
@@ -152,6 +195,7 @@ export default function AgentConfigScreen() {
           numberOfLines={6}
           textAlignVertical="top"
           style={{ minHeight: 120 }}
+          editable={!agent.retired}
         />
       </View>
 
@@ -159,34 +203,36 @@ export default function AgentConfigScreen() {
         <Text className="text-red-400 text-sm">{saveError}</Text>
       ) : null}
 
-      <Pressable
-        onPress={handleSave}
-        disabled={saving || !hasChanges}
-        className={`rounded-lg py-3 items-center ${
-          hasChanges ? "bg-indigo-600" : "bg-neutral-700"
-        } ${saving ? "opacity-50" : ""}`}
-      >
-        {saving ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Save Changes</Text>
-        )}
-      </Pressable>
-
-      <ToolsConfig agent={agent} />
-
       {!agent.retired && (
-        <Pressable
-          onPress={() => setShowRetireConfirm(true)}
-          disabled={retiring}
-          className="rounded-lg py-3 items-center border border-red-800 mt-4"
-        >
-          {retiring ? (
-            <ActivityIndicator color="#f87171" />
-          ) : (
-            <Text className="text-red-400 font-semibold">Retire Agent</Text>
-          )}
-        </Pressable>
+        <>
+          <Pressable
+            onPress={handleSave}
+            disabled={saving || !hasChanges}
+            className={`rounded-lg py-3 items-center ${
+              hasChanges ? "bg-indigo-600" : "bg-neutral-700"
+            } ${saving ? "opacity-50" : ""}`}
+          >
+            {saving ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-semibold">Save Changes</Text>
+            )}
+          </Pressable>
+
+          <ToolsConfig agent={agent} />
+
+          <Pressable
+            onPress={() => setShowRetireConfirm(true)}
+            disabled={retiring}
+            className="rounded-lg py-3 items-center border border-red-800 mt-4"
+          >
+            {retiring ? (
+              <ActivityIndicator color="#f87171" />
+            ) : (
+              <Text className="text-red-400 font-semibold">Retire Agent</Text>
+            )}
+          </Pressable>
+        </>
       )}
 
       <ConfirmDialog

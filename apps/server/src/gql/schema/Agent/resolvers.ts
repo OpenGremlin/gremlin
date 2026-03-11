@@ -34,6 +34,12 @@ const updateAgent: MutationResolvers["updateAgent"] = (
 const retireAgent: MutationResolvers["retireAgent"] = (_parent, { id }, ctx) =>
   ctx.services.agents.retireAgent(ctx, id);
 
+const unretireAgent: MutationResolvers["unretireAgent"] = (
+  _parent,
+  { id },
+  ctx,
+) => ctx.services.agents.unretireAgent(ctx, id);
+
 const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) => {
   const path = avatarPathById(parent.avatar) ?? parent.avatar;
   return ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, path, args.width);
@@ -66,7 +72,7 @@ const retired: AgentResolvers["retired"] = (parent) => parent.retired ?? false;
 
 export const agentResolvers = {
   Query: { agents, agent },
-  Mutation: { createAgent, updateAgent, retireAgent },
+  Mutation: { createAgent, updateAgent, retireAgent, unretireAgent },
   Agent: { imageUrl, retired },
   Subscription: { agentUpdated, agentsUpdated },
 };

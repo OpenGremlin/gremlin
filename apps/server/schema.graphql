@@ -58,6 +58,7 @@ type Mutation {
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
+  unretireAgent(id: ID!): Agent!
   connectApiKey(providerId: String!, apiKey: String!): ID!
   renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!

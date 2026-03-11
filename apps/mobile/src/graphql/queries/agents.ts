@@ -75,6 +75,15 @@ export const RetireAgentMutation = graphql(`
   }
 `);
 
+export const UnretireAgentMutation = graphql(`
+  mutation UnretireAgent($id: ID!) {
+    unretireAgent(id: $id) {
+      id
+      retired
+    }
+  }
+`);
+
 export const AgentUpdatedSubscription = graphql(`
   subscription AgentUpdated($agentId: ID!) {
     agentUpdated(agentId: $agentId) {

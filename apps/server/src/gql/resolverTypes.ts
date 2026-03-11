@@ -302,6 +302,7 @@ export type Mutation = {
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
   uninstallSkill?: Maybe<Skill>;
+  unretireAgent: Agent;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
@@ -426,6 +427,11 @@ export type MutationTriggerJobArgs = {
 
 
 export type MutationUninstallSkillArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationUnretireAgentArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1159,6 +1165,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   submitOAuthConnection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationSubmitOAuthConnectionArgs, 'accessToken' | 'providerId' | 'scopes'>>;
   triggerJob?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationTriggerJobArgs, 'id'>>;
   uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
+  unretireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationUnretireAgentArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
