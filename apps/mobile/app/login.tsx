@@ -102,6 +102,8 @@ export default function LoginScreen() {
               onChangeText={setCode}
               keyboardType="number-pad"
               autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={handleConfirm}
             />
           ) : (
             <>
@@ -125,6 +127,8 @@ export default function LoginScreen() {
                 autoComplete={
                   mode === "signup" ? "new-password" : "current-password"
                 }
+                returnKeyType="done"
+                onSubmitEditing={mode === "login" ? handleLogin : handleSignup}
               />
             </>
           )}

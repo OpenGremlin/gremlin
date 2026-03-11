@@ -131,12 +131,14 @@ export class AdminStack extends cdk.Stack {
                 "corepack enable",
                 "mkdir -p /tmp/build/apps/mobile /tmp/build/packages/logos",
                 "cp /asset-input/pnpm-workspace.yaml /asset-input/pnpm-lock.yaml /asset-input/package.json /asset-input/tsconfig.base.json /tmp/build/",
-                "cp /asset-input/apps/mobile/package.json /tmp/build/apps/mobile/",
+                "cp /asset-input/apps/mobile/package.json /asset-input/apps/mobile/app.json /asset-input/apps/mobile/tsconfig.json /asset-input/apps/mobile/global.css /asset-input/apps/mobile/babel.config.js /asset-input/apps/mobile/metro.config.js /asset-input/apps/mobile/tailwind.config.js /asset-input/apps/mobile/nativewind-env.d.ts /tmp/build/apps/mobile/",
                 "cp /asset-input/packages/logos/package.json /tmp/build/packages/logos/",
                 "cd /tmp/build && pnpm install --frozen-lockfile --ignore-scripts",
-                "cp -r /asset-input/apps/mobile/src /asset-input/apps/mobile/app /asset-input/apps/mobile/assets /asset-input/apps/mobile/app.json /tmp/build/apps/mobile/",
+                "cp -r /asset-input/apps/mobile/src /asset-input/apps/mobile/app /asset-input/apps/mobile/assets /tmp/build/apps/mobile/",
                 "cp -r /asset-input/packages/logos/*.svg /tmp/build/packages/logos/",
-                `cd /tmp/build/apps/mobile && EXPO_PUBLIC_COGNITO_DOMAIN=${JSON.stringify(props.cognitoDomain)} EXPO_PUBLIC_COGNITO_CLIENT_ID=${JSON.stringify(props.userPoolClientId)} EXPO_PUBLIC_API_URL="" npx expo export --platform web`,
+                "cd /tmp/build/apps/mobile && npx expo export --platform web",
+                // Inject <script src="/config.js"> before </head> so runtime config loads first
+                'sed -i \'s|</head>|<script src="/config.js"></script></head>|\' /tmp/build/apps/mobile/dist/index.html',
                 "cp -r /tmp/build/apps/mobile/dist/. /asset-output/",
               ].join(" && "),
             ],
@@ -150,6 +152,15 @@ export class AdminStack extends cdk.Stack {
             "reference",
           ],
         }),
+        // Runtime config injected as a separate file (CDK tokens resolve at deploy time)
+        s3deploy.Source.data(
+          "config.js",
+          `window.__GREMLIN_CONFIG__ = ${JSON.stringify({
+            cognitoDomain: props.cognitoDomain,
+            cognitoClientId: props.userPoolClientId,
+            mediaCdnUrl: props.mediaCdnUrl,
+          })};`,
+        ),
       ],
       destinationBucket: adminBucket,
       distribution,
