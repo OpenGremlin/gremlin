@@ -112,7 +112,7 @@ export function ToolBlock({
     );
 
   return (
-    <View className="py-1">
+    <View className="py-1 mr-10">
       <Pressable
         onPress={() => setOpen((o) => !o)}
         className="flex-row items-center gap-1.5 py-1"

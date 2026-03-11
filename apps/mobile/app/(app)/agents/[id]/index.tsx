@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowUp, ChevronRight, Paperclip } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -97,6 +97,7 @@ function ChatInputBar({
   onPickFiles: () => void;
 }) {
   const inputRef = useRef<TextInput>(null);
+  const [inputHeight, setInputHeight] = useState(36);
   const canSend = input.trim().length > 0;
   const hasUploads = uploads.length > 0;
 
@@ -146,14 +147,19 @@ function ChatInputBar({
 
         <TextInput
           ref={inputRef}
-          className="flex-1 bg-neutral-800 rounded-2xl px-4 py-2.5 text-neutral-100 text-sm max-h-28"
+          className="flex-1 bg-neutral-800 rounded-2xl px-4 py-2 text-neutral-100 text-sm"
+          style={{ height: Math.min(112, Math.max(36, inputHeight)) }}
           value={input}
           onChangeText={setInput}
+          onContentSizeChange={(e) =>
+            setInputHeight(e.nativeEvent.contentSize.height)
+          }
           placeholder="Message..."
           placeholderTextColor="#525252"
           multiline
-          onSubmitEditing={onSend}
+          numberOfLines={1}
           blurOnSubmit={false}
+          textAlignVertical="center"
         />
         <Pressable
           onPress={onSend}

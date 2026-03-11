@@ -50,6 +50,7 @@ export function useLogMessages(
     query as TypedDocumentString<LogsResult, Record<string, unknown>>,
     (d) => ("taskLogs" in d ? d.taskLogs : d.agentLogs),
     scope,
+    { direction: "newest-first" },
   );
 
   const subscription = isTask ? TaskLogSubscription : AgentLogSubscription;
