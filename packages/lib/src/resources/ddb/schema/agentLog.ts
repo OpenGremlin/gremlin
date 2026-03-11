@@ -2,6 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
+import { list } from "dynamodb-toolbox/schema/list";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
@@ -19,6 +20,7 @@ export const AgentLogEntity = new Entity({
     toolName: anyOf(string(), nul()).optional(),
     toolInput: anyOf(string(), nul()).optional(),
     toolResult: anyOf(string(), nul()).optional(),
+    artifacts: list(string()).optional(),
     internal: boolean().optional().default(false),
     createdAt: string(),
   }),

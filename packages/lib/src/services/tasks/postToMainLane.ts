@@ -4,6 +4,7 @@ export async function postToMainLane(
   ctx: ServiceContext,
   taskId: string,
   message: string,
+  artifacts?: string[],
 ) {
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
@@ -13,5 +14,6 @@ export async function postToMainLane(
     taskId: null,
     role: "AGENT",
     content: message,
+    artifacts,
   });
 }

@@ -97,6 +97,7 @@ export function LogEntryView({
   }
 
   if (message.role === AgentLogRole.Agent) {
+    const docs = "documents" in message ? (message.documents ?? []) : [];
     return (
       <View className="py-2">
         <View className="flex-row justify-start">
@@ -104,6 +105,13 @@ export function LogEntryView({
             <Markdown variant="agent">{message.content}</Markdown>
           </View>
         </View>
+        {docs.length > 0 && (
+          <View className="mt-1.5 gap-1 max-w-[85%]">
+            {docs.map((doc) => (
+              <DocumentCard key={doc.path} doc={doc} />
+            ))}
+          </View>
+        )}
         {showTimestamp && (
           <Text className="text-[10px] text-neutral-500 mt-1 ml-1">
             {formatTime(message.createdAt)}

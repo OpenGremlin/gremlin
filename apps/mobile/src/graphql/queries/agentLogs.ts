@@ -12,6 +12,11 @@ export const AgentLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
+          documents {
+            path
+            title
+            body
+          }
           taskId
           createdAt
         }
@@ -67,6 +72,11 @@ export const AgentLogSubscription = graphql(`
       toolName
       toolInput
       toolResult
+      documents {
+        path
+        title
+        body
+      }
       taskId
       createdAt
     }

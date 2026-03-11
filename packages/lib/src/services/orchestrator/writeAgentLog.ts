@@ -7,6 +7,7 @@ type TextLogEntry = {
   taskId: string | null;
   role: "AGENT" | "USER" | "SYSTEM";
   content: string;
+  artifacts?: string[];
 };
 
 type ToolLogEntry = {
@@ -49,6 +50,9 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     toolName: isToolEntry ? entry.toolName : null,
     toolInput: isToolEntry ? JSON.stringify(entry.toolInput) : null,
     toolResult: isToolEntry ? JSON.stringify(entry.toolResult) : null,
+    ...(!isToolEntry && entry.artifacts?.length
+      ? { artifacts: entry.artifacts }
+      : {}),
     internal: (isToolEntry && entry.internal) || false,
     createdAt: now,
   };

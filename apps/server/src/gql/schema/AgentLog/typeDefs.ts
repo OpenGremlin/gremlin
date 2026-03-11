@@ -15,6 +15,7 @@ export const agentLogTypeDefs = /* GraphQL */ `
     toolName: String
     toolInput: String
     toolResult: String
+    documents: [Document!]!
     createdAt: String!
   }
 

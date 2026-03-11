@@ -84,6 +84,7 @@ export type AgentLog = {
   agent: Agent;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  documents: Array<Document>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
@@ -1020,6 +1021,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

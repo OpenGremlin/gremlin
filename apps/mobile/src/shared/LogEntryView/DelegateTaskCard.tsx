@@ -1,9 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Check, ExternalLink } from "lucide-react-native";
+import { ExternalLink } from "lucide-react-native";
 import { Image, Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
-import { DocumentCard } from "./DocumentCard";
 
 export function DelegateTaskCard({
   agentId,
@@ -15,17 +14,14 @@ export function DelegateTaskCard({
   taskTitle: string;
 }) {
   const task = useTaskInfo(taskId);
-  const docs = task?.documents ?? [];
   const imageUrl = task?.imageUrl;
+  const lastMessage = task?.lastMessage;
 
   const handlePress = () => {
     if (taskId) {
       router.push(`/agents/${agentId}/tasks/${taskId}`);
     }
   };
-
-  const messages = task?.messages ?? [];
-  const reversed = [...messages].reverse();
 
   return (
     <View className="py-2 mr-10">
@@ -40,64 +36,32 @@ export function DelegateTaskCard({
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 12 }}
         >
-          <View className="flex-row">
-            <View className="flex-1 px-3.5 pt-3 pb-3">
-              <View className="flex-row items-center gap-1.5 flex-wrap">
-                <Text
-                  className="text-sm text-indigo-100 font-medium leading-5"
-                  numberOfLines={2}
-                >
-                  <Text className="font-bold">Task:</Text> {taskTitle}
-                </Text>
-                {taskId && <ExternalLink size={12} color="#818cf8" />}
-              </View>
-
-              {/* Progress messages */}
-              <View className="mt-2 gap-1.5 max-h-[72px] overflow-hidden">
-                {reversed.length > 0 ? (
-                  reversed.map((msg, i) => {
-                    const opacity = i === 0 ? 1 : Math.max(0.25, 1 - i * 0.35);
-                    return (
-                      <View
-                        // biome-ignore lint/suspicious/noArrayIndexKey: messages can be duplicated
-                        key={i}
-                        className="flex-row items-start gap-1.5"
-                        style={{ opacity }}
-                      >
-                        <View className="mt-[3px] opacity-40">
-                          <Check size={10} color="#a3a3a3" />
-                        </View>
-                        <Text className="text-xs text-neutral-400 flex-1">
-                          {msg}
-                        </Text>
-                      </View>
-                    );
-                  })
-                ) : (
-                  <Text className="text-xs text-neutral-500">
-                    Delegated task
-                  </Text>
-                )}
-              </View>
-            </View>
-
+          <View className="flex-row items-center">
             {imageUrl && (
               <Image
                 source={{ uri: imageUrl }}
-                className="w-[90px] h-[90px] rounded-lg m-3 ml-0"
+                className="w-10 h-10 rounded-lg ml-3"
                 resizeMode="cover"
               />
             )}
-          </View>
-
-          {/* Documents */}
-          {docs.length > 0 && (
-            <View className="px-3.5 pb-3 gap-1.5">
-              {docs.map((doc) => (
-                <DocumentCard key={doc.path} doc={doc} />
-              ))}
+            <View className="flex-1 px-3 py-2.5 min-w-0">
+              <View className="flex-row items-center gap-1.5">
+                <Text
+                  className="text-sm text-indigo-100 font-medium flex-1"
+                  numberOfLines={1}
+                >
+                  {taskTitle}
+                </Text>
+                {taskId && <ExternalLink size={12} color="#818cf8" />}
+              </View>
+              <Text
+                className={`text-xs mt-0.5 ${lastMessage ? "text-neutral-400" : "text-transparent"}`}
+                numberOfLines={1}
+              >
+                {lastMessage || "Delegated task"}
+              </Text>
             </View>
-          )}
+          </View>
         </LinearGradient>
       </Pressable>
     </View>

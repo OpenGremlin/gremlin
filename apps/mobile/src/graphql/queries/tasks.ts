@@ -67,6 +67,11 @@ export const TaskLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
+          documents {
+            path
+            title
+            body
+          }
           taskId
           createdAt
         }
@@ -90,6 +95,11 @@ export const TaskLogSubscription = graphql(`
       toolName
       toolInput
       toolResult
+      documents {
+        path
+        title
+        body
+      }
       taskId
       createdAt
     }
