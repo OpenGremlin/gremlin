@@ -151,7 +151,11 @@ export default function AgentConfigScreen() {
           disabled={!!agent.retired}
           className="relative"
         >
-          <AgentAvatar key={`${id}-${agent.retired}-${agent.avatar}`} id={id} size={80} />
+          <AgentAvatar
+            key={`${id}-${agent.retired}-${agent.avatar}`}
+            id={id}
+            size={80}
+          />
           {!agent.retired && (
             <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-neutral-700 border-2 border-neutral-950 items-center justify-center">
               <Pencil size={12} color="#e5e5e5" />

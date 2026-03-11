@@ -5,7 +5,9 @@ import { Platform } from "react-native";
 const chatHeaderStyle =
   Platform.OS === "ios"
     ? { backgroundColor: "transparent" }
-    : ({ backgroundColor: "#0a0a0a", height: 120 } as { backgroundColor: string });
+    : ({ backgroundColor: "#0a0a0a", height: 120 } as {
+        backgroundColor: string;
+      });
 
 export default function AgentsLayout() {
   return (

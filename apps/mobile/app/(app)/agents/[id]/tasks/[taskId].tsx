@@ -1,10 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
-import { Stack, router, useLocalSearchParams } from "expo-router";
-import {
-  ArrowUp,
-  Paperclip,
-  Terminal,
-} from "lucide-react-native";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { ArrowUp, Paperclip, Terminal } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,

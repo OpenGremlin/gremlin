@@ -16,6 +16,10 @@ import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { useTaskUpdates } from "../../../src/subscriptions";
 
+function ListSeparator() {
+  return <View className="h-px bg-neutral-800/50 mx-4" />;
+}
+
 type TaskItem = {
   id: string;
   title: string;
@@ -48,17 +52,15 @@ function TaskCard({ item }: { item: TaskItem }) {
           <AgentAvatar id={agent.id} />
         </Pressable>
         <View className="flex-1 min-w-0">
-          <View className="flex-row items-center justify-between gap-2">
-            <View className="flex-row items-center gap-2 min-w-0 flex-1">
-              {agent.name ? (
-                <Text className="text-sm text-neutral-400" numberOfLines={1}>
-                  {agent.name}
-                </Text>
-              ) : null}
-              <Text className="text-xs text-neutral-600 shrink-0">
-                {timeAgo(task.createdAt)}
+          <View className="flex-row items-center gap-2 min-w-0">
+            {agent.name ? (
+              <Text className="text-sm text-neutral-400" numberOfLines={1}>
+                {agent.name}
               </Text>
-            </View>
+            ) : null}
+            <Text className="text-xs text-neutral-600 shrink-0">
+              {timeAgo(task.createdAt)}
+            </Text>
           </View>
           <Text className="text-sm font-medium text-neutral-100 mt-0.5">
             {task.title}
@@ -96,9 +98,7 @@ export default function HomeScreen() {
       data={nodes}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <TaskCard item={item} />}
-      ItemSeparatorComponent={() => (
-        <View className="h-px bg-neutral-800/50 mx-4" />
-      )}
+      ItemSeparatorComponent={ListSeparator}
       onEndReached={() => {
         if (hasMore && !loadingMore) loadMore();
       }}

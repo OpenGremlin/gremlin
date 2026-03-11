@@ -11,11 +11,7 @@ export function ChatHeaderTitle({
   onPress?: () => void;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      className="items-center"
-    >
+    <Pressable onPress={onPress} disabled={!onPress} className="items-center">
       <AgentAvatar id={agentId} size={64} />
       <Text
         className="text-sm text-neutral-100 mt-1.5 font-semibold max-w-[200px] text-center"
