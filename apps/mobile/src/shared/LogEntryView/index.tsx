@@ -1,9 +1,9 @@
 import { ActivityIndicator, Text, View } from "react-native";
-import { AgentLogRole } from "../graphql/generated/graphql";
-import type { ChatMessage } from "../hooks/useLogMessages";
+import { AgentLogRole } from "../../graphql/generated/graphql";
+import type { ChatMessage } from "../../hooks/useLogMessages";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { DocumentCard } from "./DocumentCard";
-import { formatTime } from "./formatDate";
+import { formatTime } from "../formatDate";
 import { Markdown } from "./Markdown";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 import { ToolBlock } from "./ToolBlock";

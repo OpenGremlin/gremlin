@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import type { AvatarsQuery } from "../graphql/generated/graphql";
+import type { AvatarsQuery } from "../../graphql/generated/graphql";
 
 type Avatar = AvatarsQuery["avatars"][number];
 

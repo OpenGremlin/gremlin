@@ -1,7 +1,7 @@
 import { FileText, X } from "lucide-react-native";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
-import type { Document } from "../graphql/generated/graphql";
+import type { Document } from "../../graphql/generated/graphql";
 import { Markdown } from "./Markdown";
 
 function DocumentModal({

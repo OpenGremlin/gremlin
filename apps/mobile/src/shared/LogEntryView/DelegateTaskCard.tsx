@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { Check, ExternalLink } from "lucide-react-native";
 import { Image, Pressable, Text, View } from "react-native";
-import { useTaskInfo } from "../hooks/useTaskInfo";
+import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { DocumentCard } from "./DocumentCard";
 
 export function DelegateTaskCard({

@@ -19,7 +19,7 @@ import {
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
-import { AvatarPicker } from "../../../../src/shared/AvatarPicker";
+import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { Toggle } from "../../../../src/shared/Toggle";
 

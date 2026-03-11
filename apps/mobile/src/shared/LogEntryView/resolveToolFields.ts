@@ -1,4 +1,4 @@
-import type { ChatMessage } from "../hooks/useLogMessages";
+import type { ChatMessage } from "../../hooks/useLogMessages";
 
 export function safeParseJson(
   s: string | null | undefined,
