@@ -1,4 +1,5 @@
 import {
+  $remove,
   $set,
   UpdateItemCommand,
 } from "dynamodb-toolbox/entity/actions/update";
@@ -32,7 +33,8 @@ export async function updateAgent(
   if (input.avatar != null) updates.avatar = input.avatar;
   if (input.sandboxInstanceId != null)
     updates.sandboxInstanceId = input.sandboxInstanceId;
-  if (input.ttsVoice != null) updates.ttsVoice = input.ttsVoice;
+  if (input.ttsVoice !== undefined)
+    updates.ttsVoice = input.ttsVoice === null ? $remove() : input.ttsVoice;
   if (input.config != null)
     updates.config = $set(nullsToUndefined(input.config));
 

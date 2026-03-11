@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
 import {
   ProfileQuery,
   UpdateProfileMutation,
@@ -15,6 +8,7 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { QueryResult } from "../../../src/shared/QueryResult";
+import { SaveButton } from "../../../src/shared/SaveButton";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
@@ -155,19 +149,11 @@ export default function ProfileScreen() {
       </View>
 
       <View className="flex-row items-center gap-3">
-        {isDirty && (
-          <Pressable
-            onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-            className="px-4 py-2.5 bg-indigo-600 rounded-lg disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text className="text-sm font-medium text-white">Save</Text>
-            )}
-          </Pressable>
-        )}
+        <SaveButton
+          onPress={handleSubmit(onSubmit)}
+          disabled={!isDirty}
+          saving={isSubmitting}
+        />
         {saved && <SavedIndicator />}
       </View>
     </ScrollView>

@@ -23,6 +23,7 @@ import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
+import { SaveButton } from "../../../../src/shared/SaveButton";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
 const INPUT_CLASS =
@@ -209,19 +210,12 @@ export default function AgentConfigScreen() {
 
       {!agent.retired && (
         <>
-          <Pressable
+          <SaveButton
             onPress={handleSave}
-            disabled={saving || !hasChanges}
-            className={`rounded-lg py-3 items-center ${
-              hasChanges ? "bg-indigo-600" : "bg-neutral-700"
-            } ${saving ? "opacity-50" : ""}`}
-          >
-            {saving ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white font-semibold">Save Changes</Text>
-            )}
-          </Pressable>
+            disabled={!hasChanges}
+            saving={saving}
+            label="Save Changes"
+          />
 
           <ToolsConfig agent={agent} />
 

@@ -29,6 +29,7 @@ import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { formatDate } from "../../../src/shared/formatDate";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
+import { SaveButton } from "../../../src/shared/SaveButton";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 import { Toggle } from "../../../src/shared/Toggle";
 
@@ -349,17 +350,14 @@ export default function JobDetailScreen() {
             />
           </View>
 
-          {isDirty && (
-            <View className="flex-row items-center gap-3 pt-2 border-t border-neutral-800">
-              <Pressable
-                onPress={handleSave}
-                disabled={saving}
-                className="px-4 py-2 bg-blue-600 rounded-lg disabled:opacity-50"
-              >
-                <Text className="text-sm font-medium text-white">
-                  {saving ? "Saving..." : "Save changes"}
-                </Text>
-              </Pressable>
+          <View className="flex-row items-center gap-3 pt-2 border-t border-neutral-800">
+            <SaveButton
+              onPress={handleSave}
+              disabled={!isDirty}
+              saving={saving}
+              label="Save changes"
+            />
+            {isDirty && (
               <Pressable
                 onPress={() => {
                   setName(null);
@@ -371,8 +369,8 @@ export default function JobDetailScreen() {
               >
                 <Text className="text-sm text-neutral-400">Discard</Text>
               </Pressable>
-            </View>
-          )}
+            )}
+          </View>
 
           {saveError ? (
             <Text className="text-sm text-red-400">{saveError}</Text>
