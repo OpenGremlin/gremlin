@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import type { ViewStyle } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Text } from "react-native";
 
 interface SaveButtonProps {
   onPress: () => void;
@@ -24,7 +25,13 @@ export function SaveButton({
           ? "bg-neutral-700/60"
           : "bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700"
       }`}
-      style={isDisabled ? { cursor: "default" } : { cursor: "pointer" }}
+      style={
+        Platform.OS === "web"
+          ? ({
+              cursor: isDisabled ? "default" : "pointer",
+            } as unknown as ViewStyle)
+          : undefined
+      }
     >
       {saving ? (
         <ActivityIndicator color="white" size="small" />
