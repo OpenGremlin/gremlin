@@ -83,7 +83,7 @@ export function LogEntryView({
     return (
       <View className="py-2">
         <View className="flex-row justify-end">
-          <View className="max-w-[80%] bg-blue-600 rounded-2xl rounded-br-md px-3.5 py-2">
+          <View className="max-w-[80%] bg-blue-600 rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
             <Markdown variant="user">{message.content}</Markdown>
           </View>
         </View>
@@ -100,7 +100,7 @@ export function LogEntryView({
     return (
       <View className="py-2">
         <View className="flex-row justify-start">
-          <View className="max-w-[85%] bg-neutral-800/60 rounded-2xl rounded-bl-md px-3.5 py-2">
+          <View className="max-w-[85%] bg-neutral-800/60 rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
             <Markdown variant="agent">{message.content}</Markdown>
           </View>
         </View>
