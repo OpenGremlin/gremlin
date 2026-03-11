@@ -1,9 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowDownFromLine, ChevronRight } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { formatTime } from "../formatDate";
 
-const COLLAPSED_MAX_HEIGHT = 150;
+const COLLAPSED_MAX_HEIGHT = 100;
 
 function CollapsedContent({
   content,
@@ -27,6 +28,31 @@ function CollapsedContent({
   const [overflows, setOverflows] = useState(false);
   const [scrolledDown, setScrolledDown] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
+
+  // On web, stop wheel events from propagating to the parent FlatList
+  const containerRef = useRef<View>(null);
+  const wheelListenerAttached = useRef(false);
+  const containerRefCallback = useCallback((node: View | null) => {
+    (containerRef as React.MutableRefObject<View | null>).current = node;
+    if (Platform.OS !== "web" || !node) return;
+    if (wheelListenerAttached.current) return;
+    wheelListenerAttached.current = true;
+    const el = node as unknown as HTMLElement;
+    el.addEventListener(
+      "wheel",
+      (e) => {
+        const sv = el.querySelector(
+          "[data-testid='scroll-view']",
+        ) as HTMLElement | null;
+        if (!sv) return;
+        // Only capture if content overflows
+        if (sv.scrollHeight > sv.clientHeight) {
+          e.stopPropagation();
+        }
+      },
+      { passive: false },
+    );
+  }, []);
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -44,8 +70,12 @@ function CollapsedContent({
   }, []);
 
   return (
-    <View className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1 overflow-hidden">
+    <View
+      ref={containerRefCallback}
+      className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1 overflow-hidden"
+    >
       <ScrollView
+        testID="scroll-view"
         style={{ maxHeight: COLLAPSED_MAX_HEIGHT }}
         nestedScrollEnabled
         onScroll={handleScroll}
@@ -78,7 +108,7 @@ function CollapsedContent({
             top: 0,
             left: 0,
             right: 0,
-            height: 16,
+            height: 24,
           }}
           pointerEvents="none"
         />
@@ -91,7 +121,7 @@ function CollapsedContent({
             bottom: 0,
             left: 0,
             right: 0,
-            height: 16,
+            height: 24,
           }}
           pointerEvents="none"
         />
