@@ -43,14 +43,17 @@ export function DelegateTaskCard({
           <View className="flex-row">
             <View className="flex-1 px-3.5 pt-3 pb-3">
               <View className="flex-row items-center gap-1.5 flex-wrap">
-                <Text className="text-sm text-indigo-100 font-medium leading-5">
+                <Text
+                  className="text-sm text-indigo-100 font-medium leading-5"
+                  numberOfLines={2}
+                >
                   <Text className="font-bold">Task:</Text> {taskTitle}
                 </Text>
                 {taskId && <ExternalLink size={12} color="#818cf8" />}
               </View>
 
               {/* Progress messages */}
-              <View className="mt-2 gap-1.5">
+              <View className="mt-2 gap-1.5 max-h-[72px] overflow-hidden">
                 {reversed.length > 0 ? (
                   reversed.map((msg, i) => {
                     const opacity = i === 0 ? 1 : Math.max(0.25, 1 - i * 0.35);

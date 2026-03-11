@@ -1,8 +1,14 @@
 import { useCallback, useRef, useState } from "react";
-import type { SandboxOutput } from "../graphql/generated/graphql";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { clientLogger } from "../lib/logger";
 import { useSubscription } from "./useSubscription";
+
+interface SandboxOutput {
+  commandId: string;
+  data: string;
+  done: boolean;
+  exitCode?: number | null;
+}
 
 export interface CommandStream {
   output: string;
