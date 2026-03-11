@@ -133,6 +133,11 @@ function ChatInputBar({
   const canSend = input.trim().length > 0;
   const hasUploads = uploads.length > 0;
 
+  // Reset height when input is cleared
+  useEffect(() => {
+    if (input === "") setInputHeight(36);
+  }, [input]);
+
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 300);
     return () => clearTimeout(timer);
