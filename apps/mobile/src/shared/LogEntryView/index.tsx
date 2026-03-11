@@ -80,7 +80,7 @@ export function LogEntryView({
 }) {
   if (message.role === AgentLogRole.User) {
     return (
-      <View className="py-1">
+      <View className="py-2">
         <View className="flex-row justify-end">
           <View className="max-w-[80%] bg-blue-600 rounded-2xl rounded-br-md px-3.5 py-2">
             <Markdown variant="user">{message.content}</Markdown>
@@ -97,7 +97,7 @@ export function LogEntryView({
 
   if (message.role === AgentLogRole.Agent) {
     return (
-      <View className="py-1">
+      <View className="py-2">
         <View className="flex-row justify-start">
           <View className="max-w-[85%] bg-neutral-800/60 rounded-2xl rounded-bl-md px-3.5 py-2">
             <Markdown variant="agent">{message.content}</Markdown>
@@ -135,7 +135,7 @@ export function LogEntryView({
         : undefined;
       if (doc) {
         return (
-          <View className="py-1">
+          <View className="py-2">
             <DocumentCard doc={doc} />
           </View>
         );
@@ -152,7 +152,7 @@ export function LogEntryView({
         : undefined;
       if (doc) {
         return (
-          <View className="py-1">
+          <View className="py-2">
             <DocumentCard doc={doc} />
           </View>
         );
@@ -306,11 +306,13 @@ export function LogEntryView({
     }
 
     return (
-      <View className="py-1 items-center">
-        <Text className="text-xs text-neutral-500 text-center">
-          {message.content}
-        </Text>
-      </View>
+      <ToolBlock
+        label="system"
+        content={message.content}
+        createdAt={message.createdAt}
+        showTimestamp={showTimestamp}
+        defaultOpen={false}
+      />
     );
   }
 

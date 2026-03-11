@@ -28,7 +28,7 @@ export function DelegateTaskCard({
   const reversed = [...messages].reverse();
 
   return (
-    <View className="py-1 mr-10">
+    <View className="py-2 mr-10">
       <Pressable
         onPress={taskId ? handlePress : undefined}
         disabled={!taskId}

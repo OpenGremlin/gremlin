@@ -112,7 +112,7 @@ export function ToolBlock({
     );
 
   return (
-    <View className="py-1 mr-10">
+    <View className="py-2 mr-10">
       <Pressable
         onPress={() => setOpen((o) => !o)}
         className="flex-row items-center gap-1.5 py-1"
@@ -131,7 +131,7 @@ export function ToolBlock({
           {label}
         </Text>
         {showTimestamp && (
-          <Text className="text-[10px] text-neutral-600 ml-auto">
+          <Text className="text-[10px] text-neutral-600">
             {formatTime(createdAt)}
           </Text>
         )}
