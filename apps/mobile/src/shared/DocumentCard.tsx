@@ -29,7 +29,6 @@ export function DocumentCard({ doc }: { doc: Document }) {
         visible={open}
         title={doc.title}
         onClose={() => setOpen(false)}
-        tall
       >
         <ScrollView className="flex-1 px-4 py-4">
           <Markdown>{doc.body ?? ""}</Markdown>

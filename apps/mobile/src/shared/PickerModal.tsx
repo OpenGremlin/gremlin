@@ -49,7 +49,6 @@ export function PickerModal({
       visible={visible}
       title={title}
       onClose={onClose}
-      tall={searchable}
     >
       {searchable && (
         <View className="px-4 py-2 border-b border-neutral-800">

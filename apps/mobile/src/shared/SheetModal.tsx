@@ -6,14 +6,11 @@ export function SheetModal({
   visible,
   title,
   onClose,
-  tall,
   children,
 }: {
   visible: boolean;
   title: string;
   onClose: () => void;
-  /** Use max-h-[90%] instead of the default 70% */
-  tall?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -25,9 +22,7 @@ export function SheetModal({
     >
       <View className="flex-1 justify-end">
         <Pressable className="absolute inset-0 bg-black/60" onPress={onClose} />
-        <View
-          className={`bg-neutral-900 rounded-t-2xl ${tall ? "h-[95%]" : "max-h-[70%]"}`}
-        >
+        <View className="bg-neutral-900 rounded-t-2xl h-[95%]">
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-800">
             <Text className="text-sm font-semibold text-neutral-100">
               {title}
