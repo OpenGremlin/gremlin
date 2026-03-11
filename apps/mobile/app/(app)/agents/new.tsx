@@ -24,7 +24,7 @@ export default function NewAgentScreen() {
     try {
       const result = await gql<{ createAgent: { id: string } }>(
         CreateAgentMutation,
-        { name: name.trim(), soul: soul.trim() },
+        { input: { name: name.trim(), soul: soul.trim() } },
       );
       router.replace(`/agents/${result.createAgent.id}/config`);
     } catch (err) {

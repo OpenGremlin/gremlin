@@ -237,9 +237,33 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                     {config.sandbox.idleTimeoutMinutes ?? 20} min
                   </Text>
                 </View>
-                <Text className="text-xs text-neutral-600">
-                  10 – 120 minutes
-                </Text>
+                <View className="flex-row flex-wrap gap-1.5">
+                  {[10, 20, 30, 60, 120].map((mins) => {
+                    const sandbox = config.sandbox ?? { enabled: true };
+                    const selected =
+                      (sandbox.idleTimeoutMinutes ?? 20) === mins;
+                    return (
+                      <Pressable
+                        key={mins}
+                        onPress={() =>
+                          updateConfig({
+                            sandbox: {
+                              ...sandbox,
+                              idleTimeoutMinutes: mins,
+                            },
+                          })
+                        }
+                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-indigo-600/20 border-indigo-500/40" : "bg-neutral-800 border-neutral-700"}`}
+                      >
+                        <Text
+                          className={`text-xs ${selected ? "text-neutral-100" : "text-neutral-400"}`}
+                        >
+                          {mins} min
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             )}
           </View>

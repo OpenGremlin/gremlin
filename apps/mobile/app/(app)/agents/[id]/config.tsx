@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Pencil } from "lucide-react-native";
+import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,6 +20,7 @@ import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
+import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
@@ -41,6 +42,7 @@ export default function AgentConfigScreen() {
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
 
   useEffect(() => {
     if (!agent) return;
@@ -123,6 +125,16 @@ export default function AgentConfigScreen() {
         </Pressable>
       </View>
 
+      <Pressable
+        onPress={() => setVoicePickerOpen(true)}
+        className="self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 active:bg-neutral-700"
+      >
+        <Volume2 size={16} color="#a3a3a3" />
+        <Text className="text-sm text-neutral-200">
+          {agent.ttsVoice ?? "No voice"}
+        </Text>
+      </Pressable>
+
       <View className="gap-2">
         <Text className="text-sm font-medium text-neutral-300">Name</Text>
         <TextInput
@@ -181,6 +193,27 @@ export default function AgentConfigScreen() {
             <Text className="text-red-400 font-semibold">Retire Agent</Text>
           )}
         </Pressable>
+      )}
+
+      {voicePickerOpen && (
+        <VoicePicker
+          currentVoice={agent.ttsVoice}
+          onSelect={async (voice) => {
+            setVoicePickerOpen(false);
+            try {
+              await gql(UpdateAgentMutation, {
+                id,
+                input: { ttsVoice: voice },
+              });
+              refetch();
+            } catch (err) {
+              setSaveError(
+                err instanceof Error ? err.message : "Failed to update voice",
+              );
+            }
+          }}
+          onClose={() => setVoicePickerOpen(false)}
+        />
       )}
 
       {pickerOpen && (

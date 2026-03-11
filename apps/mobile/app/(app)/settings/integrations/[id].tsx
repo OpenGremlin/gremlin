@@ -18,6 +18,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 type ProviderModel = {
@@ -356,13 +357,16 @@ export default function IntegrationDetailScreen() {
       contentContainerClassName="px-4 py-6 gap-5"
       keyboardShouldPersistTaps="handled"
     >
-      <View>
-        <Text className="text-xl font-semibold text-neutral-100">
-          {provider.service}
-        </Text>
-        <Text className="text-sm text-neutral-400 mt-0.5">
-          {provider.description}
-        </Text>
+      <View className="flex-row items-center gap-4">
+        <IntegrationLogo id={provider.id} size={48} />
+        <View className="flex-1">
+          <Text className="text-xl font-semibold text-neutral-100">
+            {provider.service}
+          </Text>
+          <Text className="text-sm text-neutral-400 mt-0.5">
+            {provider.description}
+          </Text>
+        </View>
       </View>
 
       {provider.connectionType === "bedrock" ? (

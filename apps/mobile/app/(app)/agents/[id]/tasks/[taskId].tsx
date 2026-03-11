@@ -26,6 +26,7 @@ import {
 } from "../../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
+import { AgentAvatar } from "../../../../../src/shared/AgentAvatar";
 import { formatTime } from "../../../../../src/shared/formatDate";
 import { LogEntryView } from "../../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../../src/shared/PendingMessageBubble";
@@ -279,15 +280,18 @@ export default function TaskThreadScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View className="px-4 py-2 border-b border-neutral-800">
-        <Text className="text-neutral-100 font-medium" numberOfLines={1}>
-          {task.title ?? task.message}
-        </Text>
-        {task.completedAt && (
-          <Text className="text-xs text-neutral-500 mt-0.5">
-            Completed {formatTime(task.completedAt)}
+      <View className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800">
+        <AgentAvatar id={id} size={32} />
+        <View className="flex-1">
+          <Text className="text-neutral-100 font-medium" numberOfLines={1}>
+            {task.title ?? task.message}
           </Text>
-        )}
+          {task.completedAt && (
+            <Text className="text-xs text-neutral-500 mt-0.5">
+              Completed {formatTime(task.completedAt)}
+            </Text>
+          )}
+        </View>
       </View>
 
       <SandboxPanel taskId={taskId} />
