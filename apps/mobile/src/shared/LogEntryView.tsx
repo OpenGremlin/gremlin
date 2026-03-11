@@ -40,7 +40,7 @@ export function LogEntryView({
     return (
       <View className="py-1">
         <View className="flex-row justify-start">
-          <View className="max-w-[85%]">
+          <View className="max-w-[85%] bg-neutral-800/60 rounded-2xl rounded-bl-md px-3.5 py-2">
             <Markdown variant="agent">{message.content}</Markdown>
           </View>
         </View>
