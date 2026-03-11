@@ -1,4 +1,5 @@
 import { Check } from "lucide-react-native";
+import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SheetModal } from "./SheetModal";
@@ -7,6 +8,7 @@ export interface PickerOption {
   value: string;
   label: string;
   subtitle?: string;
+  icon?: ReactNode;
   /** Extra text to match against when searching (not displayed) */
   searchTerms?: string;
 }
@@ -79,7 +81,8 @@ export function PickerModal({
             }}
             className="flex-row items-center justify-between px-4 py-3 active:bg-neutral-800"
           >
-            <View className="flex-1 flex-row items-baseline gap-1.5">
+            <View className="flex-1 flex-row items-center gap-3">
+              {item.icon}
               <Text className="text-sm text-neutral-100">{item.label}</Text>
               {item.subtitle && (
                 <Text className="text-xs text-neutral-500">

@@ -45,7 +45,11 @@ export default function JobDetailScreen() {
     () =>
       (agentsData?.agents ?? [])
         .filter((a) => !a.retired)
-        .map((a) => ({ value: a.id, label: a.name })),
+        .map((a) => ({
+          value: a.id,
+          label: a.name,
+          icon: <AgentAvatar id={a.id} size={28} />,
+        })),
     [agentsData],
   );
 

@@ -14,6 +14,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
@@ -25,7 +26,11 @@ export default function NewJobScreen() {
     () =>
       (agentsData?.agents ?? [])
         .filter((a) => !a.retired)
-        .map((a) => ({ value: a.id, label: a.name })),
+        .map((a) => ({
+          value: a.id,
+          label: a.name,
+          icon: <AgentAvatar id={a.id} size={28} />,
+        })),
     [agentsData],
   );
 
