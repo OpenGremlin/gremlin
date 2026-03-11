@@ -1,3 +1,29 @@
+import GoogleLogo from "@gremlin/logos/Google.svg";
+import NotionLogo from "@gremlin/logos/Notion.svg";
+import LinearLogo from "@gremlin/logos/Linear.svg";
+import DiscordLogo from "@gremlin/logos/Discord.svg";
+import TeamsLogo from "@gremlin/logos/Teams.svg";
+import GitHubLogo from "@gremlin/logos/GitHub.svg";
+import GitLabLogo from "@gremlin/logos/GitLab.svg";
+import JiraLogo from "@gremlin/logos/Jira.svg";
+import SpotifyLogo from "@gremlin/logos/Spotify.svg";
+
+const logoImports: Record<string, string> = {
+  "Google.svg": GoogleLogo,
+  "Notion.svg": NotionLogo,
+  "Linear.svg": LinearLogo,
+  "Discord.svg": DiscordLogo,
+  "Teams.svg": TeamsLogo,
+  "GitHub.svg": GitHubLogo,
+  "GitLab.svg": GitLabLogo,
+  "Jira.svg": JiraLogo,
+  "Spotify.svg": SpotifyLogo,
+};
+
+export function getLogoUrl(logo: string): string {
+  return logoImports[logo] ?? "";
+}
+
 export interface ProviderMeta {
   id: string;
   service: string;

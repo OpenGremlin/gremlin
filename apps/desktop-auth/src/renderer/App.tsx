@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConnectModal } from "./ConnectModal.js";
 import { isCancelled } from "./errors.js";
-import { oauthProviders, type ProviderMeta } from "./providers.js";
+import { getLogoUrl, oauthProviders, type ProviderMeta } from "./providers.js";
 
 type ConnectionStatus = "disconnected" | "connected" | "error";
 
@@ -466,12 +466,7 @@ export function App() {
                       className="flex w-full items-center gap-3 px-4 py-3 text-left"
                     >
                       <img
-                        src={
-                          new URL(
-                            `../../../admin/src/assets/logos/${provider.logo}`,
-                            import.meta.url,
-                          ).href
-                        }
+                        src={getLogoUrl(provider.logo)}
                         alt={provider.service}
                         className="h-6 w-6"
                       />
@@ -556,12 +551,7 @@ export function App() {
                 >
                   <div className="mb-3 flex w-full items-center justify-between">
                     <img
-                      src={
-                        new URL(
-                          `../../../admin/src/assets/logos/${provider.logo}`,
-                          import.meta.url,
-                        ).href
-                      }
+                      src={getLogoUrl(provider.logo)}
                       alt={provider.service}
                       className="h-8 w-8"
                     />

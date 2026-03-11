@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { isCancelled } from "./errors.js";
-import type { ProviderMeta } from "./providers.js";
+import { getLogoUrl, type ProviderMeta } from "./providers.js";
 
 interface ConnectModalProps {
   provider: ProviderMeta;
@@ -93,12 +93,7 @@ export function ConnectModal({
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <img
-            src={
-              new URL(
-                `../../../admin/src/assets/logos/${provider.logo}`,
-                import.meta.url,
-              ).href
-            }
+            src={getLogoUrl(provider.logo)}
             alt={provider.service}
             className="h-8 w-8"
           />
