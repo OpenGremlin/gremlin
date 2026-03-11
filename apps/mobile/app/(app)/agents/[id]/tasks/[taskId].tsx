@@ -1,6 +1,11 @@
 import * as DocumentPicker from "expo-document-picker";
-import { useLocalSearchParams } from "expo-router";
-import { ArrowUp, Paperclip, Terminal } from "lucide-react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  ArrowUp,
+  ChevronRight,
+  Paperclip,
+  Terminal,
+} from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
@@ -195,14 +200,9 @@ export default function TaskThreadScreen() {
     error: taskError,
   } = useQuery(TaskQuery, { id: taskId });
 
-  const {
-    input,
-    setInput,
-    pendingMessages,
-    listRef,
-    handleSend,
-    handleScroll,
-  } = useChatSend({ agentId: id, taskId, messages });
+  const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
+    { agentId: id, taskId, messages },
+  );
 
   const sandboxStreams = useSandboxOutput(taskId);
 
@@ -280,7 +280,10 @@ export default function TaskThreadScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800">
+      <Pressable
+        onPress={() => router.navigate(`/agents/${id}`)}
+        className="flex-row items-center gap-3 px-4 py-2 border-b border-neutral-800"
+      >
         <AgentAvatar id={id} size={32} />
         <View className="flex-1">
           <Text className="text-neutral-100 font-medium" numberOfLines={1}>
@@ -292,7 +295,8 @@ export default function TaskThreadScreen() {
             </Text>
           )}
         </View>
-      </View>
+        <ChevronRight size={16} color="#525252" />
+      </Pressable>
 
       <SandboxPanel taskId={taskId} />
 
@@ -302,8 +306,6 @@ export default function TaskThreadScreen() {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         inverted
-        onScroll={handleScroll}
-        scrollEventThrottle={100}
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
         contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}

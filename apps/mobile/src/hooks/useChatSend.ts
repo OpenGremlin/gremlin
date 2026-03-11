@@ -17,30 +17,9 @@ export function useChatSend({
   const [input, setInput] = useState("");
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const listRef = useRef<FlatList>(null);
-  /** Track whether user is near the bottom of the list (inverted: offset near 0). */
-  const isNearBottomRef = useRef(true);
-
   const scrollToBottom = useCallback(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
-
-  /** Call from FlatList onScroll to track proximity to bottom. */
-  const handleScroll = useCallback(
-    (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-      // In an inverted FlatList, offset 0 = bottom. Near bottom if < 150px away.
-      isNearBottomRef.current = e.nativeEvent.contentOffset.y < 150;
-    },
-    [],
-  );
-
-  // Auto-scroll when new messages arrive only if user is near bottom
-  const prevCountRef = useRef(messages.length);
-  useEffect(() => {
-    if (messages.length > prevCountRef.current && isNearBottomRef.current) {
-      scrollToBottom();
-    }
-    prevCountRef.current = messages.length;
-  }, [messages.length, scrollToBottom]);
 
   // Clear pending messages when they appear in the log
   useEffect(() => {
@@ -84,7 +63,6 @@ export function useChatSend({
     pendingMessages,
     listRef,
     scrollToBottom,
-    handleScroll,
     handleSend,
   };
 }

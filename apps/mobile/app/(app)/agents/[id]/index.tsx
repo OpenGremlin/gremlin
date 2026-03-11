@@ -192,14 +192,9 @@ export default function AgentChatScreen() {
     taskId ? { id: taskId } : undefined,
   );
 
-  const {
-    input,
-    setInput,
-    pendingMessages,
-    listRef,
-    handleSend,
-    handleScroll,
-  } = useChatSend({ agentId: id, taskId, messages });
+  const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
+    { agentId: id, taskId, messages },
+  );
 
   const sandboxStreams = useSandboxOutput(taskId ?? "");
 
@@ -305,8 +300,6 @@ export default function AgentChatScreen() {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         inverted
-        onScroll={handleScroll}
-        scrollEventThrottle={100}
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
         contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}

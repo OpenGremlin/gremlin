@@ -1,15 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { ArrowDownFromLine, ChevronRight } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
-import {
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ChevronRight } from "lucide-react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import { formatTime } from "../formatDate";
 
 const COLLAPSED_MAX_HEIGHT = 100;
@@ -25,109 +17,29 @@ function CollapsedContent({
   onExpand: () => void;
   children?: React.ReactNode;
 }) {
-  const [overflows, setOverflows] = useState(false);
-  const [scrolledDown, setScrolledDown] = useState(false);
-  const [showBottomFade, setShowBottomFade] = useState(false);
-
-  // On web, stop wheel events from propagating to the parent FlatList
-  const containerRef = useRef<View>(null);
-  const wheelListenerAttached = useRef(false);
-  const containerRefCallback = useCallback((node: View | null) => {
-    (containerRef as React.MutableRefObject<View | null>).current = node;
-    if (Platform.OS !== "web" || !node) return;
-    if (wheelListenerAttached.current) return;
-    wheelListenerAttached.current = true;
-    const el = node as unknown as HTMLElement;
-    el.addEventListener(
-      "wheel",
-      (e) => {
-        const sv = el.querySelector(
-          "[data-testid='scroll-view']",
-        ) as HTMLElement | null;
-        if (!sv) return;
-        // Only capture if content overflows
-        if (sv.scrollHeight > sv.clientHeight) {
-          e.stopPropagation();
-        }
-      },
-      { passive: false },
-    );
-  }, []);
-
-  const handleScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      setScrolledDown(contentOffset.y > 2);
-      const distanceFromBottom =
-        contentSize.height - layoutMeasurement.height - contentOffset.y;
-      setShowBottomFade(distanceFromBottom > 2);
-    },
-    [],
-  );
-
-  const handleContentSizeChange = useCallback((_w: number, h: number) => {
-    setOverflows(h > COLLAPSED_MAX_HEIGHT + 2);
-  }, []);
-
   return (
-    <View
-      ref={containerRefCallback}
+    <Pressable
+      onPress={onExpand}
       className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1 overflow-hidden"
     >
-      <ScrollView
-        testID="scroll-view"
-        style={{ maxHeight: COLLAPSED_MAX_HEIGHT }}
-        nestedScrollEnabled
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onContentSizeChange={handleContentSizeChange}
-      >
+      <View style={{ maxHeight: COLLAPSED_MAX_HEIGHT, overflow: "hidden" }}>
         <Text className="text-xs font-mono px-3 py-2 text-green-400/90 leading-5">
           {content}
         </Text>
-      </ScrollView>
-      {overflows && (
-        <Pressable
-          onPress={onExpand}
-          style={{
-            position: "absolute",
-            top: 6,
-            right: 6,
-            zIndex: 2,
-            padding: 2,
-          }}
-        >
-          <ArrowDownFromLine size={14} color="#737373" />
-        </Pressable>
-      )}
-      {scrolledDown && (
-        <LinearGradient
-          colors={["rgba(10,10,10,0.8)", "transparent"]}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 24,
-          }}
-          pointerEvents="none"
-        />
-      )}
-      {showBottomFade && (
-        <LinearGradient
-          colors={["transparent", "rgba(10,10,10,0.8)"]}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 24,
-          }}
-          pointerEvents="none"
-        />
-      )}
+      </View>
+      <LinearGradient
+        colors={["transparent", "rgba(10,10,10,0.9)"]}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 32,
+        }}
+        pointerEvents="none"
+      />
       {streaming && children}
-    </View>
+    </Pressable>
   );
 }
 
