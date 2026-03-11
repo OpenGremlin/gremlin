@@ -4,6 +4,7 @@ import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { formatTime } from "../formatDate";
+import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { DocumentCard } from "./DocumentCard";
 import { Markdown } from "./Markdown";
@@ -127,19 +128,17 @@ export function LogEntryView({
       );
     }
 
-    // createDocument -> DocumentCard
-    if (tool.name === "createDocument" && documents) {
-      const docPath = tool.result?.path as string | undefined;
-      const doc = docPath
-        ? documents.find((d) => d.path === docPath)
-        : undefined;
-      if (doc) {
-        return (
-          <View className="py-2">
-            <DocumentCard doc={doc} />
-          </View>
-        );
-      }
+    // createDocument -> DocumentCard (with pending/fallback states)
+    if (tool.name === "createDocument") {
+      return (
+        <CreateDocumentCard
+          toolInput={tool.input}
+          toolResult={tool.result}
+          documents={documents}
+          createdAt={message.createdAt}
+          showTimestamp={showTimestamp}
+        />
+      );
     }
 
     // updateDocument -> DocumentCard

@@ -6,6 +6,7 @@ import type { ChatMessage } from "../../../../hooks/useLogMessages";
 import type { CommandStream } from "../../../../hooks/useSandboxOutput";
 import { DocumentCard } from "../../../../shared/DocumentCard";
 import { formatTime } from "../../../../shared/formatDate";
+import { CreateDocumentCard } from "./CreateDocumentCard";
 import { RunCommandBlock } from "./RunCommandBlock";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 import { ToolBlock } from "./ToolBlock";
@@ -285,18 +286,17 @@ export function LogEntryView({
         );
       }
 
-      if (tool.name === "createDocument" && documents) {
-        const docPath = tool.result?.path as string | undefined;
-        const doc = docPath
-          ? documents.find((d) => d.path === docPath)
-          : undefined;
-        if (doc) {
-          return (
-            <div id={entry.id} className="py-1">
-              <DocumentCard doc={doc} />
-            </div>
-          );
-        }
+      if (tool.name === "createDocument") {
+        return (
+          <CreateDocumentCard
+            id={entry.id}
+            toolInput={tool.input}
+            toolResult={tool.result}
+            documents={documents}
+            createdAt={entry.createdAt}
+            showTimestamp={showTimestamp}
+          />
+        );
       }
 
       if (tool.name === "delegateTask") {
