@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { AgentLogRole } from "../../graphql/generated/graphql";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 
 describe("safeParseJson", () => {
@@ -27,12 +28,13 @@ describe("resolveToolFields", () => {
   it("uses typed fields when toolName is present", () => {
     const entry = {
       id: "1",
-      role: "TOOL" as const,
+      role: AgentLogRole.Tool,
       content: "ignored",
       createdAt: "",
       toolName: "runCommand",
       toolInput: '{"command":"ls"}',
       toolResult: '{"output":"file.txt"}',
+      documents: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("runCommand");
@@ -43,12 +45,13 @@ describe("resolveToolFields", () => {
   it("handles null toolInput/toolResult with typed fields", () => {
     const entry = {
       id: "1",
-      role: "TOOL" as const,
+      role: AgentLogRole.Tool,
       content: "",
       createdAt: "",
       toolName: "myTool",
       toolInput: null,
       toolResult: null,
+      documents: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("myTool");
@@ -59,13 +62,14 @@ describe("resolveToolFields", () => {
   it("falls back to legacy JSON-in-content format", () => {
     const entry = {
       id: "1",
-      role: "TOOL" as const,
+      role: AgentLogRole.Tool,
       content: JSON.stringify({
         name: "legacyTool",
         input: { foo: "bar" },
         result: { ok: true },
       }),
       createdAt: "",
+      documents: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("legacyTool");
@@ -76,9 +80,10 @@ describe("resolveToolFields", () => {
   it("returns default when content is not a tool object", () => {
     const entry = {
       id: "1",
-      role: "TOOL" as const,
+      role: AgentLogRole.Tool,
       content: '{"type":"something_else"}',
       createdAt: "",
+      documents: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("tool");
@@ -89,9 +94,10 @@ describe("resolveToolFields", () => {
   it("returns default when content is not JSON", () => {
     const entry = {
       id: "1",
-      role: "TOOL" as const,
+      role: AgentLogRole.Tool,
       content: "plain text",
       createdAt: "",
+      documents: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("tool");
