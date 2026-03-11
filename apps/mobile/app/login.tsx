@@ -15,11 +15,13 @@ import {
   cognitoLogin,
   cognitoSignup,
 } from "../src/lib/auth";
+import { useNavigationTheme } from "../src/lib/useNavigationTheme";
 
 type Mode = "login" | "signup" | "confirm";
 
 export default function LoginScreen() {
   const { login, signupDisabled } = useAuth();
+  const colors = useNavigationTheme();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,15 +78,15 @@ export default function LoginScreen() {
   };
 
   const inputClass =
-    "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-base";
+    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-base";
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-neutral-950"
+      className="flex-1 bg-bg"
     >
       <View className="flex-1 justify-center px-6">
-        <Text className="text-2xl font-bold text-neutral-100 text-center mb-8">
+        <Text className="text-2xl font-bold text-text-primary text-center mb-8">
           {mode === "login"
             ? "Sign in"
             : mode === "signup"
@@ -97,7 +99,7 @@ export default function LoginScreen() {
             <TextInput
               className={inputClass}
               placeholder="Verification code"
-              placeholderTextColor="#737373"
+              placeholderTextColor={colors.placeholderText}
               value={code}
               onChangeText={setCode}
               keyboardType="number-pad"
@@ -110,7 +112,7 @@ export default function LoginScreen() {
               <TextInput
                 className={inputClass}
                 placeholder="Email"
-                placeholderTextColor="#737373"
+                placeholderTextColor={colors.placeholderText}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -120,7 +122,7 @@ export default function LoginScreen() {
               <TextInput
                 className={inputClass}
                 placeholder="Password"
-                placeholderTextColor="#737373"
+                placeholderTextColor={colors.placeholderText}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -179,7 +181,7 @@ export default function LoginScreen() {
 
           {mode === "confirm" && (
             <Pressable onPress={() => setMode("login")} className="py-2">
-              <Text className="text-neutral-400 text-sm text-center">
+              <Text className="text-text-muted text-sm text-center">
                 Back to sign in
               </Text>
             </Pressable>

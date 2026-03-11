@@ -1,4 +1,8 @@
+import { vars } from "nativewind";
+import { useMemo } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
+import { useTheme } from "../lib/ThemeContext";
+import { darkVars, lightVars } from "../lib/themeVars";
 
 export function ConfirmDialog({
   visible,
@@ -19,6 +23,12 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { isDark } = useTheme();
+  const themeStyle = useMemo(
+    () => vars(isDark ? darkVars : lightVars),
+    [isDark],
+  );
+
   return (
     <Modal
       visible={visible}
@@ -28,21 +38,20 @@ export function ConfirmDialog({
     >
       <Pressable
         onPress={onCancel}
-        className="flex-1 bg-black/60 items-center justify-center px-8"
+        className="flex-1 bg-overlay items-center justify-center px-8"
+        style={themeStyle}
       >
         <Pressable
           onPress={() => {}}
-          className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-sm px-6 py-5"
+          className="bg-surface border border-app-border rounded-2xl w-full max-w-sm px-6 py-5"
         >
-          <Text className="text-neutral-100 font-semibold text-base mb-1">
+          <Text className="text-text-primary font-semibold text-base mb-1">
             {title}
           </Text>
-          <Text className="text-neutral-400 text-sm mb-5">{message}</Text>
+          <Text className="text-text-muted text-sm mb-5">{message}</Text>
           <View className="flex-row justify-end gap-3">
             <Pressable onPress={onCancel} className="px-4 py-2 rounded-lg">
-              <Text className="text-neutral-400 font-medium">
-                {cancelLabel}
-              </Text>
+              <Text className="text-text-muted font-medium">{cancelLabel}</Text>
             </Pressable>
             <Pressable
               onPress={onConfirm}

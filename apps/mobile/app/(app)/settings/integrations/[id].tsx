@@ -18,6 +18,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
@@ -44,10 +45,10 @@ function ModelCard({
 }) {
   return (
     <View
-      className={`bg-neutral-900 rounded-xl p-4 ${isDefault ? "border border-indigo-500/40" : ""}`}
+      className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-indigo-500/40" : ""}`}
     >
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-medium text-neutral-100 flex-1">
+        <Text className="text-sm font-medium text-text-primary flex-1">
           {model.name}
         </Text>
         {isDefault && (
@@ -79,13 +80,14 @@ function ApiKeyDetailView({
   defaultModel: DefaultModel;
   refetch: () => void;
 }) {
+  const colors = useNavigationTheme();
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [settingModel, setSettingModel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const inputClass =
-    "bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2.5 text-sm text-neutral-100";
+    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
 
   async function handleSaveApiKey() {
     if (!apiKeyInput.trim()) return;
@@ -130,13 +132,13 @@ function ApiKeyDetailView({
     <>
       {!provider.hasConnection ? (
         <View className="gap-3">
-          <Text className="text-sm font-medium text-neutral-100">API Key</Text>
+          <Text className="text-sm font-medium text-text-primary">API Key</Text>
           <TextInput
             className={inputClass}
             value={apiKeyInput}
             onChangeText={setApiKeyInput}
             placeholder={`Enter your ${provider.service} API key`}
-            placeholderTextColor="#525252"
+            placeholderTextColor={colors.placeholderText}
             secureTextEntry
             autoCapitalize="none"
           />
@@ -153,14 +155,14 @@ function ApiKeyDetailView({
           </Pressable>
         </View>
       ) : (
-        <View className="bg-neutral-900 rounded-xl p-4 flex-row items-center justify-between">
+        <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
           <View>
-            <Text className="text-sm text-neutral-100">API Key</Text>
-            <Text className="text-xs text-neutral-500 mt-0.5">Configured</Text>
+            <Text className="text-sm text-text-primary">API Key</Text>
+            <Text className="text-xs text-text-muted mt-0.5">Configured</Text>
           </View>
           <View className="flex-row items-center gap-1.5">
             <View className="w-2 h-2 rounded-full bg-green-400" />
-            <Text className="text-xs text-neutral-400">Active</Text>
+            <Text className="text-xs text-text-muted">Active</Text>
           </View>
         </View>
       )}
@@ -173,7 +175,7 @@ function ApiKeyDetailView({
 
       {models.length > 0 && (
         <View className="gap-3">
-          <Text className="text-sm font-medium text-neutral-100">Models</Text>
+          <Text className="text-sm font-medium text-text-primary">Models</Text>
           {models.map((model) => {
             const isDefault =
               isDefaultProvider && defaultModel?.modelId === model.id;
@@ -181,11 +183,12 @@ function ApiKeyDetailView({
             return (
               <ModelCard key={model.id} model={model} isDefault={isDefault}>
                 {settingModel === model.id ? (
-                  <ActivityIndicator color="#818cf8" size="small" />
+                  <ActivityIndicator
+                    color={colors.accentIndicator}
+                    size="small"
+                  />
                 ) : isDefault ? null : !provider.hasConnection ? (
-                  <Text className="text-xs text-neutral-600">
-                    Add key first
-                  </Text>
+                  <Text className="text-xs text-text-faint">Add key first</Text>
                 ) : (
                   <Pressable onPress={() => handleSelectModel(model.id)}>
                     <Text className="text-xs font-medium text-indigo-400">
@@ -215,6 +218,7 @@ function BedrockDetailView({
   defaultModel: DefaultModel;
   refetch: () => void;
 }) {
+  const colors = useNavigationTheme();
   const { data: enabledData, refetch: refetchEnabled } = useQuery(
     BedrockEnabledModelsQuery,
   );
@@ -274,16 +278,16 @@ function BedrockDetailView({
 
   return (
     <>
-      <View className="bg-neutral-900 rounded-xl p-4 flex-row items-center justify-between">
+      <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
         <View>
-          <Text className="text-sm text-neutral-100">AWS Credentials</Text>
-          <Text className="text-xs text-neutral-500 mt-0.5">
+          <Text className="text-sm text-text-primary">AWS Credentials</Text>
+          <Text className="text-xs text-text-muted mt-0.5">
             Managed server-side
           </Text>
         </View>
         <View className="flex-row items-center gap-1.5">
           <View className="w-2 h-2 rounded-full bg-green-400" />
-          <Text className="text-xs text-neutral-400">Connected</Text>
+          <Text className="text-xs text-text-muted">Connected</Text>
         </View>
       </View>
 
@@ -295,7 +299,7 @@ function BedrockDetailView({
 
       {models.length > 0 && (
         <View className="gap-3">
-          <Text className="text-sm font-medium text-neutral-100">Models</Text>
+          <Text className="text-sm font-medium text-text-primary">Models</Text>
           {models.map((model) => {
             const isEnabled = enabledModels.includes(model.id);
             const isDefault =
@@ -307,7 +311,10 @@ function BedrockDetailView({
             return (
               <ModelCard key={model.id} model={model} isDefault={isDefault}>
                 {isEnabling || isDisabling || isSetting ? (
-                  <ActivityIndicator color="#818cf8" size="small" />
+                  <ActivityIndicator
+                    color={colors.accentIndicator}
+                    size="small"
+                  />
                 ) : isDefault ? null : isEnabled ? (
                   <>
                     <Pressable onPress={() => handleSetDefault(model.id)}>
@@ -323,7 +330,7 @@ function BedrockDetailView({
                   </>
                 ) : (
                   <Pressable onPress={() => handleEnable(model.id)}>
-                    <Text className="text-xs font-medium text-emerald-400">
+                    <Text className="text-xs font-medium text-emerald-600">
                       Enable
                     </Text>
                   </Pressable>
@@ -360,10 +367,10 @@ export default function IntegrationDetailScreen() {
       <View className="flex-row items-center gap-4">
         <IntegrationLogo id={provider.id} size={48} />
         <View className="flex-1">
-          <Text className="text-xl font-semibold text-neutral-100">
+          <Text className="text-xl font-semibold text-text-primary">
             {provider.service}
           </Text>
-          <Text className="text-sm text-neutral-400 mt-0.5">
+          <Text className="text-sm text-text-muted mt-0.5">
             {provider.description}
           </Text>
         </View>
@@ -382,15 +389,15 @@ export default function IntegrationDetailScreen() {
           refetch={refetch}
         />
       ) : provider.connectionType === "custom" ? (
-        <View className="bg-neutral-900 rounded-xl p-5">
-          <Text className="text-sm text-neutral-400">
+        <View className="bg-surface border border-app-border rounded-xl p-5">
+          <Text className="text-sm text-text-muted">
             This integration requires a custom connection flow that is not yet
             supported.
           </Text>
         </View>
       ) : (
-        <View className="bg-neutral-900 rounded-xl p-5">
-          <Text className="text-sm text-neutral-300">
+        <View className="bg-surface border border-app-border rounded-xl p-5">
+          <Text className="text-sm text-text-secondary">
             Connect {provider.service} using the Gremlin Connect desktop app.
             The desktop app handles OAuth flows locally with your own
             credentials.

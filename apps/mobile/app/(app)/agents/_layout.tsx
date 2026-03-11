@@ -1,22 +1,27 @@
 import { Stack } from "expo-router";
 import { Platform } from "react-native";
-
-// headerStyle on web accepts height but the native-stack type doesn't include it
-const chatHeaderStyle =
-  Platform.OS === "ios"
-    ? { backgroundColor: "transparent" }
-    : ({ backgroundColor: "#0a0a0a", height: 120 } as {
-        backgroundColor: string;
-      });
+import { useTheme } from "../../../src/lib/ThemeContext";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 
 export default function AgentsLayout() {
+  const colors = useNavigationTheme();
+  const { isDark } = useTheme();
+
+  // headerStyle on web accepts height but the native-stack type doesn't include it
+  const chatHeaderStyle =
+    Platform.OS === "ios"
+      ? { backgroundColor: "transparent" }
+      : ({ backgroundColor: colors.headerBackground, height: 120 } as {
+          backgroundColor: string;
+        });
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#0a0a0a" },
-        headerTintColor: "#e5e5e5",
+        headerStyle: { backgroundColor: colors.headerBackground },
+        headerTintColor: colors.headerText,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: "#0a0a0a" },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen name="index" options={{ title: "Agents" }} />
@@ -26,7 +31,8 @@ export default function AgentsLayout() {
         options={{
           headerBackTitle: "Agents",
           headerTransparent: true,
-          headerBlurEffect: Platform.OS === "ios" ? "dark" : undefined,
+          headerBlurEffect:
+            Platform.OS === "ios" ? (isDark ? "dark" : "light") : undefined,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
           title: "",
@@ -41,7 +47,8 @@ export default function AgentsLayout() {
         options={{
           headerBackTitle: "Chat",
           headerTransparent: true,
-          headerBlurEffect: Platform.OS === "ios" ? "dark" : undefined,
+          headerBlurEffect:
+            Platform.OS === "ios" ? (isDark ? "dark" : "light") : undefined,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
           title: "",

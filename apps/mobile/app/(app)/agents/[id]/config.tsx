@@ -18,18 +18,21 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
+import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SaveButton } from "../../../../src/shared/SaveButton";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
 const INPUT_CLASS =
-  "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-sm";
+  "bg-surface-alt border border-app-border rounded-lg px-4 py-3 text-text-primary text-sm";
 
 export default function AgentConfigScreen() {
+  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data, loading, error, setData, refetch } = useQuery(AgentQuery, {
@@ -125,8 +128,8 @@ export default function AgentConfigScreen() {
       keyboardShouldPersistTaps="handled"
     >
       {agent.retired && (
-        <View className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 flex-row items-center justify-between">
-          <Text className="text-sm text-neutral-400">
+        <View className="bg-surface border border-app-border rounded-xl px-4 py-3 flex-row items-center justify-between">
+          <Text className="text-sm text-text-muted">
             This agent is retired.
           </Text>
           <Pressable
@@ -155,8 +158,8 @@ export default function AgentConfigScreen() {
             size={80}
           />
           {!agent.retired && (
-            <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-neutral-700 border-2 border-neutral-950 items-center justify-center">
-              <Pencil size={12} color="#e5e5e5" />
+            <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-surface-alt border-2 border-bg items-center justify-center">
+              <Pencil size={12} color={colors.headerText} />
             </View>
           )}
         </Pressable>
@@ -165,34 +168,34 @@ export default function AgentConfigScreen() {
       <Pressable
         onPress={agent.retired ? undefined : () => setVoicePickerOpen(true)}
         disabled={!!agent.retired}
-        className={`self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 ${agent.retired ? "opacity-50" : "active:bg-neutral-700"}`}
+        className={`self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-surface-alt ${agent.retired ? "opacity-50" : "active:bg-surface-alt"}`}
       >
-        <Volume2 size={16} color="#a3a3a3" />
-        <Text className="text-sm text-neutral-200">
+        <Volume2 size={16} color={colors.iconDefault} />
+        <Text className="text-sm text-text-secondary">
           {agent.ttsVoice ?? "No voice"}
         </Text>
       </Pressable>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-neutral-300">Name</Text>
+        <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <TextInput
           className={INPUT_CLASS}
           value={name}
           onChangeText={setName}
           placeholder="Agent name"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
           editable={!agent.retired}
         />
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-neutral-300">Soul</Text>
+        <Text className="text-sm font-medium text-text-secondary">Soul</Text>
         <TextInput
           className={INPUT_CLASS}
           value={soul}
           onChangeText={setSoul}
           placeholder="Who is this agent?"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={6}
           textAlignVertical="top"
@@ -216,17 +219,13 @@ export default function AgentConfigScreen() {
 
           <ToolsConfig agent={agent} />
 
-          <Pressable
-            onPress={() => setShowRetireConfirm(true)}
-            disabled={retiring}
-            className="self-start rounded-lg px-5 py-3 items-center border border-red-800 mt-4"
-          >
-            {retiring ? (
-              <ActivityIndicator color="#f87171" />
-            ) : (
-              <Text className="text-red-400 font-semibold">Retire Agent</Text>
-            )}
-          </Pressable>
+          <View className="mt-4">
+            <DestructiveButton
+              onPress={() => setShowRetireConfirm(true)}
+              loading={retiring}
+              label="Retire Agent"
+            />
+          </View>
         </>
       )}
 

@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { CreateAgentMutation } from "../../../src/graphql/queries";
 import { gql } from "../../../src/lib/auth";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 
 export default function NewAgentScreen() {
+  const colors = useNavigationTheme();
   const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
@@ -35,7 +37,7 @@ export default function NewAgentScreen() {
   };
 
   const inputClass =
-    "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-sm";
+    "bg-surface-alt border border-app-border rounded-lg px-4 py-3 text-text-primary text-sm";
 
   return (
     <ScrollView
@@ -44,37 +46,37 @@ export default function NewAgentScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">ID</Text>
+        <Text className="text-sm font-medium text-text-secondary">ID</Text>
         <TextInput
           className={inputClass}
           value={id}
           onChangeText={setId}
           placeholder="e.g. bob, research-agent"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
           autoCapitalize="none"
           autoCorrect={false}
         />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Name</Text>
+        <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <TextInput
           className={inputClass}
           value={name}
           onChangeText={setName}
           placeholder="Agent name"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
         />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Soul</Text>
+        <Text className="text-sm font-medium text-text-secondary">Soul</Text>
         <TextInput
           className={inputClass}
           value={soul}
           onChangeText={setSoul}
           placeholder="Who is this agent? What should they do?"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={4}
           textAlignVertical="top"

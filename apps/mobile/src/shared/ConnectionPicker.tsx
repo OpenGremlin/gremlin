@@ -37,14 +37,14 @@ export function ConnectionPicker({
         return (
           <View key={req.providerId} className="gap-2">
             <View className="flex-row items-center gap-2">
-              <Text className="text-sm text-neutral-100">
+              <Text className="text-sm text-text-primary">
                 {req.providerName}
               </Text>
               {req.optional ? (
-                <Text className="text-xs text-neutral-500">(optional)</Text>
+                <Text className="text-xs text-text-muted">(optional)</Text>
               ) : null}
             </View>
-            <Text className="text-xs text-neutral-400">{req.reason}</Text>
+            <Text className="text-xs text-text-muted">{req.reason}</Text>
             {available.length > 0 ? (
               <View className="gap-2">
                 {available.map((conn) => (
@@ -53,12 +53,12 @@ export function ConnectionPicker({
                     onPress={() => onSelect(req.providerId, conn.id)}
                     className={`flex-row items-center gap-3 rounded-lg border p-3 ${
                       selectedId === conn.id
-                        ? "border-emerald-500 bg-neutral-800/50"
-                        : "border-neutral-700 bg-neutral-800/30"
+                        ? "border-emerald-500 bg-surface-alt/50"
+                        : "border-app-border bg-surface-alt/30"
                     }`}
                   >
                     <IntegrationLogo id={req.providerId} size={32} />
-                    <Text className="text-sm text-neutral-200">
+                    <Text className="text-sm text-text-secondary">
                       {conn.description || conn.id}
                     </Text>
                   </Pressable>
@@ -66,7 +66,7 @@ export function ConnectionPicker({
               </View>
             ) : (
               <View className="gap-1">
-                <Text className="text-xs text-neutral-500">
+                <Text className="text-xs text-text-muted">
                   No {req.providerName} connections.
                 </Text>
                 <Pressable

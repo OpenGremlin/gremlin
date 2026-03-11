@@ -101,7 +101,7 @@ export default function SkillTemplateScreen() {
   return (
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-6 gap-4">
       <View>
-        <Text className="text-xl font-semibold text-neutral-100 mb-2">
+        <Text className="text-xl font-semibold text-text-primary mb-2">
           {template.name}
         </Text>
         <View className="flex-row items-center gap-2">
@@ -111,22 +111,22 @@ export default function SkillTemplateScreen() {
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Description</Text>
-        <Text className="text-sm text-neutral-300 leading-relaxed">
+        <Text className="text-xs text-text-muted">Description</Text>
+        <Text className="text-sm text-text-secondary leading-relaxed">
           {template.description}
         </Text>
       </View>
 
       {template.author ? (
         <View className="gap-1">
-          <Text className="text-xs text-neutral-500">Author</Text>
-          <Text className="text-sm text-neutral-400">{template.author}</Text>
+          <Text className="text-xs text-text-muted">Author</Text>
+          <Text className="text-sm text-text-muted">{template.author}</Text>
         </View>
       ) : null}
 
       {instances.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs text-neutral-500">
+          <Text className="text-xs text-text-muted">
             Installed Instances ({instances.length})
           </Text>
           {instances.map((inst) => (
@@ -135,19 +135,19 @@ export default function SkillTemplateScreen() {
               onPress={() =>
                 router.push(`/settings/skills/${inst.id}` as never)
               }
-              className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-3"
+              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl p-3"
             >
               <View className="flex-1">
-                <Text className="text-sm text-neutral-100">
+                <Text className="text-sm text-text-primary">
                   {inst.template.name}
                 </Text>
-                <Text className="text-xs text-neutral-500">
+                <Text className="text-xs text-text-muted">
                   {inst.id.slice(0, 8)}...
                 </Text>
               </View>
               <View className="flex-row items-center gap-1">
-                <CircleCheck size={12} color="#34d399" />
-                <Text className="text-xs text-emerald-400">Installed</Text>
+                <CircleCheck size={12} color="#059669" />
+                <Text className="text-xs text-emerald-600">Installed</Text>
               </View>
             </Pressable>
           ))}
@@ -156,7 +156,7 @@ export default function SkillTemplateScreen() {
 
       {templateReqs.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs text-neutral-500">
+          <Text className="text-xs text-text-muted">
             Select connections for new instance
           </Text>
           <ConnectionPicker

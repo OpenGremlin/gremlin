@@ -15,11 +15,14 @@ import {
 import { IntegrationConnectionsQuery } from "../../../../src/graphql/queries/integrations";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Badge } from "../../../../src/shared/Badge";
 import { ConnectionPicker } from "../../../../src/shared/ConnectionPicker";
+import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function SkillDetailScreen() {
+  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(SkillQuery, {
     id: id ?? "",
@@ -90,7 +93,7 @@ export default function SkillDetailScreen() {
   return (
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-6 gap-4">
       <View>
-        <Text className="text-xl font-semibold text-neutral-100 mb-2">
+        <Text className="text-xl font-semibold text-text-primary mb-2">
           {skill.template.name}
         </Text>
         <View className="flex-row items-center gap-2">
@@ -100,21 +103,21 @@ export default function SkillDetailScreen() {
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Description</Text>
-        <Text className="text-sm text-neutral-300 leading-relaxed">
+        <Text className="text-xs text-text-muted">Description</Text>
+        <Text className="text-sm text-text-secondary leading-relaxed">
           {skill.template.description}
         </Text>
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Instance ID</Text>
-        <Text className="text-sm text-neutral-400 font-mono">{skill.id}</Text>
+        <Text className="text-xs text-text-muted">Instance ID</Text>
+        <Text className="text-sm text-text-muted font-mono">{skill.id}</Text>
       </View>
 
       {skill.installedAt ? (
         <View className="gap-1">
-          <Text className="text-xs text-neutral-500">Installed</Text>
-          <Text className="text-sm text-neutral-400">
+          <Text className="text-xs text-text-muted">Installed</Text>
+          <Text className="text-sm text-text-muted">
             {new Date(skill.installedAt).toLocaleDateString()}
           </Text>
         </View>
@@ -122,7 +125,7 @@ export default function SkillDetailScreen() {
 
       {templateReqs.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs text-neutral-500">Connections</Text>
+          <Text className="text-xs text-text-muted">Connections</Text>
           <ConnectionPicker
             requirements={templateReqs}
             connections={connections}
@@ -132,19 +135,11 @@ export default function SkillDetailScreen() {
         </View>
       )}
 
-      <Pressable
+      <DestructiveButton
         onPress={handleUninstall}
-        disabled={uninstalling}
-        className="bg-neutral-800 rounded-lg px-4 py-2.5 items-center disabled:opacity-50"
-      >
-        {uninstalling ? (
-          <ActivityIndicator color="#d4d4d4" size="small" />
-        ) : (
-          <Text className="text-sm font-medium text-neutral-300">
-            Uninstall
-          </Text>
-        )}
-      </Pressable>
+        loading={uninstalling}
+        label="Uninstall"
+      />
     </ScrollView>
   );
 }

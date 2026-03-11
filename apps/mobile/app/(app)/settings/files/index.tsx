@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { WorkspaceEntriesQuery } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 
 function formatSize(bytes: number): string {
@@ -26,7 +27,7 @@ function Breadcrumbs({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerClassName="flex-row items-center gap-1 px-4 py-3"
-      className="border-b border-neutral-800 shrink-0 grow-0"
+      className="border-b border-app-border shrink-0 grow-0"
     >
       <Pressable onPress={() => onNavigate("")}>
         <Text className="text-sm text-indigo-400">/workspace</Text>
@@ -36,9 +37,9 @@ function Breadcrumbs({
         const isLast = i === segments.length - 1;
         return (
           <View key={partial} className="flex-row items-center gap-1">
-            <Text className="text-sm text-neutral-600">/</Text>
+            <Text className="text-sm text-text-faint">/</Text>
             {isLast ? (
-              <Text className="text-sm text-neutral-200">{seg}</Text>
+              <Text className="text-sm text-text-secondary">{seg}</Text>
             ) : (
               <Pressable onPress={() => onNavigate(partial)}>
                 <Text className="text-sm text-indigo-400">{seg}</Text>
@@ -52,6 +53,7 @@ function Breadcrumbs({
 }
 
 export default function FilesScreen() {
+  const colors = useNavigationTheme();
   const [dirPath, setDirPath] = useState("");
   const { data, loading, error } = useQuery(WorkspaceEntriesQuery, {
     path: dirPath,
@@ -78,18 +80,21 @@ export default function FilesScreen() {
                 );
               }
             }}
-            className="flex-row items-center gap-3 px-4 py-3 border-b border-neutral-800/50 active:bg-neutral-900"
+            className="flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface"
           >
             {entry.isDirectory ? (
-              <Folder size={18} color="#818cf8" />
+              <Folder size={18} color={colors.accentIndicator} />
             ) : (
-              <File size={18} color="#737373" />
+              <File size={18} color={colors.iconMuted} />
             )}
-            <Text className="text-sm text-neutral-200 flex-1" numberOfLines={1}>
+            <Text
+              className="text-sm text-text-secondary flex-1"
+              numberOfLines={1}
+            >
               {entry.name}
             </Text>
             {!entry.isDirectory && entry.size != null && (
-              <Text className="text-xs text-neutral-600 shrink-0">
+              <Text className="text-xs text-text-faint shrink-0">
                 {formatSize(entry.size)}
               </Text>
             )}
@@ -97,7 +102,7 @@ export default function FilesScreen() {
         ))}
 
         {!loading && entries.length === 0 && (
-          <Text className="px-4 py-8 text-sm text-neutral-500 text-center">
+          <Text className="px-4 py-8 text-sm text-text-muted text-center">
             Empty directory
           </Text>
         )}

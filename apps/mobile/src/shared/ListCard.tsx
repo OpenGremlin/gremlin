@@ -23,7 +23,7 @@ export function ListCard({
 }: ListCardProps) {
   return (
     <View
-      className={`bg-neutral-900 rounded-xl p-4 flex-row items-start gap-3 ${dimmed ? "opacity-50" : ""}`}
+      className={`bg-surface border border-app-border rounded-xl p-4 flex-row items-start gap-3 ${dimmed ? "opacity-50" : ""}`}
     >
       <Pressable
         onPress={onPress}
@@ -33,7 +33,7 @@ export function ListCard({
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
             <Text
-              className="text-sm font-medium text-neutral-100 flex-1"
+              className="text-sm font-medium text-text-primary flex-1"
               numberOfLines={1}
             >
               {title}

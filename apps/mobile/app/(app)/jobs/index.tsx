@@ -9,6 +9,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { formatDate } from "../../../src/shared/formatDate";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
@@ -16,6 +17,7 @@ import { QueryResult } from "../../../src/shared/QueryResult";
 function RunNowButton({ jobId }: { jobId: string }) {
   const [triggering, setTriggering] = useState(false);
   const [triggered, setTriggered] = useState(false);
+  const colors = useNavigationTheme();
 
   return (
     <Pressable
@@ -35,13 +37,14 @@ function RunNowButton({ jobId }: { jobId: string }) {
       {triggered ? (
         <Text className="text-xs text-green-400">Queued</Text>
       ) : (
-        <Play size={14} color="#737373" />
+        <Play size={14} color={colors.iconMuted} />
       )}
     </Pressable>
   );
 }
 
 export default function JobsScreen() {
+  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(AgentJobsQuery);
 
   const jobs = data?.agentJobs ?? [];
@@ -68,13 +71,13 @@ export default function JobsScreen() {
           }
           subtitle={
             <>
-              <Text className="text-xs text-neutral-400">
+              <Text className="text-xs text-text-muted">
                 {job.cronExpression
                   ? cronstrue.toString(job.cronExpression)
                   : job.recurrence}
               </Text>
               {!job.paused && (
-                <Text className="text-xs text-neutral-500 mt-0.5">
+                <Text className="text-xs text-text-muted mt-0.5">
                   Next: {formatDate(job.nextRun, "Not scheduled")}
                 </Text>
               )}
@@ -87,8 +90,8 @@ export default function JobsScreen() {
         onPress={() => router.push("/jobs/new")}
         className="self-start flex-row items-center gap-1.5 py-2"
       >
-        <Plus size={14} color="#737373" />
-        <Text className="text-xs text-neutral-500">New Job</Text>
+        <Plus size={14} color={colors.iconMuted} />
+        <Text className="text-xs text-text-muted">New Job</Text>
       </Pressable>
     </ScrollView>
   );

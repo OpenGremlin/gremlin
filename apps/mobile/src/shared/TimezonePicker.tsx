@@ -67,12 +67,12 @@ export function TimezonePicker({
       <Pressable
         className={
           className ??
-          "bg-neutral-800 rounded-lg px-3 py-2.5 border border-neutral-700"
+          "bg-surface-alt rounded-lg px-3 py-2.5 border border-app-border"
         }
         onPress={() => setOpen(true)}
       >
         <Text
-          className={`text-sm ${value ? "text-neutral-100" : "text-neutral-500"}`}
+          className={`text-sm ${value ? "text-text-primary" : "text-text-muted"}`}
         >
           {value ? formatTzLabel(value) : placeholder}
         </Text>

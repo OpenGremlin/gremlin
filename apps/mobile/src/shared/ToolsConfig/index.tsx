@@ -9,6 +9,7 @@ import {
 } from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
 
@@ -86,6 +87,7 @@ function getModelLabel(
 }
 
 export function ToolsConfig({ agent }: { agent: Agent }) {
+  const colors = useNavigationTheme();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
   const { data: bedrockData } = useQuery(BedrockEnabledModelsQuery);
   const providers = providersData?.integrationProviders ?? [];
@@ -130,22 +132,22 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   return (
     <View className="gap-3">
       <View className="flex-row items-center gap-2">
-        <Text className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+        <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
           Tools
         </Text>
-        {saving && <Text className="text-xs text-neutral-600">saving...</Text>}
+        {saving && <Text className="text-xs text-text-faint">saving...</Text>}
       </View>
 
       {/* Model */}
-      <View className="border border-neutral-800 rounded-xl overflow-hidden">
+      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
-            <Bot size={18} color="#a3a3a3" />
+            <Bot size={18} color={colors.iconDefault} />
             <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-200">
+              <Text className="text-sm font-medium text-text-secondary">
                 Model
               </Text>
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-text-muted">
                 LLM provider for inference
               </Text>
             </View>
@@ -167,23 +169,23 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         {config.model && (
           <Pressable
             onPress={() => setModelPickerOpen(true)}
-            className="mx-4 mb-3 ml-11 px-3 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg"
+            className="mx-4 mb-3 ml-11 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
           >
-            <Text className="text-sm text-neutral-200">{modelLabel}</Text>
+            <Text className="text-sm text-text-secondary">{modelLabel}</Text>
           </Pressable>
         )}
       </View>
 
       {/* Sandbox */}
-      <View className="border border-neutral-800 rounded-xl overflow-hidden">
+      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
-            <Terminal size={18} color="#a3a3a3" />
+            <Terminal size={18} color={colors.iconDefault} />
             <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-200">
+              <Text className="text-sm font-medium text-text-secondary">
                 Sandbox
               </Text>
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-text-muted">
                 Bash shell for running commands
               </Text>
             </View>
@@ -209,8 +211,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           <View className="mx-4 mb-3 ml-11 gap-3">
             <View className="flex-row items-center justify-between">
               <View>
-                <Text className="text-sm text-neutral-300">Keep running</Text>
-                <Text className="text-xs text-neutral-500">
+                <Text className="text-sm text-text-secondary">
+                  Keep running
+                </Text>
+                <Text className="text-xs text-text-muted">
                   Don't shut down after idle timeout
                 </Text>
               </View>
@@ -230,10 +234,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             {!config.sandbox.alwaysOn && (
               <View>
                 <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-sm text-neutral-300">
+                  <Text className="text-sm text-text-secondary">
                     Idle shutdown
                   </Text>
-                  <Text className="text-sm text-neutral-400">
+                  <Text className="text-sm text-text-muted">
                     {config.sandbox.idleTimeoutMinutes ?? 20} min
                   </Text>
                 </View>
@@ -253,10 +257,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                             },
                           })
                         }
-                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-indigo-600/20 border-indigo-500/40" : "bg-neutral-800 border-neutral-700"}`}
+                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-indigo-600/20 border-indigo-500/40" : "bg-surface-alt border-app-border"}`}
                       >
                         <Text
-                          className={`text-xs ${selected ? "text-neutral-100" : "text-neutral-400"}`}
+                          className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
                         >
                           {mins} min
                         </Text>
@@ -271,15 +275,15 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       </View>
 
       {/* Web Search */}
-      <View className="border border-neutral-800 rounded-xl overflow-hidden">
+      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
-            <Globe size={18} color="#a3a3a3" />
+            <Globe size={18} color={colors.iconDefault} />
             <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-200">
+              <Text className="text-sm font-medium text-text-secondary">
                 Web Search
               </Text>
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-text-muted">
                 {hasWebSearch
                   ? "Search the web for information"
                   : "Connect Brave Search or Tavily to enable"}
@@ -321,11 +325,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   className={`px-3 py-2.5 rounded-lg border ${
                     selected
                       ? "bg-indigo-600/20 border-indigo-500/40"
-                      : "bg-neutral-800 border-neutral-700"
+                      : "bg-surface-alt border-app-border"
                   }`}
                 >
                   <Text
-                    className={`text-sm ${selected ? "text-neutral-100" : "text-neutral-400"}`}
+                    className={`text-sm ${selected ? "text-text-primary" : "text-text-muted"}`}
                   >
                     {p.service}
                   </Text>

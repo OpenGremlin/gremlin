@@ -1,6 +1,6 @@
 import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
-import { Play, Trash2 } from "lucide-react-native";
+import { Play } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
@@ -22,7 +22,9 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { DestructiveButton } from "../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../src/shared/formatDate";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
@@ -34,6 +36,7 @@ type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 type JobTask = Job["tasks"][number];
 
 export default function JobDetailScreen() {
+  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(AgentJobQuery, {
     id: id ?? "",
@@ -204,7 +207,7 @@ export default function JobDetailScreen() {
   ].slice(0, 10);
 
   const inputClass =
-    "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-sm";
+    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-sm";
 
   return (
     <ScrollView
@@ -216,29 +219,29 @@ export default function JobDetailScreen() {
         <AgentAvatar id={job.agent.id} size={48} />
         <View className="min-w-0 flex-1">
           <Text
-            className="text-xl font-semibold text-neutral-100"
+            className="text-xl font-semibold text-text-primary"
             numberOfLines={1}
           >
             {job.name}
           </Text>
-          <Text className="text-sm text-neutral-400 mt-0.5">
+          <Text className="text-sm text-text-muted mt-0.5">
             {job.agent.name}
           </Text>
         </View>
       </View>
 
       <View
-        className={`bg-neutral-900 rounded-xl p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}
+        className={`bg-surface border border-app-border rounded-xl p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}
       >
         <View className="gap-1">
-          <Text className="text-xs text-neutral-500">Schedule</Text>
-          <Text className="text-sm text-neutral-200">
+          <Text className="text-xs text-text-muted">Schedule</Text>
+          <Text className="text-sm text-text-secondary">
             {cronHuman ?? job.recurrence}
           </Text>
         </View>
         <View className="gap-1">
-          <Text className="text-xs text-neutral-500">Next run</Text>
-          <Text className="text-sm text-neutral-200">
+          <Text className="text-xs text-text-muted">Next run</Text>
+          <Text className="text-sm text-text-secondary">
             {job.paused
               ? "Paused"
               : formatDate(job.nextRun, "Not scheduled", currentTimezone)}
@@ -246,8 +249,8 @@ export default function JobDetailScreen() {
         </View>
         {job.cronExpression ? (
           <View className="gap-1">
-            <Text className="text-xs text-neutral-500">Cron</Text>
-            <Text className="text-sm font-mono text-neutral-400">
+            <Text className="text-xs text-text-muted">Cron</Text>
+            <Text className="text-sm font-mono text-text-muted">
               {job.cronExpression}
             </Text>
           </View>
@@ -261,7 +264,7 @@ export default function JobDetailScreen() {
             disabled={togglingPause}
             onChange={handleTogglePause}
           />
-          <Text className="text-sm text-neutral-300">Pause schedule</Text>
+          <Text className="text-sm text-text-secondary">Pause schedule</Text>
         </View>
         <View className="flex-1" />
         {!job.paused && (
@@ -283,17 +286,17 @@ export default function JobDetailScreen() {
       </View>
 
       <View className="gap-4">
-        <Text className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
           Configuration
         </Text>
-        <View className="bg-neutral-900 rounded-xl p-4 gap-4">
+        <View className="bg-surface border border-app-border rounded-xl p-4 gap-4">
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Agent</Text>
+            <Text className="text-xs text-text-muted">Agent</Text>
             <Pressable
               className={inputClass}
               onPress={() => setAgentPickerOpen(true)}
             >
-              <Text className="text-sm text-neutral-100">
+              <Text className="text-sm text-text-primary">
                 {agentOptions.find((a) => a.value === currentAgentId)?.label ??
                   job.agent.name}
               </Text>
@@ -308,28 +311,28 @@ export default function JobDetailScreen() {
             />
           </View>
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Name</Text>
+            <Text className="text-xs text-text-muted">Name</Text>
             <TextInput
               className={inputClass}
               value={currentName}
               onChangeText={(val) => setName(val === job.name ? null : val)}
-              placeholderTextColor="#737373"
+              placeholderTextColor={colors.placeholderText}
             />
           </View>
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Recurrence</Text>
+            <Text className="text-xs text-text-muted">Recurrence</Text>
             <TextInput
               className={inputClass}
               value={currentRecurrence}
               onChangeText={(val) =>
                 setRecurrence(val === job.recurrence ? null : val)
               }
-              placeholderTextColor="#737373"
+              placeholderTextColor={colors.placeholderText}
               autoCapitalize="none"
             />
           </View>
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Timezone</Text>
+            <Text className="text-xs text-text-muted">Timezone</Text>
             <TimezonePicker
               value={currentTimezone}
               onChange={(val) => setTimezone(val === job.timezone ? null : val)}
@@ -337,21 +340,21 @@ export default function JobDetailScreen() {
             />
           </View>
           <View className="gap-2">
-            <Text className="text-xs text-neutral-500">Description</Text>
+            <Text className="text-xs text-text-muted">Description</Text>
             <TextInput
               className={inputClass}
               value={currentDescription ?? ""}
               onChangeText={(val) =>
                 setDescription(val === job.description ? null : val)
               }
-              placeholderTextColor="#737373"
+              placeholderTextColor={colors.placeholderText}
               multiline
               textAlignVertical="top"
               style={{ minHeight: 80 }}
             />
           </View>
 
-          <View className="flex-row items-center gap-3 pt-2 border-t border-neutral-800">
+          <View className="flex-row items-center gap-3 pt-2">
             <SaveButton
               onPress={handleSave}
               disabled={!isDirty}
@@ -368,7 +371,7 @@ export default function JobDetailScreen() {
                   setTimezone(null);
                 }}
               >
-                <Text className="text-sm text-neutral-400">Discard</Text>
+                <Text className="text-sm text-text-muted">Discard</Text>
               </Pressable>
             )}
           </View>
@@ -380,29 +383,29 @@ export default function JobDetailScreen() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
           History
         </Text>
         {allTasks.length === 0 ? (
-          <View className="bg-neutral-900 rounded-xl p-6 items-center">
-            <Text className="text-sm text-neutral-500">
+          <View className="bg-surface border border-app-border rounded-xl p-6 items-center">
+            <Text className="text-sm text-text-muted">
               No previous runs yet.
             </Text>
           </View>
         ) : (
-          <View className="bg-neutral-900 rounded-xl overflow-hidden">
+          <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
             {allTasks.map((t, i) => (
               <Pressable
                 key={t.id}
                 onPress={() =>
                   router.push(`/agents/${t.agent.id}/tasks/${t.id}`)
                 }
-                className={`px-4 py-3 ${i > 0 ? "border-t border-neutral-800" : ""}`}
+                className={`px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
               >
-                <Text className="text-sm text-neutral-100" numberOfLines={1}>
+                <Text className="text-sm text-text-primary" numberOfLines={1}>
                   {t.title ?? "Untitled task"}
                 </Text>
-                <Text className="text-xs text-neutral-500 mt-0.5">
+                <Text className="text-xs text-text-muted mt-0.5">
                   {formatDate(t.createdAt)}
                 </Text>
               </Pressable>
@@ -411,17 +414,13 @@ export default function JobDetailScreen() {
         )}
       </View>
 
-      <View className="pt-4 border-t border-neutral-800/60">
-        <Pressable
+      <View className="pt-4 border-t border-border-subtle">
+        <DestructiveButton
           onPress={handleDelete}
-          disabled={deleting}
-          className="self-start flex-row items-center gap-2 px-4 py-2 bg-neutral-800 rounded-lg disabled:opacity-50"
-        >
-          <Trash2 size={16} color="#f87171" />
-          <Text className="text-sm font-medium text-red-400">
-            {deleting ? "Deleting..." : "Delete Job"}
-          </Text>
-        </Pressable>
+          loading={deleting}
+          label="Delete Job"
+          loadingLabel="Deleting..."
+        />
       </View>
     </ScrollView>
   );

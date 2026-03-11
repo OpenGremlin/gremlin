@@ -15,7 +15,7 @@ export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
       style={{ width: size, height: size }}
       className={`shrink-0 ${isRetired ? "opacity-50" : ""}`}
     >
-      <View className="w-full h-full rounded-full bg-neutral-800 items-center justify-center overflow-hidden">
+      <View className="w-full h-full rounded-full bg-surface-alt items-center justify-center overflow-hidden">
         {agent?.imageUrl && !imgError ? (
           <Image
             source={{ uri: agent.imageUrl }}
@@ -24,9 +24,7 @@ export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <Text className="text-sm text-neutral-400 font-medium">
-            {name[0]}
-          </Text>
+          <Text className="text-sm text-text-muted font-medium">{name[0]}</Text>
         )}
       </View>
     </View>

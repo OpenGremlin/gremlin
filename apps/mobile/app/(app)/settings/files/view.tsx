@@ -16,8 +16,10 @@ export default function FileViewScreen() {
   return (
     <View className="flex-1">
       <View className="px-4 pt-4 pb-2">
-        <Text className="text-sm font-medium text-neutral-200">{fileName}</Text>
-        <Text className="text-xs text-neutral-600 mt-1">{filePath}</Text>
+        <Text className="text-sm font-medium text-text-secondary">
+          {fileName}
+        </Text>
+        <Text className="text-xs text-text-faint mt-1">{filePath}</Text>
       </View>
 
       <QueryResult loading={loading} error={error} />
@@ -28,14 +30,14 @@ export default function FileViewScreen() {
           contentContainerClassName="px-4 py-3"
           horizontal={false}
         >
-          <Text className="text-xs text-neutral-300 font-mono leading-5">
+          <Text className="text-xs text-text-secondary font-mono leading-5">
             {data.workspaceFile}
           </Text>
         </ScrollView>
       ) : (
         !loading &&
         !error && (
-          <Text className="px-4 py-8 text-sm text-neutral-500 text-center">
+          <Text className="px-4 py-8 text-sm text-text-muted text-center">
             Unable to display file (binary or too large)
           </Text>
         )

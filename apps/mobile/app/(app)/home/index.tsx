@@ -10,6 +10,7 @@ import {
 import type { Document } from "../../../src/graphql/generated/graphql";
 import { TasksQuery } from "../../../src/graphql/queries";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { DocumentCard } from "../../../src/shared/DocumentCard";
 import { EmptyState } from "../../../src/shared/EmptyState";
@@ -18,7 +19,7 @@ import { QueryResult } from "../../../src/shared/QueryResult";
 import { useTaskUpdates } from "../../../src/subscriptions";
 
 function ListSeparator() {
-  return <View className="h-px bg-neutral-800/50 mx-4" />;
+  return <View className="h-px bg-border-subtle mx-4" />;
 }
 
 type TaskItem = {
@@ -46,7 +47,7 @@ function TaskCard({ item }: { item: TaskItem }) {
   return (
     <Pressable
       onPress={() => router.push(`/agents/${agent.id}/tasks/${task.id}`)}
-      className="px-4 py-4 active:bg-neutral-900/50"
+      className="px-4 py-4 active:bg-surface/50"
     >
       <View className="flex-row items-start gap-3">
         <Pressable onPress={() => router.push(`/agents/${agent.id}`)}>
@@ -55,19 +56,19 @@ function TaskCard({ item }: { item: TaskItem }) {
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-2 min-w-0">
             {agent.name ? (
-              <Text className="text-sm text-neutral-400" numberOfLines={1}>
+              <Text className="text-sm text-text-muted" numberOfLines={1}>
                 {agent.name}
               </Text>
             ) : null}
-            <Text className="text-xs text-neutral-600 shrink-0">
+            <Text className="text-xs text-text-faint shrink-0">
               {timeAgo(task.createdAt)}
             </Text>
           </View>
-          <Text className="text-sm font-medium text-neutral-100 mt-0.5">
+          <Text className="text-sm font-medium text-text-primary mt-0.5">
             {task.title}
           </Text>
           {task.message ? (
-            <Text className="text-xs text-neutral-500 mt-0.5" numberOfLines={1}>
+            <Text className="text-xs text-text-muted mt-0.5" numberOfLines={1}>
               {task.message}
             </Text>
           ) : null}
@@ -85,6 +86,7 @@ function TaskCard({ item }: { item: TaskItem }) {
 }
 
 export default function HomeScreen() {
+  const colors = useNavigationTheme();
   const { nodes, loading, loadingMore, error, hasMore, loadMore } =
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",
@@ -107,7 +109,7 @@ export default function HomeScreen() {
       ListFooterComponent={
         loadingMore ? (
           <View className="py-4 items-center">
-            <ActivityIndicator size="small" color="#737373" />
+            <ActivityIndicator size="small" color={colors.loadingIndicator} />
           </View>
         ) : null
       }

@@ -2,6 +2,7 @@ import { Check } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { SheetModal } from "./SheetModal";
 
 export interface PickerOption {
@@ -34,6 +35,7 @@ export function PickerModal({
 }: PickerModalProps) {
   const [search, setSearch] = useState("");
   const searchRef = useRef<TextInput>(null);
+  const colors = useNavigationTheme();
 
   const filtered = useMemo(() => {
     if (!search) return options;
@@ -49,12 +51,12 @@ export function PickerModal({
   return (
     <SheetModal visible={visible} title={title} onClose={onClose}>
       {searchable && (
-        <View className="px-4 py-2 border-b border-neutral-800">
+        <View className="px-4 py-2 border-b border-app-border">
           <TextInput
             ref={searchRef}
-            className="bg-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100"
+            className="bg-surface-alt rounded-lg px-3 py-2 text-sm text-text-primary"
             placeholder="Search..."
-            placeholderTextColor="#737373"
+            placeholderTextColor={colors.placeholderText}
             value={search}
             onLayout={() => setTimeout(() => searchRef.current?.focus(), 300)}
             onChangeText={setSearch}
@@ -75,18 +77,18 @@ export function PickerModal({
               onClose();
               setSearch("");
             }}
-            className="flex-row items-center justify-between px-4 py-3 active:bg-neutral-800"
+            className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
           >
             <View className="flex-1 flex-row items-center gap-3">
               {item.icon}
-              <Text className="text-sm text-neutral-100">{item.label}</Text>
+              <Text className="text-sm text-text-primary">{item.label}</Text>
               {item.subtitle && (
-                <Text className="text-xs text-neutral-500">
-                  {item.subtitle}
-                </Text>
+                <Text className="text-xs text-text-muted">{item.subtitle}</Text>
               )}
             </View>
-            {item.value === selected && <Check size={18} color="#818cf8" />}
+            {item.value === selected && (
+              <Check size={18} color={colors.accentIndicator} />
+            )}
           </Pressable>
         )}
       />

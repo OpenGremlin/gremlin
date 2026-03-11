@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { ExternalLink } from "lucide-react-native";
 import { Image, Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
+import { useTheme } from "../../lib/ThemeContext";
 
 export function DelegateTaskCard({
   agentId,
@@ -14,6 +15,7 @@ export function DelegateTaskCard({
   taskTitle: string;
 }) {
   const task = useTaskInfo(taskId);
+  const { isDark } = useTheme();
   const imageUrl = task?.imageUrl;
   const lastMessage = task?.lastMessage;
 
@@ -23,15 +25,19 @@ export function DelegateTaskCard({
     }
   };
 
+  const gradientColors: [string, string, string] = isDark
+    ? ["#080a1c", "#190837", "#280830"]
+    : ["#eef2ff", "#e8e0f7", "#f0e8f5"];
+
   return (
     <View className="py-2 mr-10">
       <Pressable
         onPress={taskId ? handlePress : undefined}
         disabled={!taskId}
-        className="border border-indigo-500/20 rounded-xl overflow-hidden"
+        className={`rounded-xl overflow-hidden ${isDark ? "border border-indigo-500/20" : "border border-indigo-300"}`}
       >
         <LinearGradient
-          colors={["#080a1c", "#190837", "#280830"]}
+          colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 12 }}
@@ -47,15 +53,20 @@ export function DelegateTaskCard({
             <View className="flex-1 px-3 py-2.5 min-w-0">
               <View className="flex-row items-center gap-1.5">
                 <Text
-                  className="text-sm text-indigo-100 font-medium flex-1"
+                  className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
                   numberOfLines={1}
                 >
                   {taskTitle}
                 </Text>
-                {taskId && <ExternalLink size={12} color="#818cf8" />}
+                {taskId && (
+                  <ExternalLink
+                    size={12}
+                    color={isDark ? "#818cf8" : "#4f46e5"}
+                  />
+                )}
               </View>
               <Text
-                className={`text-xs mt-0.5 ${lastMessage ? "text-neutral-400" : "text-transparent"}`}
+                className={`text-xs mt-0.5 ${lastMessage ? "text-text-muted" : "text-transparent"}`}
                 numberOfLines={1}
               >
                 {lastMessage || "Delegated task"}

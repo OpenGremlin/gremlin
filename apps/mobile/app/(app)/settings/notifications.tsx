@@ -32,7 +32,7 @@ function NotificationCard({
   return (
     <Pressable
       onPress={() => router.push(`/agents/${notification.agent.id}`)}
-      className={`bg-neutral-900 rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
+      className={`bg-surface border border-app-border rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
     >
       <View className="flex-row items-start gap-3">
         <View className="mt-0.5">
@@ -40,19 +40,19 @@ function NotificationCard({
         </View>
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
-            <Text className="text-sm font-medium text-neutral-100">
+            <Text className="text-sm font-medium text-text-primary">
               {notification.agent.name}
             </Text>
-            <Text className="text-[11px] text-neutral-500 shrink ml-2">
+            <Text className="text-[11px] text-text-muted shrink ml-2">
               {timeAgo(notification.createdAt)}
             </Text>
           </View>
-          <Text className="text-sm text-neutral-300 mb-3">
+          <Text className="text-sm text-text-secondary mb-3">
             {notification.message}
           </Text>
 
           {resolved ? (
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-text-muted">
               {notification.status === "DISMISSED"
                 ? "Dismissed"
                 : (resolvedLabel ?? "Resolved")}
@@ -69,14 +69,14 @@ function NotificationCard({
                   className={`rounded-full px-3 py-1 ${
                     action.style === "primary"
                       ? "bg-indigo-500"
-                      : "bg-neutral-800"
+                      : "bg-surface-alt"
                   }`}
                 >
                   <Text
                     className={`text-xs font-medium ${
                       action.style === "primary"
                         ? "text-white"
-                        : "text-neutral-300"
+                        : "text-text-secondary"
                     }`}
                   >
                     {action.label}
@@ -90,7 +90,7 @@ function NotificationCard({
                 }}
                 className="ml-1"
               >
-                <Text className="text-xs text-neutral-500">Dismiss</Text>
+                <Text className="text-xs text-text-muted">Dismiss</Text>
               </Pressable>
             </View>
           )}

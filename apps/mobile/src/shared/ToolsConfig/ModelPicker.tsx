@@ -1,6 +1,7 @@
 import { Check } from "lucide-react-native";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { IntegrationProvidersQuery } from "../../graphql/generated/graphql";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { SheetModal } from "../SheetModal";
 
 type Provider = IntegrationProvidersQuery["integrationProviders"][number];
@@ -33,6 +34,7 @@ export function ModelPicker({
   }) => void;
   onClose: () => void;
 }) {
+  const colors = useNavigationTheme();
   const bedrockProvider = providers.find((p) => p.id === "bedrock");
   const bedrockEnabledModels = (bedrockProvider?.models ?? []).filter((m) =>
     bedrockModels.includes(m.id),
@@ -82,7 +84,7 @@ export function ModelPicker({
     <SheetModal visible title="Choose Model" onClose={onClose}>
       {options.length === 0 ? (
         <View className="py-12 items-center">
-          <Text className="text-sm text-neutral-500">No models available</Text>
+          <Text className="text-sm text-text-muted">No models available</Text>
         </View>
       ) : (
         <FlatList
@@ -96,7 +98,7 @@ export function ModelPicker({
             return (
               <>
                 {showHeader && (
-                  <Text className="px-4 pt-3 pb-1.5 text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+                  <Text className="px-4 pt-3 pb-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">
                     {item.section}
                   </Text>
                 )}
@@ -105,14 +107,16 @@ export function ModelPicker({
                     onSelect(item.value);
                     onClose();
                   }}
-                  className="flex-row items-center justify-between px-4 py-3 active:bg-neutral-800"
+                  className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
                 >
                   <Text
-                    className={`text-sm ${selected ? "text-indigo-300" : "text-neutral-300"}`}
+                    className={`text-sm ${selected ? "text-indigo-300" : "text-text-secondary"}`}
                   >
                     {item.label}
                   </Text>
-                  {selected && <Check size={14} color="#818cf8" />}
+                  {selected && (
+                    <Check size={14} color={colors.accentIndicator} />
+                  )}
                 </Pressable>
               </>
             );

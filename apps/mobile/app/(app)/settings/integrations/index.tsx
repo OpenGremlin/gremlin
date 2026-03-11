@@ -13,12 +13,12 @@ import { QueryResult } from "../../../../src/shared/QueryResult";
 
 function ConnectionCountBadge({ count }: { count: number }) {
   if (count === 0) {
-    return <Text className="text-xs text-neutral-500">Connect</Text>;
+    return <Text className="text-xs text-text-muted">Connect</Text>;
   }
   return (
     <View className="flex-row items-center gap-1">
-      <CircleCheck size={12} color="#34d399" />
-      <Text className="text-xs text-emerald-400">
+      <CircleCheck size={12} color="#059669" />
+      <Text className="text-xs text-emerald-600">
         {count > 1 ? `${count} ` : ""}Connected
       </Text>
     </View>
@@ -56,15 +56,15 @@ export default function IntegrationsScreen() {
               (m) => m.id === defaultModel.modelId,
             );
             return (
-              <View className="bg-neutral-900 rounded-xl p-4">
-                <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+              <View className="bg-surface border border-app-border rounded-xl p-4">
+                <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
                   Default Model
                 </Text>
-                <Text className="text-sm font-medium text-neutral-100">
+                <Text className="text-sm font-medium text-text-primary">
                   {model?.name ?? defaultModel.modelId}
                 </Text>
                 {modelProvider && (
-                  <Text className="text-xs text-neutral-400 mt-0.5">
+                  <Text className="text-xs text-text-muted mt-0.5">
                     {modelProvider.service}
                   </Text>
                 )}
@@ -74,11 +74,11 @@ export default function IntegrationsScreen() {
 
           if (aiProviders.length > 0) {
             return (
-              <View className="bg-neutral-900 rounded-xl p-4">
-                <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+              <View className="bg-surface border border-app-border rounded-xl p-4">
+                <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
                   Default Model
                 </Text>
-                <Text className="text-sm text-neutral-400">
+                <Text className="text-sm text-text-muted">
                   No default model selected. Using Bedrock Claude Sonnet 4.
                 </Text>
               </View>
@@ -90,24 +90,24 @@ export default function IntegrationsScreen() {
 
       {connectionList.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             Connections
           </Text>
           {connectionList.map((conn) => (
             <Pressable
               key={conn.id}
               onPress={() => router.push(`/settings/connections/${conn.id}`)}
-              className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800"
+              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl p-4 active:bg-surface-alt"
             >
               <IntegrationLogo id={conn.providerId} size={32} />
               <View className="flex-1 min-w-0">
                 <Text
-                  className="text-sm font-medium text-neutral-100"
+                  className="text-sm font-medium text-text-primary"
                   numberOfLines={1}
                 >
                   {conn.description}
                 </Text>
-                <Text className="text-xs text-neutral-400" numberOfLines={1}>
+                <Text className="text-xs text-text-muted" numberOfLines={1}>
                   {conn.providerId} ·{" "}
                   {conn.connectionType === "oauth"
                     ? "OAuth"
@@ -116,7 +116,7 @@ export default function IntegrationsScreen() {
                       : conn.connectionType}
                 </Text>
               </View>
-              <Text className="text-xs text-neutral-500 shrink-0">
+              <Text className="text-xs text-text-muted shrink-0">
                 {formatDate(conn.connectedAt)}
               </Text>
             </Pressable>
@@ -125,12 +125,12 @@ export default function IntegrationsScreen() {
       )}
 
       {connectionList.length > 0 && (
-        <View className="border-b border-neutral-800" />
+        <View className="border-b border-app-border" />
       )}
 
       {grouped.map((group) => (
         <View key={group.category} className="gap-2">
-          <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             {group.label}
           </Text>
           {group.items.map((provider) => {
@@ -143,17 +143,19 @@ export default function IntegrationsScreen() {
                 onPress={() =>
                   router.push(`/settings/integrations/${provider.id}`)
                 }
-                className={`flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
-                  connected ? "border border-emerald-500/40" : ""
+                className={`flex-row items-center gap-3 bg-surface rounded-xl p-4 active:bg-surface-alt ${
+                  connected
+                    ? "border-2 border-emerald-500"
+                    : "border border-app-border"
                 }`}
               >
                 <IntegrationLogo id={provider.id} size={36} />
                 <View className="flex-1 min-w-0">
-                  <Text className="text-sm font-medium text-neutral-100">
+                  <Text className="text-sm font-medium text-text-primary">
                     {provider.service}
                   </Text>
                   <Text
-                    className="text-xs text-neutral-400 mt-0.5"
+                    className="text-xs text-text-muted mt-0.5"
                     numberOfLines={1}
                   >
                     {provider.description}
@@ -161,8 +163,8 @@ export default function IntegrationsScreen() {
                   <View className="mt-1">
                     {provider.connectionType === "bedrock" ? (
                       <View className="flex-row items-center gap-1">
-                        <CircleCheck size={12} color="#34d399" />
-                        <Text className="text-xs text-emerald-400">
+                        <CircleCheck size={12} color="#059669" />
+                        <Text className="text-xs text-emerald-600">
                           Connected
                         </Text>
                       </View>

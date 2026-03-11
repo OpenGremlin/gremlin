@@ -1,5 +1,6 @@
 import { Check, Volume2 } from "lucide-react-native";
 import { FlatList, Pressable, Text } from "react-native";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { SheetModal } from "../SheetModal";
 
 const INWORLD_VOICES = [
@@ -52,6 +53,7 @@ export function VoicePicker({
   onSelect: (voice: string | null) => void;
   onClose: () => void;
 }) {
+  const colors = useNavigationTheme();
   return (
     <SheetModal visible title="Choose Voice" onClose={onClose}>
       <FlatList
@@ -68,14 +70,17 @@ export function VoicePicker({
             <Pressable
               onPress={() => onSelect(item.voice)}
               className={`flex-1 flex-row items-center gap-2 px-3 py-2.5 rounded-lg ${
-                selected ? "bg-neutral-700" : "active:bg-neutral-800"
+                selected ? "bg-surface-alt" : "active:bg-surface-alt"
               }`}
             >
               {item.voice ? (
-                <Volume2 size={14} color={selected ? "#f5f5f5" : "#a3a3a3"} />
+                <Volume2
+                  size={14}
+                  color={selected ? colors.headerText : colors.iconDefault}
+                />
               ) : null}
               <Text
-                className={`text-sm ${selected ? "text-neutral-100" : "text-neutral-400"}`}
+                className={`text-sm ${selected ? "text-text-primary" : "text-text-muted"}`}
                 numberOfLines={1}
               >
                 {item.voice ?? "None"}
@@ -83,7 +88,7 @@ export function VoicePicker({
               {selected && (
                 <Check
                   size={14}
-                  color="#f5f5f5"
+                  color={colors.headerText}
                   style={{ marginLeft: "auto" }}
                 />
               )}

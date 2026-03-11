@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatTime } from "../formatDate";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
@@ -34,21 +35,21 @@ function FileUploadCard({
       {files.map((file, i) => (
         <View
           key={file.path ?? i}
-          className="flex-row items-center gap-2.5 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg"
+          className="flex-row items-center gap-2.5 px-3 py-2 bg-surface border border-app-border rounded-lg"
         >
           <File size={16} color="#60a5fa" />
           <View className="flex-1 min-w-0">
-            <Text className="text-sm text-neutral-200" numberOfLines={1}>
+            <Text className="text-sm text-text-secondary" numberOfLines={1}>
               {file.filename ?? "Unknown file"}
             </Text>
             <View className="flex-row items-center gap-2 mt-0.5">
               {file.sizeBytes != null && (
-                <Text className="text-[10px] text-neutral-500">
+                <Text className="text-[10px] text-text-muted">
                   {formatFileSize(file.sizeBytes)}
                 </Text>
               )}
               {file.contentType && (
-                <Text className="text-[10px] text-neutral-500">
+                <Text className="text-[10px] text-text-muted">
                   {file.contentType}
                 </Text>
               )}
@@ -79,6 +80,8 @@ export function LogEntryView({
   documents?: Array<{ path: string; title: string; body?: string | null }>;
   sandboxStreams?: Map<string, CommandStream>;
 }) {
+  const colors = useNavigationTheme();
+
   if (message.role === AgentLogRole.User) {
     return (
       <View className="py-2">
@@ -88,7 +91,7 @@ export function LogEntryView({
           </View>
         </View>
         {showTimestamp && (
-          <Text className="text-[10px] text-neutral-500 text-right mt-1 mr-1">
+          <Text className="text-[10px] text-text-muted text-right mt-1 mr-1">
             {formatTime(message.createdAt)}
           </Text>
         )}
@@ -101,7 +104,7 @@ export function LogEntryView({
     return (
       <View className="py-2">
         <View className="flex-row justify-start">
-          <View className="max-w-[85%] bg-neutral-800/60 rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+          <View className="max-w-[85%] bg-surface border border-app-border rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
             <Markdown variant="agent">{message.content}</Markdown>
           </View>
         </View>
@@ -113,7 +116,7 @@ export function LogEntryView({
           </View>
         )}
         {showTimestamp && (
-          <Text className="text-[10px] text-neutral-500 mt-1 ml-1">
+          <Text className="text-[10px] text-text-muted mt-1 ml-1">
             {formatTime(message.createdAt)}
           </Text>
         )}
@@ -129,7 +132,7 @@ export function LogEntryView({
       const msg = tool.input?.message as string | undefined;
       return (
         <View className="flex-row items-start gap-1.5 py-1.5 px-1">
-          <Text className="text-xs text-neutral-400 italic">
+          <Text className="text-xs text-text-muted italic">
             {msg || "Progress update"}
           </Text>
         </View>
@@ -207,9 +210,9 @@ export function LogEntryView({
               streaming={!stream.done}
             >
               {!stream.done && (
-                <View className="flex-row items-center gap-1.5 px-3 py-1 border-t border-neutral-800/50">
-                  <ActivityIndicator size={10} color="#737373" />
-                  <Text className="text-[10px] text-neutral-500">
+                <View className="flex-row items-center gap-1.5 px-3 py-1 border-t border-border-subtle">
+                  <ActivityIndicator size={10} color={colors.iconMuted} />
+                  <Text className="text-[10px] text-text-muted">
                     Running...
                   </Text>
                 </View>
@@ -217,7 +220,7 @@ export function LogEntryView({
               {stream.done &&
                 stream.exitCode !== undefined &&
                 stream.exitCode !== 0 && (
-                  <View className="px-3 py-1 border-t border-neutral-800/50">
+                  <View className="px-3 py-1 border-t border-border-subtle">
                     <Text className="text-[10px] text-red-400/70">
                       exit code {stream.exitCode}
                     </Text>
@@ -234,8 +237,8 @@ export function LogEntryView({
             showTimestamp={showTimestamp}
           >
             <View className="flex-row items-center gap-2 px-3 py-2">
-              <ActivityIndicator size="small" color="#737373" />
-              <Text className="text-xs text-neutral-400">Running...</Text>
+              <ActivityIndicator size="small" color={colors.iconMuted} />
+              <Text className="text-xs text-text-muted">Running...</Text>
             </View>
           </ToolBlock>
         );
@@ -263,8 +266,8 @@ export function LogEntryView({
           showTimestamp={showTimestamp}
         >
           <View className="flex-row items-center gap-2 px-3 py-2">
-            <ActivityIndicator size="small" color="#737373" />
-            <Text className="text-xs text-neutral-400">Running...</Text>
+            <ActivityIndicator size="small" color={colors.iconMuted} />
+            <Text className="text-xs text-text-muted">Running...</Text>
           </View>
         </ToolBlock>
       );

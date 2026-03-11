@@ -26,6 +26,7 @@ import {
 } from "../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../src/hooks/useSandboxOutput";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { ChatHeaderTitle } from "../../../../src/shared/ChatHeaderTitle";
 import { LogEntryView } from "../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../src/shared/PendingMessageBubble";
@@ -40,16 +41,16 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
     upload.status === "pending";
 
   return (
-    <View className="flex-row items-center gap-2 py-1.5 px-2 rounded-lg bg-neutral-800/50">
+    <View className="flex-row items-center gap-2 py-1.5 px-2 rounded-lg bg-surface-alt/50">
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center gap-2">
           <Text
-            className="text-xs text-neutral-200 flex-shrink"
+            className="text-xs text-text-secondary flex-shrink"
             numberOfLines={1}
           >
             {upload.name}
           </Text>
-          <Text className="text-[10px] text-neutral-500">
+          <Text className="text-[10px] text-text-muted">
             {formatFileSize(upload.size)}
           </Text>
           {isDone && <Text className="text-[10px] text-green-400">Done</Text>}
@@ -59,7 +60,7 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
             </Text>
           )}
           {isActive && (
-            <Text className="text-[10px] text-neutral-400">
+            <Text className="text-[10px] text-text-muted">
               {upload.status === "completing"
                 ? "Finishing..."
                 : `${upload.progress}%`}
@@ -67,7 +68,7 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
           )}
         </View>
         {isActive && (
-          <View className="mt-1 h-1 bg-neutral-700 rounded-full overflow-hidden">
+          <View className="mt-1 h-1 bg-surface-alt rounded-full overflow-hidden">
             <View
               className="h-full bg-blue-500 rounded-full"
               style={{ width: `${upload.progress}%` }}
@@ -96,6 +97,7 @@ function ChatInputBar({
   isUploading: boolean;
   onPickFiles: () => void;
 }) {
+  const colors = useNavigationTheme();
   const inputRef = useRef<TextInput>(null);
   const [inputHeight, setInputHeight] = useState(36);
   const canSend = input.trim().length > 0;
@@ -117,8 +119,8 @@ function ChatInputBar({
 
   if (disabled) {
     return (
-      <View className="border-t border-neutral-800 bg-neutral-950 px-3 py-3.5">
-        <Text className="text-sm text-neutral-500 text-center">
+      <View className="border-t border-app-border bg-bg px-3 py-3.5">
+        <Text className="text-sm text-text-muted text-center">
           This agent is retired.
         </Text>
       </View>
@@ -126,7 +128,7 @@ function ChatInputBar({
   }
 
   return (
-    <View className="border-t border-neutral-800 bg-neutral-950 px-3 py-2">
+    <View className="border-t border-app-border bg-bg px-3 py-2">
       {/* Upload progress area */}
       {hasUploads && (
         <View className="mb-2 gap-1">
@@ -141,18 +143,18 @@ function ChatInputBar({
         <Pressable
           onPress={onPickFiles}
           disabled={isUploading}
-          className={`w-8 h-8 rounded-full items-center justify-center mb-0.5 bg-neutral-800 ${isUploading ? "opacity-50" : ""}`}
+          className={`w-8 h-8 rounded-full items-center justify-center mb-0.5 bg-surface-alt ${isUploading ? "opacity-50" : ""}`}
         >
           {isUploading ? (
-            <ActivityIndicator size="small" color="#a3a3a3" />
+            <ActivityIndicator size="small" color={colors.iconDefault} />
           ) : (
-            <Paperclip size={16} color="#a3a3a3" />
+            <Paperclip size={16} color={colors.iconDefault} />
           )}
         </Pressable>
 
         <TextInput
           ref={inputRef}
-          className="flex-1 bg-neutral-800 rounded-2xl px-4 py-2 text-neutral-100 text-sm"
+          className="flex-1 bg-surface-alt rounded-2xl px-4 py-2 text-text-primary text-sm"
           style={{ height: Math.min(112, Math.max(36, inputHeight)) }}
           value={input}
           onChangeText={setInput}
@@ -160,7 +162,7 @@ function ChatInputBar({
             setInputHeight(e.nativeEvent.contentSize.height)
           }
           placeholder="Message..."
-          placeholderTextColor="#525252"
+          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={1}
           blurOnSubmit={false}
@@ -170,10 +172,10 @@ function ChatInputBar({
           onPress={onSend}
           disabled={!canSend}
           className={`w-8 h-8 rounded-full items-center justify-center mb-0.5 ${
-            canSend ? "bg-blue-600" : "bg-neutral-700"
+            canSend ? "bg-blue-600" : "bg-surface-alt"
           }`}
         >
-          <ArrowUp size={18} color={canSend ? "#fff" : "#737373"} />
+          <ArrowUp size={18} color={canSend ? "#fff" : colors.iconMuted} />
         </Pressable>
       </View>
     </View>
@@ -181,6 +183,7 @@ function ChatInputBar({
 }
 
 export default function AgentChatScreen() {
+  const colors = useNavigationTheme();
   const { id, taskId } = useLocalSearchParams<{
     id: string;
     taskId?: string;
@@ -281,7 +284,7 @@ export default function AgentChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-neutral-950"
+      className="flex-1 bg-bg"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
@@ -298,9 +301,9 @@ export default function AgentChatScreen() {
       />
 
       {taskId && task && (
-        <View className="px-4 py-2 bg-neutral-900/80 border-b border-neutral-800">
-          <Text className="text-xs text-neutral-400">Task</Text>
-          <Text className="text-sm text-neutral-200" numberOfLines={1}>
+        <View className="px-4 py-2 bg-surface/80 border-b border-app-border">
+          <Text className="text-xs text-text-muted">Task</Text>
+          <Text className="text-sm text-text-secondary" numberOfLines={1}>
             {task.title ?? task.message}
           </Text>
         </View>
@@ -319,7 +322,7 @@ export default function AgentChatScreen() {
         ListFooterComponent={
           loadingMore ? (
             <View className="items-center py-3">
-              <ActivityIndicator size="small" color="#737373" />
+              <ActivityIndicator size="small" color={colors.loadingIndicator} />
             </View>
           ) : null
         }

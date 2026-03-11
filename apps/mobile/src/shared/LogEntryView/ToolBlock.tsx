@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatTime } from "../formatDate";
 
 const COLLAPSED_MAX_HEIGHT = 100;
@@ -20,10 +21,11 @@ function CollapsedContent({
   return (
     <Pressable
       onPress={onExpand}
-      className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1 overflow-hidden"
+      className="rounded-lg mb-1 overflow-hidden"
+      style={{ backgroundColor: "#0a0a0a" }}
     >
       <View style={{ maxHeight: COLLAPSED_MAX_HEIGHT, overflow: "hidden" }}>
-        <Text className="text-xs font-mono px-3 py-2 text-green-400/90 leading-5">
+        <Text className="text-xs font-mono px-3 py-2 leading-5" style={{ color: "rgba(74,222,128,0.9)" }}>
           {content}
         </Text>
       </View>
@@ -57,9 +59,10 @@ function ExpandedContent({
   return (
     <Pressable
       onPress={onCollapse}
-      className="bg-neutral-950 border border-neutral-800 rounded-lg mb-1 overflow-hidden"
+      className="rounded-lg mb-1 overflow-hidden"
+      style={{ backgroundColor: "#0a0a0a" }}
     >
-      <Text className="text-xs font-mono px-3 py-2 text-green-400/90 leading-5">
+      <Text className="text-xs font-mono px-3 py-2 leading-5" style={{ color: "rgba(74,222,128,0.9)" }}>
         {content}
       </Text>
       {streaming && children}
@@ -85,6 +88,7 @@ export function ToolBlock({
   streaming?: boolean;
   children?: React.ReactNode;
 }) {
+  const colors = useNavigationTheme();
   const [open, setOpen] = useState(defaultOpen);
   const [expanded, setExpanded] = useState(false);
 
@@ -122,16 +126,16 @@ export function ToolBlock({
             transform: [{ rotate: open ? "90deg" : "0deg" }],
           }}
         >
-          <ChevronRight size={12} color="#d4d4d4" />
+          <ChevronRight size={12} color={colors.headerText} />
         </View>
         <Text
-          className="text-[11px] text-neutral-300 font-bold font-mono flex-shrink"
+          className="text-[11px] text-text-secondary font-bold font-mono flex-shrink"
           numberOfLines={1}
         >
           {label}
         </Text>
         {showTimestamp && (
-          <Text className="text-[10px] text-neutral-600">
+          <Text className="text-[10px] text-text-faint">
             {formatTime(createdAt)}
           </Text>
         )}

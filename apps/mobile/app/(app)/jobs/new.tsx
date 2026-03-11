@@ -14,11 +14,13 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 export default function NewJobScreen() {
+  const colors = useNavigationTheme();
   const { data: agentsData } = useQuery(AgentsQuery);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
@@ -70,7 +72,7 @@ export default function NewJobScreen() {
   };
 
   const inputClass =
-    "bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-neutral-100 text-sm";
+    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-sm";
 
   return (
     <ScrollView
@@ -79,24 +81,24 @@ export default function NewJobScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Name</Text>
+        <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <TextInput
           className={inputClass}
           value={name}
           onChangeText={setName}
           placeholder="Job name"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
         />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Agent</Text>
+        <Text className="text-sm font-medium text-text-secondary">Agent</Text>
         <Pressable
           className={inputClass}
           onPress={() => setAgentPickerOpen(true)}
         >
           <Text
-            className={`text-sm ${agentId ? "text-neutral-100" : "text-neutral-500"}`}
+            className={`text-sm ${agentId ? "text-text-primary" : "text-text-muted"}`}
           >
             {agentOptions.find((a) => a.value === agentId)?.label ??
               "Select agent"}
@@ -113,18 +115,22 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Recurrence</Text>
+        <Text className="text-sm font-medium text-text-secondary">
+          Recurrence
+        </Text>
         <TextInput
           className={inputClass}
           value={recurrence}
           onChangeText={setRecurrence}
           placeholder="Every weekday at 9am"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
         />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">Timezone</Text>
+        <Text className="text-sm font-medium text-text-secondary">
+          Timezone
+        </Text>
         <TimezonePicker
           value={timezone}
           onChange={setTimezone}
@@ -133,7 +139,7 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">
+        <Text className="text-sm font-medium text-text-secondary">
           Description
         </Text>
         <TextInput
@@ -141,7 +147,7 @@ export default function NewJobScreen() {
           value={description}
           onChangeText={setDescription}
           placeholder="What should this job do?"
-          placeholderTextColor="#737373"
+          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={4}
           textAlignVertical="top"

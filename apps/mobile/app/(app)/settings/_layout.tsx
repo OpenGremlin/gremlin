@@ -1,13 +1,16 @@
 import { Stack } from "expo-router";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 
 export default function SettingsLayout() {
+  const colors = useNavigationTheme();
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#0a0a0a" },
-        headerTintColor: "#e5e5e5",
+        headerStyle: { backgroundColor: colors.headerBackground },
+        headerTintColor: colors.headerText,
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: "#0a0a0a" },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen name="index" options={{ title: "Settings" }} />

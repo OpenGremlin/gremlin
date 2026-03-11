@@ -12,7 +12,7 @@ export function Toggle({ enabled, onChange, disabled }: ToggleProps) {
       disabled={disabled}
       onPress={onChange}
       className={`relative h-6 w-11 rounded-full ${
-        enabled ? "bg-indigo-600" : "bg-neutral-700"
+        enabled ? "bg-indigo-600" : "bg-app-border"
       } ${disabled ? "opacity-50" : ""}`}
     >
       <View

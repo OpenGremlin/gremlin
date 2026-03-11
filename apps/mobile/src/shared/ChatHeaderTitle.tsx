@@ -14,7 +14,7 @@ export function ChatHeaderTitle({
     <Pressable onPress={onPress} disabled={!onPress} className="items-center">
       <AgentAvatar id={agentId} size={64} />
       <Text
-        className="text-sm text-neutral-100 mt-1.5 font-semibold max-w-[200px] text-center"
+        className="text-sm text-text-primary mt-1.5 font-semibold max-w-[200px] text-center"
         numberOfLines={1}
       >
         {title}

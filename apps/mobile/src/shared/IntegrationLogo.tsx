@@ -52,10 +52,10 @@ export function IntegrationLogo({
   }
   return (
     <View
-      className="rounded-full bg-neutral-800 items-center justify-center"
+      className="rounded-full bg-surface-alt items-center justify-center"
       style={{ width: size, height: size }}
     >
-      <Text className="text-lg text-neutral-400">{id[0]?.toUpperCase()}</Text>
+      <Text className="text-lg text-text-muted">{id[0]?.toUpperCase()}</Text>
     </View>
   );
 }

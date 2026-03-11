@@ -1,5 +1,6 @@
 import { ActivityIndicator, Text, View } from "react-native";
 import type { Document } from "../../graphql/generated/graphql";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { DocumentCard } from "./DocumentCard";
 import { ToolBlock } from "./ToolBlock";
 
@@ -16,6 +17,7 @@ export function CreateDocumentCard({
   createdAt: string;
   showTimestamp: boolean;
 }) {
+  const colors = useNavigationTheme();
   const docPath =
     (toolResult?.path as string | undefined) ??
     (toolInput?.path as string | undefined);
@@ -51,8 +53,8 @@ export function CreateDocumentCard({
       showTimestamp={showTimestamp}
     >
       <View className="flex-row items-center gap-2 px-3 py-2">
-        <ActivityIndicator size="small" color="#737373" />
-        <Text className="text-xs text-neutral-400">Writing...</Text>
+        <ActivityIndicator size="small" color={colors.iconMuted} />
+        <Text className="text-xs text-text-muted">Writing...</Text>
       </View>
     </ToolBlock>
   );

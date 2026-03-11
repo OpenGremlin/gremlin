@@ -15,6 +15,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
@@ -90,7 +91,7 @@ export default function ConnectionDetailScreen() {
   }
 
   const inputClass =
-    "text-xl font-semibold text-neutral-100 bg-transparent border-b border-neutral-600 py-1";
+    "text-xl font-semibold text-text-primary bg-transparent border-b border-app-border py-1";
 
   return (
     <ScrollView
@@ -116,59 +117,59 @@ export default function ConnectionDetailScreen() {
           />
         ) : (
           <Pressable onPress={startEditing}>
-            <Text className="text-xl font-semibold text-neutral-100">
+            <Text className="text-xl font-semibold text-text-primary">
               {description}
             </Text>
           </Pressable>
         )}
         {accountId ? (
-          <Text className="text-sm text-neutral-400 mt-0.5">{accountId}</Text>
+          <Text className="text-sm text-text-muted mt-0.5">{accountId}</Text>
         ) : null}
-        <Text className="text-xs text-neutral-500 mt-0.5">
+        <Text className="text-xs text-text-muted mt-0.5">
           Connected {formatDate(connection.connectedAt)}
         </Text>
       </View>
 
       {scopes && scopes.length > 0 && (
         <View className="gap-2">
-          <Text className="text-sm font-medium text-neutral-100">
+          <Text className="text-sm font-medium text-text-primary">
             Granted Scopes
           </Text>
           {scopes.map((scope) => (
-            <View key={scope} className="bg-neutral-900 rounded-xl p-4">
-              <Text className="text-sm text-neutral-100">{scope}</Text>
+            <View
+              key={scope}
+              className="bg-surface border border-app-border rounded-xl p-4"
+            >
+              <Text className="text-sm text-text-primary">{scope}</Text>
             </View>
           ))}
         </View>
       )}
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-100">Details</Text>
-        <View className="bg-neutral-900 rounded-xl p-4 gap-2">
+        <Text className="text-sm font-medium text-text-primary">Details</Text>
+        <View className="bg-surface border border-app-border rounded-xl p-4 gap-2">
           <View className="flex-row justify-between">
-            <Text className="text-sm text-neutral-400">Provider</Text>
-            <Text className="text-sm text-neutral-100">
+            <Text className="text-sm text-text-muted">Provider</Text>
+            <Text className="text-sm text-text-primary">
               {connection.providerId}
             </Text>
           </View>
           <View className="flex-row justify-between">
-            <Text className="text-sm text-neutral-400">Type</Text>
-            <Text className="text-sm text-neutral-100">
+            <Text className="text-sm text-text-muted">Type</Text>
+            <Text className="text-sm text-text-primary">
               {connection.connectionType}
             </Text>
           </View>
         </View>
       </View>
 
-      <Pressable
+      <DestructiveButton
         onPress={handleRevoke}
-        disabled={revoking}
-        className="self-start px-4 py-2 disabled:opacity-50"
-      >
-        <Text className="text-sm text-red-400">
-          {revoking ? "Revoking..." : "Revoke Connection"}
-        </Text>
-      </Pressable>
+        loading={revoking}
+        label="Revoke Connection"
+        loadingLabel="Revoking..."
+      />
     </ScrollView>
   );
 }

@@ -2,22 +2,24 @@ import { FileText } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import type { Document } from "../graphql/generated/graphql";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { Markdown } from "./LogEntryView/Markdown";
 import { SheetModal } from "./SheetModal";
 
 export function DocumentCard({ doc }: { doc: Document }) {
+  const colors = useNavigationTheme();
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden"
+        className="bg-surface border border-app-border rounded-lg overflow-hidden"
       >
         <View className="flex-row items-center gap-2 px-3 py-2">
-          <FileText size={14} color="#818cf8" />
+          <FileText size={14} color={colors.accentIndicator} />
           <Text
-            className="text-sm font-medium text-neutral-200 flex-1"
+            className="text-sm font-medium text-text-secondary flex-1"
             numberOfLines={1}
           >
             {doc.title}

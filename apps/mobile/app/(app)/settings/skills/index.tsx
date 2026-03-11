@@ -7,10 +7,12 @@ import {
   SkillTemplatesQuery,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function SkillsScreen() {
+  const colors = useNavigationTheme();
   const [query, setQuery] = useState("");
   const {
     data: skillsData,
@@ -47,37 +49,37 @@ export default function SkillsScreen() {
         placeholder="Search skills..."
         value={query}
         onChangeText={setQuery}
-        className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-100"
-        placeholderTextColor="#737373"
+        className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
+        placeholderTextColor={colors.placeholderText}
       />
 
       <QueryResult loading={loading} error={error} />
 
       {filteredInstalled.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             Installed Skills
           </Text>
           {filteredInstalled.map((skill) => (
             <Pressable
               key={skill.id}
               onPress={() => router.push(`/settings/skills/${skill.id}`)}
-              className="flex-row items-center gap-3 bg-neutral-900 rounded-xl p-4 active:bg-neutral-800"
+              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl p-4 active:bg-surface-alt"
             >
               <View className="flex-1 min-w-0">
                 <Text
-                  className="text-sm font-medium text-neutral-100"
+                  className="text-sm font-medium text-text-primary"
                   numberOfLines={1}
                 >
                   {skill.template.name}
                 </Text>
-                <Text className="text-xs text-neutral-400" numberOfLines={1}>
+                <Text className="text-xs text-text-muted" numberOfLines={1}>
                   {skill.template.description}
                 </Text>
               </View>
               <View className="flex-row items-center gap-1 shrink-0">
-                <CircleCheck size={12} color="#34d399" />
-                <Text className="text-xs text-emerald-400">Installed</Text>
+                <CircleCheck size={12} color="#059669" />
+                <Text className="text-xs text-emerald-600">Installed</Text>
               </View>
             </Pressable>
           ))}
@@ -85,12 +87,12 @@ export default function SkillsScreen() {
       )}
 
       {filteredInstalled.length > 0 && (
-        <View className="border-b border-neutral-800" />
+        <View className="border-b border-app-border" />
       )}
 
       {grouped.map((group) => (
         <View key={group.category} className="gap-2">
-          <Text className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             {group.label}
           </Text>
           {group.items.map((template) => (
@@ -99,15 +101,17 @@ export default function SkillsScreen() {
               onPress={() =>
                 router.push(`/settings/skills/catalog/${template.id}`)
               }
-              className={`bg-neutral-900 rounded-xl p-4 active:bg-neutral-800 ${
-                template.installCount > 0 ? "border border-emerald-500/40" : ""
+              className={`bg-surface rounded-xl p-4 active:bg-surface-alt ${
+                template.installCount > 0
+                  ? "border-2 border-emerald-500"
+                  : "border border-app-border"
               }`}
             >
-              <Text className="text-sm font-medium text-neutral-100">
+              <Text className="text-sm font-medium text-text-primary">
                 {template.name}
               </Text>
               <Text
-                className="text-xs text-neutral-400 mt-0.5"
+                className="text-xs text-text-muted mt-0.5"
                 numberOfLines={2}
               >
                 {template.description}
@@ -115,13 +119,13 @@ export default function SkillsScreen() {
               <View className="mt-2">
                 {template.installCount > 0 ? (
                   <View className="flex-row items-center gap-1">
-                    <CircleCheck size={12} color="#34d399" />
-                    <Text className="text-xs text-emerald-400">
+                    <CircleCheck size={12} color="#059669" />
+                    <Text className="text-xs text-emerald-600">
                       {template.installCount} installed
                     </Text>
                   </View>
                 ) : (
-                  <Text className="text-xs text-neutral-500">Connect</Text>
+                  <Text className="text-xs text-text-muted">Connect</Text>
                 )}
               </View>
             </Pressable>

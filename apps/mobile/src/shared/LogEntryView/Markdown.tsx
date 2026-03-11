@@ -1,5 +1,6 @@
 import type { StyleSheet as RNStyleSheet } from "react-native";
 import MarkdownDisplay from "react-native-markdown-display";
+import { useTheme } from "../../lib/ThemeContext";
 
 const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   body: { color: "#e5e5e5", fontSize: 14, lineHeight: 20 },
@@ -87,9 +88,100 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   td: { padding: 6, color: "#e5e5e5" },
 };
 
-const userStyles: Parameters<typeof RNStyleSheet.create>[0] = {
+const darkUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   ...darkStyles,
   body: { ...darkStyles.body, color: "#ffffff" },
+};
+
+const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
+  body: { color: "#171717", fontSize: 14, lineHeight: 20 },
+  paragraph: { marginTop: 0, marginBottom: 6 },
+  heading1: {
+    color: "#0a0a0a",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  heading2: {
+    color: "#0a0a0a",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  heading3: {
+    color: "#0a0a0a",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  strong: { fontWeight: "700", color: "#0a0a0a" },
+  em: { fontStyle: "italic" },
+  link: { color: "#2563eb", textDecorationLine: "underline" },
+  blockquote: {
+    borderLeftWidth: 3,
+    borderLeftColor: "#d4d4d4",
+    paddingLeft: 10,
+    marginLeft: 0,
+    marginVertical: 6,
+  },
+  code_inline: {
+    backgroundColor: "#f5f5f5",
+    color: "#16a34a",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    fontFamily: "monospace",
+    fontSize: 13,
+  },
+  fence: {
+    backgroundColor: "#fafafa",
+    borderColor: "#e5e5e5",
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontFamily: "monospace",
+    fontSize: 12,
+    color: "#16a34a",
+    marginVertical: 6,
+  },
+  code_block: {
+    backgroundColor: "#fafafa",
+    borderColor: "#e5e5e5",
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontFamily: "monospace",
+    fontSize: 12,
+    color: "#16a34a",
+    marginVertical: 6,
+  },
+  list_item: { marginVertical: 2 },
+  bullet_list: { marginVertical: 4 },
+  ordered_list: { marginVertical: 4 },
+  bullet_list_icon: { color: "#a3a3a3", marginRight: 6 },
+  ordered_list_icon: { color: "#a3a3a3", marginRight: 6 },
+  hr: {
+    backgroundColor: "#e5e5e5",
+    height: 1,
+    marginVertical: 10,
+  },
+  table: {
+    borderColor: "#e5e5e5",
+    borderWidth: 1,
+    borderRadius: 4,
+    marginVertical: 6,
+  },
+  tr: { borderBottomWidth: 1, borderColor: "#e5e5e5" },
+  th: { padding: 6, color: "#0a0a0a", fontWeight: "600" },
+  td: { padding: 6, color: "#171717" },
+};
+
+const lightUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
+  ...lightStyles,
+  body: { ...lightStyles.body, color: "#ffffff" },
 };
 
 export function Markdown({
@@ -99,9 +191,16 @@ export function Markdown({
   children: string;
   variant?: "agent" | "user";
 }) {
-  return (
-    <MarkdownDisplay style={variant === "user" ? userStyles : darkStyles}>
-      {children}
-    </MarkdownDisplay>
-  );
+  const { isDark } = useTheme();
+
+  const style =
+    variant === "user"
+      ? isDark
+        ? darkUserStyles
+        : lightUserStyles
+      : isDark
+        ? darkStyles
+        : lightStyles;
+
+  return <MarkdownDisplay style={style}>{children}</MarkdownDisplay>;
 }

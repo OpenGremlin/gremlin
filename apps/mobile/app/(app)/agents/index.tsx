@@ -5,12 +5,14 @@ import { Pressable, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
 type Agent = AgentsQueryType["agents"][number];
 
 function AgentCard({ agent }: { agent: Agent }) {
+  const colors = useNavigationTheme();
   return (
     <ListCard
       agentId={agent.id}
@@ -18,20 +20,20 @@ function AgentCard({ agent }: { agent: Agent }) {
       onPress={() => router.push(`/agents/${agent.id}`)}
       badge={
         agent.retired ? (
-          <Text className="text-xs text-neutral-500">Retired</Text>
+          <Text className="text-xs text-text-muted">Retired</Text>
         ) : null
       }
       subtitle={
-        <Text className="text-xs text-neutral-400" numberOfLines={2}>
+        <Text className="text-xs text-text-muted" numberOfLines={2}>
           {agent.soul}
         </Text>
       }
       trailing={
         <Pressable
           onPress={() => router.push(`/agents/${agent.id}/config`)}
-          className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-neutral-800"
+          className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-surface-alt"
         >
-          <Settings size={16} color="#737373" />
+          <Settings size={16} color={colors.iconMuted} />
         </Pressable>
       }
     />
@@ -39,6 +41,7 @@ function AgentCard({ agent }: { agent: Agent }) {
 }
 
 export default function AgentsScreen() {
+  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(AgentsQuery);
   const [showRetired, setShowRetired] = useState(false);
 
@@ -58,8 +61,8 @@ export default function AgentsScreen() {
         onPress={() => router.push("/agents/new")}
         className="self-start flex-row items-center gap-1.5 py-2"
       >
-        <Plus size={14} color="#737373" />
-        <Text className="text-xs text-neutral-500">New Agent</Text>
+        <Plus size={14} color={colors.iconMuted} />
+        <Text className="text-xs text-text-muted">New Agent</Text>
       </Pressable>
 
       {retiredAgents.length > 0 ? (
@@ -68,7 +71,7 @@ export default function AgentsScreen() {
             onPress={() => setShowRetired((v) => !v)}
             className="self-start py-1"
           >
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-text-muted">
               {showRetired
                 ? "Hide retired agents"
                 : `Show retired agents (${retiredAgents.length})`}

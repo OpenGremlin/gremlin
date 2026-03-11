@@ -7,6 +7,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SaveButton } from "../../../src/shared/SaveButton";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
@@ -20,6 +21,7 @@ interface ProfileFormValues {
 }
 
 export default function ProfileScreen() {
+  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
 
@@ -70,7 +72,7 @@ export default function ProfileScreen() {
   }
 
   const inputClass =
-    "bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-100";
+    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
 
   return (
     <ScrollView
@@ -79,7 +81,7 @@ export default function ProfileScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Display Name</Text>
+        <Text className="text-xs text-text-muted">Display Name</Text>
         <Controller
           control={control}
           name="displayName"
@@ -88,14 +90,14 @@ export default function ProfileScreen() {
               className={inputClass}
               value={value}
               onChangeText={onChange}
-              placeholderTextColor="#525252"
+              placeholderTextColor={colors.placeholderText}
             />
           )}
         />
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">About</Text>
+        <Text className="text-xs text-text-muted">About</Text>
         <Controller
           control={control}
           name="about"
@@ -108,14 +110,14 @@ export default function ProfileScreen() {
               numberOfLines={3}
               textAlignVertical="top"
               style={{ minHeight: 80 }}
-              placeholderTextColor="#525252"
+              placeholderTextColor={colors.placeholderText}
             />
           )}
         />
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Website</Text>
+        <Text className="text-xs text-text-muted">Website</Text>
         <Controller
           control={control}
           name="website"
@@ -125,7 +127,7 @@ export default function ProfileScreen() {
               value={value}
               onChangeText={onChange}
               placeholder="https://"
-              placeholderTextColor="#525252"
+              placeholderTextColor={colors.placeholderText}
               autoCapitalize="none"
               keyboardType="url"
             />
@@ -134,7 +136,7 @@ export default function ProfileScreen() {
       </View>
 
       <View className="gap-1">
-        <Text className="text-xs text-neutral-500">Timezone</Text>
+        <Text className="text-xs text-text-muted">Timezone</Text>
         <Controller
           control={control}
           name="timezone"
