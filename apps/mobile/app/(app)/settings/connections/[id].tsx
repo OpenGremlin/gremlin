@@ -55,7 +55,7 @@ export default function ConnectionDetailScreen() {
       setEditing(false);
       return;
     }
-    await gql(RenameConnectionMutation, { id, description: trimmed });
+    await gql(RenameConnectionMutation, { id: id ?? "", description: trimmed });
     setEditing(false);
     refetch();
   }
@@ -73,7 +73,7 @@ export default function ConnectionDetailScreen() {
             setRevoking(true);
             setRevokeError(null);
             try {
-              await gql(RevokeConnectionMutation, { id });
+              await gql(RevokeConnectionMutation, { id: id ?? "" });
               router.back();
             } catch (err) {
               setRevokeError(

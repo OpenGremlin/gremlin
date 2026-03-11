@@ -3,10 +3,11 @@ import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
 
-export function useQuery<TResult>(
-  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
-  query: TypedDocumentString<TResult, any>,
-  variables?: Record<string, unknown>,
+export function useQuery<TResult, TVariables>(
+  query: TypedDocumentString<TResult, TVariables>,
+  ...args: Record<string, never> extends TVariables
+    ? [variables?: TVariables]
+    : [variables: TVariables]
 ): {
   data: TResult | null;
   loading: boolean;
@@ -14,6 +15,7 @@ export function useQuery<TResult>(
   refetch: () => void;
   setData: (data: TResult) => void;
 } {
+  const [variables] = args;
   const [data, setData] = useState<TResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,8 @@ export function useQuery<TResult>(
       setLoading(true);
     }
     setError(null);
-    gql<TResult>(query, stableVars)
+    // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
+    gql<TResult, any>(query as any, stableVars as any)
       .then((result) => {
         if (!cancelled) setData(result);
       })

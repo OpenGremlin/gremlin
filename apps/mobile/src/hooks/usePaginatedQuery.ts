@@ -20,7 +20,7 @@ interface PaginatedQueryOptions {
 }
 
 export function usePaginatedQuery<TResult, TNode extends { id: string }>(
-  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
+  // biome-ignore lint/suspicious/noExplicitAny: pagination helper merges cursor params into variables
   query: TypedDocumentString<TResult, any>,
   connectionSelector: (data: TResult) => Connection<TNode>,
   variables?: Record<string, unknown>,
@@ -51,8 +51,9 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     setLoading(true);
     setError(null);
 
-    gql<TResult>(query, { ...stableVars, last: PAGE_SIZE })
-      .then((result) => {
+    // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
+    (gql as any)(query, { ...stableVars, last: PAGE_SIZE })
+      .then((result: TResult) => {
         if (cancelled) return;
         const conn = selectorRef.current(result);
         const items = conn.edges.map((e) => e.node);
@@ -80,7 +81,8 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     if (!cursorRef.current || !hasMore) return;
     setLoadingMore(true);
     try {
-      const result = await gql<TResult>(query, {
+      // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
+      const result: TResult = await (gql as any)(query, {
         ...stableVars,
         last: PAGE_SIZE,
         before: cursorRef.current,

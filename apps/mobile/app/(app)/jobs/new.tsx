@@ -47,18 +47,15 @@ export default function NewJobScreen() {
     setSaving(true);
     setError("");
     try {
-      const result = await gql<{ createAgentJob: { id: string } }>(
-        CreateAgentJobMutation,
-        {
-          input: {
-            name: name.trim(),
-            description: description.trim(),
-            recurrence: recurrence.trim(),
-            timezone,
-            agentId: agentId.trim() || undefined,
-          },
+      const result = await gql(CreateAgentJobMutation, {
+        input: {
+          name: name.trim(),
+          description: description.trim(),
+          recurrence: recurrence.trim(),
+          timezone,
+          agentId: agentId.trim(),
         },
-      );
+      });
       router.replace(`/jobs/${result.createAgentJob.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create job");
@@ -111,9 +108,7 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-neutral-300">
-          Recurrence
-        </Text>
+        <Text className="text-sm font-medium text-neutral-300">Recurrence</Text>
         <TextInput
           className={inputClass}
           value={recurrence}

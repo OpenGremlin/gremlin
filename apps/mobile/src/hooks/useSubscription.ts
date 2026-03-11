@@ -3,10 +3,9 @@ import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { clientLogger } from "../lib/logger";
 import { wsClient } from "../lib/wsClient";
 
-export function useSubscription<TResult>(
-  // biome-ignore lint/suspicious/noExplicitAny: needed to accept all TypedDocumentString variable types
-  query: TypedDocumentString<TResult, any> | string,
-  variables: Record<string, unknown>,
+export function useSubscription<TResult, TVariables>(
+  query: TypedDocumentString<TResult, TVariables>,
+  variables: TVariables,
   onData: (data: TResult) => void,
 ) {
   const onDataRef = useRef(onData);

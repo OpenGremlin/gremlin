@@ -10,16 +10,13 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type {
-  AgentJobQuery as AgentJobQueryType,
-  JobTaskCreatedSubscription as JobTaskCreatedType,
-  UpdateAgentJobMutation as UpdateAgentJobType,
-} from "../../../src/graphql/generated/graphql";
+import type { AgentJobQuery as AgentJobQueryType } from "../../../src/graphql/generated/graphql";
 import {
   AgentJobQuery,
   AgentsQuery,
   DeleteAgentJobMutation as DeleteAgentJobDoc,
   JobTaskCreatedSubscription,
+  TriggerJobMutation,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
@@ -38,7 +35,9 @@ type JobTask = Job["tasks"][number];
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, loading, error } = useQuery(AgentJobQuery, { id: id ?? "" });
+  const { data, loading, error } = useQuery(AgentJobQuery, {
+    id: id ?? "",
+  });
   const { data: agentsData } = useQuery(AgentsQuery);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
@@ -64,7 +63,7 @@ export default function JobDetailScreen() {
   const [savedJob, setSavedJob] = useState<Job | null>(null);
 
   const [liveTasks, setLiveTasks] = useState<JobTask[]>([]);
-  useSubscription<JobTaskCreatedType>(
+  useSubscription(
     JobTaskCreatedSubscription,
     { jobId: id ?? "" },
     useCallback((update) => {
@@ -117,8 +116,8 @@ export default function JobDetailScreen() {
       if (timezone !== null) input.timezone = timezone;
       if (agentId !== null) input.agentId = agentId;
 
-      const result = await gql<UpdateAgentJobType>(UpdateAgentJobDoc, {
-        id,
+      const result = await gql(UpdateAgentJobDoc, {
+        id: id ?? "",
         input,
       });
       if (result.updateAgentJob) {
@@ -144,8 +143,8 @@ export default function JobDetailScreen() {
     if (!job) return;
     setTogglingPause(true);
     try {
-      const result = await gql<UpdateAgentJobType>(UpdateAgentJobDoc, {
-        id,
+      const result = await gql(UpdateAgentJobDoc, {
+        id: id ?? "",
         input: { paused: !job.paused },
       });
       if (result.updateAgentJob) {
@@ -165,9 +164,7 @@ export default function JobDetailScreen() {
   async function handleTrigger() {
     setTriggering(true);
     try {
-      await gql(`mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`, {
-        id,
-      });
+      await gql(TriggerJobMutation, { id: id ?? "" });
       setTriggered(true);
       setTimeout(() => setTriggered(false), 3000);
     } catch (err) {
@@ -186,7 +183,7 @@ export default function JobDetailScreen() {
         onPress: async () => {
           setDeleting(true);
           try {
-            await gql(DeleteAgentJobDoc, { id });
+            await gql(DeleteAgentJobDoc, { id: id ?? "" });
             router.back();
           } catch {
             setDeleting(false);

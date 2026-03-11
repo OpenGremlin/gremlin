@@ -12,20 +12,20 @@ import { CreateAgentMutation } from "../../../src/graphql/queries";
 import { gql } from "../../../src/lib/auth";
 
 export default function NewAgentScreen() {
+  const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
   const handleCreate = async () => {
-    if (!name.trim()) return;
+    if (!id.trim() || !name.trim()) return;
     setCreating(true);
     setError("");
     try {
-      const result = await gql<{ createAgent: { id: string } }>(
-        CreateAgentMutation,
-        { input: { name: name.trim(), soul: soul.trim() } },
-      );
+      const result = await gql(CreateAgentMutation, {
+        input: { id: id.trim(), name: name.trim(), soul: soul.trim() },
+      });
       router.replace(`/agents/${result.createAgent.id}/config`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create agent");
@@ -43,6 +43,19 @@ export default function NewAgentScreen() {
       contentContainerClassName="px-4 py-6 gap-4"
       keyboardShouldPersistTaps="handled"
     >
+      <View className="gap-2">
+        <Text className="text-sm font-medium text-neutral-300">ID</Text>
+        <TextInput
+          className={inputClass}
+          value={id}
+          onChangeText={setId}
+          placeholder="e.g. bob, research-agent"
+          placeholderTextColor="#737373"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      </View>
+
       <View className="gap-2">
         <Text className="text-sm font-medium text-neutral-300">Name</Text>
         <TextInput
@@ -73,8 +86,8 @@ export default function NewAgentScreen() {
 
       <Pressable
         onPress={handleCreate}
-        disabled={creating || !name.trim()}
-        className="bg-indigo-600 rounded-lg py-3 items-center mt-2 disabled:opacity-50"
+        disabled={creating || !id.trim() || !name.trim()}
+        className="bg-indigo-600 rounded-lg py-3 px-6 items-center mt-2 self-start disabled:opacity-50"
       >
         {creating ? (
           <ActivityIndicator color="white" />

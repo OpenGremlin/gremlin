@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -33,7 +33,7 @@ export default function AgentConfigScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data, loading, error, setData, refetch } = useQuery(AgentQuery, {
-    id,
+    id: id ?? "",
   });
   const agent = data?.agent;
   const avatarsResult = useQuery(AvatarsQuery);
@@ -57,16 +57,13 @@ export default function AgentConfigScreen() {
     setSaving(true);
     setSaveError("");
     try {
-      const result = await gql<{ updateAgent: typeof agent }>(
-        UpdateAgentMutation,
-        {
-          id,
-          input: {
-            name: name.trim(),
-            soul: soul.trim(),
-          },
+      const result = await gql(UpdateAgentMutation, {
+        id: id ?? "",
+        input: {
+          name: name.trim(),
+          soul: soul.trim(),
         },
-      );
+      });
       setData({ agent: result.updateAgent });
     } catch (err) {
       setSaveError(
@@ -83,7 +80,7 @@ export default function AgentConfigScreen() {
     setShowRetireConfirm(false);
     setRetiring(true);
     try {
-      await gql(RetireAgentMutation, { id });
+      await gql(RetireAgentMutation, { id: id ?? "" });
       refetch();
     } catch (err) {
       setSaveError(
@@ -97,7 +94,7 @@ export default function AgentConfigScreen() {
   const doUnretire = useCallback(async () => {
     setRetiring(true);
     try {
-      await gql(UnretireAgentMutation, { id });
+      await gql(UnretireAgentMutation, { id: id ?? "" });
       refetch();
     } catch (err) {
       setSaveError(
@@ -250,7 +247,7 @@ export default function AgentConfigScreen() {
             setVoicePickerOpen(false);
             try {
               await gql(UpdateAgentMutation, {
-                id,
+                id: id ?? "",
                 input: { ttsVoice: voice },
               });
               refetch();
@@ -271,8 +268,8 @@ export default function AgentConfigScreen() {
           onSelect={async (avatar) => {
             setPickerOpen(false);
             try {
-              await gql<{ updateAgent: typeof agent }>(UpdateAgentMutation, {
-                id,
+              await gql(UpdateAgentMutation, {
+                id: id ?? "",
                 input: { avatar: avatar.id },
               });
               refetch();

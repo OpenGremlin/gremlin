@@ -58,8 +58,9 @@ export function useLogMessages(
     ? { taskId: (scope as { taskId: string }).taskId }
     : { agentId: (scope as { agentId: string }).agentId };
 
-  useSubscription<SubResult>(
-    String(subscription),
+  useSubscription(
+    // biome-ignore lint/suspicious/noExplicitAny: union of subscription types requires cast
+    subscription as TypedDocumentString<SubResult, any>,
     subVars,
     useCallback(
       (data: SubResult) => {

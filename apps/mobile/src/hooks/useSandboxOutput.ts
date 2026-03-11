@@ -3,13 +3,6 @@ import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { clientLogger } from "../lib/logger";
 import { useSubscription } from "./useSubscription";
 
-interface SandboxOutput {
-  commandId: string;
-  data: string;
-  done: boolean;
-  exitCode?: number | null;
-}
-
 export interface CommandStream {
   output: string;
   done: boolean;
@@ -20,10 +13,10 @@ export function useSandboxOutput(taskId: string) {
   const streamsRef = useRef(new Map<string, CommandStream>());
   const [, setVersion] = useState(0);
 
-  useSubscription<{ sandboxOutput: SandboxOutput }>(
+  useSubscription(
     SandboxOutputSubscription,
     { taskId },
-    useCallback((data: { sandboxOutput: SandboxOutput }) => {
+    useCallback((data) => {
       const chunk = data.sandboxOutput;
       const existing = streamsRef.current.get(chunk.commandId) ?? {
         output: "",

@@ -197,10 +197,10 @@ export default function AgentChatScreen() {
     data: agentData,
     loading: agentLoading,
     error: agentError,
-  } = useQuery(AgentQuery, { id });
+  } = useQuery(AgentQuery, { id: id ?? "" });
   const { data: taskData } = useQuery(
     TaskQuery,
-    taskId ? { id: taskId } : undefined,
+    taskId ? { id: taskId } : ({ id: "" } as const),
   );
 
   const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(

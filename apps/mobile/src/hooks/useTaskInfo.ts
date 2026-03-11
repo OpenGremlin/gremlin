@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
+import { TaskQuery } from "../graphql/queries";
 import { gql } from "../lib/auth";
 import { useTaskUpdates } from "../subscriptions";
-
-const TASK_INFO_QUERY = `query($id: ID!) {
-  task(id: $id) {
-    message imageUrl(width: 80)
-  }
-}`;
 
 interface TaskInfo {
   imageUrl: string | null;
@@ -22,17 +17,12 @@ export function useTaskInfo(taskId: string | null) {
   useEffect(() => {
     if (!taskId) return;
     let cancelled = false;
-    gql<{
-      task: {
-        message: string | null;
-        imageUrl: string | null;
-      } | null;
-    }>({ toString: () => TASK_INFO_QUERY }, { id: taskId })
+    gql(TaskQuery, { id: taskId })
       .then((data) => {
         if (!cancelled && data.task) {
           setState({
-            imageUrl: data.task.imageUrl,
-            lastMessage: data.task.message,
+            imageUrl: data.task.imageUrl ?? null,
+            lastMessage: data.task.message ?? null,
           });
         }
       })

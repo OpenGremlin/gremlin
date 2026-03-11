@@ -3,7 +3,10 @@ import { router } from "expo-router";
 import { Play, Plus } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { AgentJobsQuery } from "../../../src/graphql/queries";
+import {
+  AgentJobsQuery,
+  TriggerJobMutation,
+} from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { formatDate } from "../../../src/shared/formatDate";
@@ -20,9 +23,7 @@ function RunNowButton({ jobId }: { jobId: string }) {
       onPress={async () => {
         setTriggering(true);
         try {
-          await gql(`mutation TriggerJob($id: ID!) { triggerJob(id: $id) }`, {
-            id: jobId,
-          });
+          await gql(TriggerJobMutation, { id: jobId });
           setTriggered(true);
           setTimeout(() => setTriggered(false), 3000);
         } finally {

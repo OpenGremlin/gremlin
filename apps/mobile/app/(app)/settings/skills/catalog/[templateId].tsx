@@ -76,22 +76,23 @@ export default function SkillTemplateScreen() {
   async function handleInstall() {
     setInstalling(true);
     try {
-      const result = await gql<{ installSkill: { id: string } }>(
-        InstallSkillMutation,
-        { templateId },
-      );
+      const result = await gql(InstallSkillMutation, {
+        templateId: templateId ?? "",
+      });
+      const skill = result.installSkill;
+      if (!skill) throw new Error("Failed to install skill");
 
       for (const [providerId, connectionId] of Object.entries(
         selectedConnections,
       )) {
         await gql(BindSkillConnectionMutation, {
-          id: result.installSkill.id,
+          id: skill.id,
           providerId,
           connectionId,
         });
       }
 
-      router.replace(`/settings/skills/${result.installSkill.id}` as never);
+      router.replace(`/settings/skills/${skill.id}` as never);
     } finally {
       setInstalling(false);
     }

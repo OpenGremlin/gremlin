@@ -21,7 +21,9 @@ import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function SkillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, loading, error } = useQuery(SkillQuery, { id: id ?? "" });
+  const { data, loading, error } = useQuery(SkillQuery, {
+    id: id ?? "",
+  });
   const {
     data: connectionsData,
     loading: connectionsLoading,
@@ -68,7 +70,7 @@ export default function SkillDetailScreen() {
     connectionId: string,
   ) {
     await gql(BindSkillConnectionMutation, {
-      id,
+      id: id ?? "",
       providerId,
       connectionId,
     });
@@ -78,7 +80,7 @@ export default function SkillDetailScreen() {
   async function handleUninstall() {
     setUninstalling(true);
     try {
-      await gql(UninstallSkillMutation, { id });
+      await gql(UninstallSkillMutation, { id: id ?? "" });
       router.back();
     } finally {
       setUninstalling(false);

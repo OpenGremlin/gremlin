@@ -31,18 +31,16 @@ export const AgentLogsQuery = graphql(`
   }
 `);
 
-// Raw string mutation (return type changed from AgentLog to SendMessageResult)
-export const SendMessageMutation = /* GraphQL */ `
+export const SendMessageMutation = graphql(`
   mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {
     sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {
       queued
       content
     }
   }
-`;
+`);
 
-// Raw string mutations for file upload (avoids codegen dependency)
-export const RequestFileUploadsMutation = /* GraphQL */ `
+export const RequestFileUploadsMutation = graphql(`
   mutation RequestFileUploads($agentId: String!, $taskId: String, $files: [FileUploadRequest!]!) {
     requestFileUploads(agentId: $agentId, taskId: $taskId, files: $files) {
       uploadId
@@ -50,9 +48,9 @@ export const RequestFileUploadsMutation = /* GraphQL */ `
       key
     }
   }
-`;
+`);
 
-export const CompleteFileUploadMutation = /* GraphQL */ `
+export const CompleteFileUploadMutation = graphql(`
   mutation CompleteFileUpload($input: CompleteFileUploadInput!) {
     completeFileUpload(input: $input) {
       path
@@ -61,7 +59,7 @@ export const CompleteFileUploadMutation = /* GraphQL */ `
       contentType
     }
   }
-`;
+`);
 
 export const AgentLogSubscription = graphql(`
   subscription AgentLogCreated($agentId: ID!) {

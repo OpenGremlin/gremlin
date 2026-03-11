@@ -106,7 +106,7 @@ export default function NotificationsScreen() {
   const notifications = data?.notifications ?? [];
 
   async function handleAction(notifId: string, actionId: string) {
-    await gql(ResolveNotificationMutation, { id: notifId, actionId });
+    await gql(ResolveNotificationMutation, { id: notifId, actionId: actionId });
     refetch();
   }
 

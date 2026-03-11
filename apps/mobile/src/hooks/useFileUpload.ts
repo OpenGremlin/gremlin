@@ -24,13 +24,6 @@ interface PresignedUpload {
   key: string;
 }
 
-interface CompleteResult {
-  path: string;
-  filename: string;
-  sizeBytes: number;
-  contentType: string;
-}
-
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -101,9 +94,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
       let presigned: PresignedUpload[];
       try {
-        const result = await gql<{
-          requestFileUploads: PresignedUpload[];
-        }>(RequestFileUploadsMutation, {
+        const result = await gql(RequestFileUploadsMutation, {
           agentId,
           taskId: taskId ?? null,
           files: files.map((f) => ({
@@ -168,9 +159,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
         updateUpload(idx, { status: "completing", progress: 100 });
         try {
-          const result = await gql<{
-            completeFileUpload: CompleteResult;
-          }>(CompleteFileUploadMutation, {
+          const result = await gql(CompleteFileUploadMutation, {
             input: {
               agentId,
               taskId: taskId ?? null,

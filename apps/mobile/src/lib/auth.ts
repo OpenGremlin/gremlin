@@ -128,10 +128,19 @@ export async function cognitoConfirmSignup(
   }
 }
 
-export async function gql<TResult>(
+export async function gql<TResult, TVariables>(
+  query: import("../graphql/generated/graphql").TypedDocumentString<
+    TResult,
+    TVariables
+  >,
+  ...args: Record<string, never> extends TVariables
+    ? [variables?: TVariables]
+    : [variables: TVariables]
+): Promise<TResult>;
+export async function gql(
   query: { toString(): string },
   variables?: unknown,
-): Promise<TResult> {
+): Promise<unknown> {
   const API_URL = getApiUrl();
   const token = await getToken();
   const headers: Record<string, string> = {
