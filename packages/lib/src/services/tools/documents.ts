@@ -118,3 +118,28 @@ export function updateDocumentTool(_ctx: ServiceContext) {
     },
   });
 }
+
+export function readDocumentTool() {
+  return tool({
+    description:
+      "Read a document by its file path. Use this to inspect documents created by tasks.",
+    inputSchema: z.object({
+      path: z.string().describe("The document file path (from task artifacts)"),
+    }),
+    execute: async ({ path: filePath }) => {
+      const workspace = getWorkspacePath();
+      const resolved = path.resolve(workspace, filePath);
+      if (!resolved.startsWith(workspace)) {
+        throw new Error("Path traversal not allowed");
+      }
+
+      try {
+        const content = await fs.readFile(resolved, "utf-8");
+        const { title, body } = parseFrontmatter(content);
+        return { path: filePath, title: title || filePath, body };
+      } catch {
+        return { path: filePath, error: "Document not found" };
+      }
+    },
+  });
+}

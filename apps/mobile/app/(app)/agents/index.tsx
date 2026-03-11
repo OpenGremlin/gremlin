@@ -1,44 +1,40 @@
 import { router } from "expo-router";
 import { Plus, Settings } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
-import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
 type Agent = AgentsQueryType["agents"][number];
 
 function AgentCard({ agent }: { agent: Agent }) {
   return (
-    <View className="bg-neutral-900 rounded-xl p-4 flex-row items-start gap-3">
-      <Pressable
-        onPress={() => router.push(`/agents/${agent.id}`)}
-        className="flex-1 min-w-0 flex-row items-start gap-3"
-      >
-        <AgentAvatar id={agent.id} />
-        <View className="flex-1 min-w-0">
-          <View className="flex-row items-center gap-2 mb-1">
-            <Text className="text-sm font-medium text-neutral-100">
-              {agent.name}
-            </Text>
-            {agent.retired ? (
-              <Text className="text-xs text-neutral-500">Retired</Text>
-            ) : null}
-          </View>
-          <Text className="text-xs text-neutral-400" numberOfLines={2}>
-            {agent.soul}
-          </Text>
-        </View>
-      </Pressable>
-      <Pressable
-        onPress={() => router.push(`/agents/${agent.id}/config`)}
-        className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-neutral-800"
-      >
-        <Settings size={16} color="#737373" />
-      </Pressable>
-    </View>
+    <ListCard
+      agentId={agent.id}
+      title={agent.name}
+      onPress={() => router.push(`/agents/${agent.id}`)}
+      badge={
+        agent.retired ? (
+          <Text className="text-xs text-neutral-500">Retired</Text>
+        ) : null
+      }
+      subtitle={
+        <Text className="text-xs text-neutral-400" numberOfLines={2}>
+          {agent.soul}
+        </Text>
+      }
+      trailing={
+        <Pressable
+          onPress={() => router.push(`/agents/${agent.id}/config`)}
+          className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-neutral-800"
+        >
+          <Settings size={16} color="#737373" />
+        </Pressable>
+      }
+    />
   );
 }
 

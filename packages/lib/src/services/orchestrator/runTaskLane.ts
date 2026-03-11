@@ -5,6 +5,7 @@ import {
   createBraveSearchTool,
   createDocumentTool,
   createTavilySearchTool,
+  postToMainLaneTool,
   recallMemoryTool,
   saveMemoryTool,
   updateDocumentTool,
@@ -97,6 +98,7 @@ export async function runTaskLane(
           }
         : {}),
       updateTaskMessage: updateTaskMessageTool(ctx, taskId),
+      postToMainLane: postToMainLaneTool(ctx, taskId),
       createDocument: createDocumentTool(ctx, taskId),
       updateDocument: updateDocumentTool(ctx),
       saveMemory: saveMemoryTool(ctx, task.agentId),

@@ -6,8 +6,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { AgentJobsQuery } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
-import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { formatDate } from "../../../src/shared/formatDate";
+import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
 function RunNowButton({ jobId }: { jobId: string }) {
@@ -50,29 +50,23 @@ export default function JobsScreen() {
       <QueryResult loading={loading} error={error} />
 
       {jobs.map((job) => (
-        <Pressable
+        <ListCard
           key={job.id}
+          agentId={job.agent.id}
+          title={job.name}
           onPress={() => router.push(`/jobs/${job.id}`)}
-          className={`bg-neutral-900 rounded-xl p-4 ${job.paused ? "opacity-50" : ""}`}
-        >
-          <View className="flex-row items-center gap-3">
-            <AgentAvatar id={job.agent.id} />
-            <View className="min-w-0 flex-1">
-              <View className="flex-row items-center justify-between mb-1">
-                <Text
-                  className="text-sm font-medium text-neutral-100 flex-1"
-                  numberOfLines={1}
-                >
-                  {job.name}
-                </Text>
-                <View className="flex-row items-center gap-2">
-                  {job.paused ? (
-                    <Text className="text-xs text-amber-400">Paused</Text>
-                  ) : (
-                    <RunNowButton jobId={job.id} />
-                  )}
-                </View>
-              </View>
+          dimmed={job.paused}
+          badge={
+            <View className="flex-row items-center gap-2">
+              {job.paused ? (
+                <Text className="text-xs text-amber-400">Paused</Text>
+              ) : (
+                <RunNowButton jobId={job.id} />
+              )}
+            </View>
+          }
+          subtitle={
+            <>
               <Text className="text-xs text-neutral-400">
                 {job.cronExpression
                   ? cronstrue.toString(job.cronExpression)
@@ -83,9 +77,9 @@ export default function JobsScreen() {
                   Next: {formatDate(job.nextRun, "Not scheduled")}
                 </Text>
               )}
-            </View>
-          </View>
-        </Pressable>
+            </>
+          }
+        />
       ))}
 
       <Pressable

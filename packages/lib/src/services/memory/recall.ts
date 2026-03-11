@@ -36,6 +36,8 @@ export async function recallMemories(
     `${agentId}:${yesterday.toISOString().slice(0, 10)}`,
   ];
 
+  const hasQuery = query.trim().length > 0;
+
   const [recentResult, queryEmbedding] = await Promise.all([
     client
       .send(
@@ -47,7 +49,7 @@ export async function recallMemories(
         }),
       )
       .catch(() => null),
-    embed(query),
+    hasQuery ? embed(query) : Promise.resolve(null),
   ]);
 
   const recent: RecalledMemory[] = [];
@@ -64,32 +66,34 @@ export async function recallMemories(
     }
   }
 
-  // Semantic search for older relevant memories
-  const searchResult = await client.send(
-    new QueryVectorsCommand({
-      vectorBucketName: bucketName,
-      indexName: "memories",
-      queryVector: { float32: queryEmbedding },
-      topK,
-      filter: { agentId: { $eq: agentId } },
-      returnMetadata: true,
-      returnDistance: true,
-    }),
-  );
-
-  const recentDateSet = new Set(recentKeys);
+  // Semantic search for older relevant memories (skip if no query)
   const relevant: RecalledMemory[] = [];
-  if (searchResult.vectors) {
-    for (const v of searchResult.vectors) {
-      // Skip entries already in recent
-      if (v.key && recentDateSet.has(v.key)) continue;
-      const meta = v.metadata as Record<string, string> | undefined;
-      if (meta?.content) {
-        relevant.push({
-          date: meta.date ?? "unknown",
-          content: meta.content,
-          distance: v.distance ?? 1,
-        });
+  if (queryEmbedding) {
+    const searchResult = await client.send(
+      new QueryVectorsCommand({
+        vectorBucketName: bucketName,
+        indexName: "memories",
+        queryVector: { float32: queryEmbedding },
+        topK,
+        filter: { agentId: { $eq: agentId } },
+        returnMetadata: true,
+        returnDistance: true,
+      }),
+    );
+
+    const recentDateSet = new Set(recentKeys);
+    if (searchResult.vectors) {
+      for (const v of searchResult.vectors) {
+        // Skip entries already in recent
+        if (v.key && recentDateSet.has(v.key)) continue;
+        const meta = v.metadata as Record<string, string> | undefined;
+        if (meta?.content) {
+          relevant.push({
+            date: meta.date ?? "unknown",
+            content: meta.content,
+            distance: v.distance ?? 1,
+          });
+        }
       }
     }
   }

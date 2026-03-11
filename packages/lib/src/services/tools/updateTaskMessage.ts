@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Post a short progress update for the current task. Call this frequently as you work — the user sees these messages in real time. Set completed=true when all work is finished or the task has failed.",
+      "Post a short progress update for the current task. Call this frequently as you work — the user sees these messages in real time. Set completed=true when all work is finished.",
     inputSchema: z.object({
       message: z
         .string()
@@ -16,7 +16,7 @@ export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
         .boolean()
         .optional()
         .describe(
-          "Set to true when the task is finished (success or failure). This notifies the user on the main conversation.",
+          "Set to true when the task is finished (success or failure). This marks the task as done in the UI.",
         ),
     }),
     execute: async ({ message, completed }) => {

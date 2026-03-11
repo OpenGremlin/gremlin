@@ -5,11 +5,13 @@ export {
   formatWithFrontmatter,
   getWorkspacePath,
   parseFrontmatter,
+  readDocumentTool,
   slugify,
   uniqueFilePath,
   updateDocumentTool,
 } from "./documents.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
+export { postToMainLaneTool } from "./postToMainLane.js";
 export { requestApprovalTool } from "./requestApproval.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
 export { updateTaskMessageTool } from "./updateTaskMessage.js";
