@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { Pencil } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
 } from "react-native";
 import {
   AgentQuery,
+  AvatarsQuery,
   RetireAgentMutation,
   UpdateAgentMutation,
 } from "../../../../src/graphql/queries";
@@ -28,6 +30,7 @@ export default function AgentConfigScreen() {
 
   const { data, loading, error, setData } = useQuery(AgentQuery, { id });
   const agent = data?.agent;
+  const _avatarsResult = useQuery(AvatarsQuery);
 
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
@@ -36,6 +39,7 @@ export default function AgentConfigScreen() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
+  const [_pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!agent) return;
@@ -123,7 +127,12 @@ export default function AgentConfigScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="items-center">
-        <AgentAvatar id={id} size={80} />
+        <Pressable onPress={() => setPickerOpen(true)} className="relative">
+          <AgentAvatar id={id} size={80} />
+          <View className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-neutral-700 border-2 border-neutral-950 items-center justify-center">
+            <Pencil size={12} color="#e5e5e5" />
+          </View>
+        </Pressable>
       </View>
 
       <View className="gap-2">
