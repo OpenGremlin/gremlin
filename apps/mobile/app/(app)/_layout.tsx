@@ -1,6 +1,7 @@
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
 import { ActivityIndicator, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
@@ -8,6 +9,7 @@ import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 export default function AppLayout() {
   const { token, loading } = useAuth();
   const colors = useNavigationTheme();
+  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
@@ -33,6 +35,9 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: colors.tabBarBackground,
           borderTopColor: colors.tabBarBorder,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 8),
+          height: 64 + Math.max(insets.bottom, 0),
         },
         tabBarActiveTintColor: colors.tabBarActive,
         tabBarInactiveTintColor: colors.tabBarInactive,
