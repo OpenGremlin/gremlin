@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { View } from "react-native";
+import { Appearance, View } from "react-native";
 import { storage } from "./storage";
 import { darkVars, lightVars } from "./themeVars";
 
@@ -28,9 +28,20 @@ const ThemeContext = createContext<ThemeState>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { colorScheme, setColorScheme } = useNativeWindColorScheme();
+  const { setColorScheme } = useNativeWindColorScheme();
   const [mode, setModeState] = useState<ThemeMode>("system");
   const [loaded, setLoaded] = useState(false);
+  const [systemScheme, setSystemScheme] = useState<"light" | "dark">(
+    () => (Appearance.getColorScheme() ?? "dark") as "light" | "dark",
+  );
+
+  // Track system appearance changes
+  useEffect(() => {
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemScheme((colorScheme ?? "dark") as "light" | "dark");
+    });
+    return () => sub.remove();
+  }, []);
 
   // Load saved preference
   useEffect(() => {
@@ -42,7 +53,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Sync NativeWind color scheme
+  // Sync NativeWind color scheme (for dark: class support)
   useEffect(() => {
     if (!loaded) return;
     if (mode === "system") {
@@ -52,8 +63,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [mode, loaded, setColorScheme]);
 
-  // Use NativeWind's resolved colorScheme as the single source of truth
-  const isDark = colorScheme === "dark";
+  // Derive isDark from our own state, not NativeWind's return value
+  const isDark = mode === "system" ? systemScheme === "dark" : mode === "dark";
 
   const themeStyle = useMemo(
     () => vars(isDark ? darkVars : lightVars),
