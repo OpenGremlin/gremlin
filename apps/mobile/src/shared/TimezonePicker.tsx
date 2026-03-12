@@ -37,7 +37,34 @@ function formatTzLabel(tz: string): string {
   return region ? `${city}, ${region}` : city;
 }
 
-const timezoneOptions = Intl.supportedValuesOf("timeZone").map((tz) => {
+function getTimezones(): string[] {
+  if (
+    typeof Intl !== "undefined" &&
+    typeof Intl.supportedValuesOf === "function"
+  ) {
+    return Intl.supportedValuesOf("timeZone");
+  }
+  // Hermes doesn't support Intl.supportedValuesOf — use a common subset
+  return [
+    "Africa/Cairo", "Africa/Casablanca", "Africa/Johannesburg", "Africa/Lagos", "Africa/Nairobi",
+    "America/Anchorage", "America/Argentina/Buenos_Aires", "America/Bogota", "America/Chicago",
+    "America/Denver", "America/Halifax", "America/Lima", "America/Los_Angeles", "America/Mexico_City",
+    "America/New_York", "America/Phoenix", "America/Santiago", "America/Sao_Paulo", "America/St_Johns",
+    "America/Toronto", "America/Vancouver",
+    "Asia/Bangkok", "Asia/Colombo", "Asia/Dhaka", "Asia/Dubai", "Asia/Hong_Kong", "Asia/Jakarta",
+    "Asia/Karachi", "Asia/Kathmandu", "Asia/Kolkata", "Asia/Kuala_Lumpur", "Asia/Manila",
+    "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Taipei", "Asia/Tehran", "Asia/Tokyo",
+    "Atlantic/Reykjavik",
+    "Australia/Melbourne", "Australia/Perth", "Australia/Sydney",
+    "Europe/Amsterdam", "Europe/Athens", "Europe/Berlin", "Europe/Brussels", "Europe/Dublin",
+    "Europe/Helsinki", "Europe/Istanbul", "Europe/Lisbon", "Europe/London", "Europe/Madrid",
+    "Europe/Moscow", "Europe/Paris", "Europe/Rome", "Europe/Stockholm", "Europe/Vienna", "Europe/Warsaw", "Europe/Zurich",
+    "Pacific/Auckland", "Pacific/Fiji", "Pacific/Guam", "Pacific/Honolulu",
+    "UTC",
+  ];
+}
+
+const timezoneOptions = getTimezones().map((tz) => {
   const { offset, abbrs } = tzMeta(tz);
   return {
     value: tz,
