@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ArrowUp, Paperclip, Terminal } from "lucide-react-native";
+import { ArrowUp, ChevronLeft, Paperclip, Terminal } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +13,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { hexToTransparent } from "../../../../../src/lib/color";
 import { TaskQuery } from "../../../../../src/graphql/queries";
 import { useChatSend } from "../../../../../src/hooks/useChatSend";
 import {
@@ -200,6 +202,7 @@ function ChatInputBar({
 
 export default function TaskThreadScreen() {
   const colors = useNavigationTheme();
+  const insets = useSafeAreaInsets();
   const { id, taskId } = useLocalSearchParams<{
     id: string;
     taskId: string;
@@ -340,19 +343,58 @@ export default function TaskThreadScreen() {
         }
       />
 
-      <LinearGradient
-        colors={[colors.background, colors.background, "transparent"]}
-        locations={[0, 0.6, 1]}
-        pointerEvents="none"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: Platform.OS === "web" ? 140 : 120,
-          zIndex: 1,
-        }}
-      />
+      {Platform.OS === "ios" ? (
+        <View
+          pointerEvents="box-none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+          }}
+        >
+          <LinearGradient
+            colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
+            locations={[0, 0.7, 1]}
+            style={{ paddingTop: insets.top + 8, paddingBottom: 24 }}
+          >
+            <Pressable
+              onPress={() => router.back()}
+              style={{
+                position: "absolute",
+                top: insets.top + 4,
+                left: 8,
+                zIndex: 3,
+                padding: 8,
+              }}
+            >
+              <ChevronLeft size={24} color={colors.headerText} />
+            </Pressable>
+            <View style={{ alignItems: "center" }}>
+              <ChatHeaderTitle
+                agentId={id}
+                title={task.title ?? task.message ?? "Task"}
+                onPress={() => router.navigate(`/agents/${id}`)}
+              />
+            </View>
+          </LinearGradient>
+        </View>
+      ) : (
+        <LinearGradient
+          colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
+          locations={[0, 0.6, 1]}
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: Platform.OS === "web" ? 140 : 120,
+            zIndex: 1,
+          }}
+        />
+      )}
 
       <ChatInputBar
         input={input}
