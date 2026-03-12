@@ -302,7 +302,7 @@ export default function TaskThreadScreen() {
           headerTitle: () => (
             <ChatHeaderTitle
               agentId={id}
-              title={task.title ?? task.message ?? "Task"}
+              title={`🛠️ ${task.title ?? task.message ?? "Task"}`}
               onPress={() => router.navigate(`/agents/${id}`)}
             />
           ),
@@ -374,7 +374,7 @@ export default function TaskThreadScreen() {
             <View style={{ alignItems: "center" }}>
               <ChatHeaderTitle
                 agentId={id}
-                title={task.title ?? task.message ?? "Task"}
+                title={`🛠️ ${task.title ?? task.message ?? "Task"}`}
                 onPress={() => router.navigate(`/agents/${id}`)}
               />
             </View>

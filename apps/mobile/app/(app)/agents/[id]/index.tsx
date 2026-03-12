@@ -307,8 +307,8 @@ export default function AgentChatScreen() {
       {taskId && task && (
         <View className="px-4 py-2 bg-surface/80 border-b border-app-border">
           <Text className="text-xs text-text-muted">Task</Text>
-          <Text className="text-sm text-text-secondary" numberOfLines={1}>
-            {task.title ?? task.message}
+          <Text className="text-sm text-text-secondary mt-0.5" numberOfLines={1}>
+            🛠️ {task.title ?? task.message}
           </Text>
         </View>
       )}
@@ -324,7 +324,7 @@ export default function AgentChatScreen() {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
-          paddingBottom: 120,
+          paddingBottom: 140,
         }}
         keyboardShouldPersistTaps="handled"
         ListFooterComponent={
@@ -358,8 +358,8 @@ export default function AgentChatScreen() {
         >
           <LinearGradient
             colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
-            locations={[0, 0.7, 1]}
-            style={{ paddingTop: insets.top + 8, paddingBottom: 24 }}
+            locations={[0, 0.6, 1]}
+            style={{ paddingTop: insets.top + 8, paddingBottom: 40 }}
           >
             <Pressable
               onPress={() => router.back()}
@@ -392,7 +392,7 @@ export default function AgentChatScreen() {
             top: 0,
             left: 0,
             right: 0,
-            height: Platform.OS === "web" ? 140 : 120,
+            height: Platform.OS === "web" ? 160 : 140,
             zIndex: 1,
           }}
         />

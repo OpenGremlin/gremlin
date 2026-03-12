@@ -2,10 +2,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatTime } from "../formatDate";
 
 const COLLAPSED_MAX_HEIGHT = 100;
+
+const darkCodeBg = "#0a0a0a";
+const darkCodeText = "rgba(74,222,128,0.9)";
+const darkCodeFade = "rgba(10,10,10,0.9)";
+const lightCodeBg = "#555555";
+const lightCodeText = "#f5f5f5";
+const lightCodeFade = "rgba(85,85,85,0.9)";
 
 function CollapsedContent({
   content,
@@ -18,22 +26,23 @@ function CollapsedContent({
   onExpand: () => void;
   children?: React.ReactNode;
 }) {
+  const { isDark } = useTheme();
   return (
     <Pressable
       onPress={onExpand}
       className="rounded-lg mb-1 overflow-hidden"
-      style={{ backgroundColor: "#0a0a0a" }}
+      style={{ backgroundColor: isDark ? darkCodeBg : lightCodeBg }}
     >
       <View style={{ maxHeight: COLLAPSED_MAX_HEIGHT, overflow: "hidden" }}>
         <Text
           className="text-xs font-mono px-3 py-2 leading-5"
-          style={{ color: "rgba(74,222,128,0.9)" }}
+          style={{ color: isDark ? darkCodeText : lightCodeText }}
         >
           {content}
         </Text>
       </View>
       <LinearGradient
-        colors={["transparent", "rgba(10,10,10,0.9)"]}
+        colors={["transparent", isDark ? darkCodeFade : lightCodeFade]}
         style={{
           position: "absolute",
           bottom: 0,
@@ -59,15 +68,16 @@ function ExpandedContent({
   onCollapse: () => void;
   children?: React.ReactNode;
 }) {
+  const { isDark } = useTheme();
   return (
     <Pressable
       onPress={onCollapse}
       className="rounded-lg mb-1 overflow-hidden"
-      style={{ backgroundColor: "#0a0a0a" }}
+      style={{ backgroundColor: isDark ? darkCodeBg : lightCodeBg }}
     >
       <Text
         className="text-xs font-mono px-3 py-2 leading-5"
-        style={{ color: "rgba(74,222,128,0.9)" }}
+        style={{ color: isDark ? darkCodeText : lightCodeText }}
       >
         {content}
       </Text>
