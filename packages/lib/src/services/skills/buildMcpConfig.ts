@@ -1,78 +1,43 @@
 import type { ServiceContext } from "../context.js";
-import { resolveSkillEnv } from "./resolveSkillEnv.js";
-import { getSkillTemplate } from "./skillCatalog.js";
+import { getAgentSkills } from "./getAgentSkills.js";
+import { getSkillsBucket } from "./getSkillsBucket.js";
+import { getSkillTemplateFromS3 } from "./skillScanner.js";
 
-interface McpServerStdioConfig {
-  command: string;
-  args: string[];
-  env: Record<string, string>;
-}
-
-interface McpServerRemoteConfig {
-  url: string;
-  headers?: Record<string, string>;
-}
-
-export interface McpConfigResult {
-  mcpServers: Record<string, McpServerStdioConfig | McpServerRemoteConfig>;
-  warnings: Array<{ skillId: string; missingProviders: string[] }>;
+export interface SkillConfigResult {
   skillInstructions: string[];
 }
 
 /**
- * Build MCP configuration from all installed skills.
- * Returns server configs, warnings for missing connections, and
- * concatenated skill instructions for the system prompt.
+ * Build skill configuration for an agent's task lane.
+ * Loads the full SKILL.md body for each assigned skill and returns
+ * the instructions to inject into the system prompt.
  */
-export async function buildMcpConfig(
+export async function buildSkillConfig(
   ctx: ServiceContext,
-): Promise<McpConfigResult> {
-  const allSkills = await ctx.services.skills.getSkills(ctx);
-  const installedSkills = allSkills.filter((s) => s.installed);
-
-  const mcpServers: McpConfigResult["mcpServers"] = {};
-  const warnings: McpConfigResult["warnings"] = [];
+  agentId: string,
+): Promise<SkillConfigResult> {
   const skillInstructions: string[] = [];
 
-  for (const skillItem of installedSkills) {
-    const skillDef = getSkillTemplate(skillItem.templateId);
-    if (!skillDef) continue;
+  const agentSkills = await getAgentSkills(ctx, agentId);
+  if (agentSkills.length === 0) {
+    return { skillInstructions };
+  }
 
-    // Collect instructions regardless of MCP
-    if (skillDef.instructions) {
-      skillInstructions.push(
-        `## ${skillDef.name} Skill\n${skillDef.instructions}`,
-      );
-    }
+  const bucketName = getSkillsBucket();
 
-    // Skip MCP config if skill has no MCP or MCP is disabled
-    if (!skillDef.mcp || skillItem.mcpEnabled === false) continue;
-
-    const { env, missing } = await resolveSkillEnv(
-      ctx.resources,
-      skillDef,
-      skillItem,
+  for (const agentSkill of agentSkills) {
+    const template = await getSkillTemplateFromS3(
+      bucketName,
+      agentSkill.skillId,
     );
+    if (!template) continue;
 
-    if (missing.length > 0) {
-      warnings.push({ skillId: skillItem.id, missingProviders: missing });
-      continue;
-    }
-
-    const transport = skillDef.mcp.transport;
-    if (transport.type === "stdio") {
-      mcpServers[skillItem.id] = {
-        command: transport.command,
-        args: transport.args,
-        env,
-      };
-    } else {
-      mcpServers[skillItem.id] = {
-        url: transport.url,
-        headers: transport.headers,
-      };
+    if (template.instructions) {
+      skillInstructions.push(
+        `## ${template.name} Skill\n${template.instructions}`,
+      );
     }
   }
 
-  return { mcpServers, warnings, skillInstructions };
+  return { skillInstructions };
 }

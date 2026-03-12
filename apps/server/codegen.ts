@@ -33,7 +33,8 @@ const config: CodegenConfig = {
           Notification:
             "@gremlin/lib/resources/ddb/schema/notification.js#NotificationItem",
           Profile: "@gremlin/lib/resources/ddb/schema/profile.js#ProfileItem",
-          Skill: "@gremlin/lib/resources/ddb/schema/skill.js#SkillItem",
+          AgentSkill:
+            "@gremlin/lib/resources/ddb/schema/agentSkill.js#AgentSkillItem",
           SkillTemplate:
             "@gremlin/lib/services/skills/registry.js#SkillTemplate as SkillTemplateModel",
           Task: "@gremlin/lib/resources/ddb/schema/task.js#TaskItem",

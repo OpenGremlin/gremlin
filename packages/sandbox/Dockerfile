@@ -1,8 +1,12 @@
+# Lightweight sandbox relay for EC2 (no Playwright/Chromium needed)
+# Builds natively on ARM64
+
 # Stage 1: install dependencies
 FROM node:20-slim AS deps
 WORKDIR /build
-RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ git && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
+RUN git init
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/sandbox/package.json packages/sandbox/
 RUN pnpm install --frozen-lockfile \
@@ -24,15 +28,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Go
 ENV GOLANG_VERSION=1.22.5
-RUN curl -fsSL "https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -fsSL "https://go.dev/dl/go${GOLANG_VERSION}.linux-${ARCH}.tar.gz" \
     | tar -C /usr/local -xz
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Rust (installed as root, available to all users)
+# Rust
 ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --no-modify-path
 ENV PATH="/usr/local/cargo/bin:${PATH}"
+
 WORKDIR /app
 COPY --from=build /build/packages/sandbox/dist/ packages/sandbox/dist/
 COPY --from=build /build/packages/sandbox/package.json packages/sandbox/
@@ -41,9 +47,16 @@ COPY --from=deps /build/packages/sandbox/node_modules/ packages/sandbox/node_mod
 COPY package.json pnpm-workspace.yaml ./
 
 COPY packages/sandbox/entrypoint.sh /app/entrypoint.sh
+COPY packages/sandbox/notify-server.mjs /app/packages/sandbox/notify-server.mjs
 RUN chmod +x /app/entrypoint.sh
 
-RUN mkdir -p /workspace
+# Non-root user for agent shell (relay stays root to protect /app)
+RUN apt-get update && apt-get install -y --no-install-recommends sudo && rm -rf /var/lib/apt/lists/* \
+    && (userdel -r node 2>/dev/null || true) \
+    && useradd -m -s /bin/bash -u 1000 sandbox \
+    && echo "sandbox ALL=(root) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt" > /etc/sudoers.d/sandbox \
+    && mkdir -p /workspace \
+    && chown sandbox:sandbox /workspace
 EXPOSE 8080 8083
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["node", "packages/sandbox/dist/index.js"]

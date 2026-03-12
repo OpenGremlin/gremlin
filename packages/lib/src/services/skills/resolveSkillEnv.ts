@@ -1,6 +1,5 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
-import type { SkillItem } from "../../resources/ddb/schema/skill.js";
 import type { Resources } from "../../resources/index.js";
 import { getAccessToken } from "../oauth/getAccessToken.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
@@ -12,40 +11,22 @@ export interface ResolvedSkillEnv {
 }
 
 /**
- * Resolve a skill's full environment by merging:
- * 1. Static env from the SkillTemplate
- * 2. User configOverrides
- * 3. Tokens/keys from bound IntegrationConnections via envMapping
+ * Resolve a skill's full environment by merging connection tokens
+ * into the environment variables specified by the skill's connections.
  */
 export async function resolveSkillEnv(
   resources: Resources,
   skillDef: SkillTemplate,
-  skillItem: SkillItem,
+  connectionBindingsRaw: string | null | undefined,
 ): Promise<ResolvedSkillEnv> {
-  // 1. Start with static env from the skill definition
-  const env: Record<string, string> = { ...(skillDef.mcp?.env ?? {}) };
+  const env: Record<string, string> = {};
   const missing: string[] = [];
 
-  // 2. Apply user config overrides
-  if (skillItem.configOverrides) {
-    try {
-      const overrides = JSON.parse(skillItem.configOverrides) as {
-        env?: Record<string, string>;
-      };
-      if (overrides.env) {
-        Object.assign(env, overrides.env);
-      }
-    } catch {
-      // Ignore malformed configOverrides
-    }
-  }
-
-  // 3. Resolve connection bindings
-  if (!skillDef.requiredConnections?.length) {
+  if (!skillDef.connections?.length) {
     return { env, missing };
   }
 
-  const bindings = parseConnectionBindings(skillItem.connectionBindings);
+  const bindings = parseConnectionBindings(connectionBindingsRaw);
 
   // Load all connections once for lookups
   const { Items: allConnections = [] } = await resources.ddb.secretsTable
@@ -58,12 +39,12 @@ export async function resolveSkillEnv(
     (allConnections as IntegrationConnectionItem[]).map((c) => [c.id, c]),
   );
 
-  for (const req of skillDef.requiredConnections) {
-    const boundConnectionId = bindings[req.providerId];
+  for (const req of skillDef.connections) {
+    const boundConnectionId = bindings[req.provider];
 
     if (!boundConnectionId) {
       if (!req.optional) {
-        missing.push(req.providerId);
+        missing.push(req.provider);
       }
       continue;
     }
@@ -71,7 +52,7 @@ export async function resolveSkillEnv(
     const connection = connectionMap.get(boundConnectionId);
     if (!connection || connection.isRevoked) {
       if (!req.optional) {
-        missing.push(req.providerId);
+        missing.push(req.provider);
       }
       continue;
     }
@@ -79,17 +60,13 @@ export async function resolveSkillEnv(
     // For OAuth connections, use getAccessToken to handle refresh
     if (connection.connectionType === "oauth") {
       try {
-        const token = await getAccessToken(
-          resources,
-          req.providerId,
-          "_system",
-        );
-        for (const [envVar, _metaField] of Object.entries(req.envMapping)) {
+        const token = await getAccessToken(resources, req.provider, "_system");
+        for (const [envVar] of Object.entries(req.env)) {
           env[envVar] = token;
         }
       } catch {
         if (!req.optional) {
-          missing.push(req.providerId);
+          missing.push(req.provider);
         }
       }
       continue;
@@ -97,12 +74,12 @@ export async function resolveSkillEnv(
 
     // For API key / other connections, read directly from connectionMeta
     const meta = connection.connectionMeta;
-    for (const [envVar, metaField] of Object.entries(req.envMapping)) {
+    for (const [envVar, metaField] of Object.entries(req.env)) {
       const value = meta[metaField as keyof typeof meta];
       if (value) {
         env[envVar] = value;
       } else if (!req.optional) {
-        missing.push(req.providerId);
+        missing.push(req.provider);
       }
     }
   }

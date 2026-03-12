@@ -26,6 +26,7 @@ import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SaveButton } from "../../../../src/shared/SaveButton";
+import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
 const INPUT_CLASS =
@@ -218,6 +219,8 @@ export default function AgentConfigScreen() {
           />
 
           <ToolsConfig agent={agent} />
+
+          <SkillsConfig agentId={agent.id} />
 
           <View className="mt-4">
             <DestructiveButton

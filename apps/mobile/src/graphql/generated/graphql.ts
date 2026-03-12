@@ -129,6 +129,15 @@ export type AgentSandboxConfigInput = {
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type AgentSkill = {
+  __typename?: 'AgentSkill';
+  agentId: Scalars['ID']['output'];
+  assignedAt: Scalars['String']['output'];
+  connectionStatuses: Array<SkillConnectionStatus>;
+  skillId: Scalars['ID']['output'];
+  template?: Maybe<SkillTemplate>;
+};
+
 export type AgentWebSearchConfig = {
   __typename?: 'AgentWebSearchConfig';
   enabled: Scalars['Boolean']['output'];
@@ -265,7 +274,10 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  bindSkillConnection?: Maybe<Skill>;
+  /** Assign a skill to an agent */
+  assignSkill: AgentSkill;
+  /** Bind a connection to an agent's skill */
+  bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: Scalars['ID']['output'];
   createAgent: Agent;
@@ -274,7 +286,8 @@ export type Mutation = {
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
-  installSkill?: Maybe<Skill>;
+  /** Remove a skill from an agent */
+  removeSkill: Scalars['Boolean']['output'];
   renameIntegrationConnection: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveNotification?: Maybe<Notification>;
@@ -282,10 +295,8 @@ export type Mutation = {
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
   setDefaultModel: Scalars['Boolean']['output'];
-  setSkillMcpEnabled?: Maybe<Skill>;
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
-  uninstallSkill?: Maybe<Skill>;
   unretireAgent: Agent;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -294,10 +305,17 @@ export type Mutation = {
 };
 
 
-export type MutationBindSkillConnectionArgs = {
+export type MutationAssignSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+};
+
+
+export type MutationBindAgentSkillConnectionArgs = {
+  agentId: Scalars['ID']['input'];
   connectionId: Scalars['ID']['input'];
-  id: Scalars['ID']['input'];
-  providerId: Scalars['String']['input'];
+  provider: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -342,8 +360,9 @@ export type MutationEnableBedrockModelArgs = {
 };
 
 
-export type MutationInstallSkillArgs = {
-  templateId: Scalars['ID']['input'];
+export type MutationRemoveSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -389,12 +408,6 @@ export type MutationSetDefaultModelArgs = {
 };
 
 
-export type MutationSetSkillMcpEnabledArgs = {
-  enabled: Scalars['Boolean']['input'];
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
@@ -406,11 +419,6 @@ export type MutationSubmitOAuthConnectionArgs = {
 
 
 export type MutationTriggerJobArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationUninstallSkillArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -501,6 +509,8 @@ export type Query = {
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
   agentLogs: AgentLogConnection;
+  /** Skills assigned to a specific agent */
+  agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
@@ -510,12 +520,10 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
-  skill?: Maybe<Skill>;
+  /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
-  /** All templates from the catalog */
+  /** All skill templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
-  /** All installed skill instances */
-  skills: Array<Skill>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
@@ -543,8 +551,8 @@ export type QueryAgentLogsArgs = {
 };
 
 
-export type QuerySkillArgs = {
-  id: Scalars['ID']['input'];
+export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
 };
 
 
@@ -599,22 +607,13 @@ export type SendMessageResult = {
   queued: Scalars['Boolean']['output'];
 };
 
-export type Skill = {
-  __typename?: 'Skill';
-  id: Scalars['ID']['output'];
-  installed: Scalars['Boolean']['output'];
-  installedAt?: Maybe<Scalars['String']['output']>;
-  mcpEnabled?: Maybe<Scalars['Boolean']['output']>;
-  requiredConnections: Array<SkillConnectionStatus>;
-  template: SkillTemplate;
-};
-
 export type SkillConnectionRequirement = {
   __typename?: 'SkillConnectionRequirement';
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
+  requestedScopes?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type SkillConnectionStatus = {
@@ -622,23 +621,22 @@ export type SkillConnectionStatus = {
   boundConnectionId?: Maybe<Scalars['String']['output']>;
   connected: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
 };
 
 export type SkillTemplate = {
   __typename?: 'SkillTemplate';
-  author: Scalars['String']['output'];
-  category: Scalars['String']['output'];
+  author?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
-  hasInstructions: Scalars['Boolean']['output'];
-  hasMcp: Scalars['Boolean']['output'];
+  hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  installCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  requiredConnections: Array<SkillConnectionRequirement>;
+  tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
 };
 
@@ -1027,49 +1025,47 @@ export type UpdateGlobalSettingsMutation = { __typename?: 'Mutation', updateGlob
 export type SkillTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category: string, icon?: string | null, installCount: number, requiredConnections: Array<{ __typename?: 'SkillConnectionRequirement', providerId: string, providerName: string, reason: string, optional: boolean }> }> };
-
-export type SkillsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SkillsQuery = { __typename?: 'Query', skills: Array<{ __typename?: 'Skill', id: string, installed: boolean, installedAt?: string | null, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category: string, icon?: string | null } }> };
-
-export type SkillQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type SkillQuery = { __typename?: 'Query', skill?: { __typename?: 'Skill', id: string, installed: boolean, installedAt?: string | null, mcpEnabled?: boolean | null, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author: string, category: string, icon?: string | null, requiredConnections: Array<{ __typename?: 'SkillConnectionRequirement', providerId: string, providerName: string, reason: string, optional: boolean }> }, requiredConnections: Array<{ __typename?: 'SkillConnectionStatus', providerId: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> } | null };
+export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, requestedScopes?: Array<string> | null }> }> };
 
 export type SkillTemplateQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author: string, category: string, icon?: string | null, installCount: number, requiredConnections: Array<{ __typename?: 'SkillConnectionRequirement', providerId: string, providerName: string, reason: string, optional: boolean }> } | null };
+export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, requestedScopes?: Array<string> | null }> } | null };
 
-export type InstallSkillMutationVariables = Exact<{
-  templateId: Scalars['ID']['input'];
+export type AgentSkillsQueryVariables = Exact<{
+  agentId: Scalars['ID']['input'];
 }>;
 
 
-export type InstallSkillMutation = { __typename?: 'Mutation', installSkill?: { __typename?: 'Skill', id: string, installed: boolean, template: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author: string, category: string }, requiredConnections: Array<{ __typename?: 'SkillConnectionStatus', providerId: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> } | null };
+export type AgentSkillsQuery = { __typename?: 'Query', agentSkills: Array<{ __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean }> } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> }> };
 
-export type BindSkillConnectionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  providerId: Scalars['String']['input'];
+export type AssignSkillMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+}>;
+
+
+export type AssignSkillMutation = { __typename?: 'Mutation', assignSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> } };
+
+export type RemoveSkillMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveSkillMutation = { __typename?: 'Mutation', removeSkill: boolean };
+
+export type BindAgentSkillConnectionMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+  provider: Scalars['String']['input'];
   connectionId: Scalars['ID']['input'];
 }>;
 
 
-export type BindSkillConnectionMutation = { __typename?: 'Mutation', bindSkillConnection?: { __typename?: 'Skill', id: string, requiredConnections: Array<{ __typename?: 'SkillConnectionStatus', providerId: string, boundConnectionId?: string | null, connected: boolean }> } | null };
-
-export type UninstallSkillMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type UninstallSkillMutation = { __typename?: 'Mutation', uninstallSkill?: { __typename?: 'Skill', id: string, installed: boolean, template: { __typename?: 'SkillTemplate', id: string, name: string } } | null };
+export type BindAgentSkillConnectionMutation = { __typename?: 'Mutation', bindAgentSkillConnection: { __typename?: 'AgentSkill', skillId: string, agentId: string, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, boundConnectionId?: string | null, connected: boolean }> } };
 
 export type TasksQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1664,68 +1660,21 @@ export const SkillTemplatesDocument = new TypedDocumentString(`
     name
     description
     version
+    author
     category
     icon
-    installCount
-    requiredConnections {
-      providerId
+    tags
+    hasInstall
+    connections {
+      provider
       providerName
       reason
       optional
+      requestedScopes
     }
   }
 }
     `) as unknown as TypedDocumentString<SkillTemplatesQuery, SkillTemplatesQueryVariables>;
-export const SkillsDocument = new TypedDocumentString(`
-    query Skills {
-  skills {
-    id
-    installed
-    installedAt
-    template {
-      id
-      name
-      description
-      version
-      category
-      icon
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<SkillsQuery, SkillsQueryVariables>;
-export const SkillDocument = new TypedDocumentString(`
-    query Skill($id: ID!) {
-  skill(id: $id) {
-    id
-    installed
-    installedAt
-    mcpEnabled
-    template {
-      id
-      name
-      description
-      version
-      author
-      category
-      icon
-      requiredConnections {
-        providerId
-        providerName
-        reason
-        optional
-      }
-    }
-    requiredConnections {
-      providerId
-      providerName
-      reason
-      optional
-      boundConnectionId
-      connected
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<SkillQuery, SkillQueryVariables>;
 export const SkillTemplateDocument = new TypedDocumentString(`
     query SkillTemplate($id: ID!) {
   skillTemplate(id: $id) {
@@ -1736,31 +1685,40 @@ export const SkillTemplateDocument = new TypedDocumentString(`
     author
     category
     icon
-    installCount
-    requiredConnections {
-      providerId
+    tags
+    hasInstall
+    connections {
+      provider
       providerName
       reason
       optional
+      requestedScopes
     }
   }
 }
     `) as unknown as TypedDocumentString<SkillTemplateQuery, SkillTemplateQueryVariables>;
-export const InstallSkillDocument = new TypedDocumentString(`
-    mutation InstallSkill($templateId: ID!) {
-  installSkill(templateId: $templateId) {
-    id
-    installed
+export const AgentSkillsDocument = new TypedDocumentString(`
+    query AgentSkills($agentId: ID!) {
+  agentSkills(agentId: $agentId) {
+    skillId
+    agentId
+    assignedAt
     template {
       id
       name
       description
       version
-      author
       category
+      icon
+      connections {
+        provider
+        providerName
+        reason
+        optional
+      }
     }
-    requiredConnections {
-      providerId
+    connectionStatuses {
+      provider
       providerName
       reason
       optional
@@ -1769,35 +1727,55 @@ export const InstallSkillDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<InstallSkillMutation, InstallSkillMutationVariables>;
-export const BindSkillConnectionDocument = new TypedDocumentString(`
-    mutation BindSkillConnection($id: ID!, $providerId: String!, $connectionId: ID!) {
-  bindSkillConnection(
-    id: $id
-    providerId: $providerId
-    connectionId: $connectionId
-  ) {
-    id
-    requiredConnections {
-      providerId
+    `) as unknown as TypedDocumentString<AgentSkillsQuery, AgentSkillsQueryVariables>;
+export const AssignSkillDocument = new TypedDocumentString(`
+    mutation AssignSkill($agentId: ID!, $skillId: ID!) {
+  assignSkill(agentId: $agentId, skillId: $skillId) {
+    skillId
+    agentId
+    assignedAt
+    template {
+      id
+      name
+      description
+      version
+      category
+      icon
+    }
+    connectionStatuses {
+      provider
+      providerName
+      reason
+      optional
       boundConnectionId
       connected
     }
   }
 }
-    `) as unknown as TypedDocumentString<BindSkillConnectionMutation, BindSkillConnectionMutationVariables>;
-export const UninstallSkillDocument = new TypedDocumentString(`
-    mutation UninstallSkill($id: ID!) {
-  uninstallSkill(id: $id) {
-    id
-    installed
-    template {
-      id
-      name
+    `) as unknown as TypedDocumentString<AssignSkillMutation, AssignSkillMutationVariables>;
+export const RemoveSkillDocument = new TypedDocumentString(`
+    mutation RemoveSkill($agentId: ID!, $skillId: ID!) {
+  removeSkill(agentId: $agentId, skillId: $skillId)
+}
+    `) as unknown as TypedDocumentString<RemoveSkillMutation, RemoveSkillMutationVariables>;
+export const BindAgentSkillConnectionDocument = new TypedDocumentString(`
+    mutation BindAgentSkillConnection($agentId: ID!, $skillId: ID!, $provider: String!, $connectionId: ID!) {
+  bindAgentSkillConnection(
+    agentId: $agentId
+    skillId: $skillId
+    provider: $provider
+    connectionId: $connectionId
+  ) {
+    skillId
+    agentId
+    connectionStatuses {
+      provider
+      boundConnectionId
+      connected
     }
   }
 }
-    `) as unknown as TypedDocumentString<UninstallSkillMutation, UninstallSkillMutationVariables>;
+    `) as unknown as TypedDocumentString<BindAgentSkillConnectionMutation, BindAgentSkillConnectionMutationVariables>;
 export const TasksDocument = new TypedDocumentString(`
     query Tasks($first: Int, $after: String, $last: Int, $before: String) {
   tasks(first: $first, after: $after, last: $last, before: $before) {

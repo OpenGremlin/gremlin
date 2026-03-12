@@ -39,7 +39,7 @@ export class SandboxEc2Stack extends cdk.Stack {
     // ── Docker image asset (same Dockerfile used by BrowserStack) ──
     const imageAsset = new ecr_assets.DockerImageAsset(this, "SandboxImage", {
       directory: REPO_ROOT,
-      file: "packages/sandbox/Dockerfile.ec2",
+      file: "packages/sandbox/Dockerfile",
       exclude: ["**/cdk.out"],
       platform: ecr_assets.Platform.LINUX_ARM64,
     });

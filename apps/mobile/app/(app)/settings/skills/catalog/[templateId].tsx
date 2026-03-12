@@ -1,24 +1,8 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { CircleCheck } from "lucide-react-native";
-import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
-import {
-  BindSkillConnectionMutation,
-  InstallSkillMutation,
-  SkillsQuery,
-  SkillTemplateQuery,
-} from "../../../../../src/graphql/queries";
-import { IntegrationConnectionsQuery } from "../../../../../src/graphql/queries/integrations";
+import { useLocalSearchParams } from "expo-router";
+import { ScrollView, Text, View } from "react-native";
+import { SkillTemplateQuery } from "../../../../../src/graphql/queries";
 import { useQuery } from "../../../../../src/hooks/useQuery";
-import { gql } from "../../../../../src/lib/auth";
 import { Badge } from "../../../../../src/shared/Badge";
-import { ConnectionPicker } from "../../../../../src/shared/ConnectionPicker";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 
 export default function SkillTemplateScreen() {
@@ -26,76 +10,15 @@ export default function SkillTemplateScreen() {
   const { data, loading, error } = useQuery(SkillTemplateQuery, {
     id: templateId ?? "",
   });
-  const {
-    data: skillsData,
-    loading: skillsLoading,
-    error: skillsError,
-  } = useQuery(SkillsQuery);
-  const {
-    data: connectionsData,
-    loading: connectionsLoading,
-    error: connectionsError,
-  } = useQuery(IntegrationConnectionsQuery);
-
-  const [installing, setInstalling] = useState(false);
-  const [selectedConnections, setSelectedConnections] = useState<
-    Record<string, string>
-  >({});
 
   const template = data?.skillTemplate ?? null;
-  const connections = connectionsData?.integrationConnections ?? [];
-  const instances = (skillsData?.skills ?? []).filter(
-    (s) => s.template.id === templateId,
-  );
 
-  const anyLoading = loading || skillsLoading || connectionsLoading;
-  const anyError = error || skillsError || connectionsError;
-
-  if (anyLoading || anyError) {
-    return <QueryResult loading={anyLoading} error={anyError} />;
+  if (loading || error) {
+    return <QueryResult loading={loading} error={error} />;
   }
 
   if (!template) {
     return <NotFound label="Skill template not found." />;
-  }
-
-  const templateReqs = template.requiredConnections;
-  const requiredProviderIds = templateReqs
-    .filter((r) => !r.optional)
-    .map((r) => r.providerId);
-  const allRequiredSelected = requiredProviderIds.every(
-    (pid) => selectedConnections[pid],
-  );
-  const installDisabled =
-    installing || (templateReqs.length > 0 && !allRequiredSelected);
-
-  function selectConnection(providerId: string, connectionId: string) {
-    setSelectedConnections((prev) => ({ ...prev, [providerId]: connectionId }));
-  }
-
-  async function handleInstall() {
-    setInstalling(true);
-    try {
-      const result = await gql(InstallSkillMutation, {
-        templateId: templateId ?? "",
-      });
-      const skill = result.installSkill;
-      if (!skill) throw new Error("Failed to install skill");
-
-      for (const [providerId, connectionId] of Object.entries(
-        selectedConnections,
-      )) {
-        await gql(BindSkillConnectionMutation, {
-          id: skill.id,
-          providerId,
-          connectionId,
-        });
-      }
-
-      router.replace(`/settings/skills/${skill.id}` as never);
-    } finally {
-      setInstalling(false);
-    }
   }
 
   return (
@@ -106,7 +29,8 @@ export default function SkillTemplateScreen() {
         </Text>
         <View className="flex-row items-center gap-2">
           <Badge label={`v${template.version}`} />
-          <Badge label={template.category} />
+          {template.category ? <Badge label={template.category} /> : null}
+          {template.hasInstall ? <Badge label="CLI" /> : null}
         </View>
       </View>
 
@@ -124,61 +48,49 @@ export default function SkillTemplateScreen() {
         </View>
       ) : null}
 
-      {instances.length > 0 && (
+      {template.connections.length > 0 && (
         <View className="gap-2">
-          <Text className="text-xs text-text-muted">
-            Installed Instances ({instances.length})
-          </Text>
-          {instances.map((inst) => (
-            <Pressable
-              key={inst.id}
-              onPress={() =>
-                router.push(`/settings/skills/${inst.id}` as never)
-              }
-              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl p-3"
+          <Text className="text-xs text-text-muted">Required Connections</Text>
+          {template.connections.map((conn) => (
+            <View
+              key={conn.provider}
+              className="bg-surface-alt/30 border border-app-border rounded-lg p-3 gap-1"
             >
-              <View className="flex-1">
+              <View className="flex-row items-center gap-2">
                 <Text className="text-sm text-text-primary">
-                  {inst.template.name}
+                  {conn.providerName}
                 </Text>
-                <Text className="text-xs text-text-muted">
-                  {inst.id.slice(0, 8)}...
-                </Text>
+                {conn.optional ? (
+                  <Text className="text-xs text-text-muted">(optional)</Text>
+                ) : null}
               </View>
-              <View className="flex-row items-center gap-1">
-                <CircleCheck size={12} color="#059669" />
-                <Text className="text-xs text-emerald-600">Installed</Text>
-              </View>
-            </Pressable>
+              <Text className="text-xs text-text-muted">{conn.reason}</Text>
+            </View>
           ))}
         </View>
       )}
 
-      {templateReqs.length > 0 && (
-        <View className="gap-2">
-          <Text className="text-xs text-text-muted">
-            Select connections for new instance
-          </Text>
-          <ConnectionPicker
-            requirements={templateReqs}
-            connections={connections}
-            selected={selectedConnections}
-            onSelect={selectConnection}
-          />
+      {template.tags && template.tags.length > 0 && (
+        <View className="gap-1">
+          <Text className="text-xs text-text-muted">Tags</Text>
+          <View className="flex-row flex-wrap gap-1">
+            {template.tags.map((tag) => (
+              <Text
+                key={tag}
+                className="text-xs text-text-muted bg-surface-alt px-2 py-0.5 rounded"
+              >
+                {tag}
+              </Text>
+            ))}
+          </View>
         </View>
       )}
 
-      <Pressable
-        onPress={handleInstall}
-        disabled={installDisabled}
-        className="bg-indigo-600 rounded-lg px-4 py-2.5 items-center disabled:opacity-50"
-      >
-        {installing ? (
-          <ActivityIndicator color="white" size="small" />
-        ) : (
-          <Text className="text-sm font-medium text-white">Install</Text>
-        )}
-      </Pressable>
+      <View className="bg-surface-alt/30 border border-app-border rounded-lg p-3">
+        <Text className="text-xs text-text-muted">
+          Skills are assigned to agents from the agent configuration page.
+        </Text>
+      </View>
     </ScrollView>
   );
 }

@@ -28,6 +28,8 @@ export interface ServerStackProps extends cdk.StackProps {
   mediaCdnUrl: string;
   uploadsBucket: s3.IBucket;
   uploadsBucketName: string;
+  skillsBucket: s3.IBucket;
+  skillsBucketName: string;
 }
 
 export class ServerStack extends cdk.Stack {
@@ -90,6 +92,7 @@ export class ServerStack extends cdk.Stack {
     );
 
     props.uploadsBucket.grantReadWrite(serverRole);
+    props.skillsBucket.grantRead(serverRole);
 
     props.fileSystem.grant(serverRole, "elasticfilesystem:ClientMount");
 
@@ -208,6 +211,7 @@ export class ServerStack extends cdk.Stack {
         `-e MEDIA_CDN_URL=${props.mediaCdnUrl}`,
         `-e S3_VECTORS_BUCKET_NAME=gremlin-vectors`,
         `-e UPLOADS_BUCKET_NAME=${props.uploadsBucketName}`,
+        `-e SKILLS_BUCKET=${props.skillsBucketName}`,
         `-e WORKSPACE_PATH=/workspace`,
         `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
         `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,

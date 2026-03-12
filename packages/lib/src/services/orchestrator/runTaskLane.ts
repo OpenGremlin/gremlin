@@ -1,6 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
-import { buildMcpConfig } from "../skills/buildMcpConfig.js";
+import { buildSkillConfig } from "../skills/buildMcpConfig.js";
 import {
   createBraveSearchTool,
   createDocumentTool,
@@ -62,10 +62,10 @@ export async function runTaskLane(
     content: prompt,
   });
 
-  // Build MCP config from installed skills
-  const mcpConfig = await buildMcpConfig(ctx).catch((err) => {
-    ctx.log.error({ err, component: "skills" }, "Failed to build MCP config");
-    return { mcpServers: {}, warnings: [], skillInstructions: [] };
+  // Build skill instructions from agent's assigned skills
+  const skillConfig = await buildSkillConfig(ctx, task.agentId).catch((err) => {
+    ctx.log.error({ err, component: "skills" }, "Failed to build skill config");
+    return { skillInstructions: [] };
   });
 
   let systemPrompt = renderPrompt("taskSystem", {
@@ -77,10 +77,10 @@ export async function runTaskLane(
     taskId,
   });
 
-  if (mcpConfig.skillInstructions.length > 0) {
+  if (skillConfig.skillInstructions.length > 0) {
     systemPrompt +=
       "\n\n# Active Skill Instructions\n\n" +
-      mcpConfig.skillInstructions.join("\n\n");
+      skillConfig.skillInstructions.join("\n\n");
   }
 
   return runLane(ctx, {

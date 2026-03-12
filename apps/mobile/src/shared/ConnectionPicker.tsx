@@ -10,7 +10,7 @@ interface ConnectionOption {
 }
 
 interface ConnectionRequirement {
-  providerId: string;
+  provider: string;
   providerName: string;
   optional?: boolean | null;
   reason: string;
@@ -25,17 +25,17 @@ export function ConnectionPicker({
   requirements: readonly ConnectionRequirement[];
   connections: readonly ConnectionOption[];
   selected: Record<string, string>;
-  onSelect: (providerId: string, connectionId: string) => void;
+  onSelect: (provider: string, connectionId: string) => void;
 }) {
   return (
     <View className="gap-3">
       {requirements.map((req) => {
         const available = connections.filter(
-          (c) => c.providerId === req.providerId && !c.isRevoked,
+          (c) => c.providerId === req.provider && !c.isRevoked,
         );
-        const selectedId = selected[req.providerId];
+        const selectedId = selected[req.provider];
         return (
-          <View key={req.providerId} className="gap-2">
+          <View key={req.provider} className="gap-2">
             <View className="flex-row items-center gap-2">
               <Text className="text-sm text-text-primary">
                 {req.providerName}
@@ -50,14 +50,14 @@ export function ConnectionPicker({
                 {available.map((conn) => (
                   <Pressable
                     key={conn.id}
-                    onPress={() => onSelect(req.providerId, conn.id)}
+                    onPress={() => onSelect(req.provider, conn.id)}
                     className={`flex-row items-center gap-3 rounded-lg border p-3 ${
                       selectedId === conn.id
                         ? "border-emerald-500 bg-surface-alt/50"
                         : "border-app-border bg-surface-alt/30"
                     }`}
                   >
-                    <IntegrationLogo id={req.providerId} size={32} />
+                    <IntegrationLogo id={req.provider} size={32} />
                     <Text className="text-sm text-text-secondary">
                       {conn.description || conn.id}
                     </Text>
@@ -72,7 +72,7 @@ export function ConnectionPicker({
                 <Pressable
                   onPress={() =>
                     router.push(
-                      `/settings/integrations/${req.providerId}` as never,
+                      `/settings/integrations/${req.provider}` as never,
                     )
                   }
                 >

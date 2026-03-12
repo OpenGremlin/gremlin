@@ -1,86 +1,94 @@
 import { providers } from "@gremlin/lib/services/integrations/providers.js";
+import { getSkillsBucket } from "@gremlin/lib/services/skills/getSkillsBucket.js";
 import { parseConnectionBindings } from "@gremlin/lib/services/skills/parseConnectionBindings.js";
 import {
-  getSkillTemplate,
-  skillCatalog,
-} from "@gremlin/lib/services/skills/skillCatalog.js";
+  getSkillTemplateFromS3,
+  scanSkillCatalog,
+} from "@gremlin/lib/services/skills/skillScanner.js";
 import type {
+  AgentSkillResolvers,
   MutationResolvers,
   QueryResolvers,
-  SkillResolvers,
   SkillTemplateResolvers,
 } from "../../resolverTypes.js";
 
+const providerMap = new Map(providers.map((p) => [p.id, p]));
+
 // --- Queries ---
 
-const skillTemplates: QueryResolvers["skillTemplates"] = () => skillCatalog;
+const skillTemplates: QueryResolvers["skillTemplates"] = async () => {
+  const bucketName = getSkillsBucket();
+  return scanSkillCatalog(bucketName);
+};
 
-const skillTemplate: QueryResolvers["skillTemplate"] = (_parent, { id }) =>
-  getSkillTemplate(id) ?? null;
+const skillTemplate: QueryResolvers["skillTemplate"] = async (
+  _parent,
+  { id },
+) => {
+  const bucketName = getSkillsBucket();
+  return getSkillTemplateFromS3(bucketName, id);
+};
 
-const skills: QueryResolvers["skills"] = (_parent, _args, ctx) =>
-  ctx.services.skills.getSkills(ctx);
-
-const skill: QueryResolvers["skill"] = (_parent, { id }, ctx) =>
-  ctx.services.skills.getSkill(ctx, id);
+const agentSkills: QueryResolvers["agentSkills"] = (
+  _parent,
+  { agentId },
+  ctx,
+) => ctx.services.skills.getAgentSkills(ctx, agentId);
 
 // --- Mutations ---
 
-const installSkill: MutationResolvers["installSkill"] = (
+const assignSkill: MutationResolvers["assignSkill"] = (
   _parent,
-  { templateId },
+  { agentId, skillId },
   ctx,
-) => ctx.services.skills.installSkill(ctx, templateId);
+) => ctx.services.skills.assignSkill(ctx, agentId, skillId);
 
-const uninstallSkill: MutationResolvers["uninstallSkill"] = (
+const removeSkill: MutationResolvers["removeSkill"] = async (
   _parent,
-  { id },
+  { agentId, skillId },
   ctx,
-) => ctx.services.skills.uninstallSkill(ctx, id);
+) => {
+  await ctx.services.skills.removeSkill(ctx, agentId, skillId);
+  return true;
+};
 
-const bindSkillConnection: MutationResolvers["bindSkillConnection"] = (
-  _parent,
-  { id, providerId, connectionId },
-  ctx,
-) => ctx.services.skills.bindSkillConnection(ctx, id, providerId, connectionId);
+const bindAgentSkillConnection: MutationResolvers["bindAgentSkillConnection"] =
+  (_parent, { agentId, skillId, provider, connectionId }, ctx) =>
+    ctx.services.skills.bindAgentSkillConnection(
+      ctx,
+      agentId,
+      skillId,
+      provider,
+      connectionId,
+    );
 
-const setSkillMcpEnabled: MutationResolvers["setSkillMcpEnabled"] = (
-  _parent,
-  { id, enabled },
-  ctx,
-) => ctx.services.skills.setSkillMcpEnabled(ctx, id, enabled);
-
-const providerMap = new Map(providers.map((p) => [p.id, p]));
+// --- Type Resolvers ---
 
 const SkillTemplate: SkillTemplateResolvers = {
-  hasInstructions: (parent) => !!parent.instructions,
-  hasMcp: (parent) => !!parent.mcp,
-  installCount: async (parent, _args, ctx) => {
-    const allSkills = await ctx.services.skills.getSkills(ctx);
-    return allSkills.filter((s) => s.templateId === parent.id).length;
-  },
-  requiredConnections: (parent) =>
-    (parent.requiredConnections ?? []).map((req) => {
-      const provider = providerMap.get(req.providerId);
+  hasInstall: (parent) => !!parent.install,
+  connections: (parent) =>
+    (parent.connections ?? []).map((conn) => {
+      const provider = providerMap.get(conn.provider);
       return {
-        providerId: req.providerId,
-        providerName: provider?.service ?? req.providerId,
-        reason: req.reason,
-        optional: req.optional ?? false,
+        provider: conn.provider,
+        providerName: provider?.service ?? conn.provider,
+        reason: conn.reason,
+        optional: conn.optional ?? false,
+        requestedScopes: conn.requestedScopes ?? null,
       };
     }),
 };
 
-const Skill: SkillResolvers = {
-  template: (parent) => {
-    const tmpl = getSkillTemplate(parent.templateId);
-    if (!tmpl) throw new Error(`Template ${parent.templateId} not found`);
-    return tmpl;
+const AgentSkill: AgentSkillResolvers = {
+  template: async (parent) => {
+    const bucketName = getSkillsBucket();
+    return getSkillTemplateFromS3(bucketName, parent.skillId);
   },
 
-  requiredConnections: async (parent, _args, ctx) => {
-    const tmpl = getSkillTemplate(parent.templateId);
-    if (!tmpl?.requiredConnections?.length) return [];
+  connectionStatuses: async (parent, _args, ctx) => {
+    const bucketName = getSkillsBucket();
+    const template = await getSkillTemplateFromS3(bucketName, parent.skillId);
+    if (!template?.connections?.length) return [];
 
     const bindings = parseConnectionBindings(parent.connectionBindings);
 
@@ -91,12 +99,12 @@ const Skill: SkillResolvers = {
       connections.filter((c) => !c.isRevoked).map((c) => c.id),
     );
 
-    return tmpl.requiredConnections.map((req) => {
-      const boundId = bindings[req.providerId] ?? null;
-      const provider = providerMap.get(req.providerId);
+    return template.connections.map((req) => {
+      const boundId = bindings[req.provider] ?? null;
+      const provider = providerMap.get(req.provider);
       return {
-        providerId: req.providerId,
-        providerName: provider?.service ?? req.providerId,
+        provider: req.provider,
+        providerName: provider?.service ?? req.provider,
         reason: req.reason,
         optional: req.optional ?? false,
         boundConnectionId: boundId,
@@ -107,13 +115,8 @@ const Skill: SkillResolvers = {
 };
 
 export const skillResolvers = {
-  Query: { skillTemplates, skillTemplate, skills, skill },
-  Mutation: {
-    installSkill,
-    uninstallSkill,
-    bindSkillConnection,
-    setSkillMcpEnabled,
-  },
+  Query: { skillTemplates, skillTemplate, agentSkills },
+  Mutation: { assignSkill, removeSkill, bindAgentSkillConnection },
   SkillTemplate,
-  Skill,
+  AgentSkill,
 };

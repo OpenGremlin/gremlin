@@ -26,12 +26,12 @@ type Query {
   notifications: [Notification!]!
   profile: Profile!
   globalSettings: GlobalSettings!
-  "All templates from the catalog"
+  "All skill templates from the catalog"
   skillTemplates: [SkillTemplate!]!
+  "Single skill template by ID"
   skillTemplate(id: ID!): SkillTemplate
-  "All installed skill instances"
-  skills: [Skill!]!
-  skill(id: ID!): Skill
+  "Skills assigned to a specific agent"
+  agentSkills(agentId: ID!): [AgentSkill!]!
   tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
   task(id: ID!): Task
   workspaceEntries(path: String!): [WorkspaceEntry!]!
@@ -77,10 +77,17 @@ type Mutation {
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
   updateGlobalSettings(signupDisabled: Boolean): GlobalSettings!
-  installSkill(templateId: ID!): Skill
-  uninstallSkill(id: ID!): Skill
-  bindSkillConnection(id: ID!, providerId: String!, connectionId: ID!): Skill
-  setSkillMcpEnabled(id: ID!, enabled: Boolean!): Skill
+  "Assign a skill to an agent"
+  assignSkill(agentId: ID!, skillId: ID!): AgentSkill!
+  "Remove a skill from an agent"
+  removeSkill(agentId: ID!, skillId: ID!): Boolean!
+  "Bind a connection to an agent's skill"
+  bindAgentSkillConnection(
+    agentId: ID!
+    skillId: ID!
+    provider: String!
+    connectionId: ID!
+  ): AgentSkill!
 }
 
 type Subscription {
@@ -386,33 +393,32 @@ type SkillTemplate {
   name: String!
   description: String!
   version: String!
-  author: String!
-  category: String!
+  author: String
+  category: String
   icon: String
-  hasInstructions: Boolean!
-  hasMcp: Boolean!
-  installCount: Int!
-  requiredConnections: [SkillConnectionRequirement!]!
+  tags: [String!]
+  hasInstall: Boolean!
+  connections: [SkillConnectionRequirement!]!
 }
 
 type SkillConnectionRequirement {
-  providerId: String!
+  provider: String!
   providerName: String!
   reason: String!
   optional: Boolean!
+  requestedScopes: [String!]
 }
 
-type Skill {
-  id: ID!
-  template: SkillTemplate!
-  installed: Boolean!
-  installedAt: String
-  mcpEnabled: Boolean
-  requiredConnections: [SkillConnectionStatus!]!
+type AgentSkill {
+  skillId: ID!
+  agentId: ID!
+  template: SkillTemplate
+  assignedAt: String!
+  connectionStatuses: [SkillConnectionStatus!]!
 }
 
 type SkillConnectionStatus {
-  providerId: String!
+  provider: String!
   providerName: String!
   reason: String!
   optional: Boolean!

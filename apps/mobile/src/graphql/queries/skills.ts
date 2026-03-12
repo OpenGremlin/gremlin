@@ -7,66 +7,17 @@ export const SkillTemplatesQuery = graphql(`
       name
       description
       version
+      author
       category
       icon
-      installCount
-      requiredConnections {
-        providerId
+      tags
+      hasInstall
+      connections {
+        provider
         providerName
         reason
         optional
-      }
-    }
-  }
-`);
-
-export const SkillsQuery = graphql(`
-  query Skills {
-    skills {
-      id
-      installed
-      installedAt
-      template {
-        id
-        name
-        description
-        version
-        category
-        icon
-      }
-    }
-  }
-`);
-
-export const SkillQuery = graphql(`
-  query Skill($id: ID!) {
-    skill(id: $id) {
-      id
-      installed
-      installedAt
-      mcpEnabled
-      template {
-        id
-        name
-        description
-        version
-        author
-        category
-        icon
-        requiredConnections {
-          providerId
-          providerName
-          reason
-          optional
-        }
-      }
-      requiredConnections {
-        providerId
-        providerName
-        reason
-        optional
-        boundConnectionId
-        connected
+        requestedScopes
       }
     }
   }
@@ -82,32 +33,41 @@ export const SkillTemplateQuery = graphql(`
       author
       category
       icon
-      installCount
-      requiredConnections {
-        providerId
+      tags
+      hasInstall
+      connections {
+        provider
         providerName
         reason
         optional
+        requestedScopes
       }
     }
   }
 `);
 
-export const InstallSkillMutation = graphql(`
-  mutation InstallSkill($templateId: ID!) {
-    installSkill(templateId: $templateId) {
-      id
-      installed
+export const AgentSkillsQuery = graphql(`
+  query AgentSkills($agentId: ID!) {
+    agentSkills(agentId: $agentId) {
+      skillId
+      agentId
+      assignedAt
       template {
         id
         name
         description
         version
-        author
         category
+        icon
+        connections {
+          provider
+          providerName
+          reason
+          optional
+        }
       }
-      requiredConnections {
-        providerId
+      connectionStatuses {
+        provider
         providerName
         reason
         optional
@@ -118,12 +78,25 @@ export const InstallSkillMutation = graphql(`
   }
 `);
 
-export const BindSkillConnectionMutation = graphql(`
-  mutation BindSkillConnection($id: ID!, $providerId: String!, $connectionId: ID!) {
-    bindSkillConnection(id: $id, providerId: $providerId, connectionId: $connectionId) {
-      id
-      requiredConnections {
-        providerId
+export const AssignSkillMutation = graphql(`
+  mutation AssignSkill($agentId: ID!, $skillId: ID!) {
+    assignSkill(agentId: $agentId, skillId: $skillId) {
+      skillId
+      agentId
+      assignedAt
+      template {
+        id
+        name
+        description
+        version
+        category
+        icon
+      }
+      connectionStatuses {
+        provider
+        providerName
+        reason
+        optional
         boundConnectionId
         connected
       }
@@ -131,14 +104,21 @@ export const BindSkillConnectionMutation = graphql(`
   }
 `);
 
-export const UninstallSkillMutation = graphql(`
-  mutation UninstallSkill($id: ID!) {
-    uninstallSkill(id: $id) {
-      id
-      installed
-      template {
-        id
-        name
+export const RemoveSkillMutation = graphql(`
+  mutation RemoveSkill($agentId: ID!, $skillId: ID!) {
+    removeSkill(agentId: $agentId, skillId: $skillId)
+  }
+`);
+
+export const BindAgentSkillConnectionMutation = graphql(`
+  mutation BindAgentSkillConnection($agentId: ID!, $skillId: ID!, $provider: String!, $connectionId: ID!) {
+    bindAgentSkillConnection(agentId: $agentId, skillId: $skillId, provider: $provider, connectionId: $connectionId) {
+      skillId
+      agentId
+      connectionStatuses {
+        provider
+        boundConnectionId
+        connected
       }
     }
   }

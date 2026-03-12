@@ -43,6 +43,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   mediaCdnUrl: media.cdnUrl,
   uploadsBucket: db.uploadsBucket,
   uploadsBucketName: db.uploadsBucketName,
+  skillsBucket: db.skillsBucket,
+  skillsBucketName: db.skillsBucketName,
 });
 
 // 3. Messaging — depends on Database, Server

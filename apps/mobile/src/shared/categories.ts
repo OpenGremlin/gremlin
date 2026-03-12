@@ -18,7 +18,7 @@ export const categoryOrder = [
   "smart_home",
 ];
 
-export function groupByCategory<T extends { category: string }>(
+export function groupByCategory<T extends { category?: string | null }>(
   items: T[],
 ): Array<{ category: string; label: string; items: T[] }> {
   return categoryOrder

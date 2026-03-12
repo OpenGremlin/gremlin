@@ -1,9 +1,14 @@
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as efs from "aws-cdk-lib/aws-efs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import type { Construct } from "constructs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface DatabaseStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
@@ -18,6 +23,8 @@ export class DatabaseStack extends cdk.Stack {
   readonly accessPoint: efs.IAccessPoint;
   readonly uploadsBucket: s3.IBucket;
   readonly uploadsBucketName: string;
+  readonly skillsBucket: s3.IBucket;
+  readonly skillsBucketName: string;
 
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
@@ -114,5 +121,33 @@ export class DatabaseStack extends cdk.Stack {
 
     this.uploadsBucket = uploadsBucket;
     this.uploadsBucketName = uploadsBucket.bucketName;
+
+    // ── S3 skills bucket ─────────────────────────────────────
+    const skillsBucket = new s3.Bucket(this, "SkillsBucket", {
+      bucketName: `gremlin-skills-${this.account}-${this.region}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      versioned: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          noncurrentVersionExpiration: cdk.Duration.days(30),
+        },
+      ],
+    });
+
+    // Deploy core skills from packages/lib/skills/ to core/ prefix
+    new s3deploy.BucketDeployment(this, "CoreSkills", {
+      sources: [
+        s3deploy.Source.asset(path.resolve(__dirname, "../../lib/skills")),
+      ],
+      destinationBucket: skillsBucket,
+      destinationKeyPrefix: "core/",
+      prune: true,
+    });
+
+    this.skillsBucket = skillsBucket;
+    this.skillsBucketName = skillsBucket.bucketName;
   }
 }

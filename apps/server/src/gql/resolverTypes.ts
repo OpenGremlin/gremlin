@@ -10,7 +10,7 @@ import { SafeIntegrationConnection } from '@gremlin/lib/services/integrations/ge
 import { DefaultModelResult } from '@gremlin/lib/services/integrations/getDefaultModel.js';
 import { NotificationItem } from '@gremlin/lib/resources/ddb/schema/notification.js';
 import { ProfileItem } from '@gremlin/lib/resources/ddb/schema/profile.js';
-import { SkillItem } from '@gremlin/lib/resources/ddb/schema/skill.js';
+import { AgentSkillItem } from '@gremlin/lib/resources/ddb/schema/agentSkill.js';
 import { SkillTemplate as SkillTemplateModel } from '@gremlin/lib/services/skills/registry.js';
 import { TaskItem } from '@gremlin/lib/resources/ddb/schema/task.js';
 import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '@gremlin/lib/services/tasks/pagination.js';
@@ -144,6 +144,15 @@ export type AgentSandboxConfigInput = {
   alwaysOn?: InputMaybe<Scalars['Boolean']['input']>;
   enabled: Scalars['Boolean']['input'];
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AgentSkill = {
+  __typename?: 'AgentSkill';
+  agentId: Scalars['ID']['output'];
+  assignedAt: Scalars['String']['output'];
+  connectionStatuses: Array<SkillConnectionStatus>;
+  skillId: Scalars['ID']['output'];
+  template?: Maybe<SkillTemplate>;
 };
 
 export type AgentWebSearchConfig = {
@@ -282,7 +291,10 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  bindSkillConnection?: Maybe<Skill>;
+  /** Assign a skill to an agent */
+  assignSkill: AgentSkill;
+  /** Bind a connection to an agent's skill */
+  bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: Scalars['ID']['output'];
   createAgent: Agent;
@@ -291,7 +303,8 @@ export type Mutation = {
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
-  installSkill?: Maybe<Skill>;
+  /** Remove a skill from an agent */
+  removeSkill: Scalars['Boolean']['output'];
   renameIntegrationConnection: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveNotification?: Maybe<Notification>;
@@ -299,10 +312,8 @@ export type Mutation = {
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
   setDefaultModel: Scalars['Boolean']['output'];
-  setSkillMcpEnabled?: Maybe<Skill>;
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
-  uninstallSkill?: Maybe<Skill>;
   unretireAgent: Agent;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -311,10 +322,17 @@ export type Mutation = {
 };
 
 
-export type MutationBindSkillConnectionArgs = {
+export type MutationAssignSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+};
+
+
+export type MutationBindAgentSkillConnectionArgs = {
+  agentId: Scalars['ID']['input'];
   connectionId: Scalars['ID']['input'];
-  id: Scalars['ID']['input'];
-  providerId: Scalars['String']['input'];
+  provider: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -359,8 +377,9 @@ export type MutationEnableBedrockModelArgs = {
 };
 
 
-export type MutationInstallSkillArgs = {
-  templateId: Scalars['ID']['input'];
+export type MutationRemoveSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -406,12 +425,6 @@ export type MutationSetDefaultModelArgs = {
 };
 
 
-export type MutationSetSkillMcpEnabledArgs = {
-  enabled: Scalars['Boolean']['input'];
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
@@ -423,11 +436,6 @@ export type MutationSubmitOAuthConnectionArgs = {
 
 
 export type MutationTriggerJobArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationUninstallSkillArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -514,6 +522,8 @@ export type Query = {
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
   agentLogs: AgentLogConnection;
+  /** Skills assigned to a specific agent */
+  agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
@@ -523,12 +533,10 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
-  skill?: Maybe<Skill>;
+  /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
-  /** All templates from the catalog */
+  /** All skill templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
-  /** All installed skill instances */
-  skills: Array<Skill>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
@@ -556,8 +564,8 @@ export type QueryAgentLogsArgs = {
 };
 
 
-export type QuerySkillArgs = {
-  id: Scalars['ID']['input'];
+export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
 };
 
 
@@ -612,22 +620,13 @@ export type SendMessageResult = {
   queued: Scalars['Boolean']['output'];
 };
 
-export type Skill = {
-  __typename?: 'Skill';
-  id: Scalars['ID']['output'];
-  installed: Scalars['Boolean']['output'];
-  installedAt?: Maybe<Scalars['String']['output']>;
-  mcpEnabled?: Maybe<Scalars['Boolean']['output']>;
-  requiredConnections: Array<SkillConnectionStatus>;
-  template: SkillTemplate;
-};
-
 export type SkillConnectionRequirement = {
   __typename?: 'SkillConnectionRequirement';
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
+  requestedScopes?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type SkillConnectionStatus = {
@@ -635,23 +634,22 @@ export type SkillConnectionStatus = {
   boundConnectionId?: Maybe<Scalars['String']['output']>;
   connected: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
 };
 
 export type SkillTemplate = {
   __typename?: 'SkillTemplate';
-  author: Scalars['String']['output'];
-  category: Scalars['String']['output'];
+  author?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
-  hasInstructions: Scalars['Boolean']['output'];
-  hasMcp: Scalars['Boolean']['output'];
+  hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  installCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  requiredConnections: Array<SkillConnectionRequirement>;
+  tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
 };
 
@@ -877,6 +875,7 @@ export type ResolversTypes = {
   AgentModelConfigInput: AgentModelConfigInput;
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
+  AgentSkill: ResolverTypeWrapper<AgentSkillItem>;
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
@@ -910,7 +909,6 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SandboxOutput: ResolverTypeWrapper<SandboxOutput>;
   SendMessageResult: ResolverTypeWrapper<SendMessageResult>;
-  Skill: ResolverTypeWrapper<SkillItem>;
   SkillConnectionRequirement: ResolverTypeWrapper<SkillConnectionRequirement>;
   SkillConnectionStatus: ResolverTypeWrapper<SkillConnectionStatus>;
   SkillTemplate: ResolverTypeWrapper<SkillTemplateModel>;
@@ -939,6 +937,7 @@ export type ResolversParentTypes = {
   AgentModelConfigInput: AgentModelConfigInput;
   AgentSandboxConfig: AgentSandboxConfig;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
+  AgentSkill: AgentSkillItem;
   AgentWebSearchConfig: AgentWebSearchConfig;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
@@ -970,7 +969,6 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   SandboxOutput: SandboxOutput;
   SendMessageResult: SendMessageResult;
-  Skill: SkillItem;
   SkillConnectionRequirement: SkillConnectionRequirement;
   SkillConnectionStatus: SkillConnectionStatus;
   SkillTemplate: SkillTemplateModel;
@@ -1057,6 +1055,14 @@ export type AgentSandboxConfigResolvers<ContextType = GremlinContext, ParentType
   alwaysOn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   idleTimeoutMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type AgentSkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentSkill'] = ResolversParentTypes['AgentSkill']> = {
+  agentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  assignedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  connectionStatuses?: Resolver<Array<ResolversTypes['SkillConnectionStatus']>, ParentType, ContextType>;
+  skillId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  template?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
 };
 
 export type AgentWebSearchConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentWebSearchConfig'] = ResolversParentTypes['AgentWebSearchConfig']> = {
@@ -1146,7 +1152,8 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  bindSkillConnection?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationBindSkillConnectionArgs, 'connectionId' | 'id' | 'providerId'>>;
+  assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
+  bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
@@ -1155,7 +1162,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
-  installSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationInstallSkillArgs, 'templateId'>>;
+  removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   renameIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameIntegrationConnectionArgs, 'description' | 'id'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
@@ -1163,10 +1170,8 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
-  setSkillMcpEnabled?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationSetSkillMcpEnabledArgs, 'enabled' | 'id'>>;
   submitOAuthConnection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationSubmitOAuthConnectionArgs, 'accessToken' | 'providerId' | 'scopes'>>;
   triggerJob?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationTriggerJobArgs, 'id'>>;
-  uninstallSkill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<MutationUninstallSkillArgs, 'id'>>;
   unretireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationUnretireAgentArgs, 'id'>>;
   updateAgent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<MutationUpdateAgentArgs, 'id' | 'input'>>;
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
@@ -1214,6 +1219,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<QueryAgentJobArgs, 'id'>>;
   agentJobs?: Resolver<Array<ResolversTypes['AgentJob']>, ParentType, ContextType>;
   agentLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
+  agentSkills?: Resolver<Array<ResolversTypes['AgentSkill']>, ParentType, ContextType, RequireFields<QueryAgentSkillsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1223,10 +1229,8 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
-  skill?: Resolver<Maybe<ResolversTypes['Skill']>, ParentType, ContextType, RequireFields<QuerySkillArgs, 'id'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
   skillTemplates?: Resolver<Array<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
-  skills?: Resolver<Array<ResolversTypes['Skill']>, ParentType, ContextType>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
@@ -1247,42 +1251,33 @@ export type SendMessageResultResolvers<ContextType = GremlinContext, ParentType 
   queued?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
-export type SkillResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Skill'] = ResolversParentTypes['Skill']> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  installed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  installedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  mcpEnabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  requiredConnections?: Resolver<Array<ResolversTypes['SkillConnectionStatus']>, ParentType, ContextType>;
-  template?: Resolver<ResolversTypes['SkillTemplate'], ParentType, ContextType>;
-};
-
 export type SkillConnectionRequirementResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SkillConnectionRequirement'] = ResolversParentTypes['SkillConnectionRequirement']> = {
   optional?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  provider?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   providerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestedScopes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
 };
 
 export type SkillConnectionStatusResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SkillConnectionStatus'] = ResolversParentTypes['SkillConnectionStatus']> = {
   boundConnectionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   connected?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   optional?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  provider?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   providerName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reason?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SkillTemplate'] = ResolversParentTypes['SkillTemplate']> = {
-  author?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  author?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  category?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  connections?: Resolver<Array<ResolversTypes['SkillConnectionRequirement']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  hasInstructions?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  hasMcp?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasInstall?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  installCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  requiredConnections?: Resolver<Array<ResolversTypes['SkillConnectionRequirement']>, ParentType, ContextType>;
+  tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1349,6 +1344,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
+  AgentSkill?: AgentSkillResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
   AvailableScope?: AvailableScopeResolvers<ContextType>;
@@ -1371,7 +1367,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   Query?: QueryResolvers<ContextType>;
   SandboxOutput?: SandboxOutputResolvers<ContextType>;
   SendMessageResult?: SendMessageResultResolvers<ContextType>;
-  Skill?: SkillResolvers<ContextType>;
   SkillConnectionRequirement?: SkillConnectionRequirementResolvers<ContextType>;
   SkillConnectionStatus?: SkillConnectionStatusResolvers<ContextType>;
   SkillTemplate?: SkillTemplateResolvers<ContextType>;
