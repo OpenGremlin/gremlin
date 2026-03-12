@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isCancelled } from "./errors.js";
 import { getLogoUrl, type ProviderMeta } from "./providers.js";
+import { useTheme } from "./useTheme.js";
 
 interface ConnectModalProps {
   provider: ProviderMeta;
@@ -28,6 +29,7 @@ export function ConnectModal({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isDark } = useTheme();
 
   const allSelected = selectedScopes.size === provider.scopes.length;
 
@@ -89,28 +91,28 @@ export function ConnectModal({
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl">
+      <div className="w-full max-w-md rounded-xl border border-edge bg-page p-6 shadow-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <img
-            src={getLogoUrl(provider.logo)}
+            src={getLogoUrl(provider.logo, isDark)}
             alt={provider.service}
             className="h-8 w-8"
           />
           <div>
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-fg">
               Connect {provider.service}
             </h2>
-            <p className="text-sm text-neutral-400">{provider.description}</p>
+            <p className="text-sm text-fg-muted">{provider.description}</p>
           </div>
         </div>
 
         {/* Redirect URI */}
-        <div className="mb-5 rounded-lg border border-neutral-800 bg-neutral-900 p-3">
-          <p className="mb-1 text-xs font-medium text-neutral-400">
+        <div className="mb-5 rounded-lg border border-edge bg-card p-3">
+          <p className="mb-1 text-xs font-medium text-fg-muted">
             Redirect URI (add this to your OAuth app)
           </p>
-          <code className="text-sm text-indigo-400">
+          <code className="text-sm text-accent">
             http://localhost:19284/callback
           </code>
         </div>
@@ -118,27 +120,27 @@ export function ConnectModal({
         {/* Credentials */}
         <div className="mb-4 space-y-3">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-neutral-300">
+            <span className="mb-1 block text-sm font-medium text-fg-secondary">
               Client ID
             </span>
             <input
               type="text"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
-              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-edge-strong bg-card px-3 py-2 text-sm text-fg placeholder-fg-faint outline-none focus:border-indigo-500"
               placeholder="Enter your OAuth client ID"
               disabled={loading}
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-neutral-300">
+            <span className="mb-1 block text-sm font-medium text-fg-secondary">
               Client Secret
             </span>
             <input
               type="password"
               value={clientSecret}
               onChange={(e) => setClientSecret(e.target.value)}
-              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-edge-strong bg-card px-3 py-2 text-sm text-fg placeholder-fg-faint outline-none focus:border-indigo-500"
               placeholder="Enter your OAuth client secret"
               disabled={loading}
             />
@@ -148,11 +150,13 @@ export function ConnectModal({
         {/* Scopes */}
         <div className="mb-5">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-neutral-300">Scopes</span>
+            <span className="text-sm font-medium text-fg-secondary">
+              Scopes
+            </span>
             <button
               type="button"
               onClick={toggleAll}
-              className="text-xs text-indigo-400 hover:text-indigo-300"
+              className="text-xs text-accent hover:text-accent-hover"
               disabled={loading}
             >
               {allSelected ? "Deselect all" : "Select all"}
@@ -162,7 +166,7 @@ export function ConnectModal({
             {provider.scopes.map((s) => (
               <label
                 key={s.scope}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 hover:border-neutral-700"
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-edge bg-card px-3 py-2 hover:border-edge-strong"
               >
                 <input
                   type="checkbox"
@@ -171,10 +175,8 @@ export function ConnectModal({
                   className="accent-indigo-500"
                   disabled={loading}
                 />
-                <span className="text-sm text-white">{s.label}</span>
-                <span className="ml-auto text-xs text-neutral-500">
-                  {s.scope}
-                </span>
+                <span className="text-sm text-fg">{s.label}</span>
+                <span className="ml-auto text-xs text-fg-faint">{s.scope}</span>
               </label>
             ))}
           </div>
@@ -182,7 +184,7 @@ export function ConnectModal({
 
         {/* Error */}
         {error && (
-          <div className="mb-4 rounded-lg border border-red-900/50 bg-red-950/50 p-3 text-sm text-red-400">
+          <div className="mb-4 rounded-lg border border-error-border bg-error-bg p-3 text-sm text-error">
             {error}
           </div>
         )}
@@ -193,7 +195,7 @@ export function ConnectModal({
             <button
               type="button"
               onClick={handleCancel}
-              className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+              className="rounded-lg border border-edge-strong px-4 py-2 text-sm text-fg-secondary hover:bg-card-alt"
             >
               Cancel
             </button>
@@ -202,7 +204,7 @@ export function ConnectModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+                className="rounded-lg border border-edge-strong px-4 py-2 text-sm text-fg-secondary hover:bg-card-alt"
               >
                 Close
               </button>

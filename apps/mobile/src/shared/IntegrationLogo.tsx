@@ -1,7 +1,10 @@
 import { Image, Text, View } from "react-native";
+import { useTheme } from "../lib/ThemeContext";
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-const logoMap: Record<string, ReturnType<typeof require>> = {
+
+/** Default logos — designed for dark backgrounds (dark mode). */
+const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   google: require("@gremlin/logos/Google.svg"),
   notion: require("@gremlin/logos/Notion.svg"),
   linear: require("@gremlin/logos/Linear.svg"),
@@ -11,13 +14,13 @@ const logoMap: Record<string, ReturnType<typeof require>> = {
   teams: require("@gremlin/logos/Teams.svg"),
   telegram: require("@gremlin/logos/Telegram.svg"),
   whatsapp: require("@gremlin/logos/WhatsApp.svg"),
-  github: require("@gremlin/logos/GitHub_white.svg"),
+  github: require("@gremlin/logos/GitHub.svg"),
   gitlab: require("@gremlin/logos/GitLab.svg"),
   jira: require("@gremlin/logos/Jira.svg"),
   spotify: require("@gremlin/logos/Spotify.svg"),
   hue: require("@gremlin/logos/Hue.svg"),
   homeassistant: require("@gremlin/logos/HomeAssistant.svg"),
-  anthropic: require("@gremlin/logos/Anthropic_white.svg"),
+  anthropic: require("@gremlin/logos/Anthropic.svg"),
   openai: require("@gremlin/logos/OpenAI.svg"),
   google_ai: require("@gremlin/logos/Gemini.svg"),
   mistral: require("@gremlin/logos/Mistral.svg"),
@@ -28,6 +31,15 @@ const logoMap: Record<string, ReturnType<typeof require>> = {
   tavily: require("@gremlin/logos/Tavily.svg"),
 };
 
+/** Light-mode overrides — only for logos that have a `_light` variant. */
+const lightLogoOverrides: Record<string, ReturnType<typeof require>> = {
+  anthropic: require("@gremlin/logos/Anthropic_light.svg"),
+  github: require("@gremlin/logos/GitHub_light.svg"),
+  linear: require("@gremlin/logos/Linear_light.svg"),
+  openai: require("@gremlin/logos/OpenAI_light.svg"),
+  xai: require("@gremlin/logos/xAI_light.svg"),
+};
+
 export function IntegrationLogo({
   id,
   size = 40,
@@ -35,7 +47,10 @@ export function IntegrationLogo({
   id: string;
   size?: number;
 }) {
-  const logo = logoMap[id];
+  const { isDark } = useTheme();
+  const logo =
+    (!isDark ? lightLogoOverrides[id] : undefined) ?? darkLogoMap[id];
+
   if (logo) {
     return (
       <View

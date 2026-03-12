@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ConnectModal } from "./ConnectModal.js";
 import { isCancelled } from "./errors.js";
 import { getLogoUrl, oauthProviders, type ProviderMeta } from "./providers.js";
+import { ThemeToggle } from "./ThemeToggle.js";
+import { useTheme } from "./useTheme.js";
 
 type ConnectionStatus = "disconnected" | "connected" | "error";
 
@@ -328,34 +330,39 @@ export function App() {
   }
 
   const isLoggedIn = connectionOk === true && !!authToken;
+  const { isDark } = useTheme();
 
   return (
-    <div className="flex h-screen flex-col bg-neutral-950 text-white">
+    <div className="flex h-screen flex-col bg-page text-fg">
       {/* Title bar drag region */}
       <div
-        className="flex h-12 shrink-0 items-center justify-center border-b border-neutral-800"
+        className="flex h-12 shrink-0 items-center justify-between border-b border-edge px-4"
         style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       >
-        <span className="text-sm font-semibold text-neutral-300">
+        <div className="w-16" />
+        <span className="text-sm font-semibold text-fg-secondary">
           Gremlin Connect
         </span>
+        <div className="flex w-16 justify-end">
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* Server connection */}
         <div className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-400">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             Server Connection
           </h2>
-          <div className="space-y-3 rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+          <div className="space-y-3 rounded-xl border border-edge bg-card p-4">
             <label className="block">
               <div className="group relative mb-1 flex items-center gap-1.5">
-                <span className="text-sm font-medium text-neutral-300">
+                <span className="text-sm font-medium text-fg-secondary">
                   Your Gremlin Server
                 </span>
                 <button
                   type="button"
-                  className="relative cursor-help text-neutral-500 hover:text-neutral-300"
+                  className="relative cursor-help text-fg-faint hover:text-fg-secondary"
                   onClick={(e) => {
                     e.preventDefault();
                     setShowServerHelp((v) => !v);
@@ -376,7 +383,7 @@ export function App() {
                     />
                   </svg>
                   {showServerHelp && (
-                    <div className="absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-normal text-neutral-300 shadow-lg">
+                    <div className="absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-lg border border-edge-strong bg-card-alt px-3 py-2 text-xs font-normal text-fg-secondary shadow-lg">
                       Deploy Gremlin using CDK first, then paste your CloudFront
                       URL here (e.g. https://abc123.cloudfront.net).
                     </div>
@@ -392,7 +399,7 @@ export function App() {
                   setLoginError(null);
                 }}
                 disabled={isLoggedIn}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-white placeholder-neutral-500 outline-none focus:border-indigo-500 disabled:opacity-50"
+                className="w-full rounded-lg border border-edge-strong bg-input px-3 py-2 text-sm text-fg placeholder-fg-faint outline-none focus:border-indigo-500 disabled:opacity-50"
                 placeholder="https://your-deployment.cloudfront.net"
               />
             </label>
@@ -401,7 +408,7 @@ export function App() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-600"
+                  className="rounded-lg bg-btn px-4 py-2 text-sm font-medium text-fg hover:bg-btn-hover"
                 >
                   Log out
                 </button>
@@ -409,7 +416,7 @@ export function App() {
                 <button
                   type="button"
                   onClick={() => window.electronAPI.cancelAuthFlow()}
-                  className="rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-600"
+                  className="rounded-lg bg-btn px-4 py-2 text-sm font-medium text-fg hover:bg-btn-hover"
                 >
                   Cancel
                 </button>
@@ -424,13 +431,15 @@ export function App() {
                 </button>
               )}
               {isLoggedIn && (
-                <span className="text-sm text-emerald-400">Connected</span>
+                <span className="rounded-full bg-success-badge px-2 py-0.5 text-xs font-medium text-success">
+                  Connected
+                </span>
               )}
               {connectionOk === false && authToken && (
-                <span className="text-sm text-red-400">Connection failed</span>
+                <span className="text-sm text-error">Connection failed</span>
               )}
               {loginError && (
-                <span className="text-sm text-red-400">{loginError}</span>
+                <span className="text-sm text-error">{loginError}</span>
               )}
             </div>
           </div>
@@ -439,7 +448,7 @@ export function App() {
         {/* Connected providers */}
         {isLoggedIn && connections.length > 0 && (
           <div className="mb-8">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-400">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
               Connected
             </h2>
             <div className="space-y-2">
@@ -456,7 +465,7 @@ export function App() {
                 return (
                   <div
                     key={conn.id}
-                    className="rounded-xl border border-neutral-800 bg-neutral-900"
+                    className="rounded-xl border border-edge bg-card"
                   >
                     <button
                       type="button"
@@ -466,31 +475,31 @@ export function App() {
                       className="flex w-full items-center gap-3 px-4 py-3 text-left"
                     >
                       <img
-                        src={getLogoUrl(provider.logo)}
+                        src={getLogoUrl(provider.logo, isDark)}
                         alt={provider.service}
                         className="h-6 w-6"
                       />
                       <div className="min-w-0 flex-1">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-fg">
                           {provider.service}
                         </span>
                         {conn.accountId && conn.accountId !== "unknown" && (
-                          <span className="ml-2 text-xs text-neutral-400">
+                          <span className="ml-2 text-xs text-fg-muted">
                             {conn.accountId}
                           </span>
                         )}
                       </div>
-                      <span className="shrink-0 text-xs text-neutral-500">
+                      <span className="shrink-0 text-xs text-fg-faint">
                         {new Date(conn.connectedAt).toLocaleDateString()}
                       </span>
-                      <span className="shrink-0 rounded-full bg-emerald-900/50 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                      <span className="shrink-0 rounded-full bg-success-badge px-2 py-0.5 text-xs font-medium text-success">
                         Connected
                       </span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        className={`h-4 w-4 shrink-0 text-fg-faint transition-transform ${isExpanded ? "rotate-180" : ""}`}
                         role="img"
                         aria-label="Toggle"
                       >
@@ -502,8 +511,8 @@ export function App() {
                       </svg>
                     </button>
                     {isExpanded && (
-                      <div className="border-t border-neutral-800 px-4 py-3">
-                        <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-neutral-500">
+                      <div className="border-t border-edge px-4 py-3">
+                        <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-fg-faint">
                           Enabled Scopes
                         </span>
                         {scopeLabels.length > 0 ? (
@@ -511,14 +520,14 @@ export function App() {
                             {scopeLabels.map((label) => (
                               <span
                                 key={label}
-                                className="rounded-md bg-neutral-800 px-2 py-1 text-xs text-neutral-300"
+                                className="rounded-md bg-card-alt px-2 py-1 text-xs text-fg-secondary"
                               >
                                 {label}
                               </span>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-neutral-500">
+                          <span className="text-xs text-fg-faint">
                             No scopes recorded
                           </span>
                         )}
@@ -533,7 +542,7 @@ export function App() {
 
         {/* Provider grid */}
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-400">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-fg-muted">
             OAuth Providers
           </h2>
           <div className="grid grid-cols-3 gap-3">
@@ -547,28 +556,28 @@ export function App() {
                   type="button"
                   onClick={() => setActiveProvider(provider)}
                   disabled={!isLoggedIn}
-                  className="group flex flex-col items-start rounded-xl border border-neutral-800 bg-neutral-900 p-4 text-left transition hover:border-neutral-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="group flex flex-col items-start rounded-xl border border-edge bg-card p-4 text-left transition hover:border-edge-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <div className="mb-3 flex w-full items-center justify-between">
                     <img
-                      src={getLogoUrl(provider.logo)}
+                      src={getLogoUrl(provider.logo, isDark)}
                       alt={provider.service}
                       className="h-8 w-8"
                     />
                     {isConnected && (
-                      <span className="rounded-full bg-emerald-900/50 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                      <span className="rounded-full bg-success-badge px-2 py-0.5 text-xs font-medium text-success">
                         Connected
                       </span>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-fg">
                     {provider.service}
                   </span>
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-fg-muted">
                     {provider.description}
                   </span>
                   {state?.accountId && state.accountId !== "unknown" && (
-                    <span className="mt-1 text-xs text-neutral-500">
+                    <span className="mt-1 text-xs text-fg-faint">
                       {state.accountId}
                     </span>
                   )}

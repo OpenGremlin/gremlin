@@ -1,9 +1,11 @@
 import DiscordLogo from "@gremlin/logos/Discord.svg";
 import GitHubLogo from "@gremlin/logos/GitHub.svg";
+import GitHubLightLogo from "@gremlin/logos/GitHub_light.svg";
 import GitLabLogo from "@gremlin/logos/GitLab.svg";
 import GoogleLogo from "@gremlin/logos/Google.svg";
 import JiraLogo from "@gremlin/logos/Jira.svg";
 import LinearLogo from "@gremlin/logos/Linear.svg";
+import LinearLightLogo from "@gremlin/logos/Linear_light.svg";
 import NotionLogo from "@gremlin/logos/Notion.svg";
 import SpotifyLogo from "@gremlin/logos/Spotify.svg";
 import TeamsLogo from "@gremlin/logos/Teams.svg";
@@ -20,7 +22,16 @@ const logoImports: Record<string, string> = {
   "Spotify.svg": SpotifyLogo,
 };
 
-export function getLogoUrl(logo: string): string {
+/** Light-mode overrides for logos that have a _light variant. */
+const lightLogoImports: Record<string, string> = {
+  "GitHub.svg": GitHubLightLogo,
+  "Linear.svg": LinearLightLogo,
+};
+
+export function getLogoUrl(logo: string, isDark = true): string {
+  if (!isDark && lightLogoImports[logo]) {
+    return lightLogoImports[logo];
+  }
   return logoImports[logo] ?? "";
 }
 
