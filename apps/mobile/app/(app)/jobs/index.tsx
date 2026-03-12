@@ -1,8 +1,8 @@
 import cronstrue from "cronstrue";
 import { router } from "expo-router";
-import { Play, Plus } from "lucide-react-native";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Calendar, Play, Plus } from "lucide-react-native";
+import { useCallback, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import {
   AgentJobsQuery,
   TriggerJobMutation,
@@ -10,6 +10,7 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { EmptyState } from "../../../src/shared/EmptyState";
 import { formatDate } from "../../../src/shared/formatDate";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
@@ -35,7 +36,7 @@ function RunNowButton({ jobId }: { jobId: string }) {
       className={`shrink-0 p-1.5 rounded-lg ${triggering ? "opacity-50" : ""}`}
     >
       {triggered ? (
-        <Text className="text-xs text-green-400">Queued</Text>
+        <Text className="text-xs text-success">Queued</Text>
       ) : (
         <Play size={14} color={colors.iconMuted} />
       )}
@@ -45,13 +46,40 @@ function RunNowButton({ jobId }: { jobId: string }) {
 
 export default function JobsScreen() {
   const colors = useNavigationTheme();
-  const { data, loading, error } = useQuery(AgentJobsQuery);
+  const { data, loading, error, refetch } = useQuery(AgentJobsQuery);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const jobs = data?.agentJobs ?? [];
 
   return (
-    <ScrollView className="flex-1" contentContainerClassName="px-4 pb-6 gap-3">
+    <ScrollView
+      className="flex-1"
+      contentContainerClassName="px-4 pb-6 gap-3"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.loadingIndicator}
+        />
+      }
+    >
       <QueryResult loading={loading} error={error} />
+
+      {!loading && jobs.length === 0 && (
+        <EmptyState
+          message="No scheduled jobs"
+          description="Jobs run your agents on a schedule automatically."
+          icon={<Calendar size={32} color={colors.iconMuted} />}
+          actionLabel="Create Job"
+          onAction={() => router.push("/jobs/new")}
+        />
+      )}
 
       {jobs.map((job) => (
         <ListCard
@@ -63,7 +91,7 @@ export default function JobsScreen() {
           badge={
             <View className="flex-row items-center gap-2">
               {job.paused ? (
-                <Text className="text-xs text-amber-400">Paused</Text>
+                <Text className="text-xs text-warning">Paused</Text>
               ) : (
                 <RunNowButton jobId={job.id} />
               )}
@@ -86,13 +114,15 @@ export default function JobsScreen() {
         />
       ))}
 
-      <Pressable
-        onPress={() => router.push("/jobs/new")}
-        className="self-start flex-row items-center gap-1.5 py-2"
-      >
-        <Plus size={14} color={colors.iconMuted} />
-        <Text className="text-xs text-text-muted">New Job</Text>
-      </Pressable>
+      {jobs.length > 0 && (
+        <Pressable
+          onPress={() => router.push("/jobs/new")}
+          className="flex-row items-center justify-center gap-2 py-3 bg-accent-surface border border-accent-border rounded-xl active:bg-accent-surface/80"
+        >
+          <Plus size={16} color={colors.accent} />
+          <Text className="text-sm font-medium text-accent">New Job</Text>
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

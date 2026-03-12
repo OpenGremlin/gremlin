@@ -28,7 +28,7 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   },
   strong: { fontWeight: "700", color: "#f5f5f5" },
   em: { fontStyle: "italic" },
-  link: { color: "#60a5fa", textDecorationLine: "underline" },
+  link: { color: "#818cf8", textDecorationLine: "underline" },
   blockquote: {
     borderLeftWidth: 3,
     borderLeftColor: "#525252",
@@ -119,7 +119,7 @@ const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   },
   strong: { fontWeight: "700", color: "#374151" },
   em: { fontStyle: "italic" },
-  link: { color: "#2563eb", textDecorationLine: "underline" },
+  link: { color: "#4f46e5", textDecorationLine: "underline" },
   blockquote: {
     borderLeftWidth: 3,
     borderLeftColor: "#d4d4d4",

@@ -68,7 +68,7 @@ function NotificationCard({
                   }}
                   className={`rounded-full px-3 py-1 ${
                     action.style === "primary"
-                      ? "bg-indigo-500"
+                      ? "bg-accent"
                       : "bg-surface-alt"
                   }`}
                 >

@@ -77,7 +77,7 @@ export default function GlobalSettingsScreen() {
                 onPress={() => setMode(option.value)}
                 className={`flex-1 flex-row items-center justify-center gap-2 py-2.5 rounded-lg border ${
                   selected
-                    ? "bg-indigo-600/20 border-indigo-500/40"
+                    ? "bg-accent-surface border-accent-border"
                     : "bg-surface-alt border-app-border"
                 }`}
               >

@@ -32,6 +32,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [_version, setVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
 
   const serializedVars = variables ? JSON.stringify(variables) : undefined;
@@ -75,7 +76,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars, direction]);
+  }, [query, stableVars, direction, _version]);
 
   const loadMore = useCallback(async () => {
     if (!cursorRef.current || !hasMore) return;
@@ -139,6 +140,12 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     [direction],
   );
 
+  const refetch = useCallback(() => {
+    setNodes([]);
+    cursorRef.current = null;
+    setVersion((v) => v + 1);
+  }, []);
+
   return {
     nodes,
     loading,
@@ -146,6 +153,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     error,
     hasMore,
     loadMore,
+    refetch,
     appendNode,
     replaceOrAppend,
   };

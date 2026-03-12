@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { Bot } from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -77,27 +78,30 @@ export default function LoginScreen() {
     }
   };
 
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-base";
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-bg"
     >
       <View className="flex-1 justify-center px-6">
-        <Text className="text-2xl font-bold text-text-primary text-center mb-8">
-          {mode === "login"
-            ? "Sign in"
-            : mode === "signup"
-              ? "Create account"
-              : "Verify email"}
-        </Text>
+        <View className="items-center mb-10">
+          <View className="w-16 h-16 rounded-2xl bg-accent-surface border border-accent-border items-center justify-center mb-4">
+            <Bot size={32} color={colors.accent} />
+          </View>
+          <Text className="text-3xl font-bold text-text-primary">Gremlin</Text>
+          <Text className="text-sm text-text-muted mt-1">
+            {mode === "login"
+              ? "Sign in to your account"
+              : mode === "signup"
+                ? "Create a new account"
+                : "Check your email for a code"}
+          </Text>
+        </View>
 
         <View className="gap-3">
           {mode === "confirm" ? (
             <TextInput
-              className={inputClass}
+              className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
               placeholder="Verification code"
               placeholderTextColor={colors.placeholderText}
               value={code}
@@ -110,7 +114,7 @@ export default function LoginScreen() {
           ) : (
             <>
               <TextInput
-                className={inputClass}
+                className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
                 placeholder="Email"
                 placeholderTextColor={colors.placeholderText}
                 value={email}
@@ -120,7 +124,7 @@ export default function LoginScreen() {
                 autoComplete="email"
               />
               <TextInput
-                className={inputClass}
+                className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
                 placeholder="Password"
                 placeholderTextColor={colors.placeholderText}
                 value={password}
@@ -136,7 +140,7 @@ export default function LoginScreen() {
           )}
 
           {error ? (
-            <Text className="text-red-400 text-sm text-center">{error}</Text>
+            <Text className="text-error text-sm text-center">{error}</Text>
           ) : null}
 
           <Pressable
@@ -148,7 +152,7 @@ export default function LoginScreen() {
                   : handleConfirm
             }
             disabled={loading}
-            className="bg-indigo-600 rounded-lg py-3 items-center mt-2"
+            className="bg-accent rounded-xl py-3.5 items-center mt-2"
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -165,7 +169,7 @@ export default function LoginScreen() {
 
           {mode === "login" && !signupDisabled && (
             <Pressable onPress={() => setMode("signup")} className="py-2">
-              <Text className="text-indigo-400 text-sm text-center">
+              <Text className="text-accent text-sm text-center">
                 Don't have an account? Sign up
               </Text>
             </Pressable>
@@ -173,7 +177,7 @@ export default function LoginScreen() {
 
           {mode === "signup" && (
             <Pressable onPress={() => setMode("login")} className="py-2">
-              <Text className="text-indigo-400 text-sm text-center">
+              <Text className="text-accent text-sm text-center">
                 Already have an account? Sign in
               </Text>
             </Pressable>

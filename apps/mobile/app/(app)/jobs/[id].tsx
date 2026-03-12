@@ -271,7 +271,7 @@ export default function JobDetailScreen() {
           <Pressable
             onPress={handleTrigger}
             disabled={triggering}
-            className="flex-row items-center gap-2 px-4 py-2 bg-emerald-600 rounded-lg disabled:opacity-50"
+            className="flex-row items-center gap-2 px-4 py-2 bg-accent rounded-lg disabled:opacity-50"
           >
             <Play size={14} color="white" />
             <Text className="text-sm font-medium text-white">
@@ -377,7 +377,7 @@ export default function JobDetailScreen() {
           </View>
 
           {saveError ? (
-            <Text className="text-sm text-red-400">{saveError}</Text>
+            <Text className="text-sm text-error">{saveError}</Text>
           ) : null}
         </View>
       </View>

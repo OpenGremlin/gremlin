@@ -56,9 +56,9 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
           <Text className="text-[10px] text-text-muted">
             {formatFileSize(upload.size)}
           </Text>
-          {isDone && <Text className="text-[10px] text-green-400">Done</Text>}
+          {isDone && <Text className="text-[10px] text-success">Done</Text>}
           {isError && (
-            <Text className="text-[10px] text-red-400" numberOfLines={1}>
+            <Text className="text-[10px] text-error" numberOfLines={1}>
               {upload.error ?? "Error"}
             </Text>
           )}
@@ -73,7 +73,7 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
         {isActive && (
           <View className="mt-1 h-1 bg-surface-alt rounded-full overflow-hidden">
             <View
-              className="h-full bg-blue-500 rounded-full"
+              className="h-full bg-accent rounded-full"
               style={{ width: `${upload.progress}%` }}
             />
           </View>
@@ -175,7 +175,7 @@ function ChatInputBar({
           onPress={onSend}
           disabled={!canSend}
           className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 ${
-            canSend ? "bg-blue-600" : "bg-surface-alt"
+            canSend ? "bg-accent" : "bg-surface-alt"
           }`}
         >
           <ArrowUp size={20} color={canSend ? "#fff" : colors.iconMuted} />
@@ -294,13 +294,7 @@ export default function AgentChatScreen() {
     >
       <Stack.Screen
         options={{
-          headerTitle: () => (
-            <ChatHeaderTitle
-              agentId={id}
-              title={agent.name}
-              onPress={() => router.push(`/agents/${id}/config`)}
-            />
-          ),
+          headerShown: false,
         }}
       />
 
@@ -345,27 +339,30 @@ export default function AgentChatScreen() {
         }
       />
 
-      {Platform.OS === "ios" ? (
-        <View
-          pointerEvents="box-none"
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2,
+        }}
+      >
+        <LinearGradient
+          colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
+          locations={[0, 0.6, 1]}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 2,
+            paddingTop: Platform.OS === "ios" ? insets.top + 8 : 12,
+            paddingBottom: 40,
           }}
         >
-          <LinearGradient
-            colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
-            locations={[0, 0.6, 1]}
-            style={{ paddingTop: insets.top + 8, paddingBottom: 40 }}
-          >
+          {Platform.OS !== "web" && (
             <Pressable
               onPress={() => router.back()}
               style={{
                 position: "absolute",
-                top: insets.top + 4,
+                top: Platform.OS === "ios" ? insets.top + 4 : 8,
                 left: 8,
                 zIndex: 3,
                 padding: 8,
@@ -373,30 +370,16 @@ export default function AgentChatScreen() {
             >
               <ChevronLeft size={24} color={colors.headerText} />
             </Pressable>
-            <View style={{ alignItems: "center" }}>
-              <ChatHeaderTitle
-                agentId={id}
-                title={agent.name}
-                onPress={() => router.push(`/agents/${id}/config`)}
-              />
-            </View>
-          </LinearGradient>
-        </View>
-      ) : (
-        <LinearGradient
-          colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
-          locations={[0, 0.6, 1]}
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: Platform.OS === "web" ? 160 : 140,
-            zIndex: 1,
-          }}
-        />
-      )}
+          )}
+          <View style={{ alignItems: "center" }}>
+            <ChatHeaderTitle
+              agentId={id}
+              title={agent.name}
+              onPress={() => router.push(`/agents/${id}/config`)}
+            />
+          </View>
+        </LinearGradient>
+      </View>
 
       <ChatInputBar
         input={input}

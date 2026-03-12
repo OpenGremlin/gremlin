@@ -155,12 +155,12 @@ export default function NewJobScreen() {
         />
       </View>
 
-      {error ? <Text className="text-red-400 text-sm">{error}</Text> : null}
+      {error ? <Text className="text-error text-sm">{error}</Text> : null}
 
       <Pressable
         onPress={handleCreate}
         disabled={saving || !canSubmit}
-        className="bg-indigo-600 rounded-lg py-3 items-center mt-2 disabled:opacity-50"
+        className="bg-accent rounded-xl py-3 items-center mt-2 disabled:opacity-50"
       >
         {saving ? (
           <ActivityIndicator color="white" />

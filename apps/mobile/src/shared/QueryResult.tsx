@@ -12,7 +12,7 @@ export function QueryResult({
   return (
     <View className="px-4 pt-4">
       {loading && <Text className="text-sm text-text-muted">Loading...</Text>}
-      {error && <Text className="text-sm text-red-400">Error: {error}</Text>}
+      {error && <Text className="text-sm text-error">Error: {error}</Text>}
     </View>
   );
 }

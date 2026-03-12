@@ -45,7 +45,7 @@ function ModelCard({
 }) {
   return (
     <View
-      className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-indigo-500/40" : ""}`}
+      className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-accent-border" : ""}`}
     >
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium text-text-primary flex-1">
@@ -53,8 +53,8 @@ function ModelCard({
         </Text>
         {isDefault && (
           <View className="flex-row items-center gap-1.5 ml-2">
-            <View className="w-2 h-2 rounded-full bg-indigo-400" />
-            <Text className="text-xs text-indigo-400">Default</Text>
+            <View className="w-2 h-2 rounded-full bg-accent" />
+            <Text className="text-xs text-accent">Default</Text>
           </View>
         )}
       </View>
@@ -145,7 +145,7 @@ function ApiKeyDetailView({
           <Pressable
             onPress={handleSaveApiKey}
             disabled={saving || !apiKeyInput.trim()}
-            className="bg-indigo-600 rounded-lg px-4 py-2.5 items-center disabled:opacity-50"
+            className="bg-accent rounded-lg px-4 py-2.5 items-center disabled:opacity-50"
           >
             {saving ? (
               <ActivityIndicator color="white" size="small" />
@@ -191,7 +191,7 @@ function ApiKeyDetailView({
                   <Text className="text-xs text-text-faint">Add key first</Text>
                 ) : (
                   <Pressable onPress={() => handleSelectModel(model.id)}>
-                    <Text className="text-xs font-medium text-indigo-400">
+                    <Text className="text-xs font-medium text-accent">
                       Set as Default
                     </Text>
                   </Pressable>
@@ -318,19 +318,19 @@ function BedrockDetailView({
                 ) : isDefault ? null : isEnabled ? (
                   <>
                     <Pressable onPress={() => handleSetDefault(model.id)}>
-                      <Text className="text-xs font-medium text-indigo-400">
+                      <Text className="text-xs font-medium text-accent">
                         Set Default
                       </Text>
                     </Pressable>
                     <Pressable onPress={() => handleDisable(model.id)}>
-                      <Text className="text-xs font-medium text-red-400">
+                      <Text className="text-xs font-medium text-error">
                         Disable
                       </Text>
                     </Pressable>
                   </>
                 ) : (
                   <Pressable onPress={() => handleEnable(model.id)}>
-                    <Text className="text-xs font-medium text-emerald-600">
+                    <Text className="text-xs font-medium text-success">
                       Enable
                     </Text>
                   </Pressable>

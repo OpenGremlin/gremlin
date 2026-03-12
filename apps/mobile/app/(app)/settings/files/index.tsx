@@ -30,7 +30,7 @@ function Breadcrumbs({
       className="border-b border-app-border shrink-0 grow-0"
     >
       <Pressable onPress={() => onNavigate("")}>
-        <Text className="text-sm text-indigo-400">/workspace</Text>
+        <Text className="text-sm text-accent">/workspace</Text>
       </Pressable>
       {segments.map((seg, i) => {
         const partial = segments.slice(0, i + 1).join("/");
@@ -42,7 +42,7 @@ function Breadcrumbs({
               <Text className="text-sm text-text-secondary">{seg}</Text>
             ) : (
               <Pressable onPress={() => onNavigate(partial)}>
-                <Text className="text-sm text-indigo-400">{seg}</Text>
+                <Text className="text-sm text-accent">{seg}</Text>
               </Pressable>
             )}
           </View>

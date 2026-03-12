@@ -1,9 +1,11 @@
 import { router } from "expo-router";
+import { Home } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   Text,
   View,
 } from "react-native";
@@ -64,11 +66,11 @@ function TaskCard({ item }: { item: TaskItem }) {
               {timeAgo(task.createdAt)}
             </Text>
           </View>
-          <Text className="text-sm font-medium text-text-primary mt-0.5">
+          <Text className="text-base font-medium text-text-primary mt-0.5">
             {task.title}
           </Text>
           {task.message ? (
-            <Text className="text-xs text-text-muted mt-0.5" numberOfLines={1}>
+            <Text className="text-sm text-text-muted mt-0.5" numberOfLines={1}>
               {task.message}
             </Text>
           ) : null}
@@ -87,10 +89,17 @@ function TaskCard({ item }: { item: TaskItem }) {
 
 export default function HomeScreen() {
   const colors = useNavigationTheme();
-  const { nodes, loading, loadingMore, error, hasMore, loadMore } =
+  const [refreshing, setRefreshing] = useState(false);
+  const { nodes, loading, loadingMore, error, hasMore, loadMore, refetch } =
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",
     });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   if (loading && nodes.length === 0) {
     return <QueryResult loading={loading} error={error} />;
@@ -102,6 +111,13 @@ export default function HomeScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <TaskCard item={item} />}
       ItemSeparatorComponent={ListSeparator}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.loadingIndicator}
+        />
+      }
       onEndReached={() => {
         if (hasMore && !loadingMore) loadMore();
       }}
@@ -114,7 +130,13 @@ export default function HomeScreen() {
         ) : null
       }
       ListEmptyComponent={
-        !loading ? <EmptyState message="No tasks yet" /> : null
+        !loading ? (
+          <EmptyState
+            message="No tasks yet"
+            description="Start a conversation with an agent to see tasks here."
+            icon={<Home size={32} color={colors.iconMuted} />}
+          />
+        ) : null
       }
     />
   );

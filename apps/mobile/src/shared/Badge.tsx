@@ -1,13 +1,13 @@
 import { Text, View } from "react-native";
 
 const variants: Record<string, string> = {
-  installed: "bg-green-500/15",
-  available: "bg-indigo-500/15",
+  installed: "bg-success-surface",
+  available: "bg-accent-surface",
 };
 
 const textVariants: Record<string, string> = {
-  installed: "text-green-400",
-  available: "text-indigo-400",
+  installed: "text-success",
+  available: "text-accent",
 };
 
 export function Badge({ label }: { label: string }) {

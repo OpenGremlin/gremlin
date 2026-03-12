@@ -136,7 +136,7 @@ export default function AgentConfigScreen() {
           <Pressable
             onPress={doUnretire}
             disabled={retiring}
-            className="px-3 py-1.5 bg-blue-600 rounded-lg"
+            className="px-3 py-1.5 bg-accent rounded-lg"
           >
             {retiring ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -206,7 +206,7 @@ export default function AgentConfigScreen() {
       </View>
 
       {saveError ? (
-        <Text className="text-red-400 text-sm">{saveError}</Text>
+        <Text className="text-error text-sm">{saveError}</Text>
       ) : null}
 
       {!agent.retired && (

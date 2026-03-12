@@ -76,7 +76,7 @@ export function ConnectionPicker({
                     )
                   }
                 >
-                  <Text className="text-xs text-indigo-400">
+                  <Text className="text-xs text-accent">
                     Set up a connection
                   </Text>
                 </Pressable>

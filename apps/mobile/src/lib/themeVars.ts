@@ -15,6 +15,17 @@ export const lightVars = {
   "--color-active": "rgba(0, 0, 0, 0.05)",
   "--color-code-bg": "#f5f5f5",
   "--color-code-border": "#d4d4d4",
+  "--color-accent": "#4f46e5",
+  "--color-accent-light": "#6366f1",
+  "--color-accent-surface": "rgba(79, 70, 229, 0.12)",
+  "--color-accent-border": "rgba(79, 70, 229, 0.3)",
+  "--color-success": "#16a34a",
+  "--color-success-surface": "rgba(22, 163, 74, 0.12)",
+  "--color-warning": "#d97706",
+  "--color-warning-surface": "rgba(217, 119, 6, 0.12)",
+  "--color-error": "#dc2626",
+  "--color-error-surface": "rgba(220, 38, 38, 0.12)",
+  "--color-user-bubble": "#4f46e5",
 };
 
 export const darkVars = {
@@ -34,4 +45,15 @@ export const darkVars = {
   "--color-active": "rgba(0, 0, 0, 0.05)",
   "--color-code-bg": "#171717",
   "--color-code-border": "#404040",
+  "--color-accent": "#818cf8",
+  "--color-accent-light": "#a5b4fc",
+  "--color-accent-surface": "rgba(129, 140, 248, 0.15)",
+  "--color-accent-border": "rgba(129, 140, 248, 0.3)",
+  "--color-success": "#4ade80",
+  "--color-success-surface": "rgba(74, 222, 128, 0.15)",
+  "--color-warning": "#fbbf24",
+  "--color-warning-surface": "rgba(251, 191, 36, 0.15)",
+  "--color-error": "#f87171",
+  "--color-error-surface": "rgba(248, 113, 113, 0.15)",
+  "--color-user-bubble": "#4338ca",
 };

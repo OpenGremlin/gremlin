@@ -55,7 +55,7 @@ export function ConfirmDialog({
             </Pressable>
             <Pressable
               onPress={onConfirm}
-              className={`px-4 py-2 rounded-lg ${destructive ? "bg-red-600" : "bg-blue-600"}`}
+              className={`px-4 py-2 rounded-lg ${destructive ? "bg-error" : "bg-accent"}`}
             >
               <Text className="text-white font-medium">{confirmLabel}</Text>
             </Pressable>

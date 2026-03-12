@@ -257,7 +257,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                             },
                           })
                         }
-                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-indigo-600/20 border-indigo-500/40" : "bg-surface-alt border-app-border"}`}
+                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                       >
                         <Text
                           className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
@@ -324,7 +324,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   }
                   className={`px-3 py-2.5 rounded-lg border ${
                     selected
-                      ? "bg-indigo-600/20 border-indigo-500/40"
+                      ? "bg-accent-surface border-accent-border"
                       : "bg-surface-alt border-app-border"
                   }`}
                 >
@@ -340,7 +340,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         )}
         {config.webSearch?.enabled && !hasWebSearch && (
           <View className="mx-4 mb-3 ml-11">
-            <Text className="text-xs text-amber-400">
+            <Text className="text-xs text-warning">
               No search provider connected. Add a Brave Search or Tavily API key
               in Integrations.
             </Text>

@@ -37,7 +37,7 @@ function FileUploadCard({
           key={file.path ?? i}
           className="flex-row items-center gap-2.5 px-3 py-2 bg-surface border border-app-border rounded-lg"
         >
-          <File size={16} color="#60a5fa" />
+          <File size={16} color="#818cf8" />
           <View className="flex-1 min-w-0">
             <Text className="text-sm text-text-secondary" numberOfLines={1}>
               {file.filename ?? "Unknown file"}
@@ -86,7 +86,7 @@ export function LogEntryView({
     return (
       <View className="py-2">
         <View className="flex-row justify-end">
-          <View className="max-w-[80%] bg-blue-600 rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
+          <View className="max-w-[80%] bg-user-bubble rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
             <Markdown variant="user">{message.content}</Markdown>
           </View>
         </View>
@@ -221,7 +221,7 @@ export function LogEntryView({
                 stream.exitCode !== undefined &&
                 stream.exitCode !== 0 && (
                   <View className="px-3 py-1 border-t border-border-subtle">
-                    <Text className="text-[10px] text-red-400/70">
+                    <Text className="text-[10px] text-error/70">
                       exit code {stream.exitCode}
                     </Text>
                   </View>
