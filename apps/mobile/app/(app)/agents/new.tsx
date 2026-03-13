@@ -1,16 +1,10 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
 import { CreateAgentMutation } from "../../../src/graphql/queries";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Button } from "../../../src/shared/Button";
 
 export default function NewAgentScreen() {
   const colors = useNavigationTheme();
@@ -86,17 +80,14 @@ export default function NewAgentScreen() {
 
       {error ? <Text className="text-error text-sm">{error}</Text> : null}
 
-      <Pressable
+      <Button
         onPress={handleCreate}
-        disabled={creating || !id.trim() || !name.trim()}
-        className="bg-accent rounded-xl py-3 items-center mt-2 disabled:opacity-50"
+        disabled={!id.trim() || !name.trim()}
+        loading={creating}
+        size="lg"
       >
-        {creating ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Create Agent</Text>
-        )}
-      </Pressable>
+        Create Agent
+      </Button>
     </ScrollView>
   );
 }

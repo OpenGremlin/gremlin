@@ -1,13 +1,6 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import {
   AgentsQuery,
   CreateAgentJobMutation,
@@ -16,6 +9,7 @@ import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { Button } from "../../../src/shared/Button";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
@@ -157,17 +151,14 @@ export default function NewJobScreen() {
 
       {error ? <Text className="text-error text-sm">{error}</Text> : null}
 
-      <Pressable
+      <Button
         onPress={handleCreate}
-        disabled={saving || !canSubmit}
-        className="bg-accent rounded-xl py-3 items-center mt-2 disabled:opacity-50"
+        disabled={!canSubmit}
+        loading={saving}
+        size="lg"
       >
-        {saving ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold">Create</Text>
-        )}
-      </Pressable>
+        Create
+      </Button>
     </ScrollView>
   );
 }

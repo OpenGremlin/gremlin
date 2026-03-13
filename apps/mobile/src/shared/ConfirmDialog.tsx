@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { useTheme } from "../lib/ThemeContext";
 import { darkVars, lightVars } from "../lib/themeVars";
+import { Button } from "./Button";
 
 export function ConfirmDialog({
   visible,
@@ -50,15 +51,15 @@ export function ConfirmDialog({
           </Text>
           <Text className="text-text-muted text-sm mb-5">{message}</Text>
           <View className="flex-row justify-end gap-3">
-            <Pressable onPress={onCancel} className="px-4 py-2 rounded-lg">
-              <Text className="text-text-muted font-medium">{cancelLabel}</Text>
-            </Pressable>
-            <Pressable
+            <Button onPress={onCancel} variant="ghost">
+              {cancelLabel}
+            </Button>
+            <Button
               onPress={onConfirm}
-              className={`px-4 py-2 rounded-lg ${destructive ? "bg-error" : "bg-accent"}`}
+              variant={destructive ? "destructive" : "primary"}
             >
-              <Text className="text-white font-medium">{confirmLabel}</Text>
-            </Pressable>
+              {confirmLabel}
+            </Button>
           </View>
         </Pressable>
       </Pressable>

@@ -1,11 +1,18 @@
 import { router } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryResult } from "../../../src/shared/QueryResult";
@@ -86,13 +93,14 @@ export default function AgentsScreen() {
       ))}
 
       {activeAgents.length > 0 && (
-        <Pressable
+        <Button
           onPress={() => router.push("/agents/new")}
-          className="flex-row items-center justify-center gap-2 py-3 bg-accent-surface border border-accent-border rounded-xl active:bg-accent-surface/80"
+          variant="secondary"
+          size="lg"
+          icon={<Plus size={16} color={colors.accent} />}
         >
-          <Plus size={16} color={colors.accent} />
-          <Text className="text-sm font-medium text-accent">New Agent</Text>
-        </Pressable>
+          New Agent
+        </Button>
       )}
 
       {retiredAgents.length > 0 ? (

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { Text, View } from "react-native";
+import { Button } from "./Button";
 
 interface EmptyStateProps {
   message: string;
@@ -17,7 +17,6 @@ export function EmptyState({
   onAction,
   icon,
 }: EmptyStateProps) {
-  const colors = useNavigationTheme();
   return (
     <View className="items-center py-16 px-8">
       {icon && <View className="mb-4">{icon}</View>}
@@ -30,12 +29,9 @@ export function EmptyState({
         </Text>
       )}
       {actionLabel && onAction && (
-        <Pressable
-          onPress={onAction}
-          className="mt-4 bg-accent rounded-lg px-5 py-2.5"
-        >
-          <Text className="text-white text-sm font-medium">{actionLabel}</Text>
-        </Pressable>
+        <View className="mt-4">
+          <Button onPress={onAction}>{actionLabel}</Button>
+        </View>
       )}
     </View>
   );

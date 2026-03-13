@@ -22,6 +22,7 @@ import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
+import { Button } from "../../../../src/shared/Button";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -133,17 +134,9 @@ export default function AgentConfigScreen() {
           <Text className="text-sm text-text-muted">
             This agent is retired.
           </Text>
-          <Pressable
-            onPress={doUnretire}
-            disabled={retiring}
-            className="px-3 py-1.5 bg-accent rounded-lg"
-          >
-            {retiring ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-sm text-white font-medium">Restore</Text>
-            )}
-          </Pressable>
+          <Button onPress={doUnretire} loading={retiring} size="sm">
+            Restore
+          </Button>
         </View>
       )}
 

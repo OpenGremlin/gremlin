@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { Button } from "./Button";
 
 interface DestructiveButtonProps {
   onPress: () => void;
@@ -15,18 +15,15 @@ export function DestructiveButton({
   loading,
   disabled,
 }: DestructiveButtonProps) {
-  const isDisabled = disabled || loading;
-
   return (
-    <Pressable
+    <Button
       onPress={onPress}
-      disabled={isDisabled}
-      className="self-start flex-row items-center gap-2 px-4 py-2.5 bg-red-600 rounded-lg disabled:opacity-50"
+      variant="destructive"
+      disabled={disabled}
+      loading={loading}
+      loadingText={loadingLabel}
     >
-      {loading ? <ActivityIndicator color="white" size="small" /> : null}
-      <Text className="text-sm font-medium text-white">
-        {loading ? (loadingLabel ?? label) : label}
-      </Text>
-    </Pressable>
+      {label}
+    </Button>
   );
 }

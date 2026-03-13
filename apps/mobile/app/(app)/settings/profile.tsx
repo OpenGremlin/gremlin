@@ -8,8 +8,8 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Button } from "../../../src/shared/Button";
 import { QueryResult } from "../../../src/shared/QueryResult";
-import { SaveButton } from "../../../src/shared/SaveButton";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
@@ -150,14 +150,15 @@ export default function ProfileScreen() {
         />
       </View>
 
-      <View className="flex-row items-center gap-3">
-        <SaveButton
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isDirty}
-          saving={isSubmitting}
-        />
-        {saved && <SavedIndicator />}
-      </View>
+      <Button
+        onPress={handleSubmit(onSubmit)}
+        disabled={!isDirty}
+        loading={isSubmitting}
+        size="lg"
+      >
+        Save
+      </Button>
+      {saved && <SavedIndicator />}
     </ScrollView>
   );
 }

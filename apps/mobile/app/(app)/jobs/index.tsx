@@ -2,7 +2,13 @@ import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import {
   AgentJobsQuery,
   TriggerJobMutation,
@@ -10,6 +16,7 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { formatDate } from "../../../src/shared/formatDate";
 import { ListCard } from "../../../src/shared/ListCard";
@@ -115,13 +122,14 @@ export default function JobsScreen() {
       ))}
 
       {jobs.length > 0 && (
-        <Pressable
+        <Button
           onPress={() => router.push("/jobs/new")}
-          className="flex-row items-center justify-center gap-2 py-3 bg-accent-surface border border-accent-border rounded-xl active:bg-accent-surface/80"
+          variant="secondary"
+          size="lg"
+          icon={<Plus size={16} color={colors.accent} />}
         >
-          <Plus size={16} color={colors.accent} />
-          <Text className="text-sm font-medium text-accent">New Job</Text>
-        </Pressable>
+          New Job
+        </Button>
       )}
     </ScrollView>
   );
