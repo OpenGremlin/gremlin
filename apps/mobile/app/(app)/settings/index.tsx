@@ -14,6 +14,7 @@ import {
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { type ThemeMode, useTheme } from "../../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Card } from "../../../src/shared/Card";
 
 type SettingsItem = { label: string; icon: LucideIcon; href: string };
 
@@ -87,7 +88,7 @@ export default function SettingsScreen() {
           <Text className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
             {section.title}
           </Text>
-          <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+          <Card className="overflow-hidden">
             {section.items.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -108,7 +109,7 @@ export default function SettingsScreen() {
                 </Pressable>
               );
             })}
-          </View>
+          </Card>
         </View>
       ))}
     </ScrollView>

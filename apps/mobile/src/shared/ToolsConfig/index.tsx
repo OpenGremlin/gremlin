@@ -10,6 +10,7 @@ import {
 import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { Card } from "../Card";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
 
@@ -139,7 +140,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       </View>
 
       {/* Model */}
-      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
             <Bot size={18} color={colors.iconDefault} />
@@ -174,10 +175,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             <Text className="text-sm text-text-secondary">{modelLabel}</Text>
           </Pressable>
         )}
-      </View>
+      </Card>
 
       {/* Sandbox */}
-      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
             <Terminal size={18} color={colors.iconDefault} />
@@ -272,10 +273,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             )}
           </View>
         )}
-      </View>
+      </Card>
 
       {/* Web Search */}
-      <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+      <Card className="overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center gap-3 flex-1">
             <Globe size={18} color={colors.iconDefault} />
@@ -346,7 +347,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             </Text>
           </View>
         )}
-      </View>
+      </Card>
 
       {modelPickerOpen && (
         <ModelPicker

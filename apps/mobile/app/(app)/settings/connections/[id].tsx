@@ -15,6 +15,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import { Card } from "../../../../src/shared/Card";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -136,19 +137,19 @@ export default function ConnectionDetailScreen() {
             Granted Scopes
           </Text>
           {scopes.map((scope) => (
-            <View
+            <Card
               key={scope}
-              className="bg-surface border border-app-border rounded-xl p-4"
+              className="p-4"
             >
               <Text className="text-sm text-text-primary">{scope}</Text>
-            </View>
+            </Card>
           ))}
         </View>
       )}
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-text-primary">Details</Text>
-        <View className="bg-surface border border-app-border rounded-xl p-4 gap-2">
+        <Card className="p-4 gap-2">
           <View className="flex-row justify-between">
             <Text className="text-sm text-text-muted">Provider</Text>
             <Text className="text-sm text-text-primary">
@@ -161,7 +162,7 @@ export default function ConnectionDetailScreen() {
               {connection.connectionType}
             </Text>
           </View>
-        </View>
+        </Card>
       </View>
 
       <DestructiveButton

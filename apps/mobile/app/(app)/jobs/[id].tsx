@@ -24,6 +24,7 @@ import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
+import { Card } from "../../../src/shared/Card";
 import { DestructiveButton } from "../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../src/shared/formatDate";
 import { PickerModal } from "../../../src/shared/PickerModal";
@@ -230,8 +231,8 @@ export default function JobDetailScreen() {
         </View>
       </View>
 
-      <View
-        className={`bg-surface border border-app-border rounded-xl p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}
+      <Card
+        className={`p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}
       >
         <View className="gap-1">
           <Text className="text-xs text-text-muted">Schedule</Text>
@@ -255,7 +256,7 @@ export default function JobDetailScreen() {
             </Text>
           </View>
         ) : null}
-      </View>
+      </Card>
 
       <View className="flex-row items-center gap-4">
         <View className="flex-row items-center gap-2">
@@ -289,7 +290,7 @@ export default function JobDetailScreen() {
         <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
           Configuration
         </Text>
-        <View className="bg-surface border border-app-border rounded-xl p-4 gap-4">
+        <Card className="p-4 gap-4">
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Agent</Text>
             <Pressable
@@ -382,7 +383,7 @@ export default function JobDetailScreen() {
           {saveError ? (
             <Text className="text-sm text-error">{saveError}</Text>
           ) : null}
-        </View>
+        </Card>
       </View>
 
       <View className="gap-3">
@@ -390,13 +391,13 @@ export default function JobDetailScreen() {
           History
         </Text>
         {allTasks.length === 0 ? (
-          <View className="bg-surface border border-app-border rounded-xl p-6 items-center">
+          <Card className="p-6 items-center">
             <Text className="text-sm text-text-muted">
               No previous runs yet.
             </Text>
-          </View>
+          </Card>
         ) : (
-          <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+          <Card className="overflow-hidden">
             {allTasks.map((t, i) => (
               <Pressable
                 key={t.id}
@@ -413,7 +414,7 @@ export default function JobDetailScreen() {
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </Card>
         )}
       </View>
 

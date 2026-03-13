@@ -23,6 +23,7 @@ import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
 import { Button } from "../../../../src/shared/Button";
+import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -130,14 +131,14 @@ export default function AgentConfigScreen() {
       keyboardShouldPersistTaps="handled"
     >
       {agent.retired && (
-        <View className="bg-surface border border-app-border rounded-xl px-4 py-3 flex-row items-center justify-between">
+        <Card className="px-4 py-3 flex-row items-center justify-between">
           <Text className="text-sm text-text-muted">
             This agent is retired.
           </Text>
           <Button onPress={doUnretire} loading={retiring} size="sm">
             Restore
           </Button>
-        </View>
+        </Card>
       )}
 
       <View className="items-center">

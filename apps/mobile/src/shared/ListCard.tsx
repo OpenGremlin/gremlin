@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { AgentAvatar } from "./AgentAvatar";
+import { Card } from "./Card";
 
 interface ListCardProps {
   agentId: string;
@@ -22,8 +23,8 @@ export function ListCard({
   dimmed,
 }: ListCardProps) {
   return (
-    <View
-      className={`bg-surface border border-app-border rounded-xl p-4 flex-row items-start gap-3 ${dimmed ? "opacity-50" : ""}`}
+    <Card
+      className={`p-4 flex-row items-start gap-3 ${dimmed ? "opacity-50" : ""}`}
     >
       <Pressable
         onPress={onPress}
@@ -44,6 +45,6 @@ export function ListCard({
         </View>
       </Pressable>
       {trailing}
-    </View>
+    </Card>
   );
 }

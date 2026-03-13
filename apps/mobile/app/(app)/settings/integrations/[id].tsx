@@ -26,6 +26,7 @@ import {
 } from "../../../../src/lib/oauth";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../src/shared/Button";
+import { Card } from "../../../../src/shared/Card";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
@@ -159,7 +160,7 @@ function ApiKeyDetailView({
           </Button>
         </View>
       ) : (
-        <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
+        <Card className="p-4 flex-row items-center justify-between">
           <View>
             <Text className="text-sm text-text-primary">API Key</Text>
             <Text className="text-xs text-text-muted mt-0.5">Configured</Text>
@@ -168,7 +169,7 @@ function ApiKeyDetailView({
             <View className="w-2 h-2 rounded-full bg-green-400" />
             <Text className="text-xs text-text-muted">Active</Text>
           </View>
-        </View>
+        </Card>
       )}
 
       {error ? (
@@ -282,7 +283,7 @@ function BedrockDetailView({
 
   return (
     <>
-      <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
+      <Card className="p-4 flex-row items-center justify-between">
         <View>
           <Text className="text-sm text-text-primary">AWS Credentials</Text>
           <Text className="text-xs text-text-muted mt-0.5">
@@ -293,7 +294,7 @@ function BedrockDetailView({
           <View className="w-2 h-2 rounded-full bg-green-400" />
           <Text className="text-xs text-text-muted">Connected</Text>
         </View>
-      </View>
+      </Card>
 
       {error ? (
         <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
@@ -422,18 +423,18 @@ function OAuthDetailView({
 
   if (!isOAuthAvailable()) {
     return (
-      <View className="bg-surface border border-app-border rounded-xl p-5">
+      <Card className="p-5">
         <Text className="text-sm text-text-muted">
           OAuth connections are only available on iOS and Android.
         </Text>
-      </View>
+      </Card>
     );
   }
 
   return (
     <>
       {provider.hasConnection && (
-        <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
+        <Card className="p-4 flex-row items-center justify-between">
           <View>
             <Text className="text-sm text-text-primary">
               {provider.service}
@@ -444,7 +445,7 @@ function OAuthDetailView({
             <View className="w-2 h-2 rounded-full bg-green-400" />
             <Text className="text-xs text-text-muted">Active</Text>
           </View>
-        </View>
+        </Card>
       )}
 
       <View className="gap-3">
@@ -469,26 +470,26 @@ function OAuthDetailView({
               />
             </Pressable>
             {!useDefaults && (
-              <View className="bg-surface border border-app-border rounded-xl p-4">
+              <Card className="p-4">
                 <Text className="text-xs text-text-muted mb-1">
                   Redirect URI (add this to your OAuth app)
                 </Text>
                 <Text className="text-sm text-accent font-mono">
                   gremlin://oauth/callback
                 </Text>
-              </View>
+              </Card>
             )}
           </>
         )}
         {!hasDefaults && (
-          <View className="bg-surface border border-app-border rounded-xl p-4">
+          <Card className="p-4">
             <Text className="text-xs text-text-muted mb-1">
               Redirect URI (add this to your OAuth app)
             </Text>
             <Text className="text-sm text-accent font-mono">
               gremlin://oauth/callback
             </Text>
-          </View>
+          </Card>
         )}
         {!useDefaults && (
           <>
@@ -608,20 +609,20 @@ export default function IntegrationDetailScreen() {
           refetch={refetch}
         />
       ) : provider.connectionType === "custom" ? (
-        <View className="bg-surface border border-app-border rounded-xl p-5">
+        <Card className="p-5">
           <Text className="text-sm text-text-muted">
             This integration requires a custom connection flow that is not yet
             supported.
           </Text>
-        </View>
+        </Card>
       ) : provider.connectionType === "oauth" ? (
         <OAuthDetailView provider={provider} refetch={refetch} />
       ) : (
-        <View className="bg-surface border border-app-border rounded-xl p-5">
+        <Card className="p-5">
           <Text className="text-sm text-text-muted">
             This connection type is not yet supported.
           </Text>
-        </View>
+        </Card>
       )}
     </ScrollView>
   );

@@ -6,6 +6,7 @@ import {
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
+import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
@@ -56,7 +57,7 @@ export default function IntegrationsScreen() {
               (m) => m.id === defaultModel.modelId,
             );
             return (
-              <View className="bg-surface border border-app-border rounded-xl p-4">
+              <Card className="p-4">
                 <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
                   Default Model
                 </Text>
@@ -68,20 +69,20 @@ export default function IntegrationsScreen() {
                     {modelProvider.service}
                   </Text>
                 )}
-              </View>
+              </Card>
             );
           }
 
           if (aiProviders.length > 0) {
             return (
-              <View className="bg-surface border border-app-border rounded-xl p-4">
+              <Card className="p-4">
                 <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
                   Default Model
                 </Text>
                 <Text className="text-sm text-text-muted">
                   No default model selected. Using Bedrock Claude Sonnet 4.
                 </Text>
-              </View>
+              </Card>
             );
           }
 

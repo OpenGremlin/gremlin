@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import { SkillTemplateQuery } from "../../../../../src/graphql/queries";
 import { useQuery } from "../../../../../src/hooks/useQuery";
 import { Badge } from "../../../../../src/shared/Badge";
+import { Card } from "../../../../../src/shared/Card";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 
 export default function SkillTemplateScreen() {
@@ -52,9 +53,9 @@ export default function SkillTemplateScreen() {
         <View className="gap-2">
           <Text className="text-xs text-text-muted">Required Connections</Text>
           {template.connections.map((conn) => (
-            <View
+            <Card
               key={conn.provider}
-              className="bg-surface-alt/30 border border-app-border rounded-lg p-3 gap-1"
+              className="p-3 gap-1"
             >
               <View className="flex-row items-center gap-2">
                 <Text className="text-sm text-text-primary">
@@ -65,7 +66,7 @@ export default function SkillTemplateScreen() {
                 ) : null}
               </View>
               <Text className="text-xs text-text-muted">{conn.reason}</Text>
-            </View>
+            </Card>
           ))}
         </View>
       )}
@@ -86,11 +87,11 @@ export default function SkillTemplateScreen() {
         </View>
       )}
 
-      <View className="bg-surface-alt/30 border border-app-border rounded-lg p-3">
+      <Card className="p-3">
         <Text className="text-xs text-text-muted">
           Skills are assigned to agents from the agent configuration page.
         </Text>
-      </View>
+      </Card>
     </ScrollView>
   );
 }

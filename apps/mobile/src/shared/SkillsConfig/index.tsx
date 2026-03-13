@@ -18,6 +18,7 @@ import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations"
 import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { Card } from "../Card";
 import { ConnectionPicker } from "../ConnectionPicker";
 import { SheetModal } from "../SheetModal";
 
@@ -63,11 +64,11 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
       )}
 
       {agentSkills.length === 0 && !loading && (
-        <View className="bg-surface border border-app-border rounded-xl px-4 py-3">
+        <Card className="px-4 py-3">
           <Text className="text-sm text-text-muted">
             No skills assigned. Add skills to extend this agent's capabilities.
           </Text>
-        </View>
+        </Card>
       )}
 
       {agentSkills.map((skill) => (
@@ -142,7 +143,7 @@ function AgentSkillCard({
   const template = skill.template;
   if (!template) {
     return (
-      <View className="bg-surface border border-app-border rounded-xl px-4 py-3 flex-row items-center justify-between">
+      <Card className="px-4 py-3 flex-row items-center justify-between">
         <View className="flex-1">
           <Text className="text-sm text-text-muted">
             {skill.skillId} (not found)
@@ -157,7 +158,7 @@ function AgentSkillCard({
         >
           <Trash2 size={16} color="#ef4444" />
         </Pressable>
-      </View>
+      </Card>
     );
   }
 
@@ -188,7 +189,7 @@ function AgentSkillCard({
   }
 
   return (
-    <View className="bg-surface border border-app-border rounded-xl overflow-hidden">
+    <Card className="overflow-hidden">
       <Pressable
         onPress={hasConnections ? onToggleExpand : undefined}
         className="flex-row items-center justify-between px-4 py-3"
@@ -242,7 +243,7 @@ function AgentSkillCard({
           />
         </View>
       )}
-    </View>
+    </Card>
   );
 }
 
