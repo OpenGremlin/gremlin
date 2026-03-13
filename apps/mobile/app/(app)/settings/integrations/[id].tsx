@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   View,
@@ -18,7 +19,13 @@ import {
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
+import {
+  connectOAuthProvider,
+  getOAuthDefaults,
+  isOAuthAvailable,
+} from "../../../../src/lib/oauth";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
+import { Button } from "../../../../src/shared/Button";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
@@ -142,17 +149,13 @@ function ApiKeyDetailView({
             secureTextEntry
             autoCapitalize="none"
           />
-          <Pressable
+          <Button
             onPress={handleSaveApiKey}
-            disabled={saving || !apiKeyInput.trim()}
-            className="bg-accent rounded-lg px-4 py-2.5 items-center disabled:opacity-50"
+            disabled={!apiKeyInput.trim()}
+            loading={saving}
           >
-            {saving ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text className="text-sm font-medium text-white">Connect</Text>
-            )}
-          </Pressable>
+            Connect
+          </Button>
         </View>
       ) : (
         <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
@@ -344,6 +347,221 @@ function BedrockDetailView({
   );
 }
 
+function OAuthDetailView({
+  provider,
+  refetch,
+}: {
+  provider: {
+    id: string;
+    service: string;
+    hasConnection: boolean;
+    availableScopes: ReadonlyArray<{ scope: string; label: string }>;
+  };
+  refetch: () => void;
+}) {
+  const colors = useNavigationTheme();
+  const defaults = getOAuthDefaults(provider.id);
+  const hasDefaults = !!defaults.clientId;
+  const [useDefaults, setUseDefaults] = useState(hasDefaults);
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
+    () => new Set(provider.availableScopes.map((s) => s.scope)),
+  );
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const effectiveClientId = useDefaults ? defaults.clientId : clientId;
+  const effectiveClientSecret = useDefaults
+    ? defaults.clientSecret
+    : clientSecret;
+
+  const inputClass =
+    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
+
+  function toggleScope(scope: string) {
+    setSelectedScopes((prev) => {
+      const next = new Set(prev);
+      if (next.has(scope)) next.delete(scope);
+      else next.add(scope);
+      return next;
+    });
+  }
+
+  async function handleConnect() {
+    if (!effectiveClientId || !effectiveClientSecret) {
+      setError("Client ID and Client Secret are required.");
+      return;
+    }
+    if (selectedScopes.size === 0) {
+      setError("Select at least one scope.");
+      return;
+    }
+
+    setConnecting(true);
+    setError(null);
+    try {
+      await connectOAuthProvider(
+        provider.id,
+        effectiveClientId,
+        effectiveClientSecret,
+        [...selectedScopes],
+      );
+      refetch();
+    } catch (err) {
+      if (err instanceof Error && err.message === "OAuth flow was cancelled") {
+        // User dismissed the browser — not an error
+      } else {
+        setError(err instanceof Error ? err.message : "Connection failed");
+      }
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  if (!isOAuthAvailable()) {
+    return (
+      <View className="bg-surface border border-app-border rounded-xl p-5">
+        <Text className="text-sm text-text-muted">
+          OAuth connections are only available on iOS and Android.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      {provider.hasConnection && (
+        <View className="bg-surface border border-app-border rounded-xl p-4 flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-text-primary">
+              {provider.service}
+            </Text>
+            <Text className="text-xs text-text-muted mt-0.5">Connected</Text>
+          </View>
+          <View className="flex-row items-center gap-1.5">
+            <View className="w-2 h-2 rounded-full bg-green-400" />
+            <Text className="text-xs text-text-muted">Active</Text>
+          </View>
+        </View>
+      )}
+
+      <View className="gap-3">
+        <Text className="text-sm font-medium text-text-primary">
+          OAuth Client
+        </Text>
+        {hasDefaults && (
+          <>
+            <Pressable
+              onPress={() => setUseDefaults((v) => !v)}
+              disabled={connecting}
+              className="flex-row items-center justify-between bg-surface border border-app-border rounded-xl px-4 py-3 active:bg-surface-alt"
+            >
+              <Text className="text-sm text-text-primary">
+                Use Gremlin client
+              </Text>
+              <Switch
+                value={useDefaults}
+                onValueChange={setUseDefaults}
+                disabled={connecting}
+                trackColor={{ false: colors.border, true: colors.accent }}
+              />
+            </Pressable>
+            {!useDefaults && (
+              <View className="bg-surface border border-app-border rounded-xl p-4">
+                <Text className="text-xs text-text-muted mb-1">
+                  Redirect URI (add this to your OAuth app)
+                </Text>
+                <Text className="text-sm text-accent font-mono">
+                  gremlin://oauth/callback
+                </Text>
+              </View>
+            )}
+          </>
+        )}
+        {!hasDefaults && (
+          <View className="bg-surface border border-app-border rounded-xl p-4">
+            <Text className="text-xs text-text-muted mb-1">
+              Redirect URI (add this to your OAuth app)
+            </Text>
+            <Text className="text-sm text-accent font-mono">
+              gremlin://oauth/callback
+            </Text>
+          </View>
+        )}
+        {!useDefaults && (
+          <>
+            <TextInput
+              className={inputClass}
+              value={clientId}
+              onChangeText={setClientId}
+              placeholder="Client ID"
+              placeholderTextColor={colors.placeholderText}
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!connecting}
+            />
+            <TextInput
+              className={inputClass}
+              value={clientSecret}
+              onChangeText={setClientSecret}
+              placeholder="Client Secret"
+              placeholderTextColor={colors.placeholderText}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!connecting}
+            />
+          </>
+        )}
+      </View>
+
+      {provider.availableScopes.length > 0 && (
+        <View className="gap-2">
+          <Text className="text-sm font-medium text-text-primary">Scopes</Text>
+          {provider.availableScopes.map((s) => (
+            <Pressable
+              key={s.scope}
+              onPress={() => toggleScope(s.scope)}
+              disabled={connecting}
+              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl px-4 py-3 active:bg-surface-alt"
+            >
+              <Switch
+                value={selectedScopes.has(s.scope)}
+                onValueChange={() => toggleScope(s.scope)}
+                disabled={connecting}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.accent,
+                }}
+              />
+              <View className="flex-1">
+                <Text className="text-sm text-text-primary">{s.label}</Text>
+                <Text className="text-xs text-text-muted">{s.scope}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {error ? (
+        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
+          <Text className="text-sm text-red-300">{error}</Text>
+        </View>
+      ) : null}
+
+      <Button
+        onPress={handleConnect}
+        disabled={!effectiveClientId || !effectiveClientSecret}
+        loading={connecting}
+        fullWidth
+      >
+        {provider.hasConnection ? "Add Connection" : "Connect"}
+      </Button>
+    </>
+  );
+}
+
 export default function IntegrationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error, refetch } = useQuery(IntegrationProvidersQuery);
@@ -395,12 +613,12 @@ export default function IntegrationDetailScreen() {
             supported.
           </Text>
         </View>
+      ) : provider.connectionType === "oauth" ? (
+        <OAuthDetailView provider={provider} refetch={refetch} />
       ) : (
         <View className="bg-surface border border-app-border rounded-xl p-5">
-          <Text className="text-sm text-text-secondary">
-            Connect {provider.service} using the Gremlin Connect desktop app.
-            The desktop app handles OAuth flows locally with your own
-            credentials.
+          <Text className="text-sm text-text-muted">
+            This connection type is not yet supported.
           </Text>
         </View>
       )}

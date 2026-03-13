@@ -96,3 +96,23 @@ export const DisableBedrockModelMutation = graphql(`
     disableBedrockModel(modelId: $modelId)
   }
 `);
+
+export const SubmitOAuthConnectionMutation = graphql(`
+  mutation SubmitOAuthConnection(
+    $providerId: String!
+    $accessToken: String!
+    $refreshToken: String
+    $expiresAt: String
+    $scopes: [String!]!
+    $accountId: String
+  ) {
+    submitOAuthConnection(
+      providerId: $providerId
+      accessToken: $accessToken
+      refreshToken: $refreshToken
+      expiresAt: $expiresAt
+      scopes: $scopes
+      accountId: $accountId
+    )
+  }
+`);

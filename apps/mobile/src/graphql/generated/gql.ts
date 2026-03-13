@@ -37,6 +37,7 @@ type Documents = {
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
+    "\n  mutation SubmitOAuthConnection(\n    $providerId: String!\n    $accessToken: String!\n    $refreshToken: String\n    $expiresAt: String\n    $scopes: [String!]!\n    $accountId: String\n  ) {\n    submitOAuthConnection(\n      providerId: $providerId\n      accessToken: $accessToken\n      refreshToken: $refreshToken\n      expiresAt: $expiresAt\n      scopes: $scopes\n      accountId: $accountId\n    )\n  }\n": typeof types.SubmitOAuthConnectionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      paused\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      paused\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        createdAt\n      }\n    }\n  }\n": typeof types.AgentJobDocument,
     "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": typeof types.DeleteAgentJobDocument,
@@ -90,6 +91,7 @@ const documents: Documents = {
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
+    "\n  mutation SubmitOAuthConnection(\n    $providerId: String!\n    $accessToken: String!\n    $refreshToken: String\n    $expiresAt: String\n    $scopes: [String!]!\n    $accountId: String\n  ) {\n    submitOAuthConnection(\n      providerId: $providerId\n      accessToken: $accessToken\n      refreshToken: $refreshToken\n      expiresAt: $expiresAt\n      scopes: $scopes\n      accountId: $accountId\n    )\n  }\n": types.SubmitOAuthConnectionDocument,
     "\n  query AgentJobs {\n    agentJobs {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      paused\n      lastRun\n      nextRun\n    }\n  }\n": types.AgentJobsDocument,
     "\n  query AgentJob($id: ID!) {\n    agentJob(id: $id) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n        name\n      }\n      paused\n      lastRun\n      nextRun\n      tasks {\n        id\n        agent {\n          id\n        }\n        title\n        createdAt\n      }\n    }\n  }\n": types.AgentJobDocument,
     "\n  mutation DeleteAgentJob($id: ID!) {\n    deleteAgentJob(id: $id) { id }\n  }\n": types.DeleteAgentJobDocument,
@@ -209,6 +211,10 @@ export function graphql(source: "\n  mutation EnableBedrockModel($modelId: Strin
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n"): typeof import('./graphql').DisableBedrockModelDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SubmitOAuthConnection(\n    $providerId: String!\n    $accessToken: String!\n    $refreshToken: String\n    $expiresAt: String\n    $scopes: [String!]!\n    $accountId: String\n  ) {\n    submitOAuthConnection(\n      providerId: $providerId\n      accessToken: $accessToken\n      refreshToken: $refreshToken\n      expiresAt: $expiresAt\n      scopes: $scopes\n      accountId: $accountId\n    )\n  }\n"): typeof import('./graphql').SubmitOAuthConnectionDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

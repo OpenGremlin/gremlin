@@ -925,6 +925,18 @@ export type DisableBedrockModelMutationVariables = Exact<{
 
 export type DisableBedrockModelMutation = { __typename?: 'Mutation', disableBedrockModel: boolean };
 
+export type SubmitOAuthConnectionMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  accessToken: Scalars['String']['input'];
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  accountId?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SubmitOAuthConnectionMutation = { __typename?: 'Mutation', submitOAuthConnection: string };
+
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1477,6 +1489,18 @@ export const DisableBedrockModelDocument = new TypedDocumentString(`
   disableBedrockModel(modelId: $modelId)
 }
     `) as unknown as TypedDocumentString<DisableBedrockModelMutation, DisableBedrockModelMutationVariables>;
+export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
+    mutation SubmitOAuthConnection($providerId: String!, $accessToken: String!, $refreshToken: String, $expiresAt: String, $scopes: [String!]!, $accountId: String) {
+  submitOAuthConnection(
+    providerId: $providerId
+    accessToken: $accessToken
+    refreshToken: $refreshToken
+    expiresAt: $expiresAt
+    scopes: $scopes
+    accountId: $accountId
+  )
+}
+    `) as unknown as TypedDocumentString<SubmitOAuthConnectionMutation, SubmitOAuthConnectionMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
     query AgentJobs {
   agentJobs {
