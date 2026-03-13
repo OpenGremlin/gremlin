@@ -169,6 +169,7 @@ export default function ConnectionDetailScreen() {
         loading={revoking}
         label="Revoke Connection"
         loadingLabel="Revoking..."
+        size="lg"
       />
     </ScrollView>
   );

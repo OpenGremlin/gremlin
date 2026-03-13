@@ -209,6 +209,7 @@ export default function AgentConfigScreen() {
             disabled={!hasChanges}
             saving={saving}
             label="Save Changes"
+            size="lg"
           />
 
           <ToolsConfig agent={agent} />
@@ -220,6 +221,7 @@ export default function AgentConfigScreen() {
               onPress={() => setShowRetireConfirm(true)}
               loading={retiring}
               label="Retire Agent"
+              size="lg"
             />
           </View>
         </>
