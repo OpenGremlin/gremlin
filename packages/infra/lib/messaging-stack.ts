@@ -65,8 +65,8 @@ export class MessagingStack extends cdk.Stack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(15),
         environment: {
-          DYNAMODB_TABLE_NAME: props.tableName,
-          DOORBELL_QUEUE_URL: queue.queueUrl,
+          MAIN_TABLE_NAME: props.tableName,
+          DOORBELL_SQS_URL: queue.queueUrl,
         },
       },
     );
@@ -97,8 +97,8 @@ export class MessagingStack extends cdk.Stack {
         memorySize: 256,
         timeout: cdk.Duration.seconds(30),
         environment: {
-          DYNAMODB_TABLE_NAME: props.tableName,
-          DOORBELL_QUEUE_URL: queue.queueUrl,
+          MAIN_TABLE_NAME: props.tableName,
+          DOORBELL_SQS_URL: queue.queueUrl,
         },
       },
     );

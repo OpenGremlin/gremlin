@@ -3,6 +3,8 @@ dist/
 .turbo/
 *.tsbuildinfo
 .env
+.env.*
+!.env.example
 .expo/
 .vite/
 cdk.out/

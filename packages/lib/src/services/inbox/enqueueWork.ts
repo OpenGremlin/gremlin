@@ -68,7 +68,7 @@ export async function enqueueWork(
   );
 
   // Ring the doorbell via SQS
-  const queueUrl = process.env.DOORBELL_QUEUE_URL;
+  const queueUrl = process.env.DOORBELL_SQS_URL;
   if (queueUrl) {
     const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
     const sqs = await getSqsClient();

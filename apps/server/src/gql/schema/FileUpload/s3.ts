@@ -16,7 +16,7 @@ export async function getS3Client(): Promise<S3ClientType> {
 }
 
 export function getUploadsBucketName(): string {
-  const name = process.env.UPLOADS_BUCKET_NAME;
-  if (!name) throw new Error("UPLOADS_BUCKET_NAME env var is not set");
+  const name = process.env.UPLOADS_BUCKET;
+  if (!name) throw new Error("UPLOADS_BUCKET env var is not set");
   return name;
 }

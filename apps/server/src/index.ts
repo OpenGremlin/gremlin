@@ -59,7 +59,7 @@ async function loadSchedulerConfig() {
     const envKeys = [
       "SCHEDULE_TARGET_LAMBDA_ARN",
       "SCHEDULER_ROLE_ARN",
-      "DOORBELL_QUEUE_URL",
+      "DOORBELL_SQS_URL",
     ];
     await Promise.all(
       params.map(async (name, i) => {

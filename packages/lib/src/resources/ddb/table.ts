@@ -12,7 +12,7 @@ const client = new DynamoDBClient({
 const documentClient = DynamoDBDocumentClient.from(client);
 
 export const GremlinTable = new Table({
-  name: process.env.DYNAMODB_TABLE_NAME || "gremlin",
+  name: process.env.MAIN_TABLE_NAME || "gremlin",
   partitionKey: { name: "pk", type: "string" },
   sortKey: { name: "sk", type: "string" },
   indexes: {

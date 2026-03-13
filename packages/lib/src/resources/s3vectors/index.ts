@@ -8,5 +8,5 @@ export interface S3VectorsResource {
 
 export const s3vectors: S3VectorsResource = {
   client: s3VectorsClient,
-  bucketName: process.env.S3_VECTORS_BUCKET_NAME || "gremlin-vectors",
+  bucketName: process.env.VECTORS_BUCKET || "gremlin-vectors",
 };

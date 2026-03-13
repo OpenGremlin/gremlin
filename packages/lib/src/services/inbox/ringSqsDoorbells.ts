@@ -22,9 +22,9 @@ export async function ringSqsDoorbells(
   ctx: ServiceContext,
   agentIds: string[],
 ): Promise<void> {
-  const queueUrl = process.env.DOORBELL_QUEUE_URL;
+  const queueUrl = process.env.DOORBELL_SQS_URL;
   if (!queueUrl) {
-    ctx.log.warn("DOORBELL_QUEUE_URL not set, skipping doorbell ring");
+    ctx.log.warn("DOORBELL_SQS_URL not set, skipping doorbell ring");
     return;
   }
 

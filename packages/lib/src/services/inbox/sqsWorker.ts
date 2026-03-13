@@ -11,13 +11,13 @@ import { ringDoorbell } from "./consumer.js";
  * Each message contains { agentId } — we ack immediately and
  * let ringDoorbell handle the drain loop.
  *
- * Only starts if DOORBELL_QUEUE_URL is set (deployed environment).
+ * Only starts if DOORBELL_SQS_URL is set (deployed environment).
  * Returns a cleanup function to stop polling.
  */
 export function startSqsWorker(ctx: ServiceContext): () => void {
-  const queueUrl = process.env.DOORBELL_QUEUE_URL;
+  const queueUrl = process.env.DOORBELL_SQS_URL;
   if (!queueUrl) {
-    ctx.log.info("No DOORBELL_QUEUE_URL — using in-process doorbell");
+    ctx.log.info("No DOORBELL_SQS_URL — using in-process doorbell");
     return () => {};
   }
 

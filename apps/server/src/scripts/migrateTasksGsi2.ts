@@ -8,7 +8,7 @@ import {
 const client = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: "us-east-1" }),
 );
-const TableName = process.env.DYNAMODB_TABLE_NAME || "gremlin";
+const TableName = process.env.MAIN_TABLE_NAME || "gremlin";
 
 async function migrate() {
   let lastKey: Record<string, unknown> | undefined;
