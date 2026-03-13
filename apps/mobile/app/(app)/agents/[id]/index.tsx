@@ -1,8 +1,8 @@
 import * as DocumentPicker from "expo-document-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ArrowUp, ChevronLeft, Paperclip } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft } from "lucide-react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -10,18 +10,13 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hexToTransparent } from "../../../../src/lib/color";
 import { AgentQuery, TaskQuery } from "../../../../src/graphql/queries";
 import { useChatSend } from "../../../../src/hooks/useChatSend";
-import {
-  type FileUploadState,
-  formatFileSize,
-  useFileUpload,
-} from "../../../../src/hooks/useFileUpload";
+import { useFileUpload } from "../../../../src/hooks/useFileUpload";
 import {
   type ChatMessage,
   shouldShowTimestamp,
@@ -31,159 +26,10 @@ import { useQuery } from "../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../src/hooks/useSandboxOutput";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { ChatHeaderTitle } from "../../../../src/shared/ChatHeaderTitle";
+import { ChatInputBar } from "../../../../src/shared/ChatInputBar";
 import { LogEntryView } from "../../../../src/shared/LogEntryView";
 import { PendingMessageBubble } from "../../../../src/shared/PendingMessageBubble";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
-
-function UploadProgressItem({ upload }: { upload: FileUploadState }) {
-  const isDone = upload.status === "done";
-  const isError = upload.status === "error";
-  const isActive =
-    upload.status === "uploading" ||
-    upload.status === "completing" ||
-    upload.status === "pending";
-
-  return (
-    <View className="flex-row items-center gap-2 py-1.5 px-2 rounded-lg bg-surface-alt/50">
-      <View className="flex-1 min-w-0">
-        <View className="flex-row items-center gap-2">
-          <Text
-            className="text-xs text-text-secondary flex-shrink"
-            numberOfLines={1}
-          >
-            {upload.name}
-          </Text>
-          <Text className="text-[10px] text-text-muted">
-            {formatFileSize(upload.size)}
-          </Text>
-          {isDone && <Text className="text-[10px] text-success">Done</Text>}
-          {isError && (
-            <Text className="text-[10px] text-error" numberOfLines={1}>
-              {upload.error ?? "Error"}
-            </Text>
-          )}
-          {isActive && (
-            <Text className="text-[10px] text-text-muted">
-              {upload.status === "completing"
-                ? "Finishing..."
-                : `${upload.progress}%`}
-            </Text>
-          )}
-        </View>
-        {isActive && (
-          <View className="mt-1 h-1 bg-surface-alt rounded-full overflow-hidden">
-            <View
-              className="h-full bg-accent rounded-full"
-              style={{ width: `${upload.progress}%` }}
-            />
-          </View>
-        )}
-      </View>
-    </View>
-  );
-}
-
-function ChatInputBar({
-  input,
-  setInput,
-  onSend,
-  disabled,
-  uploads,
-  isUploading,
-  onPickFiles,
-}: {
-  input: string;
-  setInput: (v: string) => void;
-  onSend: () => void;
-  disabled?: boolean;
-  uploads: FileUploadState[];
-  isUploading: boolean;
-  onPickFiles: () => void;
-}) {
-  const colors = useNavigationTheme();
-  const inputRef = useRef<TextInput>(null);
-  const [inputHeight, setInputHeight] = useState(42);
-  const canSend = input.trim().length > 0;
-  const hasUploads = uploads.length > 0;
-
-  // Reset height when input is cleared
-  useEffect(() => {
-    if (input === "") setInputHeight(42);
-  }, [input]);
-
-  // Auto-focus on mount
-  useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Auto-clear finished uploads after 3 seconds
-  // (handled by parent via clearUploads)
-
-  if (disabled) {
-    return (
-      <View className="border-t border-app-border bg-bg px-3 py-3.5">
-        <Text className="text-sm text-text-muted text-center">
-          This agent is retired.
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <View className="border-t border-app-border bg-bg px-3 py-2">
-      {/* Upload progress area */}
-      {hasUploads && (
-        <View className="mb-2 gap-1">
-          {uploads.map((upload, i) => (
-            <UploadProgressItem key={`${upload.name}-${i}`} upload={upload} />
-          ))}
-        </View>
-      )}
-
-      <View className="flex-row items-end gap-2">
-        {/* File upload button */}
-        <Pressable
-          onPress={onPickFiles}
-          disabled={isUploading}
-          className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 bg-surface-alt ${isUploading ? "opacity-50" : ""}`}
-        >
-          {isUploading ? (
-            <ActivityIndicator size="small" color={colors.iconDefault} />
-          ) : (
-            <Paperclip size={18} color={colors.iconDefault} />
-          )}
-        </Pressable>
-
-        <TextInput
-          ref={inputRef}
-          className="flex-1 bg-surface-alt rounded-2xl px-4 py-2.5 text-text-primary text-sm"
-          style={{ height: Math.min(120, Math.max(42, inputHeight)) }}
-          value={input}
-          onChangeText={setInput}
-          onContentSizeChange={(e) =>
-            setInputHeight(e.nativeEvent.contentSize.height)
-          }
-          placeholder="Message..."
-          placeholderTextColor={colors.placeholderText}
-          multiline
-          numberOfLines={1}
-          blurOnSubmit={false}
-          textAlignVertical="center"
-        />
-        <Pressable
-          onPress={onSend}
-          disabled={!canSend}
-          className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 ${
-            canSend ? "bg-accent" : "bg-surface-alt"
-          }`}
-        >
-          <ArrowUp size={20} color={canSend ? "#fff" : colors.iconMuted} />
-        </Pressable>
-      </View>
-    </View>
-  );
-}
 
 export default function AgentChatScreen() {
   const colors = useNavigationTheme();

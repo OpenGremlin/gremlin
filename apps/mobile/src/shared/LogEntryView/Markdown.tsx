@@ -3,7 +3,7 @@ import MarkdownDisplay from "react-native-markdown-display";
 import { useTheme } from "../../lib/ThemeContext";
 
 const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
-  body: { color: "#e5e5e5", fontSize: 14, lineHeight: 20 },
+  body: { color: "#b0b0b0", fontSize: 14, lineHeight: 20 },
   paragraph: { marginTop: 0, marginBottom: 6 },
   heading1: {
     color: "#f5f5f5",
