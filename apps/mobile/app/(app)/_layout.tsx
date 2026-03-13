@@ -1,19 +1,15 @@
-import { BlurView } from "expo-blur";
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
-import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
-import { useTheme } from "../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 
 export default function AppLayout() {
   const { token, loading } = useAuth();
   const colors = useNavigationTheme();
-  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const isNative = Platform.OS === "ios" || Platform.OS === "android";
 
   if (loading) {
     return (
@@ -30,8 +26,6 @@ export default function AppLayout() {
     return <Redirect href="/login" />;
   }
 
-  const tabBarHeight = 56 + Math.max(insets.bottom, 0);
-
   return (
     <Tabs
       screenOptions={{
@@ -39,28 +33,17 @@ export default function AppLayout() {
         // @ts-expect-error — href is an Expo Router extension not in BottomTabNavigationOptions
         href: null,
         tabBarStyle: {
-          position: isNative ? "absolute" : ("relative" as "absolute"),
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: isNative ? "transparent" : colors.background,
+          backgroundColor: colors.background,
           borderTopWidth: 0,
           elevation: 0,
           shadowColor: "transparent",
           paddingTop: 6,
           paddingBottom: Math.max(insets.bottom, 6),
-          height: tabBarHeight,
-          ...(Platform.OS === "web" ? { boxShadow: "none" } : {}),
+          height: 56 + Math.max(insets.bottom, 0),
+          ...(Platform.OS === "web"
+            ? { boxShadow: "none" }
+            : {}),
         },
-        tabBarBackground: isNative
-          ? () => (
-              <BlurView
-                intensity={80}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
-            )
-          : undefined,
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.tabBarActive,
         tabBarInactiveTintColor: colors.tabBarInactive,

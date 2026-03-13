@@ -96,7 +96,7 @@ export function ChatInputBar({
 
   if (disabled) {
     return (
-      <View className="bg-bg px-3 py-3.5">
+      <View className="px-3 py-3.5">
         <Text className="text-sm text-text-muted text-center">
           This agent is retired.
         </Text>
@@ -105,7 +105,7 @@ export function ChatInputBar({
   }
 
   return (
-    <View className="bg-bg px-3 pt-1.5 pb-2">
+    <View className="px-3 pt-1.5 pb-2">
       {hasUploads && (
         <View className="mb-2 gap-1">
           {uploads.map((upload, i) => (

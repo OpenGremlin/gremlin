@@ -25,10 +25,6 @@ export default function SettingsLayout() {
         options={{ title: "Skills", headerBackTitle: "Settings" }}
       />
       <Stack.Screen
-        name="skills/[id]"
-        options={{ title: "Skill", headerBackTitle: "Skills" }}
-      />
-      <Stack.Screen
         name="skills/catalog/[templateId]"
         options={{ title: "Skill", headerBackTitle: "Skills" }}
       />
