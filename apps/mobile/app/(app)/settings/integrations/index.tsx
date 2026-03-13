@@ -1,5 +1,6 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
+import { useCallback } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   IntegrationConnectionsQuery,
@@ -29,6 +30,12 @@ function ConnectionCountBadge({ count }: { count: number }) {
 export default function IntegrationsScreen() {
   const providers = useQuery(IntegrationProvidersQuery);
   const connections = useQuery(IntegrationConnectionsQuery);
+
+  useFocusEffect(
+    useCallback(() => {
+      connections.refetch();
+    }, []),
+  );
 
   const loading = providers.loading || connections.loading;
   const error = providers.error || connections.error;
@@ -115,6 +122,7 @@ export default function IntegrationsScreen() {
                     : conn.connectionType === "apikey"
                       ? "API Key"
                       : conn.connectionType}
+                  {conn.meta.accountId ? ` · ${conn.meta.accountId}` : ""}
                 </Text>
               </View>
               <Text className="text-xs text-text-muted shrink-0">

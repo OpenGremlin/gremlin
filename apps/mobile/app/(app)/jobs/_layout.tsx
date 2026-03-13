@@ -15,15 +15,15 @@ export default function JobsLayout() {
     >
       <Stack.Screen
         name="index"
-        options={{ title: "Scheduled Jobs", headerBackTitle: "Jobs" }}
+        options={{ title: "Scheduled Jobs" }}
       />
       <Stack.Screen
         name="new"
-        options={{ title: "New Job", headerBackTitle: "Jobs" }}
+        options={{ title: "New Job" }}
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: "Job", headerBackTitle: "Jobs" }}
+        options={{ title: "Job" }}
       />
     </Stack>
   );

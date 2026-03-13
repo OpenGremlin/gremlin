@@ -27,7 +27,6 @@ export default function AgentsLayout() {
       <Stack.Screen
         name="[id]/index"
         options={{
-          headerBackTitle: "Agents",
           headerTransparent: true,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
@@ -37,12 +36,11 @@ export default function AgentsLayout() {
       />
       <Stack.Screen
         name="[id]/config"
-        options={{ title: "Configure", headerBackTitle: "Chat" }}
+        options={{ title: "Configure Agent" }}
       />
       <Stack.Screen
         name="[id]/tasks/[taskId]"
         options={{
-          headerBackTitle: "Chat",
           headerTransparent: true,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,

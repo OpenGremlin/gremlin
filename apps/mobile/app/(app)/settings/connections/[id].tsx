@@ -1,13 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import {
   IntegrationConnectionsQuery,
   RenameConnectionMutation,
@@ -16,6 +9,7 @@ import {
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
 import { Card } from "../../../../src/shared/Card";
+import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -30,6 +24,7 @@ export default function ConnectionDetailScreen() {
 
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
+  const [confirmVisible, setConfirmVisible] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
 
@@ -62,33 +57,19 @@ export default function ConnectionDetailScreen() {
     refetch();
   }
 
-  function handleRevoke() {
-    Alert.alert(
-      "Revoke Connection",
-      "Are you sure you want to revoke this connection?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Revoke",
-          style: "destructive",
-          onPress: async () => {
-            setRevoking(true);
-            setRevokeError(null);
-            try {
-              await gql(RevokeConnectionMutation, { id: id ?? "" });
-              router.back();
-            } catch (err) {
-              setRevokeError(
-                err instanceof Error
-                  ? err.message
-                  : "Failed to revoke connection",
-              );
-              setRevoking(false);
-            }
-          },
-        },
-      ],
-    );
+  async function doRevoke() {
+    setConfirmVisible(false);
+    setRevoking(true);
+    setRevokeError(null);
+    try {
+      await gql(RevokeConnectionMutation, { id: id ?? "" });
+      router.back();
+    } catch (err) {
+      setRevokeError(
+        err instanceof Error ? err.message : "Failed to revoke connection",
+      );
+      setRevoking(false);
+    }
   }
 
   const inputClass =
@@ -166,11 +147,21 @@ export default function ConnectionDetailScreen() {
       </View>
 
       <DestructiveButton
-        onPress={handleRevoke}
+        onPress={() => setConfirmVisible(true)}
         loading={revoking}
         label="Revoke Connection"
         loadingLabel="Revoking..."
         size="lg"
+      />
+
+      <ConfirmDialog
+        visible={confirmVisible}
+        title="Revoke Connection"
+        message="Are you sure you want to revoke this connection?"
+        confirmLabel="Revoke"
+        destructive
+        onConfirm={doRevoke}
+        onCancel={() => setConfirmVisible(false)}
       />
     </ScrollView>
   );

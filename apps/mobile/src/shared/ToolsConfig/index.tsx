@@ -343,7 +343,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           <View className="mx-4 mb-3 ml-11">
             <Text className="text-xs text-warning">
               No search provider connected. Add a Brave Search or Tavily API key
-              in Integrations.
+              in Connections.
             </Text>
           </View>
         )}
