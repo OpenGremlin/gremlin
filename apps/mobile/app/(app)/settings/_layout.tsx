@@ -19,7 +19,7 @@ export default function SettingsLayout() {
         options={{ title: "Notifications", headerBackTitle: "Settings" }}
       />
       <Stack.Screen name="profile" options={{ title: "Profile" }} />
-      <Stack.Screen name="global" options={{ title: "Appearance" }} />
+      <Stack.Screen name="general" options={{ title: "General" }} />
       <Stack.Screen
         name="skills/index"
         options={{ title: "Skills", headerBackTitle: "Settings" }}

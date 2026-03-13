@@ -36,7 +36,7 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
   {
     title: "Preferences",
     items: [
-      { label: "General", icon: Globe, href: "/settings/global" },
+      { label: "General", icon: Globe, href: "/settings/general" },
     ],
   },
 ];

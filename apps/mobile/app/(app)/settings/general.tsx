@@ -37,15 +37,6 @@ export default function GlobalSettingsScreen() {
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-6 gap-6">
-      <View>
-        <Text className="text-lg font-semibold text-text-primary">
-          Settings
-        </Text>
-        <Text className="mt-1 text-sm text-text-muted">
-          Global settings for your Gremlin instance.
-        </Text>
-      </View>
-
       <View className="flex-row items-center justify-between rounded-xl border border-app-border bg-surface p-4">
         <View className="flex-1 mr-4">
           <Text className="text-sm font-medium text-text-primary">
