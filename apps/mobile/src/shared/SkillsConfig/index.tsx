@@ -13,6 +13,7 @@ import {
   BindAgentSkillConnectionMutation,
   RemoveSkillMutation,
   SkillTemplatesQuery,
+  UnbindAgentSkillConnectionMutation,
 } from "../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations";
 import { useQuery } from "../../hooks/useQuery";
@@ -83,7 +84,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
             )
           }
           onRemove={() => handleRemove(skill.skillId)}
-          onConnectionBound={refetch}
+          onConnectionChanged={refetch}
         />
       ))}
 
@@ -108,7 +109,7 @@ function AgentSkillCard({
   expanded,
   onToggleExpand,
   onRemove,
-  onConnectionBound,
+  onConnectionChanged,
 }: {
   skill: {
     skillId: string;
@@ -121,12 +122,14 @@ function AgentSkillCard({
         providerName: string;
         reason: string;
         optional?: boolean | null;
+        multi?: boolean | null;
       }>;
     } | null;
     connectionStatuses: ReadonlyArray<{
       provider: string;
       providerName: string;
-      boundConnectionId?: string | null;
+      multi?: boolean | null;
+      boundConnectionIds: readonly string[];
       connected: boolean;
     }>;
   };
@@ -134,7 +137,7 @@ function AgentSkillCard({
   expanded: boolean;
   onToggleExpand: () => void;
   onRemove: () => void;
-  onConnectionBound: () => void;
+  onConnectionChanged: () => void;
 }) {
   const [removing, setRemoving] = useState(false);
   const { data: connectionsData } = useQuery(IntegrationConnectionsQuery);
@@ -171,12 +174,19 @@ function AgentSkillCard({
       ),
   );
 
-  const selectedConnections: Record<string, string> = {};
+  // Build selected map: provider -> connectionId[]
+  const selectedConnections: Record<string, string[]> = {};
   for (const cs of skill.connectionStatuses) {
-    if (cs.boundConnectionId) {
-      selectedConnections[cs.provider] = cs.boundConnectionId;
+    if (cs.boundConnectionIds.length > 0) {
+      selectedConnections[cs.provider] = [...cs.boundConnectionIds];
     }
   }
+
+  // Count total bound connections for badge
+  const totalBound = skill.connectionStatuses.reduce(
+    (sum, cs) => sum + cs.boundConnectionIds.length,
+    0,
+  );
 
   async function handleBindConnection(provider: string, connectionId: string) {
     await gql(BindAgentSkillConnectionMutation, {
@@ -185,7 +195,20 @@ function AgentSkillCard({
       provider,
       connectionId,
     });
-    onConnectionBound();
+    onConnectionChanged();
+  }
+
+  async function handleUnbindConnection(
+    provider: string,
+    connectionId: string,
+  ) {
+    await gql(UnbindAgentSkillConnectionMutation, {
+      agentId,
+      skillId: skill.skillId,
+      provider,
+      connectionId,
+    });
+    onConnectionChanged();
   }
 
   return (
@@ -212,7 +235,11 @@ function AgentSkillCard({
               <Text
                 className={`text-xs ${allConnected ? "text-emerald-600" : "text-amber-500"}`}
               >
-                {allConnected ? "Connected" : "Setup needed"}
+                {allConnected
+                  ? totalBound > 1
+                    ? `${totalBound} connected`
+                    : "Connected"
+                  : "Setup needed"}
               </Text>
             </View>
           )}
@@ -240,6 +267,7 @@ function AgentSkillCard({
             connections={connections}
             selected={selectedConnections}
             onSelect={handleBindConnection}
+            onDeselect={handleUnbindConnection}
           />
         </View>
       )}

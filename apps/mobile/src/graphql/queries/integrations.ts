@@ -37,7 +37,6 @@ export const IntegrationConnectionsQuery = graphql(`
       id
       providerId
       connectionType
-      description
       connectedAt
       isRevoked
       meta {
@@ -58,12 +57,6 @@ export const IntegrationConnectionsQuery = graphql(`
 export const ConnectApiKeyMutation = graphql(`
   mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
     connectApiKey(providerId: $providerId, apiKey: $apiKey)
-  }
-`);
-
-export const RenameConnectionMutation = graphql(`
-  mutation RenameConnection($id: ID!, $description: String!) {
-    renameIntegrationConnection(id: $id, description: $description)
   }
 `);
 

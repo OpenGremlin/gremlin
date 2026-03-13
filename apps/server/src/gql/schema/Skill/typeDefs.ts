@@ -17,6 +17,7 @@ export const skillTypeDefs = /* GraphQL */ `
     providerName: String!
     reason: String!
     optional: Boolean!
+    multi: Boolean!
     requestedScopes: [String!]
   }
 
@@ -33,7 +34,8 @@ export const skillTypeDefs = /* GraphQL */ `
     providerName: String!
     reason: String!
     optional: Boolean!
-    boundConnectionId: String
+    multi: Boolean!
+    boundConnectionIds: [String!]!
     connected: Boolean!
   }
 
@@ -53,5 +55,7 @@ export const skillTypeDefs = /* GraphQL */ `
     removeSkill(agentId: ID!, skillId: ID!): Boolean!
     "Bind a connection to an agent's skill"
     bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
+    "Unbind a connection from an agent's skill"
+    unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   }
 `;

@@ -2,16 +2,12 @@ import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { AgentSkillItem } from "../../resources/ddb/schema/agentSkill.js";
 import type { ServiceContext } from "../context.js";
-import { getSkillsBucket } from "./getSkillsBucket.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
 
 /**
- * Bind a connection to an agent skill's provider slot.
- * For multi-connection providers, appends to the array (deduplicated).
- * For single-connection providers, replaces with a single-element array.
+ * Remove a specific connectionId from a provider's bound connections.
  */
-export async function bindAgentSkillConnection(
+export async function unbindAgentSkillConnection(
   ctx: ServiceContext,
   agentId: string,
   skillId: string,
@@ -29,20 +25,12 @@ export async function bindAgentSkillConnection(
   }
 
   const bindings = parseConnectionBindings(existing.connectionBindings);
+  const current = bindings[providerId] ?? [];
+  bindings[providerId] = current.filter((id) => id !== connectionId);
 
-  // Check if this provider supports multi-connection
-  const template = await getSkillTemplateFromS3(getSkillsBucket(), skillId);
-  const connDef = template?.connections?.find((c) => c.provider === providerId);
-  const isMulti = connDef?.multi ?? false;
-
-  if (isMulti) {
-    const current = bindings[providerId] ?? [];
-    if (!current.includes(connectionId)) {
-      current.push(connectionId);
-    }
-    bindings[providerId] = current;
-  } else {
-    bindings[providerId] = [connectionId];
+  // Remove the key entirely if empty
+  if (bindings[providerId].length === 0) {
+    delete bindings[providerId];
   }
 
   const serialized = JSON.stringify(bindings);

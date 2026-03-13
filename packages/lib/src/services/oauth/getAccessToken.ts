@@ -31,3 +31,31 @@ export async function getAccessToken(
 
   return connection.connectionMeta.accessToken as string;
 }
+
+/**
+ * Get a valid access token for a specific connection by ID.
+ */
+export async function getAccessTokenForConnection(
+  resources: Resources,
+  connectionId: string,
+): Promise<string> {
+  const { Items = [] } = await resources.ddb.secretsTable
+    .build(QueryCommand)
+    .entities(resources.ddb.entities.IntegrationConnection)
+    .query({ partition: "INTEGRATION_CONNECTION" })
+    .send();
+
+  const connection = (Items as IntegrationConnectionItem[]).find(
+    (item) =>
+      item.id === connectionId &&
+      item.connectionType === "oauth" &&
+      !item.isRevoked &&
+      item.connectionMeta?.accessToken,
+  );
+
+  if (!connection) {
+    throw new Error(`OAuth connection ${connectionId} not found or revoked`);
+  }
+
+  return connection.connectionMeta.accessToken as string;
+}

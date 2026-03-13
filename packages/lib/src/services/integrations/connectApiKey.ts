@@ -23,7 +23,6 @@ export async function connectApiKey(
       id,
       providerId,
       connectionType: "apikey",
-      description: def.service,
       connectedAt: new Date().toISOString(),
       isRevoked: false,
       connectionMeta: {

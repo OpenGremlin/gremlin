@@ -62,6 +62,16 @@ const bindAgentSkillConnection: MutationResolvers["bindAgentSkillConnection"] =
       connectionId,
     );
 
+const unbindAgentSkillConnection: MutationResolvers["unbindAgentSkillConnection"] =
+  (_parent, { agentId, skillId, provider, connectionId }, ctx) =>
+    ctx.services.skills.unbindAgentSkillConnection(
+      ctx,
+      agentId,
+      skillId,
+      provider,
+      connectionId,
+    );
+
 // --- Type Resolvers ---
 
 const SkillTemplate: SkillTemplateResolvers = {
@@ -74,6 +84,7 @@ const SkillTemplate: SkillTemplateResolvers = {
         providerName: provider?.service ?? conn.provider,
         reason: conn.reason,
         optional: conn.optional ?? false,
+        multi: conn.multi ?? false,
         requestedScopes: conn.requestedScopes ?? null,
       };
     }),
@@ -100,15 +111,18 @@ const AgentSkill: AgentSkillResolvers = {
     );
 
     return template.connections.map((req) => {
-      const boundId = bindings[req.provider] ?? null;
+      const boundIds = bindings[req.provider] ?? [];
       const provider = providerMap.get(req.provider);
+      // Connected if at least one bound connection is valid
+      const connected = boundIds.some((id) => connectionSet.has(id));
       return {
         provider: req.provider,
         providerName: provider?.service ?? req.provider,
         reason: req.reason,
         optional: req.optional ?? false,
-        boundConnectionId: boundId,
-        connected: boundId != null && connectionSet.has(boundId),
+        multi: req.multi ?? false,
+        boundConnectionIds: boundIds,
+        connected,
       };
     });
   },
@@ -116,7 +130,12 @@ const AgentSkill: AgentSkillResolvers = {
 
 export const skillResolvers = {
   Query: { skillTemplates, skillTemplate, agentSkills },
-  Mutation: { assignSkill, removeSkill, bindAgentSkillConnection },
+  Mutation: {
+    assignSkill,
+    removeSkill,
+    bindAgentSkillConnection,
+    unbindAgentSkillConnection,
+  },
   SkillTemplate,
   AgentSkill,
 };

@@ -14,6 +14,7 @@ connections:
     env:
       GOOGLE_WORKSPACE_CLI_TOKEN: accessToken
     reason: Access Gmail to read and send email.
+    multi: true
     requestedScopes: [gmail.readonly, gmail.send]
 
 install: |

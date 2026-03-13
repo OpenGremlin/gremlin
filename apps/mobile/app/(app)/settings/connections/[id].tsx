@@ -1,9 +1,8 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import {
   IntegrationConnectionsQuery,
-  RenameConnectionMutation,
   RevokeConnectionMutation,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
@@ -16,17 +15,13 @@ import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function ConnectionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, loading, error, refetch } = useQuery(
-    IntegrationConnectionsQuery,
-  );
+  const { data, loading, error } = useQuery(IntegrationConnectionsQuery);
   const connection =
     data?.integrationConnections.find((c) => c.id === id) ?? null;
 
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState("");
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} />;
@@ -39,23 +34,6 @@ export default function ConnectionDetailScreen() {
   const meta = connection.meta;
   const accountId = meta.accountId ?? null;
   const scopes = meta.__typename === "OAuthConnectionMeta" ? meta.scopes : null;
-  const description = connection.description;
-
-  function startEditing() {
-    setEditValue(description);
-    setEditing(true);
-  }
-
-  async function handleRename() {
-    const trimmed = editValue.trim();
-    if (!trimmed || trimmed === description) {
-      setEditing(false);
-      return;
-    }
-    await gql(RenameConnectionMutation, { id: id ?? "", description: trimmed });
-    setEditing(false);
-    refetch();
-  }
 
   async function doRevoke() {
     setConfirmVisible(false);
@@ -72,14 +50,10 @@ export default function ConnectionDetailScreen() {
     }
   }
 
-  const inputClass =
-    "text-xl font-semibold text-text-primary bg-transparent border-b border-app-border py-1";
-
   return (
     <ScrollView
       className="flex-1"
       contentContainerClassName="px-4 py-6 gap-5"
-      keyboardShouldPersistTaps="handled"
     >
       {revokeError ? (
         <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
@@ -88,25 +62,11 @@ export default function ConnectionDetailScreen() {
       ) : null}
 
       <View className="gap-1">
-        {editing ? (
-          <TextInput
-            className={inputClass}
-            value={editValue}
-            onChangeText={setEditValue}
-            onBlur={() => handleRename()}
-            onSubmitEditing={() => handleRename()}
-            autoFocus
-          />
-        ) : (
-          <Pressable onPress={startEditing}>
-            <Text className="text-xl font-semibold text-text-primary">
-              {description}
-            </Text>
-          </Pressable>
-        )}
-        {accountId ? (
-          <Text className="text-sm text-text-muted mt-0.5">{accountId}</Text>
-        ) : null}
+        <Text className="text-xl font-semibold text-text-primary">
+          {accountId && accountId !== "unknown"
+            ? accountId
+            : connection.providerId}
+        </Text>
         <Text className="text-xs text-text-muted mt-0.5">
           Connected {formatDate(connection.connectedAt)}
         </Text>
@@ -118,10 +78,7 @@ export default function ConnectionDetailScreen() {
             Granted Scopes
           </Text>
           {scopes.map((scope) => (
-            <Card
-              key={scope}
-              className="p-4"
-            >
+            <Card key={scope} className="p-4">
               <Text className="text-sm text-text-primary">{scope}</Text>
             </Card>
           ))}

@@ -13,7 +13,6 @@ export const IntegrationConnectionEntity = new Entity({
     id: string().key(),
     providerId: string(),
     connectionType: string(),
-    description: string(),
     connectedAt: string(),
     isRevoked: boolean().default(false),
     connectionMeta: map({

@@ -119,6 +119,7 @@ export function runCommandTool(
   ctx: ServiceContext,
   agentId: string,
   taskId?: string,
+  skillEnvProvider?: () => Record<string, string>,
 ) {
   return tool({
     description:
@@ -164,6 +165,7 @@ export function runCommandTool(
         result = await ctx.services.sandbox.execCommand(session, command, {
           pubsub: ctx.resources.pubsub,
           taskId,
+          env: skillEnvProvider?.(),
         });
       } catch (err) {
         log.error(

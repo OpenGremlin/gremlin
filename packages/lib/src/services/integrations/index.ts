@@ -8,7 +8,7 @@ import { getDefaultModel } from "./getDefaultModel.js";
 import { getIntegration } from "./getIntegration.js";
 import { getIntegrations } from "./getIntegrations.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
-import { renameConnection } from "./renameConnection.js";
+
 import { revokeConnection } from "./revokeConnection.js";
 import { setDefaultModel } from "./setDefaultModel.js";
 import { submitOAuthConnection } from "./submitOAuthConnection.js";
@@ -24,7 +24,6 @@ export const integrationService = {
   getIntegration,
   getIntegrations,
   getProviderApiKey,
-  renameConnection,
   revokeConnection,
   setDefaultModel,
   submitOAuthConnection,

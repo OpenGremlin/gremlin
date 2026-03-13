@@ -113,7 +113,9 @@ export default function IntegrationsScreen() {
                   className="text-sm font-medium text-text-primary"
                   numberOfLines={1}
                 >
-                  {conn.description}
+                  {conn.meta.accountId && conn.meta.accountId !== "unknown"
+                    ? conn.meta.accountId
+                    : conn.providerId}
                 </Text>
                 <Text className="text-xs text-text-muted" numberOfLines={1}>
                   {conn.providerId} ·{" "}
@@ -122,7 +124,6 @@ export default function IntegrationsScreen() {
                     : conn.connectionType === "apikey"
                       ? "API Key"
                       : conn.connectionType}
-                  {conn.meta.accountId ? ` · ${conn.meta.accountId}` : ""}
                 </Text>
               </View>
               <Text className="text-xs text-text-muted shrink-0">

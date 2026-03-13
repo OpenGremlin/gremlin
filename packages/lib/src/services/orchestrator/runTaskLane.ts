@@ -1,6 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { buildSkillConfig } from "../skills/buildMcpConfig.js";
+import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {
   createBraveSearchTool,
   createDocumentTool,
@@ -10,8 +11,8 @@ import {
   recallMemoryTool,
   saveMemoryTool,
   scheduleJobTool,
-  updateJobTool,
   updateDocumentTool,
+  updateJobTool,
   updateTaskMessageTool,
   webFetch,
 } from "../tools/index.js";
@@ -27,12 +28,13 @@ function buildConfigTools(
   config?: {
     sandbox?: { enabled: boolean } | null;
   } | null,
+  skillEnvProvider?: () => Record<string, string>,
 ) {
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
   const tools: Record<string, any> = {};
 
   if (config?.sandbox?.enabled) {
-    tools.runCommand = runCommandTool(ctx, agentId, taskId);
+    tools.runCommand = runCommandTool(ctx, agentId, taskId, skillEnvProvider);
     tools.checkCommand = checkCommandTool(ctx, agentId);
   }
 
@@ -65,11 +67,23 @@ export async function runTaskLane(
     content: prompt,
   });
 
-  // Build skill instructions from agent's assigned skills
-  const skillConfig = await buildSkillConfig(ctx, task.agentId).catch((err) => {
-    ctx.log.error({ err, component: "skills" }, "Failed to build skill config");
-    return { skillInstructions: [] };
-  });
+  // Build skill instructions and skill tools in parallel
+  const [skillConfig, skillToolsResult] = await Promise.all([
+    buildSkillConfig(ctx, task.agentId).catch((err) => {
+      ctx.log.error(
+        { err, component: "skills" },
+        "Failed to build skill config",
+      );
+      return { skillInstructions: [] };
+    }),
+    buildSkillTools(ctx, task.agentId, taskId).catch((err) => {
+      ctx.log.error(
+        { err, component: "skills" },
+        "Failed to build skill tools",
+      );
+      return { tools: {}, getEnv: () => ({}) };
+    }),
+  ]);
 
   let systemPrompt = renderPrompt("taskSystem", {
     name: agent.name,
@@ -109,7 +123,14 @@ export async function runTaskLane(
       listJobs: listJobsTool(ctx, task.agentId),
       scheduleJob: scheduleJobTool(ctx, task.agentId),
       updateJob: updateJobTool(ctx, task.agentId),
-      ...buildConfigTools(ctx, task.agentId, taskId, agent.config),
+      ...buildConfigTools(
+        ctx,
+        task.agentId,
+        taskId,
+        agent.config,
+        skillToolsResult.getEnv,
+      ),
+      ...skillToolsResult.tools,
     },
     recallHint: prompt,
     timezone,

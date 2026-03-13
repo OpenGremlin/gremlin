@@ -73,10 +73,6 @@ const connectApiKey: MutationResolvers["connectApiKey"] = (
   ctx,
 ) => ctx.services.integrations.connectApiKey(ctx.resources, providerId, apiKey);
 
-const renameIntegrationConnection: MutationResolvers["renameIntegrationConnection"] =
-  (_parent, { id, description }, ctx) =>
-    ctx.services.integrations.renameConnection(ctx.resources, id, description);
-
 const revokeIntegrationConnection: MutationResolvers["revokeIntegrationConnection"] =
   (_parent, { id }, ctx) =>
     ctx.services.integrations.revokeConnection(ctx.resources, id);
@@ -126,7 +122,6 @@ export const integrationResolvers = {
   },
   Mutation: {
     connectApiKey,
-    renameIntegrationConnection,
     revokeIntegrationConnection,
     setDefaultModel,
     enableBedrockModel,

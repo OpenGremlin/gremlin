@@ -47,7 +47,6 @@ export const integrationTypeDefs = /* GraphQL */ `
     id: ID!
     providerId: String!
     connectionType: String!
-    description: String!
     connectedAt: String!
     isRevoked: Boolean!
     meta: ConnectionMeta!
@@ -62,7 +61,6 @@ export const integrationTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     connectApiKey(providerId: String!, apiKey: String!): ID!
-    renameIntegrationConnection(id: ID!, description: String!): Boolean!
     revokeIntegrationConnection(id: ID!): Boolean!
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!

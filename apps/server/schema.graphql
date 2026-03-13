@@ -40,7 +40,6 @@ type Mutation {
   retireAgent(id: ID!): Agent!
   unretireAgent(id: ID!): Agent!
   connectApiKey(providerId: String!, apiKey: String!): ID!
-  renameIntegrationConnection(id: ID!, description: String!): Boolean!
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
   enableBedrockModel(modelId: String!): Boolean!
@@ -56,6 +55,8 @@ type Mutation {
   removeSkill(agentId: ID!, skillId: ID!): Boolean!
   "Bind a connection to an agent's skill"
   bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
+  "Unbind a connection from an agent's skill"
+  unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
 }
 
 type Subscription {
@@ -304,7 +305,6 @@ type IntegrationConnection {
   id: ID!
   providerId: String!
   connectionType: String!
-  description: String!
   connectedAt: String!
   isRevoked: Boolean!
   meta: ConnectionMeta!
@@ -375,6 +375,7 @@ type SkillConnectionRequirement {
   providerName: String!
   reason: String!
   optional: Boolean!
+  multi: Boolean!
   requestedScopes: [String!]
 }
 
@@ -391,7 +392,8 @@ type SkillConnectionStatus {
   providerName: String!
   reason: String!
   optional: Boolean!
-  boundConnectionId: String
+  multi: Boolean!
+  boundConnectionIds: [String!]!
   connected: Boolean!
 }
 

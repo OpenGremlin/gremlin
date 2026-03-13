@@ -240,7 +240,6 @@ export type IntegrationConnection = {
   __typename?: 'IntegrationConnection';
   connectedAt: Scalars['String']['output'];
   connectionType: Scalars['String']['output'];
-  description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isRevoked: Scalars['Boolean']['output'];
   meta: ConnectionMeta;
@@ -288,7 +287,6 @@ export type Mutation = {
   enableBedrockModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
-  renameIntegrationConnection: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
@@ -297,6 +295,8 @@ export type Mutation = {
   setDefaultModel: Scalars['Boolean']['output'];
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
+  /** Unbind a connection from an agent's skill */
+  unbindAgentSkillConnection: AgentSkill;
   unretireAgent: Agent;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -366,12 +366,6 @@ export type MutationRemoveSkillArgs = {
 };
 
 
-export type MutationRenameIntegrationConnectionArgs = {
-  description: Scalars['String']['input'];
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationRequestFileUploadsArgs = {
   agentId: Scalars['String']['input'];
   files: Array<FileUploadRequest>;
@@ -420,6 +414,14 @@ export type MutationSubmitOAuthConnectionArgs = {
 
 export type MutationTriggerJobArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationUnbindAgentSkillConnectionArgs = {
+  agentId: Scalars['ID']['input'];
+  connectionId: Scalars['ID']['input'];
+  provider: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -609,6 +611,7 @@ export type SendMessageResult = {
 
 export type SkillConnectionRequirement = {
   __typename?: 'SkillConnectionRequirement';
+  multi: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
   provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
@@ -618,8 +621,9 @@ export type SkillConnectionRequirement = {
 
 export type SkillConnectionStatus = {
   __typename?: 'SkillConnectionStatus';
-  boundConnectionId?: Maybe<Scalars['String']['output']>;
+  boundConnectionIds: Array<Scalars['String']['output']>;
   connected: Scalars['Boolean']['output'];
+  multi: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
   provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
@@ -871,7 +875,7 @@ export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProvi
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, description: string, connectedAt: string, isRevoked: boolean, meta:
+export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, connectedAt: string, isRevoked: boolean, meta:
       | { __typename: 'ApiKeyConnectionMeta', accountId?: string | null }
       | { __typename: 'OAuthConnectionMeta', accountId?: string | null, scopes: Array<string>, expiresAt?: string | null }
      }> };
@@ -883,14 +887,6 @@ export type ConnectApiKeyMutationVariables = Exact<{
 
 
 export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: string };
-
-export type RenameConnectionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  description: Scalars['String']['input'];
-}>;
-
-
-export type RenameConnectionMutation = { __typename?: 'Mutation', renameIntegrationConnection: boolean };
 
 export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1043,21 +1039,21 @@ export type UpdateGlobalSettingsMutation = { __typename?: 'Mutation', updateGlob
 export type SkillTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, requestedScopes?: Array<string> | null }> }> };
+export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> }> };
 
 export type SkillTemplateQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, requestedScopes?: Array<string> | null }> } | null };
+export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> } | null };
 
 export type AgentSkillsQueryVariables = Exact<{
   agentId: Scalars['ID']['input'];
 }>;
 
 
-export type AgentSkillsQuery = { __typename?: 'Query', agentSkills: Array<{ __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean }> } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> }> };
+export type AgentSkillsQuery = { __typename?: 'Query', agentSkills: Array<{ __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean }> } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> }> };
 
 export type AssignSkillMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1065,7 +1061,7 @@ export type AssignSkillMutationVariables = Exact<{
 }>;
 
 
-export type AssignSkillMutation = { __typename?: 'Mutation', assignSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, boundConnectionId?: string | null, connected: boolean }> } };
+export type AssignSkillMutation = { __typename?: 'Mutation', assignSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> } };
 
 export type RemoveSkillMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1083,7 +1079,17 @@ export type BindAgentSkillConnectionMutationVariables = Exact<{
 }>;
 
 
-export type BindAgentSkillConnectionMutation = { __typename?: 'Mutation', bindAgentSkillConnection: { __typename?: 'AgentSkill', skillId: string, agentId: string, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, boundConnectionId?: string | null, connected: boolean }> } };
+export type BindAgentSkillConnectionMutation = { __typename?: 'Mutation', bindAgentSkillConnection: { __typename?: 'AgentSkill', skillId: string, agentId: string, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, boundConnectionIds: Array<string>, connected: boolean }> } };
+
+export type UnbindAgentSkillConnectionMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+  provider: Scalars['String']['input'];
+  connectionId: Scalars['ID']['input'];
+}>;
+
+
+export type UnbindAgentSkillConnectionMutation = { __typename?: 'Mutation', unbindAgentSkillConnection: { __typename?: 'AgentSkill', skillId: string, agentId: string, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, boundConnectionIds: Array<string>, connected: boolean }> } };
 
 export type TasksQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1443,7 +1449,6 @@ export const IntegrationConnectionsDocument = new TypedDocumentString(`
     id
     providerId
     connectionType
-    description
     connectedAt
     isRevoked
     meta {
@@ -1465,11 +1470,6 @@ export const ConnectApiKeyDocument = new TypedDocumentString(`
   connectApiKey(providerId: $providerId, apiKey: $apiKey)
 }
     `) as unknown as TypedDocumentString<ConnectApiKeyMutation, ConnectApiKeyMutationVariables>;
-export const RenameConnectionDocument = new TypedDocumentString(`
-    mutation RenameConnection($id: ID!, $description: String!) {
-  renameIntegrationConnection(id: $id, description: $description)
-}
-    `) as unknown as TypedDocumentString<RenameConnectionMutation, RenameConnectionMutationVariables>;
 export const RevokeConnectionDocument = new TypedDocumentString(`
     mutation RevokeConnection($id: ID!) {
   revokeIntegrationConnection(id: $id)
@@ -1707,6 +1707,7 @@ export const SkillTemplatesDocument = new TypedDocumentString(`
       providerName
       reason
       optional
+      multi
       requestedScopes
     }
   }
@@ -1729,6 +1730,7 @@ export const SkillTemplateDocument = new TypedDocumentString(`
       providerName
       reason
       optional
+      multi
       requestedScopes
     }
   }
@@ -1752,6 +1754,7 @@ export const AgentSkillsDocument = new TypedDocumentString(`
         providerName
         reason
         optional
+        multi
       }
     }
     connectionStatuses {
@@ -1759,7 +1762,8 @@ export const AgentSkillsDocument = new TypedDocumentString(`
       providerName
       reason
       optional
-      boundConnectionId
+      multi
+      boundConnectionIds
       connected
     }
   }
@@ -1784,7 +1788,8 @@ export const AssignSkillDocument = new TypedDocumentString(`
       providerName
       reason
       optional
-      boundConnectionId
+      multi
+      boundConnectionIds
       connected
     }
   }
@@ -1807,12 +1812,30 @@ export const BindAgentSkillConnectionDocument = new TypedDocumentString(`
     agentId
     connectionStatuses {
       provider
-      boundConnectionId
+      boundConnectionIds
       connected
     }
   }
 }
     `) as unknown as TypedDocumentString<BindAgentSkillConnectionMutation, BindAgentSkillConnectionMutationVariables>;
+export const UnbindAgentSkillConnectionDocument = new TypedDocumentString(`
+    mutation UnbindAgentSkillConnection($agentId: ID!, $skillId: ID!, $provider: String!, $connectionId: ID!) {
+  unbindAgentSkillConnection(
+    agentId: $agentId
+    skillId: $skillId
+    provider: $provider
+    connectionId: $connectionId
+  ) {
+    skillId
+    agentId
+    connectionStatuses {
+      provider
+      boundConnectionIds
+      connected
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<UnbindAgentSkillConnectionMutation, UnbindAgentSkillConnectionMutationVariables>;
 export const TasksDocument = new TypedDocumentString(`
     query Tasks($first: Int, $after: String, $last: Int, $before: String) {
   tasks(first: $first, after: $after, last: $last, before: $before) {

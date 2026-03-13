@@ -17,6 +17,7 @@ export const SkillTemplatesQuery = graphql(`
         providerName
         reason
         optional
+        multi
         requestedScopes
       }
     }
@@ -40,6 +41,7 @@ export const SkillTemplateQuery = graphql(`
         providerName
         reason
         optional
+        multi
         requestedScopes
       }
     }
@@ -64,6 +66,7 @@ export const AgentSkillsQuery = graphql(`
           providerName
           reason
           optional
+          multi
         }
       }
       connectionStatuses {
@@ -71,7 +74,8 @@ export const AgentSkillsQuery = graphql(`
         providerName
         reason
         optional
-        boundConnectionId
+        multi
+        boundConnectionIds
         connected
       }
     }
@@ -97,7 +101,8 @@ export const AssignSkillMutation = graphql(`
         providerName
         reason
         optional
-        boundConnectionId
+        multi
+        boundConnectionIds
         connected
       }
     }
@@ -117,7 +122,21 @@ export const BindAgentSkillConnectionMutation = graphql(`
       agentId
       connectionStatuses {
         provider
-        boundConnectionId
+        boundConnectionIds
+        connected
+      }
+    }
+  }
+`);
+
+export const UnbindAgentSkillConnectionMutation = graphql(`
+  mutation UnbindAgentSkillConnection($agentId: ID!, $skillId: ID!, $provider: String!, $connectionId: ID!) {
+    unbindAgentSkillConnection(agentId: $agentId, skillId: $skillId, provider: $provider, connectionId: $connectionId) {
+      skillId
+      agentId
+      connectionStatuses {
+        provider
+        boundConnectionIds
         connected
       }
     }

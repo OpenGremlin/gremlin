@@ -20,7 +20,7 @@ export type { ExecOptions };
 export async function execCommand(
   session: SandboxSession,
   command: string,
-  options?: ExecOptions,
+  options?: ExecOptions & { env?: Record<string, string> },
 ): Promise<CommandResult> {
   const ws = session.ws;
   if (!ws || ws.readyState !== WebSocket.OPEN) {
@@ -224,6 +224,15 @@ export async function execCommand(
     }
 
     ws.on("message", onMessage);
-    ws.send(JSON.stringify({ type: "exec", id, command }));
+    ws.send(
+      JSON.stringify({
+        type: "exec",
+        id,
+        command,
+        ...(options?.env && Object.keys(options.env).length > 0
+          ? { env: options.env }
+          : {}),
+      }),
+    );
   });
 }

@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
-import { describeScopes } from "./describeScopes.js";
 import { providers } from "./providers.js";
 
 export async function submitOAuthConnection(
@@ -22,14 +21,12 @@ export async function submitOAuthConnection(
   }
 
   const id = randomUUID();
-  const description = describeScopes(providerId, scopes);
 
   await resources.ddb.entities.IntegrationConnection.build(PutItemCommand)
     .item({
       id,
       providerId,
       connectionType: "oauth",
-      description,
       connectedAt: new Date().toISOString(),
       isRevoked: false,
       connectionMeta: {

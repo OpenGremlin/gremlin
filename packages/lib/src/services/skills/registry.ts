@@ -5,6 +5,8 @@ export interface SkillConnectionRequirement {
   env: Record<string, string>;
   reason: string;
   optional?: boolean;
+  /** Allow multiple connections for this provider (e.g. two Google accounts) */
+  multi?: boolean;
   requestedScopes?: string[];
 }
 

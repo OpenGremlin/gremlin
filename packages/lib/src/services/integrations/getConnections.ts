@@ -12,7 +12,6 @@ export interface SafeIntegrationConnection {
   id: string;
   providerId: string;
   connectionType: string;
-  description: string;
   connectedAt: string;
   isRevoked: boolean;
   connectionMeta: SafeConnectionMeta;
