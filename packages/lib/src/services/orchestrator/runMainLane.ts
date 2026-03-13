@@ -2,9 +2,12 @@ import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import {
   delegateTaskTool,
+  listJobsTool,
   readDocumentTool,
   recallMemoryTool,
   saveMemoryTool,
+  scheduleJobTool,
+  updateJobTool,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
@@ -37,6 +40,9 @@ export async function runMainLane(
       readDocument: readDocumentTool(),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),
+      listJobs: listJobsTool(ctx, agentId),
+      scheduleJob: scheduleJobTool(ctx, agentId),
+      updateJob: updateJobTool(ctx, agentId),
     },
     recallHint,
     timezone,

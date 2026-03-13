@@ -15,4 +15,9 @@ export { postToMainLaneTool } from "./postToMainLane.js";
 export { requestApprovalTool } from "./requestApproval.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
 export { updateTaskMessageTool } from "./updateTaskMessage.js";
+export {
+  listJobsTool,
+  scheduleJobTool,
+  updateJobTool,
+} from "./jobs.js";
 export { webFetch } from "./webFetch.js";

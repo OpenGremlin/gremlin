@@ -44,6 +44,7 @@ type Documents = {
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      paused\n      lastRun\n      nextRun\n    }\n  }\n": typeof types.UpdateAgentJobDocument,
     "\n  subscription JobTaskCreated($jobId: ID!) {\n    jobTaskCreated(jobId: $jobId) {\n      id\n      agent {\n        id\n      }\n      title\n      createdAt\n    }\n  }\n": typeof types.JobTaskCreatedDocument,
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id)\n  }\n": typeof types.TriggerJobDocument,
+    "\n  subscription JobCreated {\n    jobCreated {\n      id\n    }\n  }\n": typeof types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": typeof types.CreateAgentJobDocument,
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveNotificationDocument,
@@ -98,6 +99,7 @@ const documents: Documents = {
     "\n  mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {\n    updateAgentJob(id: $id, input: $input) {\n      id\n      name\n      description\n      recurrence\n      cronExpression\n      timezone\n      agent {\n        id\n      }\n      paused\n      lastRun\n      nextRun\n    }\n  }\n": types.UpdateAgentJobDocument,
     "\n  subscription JobTaskCreated($jobId: ID!) {\n    jobTaskCreated(jobId: $jobId) {\n      id\n      agent {\n        id\n      }\n      title\n      createdAt\n    }\n  }\n": types.JobTaskCreatedDocument,
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id)\n  }\n": types.TriggerJobDocument,
+    "\n  subscription JobCreated {\n    jobCreated {\n      id\n    }\n  }\n": types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": types.CreateAgentJobDocument,
     "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.NotificationsDocument,
     "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveNotificationDocument,
@@ -239,6 +241,10 @@ export function graphql(source: "\n  subscription JobTaskCreated($jobId: ID!) {\
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id)\n  }\n"): typeof import('./graphql').TriggerJobDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription JobCreated {\n    jobCreated {\n      id\n    }\n  }\n"): typeof import('./graphql').JobCreatedDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

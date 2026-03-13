@@ -43,5 +43,7 @@ export async function createJob(
     .item(item)
     .send();
 
+  ctx.resources.pubsub.publish("jobCreated", item);
+
   return item;
 }

@@ -1,7 +1,7 @@
 import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -11,9 +11,11 @@ import {
 } from "react-native";
 import {
   AgentJobsQuery,
+  JobCreatedSubscription,
   TriggerJobMutation,
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
+import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
@@ -55,6 +57,12 @@ export default function JobsScreen() {
   const colors = useNavigationTheme();
   const { data, loading, error, refetch } = useQuery(AgentJobsQuery);
   const [refreshing, setRefreshing] = useState(false);
+  const refetchRef = useRef(refetch);
+  refetchRef.current = refetch;
+
+  useSubscription(JobCreatedSubscription, {}, () => {
+    refetchRef.current();
+  });
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

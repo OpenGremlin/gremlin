@@ -5,6 +5,7 @@ interface SaveButtonProps {
   disabled?: boolean;
   saving?: boolean;
   label?: string;
+  size?: "sm" | "md" | "lg";
 }
 
 export function SaveButton({
@@ -12,9 +13,10 @@ export function SaveButton({
   disabled,
   saving,
   label = "Save",
+  size,
 }: SaveButtonProps) {
   return (
-    <Button onPress={onPress} disabled={disabled} loading={saving}>
+    <Button onPress={onPress} disabled={disabled} loading={saving} size={size}>
       {label}
     </Button>
   );

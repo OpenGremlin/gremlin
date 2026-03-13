@@ -293,13 +293,14 @@ export default function JobDetailScreen() {
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Agent</Text>
             <Pressable
-              className={inputClass}
               onPress={() => setAgentPickerOpen(true)}
             >
-              <Text className="text-sm text-text-primary">
-                {agentOptions.find((a) => a.value === currentAgentId)?.label ??
-                  job.agent.name}
-              </Text>
+              <View className={inputClass}>
+                <Text className="text-sm text-text-primary">
+                  {agentOptions.find((a) => a.value === currentAgentId)
+                    ?.label ?? job.agent.name}
+                </Text>
+              </View>
             </Pressable>
             <PickerModal
               visible={agentPickerOpen}
@@ -354,12 +355,13 @@ export default function JobDetailScreen() {
             />
           </View>
 
-          <View className="flex-row items-center gap-3 pt-2">
+          <View className="gap-3 pt-2">
             <SaveButton
               onPress={handleSave}
               disabled={!isDirty}
               saving={saving}
               label="Save changes"
+              size="lg"
             />
             {isDirty && (
               <Pressable
@@ -370,6 +372,7 @@ export default function JobDetailScreen() {
                   setDescription(null);
                   setTimezone(null);
                 }}
+                className="items-center"
               >
                 <Text className="text-sm text-text-muted">Discard</Text>
               </Pressable>
@@ -420,6 +423,7 @@ export default function JobDetailScreen() {
           loading={deleting}
           label="Delete Job"
           loadingLabel="Deleting..."
+          size="lg"
         />
       </View>
     </ScrollView>

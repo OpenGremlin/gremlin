@@ -1,5 +1,6 @@
 import type { Repeater } from "@repeaterjs/repeater";
 import type { AgentItem } from "./ddb/schema/agent.js";
+import type { AgentJobItem } from "./ddb/schema/agentJob.js";
 import type { AgentLogItem } from "./ddb/schema/agentLog.js";
 import type { InboxItemItem } from "./ddb/schema/inboxItem.js";
 import type { TaskItem } from "./ddb/schema/task.js";
@@ -18,6 +19,7 @@ export type PubSubEvents = {
   [key: `agentUpdated:${string}`]: [AgentItem];
   [key: `taskUpdated:${string}`]: [TaskItem];
   [key: `jobTaskCreated:${string}`]: [TaskItem];
+  jobCreated: [AgentJobItem];
   [key: `inboxItemCreated:${string}`]: [InboxItemItem];
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
 };

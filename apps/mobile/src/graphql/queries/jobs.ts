@@ -91,6 +91,14 @@ export const TriggerJobMutation = graphql(`
   }
 `);
 
+export const JobCreatedSubscription = graphql(`
+  subscription JobCreated {
+    jobCreated {
+      id
+    }
+  }
+`);
+
 export const CreateAgentJobMutation = graphql(`
   mutation CreateAgentJob($input: CreateAgentJobInput!) {
     createAgentJob(input: $input) {

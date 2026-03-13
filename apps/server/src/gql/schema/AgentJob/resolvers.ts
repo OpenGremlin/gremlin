@@ -1,4 +1,6 @@
 import { CronExpressionParser } from "cron-parser";
+import type { AgentJobItem } from "@gremlin/lib/resources/ddb/schema/agentJob.js";
+import type { GremlinContext } from "../../context.js";
 import type {
   AgentJobResolvers,
   MutationResolvers,
@@ -72,6 +74,12 @@ const nextRun: AgentJobResolvers["nextRun"] = async (parent) => {
 
 const paused: AgentJobResolvers["paused"] = (parent) => parent.paused ?? false;
 
+const jobCreated = {
+  subscribe: (_parent: unknown, _args: unknown, ctx: GremlinContext) =>
+    ctx.resources.pubsub.subscribe("jobCreated"),
+  resolve: (payload: AgentJobItem) => payload,
+};
+
 export const agentJobResolvers = {
   Query: { agentJobs, agentJob },
   Mutation: {
@@ -80,5 +88,6 @@ export const agentJobResolvers = {
     deleteAgentJob,
     triggerJob,
   },
+  Subscription: { jobCreated },
   AgentJob: { agent, tasks, nextRun, paused },
 };

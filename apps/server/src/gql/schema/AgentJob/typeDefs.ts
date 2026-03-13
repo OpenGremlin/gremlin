@@ -41,4 +41,8 @@ export const agentJobTypeDefs = /* GraphQL */ `
     deleteAgentJob(id: ID!): AgentJob
     triggerJob(id: ID!): Boolean!
   }
+
+  extend type Subscription {
+    jobCreated: AgentJob!
+  }
 `;

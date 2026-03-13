@@ -646,6 +646,7 @@ export type Subscription = {
   agentLogCreated: AgentLog;
   agentUpdated: Agent;
   agentsUpdated: Agent;
+  jobCreated: AgentJob;
   jobTaskCreated: Task;
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
@@ -977,6 +978,11 @@ export type TriggerJobMutationVariables = Exact<{
 
 
 export type TriggerJobMutation = { __typename?: 'Mutation', triggerJob: boolean };
+
+export type JobCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type JobCreatedSubscription = { __typename?: 'Subscription', jobCreated: { __typename?: 'AgentJob', id: string } };
 
 export type CreateAgentJobMutationVariables = Exact<{
   input: CreateAgentJobInput;
@@ -1588,6 +1594,13 @@ export const TriggerJobDocument = new TypedDocumentString(`
   triggerJob(id: $id)
 }
     `) as unknown as TypedDocumentString<TriggerJobMutation, TriggerJobMutationVariables>;
+export const JobCreatedDocument = new TypedDocumentString(`
+    subscription JobCreated {
+  jobCreated {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<JobCreatedSubscription, JobCreatedSubscriptionVariables>;
 export const CreateAgentJobDocument = new TypedDocumentString(`
     mutation CreateAgentJob($input: CreateAgentJobInput!) {
   createAgentJob(input: $input) {

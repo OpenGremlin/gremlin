@@ -125,14 +125,13 @@ export function SheetModal({
     >
       <View className="flex-1 justify-end" style={themeStyle}>
         <Animated.View
-          className="absolute inset-0 bg-overlay"
           style={{ opacity: fadeAnim }}
+          className="absolute inset-0"
         >
-          <Pressable className="flex-1" onPress={animateClose} />
+          <Pressable className="flex-1 bg-overlay" onPress={animateClose} />
         </Animated.View>
 
         <Animated.View
-          className="bg-surface rounded-t-2xl overflow-hidden"
           style={{
             height: sheetHeight,
             transform: [
@@ -140,32 +139,35 @@ export function SheetModal({
             ],
           }}
         >
-          <Animated.View
-            {...panResponder.panHandlers}
-            className="items-center pt-2.5 pb-1"
-          >
-            <View className="w-9 h-1 rounded-full bg-text-faint" />
-          </Animated.View>
+          <View className="flex-1 bg-surface rounded-t-2xl overflow-hidden">
+            <View
+              {...panResponder.panHandlers}
+              className="items-center pt-2.5 pb-1"
+            >
+              <View className="w-9 h-1 rounded-full bg-text-faint" />
+            </View>
 
-          <View
-            className="flex-row items-center justify-between pl-10 pr-4 pt-2 pb-4"
-            {...panResponder.panHandlers}
-          >
-            <Text
-              className="text-sm font-semibold text-text-primary flex-1 mr-4"
-              numberOfLines={1}
+            <View
+              className="flex-row items-center justify-between pl-10 pr-4 pt-2 pb-4"
+              {...panResponder.panHandlers}
             >
-              {title}
-            </Text>
-            <Pressable
-              onPress={animateClose}
-              hitSlop={8}
-              className="w-8 h-8 rounded-full bg-surface-alt items-center justify-center"
-            >
-              <X size={16} color={colors.iconDefault} />
-            </Pressable>
+              <Text
+                className="text-sm font-semibold text-text-primary flex-1 mr-4"
+                numberOfLines={1}
+              >
+                {title}
+              </Text>
+              <Pressable
+                onPress={animateClose}
+                hitSlop={8}
+              >
+                <View className="w-8 h-8 rounded-full bg-surface-alt items-center justify-center">
+                  <X size={16} color={colors.iconDefault} />
+                </View>
+              </Pressable>
+            </View>
+            {children}
           </View>
-          {children}
         </Animated.View>
       </View>
     </Modal>

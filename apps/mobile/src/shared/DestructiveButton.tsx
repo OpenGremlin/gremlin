@@ -6,6 +6,7 @@ interface DestructiveButtonProps {
   loadingLabel?: string;
   loading?: boolean;
   disabled?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 export function DestructiveButton({
@@ -14,6 +15,7 @@ export function DestructiveButton({
   loadingLabel,
   loading,
   disabled,
+  size,
 }: DestructiveButtonProps) {
   return (
     <Button
@@ -22,6 +24,7 @@ export function DestructiveButton({
       disabled={disabled}
       loading={loading}
       loadingText={loadingLabel}
+      size={size}
     >
       {label}
     </Button>
