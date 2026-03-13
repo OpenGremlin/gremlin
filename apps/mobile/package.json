@@ -16,6 +16,7 @@
     "@gremlin/logos": "workspace:*",
     "cronstrue": "^3.13.0",
     "expo": "~55.0.5",
+    "expo-blur": "^55.0.9",
     "expo-constants": "~55.0.7",
     "expo-document-picker": "^55.0.8",
     "expo-linear-gradient": "^55.0.8",
