@@ -153,6 +153,7 @@ function ApiKeyDetailView({
             onPress={handleSaveApiKey}
             disabled={!apiKeyInput.trim()}
             loading={saving}
+            fullWidth
           >
             Connect
           </Button>

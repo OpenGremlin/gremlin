@@ -19,7 +19,7 @@ type SettingsItem = { label: string; icon: LucideIcon; href: string };
 
 const sections: Array<{ title: string; items: SettingsItem[] }> = [
   {
-    title: "Account",
+    title: "Human",
     items: [
       { label: "Profile", icon: User, href: "/settings/profile" },
       { label: "Notifications", icon: Bell, href: "/settings/notifications" },
