@@ -32,7 +32,7 @@ export function DocumentCard({ doc }: { doc: Document }) {
         title={doc.title}
         onClose={() => setOpen(false)}
       >
-        <ScrollView className="flex-1 px-4 py-4">
+        <ScrollView className="flex-1 bg-bg px-10 py-4" contentContainerClassName="pb-16">
           <Markdown>{doc.body ?? ""}</Markdown>
         </ScrollView>
       </SheetModal>
