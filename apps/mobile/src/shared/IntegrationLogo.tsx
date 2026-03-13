@@ -1,4 +1,5 @@
-import { Image, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Text, View } from "react-native";
 import { useTheme } from "../lib/ThemeContext";
 
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -60,7 +61,7 @@ export function IntegrationLogo({
         <Image
           source={logo}
           style={{ width: size, height: size }}
-          resizeMode="contain"
+          contentFit="contain"
         />
       </View>
     );

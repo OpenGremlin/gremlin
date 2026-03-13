@@ -16,7 +16,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
-// SVGs as asset files
+// SVGs as asset files (rendered via expo-image on all platforms)
 config.resolver.assetExts = [...(config.resolver.assetExts || []), "svg"];
 
 module.exports = withNativeWind(config, { input: "./global.css" });
