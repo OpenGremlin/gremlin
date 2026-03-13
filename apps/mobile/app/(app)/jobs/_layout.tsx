@@ -13,8 +13,14 @@ export default function JobsLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Scheduled Jobs" }} />
-      <Stack.Screen name="new" options={{ title: "New Job" }} />
+      <Stack.Screen
+        name="index"
+        options={{ title: "Scheduled Jobs", headerBackTitle: "Jobs" }}
+      />
+      <Stack.Screen
+        name="new"
+        options={{ title: "New Job", headerBackTitle: "Jobs" }}
+      />
       <Stack.Screen
         name="[id]"
         options={{ title: "Job", headerBackTitle: "Jobs" }}
