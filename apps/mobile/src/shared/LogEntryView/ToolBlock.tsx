@@ -11,9 +11,9 @@ const COLLAPSED_MAX_HEIGHT = 100;
 const darkCodeBg = "#0a0a0a";
 const darkCodeText = "rgba(74,222,128,0.9)";
 const darkCodeFade = "rgba(10,10,10,0.9)";
-const lightCodeBg = "#555555";
-const lightCodeText = "#f5f5f5";
-const lightCodeFade = "rgba(85,85,85,0.9)";
+const lightCodeBg = "#e4e4e4";
+const lightCodeText = "#b45309";
+const lightCodeFade = "rgba(228,228,228,0.9)";
 
 function CollapsedContent({
   content,
