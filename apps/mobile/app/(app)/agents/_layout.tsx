@@ -37,6 +37,13 @@ export default function AgentsLayout() {
       />
       <Stack.Screen name="[id]/config" options={{ title: "Configure Agent" }} />
       <Stack.Screen
+        name="[id]/canvas"
+        options={{
+          headerShown: false,
+          animation: "fade",
+        }}
+      />
+      <Stack.Screen
         name="[id]/tasks/[taskId]"
         options={{
           headerTransparent: true,

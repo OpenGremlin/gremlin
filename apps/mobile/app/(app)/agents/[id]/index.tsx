@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Monitor } from "lucide-react-native";
 import { useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
@@ -190,6 +190,18 @@ export default function AgentChatScreen() {
               onPress={() => router.push(`/agents/${id}/config`)}
             />
           </View>
+          <Pressable
+            onPress={() => router.push(`/agents/${id}/canvas`)}
+            style={{
+              position: "absolute",
+              top: Platform.OS === "ios" ? insets.top + 4 : 8,
+              right: 12,
+              zIndex: 3,
+              padding: 8,
+            }}
+          >
+            <Monitor size={22} color={colors.headerText} />
+          </Pressable>
         </LinearGradient>
       </View>
 
