@@ -2,18 +2,17 @@ import * as DocumentPicker from "expo-document-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AgentQuery, TaskQuery } from "../../../../src/graphql/queries";
+import { AgentQuery } from "../../../../src/graphql/queries";
 import { useChatSend } from "../../../../src/hooks/useChatSend";
 import { useFileUpload } from "../../../../src/hooks/useFileUpload";
 import {
@@ -22,7 +21,6 @@ import {
   useLogMessages,
 } from "../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../src/hooks/useQuery";
-import { useSandboxOutput } from "../../../../src/hooks/useSandboxOutput";
 import { hexToTransparent } from "../../../../src/lib/color";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { ChatHeaderTitle } from "../../../../src/shared/ChatHeaderTitle";
@@ -34,38 +32,23 @@ import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 export default function AgentChatScreen() {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
-  const { id, taskId } = useLocalSearchParams<{
+  const { id } = useLocalSearchParams<{
     id: string;
-    taskId?: string;
   }>();
 
-  const scope = useMemo(
-    () => (taskId ? { taskId } : { agentId: id }),
-    [id, taskId],
-  );
-
   const { messages, loading, hasMore, loadMore, loadingMore } =
-    useLogMessages(scope);
+    useLogMessages({ agentId: id });
   const {
     data: agentData,
     loading: agentLoading,
     error: agentError,
   } = useQuery(AgentQuery, { id: id ?? "" });
-  const { data: taskData } = useQuery(
-    TaskQuery,
-    taskId ? { id: taskId } : ({ id: "" } as const),
-  );
 
   const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
-    { agentId: id, taskId, messages },
+    { agentId: id, messages },
   );
 
-  const sandboxStreams = useSandboxOutput(taskId ?? "");
-
-  const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(
-    id,
-    taskId,
-  );
+  const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(id);
 
   // Auto-clear finished uploads after 3 seconds
   useEffect(() => {
@@ -99,9 +82,6 @@ export default function AgentChatScreen() {
   }, [uploadFiles]);
 
   const agent = agentData?.agent;
-  const task = taskData?.task;
-  const taskDocs = task?.documents;
-  const isTaskView = !!taskId;
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
@@ -112,12 +92,10 @@ export default function AgentChatScreen() {
           message={item}
           agentId={id}
           showTimestamp={show}
-          documents={taskDocs}
-          sandboxStreams={isTaskView ? sandboxStreams : undefined}
         />
       );
     },
-    [messages, id, taskDocs, isTaskView, sandboxStreams],
+    [messages, id],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
@@ -143,18 +121,6 @@ export default function AgentChatScreen() {
           headerShown: false,
         }}
       />
-
-      {taskId && task && (
-        <View className="px-4 py-2 bg-surface/80 border-b border-app-border">
-          <Text className="text-xs text-text-muted">Task</Text>
-          <Text
-            className="text-sm text-text-secondary mt-0.5"
-            numberOfLines={1}
-          >
-            🛠️ {task.title ?? task.message}
-          </Text>
-        </View>
-      )}
 
       <FlatList
         ref={listRef}
