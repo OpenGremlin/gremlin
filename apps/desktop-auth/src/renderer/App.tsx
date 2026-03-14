@@ -15,7 +15,6 @@ interface ProviderState {
 interface ConnectionInfo {
   id: string;
   providerId: string;
-  description: string;
   connectedAt: string;
   accountId?: string;
   scopes: string[];
@@ -166,7 +165,6 @@ export function App() {
             id
             providerId
             connectionType
-            description
             connectedAt
             isRevoked
             meta {
@@ -195,13 +193,11 @@ export function App() {
             (c: {
               id: string;
               providerId: string;
-              description: string;
               connectedAt: string;
               meta: { accountId?: string; scopes?: string[] };
             }) => ({
               id: c.id,
               providerId: c.providerId,
-              description: c.description,
               connectedAt: c.connectedAt,
               accountId: c.meta?.accountId,
               scopes: c.meta?.scopes ?? [],
