@@ -18,7 +18,11 @@ import {
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { runLane } from "./runLane.js";
-import { checkCommandTool, runCommandTool } from "./sandboxTools.js";
+import {
+  checkCommandTool,
+  ensureSandboxTool,
+  runCommandTool,
+} from "./sandboxTools.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 function buildConfigTools(
@@ -34,6 +38,7 @@ function buildConfigTools(
   const tools: Record<string, any> = {};
 
   if (config?.sandbox?.enabled) {
+    tools.ensureSandbox = ensureSandboxTool(ctx, agentId, taskId);
     tools.runCommand = runCommandTool(ctx, agentId, taskId, skillEnvProvider);
     tools.checkCommand = checkCommandTool(ctx, agentId);
   }

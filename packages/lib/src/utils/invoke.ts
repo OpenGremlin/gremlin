@@ -17,9 +17,25 @@ import { createLogger } from "../logger.js";
 import { createResources } from "../resources/index.js";
 import type { ServiceContext } from "../services/context.js";
 import { createServices } from "../services/index.js";
+import {
+  checkCommandTool,
+  ensureSandboxTool,
+  runCommandTool,
+} from "../services/orchestrator/sandboxTools.js";
 import { renderPrompt } from "../services/prompts/index.js";
 import { buildSkillSummary } from "../services/skills/buildMcpConfig.js";
 import { buildSkillTools } from "../services/skills/buildSkillTools.js";
+import {
+  createDocumentTool,
+  listJobsTool,
+  postToMainLaneTool,
+  recallMemoryTool,
+  saveMemoryTool,
+  scheduleJobTool,
+  updateDocumentTool,
+  updateJobTool,
+  updateTaskMessageTool,
+} from "../services/tools/index.js";
 
 const log = createLogger("invoke");
 
@@ -76,10 +92,66 @@ if (skillSummary.promptSection) {
   systemPrompt += "\n\n" + skillSummary.promptSection;
 }
 
+// Build the full tool set (mirrors runTaskLane)
+const tools: Record<string, any> = {
+  updateTaskMessage: updateTaskMessageTool(ctx, taskId),
+  postToMainLane: postToMainLaneTool(ctx, taskId),
+  createDocument: createDocumentTool(ctx, taskId),
+  updateDocument: updateDocumentTool(ctx),
+  saveMemory: saveMemoryTool(ctx, agentId),
+  recallMemory: recallMemoryTool(ctx, agentId),
+  listJobs: listJobsTool(ctx, agentId),
+  scheduleJob: scheduleJobTool(ctx, agentId),
+  updateJob: updateJobTool(ctx, agentId),
+  ...(agent.config?.sandbox?.enabled
+    ? {
+        ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
+        runCommand: runCommandTool(
+          ctx,
+          agentId,
+          taskId,
+          skillToolsResult.getEnv,
+        ),
+        checkCommand: checkCommandTool(ctx, agentId),
+      }
+    : {}),
+  ...skillToolsResult.tools,
+};
+
+// ---------------------------------------------------------------------------
+// Print system prompt
+// ---------------------------------------------------------------------------
 console.log("=".repeat(80));
 console.log("SYSTEM PROMPT");
 console.log("=".repeat(80));
 console.log(systemPrompt);
+
+// ---------------------------------------------------------------------------
+// Print available tools
+// ---------------------------------------------------------------------------
+console.log("\n" + "=".repeat(80));
+console.log("TOOLS");
 console.log("=".repeat(80));
-console.log("\nSkill tools:", Object.keys(skillToolsResult.tools));
-console.log("Skill env keys:", Object.keys(skillToolsResult.getEnv()));
+
+for (const [name, t] of Object.entries(tools)) {
+  const desc = (t as any).description ?? "(no description)";
+  const params: string[] = [];
+
+  // Extract parameter names and optionality from Zod inputSchema
+  const shape = (t as any).inputSchema?.shape;
+  if (shape) {
+    for (const [key, val] of Object.entries(shape)) {
+      const optional = (val as any).isOptional?.() ? "?" : "";
+      const paramDesc = (val as any).description;
+      params.push(`${key}${optional}${paramDesc ? ` — ${paramDesc}` : ""}`);
+    }
+  }
+
+  console.log(`\n  ${name}`);
+  console.log(`    ${desc.split("\n")[0]}`);
+  if (params.length > 0) {
+    console.log(`    params: ${params.join(", ")}`);
+  }
+}
+
+console.log("\n" + "=".repeat(80));

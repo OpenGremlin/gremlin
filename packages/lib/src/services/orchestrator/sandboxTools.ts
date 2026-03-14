@@ -115,19 +115,16 @@ async function ensureSandbox(
   return null;
 }
 
-export function runCommandTool(
+export function ensureSandboxTool(
   ctx: ServiceContext,
   agentId: string,
   taskId?: string,
-  skillEnvProvider?: () => Record<string, string>,
 ) {
   return tool({
     description:
-      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results. If the sandbox needs to boot, you'll be notified when it's ready — stop and wait.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
-    inputSchema: z.object({
-      command: z.string().describe("The shell command to execute"),
-    }),
-    execute: async ({ command }) => {
+      "Ensure the sandbox is online and ready for commands. Call this before running commands. If the sandbox is already running, returns immediately. If it needs to boot, you'll be notified when it's ready — stop and wait.",
+    inputSchema: z.object({}),
+    execute: async () => {
       let session: SandboxSession | null;
       try {
         session = await ensureSandbox(ctx, agentId, taskId);
@@ -140,17 +137,42 @@ export function runCommandTool(
           },
           "ensureSandbox failed",
         );
-        return {
-          status: "error",
-          error: (err as Error).message,
-        };
+        return { status: "error", error: (err as Error).message };
       }
 
       if (!session) {
         return {
-          status: "launching",
+          status: "booting",
           message:
-            "Sandbox is booting up. You'll be notified when it's ready. Stop and wait.",
+            "Sandbox is booting up. You'll be notified when it's ready — stop and wait.",
+        };
+      }
+
+      return { status: "ready" };
+    },
+  });
+}
+
+export function runCommandTool(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId?: string,
+  skillEnvProvider?: () => Record<string, string>,
+) {
+  return tool({
+    description:
+      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. The sandbox must be online first — call ensureSandbox before your first command. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
+    inputSchema: z.object({
+      command: z.string().describe("The shell command to execute"),
+    }),
+    execute: async ({ command }) => {
+      // Check for an active session — don't implicitly boot
+      const session = activeSessions.get(agentId);
+      if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
+        return {
+          status: "error",
+          error:
+            "Sandbox is not online. Call ensureSandbox first to boot it up.",
         };
       }
 
@@ -180,7 +202,7 @@ export function runCommandTool(
         activeSessions.delete(agentId);
         return {
           error:
-            "Sandbox connection lost. Try running the command again to reconnect.",
+            "Sandbox connection lost. Call ensureSandbox to reconnect, then retry.",
           output: "",
           exitCode: -1,
         };

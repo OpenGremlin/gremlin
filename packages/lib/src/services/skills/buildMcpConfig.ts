@@ -58,7 +58,7 @@ export async function buildSkillSummary(
 
         for (const a of accounts) {
           connectionParts.push(
-            `  - ${connReq.provider} (${a.label}):\n    \`loadSkill('${template.id}', '${a.id}')\``,
+            `  - ${connReq.provider} (${a.label}):\n    \`authenticate('${template.id}', '${a.id}')\``,
           );
         }
       }
@@ -77,9 +77,12 @@ export async function buildSkillSummary(
 
   const promptSection = `# Available Skills
 
-Skills are CLI tools you can use via \`runCommand\` in the sandbox. Before using any skill, you MUST call \`loadSkill\` with the skillId (and optionally a connectionId) to set up authentication and get usage/install instructions.
+Skills are CLI tools you use via \`runCommand\` in the sandbox. To use a skill:
+1. Call \`loadSkill(skillId)\` to get install/usage instructions.
+2. Call \`authenticate(skillId, connectionId)\` to set up auth tokens.
+3. Run the skill's CLI commands via \`runCommand\`.
 
-If you encounter auth errors while using a skill, call \`refreshSkillAuth\` with the skillId and connectionId to get fresh tokens.
+If you get auth errors, call \`authenticate\` again to refresh tokens.
 
 ${skillEntries.join("\n")}`;
 

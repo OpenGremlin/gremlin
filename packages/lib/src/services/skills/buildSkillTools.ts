@@ -22,8 +22,9 @@ export interface SkillToolsResult {
 }
 
 /**
- * Build loadSkill and refreshSkillAuth tools for the agent.
- * Env is resolved lazily when the agent calls loadSkill.
+ * Build loadSkill and authenticate tools for the agent.
+ * loadSkill returns instructions only (read-only).
+ * authenticate resolves auth tokens (idempotent — also serves as refresh).
  */
 export async function buildSkillTools(
   ctx: ServiceContext,
@@ -43,9 +44,34 @@ export async function buildSkillTools(
 
   tools.loadSkill = tool({
     description:
-      "Load a skill to get its usage/install instructions and set up auth env vars. Must be called before using any skill via runCommand.",
+      "Load a skill's usage and install instructions. Returns the skill's documentation so you know how to use it. Does NOT set up auth — call authenticate separately after this.",
     inputSchema: z.object({
       skillId: z.string().describe("The skill ID to load"),
+    }),
+    execute: async ({ skillId }) => {
+      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
+      if (!agentSkill) {
+        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+      }
+
+      const template = await getSkillTemplateFromS3(bucketName, skillId);
+      if (!template) {
+        return { error: `Skill "${skillId}" not found.` };
+      }
+
+      log.info({ agentId, skillId }, "loadSkill: returning instructions");
+
+      return {
+        instructions: template.instructions ?? "",
+      };
+    },
+  });
+
+  tools.authenticate = tool({
+    description:
+      "Set up or refresh auth tokens for a skill. Call this after loadSkill and before using the skill via runCommand. If you get auth errors, call this again to get fresh tokens.",
+    inputSchema: z.object({
+      skillId: z.string().describe("The skill ID to authenticate"),
       connectionId: z
         .string()
         .optional()
@@ -64,132 +90,8 @@ export async function buildSkillTools(
         return { error: `Skill "${skillId}" not found.` };
       }
 
-      const rawBindings = parseConnectionBindings(
-        agentSkill.connectionBindings,
-      );
-      const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
-
-      const envDescriptions: string[] = [];
-
-      if (template.connections?.length) {
-        // Check for missing required connections before resolving
-        const missingProviders = template.connections
-          .filter(
-            (c) => !c.optional && (bindings[c.provider] ?? []).length === 0,
-          )
-          .map((c) => c.provider);
-
-        if (missingProviders.length > 0) {
-          const list = missingProviders.map((p) => `- ${p}`).join("\n");
-          return {
-            error: `This skill requires connected accounts that are not set up. Ask the user to connect the following in their settings:\n${list}`,
-          };
-        }
-
-        if (connectionId) {
-          // Resolve env for a specific connection
-          const connReq = template.connections.find((c) => {
-            const boundIds = bindings[c.provider] ?? [];
-            return boundIds.includes(connectionId);
-          });
-
-          if (!connReq) {
-            return {
-              error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
-            };
-          }
-
-          const resolved = await resolveConnectionEnv(
-            ctx.resources,
-            connReq,
-            connectionId,
-          );
-          Object.assign(currentEnv, resolved);
-
-          const accounts = await loadActiveConnectionLabels(ctx.resources, [
-            connectionId,
-          ]);
-          const label = accounts[0]?.label ?? connectionId;
-
-          for (const envVar of Object.keys(resolved)) {
-            envDescriptions.push(`${envVar} has been set for ${label}`);
-          }
-
-          log.info(
-            {
-              agentId,
-              skillId,
-              connectionId,
-              resolvedEnvKeys: Object.keys(resolved),
-            },
-            "loadSkill: resolved specific connection",
-          );
-        } else {
-          // Resolve env using first available connection per provider
-          const filteredBindingsRaw = JSON.stringify(bindings);
-          const { env, missing } = await resolveSkillEnv(
-            ctx.resources,
-            template,
-            filteredBindingsRaw,
-          );
-          Object.assign(currentEnv, env);
-
-          // Build env descriptions
-          for (const connReq of template.connections) {
-            const boundIds = bindings[connReq.provider] ?? [];
-            if (boundIds.length === 0) continue;
-            const accounts = await loadActiveConnectionLabels(ctx.resources, [
-              boundIds[0],
-            ]);
-            const label = accounts[0]?.label ?? boundIds[0];
-
-            for (const envVar of Object.keys(connReq.env)) {
-              if (env[envVar]) {
-                envDescriptions.push(`${envVar} has been set for ${label}`);
-              }
-            }
-          }
-
-          log.info(
-            {
-              agentId,
-              skillId,
-              resolvedEnvKeys: Object.keys(env),
-              missingProviders: missing,
-            },
-            "loadSkill: resolved default connections",
-          );
-        }
-      }
-
-      return {
-        instructions: template.instructions ?? "",
-        envDescriptions,
-        activeConnection: connectionId ?? "default (first available)",
-      };
-    },
-  });
-
-  tools.refreshSkillAuth = tool({
-    description:
-      "Re-resolve auth tokens for a skill. Call this if you get auth errors while using a skill.",
-    inputSchema: z.object({
-      skillId: z.string().describe("The skill ID to refresh auth for"),
-      connectionId: z.string().describe("The connection ID to refresh"),
-    }),
-    execute: async ({ skillId, connectionId }) => {
-      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
-      if (!agentSkill) {
-        return { error: `Skill "${skillId}" is not assigned to this agent.` };
-      }
-
-      const template = await getSkillTemplateFromS3(bucketName, skillId);
-      if (!template) {
-        return { error: `Skill "${skillId}" not found.` };
-      }
-
       if (!template.connections?.length) {
-        return { error: `Skill "${skillId}" has no connections to refresh.` };
+        return { message: "This skill does not require authentication." };
       }
 
       const rawBindings = parseConnectionBindings(
@@ -197,40 +99,99 @@ export async function buildSkillTools(
       );
       const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
 
-      const connReq = template.connections.find((c) => {
-        const boundIds = bindings[c.provider] ?? [];
-        return boundIds.includes(connectionId);
-      });
+      // Check for missing required connections
+      const missingProviders = template.connections
+        .filter((c) => !c.optional && (bindings[c.provider] ?? []).length === 0)
+        .map((c) => c.provider);
 
-      if (!connReq) {
+      if (missingProviders.length > 0) {
+        const list = missingProviders.map((p) => `- ${p}`).join("\n");
         return {
-          error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
+          error: `This skill requires connected accounts that are not set up. Ask the user to connect the following in their settings:\n${list}`,
         };
       }
 
-      const resolved = await resolveConnectionEnv(
-        ctx.resources,
-        connReq,
-        connectionId,
-      );
-      Object.assign(currentEnv, resolved);
+      const envDescriptions: string[] = [];
 
-      const accounts = await loadActiveConnectionLabels(ctx.resources, [
-        connectionId,
-      ]);
-      const label = accounts[0]?.label ?? connectionId;
+      if (connectionId) {
+        // Resolve env for a specific connection
+        const connReq = template.connections.find((c) => {
+          const boundIds = bindings[c.provider] ?? [];
+          return boundIds.includes(connectionId);
+        });
 
-      const refreshedVars: string[] = [];
-      for (const envVar of Object.keys(resolved)) {
-        refreshedVars.push(`${envVar} has been refreshed for ${label}`);
+        if (!connReq) {
+          return {
+            error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
+          };
+        }
+
+        const resolved = await resolveConnectionEnv(
+          ctx.resources,
+          connReq,
+          connectionId,
+        );
+        Object.assign(currentEnv, resolved);
+
+        const accounts = await loadActiveConnectionLabels(ctx.resources, [
+          connectionId,
+        ]);
+        const label = accounts[0]?.label ?? connectionId;
+
+        for (const envVar of Object.keys(resolved)) {
+          envDescriptions.push(`${envVar} set for ${label}`);
+        }
+
+        log.info(
+          {
+            agentId,
+            skillId,
+            connectionId,
+            resolvedEnvKeys: Object.keys(resolved),
+          },
+          "authenticate: resolved specific connection",
+        );
+      } else {
+        // Resolve env using first available connection per provider
+        const filteredBindingsRaw = JSON.stringify(bindings);
+        const { env, missing } = await resolveSkillEnv(
+          ctx.resources,
+          template,
+          filteredBindingsRaw,
+        );
+        Object.assign(currentEnv, env);
+
+        // Build env descriptions
+        for (const connReq of template.connections) {
+          const boundIds = bindings[connReq.provider] ?? [];
+          if (boundIds.length === 0) continue;
+          const accounts = await loadActiveConnectionLabels(ctx.resources, [
+            boundIds[0],
+          ]);
+          const label = accounts[0]?.label ?? boundIds[0];
+
+          for (const envVar of Object.keys(connReq.env)) {
+            if (env[envVar]) {
+              envDescriptions.push(`${envVar} set for ${label}`);
+            }
+          }
+        }
+
+        log.info(
+          {
+            agentId,
+            skillId,
+            resolvedEnvKeys: Object.keys(env),
+            missingProviders: missing,
+          },
+          "authenticate: resolved default connections",
+        );
       }
 
-      log.info(
-        { agentId, skillId, connectionId, refreshedVars },
-        "refreshSkillAuth: tokens refreshed",
-      );
-
-      return { refreshedVars };
+      return {
+        envDescriptions,
+        activeConnection: connectionId ?? "default (first available)",
+      };
     },
   });
 
