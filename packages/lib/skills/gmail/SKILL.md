@@ -17,14 +17,15 @@ connections:
     multi: true
     requestedScopes: [gmail.readonly, gmail.send]
 
-install: |
-  npm install -g @googleworkspace/cli
-
 ---
 
 # Gmail
 
 You have access to Gmail via the `gws` CLI.
+
+## Installation
+
+npm install -g @googleworkspace/cli
 
 ## Triage — unread inbox summary
 
