@@ -64,7 +64,7 @@ export async function buildSkillSummary(
       }
 
       if (connectionParts.length > 0) {
-        entry += "\n  Available connections:\n" + connectionParts.join("\n");
+        entry += `\n  Available connections:\n${connectionParts.join("\n")}`;
       }
     }
 

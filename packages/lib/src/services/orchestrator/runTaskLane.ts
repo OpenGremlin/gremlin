@@ -95,7 +95,7 @@ export async function runTaskLane(
   });
 
   if (skillSummary.promptSection) {
-    systemPrompt += "\n\n" + skillSummary.promptSection;
+    systemPrompt += `\n\n${skillSummary.promptSection}`;
   }
 
   ctx.log.info(
