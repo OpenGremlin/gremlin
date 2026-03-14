@@ -81,7 +81,8 @@ export function ConnectionPicker({
                           className="text-sm text-text-secondary"
                           numberOfLines={1}
                         >
-                          {conn.meta.accountId && conn.meta.accountId !== "unknown"
+                          {conn.meta.accountId &&
+                          conn.meta.accountId !== "unknown"
                             ? conn.meta.accountId
                             : conn.id}
                         </Text>

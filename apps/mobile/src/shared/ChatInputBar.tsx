@@ -133,7 +133,9 @@ export function ChatInputBar({
         <TextInput
           ref={inputRef}
           className="flex-1 text-text-primary text-base px-1 py-1.5 outline-none"
-          style={inputHeight > 0 ? { height: Math.min(140, inputHeight) } : undefined}
+          style={
+            inputHeight > 0 ? { height: Math.min(140, inputHeight) } : undefined
+          }
           value={input}
           onChangeText={setInput}
           onContentSizeChange={(e) => {

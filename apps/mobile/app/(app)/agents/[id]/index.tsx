@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hexToTransparent } from "../../../../src/lib/color";
 import { AgentQuery, TaskQuery } from "../../../../src/graphql/queries";
 import { useChatSend } from "../../../../src/hooks/useChatSend";
 import { useFileUpload } from "../../../../src/hooks/useFileUpload";
@@ -24,6 +23,7 @@ import {
 } from "../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../src/hooks/useSandboxOutput";
+import { hexToTransparent } from "../../../../src/lib/color";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { ChatHeaderTitle } from "../../../../src/shared/ChatHeaderTitle";
 import { ChatInputBar } from "../../../../src/shared/ChatInputBar";
@@ -147,7 +147,10 @@ export default function AgentChatScreen() {
       {taskId && task && (
         <View className="px-4 py-2 bg-surface/80 border-b border-app-border">
           <Text className="text-xs text-text-muted">Task</Text>
-          <Text className="text-sm text-text-secondary mt-0.5" numberOfLines={1}>
+          <Text
+            className="text-sm text-text-secondary mt-0.5"
+            numberOfLines={1}
+          >
             🛠️ {task.title ?? task.message}
           </Text>
         </View>
@@ -196,7 +199,11 @@ export default function AgentChatScreen() {
         }}
       >
         <LinearGradient
-          colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
+          colors={[
+            colors.background,
+            colors.background,
+            hexToTransparent(colors.background),
+          ]}
           locations={[0, 0.6, 1]}
           style={{
             paddingTop: Platform.OS === "ios" ? insets.top + 8 : 12,

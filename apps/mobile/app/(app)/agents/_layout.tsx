@@ -34,10 +34,7 @@ export default function AgentsLayout() {
           title: "",
         }}
       />
-      <Stack.Screen
-        name="[id]/config"
-        options={{ title: "Configure Agent" }}
-      />
+      <Stack.Screen name="[id]/config" options={{ title: "Configure Agent" }} />
       <Stack.Screen
         name="[id]/tasks/[taskId]"
         options={{

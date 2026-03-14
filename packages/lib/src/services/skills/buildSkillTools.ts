@@ -74,7 +74,9 @@ export async function buildSkillTools(
       if (template.connections?.length) {
         // Check for missing required connections before resolving
         const missingProviders = template.connections
-          .filter((c) => !c.optional && (bindings[c.provider] ?? []).length === 0)
+          .filter(
+            (c) => !c.optional && (bindings[c.provider] ?? []).length === 0,
+          )
           .map((c) => c.provider);
 
         if (missingProviders.length > 0) {
@@ -110,9 +112,7 @@ export async function buildSkillTools(
           const label = accounts[0]?.label ?? connectionId;
 
           for (const envVar of Object.keys(resolved)) {
-            envDescriptions.push(
-              `${envVar} has been set for ${label}`,
-            );
+            envDescriptions.push(`${envVar} has been set for ${label}`);
           }
 
           log.info(
@@ -138,17 +138,14 @@ export async function buildSkillTools(
           for (const connReq of template.connections) {
             const boundIds = bindings[connReq.provider] ?? [];
             if (boundIds.length === 0) continue;
-            const accounts = await loadActiveConnectionLabels(
-              ctx.resources,
-              [boundIds[0]],
-            );
+            const accounts = await loadActiveConnectionLabels(ctx.resources, [
+              boundIds[0],
+            ]);
             const label = accounts[0]?.label ?? boundIds[0];
 
             for (const envVar of Object.keys(connReq.env)) {
               if (env[envVar]) {
-                envDescriptions.push(
-                  `${envVar} has been set for ${label}`,
-                );
+                envDescriptions.push(`${envVar} has been set for ${label}`);
               }
             }
           }
@@ -178,9 +175,7 @@ export async function buildSkillTools(
       "Re-resolve auth tokens for a skill. Call this if you get auth errors while using a skill.",
     inputSchema: z.object({
       skillId: z.string().describe("The skill ID to refresh auth for"),
-      connectionId: z
-        .string()
-        .describe("The connection ID to refresh"),
+      connectionId: z.string().describe("The connection ID to refresh"),
     }),
     execute: async ({ skillId, connectionId }) => {
       const agentSkill = agentSkills.find((s) => s.skillId === skillId);

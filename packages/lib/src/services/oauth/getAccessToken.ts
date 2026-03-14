@@ -1,7 +1,7 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import { createLogger } from "../../logger.js";
+import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import type { Resources } from "../../resources/index.js";
 
 const log = createLogger("oauth:token");
@@ -69,10 +69,19 @@ export async function getAccessTokenForConnection(
   const meta = connection.connectionMeta;
 
   // Check if token is expired or about to expire
-  if (meta.expiresAt && meta.refreshToken && meta.tokenUrl && meta.clientId && meta.clientSecret) {
+  if (
+    meta.expiresAt &&
+    meta.refreshToken &&
+    meta.tokenUrl &&
+    meta.clientId &&
+    meta.clientSecret
+  ) {
     const expiresAt = new Date(meta.expiresAt).getTime();
     if (Date.now() >= expiresAt - EXPIRY_BUFFER_MS) {
-      log.info({ connectionId, expiresAt: meta.expiresAt }, "Token expired, refreshing");
+      log.info(
+        { connectionId, expiresAt: meta.expiresAt },
+        "Token expired, refreshing",
+      );
       return refreshAndStore(resources, connection);
     }
   }
@@ -88,7 +97,8 @@ async function refreshAndStore(
   connection: IntegrationConnectionItem,
 ): Promise<string> {
   const meta = connection.connectionMeta;
-  const { refreshToken, tokenUrl, clientId, clientSecret, tokenAuthMethod } = meta;
+  const { refreshToken, tokenUrl, clientId, clientSecret, tokenAuthMethod } =
+    meta;
 
   if (!refreshToken || !tokenUrl || !clientId || !clientSecret) {
     throw new Error(

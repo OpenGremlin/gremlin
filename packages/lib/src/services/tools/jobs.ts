@@ -31,10 +31,7 @@ export function updateJobTool(ctx: ServiceContext, agentId: string) {
       "Update one of your existing scheduled jobs. You can change any combination of name, description, recurrence, timezone, or pause/unpause it. Use listJobs first to get the job ID.",
     inputSchema: z.object({
       jobId: z.string().describe("The ID of the job to update."),
-      name: z
-        .string()
-        .optional()
-        .describe("New name for the job."),
+      name: z.string().optional().describe("New name for the job."),
       description: z
         .string()
         .optional()
@@ -84,7 +81,7 @@ export function scheduleJobTool(ctx: ServiceContext, agentId: string) {
       name: z
         .string()
         .describe(
-          "Short name for the job (e.g. \"Daily standup summary\", \"Weekly report\").",
+          'Short name for the job (e.g. "Daily standup summary", "Weekly report").',
         ),
       description: z
         .string()

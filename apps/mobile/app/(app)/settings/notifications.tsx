@@ -67,9 +67,7 @@ function NotificationCard({
                     onAction(notification.id, action.id);
                   }}
                   className={`rounded-full px-3 py-1 ${
-                    action.style === "primary"
-                      ? "bg-accent"
-                      : "bg-surface-alt"
+                    action.style === "primary" ? "bg-accent" : "bg-surface-alt"
                   }`}
                 >
                   <Text

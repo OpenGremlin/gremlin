@@ -231,9 +231,7 @@ export default function JobDetailScreen() {
         </View>
       </View>
 
-      <Card
-        className={`p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}
-      >
+      <Card className={`p-4 gap-3 ${job.paused ? "opacity-40" : ""}`}>
         <View className="gap-1">
           <Text className="text-xs text-text-muted">Schedule</Text>
           <Text className="text-sm text-text-secondary">
@@ -293,9 +291,7 @@ export default function JobDetailScreen() {
         <Card className="p-4 gap-4">
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Agent</Text>
-            <Pressable
-              onPress={() => setAgentPickerOpen(true)}
-            >
+            <Pressable onPress={() => setAgentPickerOpen(true)}>
               <View className={inputClass}>
                 <Text className="text-sm text-text-primary">
                   {agentOptions.find((a) => a.value === currentAgentId)

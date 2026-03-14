@@ -134,9 +134,7 @@ export function SheetModal({
         <Animated.View
           style={{
             height: sheetHeight,
-            transform: [
-              { translateY: Animated.add(slideAnim, dragOffset) },
-            ],
+            transform: [{ translateY: Animated.add(slideAnim, dragOffset) }],
           }}
         >
           <View className="flex-1 bg-surface rounded-t-2xl overflow-hidden">
@@ -157,10 +155,7 @@ export function SheetModal({
               >
                 {title}
               </Text>
-              <Pressable
-                onPress={animateClose}
-                hitSlop={8}
-              >
+              <Pressable onPress={animateClose} hitSlop={8}>
                 <View className="w-8 h-8 rounded-full bg-surface-alt items-center justify-center">
                   <X size={16} color={colors.iconDefault} />
                 </View>

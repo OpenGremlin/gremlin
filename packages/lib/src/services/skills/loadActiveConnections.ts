@@ -63,10 +63,14 @@ export async function filterRevokedBindings(
   );
 
   // Also treat missing connections as revoked
-  const knownIds = new Set((Items as IntegrationConnectionItem[]).map((c) => c.id));
+  const knownIds = new Set(
+    (Items as IntegrationConnectionItem[]).map((c) => c.id),
+  );
   const result: Record<string, string[]> = {};
   for (const [provider, ids] of Object.entries(bindings)) {
-    result[provider] = ids.filter((id) => knownIds.has(id) && !revokedIds.has(id));
+    result[provider] = ids.filter(
+      (id) => knownIds.has(id) && !revokedIds.has(id),
+    );
   }
   return result;
 }

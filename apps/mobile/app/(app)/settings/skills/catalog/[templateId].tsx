@@ -53,10 +53,7 @@ export default function SkillTemplateScreen() {
         <View className="gap-2">
           <Text className="text-xs text-text-muted">Required Connections</Text>
           {template.connections.map((conn) => (
-            <Card
-              key={conn.provider}
-              className="p-3 gap-1"
-            >
+            <Card key={conn.provider} className="p-3 gap-1">
               <View className="flex-row items-center gap-2">
                 <Text className="text-sm text-text-primary">
                   {conn.providerName}

@@ -1,6 +1,6 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
-import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import { createLogger } from "../../logger.js";
+import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import type { Resources } from "../../resources/index.js";
 import { getAccessTokenForConnection } from "../oauth/getAccessToken.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";

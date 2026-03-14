@@ -40,9 +40,7 @@ export default function AppLayout() {
           paddingTop: 6,
           paddingBottom: Math.max(insets.bottom, 6),
           height: 56 + Math.max(insets.bottom, 0),
-          ...(Platform.OS === "web"
-            ? { boxShadow: "none" }
-            : {}),
+          ...(Platform.OS === "web" ? { boxShadow: "none" } : {}),
         },
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.tabBarActive,

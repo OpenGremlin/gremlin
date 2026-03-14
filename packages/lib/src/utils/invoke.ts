@@ -1,3 +1,5 @@
+// biome-ignore-all lint: Debug-only code
+
 /**
  * Test rig for invoking lib code with a full ServiceContext.
  * Loads .env from monorepo root, builds ctx, then runs inline code.
@@ -13,11 +15,11 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { createLogger } from "../logger.js";
 import { createResources } from "../resources/index.js";
+import type { ServiceContext } from "../services/context.js";
 import { createServices } from "../services/index.js";
 import { renderPrompt } from "../services/prompts/index.js";
 import { buildSkillSummary } from "../services/skills/buildMcpConfig.js";
 import { buildSkillTools } from "../services/skills/buildSkillTools.js";
-import type { ServiceContext } from "../services/context.js";
 
 const log = createLogger("invoke");
 

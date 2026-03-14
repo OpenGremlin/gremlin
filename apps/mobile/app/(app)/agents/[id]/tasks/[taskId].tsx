@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hexToTransparent } from "../../../../../src/lib/color";
 import { TaskQuery } from "../../../../../src/graphql/queries";
 import { useChatSend } from "../../../../../src/hooks/useChatSend";
 import { useFileUpload } from "../../../../../src/hooks/useFileUpload";
@@ -24,6 +23,7 @@ import {
 } from "../../../../../src/hooks/useLogMessages";
 import { useQuery } from "../../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
+import { hexToTransparent } from "../../../../../src/lib/color";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { ChatHeaderTitle } from "../../../../../src/shared/ChatHeaderTitle";
 import { ChatInputBar } from "../../../../../src/shared/ChatInputBar";
@@ -211,7 +211,11 @@ export default function TaskThreadScreen() {
         }}
       >
         <LinearGradient
-          colors={[colors.background, colors.background, hexToTransparent(colors.background)]}
+          colors={[
+            colors.background,
+            colors.background,
+            hexToTransparent(colors.background),
+          ]}
           locations={[0, 0.7, 1]}
           style={{
             paddingTop: Platform.OS === "ios" ? insets.top + 8 : 12,

@@ -26,10 +26,7 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-const variantClasses: Record<
-  ButtonVariant,
-  { base: string; text: string }
-> = {
+const variantClasses: Record<ButtonVariant, { base: string; text: string }> = {
   primary: {
     base: "bg-accent border border-accent active:bg-accent-light",
     text: "text-white",
@@ -104,7 +101,9 @@ export function Button({
       style={[
         { opacity },
         Platform.OS === "web"
-          ? ({ cursor: isDisabled ? "default" : "pointer" } as unknown as ViewStyle)
+          ? ({
+              cursor: isDisabled ? "default" : "pointer",
+            } as unknown as ViewStyle)
           : undefined,
       ]}
     >
