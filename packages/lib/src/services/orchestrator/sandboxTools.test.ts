@@ -65,22 +65,21 @@ describe("sandboxTools", () => {
       expect(activeSessions.get("task-1")).toBe(session);
     });
 
-    it("subscribes BEFORE launching on cold boot", async () => {
+    it("blocks and polls on cold boot until sandbox is healthy", async () => {
       ctx.services.agents.getAgent.mockResolvedValue({
         sandboxInstanceId: undefined,
       } as any);
-      ctx.services.sandbox.subscribe.mockResolvedValue(undefined as any);
       ctx.services.sandbox.launchInstance.mockResolvedValue("i-new");
       ctx.services.agents.updateAgent.mockResolvedValue(undefined as any);
 
-      const callOrder: string[] = [];
-      ctx.services.sandbox.subscribe.mockImplementation(async () => {
-        callOrder.push("subscribe");
+      // First tryQuickConnect returns null (not ready), second returns session
+      const session = makeSession({ instanceId: "i-new" });
+      let pollCount = 0;
+      ctx.services.sandbox.tryQuickConnect.mockImplementation(async () => {
+        pollCount++;
+        return pollCount >= 2 ? session : null;
       });
-      ctx.services.sandbox.launchInstance.mockImplementation(async () => {
-        callOrder.push("launchInstance");
-        return "i-new";
-      });
+      ctx.services.sandbox.connectToSandbox.mockResolvedValue(undefined as any);
 
       const t = ensureSandboxTool(ctx, "agent-1", "task-1");
       const result = await t.execute({}, {
@@ -88,22 +87,21 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({
-        status: "booting",
-        message:
-          "Sandbox is booting up. You'll be notified when it's ready — stop and wait.",
-      });
-      expect(callOrder).toEqual(["subscribe", "launchInstance"]);
-    });
+      expect(result).toEqual({ status: "ready" });
+      expect(activeSessions.get("task-1")).toBe(session);
+      expect(pollCount).toBeGreaterThanOrEqual(2);
+    }, 10_000);
 
     it("persists instanceId when it changes", async () => {
       ctx.services.agents.getAgent.mockResolvedValue({
         sandboxInstanceId: "i-old",
       } as any);
-      ctx.services.sandbox.tryQuickConnect.mockResolvedValue(null);
-      ctx.services.sandbox.subscribe.mockResolvedValue(undefined as any);
+      ctx.services.sandbox.tryQuickConnect
+        .mockResolvedValueOnce(null) // quick connect fails
+        .mockResolvedValueOnce(makeSession({ instanceId: "i-new" })); // poll succeeds
       ctx.services.sandbox.launchInstance.mockResolvedValue("i-new");
       ctx.services.agents.updateAgent.mockResolvedValue(undefined as any);
+      ctx.services.sandbox.connectToSandbox.mockResolvedValue(undefined as any);
 
       const t = ensureSandboxTool(ctx, "agent-1", "task-1");
       await t.execute({}, { toolCallId: "tc1", messages: [] } as any);
@@ -113,21 +111,23 @@ describe("sandboxTools", () => {
         "agent-1",
         { sandboxInstanceId: "i-new" },
       );
-    });
+    }, 10_000);
 
     it("does not persist instanceId when unchanged", async () => {
       ctx.services.agents.getAgent.mockResolvedValue({
         sandboxInstanceId: "i-same",
       } as any);
-      ctx.services.sandbox.tryQuickConnect.mockResolvedValue(null);
-      ctx.services.sandbox.subscribe.mockResolvedValue(undefined as any);
+      ctx.services.sandbox.tryQuickConnect
+        .mockResolvedValueOnce(null) // quick connect fails
+        .mockResolvedValueOnce(makeSession({ instanceId: "i-same" })); // poll succeeds
       ctx.services.sandbox.launchInstance.mockResolvedValue("i-same");
+      ctx.services.sandbox.connectToSandbox.mockResolvedValue(undefined as any);
 
       const t = ensureSandboxTool(ctx, "agent-1", "task-1");
       await t.execute({}, { toolCallId: "tc1", messages: [] } as any);
 
       expect(ctx.services.agents.updateAgent).not.toHaveBeenCalled();
-    });
+    }, 10_000);
 
     it("returns error when ensureSandbox throws", async () => {
       ctx.services.agents.getAgent.mockRejectedValue(new Error("db down"));

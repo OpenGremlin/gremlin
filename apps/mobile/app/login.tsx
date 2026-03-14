@@ -92,7 +92,9 @@ export default function LoginScreen() {
             style={{ width: 180, height: 180 }}
             contentFit="contain"
           />
-          <Text className="text-3xl font-bold text-text-primary mt-2">OpenGremlin</Text>
+          <Text className="text-3xl font-bold text-text-primary mt-2">
+            OpenGremlin
+          </Text>
           <Text className="text-sm text-text-muted mt-1">
             {mode === "login"
               ? "Sign in to your account"
