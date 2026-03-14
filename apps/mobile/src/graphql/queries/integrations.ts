@@ -98,6 +98,10 @@ export const SubmitOAuthConnectionMutation = graphql(`
     $expiresAt: String
     $scopes: [String!]!
     $accountId: String
+    $clientId: String
+    $clientSecret: String
+    $tokenUrl: String
+    $tokenAuthMethod: String
   ) {
     submitOAuthConnection(
       providerId: $providerId
@@ -106,6 +110,10 @@ export const SubmitOAuthConnectionMutation = graphql(`
       expiresAt: $expiresAt
       scopes: $scopes
       accountId: $accountId
+      clientId: $clientId
+      clientSecret: $clientSecret
+      tokenUrl: $tokenUrl
+      tokenAuthMethod: $tokenAuthMethod
     )
   }
 `);

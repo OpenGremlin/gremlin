@@ -22,6 +22,10 @@ export const IntegrationConnectionEntity = new Entity({
       scopes: string().optional(),
       accountId: string().optional(),
       apiKey: string().optional(),
+      clientId: string().optional(),
+      clientSecret: string().optional(),
+      tokenUrl: string().optional(),
+      tokenAuthMethod: string().optional(),
     }),
   }),
   computeKey: ({ id }) => ({

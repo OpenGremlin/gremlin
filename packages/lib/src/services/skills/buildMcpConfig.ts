@@ -1,32 +1,33 @@
-import type { Resources } from "../../resources/index.js";
 import type { ServiceContext } from "../context.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
+import {
+  filterRevokedBindings,
+  loadActiveConnectionLabels,
+} from "./loadActiveConnections.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
 import { getSkillTemplateFromS3 } from "./skillScanner.js";
 
-export interface SkillConfigResult {
-  skillInstructions: string[];
+export interface SkillSummaryResult {
+  promptSection: string;
 }
 
 /**
- * Build skill configuration for an agent's task lane.
- * Loads the full SKILL.md body for each assigned skill and returns
- * the instructions to inject into the system prompt.
- * For multi-connection skills, appends connection context.
+ * Build a lightweight skill catalog for the system prompt.
+ * Lists each skill with its name, description, and available connections.
+ * The agent must call `loadSkill` to get full instructions and auth.
  */
-export async function buildSkillConfig(
+export async function buildSkillSummary(
   ctx: ServiceContext,
   agentId: string,
-): Promise<SkillConfigResult> {
-  const skillInstructions: string[] = [];
-
+): Promise<SkillSummaryResult> {
   const agentSkills = await getAgentSkills(ctx, agentId);
   if (agentSkills.length === 0) {
-    return { skillInstructions };
+    return { promptSection: "" };
   }
 
   const bucketName = getSkillsBucket();
+  const skillEntries: string[] = [];
 
   for (const agentSkill of agentSkills) {
     const template = await getSkillTemplateFromS3(
@@ -35,70 +36,52 @@ export async function buildSkillConfig(
     );
     if (!template) continue;
 
-    let instruction = "";
+    let entry = `- **${template.name}** (skillId: \`${template.id}\`): ${template.description}`;
 
-    if (template.instructions) {
-      instruction = `## ${template.name} Skill\n${template.instructions}`;
-    }
-
-    // Add multi-connection context if applicable
+    // List available connections
     if (template.connections?.length) {
-      const bindings = parseConnectionBindings(agentSkill.connectionBindings);
-      const multiSections: string[] = [];
+      const rawBindings = parseConnectionBindings(
+        agentSkill.connectionBindings,
+      );
+      const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
 
+      const connectionParts: string[] = [];
       for (const connReq of template.connections) {
-        if (!connReq.multi) continue;
         const boundIds = bindings[connReq.provider] ?? [];
-        if (boundIds.length >= 2) {
-          const accounts = await loadConnectionLabels(
-            ctx.resources,
-            boundIds,
-          );
-          const list = accounts
-            .map((d) => `- **${d.id}**: ${d.label}`)
-            .join("\n");
-          multiSections.push(
-            `### Available ${connReq.provider} accounts\n${list}\n\nUse the \`switch_${agentSkill.skillId}_${connReq.provider}\` tool to switch between accounts. The first account is used by default.`,
+        if (boundIds.length === 0) continue;
+
+        const accounts = await loadActiveConnectionLabels(
+          ctx.resources,
+          boundIds,
+        );
+        if (accounts.length === 0) continue;
+
+        for (const a of accounts) {
+          connectionParts.push(
+            `  - ${connReq.provider} (${a.label}):\n    \`loadSkill('${template.id}', '${a.id}')\``,
           );
         }
       }
 
-      if (multiSections.length > 0) {
-        instruction += "\n\n" + multiSections.join("\n\n");
+      if (connectionParts.length > 0) {
+        entry += "\n  Available connections:\n" + connectionParts.join("\n");
       }
     }
 
-    if (instruction) {
-      skillInstructions.push(instruction);
-    }
+    skillEntries.push(entry);
   }
 
-  return { skillInstructions };
-}
+  if (skillEntries.length === 0) {
+    return { promptSection: "" };
+  }
 
-async function loadConnectionLabels(
-  resources: Resources,
-  connectionIds: string[],
-): Promise<Array<{ id: string; label: string }>> {
-  const { QueryCommand } = await import("dynamodb-toolbox/table/actions/query");
-  const { Items = [] } = await resources.ddb.secretsTable
-    .build(QueryCommand)
-    .entities(resources.ddb.entities.IntegrationConnection)
-    .query({ partition: "INTEGRATION_CONNECTION" })
-    .send();
+  const promptSection = `# Available Skills
 
-  type ConnItem = {
-    id: string;
-    connectionMeta?: { accountId?: string };
-  };
-  const connMap = new Map((Items as ConnItem[]).map((c) => [c.id, c]));
+Skills are CLI tools you can use via \`runCommand\` in the sandbox. Before using any skill, you MUST call \`loadSkill\` with the skillId (and optionally a connectionId) to set up authentication and get usage/install instructions.
 
-  return connectionIds.map((id) => {
-    const conn = connMap.get(id);
-    const accountId = conn?.connectionMeta?.accountId;
-    return {
-      id,
-      label: accountId && accountId !== "unknown" ? accountId : id,
-    };
-  });
+If you encounter auth errors while using a skill, call \`refreshSkillAuth\` with the skillId and connectionId to get fresh tokens.
+
+${skillEntries.join("\n")}`;
+
+  return { promptSection };
 }

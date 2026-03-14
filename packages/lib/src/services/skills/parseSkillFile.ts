@@ -29,7 +29,6 @@ export function parseSkillFile(
       icon: fm.icon as string | undefined,
       tags: fm.tags as string[] | undefined,
       connections: fm.connections as SkillTemplate["connections"],
-      install: fm.install as string | undefined,
       instructions: body.trim() || undefined,
     };
   } catch {

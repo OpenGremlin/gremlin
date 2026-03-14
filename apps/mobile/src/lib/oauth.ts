@@ -497,6 +497,7 @@ export async function connectOAuthProvider(
     scopes,
   );
 
+  const config = providerConfigs.get(providerId);
   await gql(SubmitOAuthConnectionMutation, {
     providerId,
     accessToken: result.accessToken,
@@ -504,6 +505,10 @@ export async function connectOAuthProvider(
     expiresAt: result.expiresAt ?? null,
     scopes: result.scopes,
     accountId: result.accountId ?? null,
+    clientId,
+    clientSecret,
+    tokenUrl: config?.tokenUrl ?? null,
+    tokenAuthMethod: config?.tokenAuthMethod ?? null,
   });
 
   return result;

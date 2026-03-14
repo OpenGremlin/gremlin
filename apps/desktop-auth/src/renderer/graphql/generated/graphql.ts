@@ -129,6 +129,15 @@ export type AgentSandboxConfigInput = {
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type AgentSkill = {
+  __typename?: 'AgentSkill';
+  agentId: Scalars['ID']['output'];
+  assignedAt: Scalars['String']['output'];
+  connectionStatuses: Array<SkillConnectionStatus>;
+  skillId: Scalars['ID']['output'];
+  template?: Maybe<SkillTemplate>;
+};
+
 export type AgentWebSearchConfig = {
   __typename?: 'AgentWebSearchConfig';
   enabled: Scalars['Boolean']['output'];
@@ -231,7 +240,6 @@ export type IntegrationConnection = {
   __typename?: 'IntegrationConnection';
   connectedAt: Scalars['String']['output'];
   connectionType: Scalars['String']['output'];
-  description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   isRevoked: Scalars['Boolean']['output'];
   meta: ConnectionMeta;
@@ -265,7 +273,10 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  bindSkillConnection?: Maybe<Skill>;
+  /** Assign a skill to an agent */
+  assignSkill: AgentSkill;
+  /** Bind a connection to an agent's skill */
+  bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: Scalars['ID']['output'];
   createAgent: Agent;
@@ -274,18 +285,18 @@ export type Mutation = {
   disableBedrockModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
-  installSkill?: Maybe<Skill>;
-  renameIntegrationConnection: Scalars['Boolean']['output'];
+  /** Remove a skill from an agent */
+  removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
   setDefaultModel: Scalars['Boolean']['output'];
-  setSkillMcpEnabled?: Maybe<Skill>;
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
-  uninstallSkill?: Maybe<Skill>;
+  /** Unbind a connection from an agent's skill */
+  unbindAgentSkillConnection: AgentSkill;
   unretireAgent: Agent;
   updateAgent?: Maybe<Agent>;
   updateAgentJob?: Maybe<AgentJob>;
@@ -294,10 +305,17 @@ export type Mutation = {
 };
 
 
-export type MutationBindSkillConnectionArgs = {
+export type MutationAssignSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
+};
+
+
+export type MutationBindAgentSkillConnectionArgs = {
+  agentId: Scalars['ID']['input'];
   connectionId: Scalars['ID']['input'];
-  id: Scalars['ID']['input'];
-  providerId: Scalars['String']['input'];
+  provider: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -342,14 +360,9 @@ export type MutationEnableBedrockModelArgs = {
 };
 
 
-export type MutationInstallSkillArgs = {
-  templateId: Scalars['ID']['input'];
-};
-
-
-export type MutationRenameIntegrationConnectionArgs = {
-  description: Scalars['String']['input'];
-  id: Scalars['ID']['input'];
+export type MutationRemoveSkillArgs = {
+  agentId: Scalars['ID']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -389,19 +402,17 @@ export type MutationSetDefaultModelArgs = {
 };
 
 
-export type MutationSetSkillMcpEnabledArgs = {
-  enabled: Scalars['Boolean']['input'];
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
+  clientId?: InputMaybe<Scalars['String']['input']>;
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
   expiresAt?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
+  tokenAuthMethod?: InputMaybe<Scalars['String']['input']>;
+  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -410,8 +421,11 @@ export type MutationTriggerJobArgs = {
 };
 
 
-export type MutationUninstallSkillArgs = {
-  id: Scalars['ID']['input'];
+export type MutationUnbindAgentSkillConnectionArgs = {
+  agentId: Scalars['ID']['input'];
+  connectionId: Scalars['ID']['input'];
+  provider: Scalars['String']['input'];
+  skillId: Scalars['ID']['input'];
 };
 
 
@@ -501,6 +515,8 @@ export type Query = {
   agentJob?: Maybe<AgentJob>;
   agentJobs: Array<AgentJob>;
   agentLogs: AgentLogConnection;
+  /** Skills assigned to a specific agent */
+  agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
@@ -510,12 +526,10 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
-  skill?: Maybe<Skill>;
+  /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
-  /** All templates from the catalog */
+  /** All skill templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
-  /** All installed skill instances */
-  skills: Array<Skill>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
@@ -543,8 +557,8 @@ export type QueryAgentLogsArgs = {
 };
 
 
-export type QuerySkillArgs = {
-  id: Scalars['ID']['input'];
+export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
 };
 
 
@@ -599,46 +613,38 @@ export type SendMessageResult = {
   queued: Scalars['Boolean']['output'];
 };
 
-export type Skill = {
-  __typename?: 'Skill';
-  id: Scalars['ID']['output'];
-  installed: Scalars['Boolean']['output'];
-  installedAt?: Maybe<Scalars['String']['output']>;
-  mcpEnabled?: Maybe<Scalars['Boolean']['output']>;
-  requiredConnections: Array<SkillConnectionStatus>;
-  template: SkillTemplate;
-};
-
 export type SkillConnectionRequirement = {
   __typename?: 'SkillConnectionRequirement';
+  multi: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
+  requestedScopes?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type SkillConnectionStatus = {
   __typename?: 'SkillConnectionStatus';
-  boundConnectionId?: Maybe<Scalars['String']['output']>;
+  boundConnectionIds: Array<Scalars['String']['output']>;
   connected: Scalars['Boolean']['output'];
+  multi: Scalars['Boolean']['output'];
   optional: Scalars['Boolean']['output'];
-  providerId: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
   providerName: Scalars['String']['output'];
   reason: Scalars['String']['output'];
 };
 
 export type SkillTemplate = {
   __typename?: 'SkillTemplate';
-  author: Scalars['String']['output'];
-  category: Scalars['String']['output'];
+  author?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
+  connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
-  hasInstructions: Scalars['Boolean']['output'];
-  hasMcp: Scalars['Boolean']['output'];
+  hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  installCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  requiredConnections: Array<SkillConnectionRequirement>;
+  tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
 };
 
@@ -648,6 +654,7 @@ export type Subscription = {
   agentLogCreated: AgentLog;
   agentUpdated: Agent;
   agentsUpdated: Agent;
+  jobCreated: AgentJob;
   jobTaskCreated: Task;
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;

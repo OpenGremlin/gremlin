@@ -405,10 +405,14 @@ export type MutationSetDefaultModelArgs = {
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
+  clientId?: InputMaybe<Scalars['String']['input']>;
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
   expiresAt?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
+  tokenAuthMethod?: InputMaybe<Scalars['String']['input']>;
+  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -929,6 +933,10 @@ export type SubmitOAuthConnectionMutationVariables = Exact<{
   expiresAt?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
+  clientId?: InputMaybe<Scalars['String']['input']>;
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
+  tokenUrl?: InputMaybe<Scalars['String']['input']>;
+  tokenAuthMethod?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -1496,7 +1504,7 @@ export const DisableBedrockModelDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<DisableBedrockModelMutation, DisableBedrockModelMutationVariables>;
 export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
-    mutation SubmitOAuthConnection($providerId: String!, $accessToken: String!, $refreshToken: String, $expiresAt: String, $scopes: [String!]!, $accountId: String) {
+    mutation SubmitOAuthConnection($providerId: String!, $accessToken: String!, $refreshToken: String, $expiresAt: String, $scopes: [String!]!, $accountId: String, $clientId: String, $clientSecret: String, $tokenUrl: String, $tokenAuthMethod: String) {
   submitOAuthConnection(
     providerId: $providerId
     accessToken: $accessToken
@@ -1504,6 +1512,10 @@ export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
     expiresAt: $expiresAt
     scopes: $scopes
     accountId: $accountId
+    clientId: $clientId
+    clientSecret: $clientSecret
+    tokenUrl: $tokenUrl
+    tokenAuthMethod: $tokenAuthMethod
   )
 }
     `) as unknown as TypedDocumentString<SubmitOAuthConnectionMutation, SubmitOAuthConnectionMutationVariables>;

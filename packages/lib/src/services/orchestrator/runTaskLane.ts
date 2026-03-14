@@ -1,6 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
-import { buildSkillConfig } from "../skills/buildMcpConfig.js";
+import { buildSkillSummary } from "../skills/buildMcpConfig.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {
   createBraveSearchTool,
@@ -67,14 +67,14 @@ export async function runTaskLane(
     content: prompt,
   });
 
-  // Build skill instructions and skill tools in parallel
-  const [skillConfig, skillToolsResult] = await Promise.all([
-    buildSkillConfig(ctx, task.agentId).catch((err) => {
+  // Build skill summary and skill tools in parallel
+  const [skillSummary, skillToolsResult] = await Promise.all([
+    buildSkillSummary(ctx, task.agentId).catch((err) => {
       ctx.log.error(
         { err, component: "skills" },
-        "Failed to build skill config",
+        "Failed to build skill summary",
       );
-      return { skillInstructions: [] };
+      return { promptSection: "" };
     }),
     buildSkillTools(ctx, task.agentId, taskId).catch((err) => {
       ctx.log.error(
@@ -94,11 +94,15 @@ export async function runTaskLane(
     taskId,
   });
 
-  if (skillConfig.skillInstructions.length > 0) {
-    systemPrompt +=
-      "\n\n# Active Skill Instructions\n\n" +
-      skillConfig.skillInstructions.join("\n\n");
+  if (skillSummary.promptSection) {
+    systemPrompt += "\n\n" + skillSummary.promptSection;
   }
+
+  ctx.log.info(
+    { agentId: task.agentId, taskId, systemPromptLength: systemPrompt.length },
+    "Task lane system prompt: %s",
+    systemPrompt,
+  );
 
   return runLane(ctx, {
     agentId: task.agentId,

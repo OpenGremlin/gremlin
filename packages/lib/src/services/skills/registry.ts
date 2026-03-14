@@ -23,8 +23,6 @@ export interface SkillTemplate {
   tags?: string[];
   /** Auth connections the skill needs */
   connections?: SkillConnectionRequirement[];
-  /** Idempotent shell script to install dependencies */
-  install?: string;
   /** The Markdown body after frontmatter — loaded on initialization, not at catalog time */
   instructions?: string;
 }

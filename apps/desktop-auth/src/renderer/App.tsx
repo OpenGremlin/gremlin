@@ -287,6 +287,10 @@ export function App() {
         $expiresAt: String
         $scopes: [String!]!
         $accountId: String
+        $clientId: String
+        $clientSecret: String
+        $tokenUrl: String
+        $tokenAuthMethod: String
       ) {
         submitOAuthConnection(
           providerId: $providerId
@@ -295,6 +299,10 @@ export function App() {
           expiresAt: $expiresAt
           scopes: $scopes
           accountId: $accountId
+          clientId: $clientId
+          clientSecret: $clientSecret
+          tokenUrl: $tokenUrl
+          tokenAuthMethod: $tokenAuthMethod
         )
       }`,
       {
@@ -304,6 +312,10 @@ export function App() {
         expiresAt: result.expiresAt ?? null,
         scopes: result.scopes,
         accountId: result.accountId ?? null,
+        clientId: config.clientId,
+        clientSecret: config.clientSecret,
+        tokenUrl: provider.tokenUrl,
+        tokenAuthMethod: provider.tokenAuthMethod ?? null,
       },
     );
 

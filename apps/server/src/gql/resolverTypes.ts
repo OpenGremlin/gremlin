@@ -422,10 +422,14 @@ export type MutationSetDefaultModelArgs = {
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
+  clientId?: InputMaybe<Scalars['String']['input']>;
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
   expiresAt?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
+  tokenAuthMethod?: InputMaybe<Scalars['String']['input']>;
+  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 

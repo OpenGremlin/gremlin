@@ -1,10 +1,13 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
-import type { Resources } from "../../resources/index.js";
 import type { ServiceContext } from "../context.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
+import {
+  filterRevokedBindings,
+  loadActiveConnectionLabels,
+} from "./loadActiveConnections.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
 import { resolveConnectionEnv, resolveSkillEnv } from "./resolveSkillEnv.js";
 import { getSkillTemplateFromS3 } from "./skillScanner.js";
@@ -14,13 +17,13 @@ const log = createLogger("skills:tools");
 export interface SkillToolsResult {
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
   tools: Record<string, any>;
-  /** Current skill env — call getEnv() to get the latest after a switch */
+  /** Current skill env — call getEnv() to get the latest after a load/refresh */
   getEnv: () => Record<string, string>;
 }
 
 /**
- * Build switch-connection tools for agents with multi-connection skills.
- * Also resolves the initial env for all skills.
+ * Build loadSkill and refreshSkillAuth tools for the agent.
+ * Env is resolved lazily when the agent calls loadSkill.
  */
 export async function buildSkillTools(
   ctx: ServiceContext,
@@ -38,59 +41,49 @@ export async function buildSkillTools(
 
   const bucketName = getSkillsBucket();
 
-  for (const agentSkill of agentSkills) {
-    const template = await getSkillTemplateFromS3(
-      bucketName,
-      agentSkill.skillId,
-    );
-    if (!template?.connections?.length) continue;
+  tools.loadSkill = tool({
+    description:
+      "Load a skill to get its usage/install instructions and set up auth env vars. Must be called before using any skill via runCommand.",
+    inputSchema: z.object({
+      skillId: z.string().describe("The skill ID to load"),
+      connectionId: z
+        .string()
+        .optional()
+        .describe(
+          "Specific connection ID to use. If omitted, the first available connection is used.",
+        ),
+    }),
+    execute: async ({ skillId, connectionId }) => {
+      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
+      if (!agentSkill) {
+        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+      }
 
-    const bindings = parseConnectionBindings(agentSkill.connectionBindings);
+      const template = await getSkillTemplateFromS3(bucketName, skillId);
+      if (!template) {
+        return { error: `Skill "${skillId}" not found.` };
+      }
 
-    // Resolve initial env (using first connection per provider)
-    const { env: initialEnv } = await resolveSkillEnv(
-      ctx.resources,
-      template,
-      agentSkill.connectionBindings,
-    );
-    Object.assign(currentEnv, initialEnv);
-
-    // Create switch tools for multi-connection providers with 2+ connections
-    for (const connReq of template.connections) {
-      if (!connReq.multi) continue;
-
-      const boundIds = bindings[connReq.provider] ?? [];
-      if (boundIds.length < 2) continue;
-
-      const toolName = `switch_${agentSkill.skillId}_${connReq.provider}`;
-
-      // Load connection accounts for the tool description
-      const accounts = await loadConnectionLabels(
-        ctx.resources,
-        boundIds,
+      const rawBindings = parseConnectionBindings(
+        agentSkill.connectionBindings,
       );
+      const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
 
-      const accountList = accounts
-        .map((d) => `- ${d.id}: ${d.label}`)
-        .join("\n");
+      const envDescriptions: string[] = [];
 
-      tools[toolName] = tool({
-        description: `Switch which ${connReq.provider} account to use for the ${template.name} skill. Available accounts:\n${accountList}`,
-        inputSchema: z.object({
-          connectionId: z
-            .enum(boundIds as [string, ...string[]])
-            .describe("The connection ID to switch to"),
-        }),
-        execute: async ({ connectionId }) => {
-          log.info(
-            {
-              agentId,
-              skillId: agentSkill.skillId,
-              provider: connReq.provider,
-              connectionId,
-            },
-            "Agent switching connection",
-          );
+      if (template.connections?.length) {
+        if (connectionId) {
+          // Resolve env for a specific connection
+          const connReq = template.connections.find((c) => {
+            const boundIds = bindings[c.provider] ?? [];
+            return boundIds.includes(connectionId);
+          });
+
+          if (!connReq) {
+            return {
+              error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
+            };
+          }
 
           const resolved = await resolveConnectionEnv(
             ctx.resources,
@@ -99,42 +92,140 @@ export async function buildSkillTools(
           );
           Object.assign(currentEnv, resolved);
 
-          const desc = accounts.find((d) => d.id === connectionId);
-          return {
-            status: "switched",
-            message: `Now using ${desc?.label ?? connectionId} for ${template.name}.`,
-          };
-        },
+          const accounts = await loadActiveConnectionLabels(ctx.resources, [
+            connectionId,
+          ]);
+          const label = accounts[0]?.label ?? connectionId;
+
+          for (const envVar of Object.keys(resolved)) {
+            envDescriptions.push(
+              `${envVar} has been set for ${label}`,
+            );
+          }
+
+          log.info(
+            {
+              agentId,
+              skillId,
+              connectionId,
+              resolvedEnvKeys: Object.keys(resolved),
+            },
+            "loadSkill: resolved specific connection",
+          );
+        } else {
+          // Resolve env using first available connection per provider
+          const filteredBindingsRaw = JSON.stringify(bindings);
+          const { env, missing } = await resolveSkillEnv(
+            ctx.resources,
+            template,
+            filteredBindingsRaw,
+          );
+          Object.assign(currentEnv, env);
+
+          // Build env descriptions
+          for (const connReq of template.connections) {
+            const boundIds = bindings[connReq.provider] ?? [];
+            if (boundIds.length === 0) continue;
+            const accounts = await loadActiveConnectionLabels(
+              ctx.resources,
+              [boundIds[0]],
+            );
+            const label = accounts[0]?.label ?? boundIds[0];
+
+            for (const envVar of Object.keys(connReq.env)) {
+              if (env[envVar]) {
+                envDescriptions.push(
+                  `${envVar} has been set for ${label}`,
+                );
+              }
+            }
+          }
+
+          log.info(
+            {
+              agentId,
+              skillId,
+              resolvedEnvKeys: Object.keys(env),
+              missingProviders: missing,
+            },
+            "loadSkill: resolved default connections",
+          );
+        }
+      }
+
+      return {
+        instructions: template.instructions ?? "",
+        envDescriptions,
+        activeConnection: connectionId ?? "default (first available)",
+      };
+    },
+  });
+
+  tools.refreshSkillAuth = tool({
+    description:
+      "Re-resolve auth tokens for a skill. Call this if you get auth errors while using a skill.",
+    inputSchema: z.object({
+      skillId: z.string().describe("The skill ID to refresh auth for"),
+      connectionId: z
+        .string()
+        .describe("The connection ID to refresh"),
+    }),
+    execute: async ({ skillId, connectionId }) => {
+      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
+      if (!agentSkill) {
+        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+      }
+
+      const template = await getSkillTemplateFromS3(bucketName, skillId);
+      if (!template) {
+        return { error: `Skill "${skillId}" not found.` };
+      }
+
+      if (!template.connections?.length) {
+        return { error: `Skill "${skillId}" has no connections to refresh.` };
+      }
+
+      const rawBindings = parseConnectionBindings(
+        agentSkill.connectionBindings,
+      );
+      const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
+
+      const connReq = template.connections.find((c) => {
+        const boundIds = bindings[c.provider] ?? [];
+        return boundIds.includes(connectionId);
       });
-    }
-  }
+
+      if (!connReq) {
+        return {
+          error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
+        };
+      }
+
+      const resolved = await resolveConnectionEnv(
+        ctx.resources,
+        connReq,
+        connectionId,
+      );
+      Object.assign(currentEnv, resolved);
+
+      const accounts = await loadActiveConnectionLabels(ctx.resources, [
+        connectionId,
+      ]);
+      const label = accounts[0]?.label ?? connectionId;
+
+      const refreshedVars: string[] = [];
+      for (const envVar of Object.keys(resolved)) {
+        refreshedVars.push(`${envVar} has been refreshed for ${label}`);
+      }
+
+      log.info(
+        { agentId, skillId, connectionId, refreshedVars },
+        "refreshSkillAuth: tokens refreshed",
+      );
+
+      return { refreshedVars };
+    },
+  });
 
   return { tools, getEnv: () => ({ ...currentEnv }) };
-}
-
-async function loadConnectionLabels(
-  resources: Resources,
-  connectionIds: string[],
-): Promise<Array<{ id: string; label: string }>> {
-  const { QueryCommand } = await import("dynamodb-toolbox/table/actions/query");
-  const { Items = [] } = await resources.ddb.secretsTable
-    .build(QueryCommand)
-    .entities(resources.ddb.entities.IntegrationConnection)
-    .query({ partition: "INTEGRATION_CONNECTION" })
-    .send();
-
-  type ConnItem = {
-    id: string;
-    connectionMeta?: { accountId?: string };
-  };
-  const connMap = new Map((Items as ConnItem[]).map((c) => [c.id, c]));
-
-  return connectionIds.map((id) => {
-    const conn = connMap.get(id);
-    const accountId = conn?.connectionMeta?.accountId;
-    return {
-      id,
-      label: accountId && accountId !== "unknown" ? accountId : id,
-    };
-  });
 }
