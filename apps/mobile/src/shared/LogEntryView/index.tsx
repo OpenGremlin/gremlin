@@ -1,4 +1,18 @@
-import { File } from "lucide-react-native";
+import {
+  BookOpen,
+  Brain,
+  Calendar,
+  CheckCircle,
+  CircleAlert,
+  Clock,
+  File,
+  Hammer,
+  Key,
+  List,
+  Monitor,
+  Save,
+  XCircle,
+} from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
@@ -8,9 +22,11 @@ import { formatTime } from "../formatDate";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { DocumentCard } from "./DocumentCard";
+import { FnLabel } from "./FnLabel";
 import { Markdown } from "./Markdown";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 import { ToolBlock } from "./ToolBlock";
+import { ToolStatus } from "./ToolStatus";
 
 function FileUploadCard({
   data,
@@ -127,16 +143,153 @@ export function LogEntryView({
   if (message.role === AgentLogRole.Tool) {
     const tool = resolveToolFields(message);
 
-    // updateTaskStatus / updateTaskMessage -> minimal italic text
+    // updateTaskStatus / updateTaskMessage
     if (tool.name === "updateTaskStatus" || tool.name === "updateTaskMessage") {
       const msg = tool.input?.message as string | undefined;
+      return <ToolStatus icon={Hammer} text={msg || "Progress update"} />;
+    }
+
+    // ensureSandbox
+    if (tool.name === "ensureSandbox") {
+      const status = tool.result?.status as string | undefined;
+      if (status === "ready") {
+        return (
+          <ToolStatus
+            icon={CheckCircle}
+            text="Sandbox ready"
+            variant="success"
+          />
+        );
+      }
+      if (status === "booting") {
+        return (
+          <ToolStatus
+            icon={Clock}
+            text="Sandbox booting..."
+            variant="warning"
+          />
+        );
+      }
+      if (status === "error") {
+        return (
+          <ToolStatus
+            icon={CircleAlert}
+            text={`Sandbox error: ${tool.result?.error ?? "unknown"}`}
+            variant="error"
+          />
+        );
+      }
       return (
-        <View className="flex-row items-start gap-1.5 py-1.5 px-1">
-          <Text className="text-xs text-text-muted italic">
-            {msg || "Progress update"}
-          </Text>
-        </View>
+        <ToolStatus
+          icon={Monitor}
+          text="Checking sandbox..."
+          variant="warning"
+        />
       );
+    }
+
+    // loadSkill
+    if (tool.name === "loadSkill") {
+      const skillId = tool.input?.skillId as string | undefined;
+      if (tool.result?.error) {
+        return (
+          <ToolStatus
+            icon={XCircle}
+            text={`Failed to load ${skillId ?? "skill"}: ${tool.result.error}`}
+            variant="error"
+          />
+        );
+      }
+      if (!tool.result) {
+        return (
+          <ToolStatus
+            icon={BookOpen}
+            text={`Loading ${skillId ?? "skill"}...`}
+          />
+        );
+      }
+      return (
+        <ToolStatus
+          icon={BookOpen}
+          text={`Loaded ${skillId ?? "skill"} instructions`}
+        />
+      );
+    }
+
+    // authenticate
+    if (tool.name === "authenticate") {
+      const skillId = tool.input?.skillId as string | undefined;
+      if (tool.result?.error) {
+        return (
+          <ToolStatus
+            icon={XCircle}
+            text={`Auth failed for ${skillId ?? "skill"}: ${tool.result.error}`}
+            variant="error"
+          />
+        );
+      }
+      if (!tool.result) {
+        return (
+          <ToolStatus
+            icon={Key}
+            text={`Authenticating ${skillId ?? "skill"}...`}
+          />
+        );
+      }
+      const conn = tool.result?.activeConnection as string | undefined;
+      const label =
+        conn && conn !== "default (first available)" ? ` (${conn})` : "";
+      return (
+        <ToolStatus
+          icon={Key}
+          text={`Authenticated ${skillId ?? "skill"}${label}`}
+        />
+      );
+    }
+
+    // saveMemory
+    if (tool.name === "saveMemory") {
+      const key =
+        (tool.input?.key as string | undefined) ??
+        (tool.input?.topic as string | undefined);
+      return (
+        <ToolStatus
+          icon={Save}
+          text={key ? `Saved memory: ${key}` : "Saved memory"}
+        />
+      );
+    }
+
+    // recallMemory
+    if (tool.name === "recallMemory") {
+      const query = tool.input?.query as string | undefined;
+      return (
+        <ToolStatus
+          icon={Brain}
+          text={query ? `Recalled: ${query}` : "Recalled memories"}
+        />
+      );
+    }
+
+    // scheduleJob
+    if (tool.name === "scheduleJob") {
+      const schedule = tool.input?.schedule as string | undefined;
+      return (
+        <ToolStatus
+          icon={Calendar}
+          text={schedule ? `Scheduled job: ${schedule}` : "Scheduled job"}
+        />
+      );
+    }
+
+    // listJobs
+    if (tool.name === "listJobs") {
+      return <ToolStatus icon={List} text="Listed jobs" />;
+    }
+
+    // updateJob
+    if (tool.name === "updateJob") {
+      return <ToolStatus icon={Calendar} text="Updated job" />;
     }
 
     // createDocument -> DocumentCard (with pending/fallback states)
@@ -180,15 +333,21 @@ export function LogEntryView({
       );
     }
 
-    // runCommand -> show command with sandbox streaming or final output
-    if (tool.name === "runCommand") {
+    // runCommand / checkCommand -> run() style label with streaming
+    if (tool.name === "runCommand" || tool.name === "checkCommand") {
       const commandId = (tool.result?.commandId ?? tool.input?.commandId) as
         | string
         | undefined;
-      const command = tool.input?.command as string | undefined;
+      const command =
+        (tool.input?.command as string | undefined) ??
+        (commandId ? `check ${commandId}` : "...");
       const hasResult = !!tool.result;
       const output = (tool.result?.output as string) ?? "";
       const exitCode = tool.result?.exitCode as number | undefined;
+      const exitSuffix =
+        exitCode !== undefined && exitCode !== 0 ? ` exit ${exitCode}` : "";
+
+      const fnLabel = <FnLabel fn="run" arg={command + exitSuffix} />;
 
       // Match stream: by commandId if available, otherwise use the latest active stream
       let stream = commandId ? sandboxStreams?.get(commandId) : undefined;
@@ -199,11 +358,10 @@ export function LogEntryView({
       }
 
       if (!hasResult) {
-        // Show streaming output if available, otherwise "Running..." spinner
         if (stream && (stream.output || stream.done)) {
           return (
             <ToolBlock
-              label={`$ ${command ?? "..."}`}
+              label={fnLabel}
               content={stream.output || "(no output)"}
               createdAt={message.createdAt}
               showTimestamp={showTimestamp}
@@ -232,7 +390,7 @@ export function LogEntryView({
 
         return (
           <ToolBlock
-            label={`$ ${command ?? "..."}`}
+            label={fnLabel}
             createdAt={message.createdAt}
             showTimestamp={showTimestamp}
           >
@@ -246,8 +404,46 @@ export function LogEntryView({
 
       return (
         <ToolBlock
-          label={`$ ${command ?? "..."}${exitCode !== undefined && exitCode !== 0 ? ` (exit ${exitCode})` : ""}`}
+          label={fnLabel}
           content={output || "(no output)"}
+          createdAt={message.createdAt}
+          showTimestamp={showTimestamp}
+        />
+      );
+    }
+
+    // webSearch (brave / tavily)
+    if (
+      tool.name === "webSearch" ||
+      tool.name === "braveSearch" ||
+      tool.name === "tavilySearch"
+    ) {
+      const query = (tool.input?.query as string) ?? "...";
+      const fnLabel = <FnLabel fn="search" arg={query} />;
+      const resultText = tool.result
+        ? JSON.stringify(tool.result, null, 2)
+        : undefined;
+      return (
+        <ToolBlock
+          label={fnLabel}
+          content={resultText}
+          createdAt={message.createdAt}
+          showTimestamp={showTimestamp}
+        />
+      );
+    }
+
+    // webFetch
+    if (tool.name === "webFetch") {
+      const url = (tool.input?.url as string) ?? "...";
+      const fnLabel = <FnLabel fn="fetch" arg={url} />;
+      const resultText = tool.result
+        ? JSON.stringify(tool.result, null, 2)
+        : undefined;
+      return (
+        <ToolBlock
+          label={fnLabel}
+          content={resultText}
           createdAt={message.createdAt}
           showTimestamp={showTimestamp}
         />

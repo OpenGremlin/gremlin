@@ -95,7 +95,7 @@ export function ToolBlock({
   streaming,
   children,
 }: {
-  label: string;
+  label: React.ReactNode;
   content?: string;
   createdAt: string;
   showTimestamp?: boolean;
@@ -144,12 +144,16 @@ export function ToolBlock({
         >
           <ChevronRight size={12} color={colors.headerText} />
         </View>
-        <Text
-          className="text-[11px] text-text-secondary font-bold font-mono flex-shrink"
-          numberOfLines={1}
-        >
-          {label}
-        </Text>
+        {typeof label === "string" ? (
+          <Text
+            className="text-[11px] text-text-secondary font-bold font-mono flex-shrink"
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
+        ) : (
+          <View className="flex-row items-center flex-shrink">{label}</View>
+        )}
         {showTimestamp && (
           <Text className="text-[10px] text-text-faint">
             {formatTime(createdAt)}
