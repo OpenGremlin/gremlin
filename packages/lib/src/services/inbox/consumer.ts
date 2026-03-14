@@ -1,10 +1,6 @@
-import { createLogger } from "../../logger.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
-import { activeSessions } from "../orchestrator/sandboxTools.js";
-
-const sandboxLog = createLogger("sandbox:consumer");
 
 /**
  * In-memory set to enforce per-agent serialization.
@@ -81,7 +77,6 @@ async function routeBatch(
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
       i.type === "core_memory_review" ||
-      i.type === "sandbox_available" || // kept for backwards compat with in-flight items
       i.type === "file_upload",
   );
 
@@ -169,37 +164,6 @@ async function processTaskGroup(
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
-      case "sandbox_available": {
-        // Connect the WebSocket now that the sandbox is healthy
-        const instanceId = payload.instanceId as string | undefined;
-        if (instanceId) {
-          try {
-            const session = await ctx.services.sandbox.tryQuickConnect(
-              agentId,
-              instanceId,
-            );
-            if (session) {
-              await ctx.services.sandbox.connectToSandbox(session);
-              session.lastActivityAt = Date.now();
-              activeSessions.set(taskId, session);
-              sandboxLog.info(
-                { agentId, taskId, instanceId },
-                "Sandbox connected via notify hook",
-              );
-            }
-          } catch (err) {
-            sandboxLog.error(
-              { agentId, instanceId, error: (err as Error).message },
-              "Failed to connect sandbox after notify",
-            );
-          }
-        }
-        prompts.push({
-          content: "The sandbox is now available. Proceed with your task.",
-          role: "SYSTEM",
-        });
-        break;
-      }
       case "file_upload": {
         // Write log entry only — do not trigger inference
         await writeFileUploadLog(ctx, agentId, taskId, payload);

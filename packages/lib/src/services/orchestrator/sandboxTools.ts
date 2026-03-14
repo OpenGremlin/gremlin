@@ -65,16 +65,18 @@ setInterval(async () => {
   }
 }, 60_000);
 
+const BOOT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL_MS = 3_000;
+
 /**
- * Try to ensure a connected sandbox session exists for the agent.
- * Returns the session if connected, or null if a cold boot was initiated
- * (the agent will be woken up via /notifyHook when the sandbox is ready).
+ * Ensure a connected sandbox session exists for the agent.
+ * Blocks until the sandbox is healthy and connected, or throws on timeout.
  */
 async function ensureSandbox(
   ctx: ServiceContext,
   agentId: string,
   taskId: string,
-): Promise<SandboxSession | null> {
+): Promise<SandboxSession> {
   // Already connected for this task
   const existing = activeSessions.get(taskId);
   if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
@@ -105,17 +107,7 @@ async function ensureSandbox(
     }
   }
 
-  // Subscribe BEFORE launching so the notification can't arrive before
-  // the subscription exists (eliminates race condition)
-  await ctx.services.sandbox.subscribe(
-    ctx,
-    agentId,
-    taskId,
-    "sandbox_available",
-  );
-
-  // Cold start — launch EC2 (or start stopped instance) and return immediately
-  // The sandbox will notify via /notifyHook when ready
+  // Cold start — launch EC2 (or start stopped instance) then poll until ready
   const instanceId = await ctx.services.sandbox.launchInstance(
     agentId,
     existingInstanceId,
@@ -128,11 +120,32 @@ async function ensureSandbox(
     });
   }
 
-  log.info(
-    { agentId, instanceId },
-    "Sandbox instance launching, agent will be notified when ready",
+  log.info({ agentId, instanceId }, "Waiting for sandbox to become healthy");
+
+  // Poll until the sandbox is healthy and we can connect
+  const deadline = Date.now() + BOOT_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+    const session = await ctx.services.sandbox.tryQuickConnect(
+      agentId,
+      instanceId,
+    );
+    if (session) {
+      await ctx.services.sandbox.connectToSandbox(session);
+      session.lastActivityAt = Date.now();
+      activeSessions.set(taskId, session);
+      log.info(
+        { agentId, taskId, instanceId },
+        "Sandbox connected after cold boot",
+      );
+      return session;
+    }
+  }
+
+  throw new Error(
+    `Sandbox failed to become healthy within ${BOOT_TIMEOUT_MS / 1000}s`,
   );
-  return null;
 }
 
 export function ensureSandboxTool(
@@ -142,12 +155,11 @@ export function ensureSandboxTool(
 ) {
   return tool({
     description:
-      "Ensure the sandbox is online and ready for commands. Call this before running commands. If the sandbox is already running, returns immediately. If it needs to boot, you'll be notified when it's ready — stop and wait.",
+      "Ensure the sandbox is online and ready for commands. Call this before running commands. If the sandbox is already running, returns immediately. If it needs to boot, this call blocks until it's ready (may take a few minutes).",
     inputSchema: z.object({}),
     execute: async () => {
-      let session: SandboxSession | null;
       try {
-        session = await ensureSandbox(ctx, agentId, taskId);
+        await ensureSandbox(ctx, agentId, taskId);
       } catch (err) {
         log.error(
           {
@@ -158,14 +170,6 @@ export function ensureSandboxTool(
           "ensureSandbox failed",
         );
         return { status: "error", error: (err as Error).message };
-      }
-
-      if (!session) {
-        return {
-          status: "booting",
-          message:
-            "Sandbox is booting up. You'll be notified when it's ready — stop and wait.",
-        };
       }
 
       return { status: "ready" };

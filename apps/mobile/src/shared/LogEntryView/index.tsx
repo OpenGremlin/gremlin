@@ -4,7 +4,6 @@ import {
   Calendar,
   CheckCircle,
   CircleAlert,
-  Clock,
   File,
   Hammer,
   Key,
@@ -161,15 +160,6 @@ export function LogEntryView({
           />
         );
       }
-      if (status === "booting") {
-        return (
-          <ToolStatus
-            icon={Clock}
-            text="Sandbox booting..."
-            variant="warning"
-          />
-        );
-      }
       if (status === "error") {
         return (
           <ToolStatus
@@ -182,7 +172,7 @@ export function LogEntryView({
       return (
         <ToolStatus
           icon={Monitor}
-          text="Checking sandbox..."
+          text="Connecting to sandbox… this may take a few minutes"
           variant="warning"
         />
       );

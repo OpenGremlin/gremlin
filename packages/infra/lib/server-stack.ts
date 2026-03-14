@@ -35,7 +35,6 @@ export interface ServerStackProps extends cdk.StackProps {
 export class ServerStack extends cdk.Stack {
   readonly cluster: ecs.ICluster;
   readonly serverRole: iam.IRole;
-  readonly notifyHookRoleArn: string;
   readonly elasticIp: string;
   readonly serverDns: string;
   readonly serverSecurityGroup: ec2.ISecurityGroup;
@@ -59,18 +58,6 @@ export class ServerStack extends cdk.Stack {
     // ── IAM role for EC2 instance ────────────────────────────
     const serverRole = new iam.Role(this, "ServerRole", {
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-    });
-
-    // ── Notify hook role (assumed by sandbox EC2 to call /notifyHook) ──
-    const notifyHookRole = new iam.Role(this, "NotifyHookRole", {
-      roleName: "gremlin-notify-hook-role",
-      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-      // No permissions — just an identity for authentication
-    });
-
-    new cdk.aws_ssm.StringParameter(this, "NotifyHookRoleArnParam", {
-      parameterName: "/gremlin/notify-hook-role-arn",
-      stringValue: notifyHookRole.roleArn,
     });
 
     props.table.grantReadWriteData(serverRole);
@@ -245,7 +232,6 @@ export class ServerStack extends cdk.Stack {
     // ── Exports ──────────────────────────────────────────────
     this.cluster = cluster;
     this.serverRole = serverRole;
-    this.notifyHookRoleArn = notifyHookRole.roleArn;
     this.elasticIp = eip.attrPublicIp;
     // CloudFront requires a domain name, not an IP. Construct EC2 public DNS
     // from the EIP: ec2-1-2-3-4.compute-1.amazonaws.com (us-east-1)

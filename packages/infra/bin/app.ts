@@ -64,8 +64,6 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   accessPoint: db.accessPoint,
   table: db.table,
   tableName: db.tableName,
-  notifyHookRoleArn: server.notifyHookRoleArn,
-  serverElasticIp: server.elasticIp,
 });
 
 // 5. Web app — depends on Auth, Media, Server (for ALB)

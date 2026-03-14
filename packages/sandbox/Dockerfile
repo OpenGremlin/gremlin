@@ -47,7 +47,6 @@ COPY --from=deps /build/packages/sandbox/node_modules/ packages/sandbox/node_mod
 COPY package.json pnpm-workspace.yaml ./
 
 COPY packages/sandbox/entrypoint.sh /app/entrypoint.sh
-COPY packages/sandbox/notify-server.mjs /app/packages/sandbox/notify-server.mjs
 RUN chmod +x /app/entrypoint.sh
 
 # Non-root user for agent shell (relay stays root to protect /app)

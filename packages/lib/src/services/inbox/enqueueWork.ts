@@ -23,7 +23,6 @@ export type InboxItemType =
   | "agent_self_followup"
   | "user_notification_reply"
   | "core_memory_review"
-  | "sandbox_available"
   | "file_upload";
 
 export interface EnqueueInput {

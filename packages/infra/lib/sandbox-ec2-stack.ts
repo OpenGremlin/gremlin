@@ -25,8 +25,6 @@ export interface SandboxEc2StackProps extends cdk.StackProps {
   accessPoint: efs.IAccessPoint;
   table: dynamodb.ITable;
   tableName: string;
-  notifyHookRoleArn: string;
-  serverElasticIp: string;
 }
 
 export class SandboxEc2Stack extends cdk.Stack {
@@ -91,18 +89,10 @@ export class SandboxEc2Stack extends cdk.Stack {
       }),
     );
 
-    // Allow sandbox to assume the notify hook role
-    sandboxRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: [props.notifyHookRoleArn],
-      }),
-    );
-
     // Allow sandbox to read its own tags and modify metadata options (for Docker IMDS access)
     sandboxRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["ec2:DescribeTags", "ec2:ModifyInstanceMetadataOptions"],
+        actions: ["ec2:ModifyInstanceMetadataOptions"],
         resources: ["*"],
       }),
     );
@@ -145,10 +135,6 @@ export class SandboxEc2Stack extends cdk.Stack {
       "TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')",
       `aws ec2 modify-instance-metadata-options --region ${this.region} --instance-id $(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id) --http-put-response-hop-limit 2 --http-endpoint enabled`,
 
-      // Read instance tags to get agentId
-      `INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)`,
-      `AGENT_ID=$(aws ec2 describe-tags --region ${this.region} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=gremlin:agentId" --query "Tags[0].Value" --output text)`,
-
       // Run the sandbox container
       [
         "docker run -d --restart always",
@@ -165,10 +151,6 @@ export class SandboxEc2Stack extends cdk.Stack {
         `-e DISABLE_BROWSER_BRIDGE=true`,
         `-e NODE_ENV=production`,
         `-e AWS_REGION=${this.region}`,
-        `-e NOTIFY_HOOK_ROLE_ARN=${props.notifyHookRoleArn}`,
-        `-e NOTIFY_HOOK_URL=http://${props.serverElasticIp}:3001/notifyHook`,
-        `-e INSTANCE_ID=$INSTANCE_ID`,
-        `-e AGENT_ID=$AGENT_ID`,
         imageAsset.imageUri,
       ].join(" "),
     );

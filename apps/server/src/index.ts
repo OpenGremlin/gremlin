@@ -15,7 +15,7 @@ import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
-import { createNotifyHookHandler } from "./notifyHook.js";
+
 import { pubsub } from "./pubsub.js";
 
 const PORT = Number(process.env.PORT || 3001);
@@ -78,9 +78,6 @@ app.use(express.json());
 // separately-defined conditional mapped types that TS can't unify generically.
 const resources = createResources(pubsub as unknown as PubSub);
 const services = createServices();
-
-// Internal notify hook endpoint (called by sandbox instances)
-app.post("/notifyHook", createNotifyHookHandler(resources, services));
 
 const schema = makeExecutableSchema({
   typeDefs: mergedTypeDefs,

@@ -15,7 +15,7 @@ You have tools available:
 - requestApproval: Ask the user for a decision before proceeding.
 
 Sandbox (Linux VM for running commands):
-- ensureSandbox: Make sure the sandbox is online. Call this before your first runCommand. If it needs to boot, wait — you'll be notified when it's ready.
+- ensureSandbox: Make sure the sandbox is online. Call this before your first runCommand. If it needs to boot, this call blocks until it's ready (may take a few minutes).
 - runCommand: Execute a shell command in the sandbox. The sandbox must be online first. Commands may take up to 20 minutes — the call blocks until complete.
 
 Skills (CLI tools you use via runCommand):

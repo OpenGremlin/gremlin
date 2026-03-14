@@ -1,7 +1,6 @@
 import { connectToSandbox } from "./connectToSandbox.js";
 import { execCommand } from "./execCommand.js";
 import { launchInstance, tryQuickConnect } from "./launchSandbox.js";
-import { fanOut, subscribe } from "./notifySubscription.js";
 import { terminateSandbox } from "./terminateSandbox.js";
 
 export const sandboxService = {
@@ -10,8 +9,6 @@ export const sandboxService = {
   connectToSandbox,
   execCommand,
   terminateSandbox,
-  subscribe,
-  fanOut,
 };
 
 export type SandboxService = typeof sandboxService;
