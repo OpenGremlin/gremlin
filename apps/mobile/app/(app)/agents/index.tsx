@@ -1,13 +1,7 @@
 import { router } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";

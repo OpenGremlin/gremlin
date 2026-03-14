@@ -47,6 +47,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const selectorRef = useRef(connectionSelector);
   selectorRef.current = connectionSelector;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: _version is intentionally included to trigger refetch
   useEffect(() => {
     let cancelled = false;
     setLoading(true);

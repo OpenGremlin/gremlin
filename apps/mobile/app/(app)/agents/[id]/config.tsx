@@ -1,14 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import {
   AgentQuery,
   AvatarsQuery,

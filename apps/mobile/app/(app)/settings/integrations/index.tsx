@@ -32,6 +32,7 @@ export default function IntegrationsScreen() {
   const connections = useQuery(IntegrationConnectionsQuery);
 
   useFocusEffect(
+    // biome-ignore lint/correctness/useExhaustiveDependencies: refetch on screen focus only, not on every render
     useCallback(() => {
       connections.refetch();
     }, []),

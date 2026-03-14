@@ -17,6 +17,7 @@ import { createLogger } from "../logger.js";
 import { createResources } from "../resources/index.js";
 import type { ServiceContext } from "../services/context.js";
 import { createServices } from "../services/index.js";
+import { buildMemoryContext } from "../services/orchestrator/buildMemoryContext.js";
 import {
   checkCommandTool,
   ensureSandboxTool,
@@ -117,6 +118,34 @@ const tools: Record<string, any> = {
     : {}),
   ...skillToolsResult.tools,
 };
+
+// ---------------------------------------------------------------------------
+// Fetch and print memories
+// ---------------------------------------------------------------------------
+const [memories, coreMemories] = await Promise.all([
+  services.memory.recallMemories(ctx, agentId, "(test task)").catch((err) => {
+    console.error("Memory recall failed:", err);
+    return { recent: [], relevant: [] };
+  }),
+  services.memory.getCoreMemories(ctx, agentId).catch((err) => {
+    console.error("Core memory fetch failed:", err);
+    return [];
+  }),
+]);
+
+const memoryContext = buildMemoryContext({
+  ...memories,
+  core: coreMemories,
+});
+
+console.log("=".repeat(80));
+console.log("MEMORIES");
+console.log("=".repeat(80));
+if (memoryContext) {
+  console.log(memoryContext);
+} else {
+  console.log("(no memories found)");
+}
 
 // ---------------------------------------------------------------------------
 // Print system prompt
