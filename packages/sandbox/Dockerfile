@@ -22,8 +22,9 @@ RUN pnpm --filter @gremlin/sandbox build
 # Stage 3: runtime
 FROM node:20-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      jq curl wget git python3 python3-pip \
+      jq curl wget git python3 python3-pip python3-venv \
       build-essential pkg-config libssl-dev \
+      iputils-ping dnsutils procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Go
