@@ -111,6 +111,7 @@ export async function buildSkillTools(
       }
 
       const envDescriptions: string[] = [];
+      let connectionLabel: string | undefined;
 
       if (connectionId) {
         // Resolve env for a specific connection
@@ -136,6 +137,7 @@ export async function buildSkillTools(
           connectionId,
         ]);
         const label = accounts[0]?.label ?? connectionId;
+        connectionLabel = label;
 
         for (const envVar of Object.keys(resolved)) {
           envDescriptions.push(`${envVar} set for ${label}`);
@@ -168,6 +170,7 @@ export async function buildSkillTools(
             boundIds[0],
           ]);
           const label = accounts[0]?.label ?? boundIds[0];
+          connectionLabel ??= label;
 
           for (const envVar of Object.keys(connReq.env)) {
             if (env[envVar]) {
@@ -190,6 +193,7 @@ export async function buildSkillTools(
       return {
         envDescriptions,
         activeConnection: connectionId ?? "default (first available)",
+        connectionLabel,
       };
     },
   });

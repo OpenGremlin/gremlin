@@ -1,5 +1,5 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Bot } from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -17,6 +17,8 @@ import {
   cognitoSignup,
 } from "../src/lib/auth";
 import { useNavigationTheme } from "../src/lib/useNavigationTheme";
+
+const gremlinLogo = require("../../../branding/gremlin_logo.svg");
 
 type Mode = "login" | "signup" | "confirm";
 
@@ -85,10 +87,12 @@ export default function LoginScreen() {
     >
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-10">
-          <View className="w-16 h-16 rounded-2xl bg-accent-surface border border-accent-border items-center justify-center mb-4">
-            <Bot size={32} color={colors.accent} />
-          </View>
-          <Text className="text-3xl font-bold text-text-primary">Gremlin</Text>
+          <Image
+            source={gremlinLogo}
+            style={{ width: 180, height: 180 }}
+            contentFit="contain"
+          />
+          <Text className="text-3xl font-bold text-text-primary mt-2">OpenGremlin</Text>
           <Text className="text-sm text-text-muted mt-1">
             {mode === "login"
               ? "Sign in to your account"

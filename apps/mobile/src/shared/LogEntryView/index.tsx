@@ -236,9 +236,8 @@ export function LogEntryView({
           />
         );
       }
-      const conn = tool.result?.activeConnection as string | undefined;
-      const label =
-        conn && conn !== "default (first available)" ? ` (${conn})` : "";
+      const connLabel = tool.result?.connectionLabel as string | undefined;
+      const label = connLabel ? ` (${connLabel})` : "";
       return (
         <ToolStatus
           icon={Key}

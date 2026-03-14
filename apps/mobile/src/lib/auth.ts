@@ -3,8 +3,17 @@ import { clientLogger } from "./logger";
 import { storage } from "./storage";
 
 const TOKEN_KEY = "gremlin_admin_token";
+const REFRESH_TOKEN_KEY = "gremlin_refresh_token";
 
 let _cachedToken: string | null = null;
+let _cachedRefreshToken: string | null = null;
+let _onUnauthorized: (() => void) | null = null;
+let _refreshPromise: Promise<boolean> | null = null;
+
+/** Called by AuthProvider to register a callback for 401 handling. */
+export function setOnUnauthorized(cb: () => void) {
+  _onUnauthorized = cb;
+}
 
 export function getCognitoDomain(): string {
   return config.cognitoDomain;
@@ -37,9 +46,25 @@ export async function setToken(t: string): Promise<void> {
   await storage.setItem(TOKEN_KEY, t);
 }
 
+async function getRefreshToken(): Promise<string | null> {
+  if (_cachedRefreshToken) return _cachedRefreshToken;
+  const token = await storage.getItem(REFRESH_TOKEN_KEY);
+  _cachedRefreshToken = token;
+  return token;
+}
+
+async function setRefreshToken(t: string): Promise<void> {
+  _cachedRefreshToken = t;
+  await storage.setItem(REFRESH_TOKEN_KEY, t);
+}
+
 export async function clearToken(): Promise<void> {
   _cachedToken = null;
-  await storage.deleteItem(TOKEN_KEY);
+  _cachedRefreshToken = null;
+  await Promise.all([
+    storage.deleteItem(TOKEN_KEY),
+    storage.deleteItem(REFRESH_TOKEN_KEY),
+  ]);
 }
 
 export function isAuthEnabled(): boolean {
@@ -75,7 +100,63 @@ export async function cognitoLogin(
       data.message ?? data.__type.split("#").pop() ?? "Login failed";
     throw new Error(message);
   }
-  return { idToken: data.AuthenticationResult.IdToken };
+  const result = data.AuthenticationResult;
+  if (result.RefreshToken) {
+    await setRefreshToken(result.RefreshToken);
+  }
+  return { idToken: result.IdToken };
+}
+
+/**
+ * Attempt to refresh the session using the stored refresh token.
+ * Returns true if successful (new ID token stored), false otherwise.
+ * Deduplicates concurrent refresh attempts.
+ */
+export async function refreshSession(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = _doRefresh();
+  try {
+    return await _refreshPromise;
+  } finally {
+    _refreshPromise = null;
+  }
+}
+
+async function _doRefresh(): Promise<boolean> {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(cognitoEndpoint(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-amz-json-1.1",
+        "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth",
+      },
+      body: JSON.stringify({
+        AuthFlow: "REFRESH_TOKEN_AUTH",
+        ClientId: getCognitoClientId(),
+        AuthParameters: {
+          REFRESH_TOKEN: refreshToken,
+        },
+      }),
+    });
+    const data = await res.json();
+    if (data.__type || !data.AuthenticationResult?.IdToken) {
+      clientLogger.warn("Token refresh failed", {
+        error: data.__type ?? "no id token",
+      });
+      return false;
+    }
+    await setToken(data.AuthenticationResult.IdToken);
+    clientLogger.info("Token refreshed successfully");
+    return true;
+  } catch (err) {
+    clientLogger.error("Token refresh error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return false;
+  }
 }
 
 export async function cognitoSignup(
@@ -141,6 +222,14 @@ export async function gql(
   query: { toString(): string },
   variables?: unknown,
 ): Promise<unknown> {
+  const result = await _gqlRequest(query, variables);
+  return result;
+}
+
+async function _gqlRequest(
+  query: { toString(): string },
+  variables?: unknown,
+): Promise<unknown> {
   const API_URL = getApiUrl();
   const token = await getToken();
   const headers: Record<string, string> = {
@@ -149,15 +238,42 @@ export async function gql(
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
+  const body = JSON.stringify({ query: String(query), variables });
   const res = await fetch(`${API_URL}/graphql`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ query: String(query), variables }),
+    body,
   });
   if (res.status === 401) {
-    clientLogger.warn("GraphQL request returned 401, clearing token");
+    clientLogger.warn("GraphQL request returned 401, attempting refresh");
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      // Retry with the new token
+      const newToken = await getToken();
+      const retryRes = await fetch(`${API_URL}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${newToken}`,
+        },
+        body,
+      });
+      if (retryRes.status === 401) {
+        clientLogger.warn("Retry after refresh still 401, logging out");
+        await clearToken();
+        _onUnauthorized?.();
+        throw new Error("Unauthorized");
+      }
+      const retryJson = await retryRes.json();
+      if (retryJson.errors) {
+        throw new Error(retryJson.errors[0].message);
+      }
+      return retryJson.data;
+    }
+    // Refresh failed — clear and redirect to login
+    clientLogger.warn("Token refresh failed, logging out");
     await clearToken();
-    // The auth context will handle the redirect
+    _onUnauthorized?.();
     throw new Error("Unauthorized");
   }
   const json = await res.json();
