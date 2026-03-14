@@ -17,5 +17,10 @@ services:
       - "4566:4566"
     volumes:
       - ./localstack/init:/etc/localstack/init/ready.d
+      - localstack-data:/var/lib/localstack
     environment:
       - SERVICES=dynamodb,sqs,scheduler
+      - PERSISTENCE=1
+
+volumes:
+  localstack-data:
