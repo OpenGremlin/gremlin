@@ -14,20 +14,23 @@ import dotenv from "dotenv";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../../../.env") });
 
-import { createLogger } from "../../logger.js";
-import { createResources } from "../../resources/index.js";
 import type { ServiceContext } from "../../services/context.js";
-import { createServices } from "../../services/index.js";
-import { buildMemoryContext } from "../../services/orchestrator/buildMemoryContext.js";
+import { createServiceContext } from "../../services/context.js";
 import {
-  buildTaskLaneContext,
-  type TaskLaneContext,
-} from "../../services/orchestrator/buildTaskLaneContext.js";
+  type AgentLaneContext,
+  buildAgentLaneContext,
+  buildTaskTools,
+} from "../../services/orchestrator/agentLaneContext.js";
+import { buildMemoryContext } from "../../services/orchestrator/buildMemoryContext.js";
+import { renderPrompt } from "../../services/prompts/index.js";
 
-export interface InvokeContext extends TaskLaneContext {
+export interface InvokeContext extends AgentLaneContext {
   ctx: ServiceContext;
+  agentId: string;
   taskId: string;
+  systemPrompt: string;
   memoryContext: string | undefined;
+  tools: Record<string, any>;
 }
 
 // ---------------------------------------------------------------------------
@@ -43,8 +46,6 @@ if (!scriptName) {
   process.exit(1);
 }
 
-const log = createLogger("invoke");
-
 // Stub pubsub — not needed for prompt building
 const pubsub = {
   publish: () => {},
@@ -53,31 +54,42 @@ const pubsub = {
   },
 };
 
-const resources = createResources(pubsub as any);
-const services = createServices();
-const ctx: ServiceContext = {
-  resources,
-  services,
-  log,
-  mediaCdnUrl: process.env.MEDIA_CDN_URL ?? "",
-};
+const ctx = createServiceContext({
+  pubsub: pubsub as any,
+  logNamespace: "invoke",
+});
 
 // ---------------------------------------------------------------------------
 // Build full agent context
 // ---------------------------------------------------------------------------
 const taskId = "invoke-test";
 
-const [laneCtx, memories, coreMemories] = await Promise.all([
-  buildTaskLaneContext(ctx, agentId, taskId, "(test task)"),
-  services.memory.recallMemories(ctx, agentId, "(test task)").catch((err) => {
-    console.error("Memory recall failed:", err);
-    return { recent: [], relevant: [] };
-  }),
-  services.memory.getCoreMemories(ctx, agentId).catch((err) => {
+const [agentCtx, memories, coreMemories] = await Promise.all([
+  buildAgentLaneContext(ctx, agentId),
+  ctx.services.memory
+    .recallMemories(ctx, agentId, "(test task)")
+    .catch((err) => {
+      console.error("Memory recall failed:", err);
+      return { recent: [], relevant: [] };
+    }),
+  ctx.services.memory.getCoreMemories(ctx, agentId).catch((err) => {
     console.error("Core memory fetch failed:", err);
     return [];
   }),
 ]);
+
+let systemPrompt = renderPrompt("taskSystem", {
+  name: agentCtx.agent.name,
+  soul: agentCtx.agent.soul,
+  userDisplayName: agentCtx.displayName,
+  userAbout: agentCtx.profile?.about,
+  taskTitle: "(test task)",
+  taskId,
+});
+
+if (agentCtx.skillSummary.promptSection) {
+  systemPrompt += "\n\n" + agentCtx.skillSummary.promptSection;
+}
 
 const memoryContext = buildMemoryContext({
   ...memories,
@@ -88,10 +100,13 @@ const memoryContext = buildMemoryContext({
 // Load and run the script
 // ---------------------------------------------------------------------------
 const invokeCtx: InvokeContext = {
-  ...laneCtx,
+  ...agentCtx,
   ctx,
+  agentId,
   taskId,
+  systemPrompt,
   memoryContext,
+  tools: buildTaskTools(ctx, agentCtx, agentId, taskId),
 };
 
 try {

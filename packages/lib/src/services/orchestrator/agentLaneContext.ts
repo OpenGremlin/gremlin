@@ -1,6 +1,6 @@
 import type { ServiceContext } from "../context.js";
-import { renderPrompt } from "../prompts/index.js";
 import { buildSkillSummary } from "../skills/buildMcpConfig.js";
+import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {
   createBraveSearchTool,
@@ -23,33 +23,33 @@ import {
   runCommandTool,
 } from "./sandboxTools.js";
 
-export interface TaskLaneContext {
+/**
+ * Per-agent context built once and shared across all lane invocations
+ * (main lane + task lanes) within the same drain loop.
+ */
+export interface AgentLaneContext {
   agent: Awaited<ReturnType<typeof loadAgentContext>>["agent"];
   profile: Awaited<ReturnType<typeof loadAgentContext>>["profile"];
-  agentId: string;
   displayName: string;
   timezone: string | undefined;
-  systemPrompt: string;
-  // biome-ignore lint/suspicious/noExplicitAny: tool types vary
-  tools: Record<string, any>;
+  skillSummary: { promptSection: string };
+  skillTools: SkillToolsResult;
 }
 
 /**
- * Build the full task-lane context: agent, system prompt, and tools.
- * Shared by runTaskLane (production) and invoke (debug CLI).
+ * Build the per-agent context. Call once per drain loop (or once in a CLI
+ * script) and pass into every lane function.
  */
-export async function buildTaskLaneContext(
+export async function buildAgentLaneContext(
   ctx: ServiceContext,
   agentId: string,
-  taskId: string,
-  taskTitle: string,
-): Promise<TaskLaneContext> {
+): Promise<AgentLaneContext> {
   const { agent, profile, displayName, timezone } = await loadAgentContext(
     ctx,
     agentId,
   );
 
-  const [skillSummary, skillToolsResult] = await Promise.all([
+  const [skillSummary, skillTools] = await Promise.all([
     buildSkillSummary(ctx, agentId).catch((err) => {
       ctx.log.error(
         { err, component: "skills" },
@@ -57,27 +57,30 @@ export async function buildTaskLaneContext(
       );
       return { promptSection: "" };
     }),
-    buildSkillTools(ctx, agentId, taskId).catch((err) => {
+    buildSkillTools(ctx, agentId).catch((err) => {
       ctx.log.error(
         { err, component: "skills" },
         "Failed to build skill tools",
       );
-      return { tools: {}, getEnv: () => ({}) };
+      return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
     }),
   ]);
 
-  let systemPrompt = renderPrompt("taskSystem", {
-    name: agent.name,
-    soul: agent.soul,
-    userDisplayName: displayName,
-    userAbout: profile?.about,
-    taskTitle,
-    taskId,
-  });
+  return { agent, profile, displayName, timezone, skillSummary, skillTools };
+}
 
-  if (skillSummary.promptSection) {
-    systemPrompt += `\n\n${skillSummary.promptSection}`;
-  }
+/**
+ * Assemble the task-lane tool set for a specific task.
+ * Uses the pre-built AgentLaneContext for agent config and skill tools,
+ * and binds per-task tools (sandbox, documents, etc.) to the given taskId.
+ */
+export function buildTaskTools(
+  ctx: ServiceContext,
+  agentLaneCtx: AgentLaneContext,
+  agentId: string,
+  taskId: string,
+) {
+  const { agent, skillTools } = agentLaneCtx;
 
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
   const tools: Record<string, any> = {
@@ -102,25 +105,12 @@ export async function buildTaskLaneContext(
     ...(agent.config?.sandbox?.enabled
       ? {
           ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
-          runCommand: runCommandTool(
-            ctx,
-            agentId,
-            taskId,
-            skillToolsResult.getEnv,
-          ),
+          runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
           checkCommand: checkCommandTool(ctx, agentId),
         }
       : {}),
-    ...skillToolsResult.tools,
+    ...skillTools.tools,
   };
 
-  return {
-    agent,
-    profile,
-    agentId,
-    displayName,
-    timezone,
-    systemPrompt,
-    tools,
-  };
+  return tools;
 }

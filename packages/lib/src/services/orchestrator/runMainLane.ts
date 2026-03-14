@@ -9,22 +9,21 @@ import {
   scheduleJobTool,
   updateJobTool,
 } from "../tools/index.js";
-import { loadAgentContext } from "./loadAgentContext.js";
+import type { AgentLaneContext } from "./agentLaneContext.js";
 import { runLane } from "./runLane.js";
 
 /**
  * Run an agent turn on the main lane (user conversation thread).
- * All user messages are already in the log — this just runs inference.
+ * Receives a pre-built AgentLaneContext so agent/profile/skills
+ * are never re-fetched within the same drain loop.
  */
 export async function runMainLane(
   ctx: ServiceContext,
+  agentLaneCtx: AgentLaneContext,
   agentId: string,
   recallHint?: string,
 ): Promise<string> {
-  const { agent, profile, displayName, timezone } = await loadAgentContext(
-    ctx,
-    agentId,
-  );
+  const { agent, profile, displayName, timezone } = agentLaneCtx;
 
   return runLane(ctx, {
     agentId,

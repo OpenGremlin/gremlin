@@ -36,8 +36,9 @@ export default function AgentChatScreen() {
     id: string;
   }>();
 
-  const { messages, loading, hasMore, loadMore, loadingMore } =
-    useLogMessages({ agentId: id });
+  const { messages, loading, hasMore, loadMore, loadingMore } = useLogMessages({
+    agentId: id,
+  });
   const {
     data: agentData,
     loading: agentLoading,
@@ -87,13 +88,7 @@ export default function AgentChatScreen() {
     ({ item, index }: { item: ChatMessage; index: number }) => {
       const next = index > 0 ? messages[index - 1] : undefined;
       const show = shouldShowTimestamp(item, next);
-      return (
-        <LogEntryView
-          message={item}
-          agentId={id}
-          showTimestamp={show}
-        />
-      );
+      return <LogEntryView message={item} agentId={id} showTimestamp={show} />;
     },
     [messages, id],
   );

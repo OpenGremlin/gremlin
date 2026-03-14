@@ -1,6 +1,7 @@
 import { createLogger } from "../../logger.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
+import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
 import { activeSessions } from "../orchestrator/sandboxTools.js";
 
 const sandboxLog = createLogger("sandbox:consumer");
@@ -29,6 +30,11 @@ export async function ringDoorbell(
   ctx.log.info({ agentId }, "Agent waking up");
   activeAgents.add(agentId);
   try {
+    const agentLaneCtx = await ctx.services.orchestrator.buildAgentLaneContext(
+      ctx,
+      agentId,
+    );
+
     while (true) {
       const items = await ctx.services.inbox.getUnreadItems(ctx, agentId);
       if (items.length === 0) break;
@@ -43,7 +49,7 @@ export async function ringDoorbell(
       );
 
       await ctx.services.inbox.markRead(ctx, items);
-      await routeBatch(ctx, agentId, items);
+      await routeBatch(ctx, agentLaneCtx, agentId, items);
     }
   } catch (err) {
     ctx.log.error({ err, agentId }, "Consumer error");
@@ -61,6 +67,7 @@ export async function ringDoorbell(
  */
 async function routeBatch(
   ctx: ServiceContext,
+  agentLaneCtx: AgentLaneContext,
   agentId: string,
   items: InboxItemItem[],
 ) {
@@ -101,7 +108,12 @@ async function routeBatch(
       }
     }
 
-    await ctx.services.orchestrator.runMainLane(ctx, agentId, recallHint);
+    await ctx.services.orchestrator.runMainLane(
+      ctx,
+      agentLaneCtx,
+      agentId,
+      recallHint,
+    );
   }
 
   // --- Task lane: group by taskId, write all messages per task,
@@ -124,7 +136,7 @@ async function routeBatch(
   await Promise.all([
     // One inference per task, with all messages written to history first
     ...[...taskGroups.entries()].map(([taskId, items]) =>
-      processTaskGroup(ctx, agentId, taskId, items),
+      processTaskGroup(ctx, agentLaneCtx, agentId, taskId, items),
     ),
     // Non-task items run in parallel
     ...nonTaskItems.map((item) => processNonTaskItem(ctx, agentId, item)),
@@ -134,6 +146,7 @@ async function routeBatch(
 /** Write all messages for a task to the log, then run one inference. */
 async function processTaskGroup(
   ctx: ServiceContext,
+  agentLaneCtx: AgentLaneContext,
   agentId: string,
   taskId: string,
   items: InboxItemItem[],
@@ -211,6 +224,7 @@ async function processTaskGroup(
   const last = prompts[prompts.length - 1];
   await ctx.services.orchestrator.runTaskLane(
     ctx,
+    agentLaneCtx,
     taskId,
     last.content,
     last.role === "USER" ? { role: "USER" } : undefined,

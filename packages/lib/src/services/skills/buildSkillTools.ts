@@ -29,7 +29,6 @@ export interface SkillToolsResult {
 export async function buildSkillTools(
   ctx: ServiceContext,
   agentId: string,
-  _taskId: string,
 ): Promise<SkillToolsResult> {
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
   const tools: Record<string, any> = {};
