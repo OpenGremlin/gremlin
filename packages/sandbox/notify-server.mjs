@@ -15,12 +15,20 @@ const {
 } = process.env;
 
 if (!NOTIFY_HOOK_URL || !AGENT_ID) {
+  console.error(
+    `notify-server: missing env — NOTIFY_HOOK_URL=${NOTIFY_HOOK_URL || "(unset)"}, AGENT_ID=${AGENT_ID || "(unset)"}`,
+  );
   process.exit(0);
 }
 
 if (!NOTIFY_HOOK_ROLE_ARN) {
+  console.error("notify-server: missing NOTIFY_HOOK_ROLE_ARN");
   process.exit(0);
 }
+
+console.log(
+  `notify-server: assuming role ${NOTIFY_HOOK_ROLE_ARN} then POSTing to ${NOTIFY_HOOK_URL}`,
+);
 
 try {
   // Assume the notify hook role
@@ -37,6 +45,8 @@ try {
   if (!creds?.AccessKeyId || !creds?.SecretAccessKey || !creds?.SessionToken) {
     throw new Error("Failed to get assumed role credentials");
   }
+
+  console.log("notify-server: role assumed, calling server");
 
   // Call the server's notifyHook endpoint
   const res = await fetch(NOTIFY_HOOK_URL, {
@@ -61,6 +71,9 @@ try {
     const body = await res.text();
     throw new Error(`Server returned ${res.status}: ${body}`);
   }
-} catch (_err) {
+
+  console.log(`notify-server: success (${res.status})`);
+} catch (err) {
+  console.error(`notify-server: FAILED — ${err.message || err}`);
   process.exit(1);
 }
