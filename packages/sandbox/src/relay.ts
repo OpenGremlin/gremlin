@@ -192,6 +192,8 @@ function handleExec(
       commandLength: command.length,
       commandPreview: command.slice(0, 200),
       cwd: execState.cwd,
+      envKeysFromMessage: env ? Object.keys(env) : [],
+      execStateEnvKeys: Object.keys(execState.env),
     },
     "Exec command received",
   );

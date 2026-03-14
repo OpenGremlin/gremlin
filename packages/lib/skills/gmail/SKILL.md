@@ -101,8 +101,6 @@ gws gmail --help                           # browse resources
 gws schema gmail.<resource>.<method>       # inspect parameters
 ```
 
-## Rules
+## Dry Run
 
-- Always confirm with the user before sending, replying, or forwarding email.
 - Prefer `--dry-run` to preview destructive operations.
-- Never output tokens or secrets directly.

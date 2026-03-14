@@ -66,11 +66,11 @@ async function ensureSandbox(
 
   log.info({ agentId, existingInstanceId }, "Ensuring sandbox is available");
 
-  // Try quick connect to an already-running instance
-  if (existingInstanceId) {
+  // Try quick connect to an already-running instance (or local sandbox)
+  if (existingInstanceId || process.env.SANDBOX_LOCAL === "true") {
     const session = await ctx.services.sandbox.tryQuickConnect(
       agentId,
-      existingInstanceId,
+      existingInstanceId ?? "local",
     );
     if (session) {
       await ctx.services.sandbox.connectToSandbox(session);
@@ -155,8 +155,13 @@ export function runCommandTool(
       }
 
       session.lastActivityAt = Date.now();
+      const skillEnv = skillEnvProvider?.();
       log.info(
-        { agentId, commandPreview: command.slice(0, 200) },
+        {
+          agentId,
+          commandPreview: command.slice(0, 200),
+          skillEnvKeys: skillEnv ? Object.keys(skillEnv) : [],
+        },
         "Agent running command",
       );
 
@@ -165,7 +170,7 @@ export function runCommandTool(
         result = await ctx.services.sandbox.execCommand(session, command, {
           pubsub: ctx.resources.pubsub,
           taskId,
-          env: skillEnvProvider?.(),
+          env: skillEnv,
         });
       } catch (err) {
         log.error(

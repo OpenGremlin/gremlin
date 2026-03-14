@@ -72,6 +72,18 @@ export async function buildSkillTools(
       const envDescriptions: string[] = [];
 
       if (template.connections?.length) {
+        // Check for missing required connections before resolving
+        const missingProviders = template.connections
+          .filter((c) => !c.optional && (bindings[c.provider] ?? []).length === 0)
+          .map((c) => c.provider);
+
+        if (missingProviders.length > 0) {
+          const list = missingProviders.map((p) => `- ${p}`).join("\n");
+          return {
+            error: `This skill requires connected accounts that are not set up. Ask the user to connect the following in their settings:\n${list}`,
+          };
+        }
+
         if (connectionId) {
           // Resolve env for a specific connection
           const connReq = template.connections.find((c) => {
