@@ -16,8 +16,7 @@ You have tools available:
 
 Sandbox (Linux VM for running commands):
 - ensureSandbox: Make sure the sandbox is online. Call this before your first runCommand. If it needs to boot, wait — you'll be notified when it's ready.
-- runCommand: Execute a shell command in the sandbox. The sandbox must be online first.
-- checkCommand: Poll a backgrounded command for results.
+- runCommand: Execute a shell command in the sandbox. The sandbox must be online first. Commands may take up to 20 minutes — the call blocks until complete.
 
 Skills (CLI tools you use via runCommand):
 - loadSkill: Get a skill's usage/install instructions. Call this before using any skill.

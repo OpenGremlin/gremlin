@@ -333,14 +333,10 @@ export function LogEntryView({
       );
     }
 
-    // runCommand / checkCommand -> run() style label with streaming
-    if (tool.name === "runCommand" || tool.name === "checkCommand") {
-      const commandId = (tool.result?.commandId ?? tool.input?.commandId) as
-        | string
-        | undefined;
-      const command =
-        (tool.input?.command as string | undefined) ??
-        (commandId ? `check ${commandId}` : "...");
+    // runCommand -> run() style label with streaming
+    if (tool.name === "runCommand") {
+      const commandId = tool.result?.commandId as string | undefined;
+      const command = (tool.input?.command as string | undefined) ?? "...";
       const hasResult = !!tool.result;
       const output = (tool.result?.output as string) ?? "";
       const exitCode = tool.result?.exitCode as number | undefined;

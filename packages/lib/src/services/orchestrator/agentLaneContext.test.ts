@@ -232,7 +232,6 @@ describe("buildTaskTools", () => {
 
     expect(tools).not.toHaveProperty("ensureSandbox");
     expect(tools).not.toHaveProperty("runCommand");
-    expect(tools).not.toHaveProperty("checkCommand");
   });
 
   it("includes sandbox tools when sandbox is enabled", () => {
@@ -249,7 +248,6 @@ describe("buildTaskTools", () => {
 
     expect(tools).toHaveProperty("ensureSandbox");
     expect(tools).toHaveProperty("runCommand");
-    expect(tools).toHaveProperty("checkCommand");
   });
 
   it("excludes web search tools when webSearch is not enabled", () => {

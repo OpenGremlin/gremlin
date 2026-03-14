@@ -1,17 +1,8 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
 import type { ExecOptions } from "./shared.js";
-import {
-  backgroundCommands,
-  HARD_TIMEOUT_MS,
-  SOFT_TIMEOUT_MS,
-  truncate,
-} from "./shared.js";
-import type {
-  BackgroundCommand,
-  CommandResult,
-  SandboxSession,
-} from "./types.js";
+import { COMMAND_TIMEOUT_MS, truncate } from "./shared.js";
+import type { CommandResult, SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:exec");
 
@@ -45,87 +36,29 @@ export async function execCommand(
 
   return new Promise((resolve) => {
     let settled = false;
-    let backgrounded = false;
     const startTime = Date.now();
     let stdoutBuf = "";
     let stderrBuf = "";
 
-    // Soft timeout: background the command and return to the model
-    const softTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      backgrounded = true;
-
-      const bg: BackgroundCommand = {
-        id,
-        command,
-        agentId: session.agentId,
-        startTime,
-        stdout: stdoutBuf,
-        stderr: stderrBuf,
-        done: false,
-      };
-      backgroundCommands.set(id, bg);
+      cleanup();
 
       const durationMs = Date.now() - startTime;
-      log.info(
-        {
-          agentId: session.agentId,
-          id,
-          durationMs,
-          stdoutLength: stdoutBuf.length,
-        },
-        "Command auto-backgrounded at soft timeout",
+      log.warn(
+        { agentId: session.agentId, id, durationMs },
+        "Command timed out",
       );
-
       resolve({
         output: truncate(stdoutBuf),
         stderr: truncate(stderrBuf),
         exitCode: -1,
-        timedOut: false,
-        backgrounded: true,
+        timedOut: true,
         commandId: id,
         durationMs,
       });
-      // Note: onMessage listener stays attached to keep accumulating output
-    }, SOFT_TIMEOUT_MS);
-
-    // Hard timeout: kill the process
-    const hardTimer = setTimeout(() => {
-      if (settled && !backgrounded) return;
-      cleanup();
-
-      const durationMs = Date.now() - startTime;
-
-      if (!settled) {
-        // Never got soft-timeout either (shouldn't happen since soft < hard, but safety)
-        settled = true;
-        log.warn(
-          { agentId: session.agentId, id, durationMs },
-          "Command hit hard timeout",
-        );
-        resolve({
-          output: truncate(stdoutBuf),
-          stderr: truncate(stderrBuf),
-          exitCode: -1,
-          timedOut: true,
-          durationMs,
-        });
-      } else {
-        // Was backgrounded, now finishing due to hard timeout
-        const bg = backgroundCommands.get(id);
-        if (bg) {
-          bg.done = true;
-          bg.exitCode = -1;
-          bg.stdout = stdoutBuf;
-          bg.stderr = stderrBuf;
-          log.warn(
-            { agentId: session.agentId, id, durationMs },
-            "Backgrounded command hit hard timeout",
-          );
-        }
-      }
-    }, HARD_TIMEOUT_MS);
+    }, COMMAND_TIMEOUT_MS);
 
     function onMessage(raw: Buffer) {
       try {
@@ -146,8 +79,7 @@ export async function execCommand(
         }
 
         if (msg.type === "exec:done") {
-          clearTimeout(softTimer);
-          clearTimeout(hardTimer);
+          clearTimeout(timer);
           cleanup();
 
           const durationMs = Date.now() - startTime;
@@ -163,7 +95,6 @@ export async function execCommand(
               durationMs,
               stdoutLength: finalStdout.length,
               stderrLength: finalStderr.length,
-              backgrounded,
               fullOutputPath: msg.fullOutputPath,
             },
             "Command completed",
@@ -192,27 +123,15 @@ export async function execCommand(
             });
           }
 
-          if (backgrounded) {
-            // Update background task state for checkCommand to read
-            const bg = backgroundCommands.get(id);
-            if (bg) {
-              bg.done = true;
-              bg.exitCode = exitCode;
-              bg.stdout = finalStdout;
-              bg.stderr = finalStderr;
-            }
-          } else {
-            // Not backgrounded yet — resolve the promise directly
-            settled = true;
-            resolve({
-              output: truncate(finalStdout),
-              stderr: truncate(finalStderr),
-              exitCode,
-              timedOut: false,
-              commandId: id,
-              durationMs,
-            });
-          }
+          settled = true;
+          resolve({
+            output: truncate(finalStdout),
+            stderr: truncate(finalStderr),
+            exitCode,
+            timedOut: false,
+            commandId: id,
+            durationMs,
+          });
         }
       } catch {
         // ignore parse errors

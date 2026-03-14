@@ -14,18 +14,6 @@ export interface CommandResult {
   stderr: string;
   exitCode: number;
   timedOut: boolean;
-  backgrounded?: boolean;
   commandId?: string;
   durationMs: number;
-}
-
-export interface BackgroundCommand {
-  id: string;
-  command: string;
-  agentId: string;
-  startTime: number;
-  stdout: string;
-  stderr: string;
-  done: boolean;
-  exitCode?: number;
 }

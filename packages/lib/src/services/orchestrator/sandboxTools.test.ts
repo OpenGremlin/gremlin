@@ -5,7 +5,6 @@ import type { ServiceContext } from "../context.js";
 import type { SandboxSession } from "../sandbox/types.js";
 import {
   activeSessions,
-  checkCommandTool,
   ensureSandboxTool,
   runCommandTool,
 } from "./sandboxTools.js";
@@ -224,30 +223,6 @@ describe("sandboxTools", () => {
       expect(result).toMatchObject({ output: "out\n\n[stderr]\nwarn" });
     });
 
-    it("returns backgrounded status for long-running commands", async () => {
-      activeSessions.set("task-1", makeSession());
-
-      ctx.services.sandbox.execCommand.mockResolvedValue({
-        output: "starting...",
-        stderr: "",
-        exitCode: 0,
-        timedOut: false,
-        backgrounded: true,
-        commandId: "cmd-bg",
-      });
-
-      const t = runCommandTool(ctx, "agent-1", "task-1");
-      const result = await t.execute({ command: "long-cmd" }, {
-        toolCallId: "tc1",
-        messages: [],
-      } as any);
-
-      expect(result).toMatchObject({
-        status: "backgrounded",
-        commandId: "cmd-bg",
-      });
-    });
-
     it("removes session on connection error", async () => {
       activeSessions.set("task-1", makeSession());
       ctx.services.sandbox.execCommand.mockRejectedValue(
@@ -287,49 +262,6 @@ describe("sandboxTools", () => {
         "cmd",
         expect.objectContaining({ env: { API_KEY: "secret" } }),
       );
-    });
-  });
-
-  describe("checkCommandTool", () => {
-    it("returns finished result with combined output", async () => {
-      ctx.services.sandbox.checkCommand.mockReturnValue({
-        output: "done",
-        stderr: "warn",
-        exitCode: 0,
-        finished: true,
-      });
-
-      const t = checkCommandTool(ctx, "agent-1");
-      const result = await t.execute({ commandId: "cmd-1" }, {
-        toolCallId: "tc1",
-        messages: [],
-      } as any);
-
-      expect(result).toMatchObject({
-        output: "done\n\n[stderr]\nwarn",
-        exitCode: 0,
-        finished: true,
-      });
-    });
-
-    it("returns in-progress result for running commands", async () => {
-      ctx.services.sandbox.checkCommand.mockReturnValue({
-        output: "partial",
-        stderr: "",
-        exitCode: undefined,
-        finished: false,
-      });
-
-      const t = checkCommandTool(ctx, "agent-1");
-      const result = await t.execute({ commandId: "cmd-1" }, {
-        toolCallId: "tc1",
-        messages: [],
-      } as any);
-
-      expect(result).toMatchObject({
-        output: "partial",
-        finished: false,
-      });
     });
   });
 

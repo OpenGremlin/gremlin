@@ -17,11 +17,7 @@ import {
   webFetch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
-import {
-  checkCommandTool,
-  ensureSandboxTool,
-  runCommandTool,
-} from "./sandboxTools.js";
+import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
 
 /**
  * Per-agent context built once and shared across all lane invocations
@@ -106,7 +102,6 @@ export function buildTaskTools(
       ? {
           ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
           runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
-          checkCommand: checkCommandTool(ctx, agentId),
         }
       : {}),
     ...skillTools.tools,

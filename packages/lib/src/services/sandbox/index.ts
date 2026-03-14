@@ -1,4 +1,3 @@
-import { checkCommand } from "./checkCommand.js";
 import { connectToSandbox } from "./connectToSandbox.js";
 import { execCommand } from "./execCommand.js";
 import { launchInstance, tryQuickConnect } from "./launchSandbox.js";
@@ -10,7 +9,6 @@ export const sandboxService = {
   tryQuickConnect,
   connectToSandbox,
   execCommand,
-  checkCommand,
   terminateSandbox,
   subscribe,
   fanOut,

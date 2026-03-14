@@ -1,15 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  HARD_TIMEOUT_MS,
-  MAX_OUTPUT_CHARS,
-  SOFT_TIMEOUT_MS,
-  truncate,
-} from "./shared.js";
+import { COMMAND_TIMEOUT_MS, MAX_OUTPUT_CHARS, truncate } from "./shared.js";
 
 describe("constants", () => {
   it("has expected values", () => {
-    expect(SOFT_TIMEOUT_MS).toBe(30_000);
-    expect(HARD_TIMEOUT_MS).toBe(120_000);
+    expect(COMMAND_TIMEOUT_MS).toBe(20 * 60 * 1000);
     expect(MAX_OUTPUT_CHARS).toBe(8_000);
   });
 });

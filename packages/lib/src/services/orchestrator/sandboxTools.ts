@@ -181,7 +181,7 @@ export function runCommandTool(
 ) {
   return tool({
     description:
-      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. The sandbox must be online first — call ensureSandbox before your first command. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands that take longer than 30s are auto-backgrounded — use checkCommand with the returned commandId to poll for results.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
+      "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. The sandbox must be online first — call ensureSandbox before your first command. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands may take up to 20 minutes.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
     inputSchema: z.object({
       command: z.string().describe("The shell command to execute"),
     }),
@@ -234,21 +234,11 @@ export function runCommandTool(
           agentId,
           exitCode: result.exitCode,
           timedOut: result.timedOut,
-          backgrounded: result.backgrounded,
           outputLength: result.output.length,
           durationMs: result.durationMs,
         },
         "Command result returned to agent",
       );
-
-      if (result.backgrounded) {
-        return {
-          status: "backgrounded",
-          commandId: result.commandId,
-          output: result.output,
-          note: "Command still running. Use checkCommand(commandId) to poll for results.",
-        };
-      }
 
       const output = formatOutput(result.output, result.stderr);
 
@@ -256,48 +246,6 @@ export function runCommandTool(
         output,
         exitCode: result.exitCode,
         timedOut: result.timedOut,
-        commandId: result.commandId,
-      };
-    },
-  });
-}
-
-export function checkCommandTool(ctx: ServiceContext, agentId: string) {
-  return tool({
-    description:
-      "Check the status of a backgrounded command. Returns current output and whether the command has finished. Call this after runCommand returns a backgrounded status.",
-    inputSchema: z.object({
-      commandId: z
-        .string()
-        .describe(
-          "The command ID returned by runCommand when it was backgrounded",
-        ),
-    }),
-    execute: async ({ commandId }) => {
-      log.info({ agentId, commandId }, "Agent checking backgrounded command");
-      const result = ctx.services.sandbox.checkCommand(commandId);
-      log.info(
-        {
-          agentId,
-          commandId,
-          finished: result.finished,
-          exitCode: result.exitCode,
-          outputLength: result.output.length,
-        },
-        "checkCommand result",
-      );
-
-      if (result.finished) {
-        const output = result.stderr
-          ? `${result.output}\n\n[stderr]\n${result.stderr}`
-          : result.output;
-        return { output, exitCode: result.exitCode, finished: true };
-      }
-
-      return {
-        output: result.output,
-        finished: false,
-        note: "Command still running. Call checkCommand again to poll.",
       };
     },
   });
