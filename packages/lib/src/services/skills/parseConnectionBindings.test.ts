@@ -17,8 +17,8 @@ describe("parseConnectionBindings", () => {
   it("parses valid JSON", () => {
     const input = JSON.stringify({ slack: "conn_123", github: "conn_456" });
     expect(parseConnectionBindings(input)).toEqual({
-      slack: "conn_123",
-      github: "conn_456",
+      slack: ["conn_123"],
+      github: ["conn_456"],
     });
   });
 
@@ -36,9 +36,9 @@ describe("parseConnectionBindings", () => {
     });
     const result = parseConnectionBindings(input);
     expect(result).toEqual({
-      a: "1",
-      b: "2",
-      nested: '{"inner":"value"}',
+      a: ["1"],
+      b: ["2"],
+      nested: ['{"inner":"value"}'],
     });
   });
 });
