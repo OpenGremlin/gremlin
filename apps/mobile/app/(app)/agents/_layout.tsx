@@ -31,6 +31,7 @@ export default function AgentsLayout() {
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
           headerShown: Platform.OS !== "ios",
+          headerBackVisible: false,
           title: "",
         }}
       />
@@ -42,6 +43,7 @@ export default function AgentsLayout() {
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
           headerShown: Platform.OS !== "ios",
+          headerBackVisible: false,
           title: "",
         }}
       />

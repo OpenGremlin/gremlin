@@ -171,20 +171,18 @@ export default function AgentChatScreen() {
             paddingBottom: 40,
           }}
         >
-          {Platform.OS !== "web" && (
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                position: "absolute",
-                top: Platform.OS === "ios" ? insets.top + 4 : 8,
-                left: 8,
-                zIndex: 3,
-                padding: 8,
-              }}
-            >
-              <ChevronLeft size={24} color={colors.headerText} />
-            </Pressable>
-          )}
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              position: "absolute",
+              top: Platform.OS === "ios" ? insets.top + 4 : 8,
+              left: 8,
+              zIndex: 3,
+              padding: 8,
+            }}
+          >
+            <ChevronLeft size={24} color={colors.headerText} />
+          </Pressable>
           <View style={{ alignItems: "center" }}>
             <ChatHeaderTitle
               agentId={id}
