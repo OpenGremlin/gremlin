@@ -168,9 +168,9 @@ async function processTaskGroup(
             if (session) {
               await ctx.services.sandbox.connectToSandbox(session);
               session.lastActivityAt = Date.now();
-              activeSessions.set(agentId, session);
+              activeSessions.set(taskId, session);
               sandboxLog.info(
-                { agentId, instanceId },
+                { agentId, taskId, instanceId },
                 "Sandbox connected via notify hook",
               );
             }

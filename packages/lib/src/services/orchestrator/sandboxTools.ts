@@ -12,32 +12,53 @@ function formatOutput(stdout: string, stderr: string): string {
   return stderr ? `${stdout}\n\n[stderr]\n${stderr}` : stdout;
 }
 
-// In-memory map of active sandbox sessions (exported for browser tools)
+// In-memory map of active sandbox sessions keyed by taskId (exported for browser tools)
 export const activeSessions = new Map<string, SandboxSession>();
 
-// Periodically stop sandboxes that have been idle for too long
+// Periodically close sessions that have been idle for too long.
+// If no sessions remain for a given sandbox instance, terminate it.
 setInterval(async () => {
   const now = Date.now();
-  for (const [agentId, session] of activeSessions) {
+  const idleTasks: string[] = [];
+
+  for (const [taskId, session] of activeSessions) {
     if (now - session.lastActivityAt > IDLE_TIMEOUT_MS) {
-      log.info(
-        {
-          agentId,
-          instanceId: session.instanceId,
-          idleMs: now - session.lastActivityAt,
-        },
-        "Auto-stopping idle sandbox",
-      );
+      idleTasks.push(taskId);
+    }
+  }
+
+  for (const taskId of idleTasks) {
+    const session = activeSessions.get(taskId);
+    if (!session) continue;
+
+    const { agentId, instanceId } = session;
+    log.info(
+      { taskId, agentId, instanceId, idleMs: now - session.lastActivityAt },
+      "Closing idle sandbox session",
+    );
+
+    // Close the WebSocket and remove from map
+    session.ws?.close();
+    activeSessions.delete(taskId);
+
+    // If no other sessions use this instance, terminate it
+    const stillInUse = [...activeSessions.values()].some(
+      (s) => s.instanceId === instanceId,
+    );
+    if (!stillInUse) {
       try {
         const { terminateSandbox } = await import(
           "../sandbox/terminateSandbox.js"
         );
         await terminateSandbox(session);
-        activeSessions.delete(agentId);
+        log.info(
+          { agentId, instanceId },
+          "Terminated sandbox — no remaining sessions",
+        );
       } catch (err) {
         log.error(
-          { agentId, error: (err as Error).message },
-          "Failed to auto-stop idle sandbox",
+          { agentId, instanceId, error: (err as Error).message },
+          "Failed to terminate idle sandbox",
         );
       }
     }
@@ -52,10 +73,10 @@ setInterval(async () => {
 async function ensureSandbox(
   ctx: ServiceContext,
   agentId: string,
-  taskId?: string,
+  taskId: string,
 ): Promise<SandboxSession | null> {
-  // Already connected
-  const existing = activeSessions.get(agentId);
+  // Already connected for this task
+  const existing = activeSessions.get(taskId);
   if (existing?.ws && existing.ws.readyState === existing.ws.OPEN) {
     return existing;
   }
@@ -75,14 +96,23 @@ async function ensureSandbox(
     if (session) {
       await ctx.services.sandbox.connectToSandbox(session);
       session.lastActivityAt = Date.now();
-      activeSessions.set(agentId, session);
+      activeSessions.set(taskId, session);
       log.info(
-        { agentId, instanceId: session.instanceId },
+        { agentId, taskId, instanceId: session.instanceId },
         "Quick-connected to existing sandbox",
       );
       return session;
     }
   }
+
+  // Subscribe BEFORE launching so the notification can't arrive before
+  // the subscription exists (eliminates race condition)
+  await ctx.services.sandbox.subscribe(
+    ctx,
+    agentId,
+    taskId,
+    "sandbox_available",
+  );
 
   // Cold start — launch EC2 (or start stopped instance) and return immediately
   // The sandbox will notify via /notifyHook when ready
@@ -98,16 +128,6 @@ async function ensureSandbox(
     });
   }
 
-  // Subscribe so this task gets woken up when the sandbox is ready
-  if (taskId) {
-    await ctx.services.sandbox.subscribe(
-      ctx,
-      agentId,
-      taskId,
-      "sandbox_available",
-    );
-  }
-
   log.info(
     { agentId, instanceId },
     "Sandbox instance launching, agent will be notified when ready",
@@ -118,7 +138,7 @@ async function ensureSandbox(
 export function ensureSandboxTool(
   ctx: ServiceContext,
   agentId: string,
-  taskId?: string,
+  taskId: string,
 ) {
   return tool({
     description:
@@ -156,7 +176,7 @@ export function ensureSandboxTool(
 export function runCommandTool(
   ctx: ServiceContext,
   agentId: string,
-  taskId?: string,
+  taskId: string,
   skillEnvProvider?: () => Record<string, string>,
 ) {
   return tool({
@@ -167,7 +187,7 @@ export function runCommandTool(
     }),
     execute: async ({ command }) => {
       // Check for an active session — don't implicitly boot
-      const session = activeSessions.get(agentId);
+      const session = activeSessions.get(taskId);
       if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
         return {
           status: "error",
@@ -181,6 +201,7 @@ export function runCommandTool(
       log.info(
         {
           agentId,
+          taskId,
           commandPreview: command.slice(0, 200),
           skillEnvKeys: skillEnv ? Object.keys(skillEnv) : [],
         },
@@ -196,10 +217,10 @@ export function runCommandTool(
         });
       } catch (err) {
         log.error(
-          { agentId, error: (err as Error).message },
+          { agentId, taskId, error: (err as Error).message },
           "execCommand failed",
         );
-        activeSessions.delete(agentId);
+        activeSessions.delete(taskId);
         return {
           error:
             "Sandbox connection lost. Call ensureSandbox to reconnect, then retry.",
