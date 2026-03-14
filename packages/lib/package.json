@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "invoke": "tsx src/utils/invoke.ts",
+    "invoke": "tsx src/utils/invoke/index.ts",
     "clean": "rm -rf dist",
     "test": "vitest run"
   },
