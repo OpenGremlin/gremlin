@@ -5,7 +5,7 @@
 <h1 align="center">OpenGremlin</h1>
 
 <p align="center">
-  Self-hosted AI agents with long-term memory, isolated sandboxes, and real tool use.
+  Self-hosted AI agents with long-term memory, isolated sandboxes, and CLI tool use. Runs on AWS.
 </p>
 
 <p align="center">
@@ -13,43 +13,34 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License: AGPL-3.0" /></a>
 </p>
 
----
 
-OpenGremlin runs on your AWS account. Your keys, your data, your infrastructure — nothing leaves your control. Deploy a team of AI agents that persist across sessions, remember what matters, and operate in fully isolated sandboxes where they can search, write, code, and connect to the services you use.
+> 🚧 **Work in progress** — OpenGremlin is under active development and is not yet ready for use. Key features are still being implemented and you should expect breaking changes. Feedback and contributions are welcome!
 
-### Why OpenGremlin
+OpenGremlin deploys to your AWS account. Your keys, your data, your infrastructure. Agents persist across sessions, have long-term memory, and run in isolated EC2 sandboxes.
 
-- **Your cloud, your rules** — Deploys to your AWS account via CDK. No SaaS middleman, no vendor lock-in, no data leaving your infra. You own the compute, the storage, and the agent memory.
-- **Your credentials never touch the server** — When you connect services like Google, GitHub, or Spotify, the OAuth flow happens entirely on your machine through the Gremlin Connect desktop app. Your client secrets and long-lived tokens are exchanged locally and sent directly to your server — they're never routed through a third party, and they're never exposed to the AI agents themselves. Agents get short-lived access to act on your behalf, but they never see or store the keys that grant that access.
-- **Real isolation** — Each agent gets its own EC2 sandbox. Code execution, file operations, and tool use happen in a container you control — not a shared runtime with other users' workloads.
-- **Agents that remember** — Long-term memory persists across conversations. Agents recall relevant context automatically — no re-explaining, no lost threads.
-- **Three concepts, that's it** — **Agents** have personality and memory. **Connections** authenticate to services. **Skills** extend capabilities via MCP. Simple to reason about, powerful to compose.
-- **Async by design** — Agents delegate subtasks to background workers. Kick off a research task and come back to a finished document. Scheduled jobs run on cron.
-- **Bring your models** — Claude, GPT, Llama, Mistral via Bedrock, or any provider you connect.
+### Features
+
+- **Self-hosted** — Deploys via CDK to your AWS account. No SaaS, no data leaving your infra.
+- **Isolated sandboxes** — Each agent gets its own EC2 instance for code execution, file operations, and tool use.
+- **Long-term memory** — Agents remember context across conversations.
+- **Local credential management** — OAuth flows run on your client. Credentials are stored securely in your cloud. Agents only receive short-lived access tokens.
+- **Three core concepts** — **Agents** (personality + memory), **Connections** (service auth), **Skills** (capabilities via CLI).
+- **Async tasks** — Agents delegate work to background workers. Scheduled jobs run on cron.
+- **Multi-model** — Claude, GPT, Llama, Mistral via Bedrock, or any provider you connect.
 
 ### How connections work
 
-Most agent platforms ask you to hand over your OAuth credentials to a central server, or route your login flows through infrastructure you don't control. OpenGremlin takes a different approach.
+> 🚧 **Migrating to mobile client** — Auth flow is moving to mobile client, Gremlin Connect will be removed.
 
-**Gremlin Connect** is a lightweight desktop app (Electron) that runs on your machine. When you want to connect a service — say, Google or GitHub — here's what happens:
+**Gremlin Connect** is a desktop app (Electron) that handles OAuth on your machine:
 
-1. You enter your own OAuth app credentials (client ID and secret) in Gremlin Connect
-2. The app opens your browser for the standard OAuth consent screen
-3. Your browser redirects back to `localhost` — your machine, not a remote server
-4. Gremlin Connect exchanges the authorization code for tokens locally
-5. The resulting tokens are sent to your deployed server over HTTPS
+1. You enter your OAuth app credentials (client ID and secret) in Gremlin Connect.
+2. The app opens your browser for the consent screen.
+3. Your browser redirects back to `localhost`.
+4. Gremlin Connect exchanges the auth code for tokens locally.
+5. Tokens are sent to your server over HTTPS.
 
-This means:
-
-- **Your OAuth client secrets stay on your machine.** The server never sees them, stores them, or needs them. There's no secrets vault to manage, no credentials to rotate on the server side.
-- **Agents never see your credentials.** The server stores access tokens (and refresh tokens, for providers that issue them), but during inference the agent only receives the short-lived access token needed for the current task. It can read your Gmail or create a Linear issue, but it can't mint new tokens, escalate its own permissions, or access services you haven't explicitly connected.
-- **You don't need to trust anyone's redirect URI.** The OAuth callback goes to `localhost:19284` on your own computer. No DNS hijacking, no shared callback endpoints, no hoping that someone else's server is handling your auth codes correctly.
-
-This is the difference between giving someone a house key and letting them in through the front door while you watch. The agents work for you, but the locks are still yours.
-
-### Use cases
-
-**Email triage** &middot; **Research and reports** &middot; **Bulk image processing** &middot; **Scheduled digests** &middot; **Code execution** &middot; **Data pipeline tasks**
+Agents only get short-lived access tokens for the current task. They can't mint new tokens or access services you haven't connected.
 
 ### Getting started
 
@@ -62,12 +53,12 @@ cd packages/infra
 pnpm run deploy
 ```
 
-This deploys everything to your AWS account: the server, database, admin dashboard, auth, and sandboxes. The deploy outputs your admin URL and server IP.
+This deploys the server, database, admin dashboard, auth, and sandboxes. The deploy outputs your admin URL and server IP.
 
 #### 2. Create your account
 
 1. Open the admin URL from the deploy output
-2. Sign up with email and password on the Cognito login page
+2. Sign up on the Cognito login page
 3. Add yourself to the `admins` group:
    ```
    aws cognito-idp admin-add-user-to-group \
@@ -75,14 +66,14 @@ This deploys everything to your AWS account: the server, database, admin dashboa
      --username <your-email> \
      --group-name admins
    ```
-4. Log in again — you now have full access
+4. Log in again
 
 #### 3. Connect services
 
 1. Open the **Gremlin Connect** desktop app (`apps/desktop-auth`)
 2. Enter your server URL and log in
-3. Click a provider, enter your OAuth app credentials, select scopes, and authorize
-4. The connection appears in the admin dashboard — your agents can now use it
+3. Add a provider with your OAuth credentials, select scopes, and authorize
+4. The connection appears in the admin dashboard — agents can now use it
 
 #### Local development
 

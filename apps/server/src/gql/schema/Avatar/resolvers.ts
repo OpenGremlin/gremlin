@@ -23,6 +23,7 @@ const avatarList: AvatarModel[] = [
   "Chris",
   "Clara",
   "Cleo",
+  "Cortez",
   "Craig",
   "Daisy",
   "Dan",
