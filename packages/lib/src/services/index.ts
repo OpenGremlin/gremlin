@@ -9,10 +9,6 @@ import { type JobService, jobService } from "./jobs/index.js";
 import { type MediaService, mediaService } from "./media/index.js";
 import { type MemoryService, memoryService } from "./memory/index.js";
 import {
-  type ModelProviderService,
-  modelProviderService,
-} from "./modelProviders/index.js";
-import {
   type NotificationService,
   notificationService,
 } from "./notifications/index.js";
@@ -40,7 +36,6 @@ export interface Services {
   skills: SkillService;
   media: MediaService;
   memory: MemoryService;
-  modelProviders: ModelProviderService;
   orchestrator: OrchestratorService;
   sandbox: SandboxService;
   tasks: TaskService;
@@ -61,7 +56,6 @@ export function createServices(): Services {
     skills: skillService,
     media: mediaService,
     memory: memoryService,
-    modelProviders: modelProviderService,
     orchestrator: orchestratorService,
     sandbox: sandboxService,
     tasks: taskService,

@@ -29,8 +29,9 @@ type Documents = {
     "\n  mutation UnretireAgent($id: ID!) {\n    unretireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": typeof types.UnretireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      ...AgentDetail\n    }\n  }\n": typeof types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": typeof types.IntegrationProvidersDocument,
-    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
-    "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey)\n  }\n": typeof types.ConnectApiKeyDocument,
+    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      provider {\n        id\n        service\n        description\n      }\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": typeof types.IntegrationConnectionsDocument,
+    "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey) {\n      connectionId\n      models {\n        id\n        name\n      }\n    }\n  }\n": typeof types.ConnectApiKeyDocument,
+    "\n  query ProviderModels($providerId: String!) {\n    providerModels(providerId: $providerId) {\n      id\n      name\n    }\n  }\n": typeof types.ProviderModelsDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": typeof types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.SetDefaultModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
@@ -84,8 +85,9 @@ const documents: Documents = {
     "\n  mutation UnretireAgent($id: ID!) {\n    unretireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": types.UnretireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      ...AgentDetail\n    }\n  }\n": types.AgentUpdatedDocument,
     "\n  query IntegrationProviders {\n    integrationProviders {\n      id\n      service\n      category\n      description\n      connectionType\n      availableScopes {\n        scope\n        label\n      }\n      models {\n        id\n        name\n        contextWindow\n        maxTokens\n        reasoning\n        inputCost\n        outputCost\n      }\n      connectionCount\n      hasConnection\n    }\n    defaultModel {\n      providerId\n      modelId\n    }\n  }\n": types.IntegrationProvidersDocument,
-    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
-    "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey)\n  }\n": types.ConnectApiKeyDocument,
+    "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      provider {\n        id\n        service\n        description\n      }\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n": types.IntegrationConnectionsDocument,
+    "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey) {\n      connectionId\n      models {\n        id\n        name\n      }\n    }\n  }\n": types.ConnectApiKeyDocument,
+    "\n  query ProviderModels($providerId: String!) {\n    providerModels(providerId: $providerId) {\n      id\n      name\n    }\n  }\n": types.ProviderModelsDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.SetDefaultModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
@@ -184,11 +186,15 @@ export function graphql(source: "\n  query IntegrationProviders {\n    integrati
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationConnectionsDocument;
+export function graphql(source: "\n  query IntegrationConnections {\n    integrationConnections {\n      id\n      providerId\n      provider {\n        id\n        service\n        description\n      }\n      connectionType\n      connectedAt\n      isRevoked\n      meta {\n        __typename\n        ... on OAuthConnectionMeta {\n          accountId\n          scopes\n          expiresAt\n        }\n        ... on ApiKeyConnectionMeta {\n          accountId\n        }\n      }\n    }\n  }\n"): typeof import('./graphql').IntegrationConnectionsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey)\n  }\n"): typeof import('./graphql').ConnectApiKeyDocument;
+export function graphql(source: "\n  mutation ConnectApiKey($providerId: String!, $apiKey: String!) {\n    connectApiKey(providerId: $providerId, apiKey: $apiKey) {\n      connectionId\n      models {\n        id\n        name\n      }\n    }\n  }\n"): typeof import('./graphql').ConnectApiKeyDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProviderModels($providerId: String!) {\n    providerModels(providerId: $providerId) {\n      id\n      name\n    }\n  }\n"): typeof import('./graphql').ProviderModelsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

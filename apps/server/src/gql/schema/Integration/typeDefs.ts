@@ -19,6 +19,16 @@ export const integrationTypeDefs = /* GraphQL */ `
     modelId: String!
   }
 
+  type ProviderModelInfo {
+    id: ID!
+    name: String!
+  }
+
+  type ConnectApiKeyResult {
+    connectionId: ID!
+    models: [ProviderModelInfo!]!
+  }
+
   type IntegrationProvider {
     id: ID!
     service: String!
@@ -46,6 +56,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   type IntegrationConnection {
     id: ID!
     providerId: String!
+    provider: IntegrationProvider!
     connectionType: String!
     connectedAt: String!
     isRevoked: Boolean!
@@ -57,10 +68,11 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationConnections: [IntegrationConnection!]!
     defaultModel: DefaultModel
     bedrockEnabledModels: [String!]!
+    providerModels(providerId: String!): [ProviderModelInfo!]!
   }
 
   extend type Mutation {
-    connectApiKey(providerId: String!, apiKey: String!): ID!
+    connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
     revokeIntegrationConnection(id: ID!): Boolean!
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!

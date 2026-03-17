@@ -36,6 +36,11 @@ export const IntegrationConnectionsQuery = graphql(`
     integrationConnections {
       id
       providerId
+      provider {
+        id
+        service
+        description
+      }
       connectionType
       connectedAt
       isRevoked
@@ -56,7 +61,22 @@ export const IntegrationConnectionsQuery = graphql(`
 
 export const ConnectApiKeyMutation = graphql(`
   mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
-    connectApiKey(providerId: $providerId, apiKey: $apiKey)
+    connectApiKey(providerId: $providerId, apiKey: $apiKey) {
+      connectionId
+      models {
+        id
+        name
+      }
+    }
+  }
+`);
+
+export const ProviderModelsQuery = graphql(`
+  query ProviderModels($providerId: String!) {
+    providerModels(providerId: $providerId) {
+      id
+      name
+    }
   }
 `);
 

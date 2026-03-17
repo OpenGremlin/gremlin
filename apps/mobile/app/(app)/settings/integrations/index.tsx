@@ -34,6 +34,7 @@ export default function IntegrationsScreen() {
   useFocusEffect(
     // biome-ignore lint/correctness/useExhaustiveDependencies: refetch on screen focus only, not on every render
     useCallback(() => {
+      providers.refetch();
       connections.refetch();
     }, []),
   );
@@ -61,16 +62,13 @@ export default function IntegrationsScreen() {
             const modelProvider = allProviders.find(
               (p) => p.id === defaultModel.providerId,
             );
-            const model = modelProvider?.models?.find(
-              (m) => m.id === defaultModel.modelId,
-            );
             return (
               <Card className="p-4">
                 <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
                   Default Model
                 </Text>
                 <Text className="text-sm font-medium text-text-primary">
-                  {model?.name ?? defaultModel.modelId}
+                  {defaultModel.modelId}
                 </Text>
                 {modelProvider && (
                   <Text className="text-xs text-text-muted mt-0.5">
@@ -116,20 +114,17 @@ export default function IntegrationsScreen() {
                 >
                   {conn.meta.accountId && conn.meta.accountId !== "unknown"
                     ? conn.meta.accountId
-                    : conn.providerId}
+                    : conn.provider.service}
                 </Text>
                 <Text className="text-xs text-text-muted" numberOfLines={1}>
-                  {conn.providerId} ·{" "}
                   {conn.connectionType === "oauth"
                     ? "OAuth"
                     : conn.connectionType === "apikey"
                       ? "API Key"
-                      : conn.connectionType}
+                      : conn.connectionType}{" "}
+                  · {formatDate(conn.connectedAt)}
                 </Text>
               </View>
-              <Text className="text-xs text-text-muted shrink-0">
-                {formatDate(conn.connectedAt)}
-              </Text>
             </Pressable>
           ))}
         </View>

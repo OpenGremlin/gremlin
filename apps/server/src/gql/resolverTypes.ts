@@ -206,6 +206,12 @@ export type CompletedFileUpload = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type ConnectApiKeyResult = {
+  __typename?: 'ConnectApiKeyResult';
+  connectionId: Scalars['ID']['output'];
+  models: Array<ProviderModelInfo>;
+};
+
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
@@ -260,6 +266,7 @@ export type IntegrationConnection = {
   id: Scalars['ID']['output'];
   isRevoked: Scalars['Boolean']['output'];
   meta: ConnectionMeta;
+  provider: IntegrationProvider;
   providerId: Scalars['String']['output'];
 };
 
@@ -295,7 +302,7 @@ export type Mutation = {
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
-  connectApiKey: Scalars['ID']['output'];
+  connectApiKey: ConnectApiKeyResult;
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
@@ -521,6 +528,12 @@ export type ProfileInput = {
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ProviderModelInfo = {
+  __typename?: 'ProviderModelInfo';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -539,6 +552,7 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
+  providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
   /** All skill templates from the catalog */
@@ -572,6 +586,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryProviderModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -893,6 +912,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: ResolverTypeWrapper<CompletedFileUpload>;
+  ConnectApiKeyResult: ResolverTypeWrapper<ConnectApiKeyResult>;
   ConnectionMeta: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ConnectionMeta']>;
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
@@ -915,6 +935,7 @@ export type ResolversTypes = {
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
+  ProviderModelInfo: ResolverTypeWrapper<ProviderModelInfo>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SandboxOutput: ResolverTypeWrapper<SandboxOutput>;
   SendMessageResult: ResolverTypeWrapper<SendMessageResult>;
@@ -955,6 +976,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: CompletedFileUpload;
+  ConnectApiKeyResult: ConnectApiKeyResult;
   ConnectionMeta: ResolversUnionTypes<ResolversParentTypes>['ConnectionMeta'];
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
@@ -975,6 +997,7 @@ export type ResolversParentTypes = {
   OAuthConnectionMeta: OAuthConnectionMeta;
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
+  ProviderModelInfo: ProviderModelInfo;
   Query: Record<PropertyKey, never>;
   SandboxOutput: SandboxOutput;
   SendMessageResult: SendMessageResult;
@@ -1102,6 +1125,11 @@ export type CompletedFileUploadResolvers<ContextType = GremlinContext, ParentTyp
   sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type ConnectApiKeyResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ConnectApiKeyResult'] = ResolversParentTypes['ConnectApiKeyResult']> = {
+  connectionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  models?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType>;
+};
+
 export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ConnectionMeta'] = ResolversParentTypes['ConnectionMeta']> = {
   __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
 };
@@ -1133,6 +1161,7 @@ export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentT
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isRevoked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   meta?: Resolver<ResolversTypes['ConnectionMeta'], ParentType, ContextType>;
+  provider?: Resolver<ResolversTypes['IntegrationProvider'], ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1163,7 +1192,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
-  connectApiKey?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
+  connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
@@ -1221,6 +1250,11 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type ProviderModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ProviderModelInfo'] = ResolversParentTypes['ProviderModelInfo']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType, RequireFields<QueryAgentArgs, 'id'>>;
@@ -1237,6 +1271,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
+  providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
   skillTemplates?: Resolver<Array<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
@@ -1361,6 +1396,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;
+  ConnectApiKeyResult?: ConnectApiKeyResultResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
@@ -1375,6 +1411,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   NotificationStatus?: NotificationStatusResolvers;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
+  ProviderModelInfo?: ProviderModelInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SandboxOutput?: SandboxOutputResolvers<ContextType>;
   SendMessageResult?: SendMessageResultResolvers<ContextType>;

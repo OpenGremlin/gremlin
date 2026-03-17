@@ -189,6 +189,12 @@ export type CompletedFileUpload = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type ConnectApiKeyResult = {
+  __typename?: 'ConnectApiKeyResult';
+  connectionId: Scalars['ID']['output'];
+  models: Array<ProviderModelInfo>;
+};
+
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
@@ -243,6 +249,7 @@ export type IntegrationConnection = {
   id: Scalars['ID']['output'];
   isRevoked: Scalars['Boolean']['output'];
   meta: ConnectionMeta;
+  provider: IntegrationProvider;
   providerId: Scalars['String']['output'];
 };
 
@@ -278,7 +285,7 @@ export type Mutation = {
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
-  connectApiKey: Scalars['ID']['output'];
+  connectApiKey: ConnectApiKeyResult;
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
@@ -508,6 +515,12 @@ export type ProfileInput = {
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ProviderModelInfo = {
+  __typename?: 'ProviderModelInfo';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -526,6 +539,7 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
+  providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
   /** All skill templates from the catalog */
@@ -559,6 +573,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryProviderModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 

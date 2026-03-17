@@ -15,6 +15,7 @@ import {
   DisableBedrockModelMutation,
   EnableBedrockModelMutation,
   IntegrationProvidersQuery,
+  ProviderModelsQuery,
   SetDefaultModelMutation,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
@@ -73,6 +74,116 @@ function ModelCard({
   );
 }
 
+function ApiKeyModelList({
+  providerId,
+  defaultModel,
+  refetchParent,
+}: {
+  providerId: string;
+  defaultModel: DefaultModel;
+  refetchParent: () => void;
+}) {
+  const colors = useNavigationTheme();
+  const {
+    data: modelsData,
+    loading: modelsLoading,
+    refetch: refetchModels,
+  } = useQuery(ProviderModelsQuery, { providerId });
+  const [settingModel, setSettingModel] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const isDefaultProvider = defaultModel?.providerId === providerId;
+  const models = modelsData?.providerModels ?? [];
+
+  async function handleSelectModel(modelId: string) {
+    setSettingModel(modelId);
+    setError(null);
+    try {
+      await gql(SetDefaultModelMutation, { providerId, modelId });
+      refetchParent();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to set default model",
+      );
+    } finally {
+      setSettingModel(null);
+    }
+  }
+
+  if (modelsLoading) {
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator color={colors.accentIndicator} size="small" />
+        <Text className="text-xs text-text-muted mt-2">Fetching models...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      {error ? (
+        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
+          <Text className="text-sm text-red-300">{error}</Text>
+        </View>
+      ) : null}
+
+      {models.length > 0 && (
+        <View className="gap-3">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-text-primary">
+              Available Models
+            </Text>
+            <Pressable onPress={() => refetchModels()}>
+              <Text className="text-xs text-accent">Refresh</Text>
+            </Pressable>
+          </View>
+          {models.map((model) => {
+            const isDefault =
+              isDefaultProvider && defaultModel?.modelId === model.id;
+
+            return (
+              <View
+                key={model.id}
+                className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-accent-border" : ""}`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-sm font-medium text-text-primary">
+                      {model.name}
+                    </Text>
+                    {model.name !== model.id && (
+                      <Text className="text-xs text-text-muted mt-0.5">
+                        {model.id}
+                      </Text>
+                    )}
+                  </View>
+                  {settingModel === model.id ? (
+                    <ActivityIndicator
+                      color={colors.accentIndicator}
+                      size="small"
+                    />
+                  ) : isDefault ? (
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="w-2 h-2 rounded-full bg-accent" />
+                      <Text className="text-xs text-accent">Default</Text>
+                    </View>
+                  ) : (
+                    <Pressable onPress={() => handleSelectModel(model.id)}>
+                      <Text className="text-xs font-medium text-accent">
+                        Set as Default
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
+    </>
+  );
+}
+
 function ApiKeyDetailView({
   provider,
   defaultModel,
@@ -83,7 +194,6 @@ function ApiKeyDetailView({
     service: string;
     description: string;
     hasConnection: boolean;
-    models?: ReadonlyArray<ProviderModel> | null;
   };
   defaultModel: DefaultModel;
   refetch: () => void;
@@ -91,7 +201,6 @@ function ApiKeyDetailView({
   const colors = useNavigationTheme();
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
-  const [settingModel, setSettingModel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const inputClass =
@@ -109,32 +218,11 @@ function ApiKeyDetailView({
       setApiKeyInput("");
       refetch();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save API key");
+      setError(err instanceof Error ? err.message : "Failed to connect");
     } finally {
       setSaving(false);
     }
   }
-
-  async function handleSelectModel(modelId: string) {
-    setSettingModel(modelId);
-    setError(null);
-    try {
-      await gql(SetDefaultModelMutation, {
-        providerId: provider.id,
-        modelId,
-      });
-      refetch();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to set default model",
-      );
-    } finally {
-      setSettingModel(null);
-    }
-  }
-
-  const isDefaultProvider = defaultModel?.providerId === provider.id;
-  const models = provider.models ?? [];
 
   return (
     <>
@@ -156,7 +244,7 @@ function ApiKeyDetailView({
             loading={saving}
             fullWidth
           >
-            Connect
+            Test & Connect
           </Button>
         </View>
       ) : (
@@ -178,33 +266,12 @@ function ApiKeyDetailView({
         </View>
       ) : null}
 
-      {models.length > 0 && (
-        <View className="gap-3">
-          <Text className="text-sm font-medium text-text-primary">Models</Text>
-          {models.map((model) => {
-            const isDefault =
-              isDefaultProvider && defaultModel?.modelId === model.id;
-
-            return (
-              <ModelCard key={model.id} model={model} isDefault={isDefault}>
-                {settingModel === model.id ? (
-                  <ActivityIndicator
-                    color={colors.accentIndicator}
-                    size="small"
-                  />
-                ) : isDefault ? null : !provider.hasConnection ? (
-                  <Text className="text-xs text-text-faint">Add key first</Text>
-                ) : (
-                  <Pressable onPress={() => handleSelectModel(model.id)}>
-                    <Text className="text-xs font-medium text-accent">
-                      Set as Default
-                    </Text>
-                  </Pressable>
-                )}
-              </ModelCard>
-            );
-          })}
-        </View>
+      {provider.hasConnection && (
+        <ApiKeyModelList
+          providerId={provider.id}
+          defaultModel={defaultModel}
+          refetchParent={refetch}
+        />
       )}
     </>
   );

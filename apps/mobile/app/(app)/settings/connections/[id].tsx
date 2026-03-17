@@ -11,6 +11,7 @@ import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
+import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 
 export default function ConnectionDetailScreen() {
@@ -58,15 +59,19 @@ export default function ConnectionDetailScreen() {
         </View>
       ) : null}
 
-      <View className="gap-1">
-        <Text className="text-xl font-semibold text-text-primary">
-          {accountId && accountId !== "unknown"
-            ? accountId
-            : connection.providerId}
-        </Text>
-        <Text className="text-xs text-text-muted mt-0.5">
-          Connected {formatDate(connection.connectedAt)}
-        </Text>
+      <View className="flex-row items-center gap-4">
+        <IntegrationLogo id={connection.providerId} size={48} />
+        <View className="flex-1">
+          <Text className="text-xl font-semibold text-text-primary">
+            {connection.provider.service}
+          </Text>
+          <Text className="text-sm text-text-muted mt-0.5">
+            {connection.provider.description}
+          </Text>
+          <Text className="text-xs text-text-muted mt-0.5">
+            Connected {formatDate(connection.connectedAt)}
+          </Text>
+        </View>
       </View>
 
       {scopes && scopes.length > 0 && (
@@ -88,13 +93,17 @@ export default function ConnectionDetailScreen() {
           <View className="flex-row justify-between">
             <Text className="text-sm text-text-muted">Provider</Text>
             <Text className="text-sm text-text-primary">
-              {connection.providerId}
+              {connection.provider.service}
             </Text>
           </View>
           <View className="flex-row justify-between">
             <Text className="text-sm text-text-muted">Type</Text>
             <Text className="text-sm text-text-primary">
-              {connection.connectionType}
+              {connection.connectionType === "oauth"
+                ? "OAuth"
+                : connection.connectionType === "apikey"
+                  ? "API Key"
+                  : connection.connectionType}
             </Text>
           </View>
         </Card>

@@ -189,6 +189,12 @@ export type CompletedFileUpload = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type ConnectApiKeyResult = {
+  __typename?: 'ConnectApiKeyResult';
+  connectionId: Scalars['ID']['output'];
+  models: Array<ProviderModelInfo>;
+};
+
 export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
@@ -243,6 +249,7 @@ export type IntegrationConnection = {
   id: Scalars['ID']['output'];
   isRevoked: Scalars['Boolean']['output'];
   meta: ConnectionMeta;
+  provider: IntegrationProvider;
   providerId: Scalars['String']['output'];
 };
 
@@ -278,7 +285,7 @@ export type Mutation = {
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
-  connectApiKey: Scalars['ID']['output'];
+  connectApiKey: ConnectApiKeyResult;
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
@@ -508,6 +515,12 @@ export type ProfileInput = {
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ProviderModelInfo = {
+  __typename?: 'ProviderModelInfo';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -526,6 +539,7 @@ export type Query = {
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
   profile: Profile;
+  providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
   skillTemplate?: Maybe<SkillTemplate>;
   /** All skill templates from the catalog */
@@ -559,6 +573,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryProviderModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -879,7 +898,7 @@ export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProvi
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, connectedAt: string, isRevoked: boolean, meta:
+export type IntegrationConnectionsQuery = { __typename?: 'Query', integrationConnections: Array<{ __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, connectedAt: string, isRevoked: boolean, provider: { __typename?: 'IntegrationProvider', id: string, service: string, description: string }, meta:
       | { __typename: 'ApiKeyConnectionMeta', accountId?: string | null }
       | { __typename: 'OAuthConnectionMeta', accountId?: string | null, scopes: Array<string>, expiresAt?: string | null }
      }> };
@@ -890,7 +909,14 @@ export type ConnectApiKeyMutationVariables = Exact<{
 }>;
 
 
-export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: string };
+export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: { __typename?: 'ConnectApiKeyResult', connectionId: string, models: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string }> } };
+
+export type ProviderModelsQueryVariables = Exact<{
+  providerId: Scalars['String']['input'];
+}>;
+
+
+export type ProviderModelsQuery = { __typename?: 'Query', providerModels: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string }> };
 
 export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1456,6 +1482,11 @@ export const IntegrationConnectionsDocument = new TypedDocumentString(`
   integrationConnections {
     id
     providerId
+    provider {
+      id
+      service
+      description
+    }
     connectionType
     connectedAt
     isRevoked
@@ -1475,9 +1506,23 @@ export const IntegrationConnectionsDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<IntegrationConnectionsQuery, IntegrationConnectionsQueryVariables>;
 export const ConnectApiKeyDocument = new TypedDocumentString(`
     mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
-  connectApiKey(providerId: $providerId, apiKey: $apiKey)
+  connectApiKey(providerId: $providerId, apiKey: $apiKey) {
+    connectionId
+    models {
+      id
+      name
+    }
+  }
 }
     `) as unknown as TypedDocumentString<ConnectApiKeyMutation, ConnectApiKeyMutationVariables>;
+export const ProviderModelsDocument = new TypedDocumentString(`
+    query ProviderModels($providerId: String!) {
+  providerModels(providerId: $providerId) {
+    id
+    name
+  }
+}
+    `) as unknown as TypedDocumentString<ProviderModelsQuery, ProviderModelsQueryVariables>;
 export const RevokeConnectionDocument = new TypedDocumentString(`
     mutation RevokeConnection($id: ID!) {
   revokeIntegrationConnection(id: $id)

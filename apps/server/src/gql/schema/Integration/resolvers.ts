@@ -27,6 +27,21 @@ const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
   ctx,
 ) => ctx.services.integrations.getBedrockEnabledModels(ctx.resources);
 
+const providerModels: QueryResolvers["providerModels"] = async (
+  _parent,
+  { providerId },
+  ctx,
+) => {
+  const apiKey = await ctx.services.integrations.getProviderApiKey(
+    ctx.resources,
+    providerId,
+  );
+  if (!apiKey) {
+    throw new Error(`No API key configured for provider: ${providerId}`);
+  }
+  return ctx.services.integrations.listProviderModels(providerId, apiKey);
+};
+
 const connectionCount: IntegrationProviderResolvers["connectionCount"] = async (
   parent,
   _args,
@@ -51,6 +66,18 @@ const hasConnection: IntegrationProviderResolvers["hasConnection"] = async (
   return connections.some((c) => c.providerId === parent.id);
 };
 
+const provider: IntegrationConnectionResolvers["provider"] = (
+  parent,
+  _args,
+  ctx,
+) => {
+  const match = ctx.services.integrations
+    .getIntegrations()
+    .find((p) => p.id === parent.providerId);
+  if (!match) throw new Error(`Unknown provider: ${parent.providerId}`);
+  return match;
+};
+
 const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
   const conn = parent as unknown as SafeIntegrationConnection;
   if (conn.connectionType === "oauth") {
@@ -67,11 +94,18 @@ const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
   };
 };
 
-const connectApiKey: MutationResolvers["connectApiKey"] = (
+const connectApiKey: MutationResolvers["connectApiKey"] = async (
   _parent,
   { providerId, apiKey },
   ctx,
-) => ctx.services.integrations.connectApiKey(ctx.resources, providerId, apiKey);
+) => {
+  const result = await ctx.services.integrations.connectApiKey(
+    ctx.resources,
+    providerId,
+    apiKey,
+  );
+  return result;
+};
 
 const revokeIntegrationConnection: MutationResolvers["revokeIntegrationConnection"] =
   (_parent, { id }, ctx) =>
@@ -134,6 +168,7 @@ export const integrationResolvers = {
     integrationConnections,
     defaultModel,
     bedrockEnabledModels,
+    providerModels,
   },
   Mutation: {
     connectApiKey,
@@ -144,7 +179,7 @@ export const integrationResolvers = {
     submitOAuthConnection,
   },
   IntegrationProvider: { connectionCount, hasConnection },
-  IntegrationConnection: { meta },
+  IntegrationConnection: { provider, meta },
   ConnectionMeta: {
     __resolveType(obj: { __typename: string }) {
       return obj.__typename;

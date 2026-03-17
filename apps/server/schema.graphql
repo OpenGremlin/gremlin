@@ -23,6 +23,7 @@ type Query {
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
   bedrockEnabledModels: [String!]!
+  providerModels(providerId: String!): [ProviderModelInfo!]!
   notifications: [Notification!]!
   profile: Profile!
   globalSettings: GlobalSettings!
@@ -59,7 +60,7 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
   unretireAgent(id: ID!): Agent!
-  connectApiKey(providerId: String!, apiKey: String!): ID!
+  connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
   enableBedrockModel(modelId: String!): Boolean!
@@ -318,6 +319,16 @@ type DefaultModel {
   modelId: String!
 }
 
+type ProviderModelInfo {
+  id: ID!
+  name: String!
+}
+
+type ConnectApiKeyResult {
+  connectionId: ID!
+  models: [ProviderModelInfo!]!
+}
+
 type IntegrationProvider {
   id: ID!
   service: String!
@@ -345,6 +356,7 @@ union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta
 type IntegrationConnection {
   id: ID!
   providerId: String!
+  provider: IntegrationProvider!
   connectionType: String!
   connectedAt: String!
   isRevoked: Boolean!

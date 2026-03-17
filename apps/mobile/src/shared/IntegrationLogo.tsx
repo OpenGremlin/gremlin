@@ -30,6 +30,11 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   bedrock: require("@gremlin/logos/Bedrock.svg"),
   brave: require("@gremlin/logos/Brave.svg"),
   tavily: require("@gremlin/logos/Tavily.svg"),
+  groq: require("@gremlin/logos/Groq.svg"),
+  perplexity: require("@gremlin/logos/Perplexity.svg"),
+  together: require("@gremlin/logos/TogetherAI.svg"),
+  fireworks: require("@gremlin/logos/FireworksAI.svg"),
+  cohere: require("@gremlin/logos/Cohere.svg"),
 };
 
 /** Light-mode overrides — only for logos that have a `_light` variant. */
@@ -39,6 +44,7 @@ const lightLogoOverrides: Record<string, ReturnType<typeof require>> = {
   linear: require("@gremlin/logos/Linear_light.svg"),
   openai: require("@gremlin/logos/OpenAI_light.svg"),
   xai: require("@gremlin/logos/xAI_light.svg"),
+  groq: require("@gremlin/logos/Groq_light.svg"),
 };
 
 export function IntegrationLogo({
