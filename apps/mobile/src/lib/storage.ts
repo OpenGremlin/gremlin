@@ -1,14 +1,14 @@
 import { Platform } from "react-native";
 
-// Use SecureStore on native, sessionStorage on web
+// Use SecureStore on native, localStorage on web
 let _getItem: (key: string) => Promise<string | null>;
 let _setItem: (key: string, value: string) => Promise<void>;
 let _deleteItem: (key: string) => Promise<void>;
 
 if (Platform.OS === "web") {
-  _getItem = async (key) => sessionStorage.getItem(key);
-  _setItem = async (key, value) => sessionStorage.setItem(key, value);
-  _deleteItem = async (key) => sessionStorage.removeItem(key);
+  _getItem = async (key) => localStorage.getItem(key);
+  _setItem = async (key, value) => localStorage.setItem(key, value);
+  _deleteItem = async (key) => localStorage.removeItem(key);
 } else {
   // Lazy-load SecureStore only on native
   const SecureStorePromise = import("expo-secure-store");
