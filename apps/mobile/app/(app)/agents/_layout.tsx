@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { Platform } from "react-native";
+import { getStackScreenOptions } from "../../../src/lib/stackScreenOptions";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 
 export default function AgentsLayout() {
@@ -14,14 +15,7 @@ export default function AgentsLayout() {
         });
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.headerBackground },
-        headerTintColor: colors.headerText,
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    >
+    <Stack screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen name="index" options={{ title: "Agents" }} />
       <Stack.Screen name="new" options={{ title: "New Agent" }} />
       <Stack.Screen
