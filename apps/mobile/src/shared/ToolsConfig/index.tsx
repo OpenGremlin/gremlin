@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
+  AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
-  BedrockEnabledModelsQuery,
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
@@ -56,34 +56,37 @@ type ProvidersData = {
   integrationProviders: Array<{
     id: string;
     service: string;
-    models?: Array<{ id: string; name: string }> | null;
   }>;
 } | null;
 
+type EnabledEntry = {
+  providerId: string;
+  modelId: string;
+  modelName?: string | null;
+};
 type BedrockModel = { id: string; name: string };
 
 function getModelLabel(
   model: PlainConfig["model"],
   providers: ProvidersData,
-  bedrockModels: string[],
-  availableBedrockModels: BedrockModel[],
+  allEnabled: EnabledEntry[],
+  bedrockModels: BedrockModel[],
 ): string {
   if (!model) return "Select a model";
   if (model.type === "bedrock" && model.modelId) {
-    const m = availableBedrockModels.find(
-      (m) => m.id === model.modelId && bedrockModels.includes(m.id),
-    );
-    return m ? `Bedrock / ${m.name}` : `Bedrock / ${model.modelId}`;
+    const bm = bedrockModels.find((m) => m.id === model.modelId);
+    return bm ? `Bedrock / ${bm.name}` : `Bedrock / ${model.modelId}`;
   }
   if (model.type === "connection" && model.connectionId) {
     const [providerId, modelId] = model.connectionId.split(":", 2);
     const provider = providers?.integrationProviders?.find(
       (p) => p.id === providerId,
     );
-    const m = provider?.models?.find((m) => m.id === modelId);
-    return m
-      ? `${provider?.service ?? providerId} / ${m.name}`
-      : model.connectionId;
+    const entry = allEnabled.find(
+      (e) => e.providerId === providerId && e.modelId === modelId,
+    );
+    const name = entry?.modelName ?? modelId;
+    return `${provider?.service ?? providerId} / ${name}`;
   }
   return "Select a model";
 }
@@ -91,12 +94,11 @@ function getModelLabel(
 export function ToolsConfig({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
-  const { data: bedrockData } = useQuery(BedrockEnabledModelsQuery);
+  const { data: enabledData } = useQuery(AllEnabledModelsQuery);
   const { data: bedrockAvailableData } = useQuery(BedrockAvailableModelsQuery);
   const providers = providersData?.integrationProviders ?? [];
-  const bedrockModels = bedrockData?.bedrockEnabledModels ?? [];
-  const availableBedrockModels =
-    bedrockAvailableData?.bedrockAvailableModels ?? [];
+  const allEnabled = enabledData?.allEnabledModels ?? [];
+  const bedrockModels = bedrockAvailableData?.bedrockAvailableModels ?? [];
   const webSearchProviders = providers.filter(
     (p) => p.category === "web" && p.hasConnection,
   );
@@ -135,8 +137,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const modelLabel = getModelLabel(
     config.model,
     providersData,
+    allEnabled,
     bedrockModels,
-    availableBedrockModels,
   );
 
   return (
@@ -170,7 +172,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   ? undefined
                   : {
                       type: "bedrock",
-                      modelId: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+                      modelId: "us.anthropic.claude-sonnet-4-6",
                     },
               })
             }
@@ -362,7 +364,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         <ModelPicker
           model={config.model}
           providers={providers}
-          bedrockModels={bedrockModels}
           onSelect={(value) => updateConfig({ model: value })}
           onClose={() => setModelPickerOpen(false)}
         />

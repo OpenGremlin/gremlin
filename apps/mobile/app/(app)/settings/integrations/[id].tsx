@@ -14,7 +14,10 @@ import {
   BedrockEnabledModelsQuery,
   ConnectApiKeyMutation,
   DisableBedrockModelMutation,
+  DisableModelMutation,
   EnableBedrockModelMutation,
+  EnabledModelsQuery,
+  EnableModelMutation,
   IntegrationProvidersQuery,
   ProviderModelsQuery,
   SetDefaultModelMutation,
@@ -44,37 +47,6 @@ type ProviderModel = {
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
-function ModelCard({
-  model,
-  isDefault,
-  children,
-}: {
-  model: ProviderModel;
-  isDefault: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <View
-      className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-accent-border" : ""}`}
-    >
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-medium text-text-primary flex-1">
-          {model.name}
-        </Text>
-        {isDefault && (
-          <View className="flex-row items-center gap-1.5 ml-2">
-            <View className="w-2 h-2 rounded-full bg-accent" />
-            <Text className="text-xs text-accent">Default</Text>
-          </View>
-        )}
-      </View>
-      {children ? (
-        <View className="mt-3 flex-row gap-3">{children}</View>
-      ) : null}
-    </View>
-  );
-}
-
 function ApiKeyModelList({
   providerId,
   defaultModel,
@@ -90,13 +62,63 @@ function ApiKeyModelList({
     loading: modelsLoading,
     refetch: refetchModels,
   } = useQuery(ProviderModelsQuery, { providerId });
+  const { data: enabledData, refetch: refetchEnabled } = useQuery(
+    EnabledModelsQuery,
+    { providerId },
+  );
+  const [enablingModel, setEnablingModel] = useState<string | null>(null);
+  const [disablingModel, setDisablingModel] = useState<string | null>(null);
   const [settingModel, setSettingModel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAvailable, setShowAvailable] = useState(true);
+  const [search, setSearch] = useState("");
 
   const isDefaultProvider = defaultModel?.providerId === providerId;
-  const models = modelsData?.providerModels ?? [];
+  const allModels = modelsData?.providerModels ?? [];
+  const enabledModelIds = enabledData?.enabledModels ?? [];
 
-  async function handleSelectModel(modelId: string) {
+  const enabledModels = allModels.filter((m) => enabledModelIds.includes(m.id));
+  const availableModels = allModels.filter(
+    (m) => !enabledModelIds.includes(m.id),
+  );
+
+  const query = search.toLowerCase().trim();
+  const filteredAvailable = query
+    ? availableModels.filter(
+        (m) =>
+          m.id.toLowerCase().includes(query) ||
+          m.name.toLowerCase().includes(query),
+      )
+    : availableModels;
+
+  async function handleEnable(modelId: string) {
+    setEnablingModel(modelId);
+    setError(null);
+    try {
+      await gql(EnableModelMutation, { providerId, modelId });
+      refetchEnabled();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to enable model");
+    } finally {
+      setEnablingModel(null);
+    }
+  }
+
+  async function handleDisable(modelId: string) {
+    setDisablingModel(modelId);
+    setError(null);
+    try {
+      await gql(DisableModelMutation, { providerId, modelId });
+      refetchEnabled();
+      refetchParent();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to disable model");
+    } finally {
+      setDisablingModel(null);
+    }
+  }
+
+  async function handleSetDefault(modelId: string) {
     setSettingModel(modelId);
     setError(null);
     try {
@@ -128,37 +150,31 @@ function ApiKeyModelList({
         </View>
       ) : null}
 
-      {models.length > 0 && (
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium text-text-primary">
-              Available Models
-            </Text>
-            <Pressable onPress={() => refetchModels()}>
-              <Text className="text-xs text-accent">Refresh</Text>
-            </Pressable>
-          </View>
-          {models.map((model) => {
-            const isDefault =
-              isDefaultProvider && defaultModel?.modelId === model.id;
+      {/* ── Enabled Models ── */}
+      {enabledModels.length > 0 && (
+        <View className="gap-1">
+          <Text className="text-sm font-medium text-text-primary mb-1">
+            Enabled Models
+          </Text>
+          <Card className="overflow-hidden">
+            {enabledModels.map((model, i) => {
+              const isDefault =
+                isDefaultProvider && defaultModel?.modelId === model.id;
+              const isDisabling = disablingModel === model.id;
+              const isSetting = settingModel === model.id;
+              const busy = isDisabling || isSetting;
 
-            return (
-              <View
-                key={model.id}
-                className={`bg-surface rounded-xl p-4 ${isDefault ? "border border-accent-border" : ""}`}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <Text className="text-sm font-medium text-text-primary">
+              return (
+                <View
+                  key={model.id}
+                  className={`flex-row items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
+                >
+                  <View className="flex-1 mr-3">
+                    <Text className="text-sm text-text-primary">
                       {model.name}
                     </Text>
-                    {model.name !== model.id && (
-                      <Text className="text-xs text-text-muted mt-0.5">
-                        {model.id}
-                      </Text>
-                    )}
                   </View>
-                  {settingModel === model.id ? (
+                  {busy ? (
                     <ActivityIndicator
                       color={colors.accentIndicator}
                       size="small"
@@ -169,16 +185,104 @@ function ApiKeyModelList({
                       <Text className="text-xs text-accent">Default</Text>
                     </View>
                   ) : (
-                    <Pressable onPress={() => handleSelectModel(model.id)}>
-                      <Text className="text-xs font-medium text-accent">
-                        Set as Default
-                      </Text>
-                    </Pressable>
+                    <View className="flex-row items-center gap-4">
+                      <Pressable
+                        hitSlop={8}
+                        onPress={() => handleSetDefault(model.id)}
+                      >
+                        <Text className="text-xs font-medium text-accent">
+                          Set Default
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        hitSlop={8}
+                        onPress={() => handleDisable(model.id)}
+                      >
+                        <Text className="text-xs font-medium text-error">
+                          Remove
+                        </Text>
+                      </Pressable>
+                    </View>
                   )}
                 </View>
-              </View>
-            );
-          })}
+              );
+            })}
+          </Card>
+        </View>
+      )}
+
+      {/* ── Available Models ── */}
+      {availableModels.length > 0 && (
+        <View className="gap-2">
+          <Pressable
+            onPress={() => setShowAvailable((v) => !v)}
+            className="flex-row items-center justify-between"
+          >
+            <Text className="text-sm font-medium text-text-primary">
+              Available Models
+              <Text className="text-text-muted font-normal">
+                {" "}
+                ({availableModels.length})
+              </Text>
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <Pressable onPress={() => refetchModels()}>
+                <Text className="text-xs text-accent">Refresh</Text>
+              </Pressable>
+              <Text className="text-xs text-text-muted">
+                {showAvailable ? "Hide" : "Show"}
+              </Text>
+            </View>
+          </Pressable>
+
+          {showAvailable && (
+            <>
+              <TextInput
+                className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Search models..."
+                placeholderTextColor={colors.placeholderText}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <Card className="overflow-hidden">
+                {filteredAvailable.map((model, i) => {
+                  const isEnabling = enablingModel === model.id;
+
+                  return (
+                    <Pressable
+                      key={model.id}
+                      disabled={isEnabling}
+                      onPress={() => handleEnable(model.id)}
+                      className={`flex-row items-center justify-between px-4 py-2.5 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
+                    >
+                      <Text className="text-sm text-text-secondary flex-1 mr-3">
+                        {model.name}
+                      </Text>
+                      {isEnabling ? (
+                        <ActivityIndicator
+                          color={colors.accentIndicator}
+                          size="small"
+                        />
+                      ) : (
+                        <Text className="text-xs font-medium text-success">
+                          Enable
+                        </Text>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </Card>
+
+              {filteredAvailable.length === 0 && query && (
+                <Text className="text-sm text-text-muted text-center py-3">
+                  No models matching "{search}"
+                </Text>
+              )}
+            </>
+          )}
         </View>
       )}
     </>
@@ -278,6 +382,25 @@ function ApiKeyDetailView({
   );
 }
 
+/** Group inference profile IDs by provider prefix (e.g. "Anthropic", "Meta") */
+function groupByProvider(
+  models: ProviderModel[],
+): { provider: string; models: ProviderModel[] }[] {
+  const map = new Map<string, ProviderModel[]>();
+  for (const m of models) {
+    // ID format: "us.anthropic.claude-..." → provider = "Anthropic"
+    const parts = m.id.split(".");
+    const raw = parts.length >= 3 ? parts[1] : parts[0];
+    const provider = raw.charAt(0).toUpperCase() + raw.slice(1);
+    const list = map.get(provider) ?? [];
+    list.push(m);
+    map.set(provider, list);
+  }
+  return [...map.entries()]
+    .map(([provider, models]) => ({ provider, models }))
+    .sort((a, b) => a.provider.localeCompare(b.provider));
+}
+
 function BedrockDetailView({
   provider,
   defaultModel,
@@ -303,10 +426,12 @@ function BedrockDetailView({
   const [disablingModel, setDisablingModel] = useState<string | null>(null);
   const [settingModel, setSettingModel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAvailable, setShowAvailable] = useState(true);
+  const [search, setSearch] = useState("");
 
-  const enabledModels = enabledData?.bedrockEnabledModels ?? [];
+  const enabledModelIds = enabledData?.bedrockEnabledModels ?? [];
   const isDefaultProvider = defaultModel?.providerId === provider.id;
-  const models: ProviderModel[] = (
+  const allModels: ProviderModel[] = (
     availableData?.bedrockAvailableModels ?? []
   ).map((m) => ({
     id: m.id,
@@ -317,6 +442,21 @@ function BedrockDetailView({
     inputCost: m.inputCost,
     outputCost: m.outputCost,
   }));
+
+  const enabledModels = allModels.filter((m) => enabledModelIds.includes(m.id));
+  const availableModels = allModels.filter(
+    (m) => !enabledModelIds.includes(m.id),
+  );
+
+  const query = search.toLowerCase().trim();
+  const filteredAvailable = query
+    ? availableModels.filter(
+        (m) =>
+          m.id.toLowerCase().includes(query) ||
+          m.name.toLowerCase().includes(query),
+      )
+    : availableModels;
+  const groupedAvailable = groupByProvider(filteredAvailable);
 
   async function handleEnable(modelId: string) {
     setEnablingModel(modelId);
@@ -393,54 +533,154 @@ function BedrockDetailView({
         </View>
       )}
 
-      {!modelsLoading && models.length > 0 && (
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium text-text-primary">
-              Models
-            </Text>
-            <Pressable onPress={() => refetchModels()}>
-              <Text className="text-xs text-accent">Refresh</Text>
-            </Pressable>
-          </View>
-          {models.map((model) => {
-            const isEnabled = enabledModels.includes(model.id);
-            const isDefault =
-              isDefaultProvider && defaultModel?.modelId === model.id;
-            const isEnabling = enablingModel === model.id;
-            const isDisabling = disablingModel === model.id;
-            const isSetting = settingModel === model.id;
+      {/* ── Enabled Models ── */}
+      {!modelsLoading && enabledModels.length > 0 && (
+        <View className="gap-1">
+          <Text className="text-sm font-medium text-text-primary mb-1">
+            Enabled Models
+          </Text>
+          <Card className="overflow-hidden">
+            {enabledModels.map((model, i) => {
+              const isDefault =
+                isDefaultProvider && defaultModel?.modelId === model.id;
+              const isDisabling = disablingModel === model.id;
+              const isSetting = settingModel === model.id;
+              const busy = isDisabling || isSetting;
 
-            return (
-              <ModelCard key={model.id} model={model} isDefault={isDefault}>
-                {isEnabling || isDisabling || isSetting ? (
-                  <ActivityIndicator
-                    color={colors.accentIndicator}
-                    size="small"
-                  />
-                ) : isDefault ? null : isEnabled ? (
-                  <>
-                    <Pressable onPress={() => handleSetDefault(model.id)}>
-                      <Text className="text-xs font-medium text-accent">
-                        Set Default
-                      </Text>
-                    </Pressable>
-                    <Pressable onPress={() => handleDisable(model.id)}>
-                      <Text className="text-xs font-medium text-error">
-                        Disable
-                      </Text>
-                    </Pressable>
-                  </>
-                ) : (
-                  <Pressable onPress={() => handleEnable(model.id)}>
-                    <Text className="text-xs font-medium text-success">
-                      Enable
+              return (
+                <View
+                  key={model.id}
+                  className={`flex-row items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
+                >
+                  <View className="flex-1 mr-3">
+                    <Text className="text-sm text-text-primary">
+                      {model.name}
                     </Text>
-                  </Pressable>
-                )}
-              </ModelCard>
-            );
-          })}
+                  </View>
+                  {busy ? (
+                    <ActivityIndicator
+                      color={colors.accentIndicator}
+                      size="small"
+                    />
+                  ) : isDefault ? (
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="w-2 h-2 rounded-full bg-accent" />
+                      <Text className="text-xs text-accent">Default</Text>
+                    </View>
+                  ) : (
+                    <View className="flex-row items-center gap-4">
+                      <Pressable
+                        hitSlop={8}
+                        onPress={() => handleSetDefault(model.id)}
+                      >
+                        <Text className="text-xs font-medium text-accent">
+                          Set Default
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        hitSlop={8}
+                        onPress={() => handleDisable(model.id)}
+                      >
+                        <Text className="text-xs font-medium text-error">
+                          Remove
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </Card>
+        </View>
+      )}
+
+      {!modelsLoading && enabledModels.length === 0 && (
+        <View className="py-3 items-center">
+          <Text className="text-sm text-text-muted">
+            No models enabled yet. Add one below.
+          </Text>
+        </View>
+      )}
+
+      {/* ── Available Models ── */}
+      {!modelsLoading && availableModels.length > 0 && (
+        <View className="gap-2">
+          <Pressable
+            onPress={() => setShowAvailable((v) => !v)}
+            className="flex-row items-center justify-between"
+          >
+            <Text className="text-sm font-medium text-text-primary">
+              Available Models
+              <Text className="text-text-muted font-normal">
+                {" "}
+                ({availableModels.length})
+              </Text>
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <Pressable onPress={() => refetchModels()}>
+                <Text className="text-xs text-accent">Refresh</Text>
+              </Pressable>
+              <Text className="text-xs text-text-muted">
+                {showAvailable ? "Hide" : "Show"}
+              </Text>
+            </View>
+          </Pressable>
+
+          {showAvailable && (
+            <>
+              <TextInput
+                className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Search models..."
+                placeholderTextColor={colors.placeholderText}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              {groupedAvailable.map((group) => (
+                <View key={group.provider}>
+                  <Text className="text-[10px] font-bold text-text-muted uppercase tracking-wider px-1 mb-1">
+                    {group.provider}
+                  </Text>
+                  <Card className="overflow-hidden">
+                    {group.models.map((model, i) => {
+                      const isEnabling = enablingModel === model.id;
+
+                      return (
+                        <Pressable
+                          key={model.id}
+                          disabled={isEnabling}
+                          onPress={() => handleEnable(model.id)}
+                          className={`flex-row items-center justify-between px-4 py-2.5 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
+                        >
+                          <Text className="text-sm text-text-secondary flex-1 mr-3">
+                            {model.name}
+                          </Text>
+                          {isEnabling ? (
+                            <ActivityIndicator
+                              color={colors.accentIndicator}
+                              size="small"
+                            />
+                          ) : (
+                            <Text className="text-xs font-medium text-success">
+                              Enable
+                            </Text>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </Card>
+                </View>
+              ))}
+
+              {groupedAvailable.length === 0 && query && (
+                <Text className="text-sm text-text-muted text-center py-3">
+                  No models matching "{search}"
+                </Text>
+              )}
+            </>
+          )}
         </View>
       )}
     </>

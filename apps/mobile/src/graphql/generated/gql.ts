@@ -34,6 +34,10 @@ type Documents = {
     "\n  query ProviderModels($providerId: String!) {\n    providerModels(providerId: $providerId) {\n      id\n      name\n    }\n  }\n": typeof types.ProviderModelsDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": typeof types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.SetDefaultModelDocument,
+    "\n  query EnabledModels($providerId: String!) {\n    enabledModels(providerId: $providerId)\n  }\n": typeof types.EnabledModelsDocument,
+    "\n  query AllEnabledModels {\n    allEnabledModels {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": typeof types.AllEnabledModelsDocument,
+    "\n  mutation EnableModel($providerId: String!, $modelId: String!) {\n    enableModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.EnableModelDocument,
+    "\n  mutation DisableModel($providerId: String!, $modelId: String!) {\n    disableModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.DisableModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
     "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      contextWindow\n      maxTokens\n      reasoning\n      inputCost\n      outputCost\n    }\n  }\n": typeof types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
@@ -91,6 +95,10 @@ const documents: Documents = {
     "\n  query ProviderModels($providerId: String!) {\n    providerModels(providerId: $providerId) {\n      id\n      name\n    }\n  }\n": types.ProviderModelsDocument,
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.SetDefaultModelDocument,
+    "\n  query EnabledModels($providerId: String!) {\n    enabledModels(providerId: $providerId)\n  }\n": types.EnabledModelsDocument,
+    "\n  query AllEnabledModels {\n    allEnabledModels {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": types.AllEnabledModelsDocument,
+    "\n  mutation EnableModel($providerId: String!, $modelId: String!) {\n    enableModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.EnableModelDocument,
+    "\n  mutation DisableModel($providerId: String!, $modelId: String!) {\n    disableModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.DisableModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
     "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      contextWindow\n      maxTokens\n      reasoning\n      inputCost\n      outputCost\n    }\n  }\n": types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
@@ -205,6 +213,22 @@ export function graphql(source: "\n  mutation RevokeConnection($id: ID!) {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n"): typeof import('./graphql').SetDefaultModelDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query EnabledModels($providerId: String!) {\n    enabledModels(providerId: $providerId)\n  }\n"): typeof import('./graphql').EnabledModelsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query AllEnabledModels {\n    allEnabledModels {\n      providerId\n      modelId\n      modelName\n    }\n  }\n"): typeof import('./graphql').AllEnabledModelsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation EnableModel($providerId: String!, $modelId: String!) {\n    enableModel(providerId: $providerId, modelId: $modelId)\n  }\n"): typeof import('./graphql').EnableModelDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DisableModel($providerId: String!, $modelId: String!) {\n    disableModel(providerId: $providerId, modelId: $modelId)\n  }\n"): typeof import('./graphql').DisableModelDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

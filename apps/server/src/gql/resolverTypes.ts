@@ -241,6 +241,13 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type EnabledModelEntry = {
+  __typename?: 'EnabledModelEntry';
+  modelId: Scalars['String']['output'];
+  modelName?: Maybe<Scalars['String']['output']>;
+  providerId: Scalars['String']['output'];
+};
+
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
   filename: Scalars['String']['input'];
@@ -307,8 +314,10 @@ export type Mutation = {
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
+  disableModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
+  enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -374,6 +383,12 @@ export type MutationDisableBedrockModelArgs = {
 };
 
 
+export type MutationDisableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationDismissNotificationArgs = {
   id: Scalars['ID']['input'];
 };
@@ -381,6 +396,12 @@ export type MutationDismissNotificationArgs = {
 
 export type MutationEnableBedrockModelArgs = {
   modelId: Scalars['String']['input'];
+};
+
+
+export type MutationEnableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -544,10 +565,12 @@ export type Query = {
   /** Skills assigned to a specific agent */
   agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
+  allEnabledModels: Array<EnabledModelEntry>;
   avatars: Array<Avatar>;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
+  enabledModels: Array<Scalars['String']['output']>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -587,6 +610,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryEnabledModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -919,6 +947,7 @@ export type ResolversTypes = {
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   Document: ResolverTypeWrapper<Document>;
+  EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
@@ -983,6 +1012,7 @@ export type ResolversParentTypes = {
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: DefaultModelResult;
   Document: Document;
+  EnabledModelEntry: EnabledModelEntry;
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: FileUploadUrl;
   Float: Scalars['Float']['output'];
@@ -1146,6 +1176,12 @@ export type DocumentResolvers<ContextType = GremlinContext, ParentType extends R
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type EnabledModelEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['EnabledModelEntry'] = ResolversParentTypes['EnabledModelEntry']> = {
+  modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileUploadUrl'] = ResolversParentTypes['FileUploadUrl']> = {
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   presignedUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1198,8 +1234,10 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
+  disableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
   dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
+  enableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
   removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
@@ -1264,10 +1302,12 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryAgentLogsArgs, 'agentId'>>;
   agentSkills?: Resolver<Array<ResolversTypes['AgentSkill']>, ParentType, ContextType, RequireFields<QueryAgentSkillsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
+  allEnabledModels?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
+  enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
@@ -1402,6 +1442,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
+  EnabledModelEntry?: EnabledModelEntryResolvers<ContextType>;
   FileUploadUrl?: FileUploadUrlResolvers<ContextType>;
   GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;

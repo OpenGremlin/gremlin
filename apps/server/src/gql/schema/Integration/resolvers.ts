@@ -21,6 +21,18 @@ const integrationConnections: QueryResolvers["integrationConnections"] = (
 const defaultModel: QueryResolvers["defaultModel"] = (_parent, _args, ctx) =>
   ctx.services.integrations.getDefaultModel(ctx);
 
+const allEnabledModels: QueryResolvers["allEnabledModels"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.getAllEnabledModels(ctx.resources);
+
+const enabledModels: QueryResolvers["enabledModels"] = (
+  _parent,
+  { providerId },
+  ctx,
+) => ctx.services.integrations.getEnabledModels(ctx.resources, providerId);
+
 const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
   _parent,
   _args,
@@ -126,6 +138,18 @@ const setDefaultModel: MutationResolvers["setDefaultModel"] = async (
   return true;
 };
 
+const enableModelMutation: MutationResolvers["enableModel"] = async (
+  _parent,
+  { providerId, modelId },
+  ctx,
+) => ctx.services.integrations.enableModel(ctx.resources, providerId, modelId);
+
+const disableModelMutation: MutationResolvers["disableModel"] = async (
+  _parent,
+  { providerId, modelId },
+  ctx,
+) => ctx.services.integrations.disableModel(ctx.resources, providerId, modelId);
+
 const enableBedrockModel: MutationResolvers["enableBedrockModel"] = async (
   _parent,
   { modelId },
@@ -173,6 +197,8 @@ export const integrationResolvers = {
     integrationProviders,
     integrationConnections,
     defaultModel,
+    allEnabledModels,
+    enabledModels,
     bedrockEnabledModels,
     bedrockAvailableModels,
     providerModels,
@@ -181,6 +207,8 @@ export const integrationResolvers = {
     connectApiKey,
     revokeIntegrationConnection,
     setDefaultModel,
+    enableModel: enableModelMutation,
+    disableModel: disableModelMutation,
     enableBedrockModel,
     disableBedrockModel,
     submitOAuthConnection,

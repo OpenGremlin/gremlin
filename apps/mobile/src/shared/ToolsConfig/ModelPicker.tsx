@@ -1,7 +1,10 @@
 import { Check } from "lucide-react-native";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { IntegrationProvidersQuery } from "../../graphql/generated/graphql";
-import { BedrockAvailableModelsQuery } from "../../graphql/queries";
+import {
+  AllEnabledModelsQuery,
+  BedrockAvailableModelsQuery,
+} from "../../graphql/queries";
 import { useQuery } from "../../hooks/useQuery";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { SheetModal } from "../SheetModal";
@@ -18,7 +21,6 @@ interface ModelOption {
 export function ModelPicker({
   model,
   providers,
-  bedrockModels,
   onSelect,
   onClose,
 }: {
@@ -28,7 +30,6 @@ export function ModelPicker({
     connectionId?: string | null;
   } | null;
   providers: Provider[];
-  bedrockModels: string[];
   onSelect: (value: {
     type: string;
     modelId?: string;
@@ -37,35 +38,43 @@ export function ModelPicker({
   onClose: () => void;
 }) {
   const colors = useNavigationTheme();
-  const { data: availableData } = useQuery(BedrockAvailableModelsQuery);
-  const availableModels = availableData?.bedrockAvailableModels ?? [];
-  const bedrockEnabledModels = availableModels.filter((m) =>
-    bedrockModels.includes(m.id),
-  );
-  const apiProviders = providers.filter(
-    (p) =>
-      p.category === "ai" &&
-      p.id !== "bedrock" &&
-      p.hasConnection &&
-      p.models?.length,
-  );
+  const { data: enabledData } = useQuery(AllEnabledModelsQuery);
+  const { data: bedrockAvailable } = useQuery(BedrockAvailableModelsQuery);
+
+  const allEnabled = enabledData?.allEnabledModels ?? [];
+  const bedrockAvailableModels = bedrockAvailable?.bedrockAvailableModels ?? [];
 
   const options: ModelOption[] = [];
-  for (const m of bedrockEnabledModels) {
+
+  // Bedrock enabled models — resolve names from available models list
+  const bedrockEnabled = allEnabled.filter((e) => e.providerId === "bedrock");
+  for (const entry of bedrockEnabled) {
+    const info = bedrockAvailableModels.find((m) => m.id === entry.modelId);
     options.push({
-      key: `bedrock:${m.id}`,
-      label: m.name,
+      key: `bedrock:${entry.modelId}`,
+      label: info?.name ?? entry.modelId,
       section: "Bedrock",
-      value: { type: "bedrock", modelId: m.id },
+      value: { type: "bedrock", modelId: entry.modelId },
     });
   }
+
+  // API-key provider enabled models
+  const apiProviders = providers.filter(
+    (p) => p.category === "ai" && p.id !== "bedrock" && p.hasConnection,
+  );
   for (const provider of apiProviders) {
-    for (const m of provider.models ?? []) {
+    const providerEnabled = allEnabled.filter(
+      (e) => e.providerId === provider.id,
+    );
+    for (const entry of providerEnabled) {
       options.push({
-        key: `${provider.id}:${m.id}`,
-        label: m.name,
+        key: `${provider.id}:${entry.modelId}`,
+        label: entry.modelName ?? entry.modelId,
         section: provider.service,
-        value: { type: "connection", connectionId: `${provider.id}:${m.id}` },
+        value: {
+          type: "connection",
+          connectionId: `${provider.id}:${entry.modelId}`,
+        },
       });
     }
   }

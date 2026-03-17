@@ -12,7 +12,6 @@ import { createTogetherAI } from "@ai-sdk/togetherai";
 import { createXai } from "@ai-sdk/xai";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import type { LanguageModel } from "ai";
-import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 
@@ -22,7 +21,7 @@ const bedrock = createAmazonBedrock({
   credentialProvider: fromNodeProviderChain(),
 });
 
-const BEDROCK_FALLBACK_MODEL = "us.anthropic.claude-sonnet-4-20250514-v1:0";
+const BEDROCK_FALLBACK_MODEL = "us.anthropic.claude-sonnet-4-6";
 
 // ── 30s TTL cache ────────────────────────────────────────
 let cachedModel: LanguageModel | null = null;
@@ -112,15 +111,13 @@ export async function getModelForAgent(
       if (agentModel.type === "connection" && agentModel.connectionId) {
         const [providerId, modelId] = agentModel.connectionId.split(":", 2);
         if (providerId && modelId) {
-          const { Item: keyItem } =
-            await ctx.resources.ddb.entities.ModelProviderKey.build(
-              GetItemCommand,
-            )
-              .key({ providerId })
-              .send();
-          if (keyItem) {
+          const apiKey = await ctx.services.integrations.getProviderApiKey(
+            ctx.resources,
+            providerId,
+          );
+          if (apiKey) {
             return {
-              model: createProviderModel(providerId, modelId, keyItem.apiKey),
+              model: createProviderModel(providerId, modelId, apiKey),
             };
           }
           log.warn(
@@ -185,12 +182,12 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
   }
 
   // Fetch the API key for the default provider
-  const { Item: keyItem } =
-    await ctx.resources.ddb.entities.ModelProviderKey.build(GetItemCommand)
-      .key({ providerId: defaultModel.providerId })
-      .send();
+  const apiKey = await ctx.services.integrations.getProviderApiKey(
+    ctx.resources,
+    defaultModel.providerId,
+  );
 
-  if (!keyItem) {
+  if (!apiKey) {
     // API key was removed but setting not cleaned up — fall back to Bedrock
     log.warn(
       { providerId: defaultModel.providerId, modelId: BEDROCK_FALLBACK_MODEL },
@@ -202,7 +199,7 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
   const model = createProviderModel(
     defaultModel.providerId,
     defaultModel.modelId,
-    keyItem.apiKey,
+    apiKey,
   );
 
   cachedModel = model;

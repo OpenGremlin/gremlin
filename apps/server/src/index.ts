@@ -48,7 +48,7 @@ async function _getAdminOrigin(): Promise<string> {
 
 // Load scheduler config from SSM (set by MessagingStack)
 async function loadSchedulerConfig() {
-  if (SKIP_AUTH) return; // local dev — no SSM
+  if (process.env.LOCALSTACK_ENDPOINT) return; // local dev — no SSM
   try {
     const ssm = new SSMClient({});
     const params = [

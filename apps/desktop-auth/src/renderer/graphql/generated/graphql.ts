@@ -224,6 +224,13 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type EnabledModelEntry = {
+  __typename?: 'EnabledModelEntry';
+  modelId: Scalars['String']['output'];
+  modelName?: Maybe<Scalars['String']['output']>;
+  providerId: Scalars['String']['output'];
+};
+
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
   filename: Scalars['String']['input'];
@@ -290,8 +297,10 @@ export type Mutation = {
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
+  disableModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
+  enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -357,6 +366,12 @@ export type MutationDisableBedrockModelArgs = {
 };
 
 
+export type MutationDisableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationDismissNotificationArgs = {
   id: Scalars['ID']['input'];
 };
@@ -364,6 +379,12 @@ export type MutationDismissNotificationArgs = {
 
 export type MutationEnableBedrockModelArgs = {
   modelId: Scalars['String']['input'];
+};
+
+
+export type MutationEnableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -531,9 +552,12 @@ export type Query = {
   /** Skills assigned to a specific agent */
   agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
+  allEnabledModels: Array<EnabledModelEntry>;
   avatars: Array<Avatar>;
+  bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
+  enabledModels: Array<Scalars['String']['output']>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -573,6 +597,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryEnabledModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 

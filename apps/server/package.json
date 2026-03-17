@@ -11,13 +11,14 @@
     "clean": "rm -rf dist",
     "codegen": "graphql-codegen --config codegen.ts",
     "schema:export": "tsx scripts/exportSchema.ts",
-    "db:create": "tsx scripts/create-local-tables.ts",
+    "setup:local": "tsx scripts/setup-local.ts",
     "db:seed": "tsx scripts/seed-local.ts",
     "test": "vitest run"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1000.0",
     "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/client-scheduler": "^3.1001.0",
     "@aws-sdk/client-sqs": "^3.1001.0",
     "@aws-sdk/client-ssm": "^3.1000.0",
     "@aws-sdk/client-sts": "^3.1004.0",

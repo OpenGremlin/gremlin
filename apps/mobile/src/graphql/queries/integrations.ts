@@ -92,6 +92,34 @@ export const SetDefaultModelMutation = graphql(`
   }
 `);
 
+export const EnabledModelsQuery = graphql(`
+  query EnabledModels($providerId: String!) {
+    enabledModels(providerId: $providerId)
+  }
+`);
+
+export const AllEnabledModelsQuery = graphql(`
+  query AllEnabledModels {
+    allEnabledModels {
+      providerId
+      modelId
+      modelName
+    }
+  }
+`);
+
+export const EnableModelMutation = graphql(`
+  mutation EnableModel($providerId: String!, $modelId: String!) {
+    enableModel(providerId: $providerId, modelId: $modelId)
+  }
+`);
+
+export const DisableModelMutation = graphql(`
+  mutation DisableModel($providerId: String!, $modelId: String!) {
+    disableModel(providerId: $providerId, modelId: $modelId)
+  }
+`);
+
 export const BedrockEnabledModelsQuery = graphql(`
   query BedrockEnabledModels {
     bedrockEnabledModels

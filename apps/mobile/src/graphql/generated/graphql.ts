@@ -224,6 +224,13 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type EnabledModelEntry = {
+  __typename?: 'EnabledModelEntry';
+  modelId: Scalars['String']['output'];
+  modelName?: Maybe<Scalars['String']['output']>;
+  providerId: Scalars['String']['output'];
+};
+
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
   filename: Scalars['String']['input'];
@@ -290,8 +297,10 @@ export type Mutation = {
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
+  disableModel: Scalars['Boolean']['output'];
   dismissNotification?: Maybe<Notification>;
   enableBedrockModel: Scalars['Boolean']['output'];
+  enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -357,6 +366,12 @@ export type MutationDisableBedrockModelArgs = {
 };
 
 
+export type MutationDisableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationDismissNotificationArgs = {
   id: Scalars['ID']['input'];
 };
@@ -364,6 +379,12 @@ export type MutationDismissNotificationArgs = {
 
 export type MutationEnableBedrockModelArgs = {
   modelId: Scalars['String']['input'];
+};
+
+
+export type MutationEnableModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -531,10 +552,12 @@ export type Query = {
   /** Skills assigned to a specific agent */
   agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
+  allEnabledModels: Array<EnabledModelEntry>;
   avatars: Array<Avatar>;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
+  enabledModels: Array<Scalars['String']['output']>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -574,6 +597,11 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryEnabledModelsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -933,6 +961,34 @@ export type SetDefaultModelMutationVariables = Exact<{
 
 
 export type SetDefaultModelMutation = { __typename?: 'Mutation', setDefaultModel: boolean };
+
+export type EnabledModelsQueryVariables = Exact<{
+  providerId: Scalars['String']['input'];
+}>;
+
+
+export type EnabledModelsQuery = { __typename?: 'Query', enabledModels: Array<string> };
+
+export type AllEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllEnabledModelsQuery = { __typename?: 'Query', allEnabledModels: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null }> };
+
+export type EnableModelMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type EnableModelMutation = { __typename?: 'Mutation', enableModel: boolean };
+
+export type DisableModelMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type DisableModelMutation = { __typename?: 'Mutation', disableModel: boolean };
 
 export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1539,6 +1595,30 @@ export const SetDefaultModelDocument = new TypedDocumentString(`
   setDefaultModel(providerId: $providerId, modelId: $modelId)
 }
     `) as unknown as TypedDocumentString<SetDefaultModelMutation, SetDefaultModelMutationVariables>;
+export const EnabledModelsDocument = new TypedDocumentString(`
+    query EnabledModels($providerId: String!) {
+  enabledModels(providerId: $providerId)
+}
+    `) as unknown as TypedDocumentString<EnabledModelsQuery, EnabledModelsQueryVariables>;
+export const AllEnabledModelsDocument = new TypedDocumentString(`
+    query AllEnabledModels {
+  allEnabledModels {
+    providerId
+    modelId
+    modelName
+  }
+}
+    `) as unknown as TypedDocumentString<AllEnabledModelsQuery, AllEnabledModelsQueryVariables>;
+export const EnableModelDocument = new TypedDocumentString(`
+    mutation EnableModel($providerId: String!, $modelId: String!) {
+  enableModel(providerId: $providerId, modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<EnableModelMutation, EnableModelMutationVariables>;
+export const DisableModelDocument = new TypedDocumentString(`
+    mutation DisableModel($providerId: String!, $modelId: String!) {
+  disableModel(providerId: $providerId, modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<DisableModelMutation, DisableModelMutationVariables>;
 export const BedrockEnabledModelsDocument = new TypedDocumentString(`
     query BedrockEnabledModels {
   bedrockEnabledModels

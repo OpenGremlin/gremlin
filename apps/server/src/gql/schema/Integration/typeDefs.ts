@@ -24,6 +24,12 @@ export const integrationTypeDefs = /* GraphQL */ `
     name: String!
   }
 
+  type EnabledModelEntry {
+    providerId: String!
+    modelId: String!
+    modelName: String
+  }
+
   type ConnectApiKeyResult {
     connectionId: ID!
     models: [ProviderModelInfo!]!
@@ -67,6 +73,8 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationProviders: [IntegrationProvider!]!
     integrationConnections: [IntegrationConnection!]!
     defaultModel: DefaultModel
+    enabledModels(providerId: String!): [String!]!
+    allEnabledModels: [EnabledModelEntry!]!
     bedrockEnabledModels: [String!]!
     bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
@@ -76,6 +84,8 @@ export const integrationTypeDefs = /* GraphQL */ `
     connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
     revokeIntegrationConnection(id: ID!): Boolean!
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
+    enableModel(providerId: String!, modelId: String!): Boolean!
+    disableModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!
     disableBedrockModel(modelId: String!): Boolean!
     submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String, clientSecret: String, tokenUrl: String, tokenAuthMethod: String): ID!

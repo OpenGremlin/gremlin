@@ -10,6 +10,9 @@ const config = getDefaultConfig(projectRoot);
 // Watch all monorepo packages
 config.watchFolders = [monorepoRoot];
 
+// Exclude heavy directories that cause EMFILE errors
+config.resolver.blockList = [/packages\/infra\/cdk\.out\/.*/];
+
 // Resolve node_modules from both the project and monorepo root
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
