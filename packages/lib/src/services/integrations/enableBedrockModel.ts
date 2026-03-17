@@ -4,18 +4,11 @@ import { generateText } from "ai";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
 import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
-import { providers } from "./providers.js";
 
 export async function enableBedrockModel(
   resources: Resources,
   modelId: string,
 ): Promise<boolean> {
-  const bedrockProvider = providers.find((p) => p.id === "bedrock");
-  const model = bedrockProvider?.models?.find((m) => m.id === modelId);
-  if (!model) {
-    throw new Error(`Unknown Bedrock model: ${modelId}`);
-  }
-
   // Test inference to verify the model is accessible
   const bedrock = createAmazonBedrock({
     credentialProvider: fromNodeProviderChain(),

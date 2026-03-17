@@ -1,6 +1,8 @@
 import { Check } from "lucide-react-native";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { IntegrationProvidersQuery } from "../../graphql/generated/graphql";
+import { BedrockAvailableModelsQuery } from "../../graphql/queries";
+import { useQuery } from "../../hooks/useQuery";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { SheetModal } from "../SheetModal";
 
@@ -35,8 +37,9 @@ export function ModelPicker({
   onClose: () => void;
 }) {
   const colors = useNavigationTheme();
-  const bedrockProvider = providers.find((p) => p.id === "bedrock");
-  const bedrockEnabledModels = (bedrockProvider?.models ?? []).filter((m) =>
+  const { data: availableData } = useQuery(BedrockAvailableModelsQuery);
+  const availableModels = availableData?.bedrockAvailableModels ?? [];
+  const bedrockEnabledModels = availableModels.filter((m) =>
     bedrockModels.includes(m.id),
   );
   const apiProviders = providers.filter(

@@ -68,6 +68,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationConnections: [IntegrationConnection!]!
     defaultModel: DefaultModel
     bedrockEnabledModels: [String!]!
+    bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
   }
 

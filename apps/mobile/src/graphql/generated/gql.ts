@@ -35,6 +35,7 @@ type Documents = {
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": typeof types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.SetDefaultModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
+    "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      contextWindow\n      maxTokens\n      reasoning\n      inputCost\n      outputCost\n    }\n  }\n": typeof types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
     "\n  mutation SubmitOAuthConnection(\n    $providerId: String!\n    $accessToken: String!\n    $refreshToken: String\n    $expiresAt: String\n    $scopes: [String!]!\n    $accountId: String\n    $clientId: String\n    $clientSecret: String\n    $tokenUrl: String\n    $tokenAuthMethod: String\n  ) {\n    submitOAuthConnection(\n      providerId: $providerId\n      accessToken: $accessToken\n      refreshToken: $refreshToken\n      expiresAt: $expiresAt\n      scopes: $scopes\n      accountId: $accountId\n      clientId: $clientId\n      clientSecret: $clientSecret\n      tokenUrl: $tokenUrl\n      tokenAuthMethod: $tokenAuthMethod\n    )\n  }\n": typeof types.SubmitOAuthConnectionDocument,
@@ -91,6 +92,7 @@ const documents: Documents = {
     "\n  mutation RevokeConnection($id: ID!) {\n    revokeIntegrationConnection(id: $id)\n  }\n": types.RevokeConnectionDocument,
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.SetDefaultModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
+    "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      contextWindow\n      maxTokens\n      reasoning\n      inputCost\n      outputCost\n    }\n  }\n": types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
     "\n  mutation SubmitOAuthConnection(\n    $providerId: String!\n    $accessToken: String!\n    $refreshToken: String\n    $expiresAt: String\n    $scopes: [String!]!\n    $accountId: String\n    $clientId: String\n    $clientSecret: String\n    $tokenUrl: String\n    $tokenAuthMethod: String\n  ) {\n    submitOAuthConnection(\n      providerId: $providerId\n      accessToken: $accessToken\n      refreshToken: $refreshToken\n      expiresAt: $expiresAt\n      scopes: $scopes\n      accountId: $accountId\n      clientId: $clientId\n      clientSecret: $clientSecret\n      tokenUrl: $tokenUrl\n      tokenAuthMethod: $tokenAuthMethod\n    )\n  }\n": types.SubmitOAuthConnectionDocument,
@@ -207,6 +209,10 @@ export function graphql(source: "\n  mutation SetDefaultModel($providerId: Strin
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n"): typeof import('./graphql').BedrockEnabledModelsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      contextWindow\n      maxTokens\n      reasoning\n      inputCost\n      outputCost\n    }\n  }\n"): typeof import('./graphql').BedrockAvailableModelsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -8,6 +8,7 @@ import { getDefaultModel } from "./getDefaultModel.js";
 import { getIntegration } from "./getIntegration.js";
 import { getIntegrations } from "./getIntegrations.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
+import { listBedrockModels } from "./listBedrockModels.js";
 import { listProviderModels } from "./listProviderModels.js";
 
 import { revokeConnection } from "./revokeConnection.js";
@@ -25,6 +26,7 @@ export const integrationService = {
   getIntegration,
   getIntegrations,
   getProviderApiKey,
+  listBedrockModels,
   listProviderModels,
   revokeConnection,
   setDefaultModel,

@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import {
+  BedrockAvailableModelsQuery,
   BedrockEnabledModelsQuery,
   ConnectApiKeyMutation,
   DisableBedrockModelMutation,
@@ -285,7 +286,6 @@ function BedrockDetailView({
   provider: {
     id: string;
     service: string;
-    models?: ReadonlyArray<ProviderModel> | null;
   };
   defaultModel: DefaultModel;
   refetch: () => void;
@@ -294,6 +294,11 @@ function BedrockDetailView({
   const { data: enabledData, refetch: refetchEnabled } = useQuery(
     BedrockEnabledModelsQuery,
   );
+  const {
+    data: availableData,
+    loading: modelsLoading,
+    refetch: refetchModels,
+  } = useQuery(BedrockAvailableModelsQuery);
   const [enablingModel, setEnablingModel] = useState<string | null>(null);
   const [disablingModel, setDisablingModel] = useState<string | null>(null);
   const [settingModel, setSettingModel] = useState<string | null>(null);
@@ -301,7 +306,17 @@ function BedrockDetailView({
 
   const enabledModels = enabledData?.bedrockEnabledModels ?? [];
   const isDefaultProvider = defaultModel?.providerId === provider.id;
-  const models = provider.models ?? [];
+  const models: ProviderModel[] = (
+    availableData?.bedrockAvailableModels ?? []
+  ).map((m) => ({
+    id: m.id,
+    name: m.name,
+    contextWindow: m.contextWindow,
+    maxTokens: m.maxTokens,
+    reasoning: m.reasoning,
+    inputCost: m.inputCost,
+    outputCost: m.outputCost,
+  }));
 
   async function handleEnable(modelId: string) {
     setEnablingModel(modelId);
@@ -369,9 +384,25 @@ function BedrockDetailView({
         </View>
       ) : null}
 
-      {models.length > 0 && (
+      {modelsLoading && (
+        <View className="py-4 items-center">
+          <ActivityIndicator color={colors.accentIndicator} size="small" />
+          <Text className="text-xs text-text-muted mt-2">
+            Fetching models...
+          </Text>
+        </View>
+      )}
+
+      {!modelsLoading && models.length > 0 && (
         <View className="gap-3">
-          <Text className="text-sm font-medium text-text-primary">Models</Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-text-primary">
+              Models
+            </Text>
+            <Pressable onPress={() => refetchModels()}>
+              <Text className="text-xs text-accent">Refresh</Text>
+            </Pressable>
+          </View>
           {models.map((model) => {
             const isEnabled = enabledModels.includes(model.id);
             const isDefault =

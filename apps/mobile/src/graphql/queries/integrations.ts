@@ -98,6 +98,20 @@ export const BedrockEnabledModelsQuery = graphql(`
   }
 `);
 
+export const BedrockAvailableModelsQuery = graphql(`
+  query BedrockAvailableModels {
+    bedrockAvailableModels {
+      id
+      name
+      contextWindow
+      maxTokens
+      reasoning
+      inputCost
+      outputCost
+    }
+  }
+`);
+
 export const EnableBedrockModelMutation = graphql(`
   mutation EnableBedrockModel($modelId: String!) {
     enableBedrockModel(modelId: $modelId)

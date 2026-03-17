@@ -23,6 +23,7 @@ type Query {
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
   bedrockEnabledModels: [String!]!
+  bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
   notifications: [Notification!]!
   profile: Profile!

@@ -27,6 +27,12 @@ const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
   ctx,
 ) => ctx.services.integrations.getBedrockEnabledModels(ctx.resources);
 
+const bedrockAvailableModels: QueryResolvers["bedrockAvailableModels"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.listBedrockModels();
+
 const providerModels: QueryResolvers["providerModels"] = async (
   _parent,
   { providerId },
@@ -168,6 +174,7 @@ export const integrationResolvers = {
     integrationConnections,
     defaultModel,
     bedrockEnabledModels,
+    bedrockAvailableModels,
     providerModels,
   },
   Mutation: {

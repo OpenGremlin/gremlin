@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
+  BedrockAvailableModelsQuery,
   BedrockEnabledModelsQuery,
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
@@ -59,17 +60,17 @@ type ProvidersData = {
   }>;
 } | null;
 
+type BedrockModel = { id: string; name: string };
+
 function getModelLabel(
   model: PlainConfig["model"],
   providers: ProvidersData,
   bedrockModels: string[],
+  availableBedrockModels: BedrockModel[],
 ): string {
   if (!model) return "Select a model";
   if (model.type === "bedrock" && model.modelId) {
-    const bedrockProvider = providers?.integrationProviders?.find(
-      (p) => p.id === "bedrock",
-    );
-    const m = bedrockProvider?.models?.find(
+    const m = availableBedrockModels.find(
       (m) => m.id === model.modelId && bedrockModels.includes(m.id),
     );
     return m ? `Bedrock / ${m.name}` : `Bedrock / ${model.modelId}`;
@@ -91,8 +92,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
   const { data: bedrockData } = useQuery(BedrockEnabledModelsQuery);
+  const { data: bedrockAvailableData } = useQuery(BedrockAvailableModelsQuery);
   const providers = providersData?.integrationProviders ?? [];
   const bedrockModels = bedrockData?.bedrockEnabledModels ?? [];
+  const availableBedrockModels =
+    bedrockAvailableData?.bedrockAvailableModels ?? [];
   const webSearchProviders = providers.filter(
     (p) => p.category === "web" && p.hasConnection,
   );
@@ -128,7 +132,12 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     }
   }
 
-  const modelLabel = getModelLabel(config.model, providersData, bedrockModels);
+  const modelLabel = getModelLabel(
+    config.model,
+    providersData,
+    bedrockModels,
+    availableBedrockModels,
+  );
 
   return (
     <View className="gap-3">

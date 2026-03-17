@@ -532,6 +532,7 @@ export type Query = {
   agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
   globalSettings: GlobalSettings;
@@ -937,6 +938,11 @@ export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }
 
 
 export type BedrockEnabledModelsQuery = { __typename?: 'Query', bedrockEnabledModels: Array<string> };
+
+export type BedrockAvailableModelsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BedrockAvailableModelsQuery = { __typename?: 'Query', bedrockAvailableModels: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> };
 
 export type EnableBedrockModelMutationVariables = Exact<{
   modelId: Scalars['String']['input'];
@@ -1538,6 +1544,19 @@ export const BedrockEnabledModelsDocument = new TypedDocumentString(`
   bedrockEnabledModels
 }
     `) as unknown as TypedDocumentString<BedrockEnabledModelsQuery, BedrockEnabledModelsQueryVariables>;
+export const BedrockAvailableModelsDocument = new TypedDocumentString(`
+    query BedrockAvailableModels {
+  bedrockAvailableModels {
+    id
+    name
+    contextWindow
+    maxTokens
+    reasoning
+    inputCost
+    outputCost
+  }
+}
+    `) as unknown as TypedDocumentString<BedrockAvailableModelsQuery, BedrockAvailableModelsQueryVariables>;
 export const EnableBedrockModelDocument = new TypedDocumentString(`
     mutation EnableBedrockModel($modelId: String!) {
   enableBedrockModel(modelId: $modelId)

@@ -545,6 +545,7 @@ export type Query = {
   agentSkills: Array<AgentSkill>;
   agents: Array<Agent>;
   avatars: Array<Avatar>;
+  bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
   globalSettings: GlobalSettings;
@@ -1264,6 +1265,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agentSkills?: Resolver<Array<ResolversTypes['AgentSkill']>, ParentType, ContextType, RequireFields<QueryAgentSkillsArgs, 'agentId'>>;
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
+  bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
