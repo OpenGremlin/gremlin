@@ -67,6 +67,7 @@ export class MessagingStack extends cdk.Stack {
         environment: {
           MAIN_TABLE_NAME: props.tableName,
           DOORBELL_SQS_URL: queue.queueUrl,
+          NODE_ENV: "production",
         },
       },
     );
@@ -99,6 +100,7 @@ export class MessagingStack extends cdk.Stack {
         environment: {
           MAIN_TABLE_NAME: props.tableName,
           DOORBELL_SQS_URL: queue.queueUrl,
+          NODE_ENV: "production",
         },
       },
     );

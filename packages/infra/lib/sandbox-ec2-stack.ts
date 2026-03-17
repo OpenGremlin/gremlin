@@ -206,6 +206,9 @@ export class SandboxEc2Stack extends cdk.Stack {
         handler: "handler",
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
+        environment: {
+          NODE_ENV: "production",
+        },
         bundling: {
           format: lambda_nodejs.OutputFormat.ESM,
           mainFields: ["module", "main"],
@@ -245,6 +248,7 @@ export class SandboxEc2Stack extends cdk.Stack {
         timeout: cdk.Duration.seconds(60),
         environment: {
           MAIN_TABLE_NAME: props.tableName,
+          NODE_ENV: "production",
         },
         bundling: {
           format: lambda_nodejs.OutputFormat.ESM,

@@ -33,6 +33,7 @@ export class MediaStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       environment: {
         BUCKET_NAME: bucket.bucketName,
+        NODE_ENV: "production",
       },
       bundling: {
         nodeModules: ["sharp"],
