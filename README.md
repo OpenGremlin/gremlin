@@ -44,6 +44,41 @@ Agents only get short-lived access tokens for the current task. They can't mint 
 
 ### Getting started
 
+#### Prerequisites
+
+- **Node.js** (v20+)
+- **pnpm 9** — install with `corepack enable && corepack prepare pnpm@9 --activate`
+- **AWS CLI** — [install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- **AWS account** with credentials configured (see below)
+
+#### AWS credentials
+
+CDK needs AWS credentials to deploy. Configure them using one of:
+
+```bash
+# Option 1: SSO (recommended)
+aws configure sso
+aws sso login --profile your-profile
+export AWS_PROFILE=your-profile
+
+# Option 2: IAM access keys
+aws configure
+# Enter your Access Key ID, Secret Access Key, and region (us-east-1)
+```
+
+Verify your credentials are working:
+
+```bash
+aws sts get-caller-identity
+```
+
+If this is the first time using CDK in your AWS account/region, bootstrap it:
+
+```bash
+cd packages/infra
+npx cdk bootstrap
+```
+
 #### 1. Deploy the server
 
 ```
