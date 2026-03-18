@@ -8,7 +8,7 @@ metadata:
   version: 1.0.0
   displayName: Google Sheets (GWS CLI)
   author: gremlin
-  category: productivity
+  category: google-workspace
   icon: google
   tags: [google, sheets, spreadsheet, data, productivity]
   connections:

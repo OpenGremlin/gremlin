@@ -1,14 +1,18 @@
 import { router } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
-import { groupByCategory } from "../../../../src/shared/categories";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
+import { groupSkillsByCategory } from "../../../../src/shared/categories";
+import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 
 export default function SkillsScreen() {
   const [query, setQuery] = useState("");
+  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(SkillTemplatesQuery);
 
   const templates = data?.skillTemplates ?? [];
@@ -19,7 +23,7 @@ export default function SkillsScreen() {
       t.name.toLowerCase().includes(q) ||
       t.description.toLowerCase().includes(q),
   );
-  const grouped = groupByCategory(filteredTemplates);
+  const grouped = groupSkillsByCategory(filteredTemplates);
 
   return (
     <ScrollView
@@ -36,8 +40,11 @@ export default function SkillsScreen() {
       <QueryResult loading={loading} error={error} />
 
       {grouped.map((group) => (
-        <View key={group.category} className="gap-2">
-          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+        <View
+          key={group.category}
+          className="gap-0 bg-surface border border-app-border rounded-xl overflow-hidden"
+        >
+          <Text className="text-xs font-medium text-text-muted uppercase tracking-wider px-3 pt-3 pb-1.5">
             {group.label}
           </Text>
           {group.items.map((template) => (
@@ -46,29 +53,18 @@ export default function SkillsScreen() {
               onPress={() =>
                 router.push(`/settings/skills/catalog/${template.id}`)
               }
-              className="bg-surface border border-app-border rounded-xl p-4 active:bg-surface-alt"
+              className="flex-row items-center gap-3 px-3 py-2.5 active:bg-surface-alt"
             >
-              <Text className="text-sm font-medium text-text-primary">
-                {template.name}
-              </Text>
-              <Text
-                className="text-xs text-text-muted mt-0.5"
-                numberOfLines={2}
-              >
-                {template.description}
-              </Text>
-              {template.tags && template.tags.length > 0 && (
-                <View className="flex-row flex-wrap gap-1 mt-2">
-                  {template.tags.map((tag) => (
-                    <Text
-                      key={tag}
-                      className="text-[10px] text-text-muted bg-surface-alt px-1.5 py-0.5 rounded"
-                    >
-                      {tag}
-                    </Text>
-                  ))}
-                </View>
-              )}
+              <IntegrationLogo id={template.icon ?? template.id} size={28} />
+              <View className="flex-1 min-w-0">
+                <Text className="text-sm font-medium text-text-primary">
+                  {template.name}
+                </Text>
+                <Text className="text-xs text-text-muted" numberOfLines={1}>
+                  {template.description}
+                </Text>
+              </View>
+              <ChevronRight size={16} color={colors.iconDefault} />
             </Pressable>
           ))}
         </View>

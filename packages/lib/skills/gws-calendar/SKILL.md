@@ -9,7 +9,7 @@ metadata:
   version: 1.0.0
   displayName: Google Calendar (GWS CLI)
   author: gremlin
-  category: productivity
+  category: google-workspace
   icon: google
   tags: [google, calendar, events, scheduling, productivity]
   connections:

@@ -8,7 +8,7 @@ metadata:
   version: 1.0.0
   displayName: Google Docs (GWS CLI)
   author: gremlin
-  category: productivity
+  category: google-workspace
   icon: google
   tags: [google, docs, documents, writing, productivity]
   connections:
