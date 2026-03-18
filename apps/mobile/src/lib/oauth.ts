@@ -176,6 +176,8 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       authorizeUrl: "https://accounts.spotify.com/authorize",
       tokenUrl: "https://accounts.spotify.com/api/token",
       pkce: false,
+      defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
+      defaultClientSecret: "bd7c953c3ce747288f231bc1abcf40e0",
       userInfo: {
         method: "rest",
         url: "https://api.spotify.com/v1/me",

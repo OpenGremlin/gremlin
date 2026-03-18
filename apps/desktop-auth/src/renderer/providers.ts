@@ -146,6 +146,8 @@ export const oauthProviders: ProviderMeta[] = [
     service: "Spotify",
     description: "Playlists & Listening History",
     logo: "Spotify.svg",
+    defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
+    defaultClientSecret: "bd7c953c3ce747288f231bc1abcf40e0",
     tokenUrl: "https://accounts.spotify.com/api/token",
     scopes: [
       { scope: "user-read-playback-state", label: "Read Playback State" },

@@ -30,6 +30,8 @@ export interface IntegrationProviderDef {
   connectionType: "oauth" | "apikey" | "bedrock" | "custom";
   availableScopes: AvailableScope[];
   models?: ModelDef[];
+  /** Hide from the UI — provider exists but is not ready for users yet */
+  hidden?: boolean;
 }
 
 export const providers: IntegrationProviderDef[] = [
@@ -200,6 +202,7 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Channels & Direct Messages",
     connectionType: "custom",
+    hidden: true,
     availableScopes: [
       { scope: "channels:read", label: "Read Channels" },
       { scope: "chat:write", label: "Send Messages" },
@@ -211,6 +214,7 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Servers & Direct Messages",
     connectionType: "oauth",
+    hidden: true,
     availableScopes: [
       { scope: "guilds", label: "Access Servers" },
       { scope: "messages.read", label: "Read Messages" },
@@ -222,6 +226,7 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Chats & Channels",
     connectionType: "oauth",
+    hidden: true,
     availableScopes: [
       { scope: "Chat.Read", label: "Read Chats" },
       { scope: "Chat.ReadWrite", label: "Send Messages" },
@@ -233,6 +238,7 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Chats & Channels",
     connectionType: "custom",
+    hidden: true,
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
@@ -244,6 +250,7 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Messages & Groups",
     connectionType: "custom",
+    hidden: true,
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
       { scope: "messages:send", label: "Send Messages" },
