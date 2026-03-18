@@ -68,7 +68,7 @@ export async function buildSkillTools(
 
   tools.authenticate = tool({
     description:
-      "Set up or refresh auth tokens for a skill. Call this after loadSkill and before using the skill via runCommand. If you get auth errors, call this again to get fresh tokens.",
+      "Set up or refresh auth tokens for a skill. Call this after ensureSandbox and loadSkill, right before your first runCommand. Tokens expire quickly so don't call this until the sandbox is ready. If you get auth errors, call this again to get fresh tokens.",
     inputSchema: z.object({
       skillId: z.string().describe("The skill ID to authenticate"),
       connectionId: z

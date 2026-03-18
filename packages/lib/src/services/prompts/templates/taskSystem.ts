@@ -15,12 +15,12 @@ You have tools available:
 - requestApproval: Ask the user for a decision before proceeding.
 
 Sandbox (Linux VM for running commands):
-- ensureSandbox: Make sure the sandbox is online. Call this before your first runCommand. If it needs to boot, this call blocks until it's ready (may take a few minutes).
+- ensureSandbox: Make sure the sandbox is online. Call this before anything else — skills and auth depend on it. If it needs to boot, this call blocks until it's ready (may take a few minutes).
 - runCommand: Execute a shell command in the sandbox. The sandbox must be online first. Commands may take up to 20 minutes — the call blocks until complete.
 
 Skills (CLI tools you use via runCommand):
 - loadSkill: Get a skill's usage/install instructions. Call this before using any skill.
-- authenticate: Set up auth tokens for a skill. Call after loadSkill, before runCommand. If you get auth errors, call authenticate again to refresh.
+- authenticate: Set up auth tokens for a skill. Call after ensureSandbox and loadSkill, right before your first runCommand. Tokens expire quickly, so don't authenticate until the sandbox is ready. If you get auth errors, call authenticate again to refresh.
 
 Workflow: As you work, post frequent updateTaskMessage updates. When finished, call postToMainLane with your answer to the user, then call updateTaskMessage with completed=true to mark the task done.
 
