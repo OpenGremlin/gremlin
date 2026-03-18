@@ -1,5 +1,5 @@
 ---
-name: drive
+name: gws-drive
 description: >-
   Search, upload, download, and manage files, folders, and
   permissions on Google Drive via the Google Workspace CLI
@@ -7,6 +7,7 @@ description: >-
   sharing, or uploads.
 metadata:
   version: 1.0.0
+  displayName: Google Drive (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -31,7 +32,7 @@ You have access to Google Drive via the `gws` CLI.
 | `+upload` | Upload a file with automatic MIME detection | `upload` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("drive", "<reference>")`
+`readSkillReference("gws-drive", "<reference>")`
 
 ## Quick start
 

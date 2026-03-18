@@ -1,11 +1,12 @@
 ---
-name: gmail
+name: gws-gmail
 description: >-
   Read, triage, send, reply, and forward email via the
   Google Workspace CLI (gws). Use when the user asks about
   email, inbox, messages, or Gmail.
 metadata:
   version: 1.0.0
+  displayName: Gmail (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -36,7 +37,7 @@ You have access to Gmail via the `gws` CLI.
 | `+watch` | Watch for new emails via Pub/Sub | `watch` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("gmail", "<reference>")`
+`readSkillReference("gws-gmail", "<reference>")`
 
 ## Quick start
 

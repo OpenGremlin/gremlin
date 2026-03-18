@@ -13,6 +13,7 @@ const connectionSchema = z.object({
 
 const metadataSchema = z.object({
   version: z.string(),
+  displayName: z.string().optional(),
   author: z.string().optional(),
   category: z.string().optional(),
   icon: z.string().optional(),
@@ -48,6 +49,7 @@ export function parseSkillFile(
     return {
       id,
       name: fm.name,
+      displayName: fm.metadata.displayName,
       description: fm.description,
       version: fm.metadata.version,
       author: fm.metadata.author,

@@ -1,11 +1,12 @@
 ---
-name: sheets
+name: gws-sheets
 description: >-
   Read, write, and append data in Google Sheets spreadsheets
   via the Google Workspace CLI (gws). Use when the user asks
   about spreadsheets, Sheets, data entry, or tabular data.
 metadata:
   version: 1.0.0
+  displayName: Google Sheets (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -31,7 +32,7 @@ You have access to Google Sheets via the `gws` CLI.
 | `+append` | Append rows to a spreadsheet | `append` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("sheets", "<reference>")`
+`readSkillReference("gws-sheets", "<reference>")`
 
 ## Quick start
 

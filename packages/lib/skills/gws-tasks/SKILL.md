@@ -1,11 +1,12 @@
 ---
-name: tasks
+name: gws-tasks
 description: >-
   Create, list, update, and manage Google Tasks lists and
   items via the Google Workspace CLI (gws). Use when the
   user asks about tasks, to-dos, or task lists.
 metadata:
   version: 1.0.0
+  displayName: Google Tasks (GWS CLI)
   author: gremlin
   category: productivity
   icon: google

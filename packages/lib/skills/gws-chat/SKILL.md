@@ -1,11 +1,12 @@
 ---
-name: chat
+name: gws-chat
 description: >-
   Send messages and manage Google Chat spaces via the
   Google Workspace CLI (gws). Use when the user asks about
   Chat, messaging teams, or sending notifications.
 metadata:
   version: 1.0.0
+  displayName: Google Chat (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -30,7 +31,7 @@ You have access to Google Chat via the `gws` CLI.
 | `+send` | Send a plain text message to a space | `send` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("chat", "<reference>")`
+`readSkillReference("gws-chat", "<reference>")`
 
 ## Quick start
 

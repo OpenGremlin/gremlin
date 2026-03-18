@@ -1,5 +1,5 @@
 ---
-name: calendar
+name: gws-calendar
 description: >-
   View agenda, create events, check free/busy, and manage
   Google Calendar via the Google Workspace CLI (gws). Use
@@ -7,6 +7,7 @@ description: >-
   scheduling.
 metadata:
   version: 1.0.0
+  displayName: Google Calendar (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -32,7 +33,7 @@ You have access to Google Calendar via the `gws` CLI.
 | `+insert` | Create a new event | `insert` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("calendar", "<reference>")`
+`readSkillReference("gws-calendar", "<reference>")`
 
 ## Quick start
 

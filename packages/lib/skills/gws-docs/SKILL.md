@@ -1,11 +1,12 @@
 ---
-name: docs
+name: gws-docs
 description: >-
   Read, create, and write Google Docs documents via the
   Google Workspace CLI (gws). Use when the user asks about
   documents, Docs, or writing/reading document content.
 metadata:
   version: 1.0.0
+  displayName: Google Docs (GWS CLI)
   author: gremlin
   category: productivity
   icon: google
@@ -30,7 +31,7 @@ You have access to Google Docs via the `gws` CLI.
 | `+write` | Append text to a document | `write` |
 
 Before using a command, load its reference for detailed flags and examples:
-`readSkillReference("docs", "<reference>")`
+`readSkillReference("gws-docs", "<reference>")`
 
 ## Quick start
 

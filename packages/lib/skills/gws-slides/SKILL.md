@@ -1,11 +1,12 @@
 ---
-name: slides
+name: gws-slides
 description: >-
   Create and manage Google Slides presentations via the
   Google Workspace CLI (gws). Use when the user asks about
   presentations, Slides, or slide decks.
 metadata:
   version: 1.0.0
+  displayName: Google Slides (GWS CLI)
   author: gremlin
   category: productivity
   icon: google

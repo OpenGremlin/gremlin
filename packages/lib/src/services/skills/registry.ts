@@ -11,9 +11,12 @@ export interface SkillConnectionRequirement {
 }
 
 export interface SkillTemplate {
-  /** Derived from the directory name (e.g. "github", "google-workspace") */
+  /** Derived from the directory name (e.g. "gws-gmail", "gws-calendar") */
   id: string;
+  /** Unique skill identifier, matches the directory name */
   name: string;
+  /** Human-readable display name for the UI (e.g. "Google Calendar (GWS CLI)") */
+  displayName?: string;
   description: string;
   version: string;
   author?: string;

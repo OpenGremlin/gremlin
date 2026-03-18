@@ -36,7 +36,8 @@ export async function buildSkillSummary(
     );
     if (!template) continue;
 
-    let entry = `- **${template.name}** (skillId: \`${template.id}\`): ${template.description}`;
+    const label = template.displayName ?? template.name;
+    let entry = `- **${label}** (skillId: \`${template.id}\`): ${template.description}`;
 
     // List available connections
     if (template.connections?.length) {
