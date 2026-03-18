@@ -30,7 +30,7 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
     title: "Agents",
     items: [
       { label: "Skills", icon: Sparkles, href: "/settings/skills" },
-      { label: "Connections", icon: Plug, href: "/settings/integrations" },
+      { label: "Connections", icon: Plug, href: "/settings/connections" },
       { label: "Files", icon: FolderOpen, href: "/settings/files" },
     ],
   },

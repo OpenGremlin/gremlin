@@ -1,14 +1,13 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
-import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { QueryResult } from "../../../../src/shared/QueryResult";
+import { SearchInput } from "../../../../src/shared/SearchInput";
 
 export default function SkillsScreen() {
-  const colors = useNavigationTheme();
   const [query, setQuery] = useState("");
   const { data, loading, error } = useQuery(SkillTemplatesQuery);
 
@@ -28,12 +27,10 @@ export default function SkillsScreen() {
       contentContainerClassName="px-4 py-4 gap-5"
       keyboardShouldPersistTaps="handled"
     >
-      <TextInput
+      <SearchInput
         placeholder="Search skills..."
         value={query}
         onChangeText={setQuery}
-        className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
-        placeholderTextColor={colors.placeholderText}
       />
 
       <QueryResult loading={loading} error={error} />

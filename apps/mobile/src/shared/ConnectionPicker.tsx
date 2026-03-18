@@ -102,7 +102,7 @@ export function ConnectionPicker({
                 <Pressable
                   onPress={() =>
                     router.push(
-                      `/settings/integrations/${req.provider}` as never,
+                      `/settings/connections/provider/${req.provider}` as never,
                     )
                   }
                 >

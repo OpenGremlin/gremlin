@@ -17,11 +17,11 @@ export default function SettingsLayout() {
         options={{ title: "Skill" }}
       />
       <Stack.Screen
-        name="integrations/index"
+        name="connections/index"
         options={{ title: "Connections" }}
       />
       <Stack.Screen
-        name="integrations/[id]"
+        name="connections/provider/[id]"
         options={{ title: "Connection" }}
       />
       <Stack.Screen name="connections/[id]" options={{ title: "Connection" }} />

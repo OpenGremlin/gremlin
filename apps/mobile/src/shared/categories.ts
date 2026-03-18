@@ -1,7 +1,7 @@
 export const categoryLabels: Record<string, string> = {
   ai: "AI Models",
   developer: "Developer",
-  web: "Web",
+  web: "Web Search",
   productivity: "Productivity",
   communication: "Communication",
   entertainment: "Entertainment",
@@ -10,12 +10,12 @@ export const categoryLabels: Record<string, string> = {
 
 export const categoryOrder = [
   "ai",
-  "developer",
   "web",
   "productivity",
   "communication",
   "entertainment",
   "smart_home",
+  "developer",
 ];
 
 export function groupByCategory<T extends { category?: string | null }>(

@@ -133,7 +133,7 @@ export const providers: IntegrationProviderDef[] = [
   // Web
   {
     id: "brave",
-    service: "Brave Search",
+    service: "Brave",
     category: "web",
     description: "Web search via Brave Search API",
     connectionType: "apikey",

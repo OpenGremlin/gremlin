@@ -21,19 +21,20 @@ import {
   IntegrationProvidersQuery,
   ProviderModelsQuery,
   SetDefaultModelMutation,
-} from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
-import { gql } from "../../../../src/lib/auth";
+} from "../../../../../src/graphql/queries";
+import { useQuery } from "../../../../../src/hooks/useQuery";
+import { gql } from "../../../../../src/lib/auth";
 import {
   connectOAuthProvider,
   getOAuthDefaults,
   isOAuthAvailable,
-} from "../../../../src/lib/oauth";
-import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
-import { Button } from "../../../../src/shared/Button";
-import { Card } from "../../../../src/shared/Card";
-import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
-import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
+} from "../../../../../src/lib/oauth";
+import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
+import { Button } from "../../../../../src/shared/Button";
+import { Card } from "../../../../../src/shared/Card";
+import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
+import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
+import { SearchInput } from "../../../../../src/shared/SearchInput";
 
 type ProviderModel = {
   id: string;
@@ -237,14 +238,10 @@ function ApiKeyModelList({
 
           {showAvailable && (
             <>
-              <TextInput
-                className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
+              <SearchInput
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Search models..."
-                placeholderTextColor={colors.placeholderText}
-                autoCapitalize="none"
-                autoCorrect={false}
               />
 
               <Card className="overflow-hidden">
@@ -628,14 +625,10 @@ function BedrockDetailView({
 
           {showAvailable && (
             <>
-              <TextInput
-                className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
+              <SearchInput
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Search models..."
-                placeholderTextColor={colors.placeholderText}
-                autoCapitalize="none"
-                autoCorrect={false}
               />
 
               {groupedAvailable.map((group) => (

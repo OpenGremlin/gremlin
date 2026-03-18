@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   IntegrationConnectionsQuery,
@@ -12,15 +12,16 @@ import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryResult } from "../../../../src/shared/QueryResult";
+import { SearchInput } from "../../../../src/shared/SearchInput";
 
 function ConnectionCountBadge({ count }: { count: number }) {
   if (count === 0) {
-    return <Text className="text-xs text-text-muted">Connect</Text>;
+    return <Text className="text-[10px] text-text-muted">Connect</Text>;
   }
   return (
     <View className="flex-row items-center gap-1">
-      <CircleCheck size={12} color="#059669" />
-      <Text className="text-xs text-emerald-600">
+      <CircleCheck size={10} color="#059669" />
+      <Text className="text-[10px] text-emerald-600">
         {count > 1 ? `${count} ` : ""}Connected
       </Text>
     </View>
@@ -30,6 +31,7 @@ function ConnectionCountBadge({ count }: { count: number }) {
 export default function IntegrationsScreen() {
   const providers = useQuery(IntegrationProvidersQuery);
   const connections = useQuery(IntegrationConnectionsQuery);
+  const [search, setSearch] = useState("");
 
   useFocusEffect(
     // biome-ignore lint/correctness/useExhaustiveDependencies: refetch on screen focus only, not on every render
@@ -45,7 +47,17 @@ export default function IntegrationsScreen() {
   const providerList = providers.data?.integrationProviders ?? [];
   const connectionList = connections.data?.integrationConnections ?? [];
 
-  const grouped = groupByCategory(providerList);
+  const query = search.toLowerCase().trim();
+
+  const filteredProviders = useMemo(
+    () =>
+      query
+        ? providerList.filter((p) => p.service.toLowerCase().includes(query))
+        : providerList,
+    [providerList, query],
+  );
+
+  const grouped = groupByCategory(filteredProviders);
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-4 gap-5">
@@ -100,33 +112,30 @@ export default function IntegrationsScreen() {
           <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             Connections
           </Text>
-          {connectionList.map((conn) => (
-            <Pressable
-              key={conn.id}
-              onPress={() => router.push(`/settings/connections/${conn.id}`)}
-              className="flex-row items-center gap-3 bg-surface border border-app-border rounded-xl p-4 active:bg-surface-alt"
-            >
-              <IntegrationLogo id={conn.providerId} size={32} />
-              <View className="flex-1 min-w-0">
-                <Text
-                  className="text-sm font-medium text-text-primary"
-                  numberOfLines={1}
-                >
-                  {conn.meta.accountId && conn.meta.accountId !== "unknown"
-                    ? conn.meta.accountId
-                    : conn.provider.service}
-                </Text>
+          <Card className="overflow-hidden">
+            {connectionList.map((conn, i) => (
+              <Pressable
+                key={conn.id}
+                onPress={() => router.push(`/settings/connections/${conn.id}`)}
+                className={`flex-row items-center gap-3 px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
+              >
+                <IntegrationLogo id={conn.providerId} size={24} />
+                <View className="flex-1 min-w-0">
+                  <Text
+                    className="text-sm font-medium text-text-primary"
+                    numberOfLines={1}
+                  >
+                    {conn.meta.accountId && conn.meta.accountId !== "unknown"
+                      ? conn.meta.accountId
+                      : conn.provider.service}
+                  </Text>
+                </View>
                 <Text className="text-xs text-text-muted" numberOfLines={1}>
-                  {conn.connectionType === "oauth"
-                    ? "OAuth"
-                    : conn.connectionType === "apikey"
-                      ? "API Key"
-                      : conn.connectionType}{" "}
-                  · {formatDate(conn.connectedAt)}
+                  {formatDate(conn.connectedAt)}
                 </Text>
-              </View>
-            </Pressable>
-          ))}
+              </Pressable>
+            ))}
+          </Card>
         </View>
       )}
 
@@ -134,54 +143,58 @@ export default function IntegrationsScreen() {
         <View className="border-b border-app-border" />
       )}
 
+      {!loading && !error && (
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search providers..."
+        />
+      )}
+
       {grouped.map((group) => (
         <View key={group.category} className="gap-2">
           <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
             {group.label}
           </Text>
-          {group.items.map((provider) => {
-            const connected =
-              provider.connectionType === "bedrock" ||
-              provider.connectionCount > 0;
-            return (
-              <Pressable
-                key={provider.id}
-                onPress={() =>
-                  router.push(`/settings/integrations/${provider.id}`)
-                }
-                className={`flex-row items-center gap-3 bg-surface rounded-xl p-4 active:bg-surface-alt ${
-                  connected
-                    ? "border-2 border-emerald-500"
-                    : "border border-app-border"
-                }`}
-              >
-                <IntegrationLogo id={provider.id} size={36} />
-                <View className="flex-1 min-w-0">
-                  <Text className="text-sm font-medium text-text-primary">
-                    {provider.service}
-                  </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {group.items.map((provider) => {
+              const connected =
+                provider.connectionType === "bedrock" ||
+                provider.connectionCount > 0;
+              return (
+                <Pressable
+                  key={provider.id}
+                  onPress={() =>
+                    router.push(`/settings/connections/provider/${provider.id}`)
+                  }
+                  className={`items-center gap-1.5 bg-surface rounded-xl px-3 py-3 active:bg-surface-alt ${
+                    connected
+                      ? "border-2 border-emerald-500"
+                      : "border border-app-border"
+                  }`}
+                  style={{ width: "31.3%" }}
+                >
+                  <IntegrationLogo id={provider.id} size={28} />
                   <Text
-                    className="text-xs text-text-muted mt-0.5"
+                    className="text-xs font-medium text-text-primary text-center"
                     numberOfLines={1}
                   >
-                    {provider.description}
+                    {provider.service}
                   </Text>
-                  <View className="mt-1">
-                    {provider.connectionType === "bedrock" ? (
-                      <View className="flex-row items-center gap-1">
-                        <CircleCheck size={12} color="#059669" />
-                        <Text className="text-xs text-emerald-600">
-                          Connected
-                        </Text>
-                      </View>
-                    ) : (
-                      <ConnectionCountBadge count={provider.connectionCount} />
-                    )}
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
+                  {provider.connectionType === "bedrock" ? (
+                    <View className="flex-row items-center gap-1">
+                      <CircleCheck size={10} color="#059669" />
+                      <Text className="text-[10px] text-emerald-600">
+                        Connected
+                      </Text>
+                    </View>
+                  ) : (
+                    <ConnectionCountBadge count={provider.connectionCount} />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       ))}
     </ScrollView>
