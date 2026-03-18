@@ -424,6 +424,7 @@ type GlobalSettings {
 type SkillTemplate {
   id: ID!
   name: String!
+  displayName: String
   description: String!
   version: String!
   author: String

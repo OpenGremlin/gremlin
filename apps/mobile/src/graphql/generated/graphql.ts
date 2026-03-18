@@ -688,6 +688,7 @@ export type SkillTemplate = {
   category?: Maybe<Scalars['String']['output']>;
   connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
+  displayName?: Maybe<Scalars['String']['output']>;
   hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -1135,14 +1136,14 @@ export type UpdateGlobalSettingsMutation = { __typename?: 'Mutation', updateGlob
 export type SkillTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> }> };
+export type SkillTemplatesQuery = { __typename?: 'Query', skillTemplates: Array<{ __typename?: 'SkillTemplate', id: string, name: string, displayName?: string | null, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> }> };
 
 export type SkillTemplateQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> } | null };
+export type SkillTemplateQuery = { __typename?: 'Query', skillTemplate?: { __typename?: 'SkillTemplate', id: string, name: string, displayName?: string | null, description: string, version: string, author?: string | null, category?: string | null, icon?: string | null, tags?: Array<string> | null, hasInstall: boolean, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, requestedScopes?: Array<string> | null }> } | null };
 
 export type AgentSkillsQueryVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1851,6 +1852,7 @@ export const SkillTemplatesDocument = new TypedDocumentString(`
   skillTemplates {
     id
     name
+    displayName
     description
     version
     author
@@ -1874,6 +1876,7 @@ export const SkillTemplateDocument = new TypedDocumentString(`
   skillTemplate(id: $id) {
     id
     name
+    displayName
     description
     version
     author

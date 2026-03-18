@@ -50,15 +50,13 @@ export default function SkillsScreen() {
           {group.items.map((template) => (
             <Pressable
               key={template.id}
-              onPress={() =>
-                router.push(`/settings/skills/catalog/${template.id}`)
-              }
+              onPress={() => router.push(`/settings/skills/${template.id}`)}
               className="flex-row items-center gap-3 px-3 py-2.5 active:bg-surface-alt"
             >
               <IntegrationLogo id={template.icon ?? template.id} size={28} />
               <View className="flex-1 min-w-0">
                 <Text className="text-sm font-medium text-text-primary">
-                  {template.name}
+                  {template.displayName ?? template.name}
                 </Text>
                 <Text className="text-xs text-text-muted" numberOfLines={1}>
                   {template.description}

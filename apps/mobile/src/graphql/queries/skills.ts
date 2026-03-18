@@ -5,6 +5,7 @@ export const SkillTemplatesQuery = graphql(`
     skillTemplates {
       id
       name
+      displayName
       description
       version
       author
@@ -29,6 +30,7 @@ export const SkillTemplateQuery = graphql(`
     skillTemplate(id: $id) {
       id
       name
+      displayName
       description
       version
       author

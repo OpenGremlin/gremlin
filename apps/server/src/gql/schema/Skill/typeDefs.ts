@@ -2,6 +2,7 @@ export const skillTypeDefs = /* GraphQL */ `
   type SkillTemplate {
     id: ID!
     name: String!
+    displayName: String
     description: String!
     version: String!
     author: String
