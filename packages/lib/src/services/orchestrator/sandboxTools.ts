@@ -155,7 +155,7 @@ export function ensureSandboxTool(
 ) {
   return tool({
     description:
-      "Ensure the sandbox is online and ready for commands. Call this FIRST — before loadSkill, authenticate, or runCommand. If the sandbox is already running, returns immediately. If it needs to boot, this call blocks until it's ready (may take a few minutes).",
+      "Ensure the sandbox is online and ready for commands. Call this FIRST — before readSkill, authenticate, or runCommand. If the sandbox is already running, returns immediately. If it needs to boot, this call blocks until it's ready (may take a few minutes).",
     inputSchema: z.object({}),
     execute: async () => {
       try {

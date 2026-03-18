@@ -78,6 +78,51 @@ export async function getSkillTemplateFromS3(
   return null;
 }
 
+/**
+ * Fetch a reference file from a skill's references/ directory on S3.
+ * Accepts a short name like "send" and resolves to "references/send.md".
+ */
+export async function getSkillReferenceFromS3(
+  bucketName: string,
+  skillId: string,
+  name: string,
+): Promise<string | null> {
+  // Sanitize: block path traversal and slashes
+  if (name.includes("..") || name.includes("/") || name.includes("\\")) {
+    return null;
+  }
+
+  const key = `core/${skillId}/references/${name}.md`;
+  return getSkillFile(bucketName, key);
+}
+
+/**
+ * List available reference file names for a skill.
+ * Returns short names (e.g. ["send", "triage", "read"]).
+ */
+export async function listSkillReferencesFromS3(
+  bucketName: string,
+  skillId: string,
+): Promise<string[]> {
+  const prefix = `core/${skillId}/references/`;
+  try {
+    const result = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+        Prefix: prefix,
+      }),
+    );
+
+    return (result.Contents ?? [])
+      .map((obj) => obj.Key)
+      .filter((key): key is string => !!key)
+      .filter((key) => key.endsWith(".md"))
+      .map((key) => key.replace(prefix, "").replace(/\.md$/, ""));
+  } catch {
+    return [];
+  }
+}
+
 /** Invalidate the in-memory cache */
 export function invalidateSkillCache(): void {
   cachedCatalog = null;

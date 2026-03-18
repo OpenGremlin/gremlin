@@ -1,6 +1,6 @@
 import { assignSkill } from "./assignSkill.js";
 import { bindAgentSkillConnection } from "./bindAgentSkillConnection.js";
-import { buildSkillSummary } from "./buildMcpConfig.js";
+import { buildSkillSummary } from "./buildSkillSummary.js";
 import { buildSkillTools } from "./buildSkillTools.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { removeSkill } from "./removeSkill.js";

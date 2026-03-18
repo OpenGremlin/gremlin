@@ -10,7 +10,11 @@ import {
 } from "./loadActiveConnections.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
 import { resolveConnectionEnv, resolveSkillEnv } from "./resolveSkillEnv.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
+import {
+  getSkillReferenceFromS3,
+  getSkillTemplateFromS3,
+  listSkillReferencesFromS3,
+} from "./skillScanner.js";
 
 const log = createLogger("skills:tools");
 
@@ -22,8 +26,9 @@ export interface SkillToolsResult {
 }
 
 /**
- * Build loadSkill and authenticate tools for the agent.
- * loadSkill returns instructions only (read-only).
+ * Build readSkill, readSkillReference, and authenticate tools for the agent.
+ * readSkill returns instructions + available references.
+ * readSkillReference returns detailed docs for a specific command.
  * authenticate resolves auth tokens (idempotent — also serves as refresh).
  */
 export async function buildSkillTools(
@@ -41,11 +46,11 @@ export async function buildSkillTools(
 
   const bucketName = getSkillsBucket();
 
-  tools.loadSkill = tool({
+  tools.readSkill = tool({
     description:
-      "Load a skill's usage and install instructions. Returns the skill's documentation so you know how to use it. Does NOT set up auth — call authenticate separately after this.",
+      "Read a skill's instructions. Returns an overview of the skill and lists available references. To get detailed docs for a specific command, call readSkillReference with the reference name. Does NOT set up auth — call authenticate separately.",
     inputSchema: z.object({
-      skillId: z.string().describe("The skill ID to load"),
+      skillId: z.string().describe("The skill ID to read"),
     }),
     execute: async ({ skillId }) => {
       const agentSkill = agentSkills.find((s) => s.skillId === skillId);
@@ -58,17 +63,66 @@ export async function buildSkillTools(
         return { error: `Skill "${skillId}" not found.` };
       }
 
-      log.info({ agentId, skillId }, "loadSkill: returning instructions");
+      const references = await listSkillReferencesFromS3(bucketName, skillId);
 
-      return {
+      log.info(
+        { agentId, skillId, references },
+        "readSkill: returning instructions",
+      );
+
+      const result: Record<string, unknown> = {
         instructions: template.instructions ?? "",
       };
+
+      if (references.length > 0) {
+        result.availableReferences = references;
+        result.hint = references
+          .map((r) => `readSkillReference("${skillId}", "${r}")`)
+          .join("\n");
+      }
+
+      return result;
+    },
+  });
+
+  tools.readSkillReference = tool({
+    description:
+      "Read detailed documentation for a specific skill command. Call readSkill first to see available references, then use this to load the one you need.",
+    inputSchema: z.object({
+      skillId: z.string().describe("The skill ID the reference belongs to"),
+      reference: z
+        .string()
+        .describe('The reference name to read, e.g. "send", "triage", "read"'),
+    }),
+    execute: async ({ skillId, reference }) => {
+      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
+      if (!agentSkill) {
+        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+      }
+
+      const content = await getSkillReferenceFromS3(
+        bucketName,
+        skillId,
+        reference,
+      );
+      if (!content) {
+        return {
+          error: `Reference "${reference}" not found for skill "${skillId}".`,
+        };
+      }
+
+      log.info(
+        { agentId, skillId, reference },
+        "readSkillReference: returning file",
+      );
+
+      return { content };
     },
   });
 
   tools.authenticate = tool({
     description:
-      "Set up or refresh auth tokens for a skill. Call this after ensureSandbox and loadSkill, right before your first runCommand. Tokens expire quickly so don't call this until the sandbox is ready. If you get auth errors, call this again to get fresh tokens.",
+      "Set up or refresh auth tokens for a skill. Call this after ensureSandbox and readSkill, right before your first runCommand. Tokens expire quickly so don't call this until the sandbox is ready. If you get auth errors, call this again to get fresh tokens.",
     inputSchema: z.object({
       skillId: z.string().describe("The skill ID to authenticate"),
       connectionId: z

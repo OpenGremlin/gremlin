@@ -1,5 +1,5 @@
 import type { ServiceContext } from "../context.js";
-import { buildSkillSummary } from "../skills/buildMcpConfig.js";
+import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {

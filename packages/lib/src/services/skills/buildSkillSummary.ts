@@ -15,7 +15,7 @@ export interface SkillSummaryResult {
 /**
  * Build a lightweight skill catalog for the system prompt.
  * Lists each skill with its name, description, and available connections.
- * The agent must call `loadSkill` to get full instructions and auth.
+ * The agent must call `readSkill` to get full instructions and auth.
  */
 export async function buildSkillSummary(
   ctx: ServiceContext,
@@ -78,9 +78,10 @@ export async function buildSkillSummary(
   const promptSection = `# Available Skills
 
 Skills are CLI tools you use via \`runCommand\` in the sandbox. To use a skill:
-1. Call \`loadSkill(skillId)\` to get install/usage instructions.
-2. Call \`authenticate(skillId, connectionId)\` to set up auth tokens.
-3. Run the skill's CLI commands via \`runCommand\`.
+1. Call \`readSkill(skillId)\` to get an overview and a list of available references.
+2. Call \`readSkillReference(skillId, reference)\` to read detailed docs for a specific command. Only read what you need — don't load all references upfront. Example: \`readSkillReference("gmail", "send")\`
+3. Call \`authenticate(skillId, connectionId)\` to set up auth tokens.
+4. Run the skill's CLI commands via \`runCommand\`.
 
 If you get auth errors, call \`authenticate\` again to refresh tokens.
 

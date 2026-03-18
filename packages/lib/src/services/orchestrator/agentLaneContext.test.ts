@@ -15,14 +15,14 @@ import {
 vi.mock("./loadAgentContext.js", () => ({
   loadAgentContext: vi.fn(),
 }));
-vi.mock("../skills/buildMcpConfig.js", () => ({
+vi.mock("../skills/buildSkillSummary.js", () => ({
   buildSkillSummary: vi.fn(),
 }));
 vi.mock("../skills/buildSkillTools.js", () => ({
   buildSkillTools: vi.fn(),
 }));
 
-import { buildSkillSummary } from "../skills/buildMcpConfig.js";
+import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
 // Grab the mocked functions so we can set return values per test.
 import { loadAgentContext } from "./loadAgentContext.js";
@@ -91,7 +91,7 @@ describe("buildAgentLaneContext", () => {
     });
     mockBuildSkillSummary.mockResolvedValue({ promptSection: "skill info" });
     mockBuildSkillTools.mockResolvedValue({
-      tools: { loadSkill: {} as any },
+      tools: { readSkill: {} as any },
       getEnv: () => ({}),
     });
 
@@ -115,14 +115,14 @@ describe("buildAgentLaneContext", () => {
     });
     const getEnv = () => ({ TOKEN: "abc" });
     mockBuildSkillTools.mockResolvedValue({
-      tools: { loadSkill: {} as any },
+      tools: { readSkill: {} as any },
       getEnv,
     });
 
     const result = await buildAgentLaneContext(ctx, "agent-1");
 
     expect(result.skillSummary.promptSection).toBe("## Skills\nDo stuff");
-    expect(result.skillTools.tools).toHaveProperty("loadSkill");
+    expect(result.skillTools.tools).toHaveProperty("readSkill");
     expect(result.skillTools.getEnv()).toEqual({ TOKEN: "abc" });
   });
 
