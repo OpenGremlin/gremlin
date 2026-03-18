@@ -1,7 +1,9 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { createLogger } from "@gremlin/lib/logger.js";
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
 import sharp from "sharp";
 
+const log = createLogger("media-resize");
 const s3 = new S3Client({});
 const BUCKET = process.env.BUCKET_NAME ?? "";
 
@@ -63,6 +65,7 @@ export async function handler(event: {
     if ((err as { name?: string }).name === "NoSuchKey") {
       return { statusCode: 404, body: "Image not found" };
     }
+    log.error({ err, key }, "Failed to fetch image from S3");
     return { statusCode: 500, body: "Failed to fetch image" };
   }
 
@@ -93,7 +96,8 @@ export async function handler(event: {
       body: outputBuffer.toString("base64"),
       isBase64Encoded: true,
     };
-  } catch (_err) {
+  } catch (err) {
+    log.error({ err, key }, "Failed to process image");
     return { statusCode: 500, body: "Failed to process image" };
   }
 }

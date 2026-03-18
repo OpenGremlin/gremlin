@@ -36,7 +36,7 @@ export class MediaStack extends cdk.Stack {
         NODE_ENV: "production",
       },
       bundling: {
-        nodeModules: ["sharp"],
+        nodeModules: ["sharp", "pino"],
         forceDockerBundling: true,
         commandHooks: {
           beforeBundling: () => [],

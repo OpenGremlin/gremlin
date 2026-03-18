@@ -212,6 +212,7 @@ export class SandboxEc2Stack extends cdk.Stack {
         bundling: {
           format: lambda_nodejs.OutputFormat.ESM,
           mainFields: ["module", "main"],
+          nodeModules: ["pino"],
         },
       },
     );
@@ -253,6 +254,7 @@ export class SandboxEc2Stack extends cdk.Stack {
         bundling: {
           format: lambda_nodejs.OutputFormat.ESM,
           mainFields: ["module", "main"],
+          nodeModules: ["pino"],
         },
       },
     );

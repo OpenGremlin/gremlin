@@ -69,6 +69,9 @@ export class MessagingStack extends cdk.Stack {
           DOORBELL_SQS_URL: queue.queueUrl,
           NODE_ENV: "production",
         },
+        bundling: {
+          nodeModules: ["pino"],
+        },
       },
     );
 
@@ -101,6 +104,9 @@ export class MessagingStack extends cdk.Stack {
           MAIN_TABLE_NAME: props.tableName,
           DOORBELL_SQS_URL: queue.queueUrl,
           NODE_ENV: "production",
+        },
+        bundling: {
+          nodeModules: ["pino"],
         },
       },
     );

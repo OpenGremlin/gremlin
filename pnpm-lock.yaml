@@ -499,6 +499,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3
         version: 3.1000.0
+      '@gremlin/lib':
+        specifier: workspace:*
+        version: link:../lib
       sharp:
         specifier: ^0.33
         version: 0.33.5
