@@ -1,4 +1,4 @@
-# Skills Design
+# Skills
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Gremlin agents use CLI-based skills to interact with external services. This doc
 
 Agentic systems are moving toward CLI-based task execution for flexibility and inference token efficiency. Skills make this process safer, more structured, and more observable by giving users fine-grained control over authentication and minimizing the surface risk for auth tokens.
 
-This design draws from the [Agent Skills](https://agentskills.io/specification) and [OpenClaw](https://docs.openclaw.ai/tools/skills) specifications. Gremlin skills are compatible with these standards but extend them with connection-based auth, idempotent install scripts, and on-demand initialization.
+The skill system is compatible with the [Agent Skills](https://agentskills.io/specification) and [OpenClaw](https://docs.openclaw.ai/tools/skills) specifications, extended with connection-based auth, idempotent install scripts, and on-demand initialization.
 
 ## Skill Files
 
@@ -24,7 +24,7 @@ packages/lib/skills/
     └── SKILL.md
 ```
 
-Core skills are authored in the monorepo at `packages/lib/skills/<skill-dir>/SKILL.md`. At build time, they are synced to S3 where the server reads them at runtime. See [Storage](#storage) for details.
+Core skills live in the monorepo at `packages/lib/skills/<skill-dir>/SKILL.md`. At deploy time, they are synced to S3 where the server reads them at runtime. See [Storage](#storage) for details.
 
 ### Why file-based
 
@@ -308,14 +308,6 @@ Key design:
 - **pk** is `AGENT#<agentId>` so all skills for an agent can be queried in a single `Query` with sk prefix `AGENT_SKILL#`.
 - **skillId** references a directory in S3, not a DynamoDB record. The skill's metadata is always read from S3. If the skill is removed from S3, the assignment becomes orphaned — the server handles this gracefully (see [Removed Skills](#removed-skills)).
 
-#### Migration from SkillEntity
-
-The existing `SkillEntity` (pk `SKILL`, sk `SKILL#<id>`) stores globally-installed skills. This will be replaced by `AgentSkill`. During migration:
-
-1. For each existing `SkillEntity` record, create an `AgentSkill` for every agent that should have the skill.
-2. Delete the old `SkillEntity` records.
-3. Remove the `SkillEntity` schema from the codebase.
-
 ### Storage
 
 Skills are stored in a single S3 bucket with two top-level prefixes:
@@ -337,7 +329,7 @@ s3://gremlin-skills/
 
 **Core skills** (`core/`): Authored in the monorepo at `packages/lib/skills/`. Deployed to S3 using the CDK `BucketDeployment` construct, which handles atomic upload and cleanup. The `core/` prefix is fully replaced on every deploy — no drift, no orphaned skills.
 
-**User skills** (`user/`): Reserved for future use. When we support skill installation, user-installed skills will be uploaded here by skill ID. The server uses the same scanning and loading logic for both prefixes — the only difference is lifecycle (core is CDK-managed, user is API-managed).
+**User skills** (`user/`): Reserved for future use. User-installed skills would be uploaded here by skill ID. The server uses the same scanning and loading logic for both prefixes — the only difference is lifecycle (core is CDK-managed, user would be API-managed).
 
 ### Server: Catalog Scanning
 
@@ -351,7 +343,7 @@ The scan result is cached in memory with a 1-minute TTL so the catalog doesn't r
 4. Skip files with parse errors (log a warning)
 5. Return parsed frontmatter via the `skillTemplates` GraphQL query
 
-When initializing a skill, the server reads the full `SKILL.md` from S3 (body included) and returns it to the agent.
+When initializing a skill, the server reads the full `SKILL.md` from S3 (body included) and returns the body to the agent.
 
 ### Removed Skills
 
@@ -387,7 +379,7 @@ The UI shows connection status (connected, disconnected, token expired) for each
 
 ### S3 Bucket
 
-A new S3 bucket is added to the CDK stack. Configuration:
+The skills S3 bucket configuration:
 
 - Versioning enabled (allows rollback of core skill changes)
 - Server-side encryption (AES-256)
@@ -415,15 +407,3 @@ new s3deploy.BucketDeployment(this, "CoreSkills", {
 
 The bucket name is passed to the server as an environment variable (`SKILLS_BUCKET`).
 
-## Migration
-
-The current `skillCatalog` array in `packages/lib/src/services/skills/skillCatalog.ts` will be replaced by the S3-backed scanner. Steps:
-
-1. Create `packages/lib/skills/` directory with `SKILL.md` files for each existing skill.
-2. Add the S3 bucket and `BucketDeployment` to the CDK stack.
-3. Implement the S3 skill scanner in the server.
-4. Create the `AgentSkill` DynamoDB entity.
-5. Update the `skillTemplates` GraphQL resolver to use the scanner.
-6. Migrate existing `SkillEntity` records to `AgentSkill` records.
-7. Remove `skillCatalog.ts`, `buildMcpConfig.ts`, `SkillEntity`, and the `mcp` field from `SkillTemplate`.
-8. Update the `SkillTemplate` TypeScript type to match the new frontmatter schema.

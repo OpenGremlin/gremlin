@@ -1,23 +1,17 @@
-# Agent Inbox & Queue Design
+# Agent Inbox & Queue
 
-Replaces the current in-process cron polling and fire-and-forget dispatch with a durable inbox + SQS wake-up architecture. All agent work flows through a single path: write to inbox, ring the doorbell, consumer drains and processes.
+A durable inbox + SQS wake-up architecture for all agent work. Every trigger flows through a single path: write to inbox, ring the doorbell, consumer drains and processes.
 
-## Problem
+## Motivation
 
-The current system has several ad-hoc mechanisms for triggering agent work:
+The inbox architecture solves several problems that arise with simpler approaches (polling, fire-and-forget dispatch):
 
-- **60s `setInterval`** polls DynamoDB for due `TaskFollowUp`s and `AgentJob`s
-- **Fire-and-forget** `runTaskLane()` calls with `.catch()` error handling
-- Each trigger type (user message, cron job, follow-up, task delegation) is a separate code path into `runTaskLane()`
-
-This creates real problems:
-
-1. **Fragile** — server crash loses all in-flight fire-and-forget work
-2. **Imprecise** — follow-up scheduled for 10s from now waits up to 70s (next poll)
-3. **No backpressure** — 20 jobs fire at once, 20 concurrent LLM calls
-4. **Polling doesn't scale** — scanning all follow-ups and all jobs every 60s gets expensive
-5. **No serialization** — nothing prevents two triggers for the same agent from running concurrently
-6. **Hard to extend** — adding webhooks, event streams, or user replies each requires a new ad-hoc dispatch path
+1. **Durability** — work is persisted in DynamoDB before processing, surviving server crashes
+2. **Precision** — EventBridge schedules fire at exact times, no polling delay
+3. **Backpressure** — per-agent serialization prevents concurrent LLM calls for the same agent
+4. **Efficiency** — no periodic scanning of DynamoDB tables
+5. **Serialization** — one processing loop per agent at a time, enforced by the `activeAgents` set
+6. **Extensibility** — new trigger types (webhooks, event streams, user replies) all use the same `enqueueWork()` path
 
 ## Design
 
@@ -285,7 +279,7 @@ sendMessage mutation
   → return immediately (UI shows message optimistically)
 ```
 
-Replaces the current fire-and-forget `runMainLaneAgent()`.
+The UI shows the message optimistically from the mutation response.
 
 ### Scheduled job (cron)
 
@@ -297,7 +291,7 @@ User creates/updates AgentJob
   → rings doorbell
 ```
 
-Replaces the current 60s polling in `dispatchDueJobs()`. EventBridge fires exactly on time. The CronJobTrigger dedup (TransactWrite) moves into `handleScheduledJob()` in the consumer.
+EventBridge fires exactly on time. CronJobTrigger dedup (TransactWrite) runs inside the consumer's `handleScheduledJob()`.
 
 ### Agent self-follow-up (delayed self-wake)
 
@@ -311,7 +305,7 @@ Agent calls createFollowUp({ delayMs, prompt })
   → schedule auto-deletes (ActionAfterCompletion: DELETE)
 ```
 
-Replaces the current `TaskFollowUp` DDB entity + 60s polling in `dispatchDueFollowUps()`. Timing is precise — no more up-to-60s delay.
+Timing is precise — the schedule fires at exactly the requested time.
 
 ### User replies to notification
 
@@ -322,7 +316,7 @@ resolveNotification mutation
   → ring doorbell
 ```
 
-Replaces the current blocking/unblocking mechanism with a queued approach.
+The agent receives the reply as a queued inbox item and can act on it in its next turn.
 
 ### Task delegation
 
@@ -386,30 +380,7 @@ This handles all failure modes:
 
 The 10-minute threshold gives healthy agents room to work. 3-minute sweep interval means worst-case recovery is ~13 minutes. Both numbers are tunable.
 
-## What Gets Removed
-
-| Current code | Replacement |
-|---|---|
-| `startCron()` — 60s setInterval | Deleted entirely |
-| `dispatchDueFollowUps()` — polls DDB for active follow-ups | Deleted. EventBridge one-shot schedules handle timing. |
-| `dispatchDueJobs()` — polls DDB for due cron jobs | Deleted. EventBridge cron schedules fire directly. |
-| `TaskFollowUp` entity + GSI | Deleted. Follow-ups become EventBridge one-shot → inbox item. |
-| `FOLLOWUP_ACTIVE` GSI | Deleted |
-| Fire-and-forget `.catch()` calls to `runTaskLane()` | All work goes through `enqueueWork()` |
-| `recoverIncompleteTasks()` | Replaced by the sweeper |
-
-## What Stays
-
-| Component | Notes |
-|---|---|
-| `runTaskLane()` / `runMainLane()` | Unchanged — still the core agent execution |
-| `AgentLog` | Unchanged — still the conversation record |
-| `Task` entity and lifecycle | Unchanged |
-| `AgentJob` entity | Kept, but `cronExpression` drives an EventBridge Schedule instead of being polled |
-| CronJobTrigger dedup (TransactWrite) | Kept inside the consumer's `handleScheduledJob()` |
-| GraphQL subscriptions / PubSub | Unchanged — still powers real-time UI updates |
-
-## New Infrastructure
+## Infrastructure
 
 | Component | Purpose |
 |---|---|
@@ -420,6 +391,17 @@ The 10-minute threshold gives healthy agents room to work. 3-minute sweep interv
 | Lambda (sweeper) | Queries GSI2, re-rings doorbells |
 | Lambda (schedule target) | EventBridge schedule fires → writes inbox item + rings doorbell |
 
+## Key Components
+
+| Component | Role |
+|---|---|
+| `runTaskLane()` / `runMainLane()` | Core agent execution — called by the consumer after draining the inbox |
+| `AgentLog` | Append-only conversation record for both main thread and task sub-threads |
+| `Task` entity and lifecycle | Discrete units of work with status tracking |
+| `AgentJob` entity | Scheduled triggers — `cronExpression` drives an EventBridge Schedule |
+| CronJobTrigger dedup (TransactWrite) | Inside the consumer's `handleScheduledJob()` |
+| GraphQL subscriptions / PubSub | Powers real-time UI updates |
+
 ## Concurrency
 
 - `MaxNumberOfMessages` on the SQS receive call controls how many agents process in parallel (e.g., 10)
@@ -428,15 +410,13 @@ The 10-minute threshold gives healthy agents room to work. 3-minute sweep interv
 - Main lane runs first so the user gets a response before background tasks execute
 - For multi-instance deployments, replace `activeAgents` with a DDB conditional write (distributed lock)
 
-## Behavioral Changes
+## Serialization Trade-offs
 
-### Main lane is no longer "always free"
+### Main lane is serialized with task lanes
 
-The current design (see `agent-orchestration.md`) treats the main lane and task lanes as independent — the user can always chat with the agent while tasks run in the background. With per-agent serialization, **all work is serialized**: if a task is running, user messages wait in the inbox until the task's current turn finishes.
+All work is serialized per-agent: if a task is running, user messages wait in the inbox until the task's current turn finishes. The agent processes one thing at a time, in order. When the task turn completes, the consumer drains the inbox, finds the user messages, writes them to the agent log, and runs a main-lane turn.
 
-This is intentional. The agent processes one thing at a time, in order. When the task turn completes, the consumer drains the inbox, finds the user messages, writes them to the agent log, and runs a main-lane turn. The trade-off is slightly delayed responses during active tasks, in exchange for clean serialization, no race conditions, and predictable agent behavior.
-
-If we later want to restore concurrent main-lane access, we could partition the inbox by lane (main vs task) and run separate drain loops. But start with full serialization — it's simpler and avoids a class of bugs around agents responding to user messages mid-task.
+The trade-off is slightly delayed responses during active tasks, in exchange for clean serialization, no race conditions, and predictable agent behavior. To restore concurrent main-lane access in the future, the inbox could be partitioned by lane (main vs task) with separate drain loops.
 
 ## Open Questions
 

@@ -163,10 +163,10 @@ The AgentLog drives the conversation UI:
 
 User messages are queued in the inbox and processed after the current agent turn completes. See `agent-inbox-queue.md` for details on per-agent serialization.
 
-## Relationship to Existing Entities
+## Related Entities
 
-| Existing | Role in new system |
-|----------|-------------------|
+| Entity | Role |
+|--------|------|
 | **Agent** | The AI persona. Tasks and logs reference `agentId`. |
 | **AgentJob** | Scheduled trigger. Spawns Tasks when it runs. `originJobId` on Task links back. |
 
@@ -202,16 +202,16 @@ Provider (@ai-sdk/anthropic, @ai-sdk/openai, etc.)
 - **Streaming** — `streamText` provides token-by-token output to write AgentLog entries in real time.
 - **Provider registry** — configure providers once, reference by string ID. Each Agent entity can store a model preference.
 
-### What the SDK does NOT replace
+### What the SDK does NOT cover
 
-The entire orchestration layer (Task, TaskFollowUp, cron dispatch, AgentLog persistence, restart recovery) sits above the SDK. The SDK answers "given a prompt and tools, run until the LLM stops calling tools." Our system answers "when to start a turn, what context to feed it, and what to do when it finishes."
+The entire orchestration layer (Task, inbox queue, cron dispatch, AgentLog persistence, restart recovery) sits above the SDK. The SDK answers "given a prompt and tools, run until the LLM stops calling tools." Our system answers "when to start a turn, what context to feed it, and what to do when it finishes."
 
-### What we skip
+### What we don't use
 
-The React hooks (`useChat`, `useCompletion`) and Next.js route handlers are irrelevant — we have our own apps and GraphQL server. Only the core `ai` package and provider packages are used.
+The React hooks (`useChat`, `useCompletion`) and Next.js route handlers are not used — we have our own apps and GraphQL server. Only the core `ai` package and provider packages are used.
 
 ## Open Questions
 
 ### AgentJob → Task concurrency
 
-When an AgentJob fires and spawns a new Task, there may already be an older Task from the same AgentJob still in progress. Per-agent serialization through the inbox naturally queues the new task behind the current one — it won't start until the agent's current work drains.
+When an AgentJob fires and spawns a new Task, there may already be an older Task from the same AgentJob still in progress. Per-agent serialization through the inbox naturally queues the new task behind the current one — it doesn't start until the agent's current work drains.
