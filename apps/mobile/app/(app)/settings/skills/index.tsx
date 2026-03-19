@@ -21,7 +21,9 @@ export default function SkillsScreen() {
   const filteredTemplates = templates.filter(
     (t) =>
       t.name.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q),
+      (t.displayName?.toLowerCase().includes(q) ?? false) ||
+      t.description.toLowerCase().includes(q) ||
+      (t.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false),
   );
   const grouped = groupSkillsByCategory(filteredTemplates);
 

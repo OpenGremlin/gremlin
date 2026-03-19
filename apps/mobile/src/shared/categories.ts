@@ -23,24 +23,41 @@ export const skillCategoryLabels: Record<string, string> = {
   productivity: "Productivity",
   developer: "Developer",
   communication: "Communication",
+  data: "Data & Media",
+  web: "Web",
 };
 
 export const skillCategoryOrder = [
   "google-workspace",
+  "data",
+  "web",
   "productivity",
   "communication",
   "developer",
 ];
+
+function titleCase(s: string): string {
+  return s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 function groupBy<T extends { category?: string | null }>(
   items: T[],
   order: string[],
   labels: Record<string, string>,
 ): Array<{ category: string; label: string; items: T[] }> {
-  return order
+  const orderSet = new Set(order);
+  const extraCategories = [
+    ...new Set(
+      items
+        .map((item) => item.category)
+        .filter((cat): cat is string => !!cat && !orderSet.has(cat)),
+    ),
+  ];
+
+  return [...order, ...extraCategories]
     .map((cat) => ({
       category: cat,
-      label: labels[cat] ?? cat,
+      label: labels[cat] ?? titleCase(cat),
       items: items.filter((item) => item.category === cat),
     }))
     .filter((g) => g.items.length > 0);
