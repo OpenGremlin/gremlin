@@ -11,15 +11,10 @@ import { Pressable, Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import type { FileNode } from "./FilePreview";
 import { FilePreview } from "./FilePreview";
+import { formatFileSize } from "./formatFileSize";
 import { SheetModal } from "./SheetModal";
 
 export type { FileNode } from "./FilePreview";
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function FileIcon_({ render }: { render: FileNode["render"] }) {
   const colors = useNavigationTheme();

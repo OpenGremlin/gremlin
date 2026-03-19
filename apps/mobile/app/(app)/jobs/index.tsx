@@ -1,7 +1,7 @@
 import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -14,6 +14,7 @@ import {
   JobCreatedSubscription,
   TriggerJobMutation,
 } from "../../../src/graphql/queries";
+import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
@@ -56,19 +57,13 @@ function RunNowButton({ jobId }: { jobId: string }) {
 export default function JobsScreen() {
   const colors = useNavigationTheme();
   const { data, loading, error, refetch } = useQuery(AgentJobsQuery);
-  const [refreshing, setRefreshing] = useState(false);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
   const refetchRef = useRef(refetch);
   refetchRef.current = refetch;
 
   useSubscription(JobCreatedSubscription, {}, () => {
     refetchRef.current();
   });
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
 
   const jobs = data?.agentJobs ?? [];
 

@@ -1,9 +1,10 @@
 import { router } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
+import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
@@ -46,13 +47,7 @@ export default function AgentsScreen() {
   const colors = useNavigationTheme();
   const { data, loading, error, refetch } = useQuery(AgentsQuery);
   const [showRetired, setShowRetired] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
 
   const allAgents = data?.agents ?? [];
   const activeAgents = allAgents.filter((a) => !a.retired);

@@ -24,11 +24,11 @@ export function useChatSend({
   // Clear pending messages when they appear in the log
   useEffect(() => {
     if (pendingMessages.length === 0) return;
-    const userMessages = messages.filter((m) => m.role === "USER");
+    const userContents = new Set(
+      messages.filter((m) => m.role === "USER").map((m) => m.content),
+    );
     setPendingMessages((prev) => {
-      const next = prev.filter(
-        (content) => !userMessages.some((m) => m.content === content),
-      );
+      const next = prev.filter((content) => !userContents.has(content));
       return next.length === prev.length ? prev : next;
     });
   }, [messages, pendingMessages.length]);

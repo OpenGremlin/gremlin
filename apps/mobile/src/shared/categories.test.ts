@@ -48,10 +48,13 @@ describe("groupByCategory (connections)", () => {
     expect(groupByCategory([])).toEqual([]);
   });
 
-  it("ignores items with unknown categories", () => {
+  it("includes items with unknown categories", () => {
     const items = [{ category: "unknown", name: "Mystery" }];
     const result = groupByCategory(items);
-    expect(result).toEqual([]);
+    expect(result).toHaveLength(1);
+    expect(result[0].category).toBe("unknown");
+    expect(result[0].label).toBe("Unknown");
+    expect(result[0].items).toHaveLength(1);
   });
 });
 
@@ -71,9 +74,12 @@ describe("groupSkillsByCategory", () => {
     expect(result[1].items).toHaveLength(1);
   });
 
-  it("does not include connection-only categories", () => {
+  it("includes items from categories not in the predefined order", () => {
     const items = [{ category: "ai", name: "GPT" }];
     const result = groupSkillsByCategory(items);
-    expect(result).toEqual([]);
+    expect(result).toHaveLength(1);
+    expect(result[0].category).toBe("ai");
+    expect(result[0].label).toBe("Ai");
+    expect(result[0].items).toHaveLength(1);
   });
 });

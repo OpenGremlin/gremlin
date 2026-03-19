@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
 import { TasksQuery } from "../../../src/graphql/queries";
+import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -92,17 +93,11 @@ function TaskCard({ item }: { item: TaskItem }) {
 
 export default function HomeScreen() {
   const colors = useNavigationTheme();
-  const [refreshing, setRefreshing] = useState(false);
   const { nodes, loading, loadingMore, error, hasMore, loadMore, refetch } =
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",
     });
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
 
   if (loading && nodes.length === 0) {
     return <QueryResult loading={loading} error={error} />;

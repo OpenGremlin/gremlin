@@ -20,6 +20,7 @@ import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { FileCard } from "../FileCard";
 import { formatTime } from "../formatDate";
+import { formatFileSize } from "../formatFileSize";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { FnLabel } from "./FnLabel";
@@ -75,12 +76,6 @@ function FileUploadCard({
       ))}
     </View>
   );
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 type FileNode =
