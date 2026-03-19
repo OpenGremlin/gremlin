@@ -164,7 +164,7 @@ export class SandboxEc2Stack extends cdk.Stack {
       {
         instanceType: ec2.InstanceType.of(
           ec2.InstanceClass.T4G,
-          ec2.InstanceSize.SMALL,
+          ec2.InstanceSize.MEDIUM,
         ),
         machineImage: ec2.MachineImage.latestAmazonLinux2023({
           cpuType: ec2.AmazonLinuxCpuType.ARM_64,
