@@ -1,4 +1,4 @@
-import { CircleCheck, Plus, Trash2 } from "lucide-react-native";
+import { ChevronRight, CircleCheck, Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,6 +21,9 @@ import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
 import { ConnectionPicker } from "../ConnectionPicker";
+import { groupSkillsByCategory } from "../categories";
+import { IntegrationLogo } from "../IntegrationLogo";
+import { SearchInput } from "../SearchInput";
 import { SheetModal } from "../SheetModal";
 
 export function SkillsConfig({ agentId }: { agentId: string }) {
@@ -291,6 +294,15 @@ function AddSkillModal({
   const templates = data?.skillTemplates ?? [];
   const available = templates.filter((t) => !assignedSkillIds.includes(t.id));
   const [assigning, setAssigning] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const q = query.toLowerCase();
+  const filtered = available.filter(
+    (t) =>
+      t.name.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q),
+  );
+  const grouped = groupSkillsByCategory(filtered);
 
   async function handleAssign(skillId: string) {
     setAssigning(skillId);
@@ -304,51 +316,62 @@ function AddSkillModal({
 
   return (
     <SheetModal visible title="Add Skill" onClose={onClose}>
-      <ScrollView contentContainerClassName="px-4 py-3 gap-2">
+      <ScrollView
+        contentContainerClassName="px-4 py-3 gap-4"
+        keyboardShouldPersistTaps="handled"
+      >
+        <SearchInput
+          placeholder="Search skills..."
+          value={query}
+          onChangeText={setQuery}
+        />
+
         {loading && (
           <View className="items-center py-4">
             <ActivityIndicator size="small" color={colors.iconDefault} />
           </View>
         )}
 
-        {available.length === 0 && !loading && (
+        {filtered.length === 0 && !loading && (
           <Text className="text-sm text-text-muted py-4 text-center">
-            All available skills are already assigned.
+            {available.length === 0
+              ? "All available skills are already assigned."
+              : "No skills match your search."}
           </Text>
         )}
 
-        {available.map((template) => (
-          <Pressable
-            key={template.id}
-            onPress={() => handleAssign(template.id)}
-            disabled={assigning !== null}
-            className="bg-surface border border-app-border rounded-xl p-4 active:bg-surface-alt"
+        {grouped.map((group) => (
+          <View
+            key={group.category}
+            className="gap-0 bg-surface border border-app-border rounded-xl overflow-hidden"
           >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 min-w-0">
-                <Text className="text-sm font-medium text-text-primary">
-                  {template.name}
-                </Text>
-                <Text
-                  className="text-xs text-text-muted mt-0.5"
-                  numberOfLines={2}
-                >
-                  {template.description}
-                </Text>
-                {template.connections.length > 0 && (
-                  <Text className="text-[10px] text-text-muted mt-1">
-                    Requires:{" "}
-                    {template.connections.map((c) => c.providerName).join(", ")}
+            <Text className="text-xs font-medium text-text-muted uppercase tracking-wider px-3 pt-3 pb-1.5">
+              {group.label}
+            </Text>
+            {group.items.map((template) => (
+              <Pressable
+                key={template.id}
+                onPress={() => handleAssign(template.id)}
+                disabled={assigning !== null}
+                className="flex-row items-center gap-3 px-3 py-2.5 active:bg-surface-alt"
+              >
+                <IntegrationLogo id={template.icon ?? template.id} size={28} />
+                <View className="flex-1 min-w-0">
+                  <Text className="text-sm font-medium text-text-primary">
+                    {template.displayName ?? template.name}
                   </Text>
+                  <Text className="text-xs text-text-muted" numberOfLines={1}>
+                    {template.description}
+                  </Text>
+                </View>
+                {assigning === template.id ? (
+                  <ActivityIndicator size="small" color={colors.iconDefault} />
+                ) : (
+                  <ChevronRight size={16} color={colors.iconDefault} />
                 )}
-              </View>
-              {assigning === template.id ? (
-                <ActivityIndicator size="small" color={colors.iconDefault} />
-              ) : (
-                <Plus size={18} color={colors.iconDefault} />
-              )}
-            </View>
-          </Pressable>
+              </Pressable>
+            ))}
+          </View>
         ))}
       </ScrollView>
     </SheetModal>
