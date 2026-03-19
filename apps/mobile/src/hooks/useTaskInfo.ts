@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { TaskQuery } from "../graphql/queries";
+import { TaskQuery, TaskUpdatedSubscription } from "../graphql/queries";
 import { gql } from "../lib/auth";
-import { useTaskUpdates } from "../subscriptions";
+import { useSubscription } from "./useSubscription";
 
 interface TaskInfo {
   imageUrl: string | null;
@@ -32,11 +32,8 @@ export function useTaskInfo(taskId: string | null) {
     };
   }, [taskId]);
 
-  useTaskUpdates(taskId ?? "", (update) => {
-    const u = update as {
-      message?: string | null;
-      imageUrl?: string | null;
-    };
+  useSubscription(TaskUpdatedSubscription, { taskId: taskId ?? "" }, (data) => {
+    const u = data.taskUpdated;
     setState((prev) => ({
       imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
       lastMessage: u.message ?? prev?.lastMessage ?? null,

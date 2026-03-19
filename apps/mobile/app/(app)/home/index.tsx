@@ -10,16 +10,19 @@ import {
   View,
 } from "react-native";
 import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
-import { TasksQuery } from "../../../src/graphql/queries";
+import {
+  TasksQuery,
+  TaskUpdatedSubscription,
+} from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
+import { useSubscription } from "../../../src/hooks/useSubscription";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
-import { useTaskUpdates } from "../../../src/subscriptions";
 
 function ListSeparator() {
   return <View className="h-px bg-border-subtle mx-4" />;
@@ -43,10 +46,13 @@ function TaskCard({ item }: { item: TaskItem }) {
   const task = { ...item, ...override };
   const { agent } = task;
 
-  useTaskUpdates(
-    item.id,
+  useSubscription(
+    TaskUpdatedSubscription,
+    { taskId: item.id },
     useCallback((data) => {
-      setOverride((prev) => ({ ...prev, ...data }) as Partial<TaskItem>);
+      setOverride(
+        (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
+      );
     }, []),
   );
 

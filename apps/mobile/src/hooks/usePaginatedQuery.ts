@@ -34,6 +34,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const [hasMore, setHasMore] = useState(false);
   const [_version, setVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
+  const newestCursorRef = useRef<string | null>(null);
 
   const serializedVars = variables ? JSON.stringify(variables) : undefined;
   const stableVars = useMemo(
@@ -62,6 +63,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
         setNodes(direction === "newest-first" ? items.reverse() : items);
         setHasMore(conn.pageInfo.hasPreviousPage);
         cursorRef.current = conn.pageInfo.startCursor ?? null;
+        newestCursorRef.current = conn.pageInfo.endCursor ?? null;
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -141,9 +143,40 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     [direction],
   );
 
+  const fetchNewer = useCallback(async () => {
+    if (!newestCursorRef.current) return;
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
+      const result: TResult = await (gql as any)(query, {
+        ...stableVars,
+        first: PAGE_SIZE,
+        after: newestCursorRef.current,
+      });
+      const conn = selectorRef.current(result);
+      if (conn.edges.length === 0) return;
+      newestCursorRef.current =
+        conn.pageInfo.endCursor ?? newestCursorRef.current;
+      setNodes((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newItems = conn.edges
+          .map((e) => e.node)
+          .filter((n) => !existingIds.has(n.id));
+        if (newItems.length === 0) return prev;
+        return direction === "newest-first"
+          ? [...newItems, ...prev]
+          : [...prev, ...newItems];
+      });
+    } catch (err) {
+      clientLogger.error("Failed to fetch newer", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }, [query, stableVars, direction]);
+
   const refetch = useCallback(() => {
     setNodes([]);
     cursorRef.current = null;
+    newestCursorRef.current = null;
     setVersion((v) => v + 1);
   }, []);
 
@@ -155,6 +188,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     hasMore,
     loadMore,
     refetch,
+    fetchNewer,
     appendNode,
     replaceOrAppend,
   };

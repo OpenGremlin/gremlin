@@ -1,10 +1,14 @@
 import { createClient } from "graphql-ws";
+import { useEffect, useRef } from "react";
 import { getTokenSync } from "./auth";
 import { getApiUrl } from "./config";
 import { clientLogger } from "./logger";
+import { ReconnectTracker } from "./reconnectTracker";
 
 const API_URL = getApiUrl();
 const wsUrl = `${API_URL.replace(/^http/, "ws")}/graphql`;
+
+export const reconnectTracker = new ReconnectTracker();
 
 export const wsClient = createClient({
   url: wsUrl,
@@ -22,7 +26,10 @@ export const wsClient = createClient({
     await new Promise((resolve) => setTimeout(resolve, delay));
   },
   on: {
-    connected: () => clientLogger.info("WebSocket connected"),
+    connected: () => {
+      clientLogger.info("WebSocket connected");
+      reconnectTracker.handleConnected();
+    },
     closed: (event) =>
       clientLogger.warn("WebSocket closed", {
         code: (event as { code?: number })?.code,
@@ -34,3 +41,16 @@ export const wsClient = createClient({
       }),
   },
 });
+
+export function useWsReconnect(callback: () => void) {
+  const ref = useRef(callback);
+  ref.current = callback;
+
+  useEffect(() => {
+    const handler = () => ref.current();
+    reconnectTracker.addListener(handler);
+    return () => {
+      reconnectTracker.removeListener(handler);
+    };
+  }, []);
+}

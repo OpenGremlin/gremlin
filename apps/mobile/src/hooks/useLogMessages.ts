@@ -12,6 +12,7 @@ import {
   TaskLogSubscription,
   TaskLogsQuery,
 } from "../graphql/queries";
+import { useWsReconnect } from "../lib/wsClient";
 import { usePaginatedQuery } from "./usePaginatedQuery";
 import { useSubscription } from "./useSubscription";
 
@@ -46,6 +47,7 @@ export function useLogMessages(
     loadingMore,
     appendNode,
     replaceOrAppend,
+    fetchNewer,
   } = usePaginatedQuery<LogsResult, ChatMessage>(
     query as TypedDocumentString<LogsResult, Record<string, unknown>>,
     (d) => ("taskLogs" in d ? d.taskLogs : d.agentLogs),
@@ -82,6 +84,8 @@ export function useLogMessages(
       [appendNode, replaceOrAppend],
     ),
   );
+
+  useWsReconnect(fetchNewer);
 
   return {
     messages,
