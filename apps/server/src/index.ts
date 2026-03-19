@@ -23,15 +23,16 @@ import { mediaRoute } from "./routes/mediaRoute.js";
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
-// Media is served from this server at /media/* (prod reads from S3, dev serves static files)
-const SERVER_BASE_URL = (
-  process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3001}`
-).replace(/\/$/, "");
-const MEDIA_BASE_URL = `${SERVER_BASE_URL}/media`;
-
-let cachedAdminOrigin: string | undefined;
-async function _getAdminOrigin(): Promise<string> {
-  if (cachedAdminOrigin) return cachedAdminOrigin;
+// Server base URL — used for media and signed file URLs.
+// In prod, resolved from SSM (admin CloudFront URL) since media is served
+// through the same CloudFront. In dev, falls back to localhost.
+let cachedServerBaseUrl: string | undefined;
+async function getServerBaseUrl(): Promise<string> {
+  if (cachedServerBaseUrl) return cachedServerBaseUrl;
+  if (process.env.SERVER_URL) {
+    cachedServerBaseUrl = process.env.SERVER_URL.replace(/\/$/, "");
+    return cachedServerBaseUrl;
+  }
   if (!SKIP_AUTH) {
     try {
       const ssm = new SSMClient({});
@@ -39,15 +40,15 @@ async function _getAdminOrigin(): Promise<string> {
         new GetParameterCommand({ Name: "/gremlin/admin-url" }),
       );
       if (res.Parameter?.Value) {
-        cachedAdminOrigin = res.Parameter.Value;
-        return cachedAdminOrigin;
+        cachedServerBaseUrl = res.Parameter.Value.replace(/\/$/, "");
+        return cachedServerBaseUrl;
       }
     } catch {
       // SSM not available — fall through
     }
   }
-  cachedAdminOrigin = process.env.ADMIN_ORIGIN ?? "http://localhost:5173";
-  return cachedAdminOrigin;
+  cachedServerBaseUrl = `http://localhost:${process.env.PORT || 3001}`;
+  return cachedServerBaseUrl;
 }
 
 // Load scheduler config from SSM (set by MessagingStack)
@@ -145,9 +146,11 @@ const yoga = createYoga({
     const user = SKIP_AUTH
       ? ({ sub: "local", email: "local@dev" } as AuthUser)
       : (userByRequest.get(request) as AuthUser);
+    const serverBaseUrl = await getServerBaseUrl();
     return {
       user,
-      mediaBaseUrl: MEDIA_BASE_URL,
+      serverBaseUrl,
+      mediaBaseUrl: `${serverBaseUrl}/media`,
       resources,
       services,
       loaders: createLoaders(resources),
@@ -183,9 +186,11 @@ useServer(
         if (!token) throw new Error("Unauthorized");
         user = await verifyToken(token);
       }
+      const serverBaseUrl = await getServerBaseUrl();
       return {
         user,
-        mediaBaseUrl: MEDIA_BASE_URL,
+        serverBaseUrl,
+        mediaBaseUrl: `${serverBaseUrl}/media`,
         resources,
         services,
         loaders: createLoaders(resources),
@@ -287,10 +292,11 @@ loadSchedulerConfig().then(async () => {
   const { startSqsWorker } = await import(
     "@gremlin/lib/services/inbox/sqsWorker.js"
   );
+  const serverBase = await getServerBaseUrl();
   const svcCtx = {
     resources,
     services,
-    mediaBaseUrl: MEDIA_BASE_URL,
+    mediaBaseUrl: `${serverBase}/media`,
     log: logger.child({ component: "inbox" }),
   };
   stopSqsWorker = startSqsWorker(svcCtx);

@@ -60,14 +60,17 @@ const documents: AgentLogResolvers["documents"] = async (parent) => {
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
-const files = async (parent: any) => {
+const files = async (parent: any, _args: unknown, ctx: GremlinContext) => {
   // biome-ignore lint/suspicious/noExplicitAny: artifacts not in generated types yet
   const paths = ((parent as any).artifacts as string[] | undefined) ?? [];
   if (paths.length === 0) return [];
+  const serverBase = ctx.serverBaseUrl;
   const results = await Promise.all(
     paths.map(async (filePath: string) => {
       try {
-        return await getFileInfo(filePath);
+        const info = await getFileInfo(filePath);
+        if (!info) return null;
+        return { ...info, _serverBase: serverBase };
       } catch {
         return null;
       }

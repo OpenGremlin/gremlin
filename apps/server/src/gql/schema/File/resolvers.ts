@@ -20,11 +20,7 @@ interface FileParent {
   sizeBytes: number;
   mimeType: string | null;
   modifiedAt: string;
-}
-
-function getServerBase(): string {
-  const port = process.env.PORT || 3001;
-  return process.env.SERVER_URL ?? `http://localhost:${port}`;
+  _serverBase: string;
 }
 
 async function getImageDimensions(
@@ -58,13 +54,14 @@ const file = async (
   ctx: GremlinContext,
 ) => {
   const info = await ctx.services.workspace.getFileInfo(filePath);
-  return info ?? null;
+  if (!info) return null;
+  return { ...info, _serverBase: ctx.serverBaseUrl };
 };
 
 const render = async (parent: FileParent) => {
   const ext = nodePath.extname(parent.name);
   const kind = detectRenderKind(parent.mimeType, ext);
-  const serverBase = getServerBase();
+  const serverBase = parent._serverBase;
 
   switch (kind) {
     case "document": {
