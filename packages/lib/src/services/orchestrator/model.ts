@@ -11,9 +11,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createPerplexity } from "@ai-sdk/perplexity";
 import { createTogetherAI } from "@ai-sdk/togetherai";
 import { createXai } from "@ai-sdk/xai";
-import { createMinimax } from "vercel-minimax-ai-provider";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import type { LanguageModel } from "ai";
+import { createMinimax } from "vercel-minimax-ai-provider";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 

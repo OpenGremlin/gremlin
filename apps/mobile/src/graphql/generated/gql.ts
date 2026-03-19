@@ -75,6 +75,7 @@ type Documents = {
     "\n  subscription SandboxOutput($taskId: ID!) {\n    sandboxOutput(taskId: $taskId) {\n      commandId\n      stream\n      data\n      done\n      exitCode\n    }\n  }\n": typeof types.SandboxOutputDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": typeof types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": typeof types.WorkspaceFileDocument,
+    "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": typeof types.FileDocument,
 };
 const documents: Documents = {
     "\n  query AgentLogs($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {\n    agentLogs(agentId: $agentId, first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          id\n          role\n          content\n          toolName\n          toolInput\n          toolResult\n          files {\n            ...FileFields\n          }\n          taskId\n          createdAt\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.AgentLogsDocument,
@@ -137,6 +138,7 @@ const documents: Documents = {
     "\n  subscription SandboxOutput($taskId: ID!) {\n    sandboxOutput(taskId: $taskId) {\n      commandId\n      stream\n      data\n      done\n      exitCode\n    }\n  }\n": types.SandboxOutputDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": types.WorkspaceFileDocument,
+    "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": types.FileDocument,
 };
 
 /**
@@ -379,6 +381,10 @@ export function graphql(source: "\n  query WorkspaceEntries($path: String!) {\n 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n"): typeof import('./graphql').WorkspaceFileDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n"): typeof import('./graphql').FileDocument;
 
 
 export function graphql(source: string) {

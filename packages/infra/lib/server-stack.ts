@@ -25,7 +25,8 @@ export interface ServerStackProps extends cdk.StackProps {
   userPoolId: string;
   userPoolClientId: string;
   cognitoDomain: string;
-  mediaCdnUrl: string;
+  mediaBucket: s3.IBucket;
+  mediaBucketName: string;
   uploadsBucket: s3.IBucket;
   uploadsBucketName: string;
   skillsBucket: s3.IBucket;
@@ -78,6 +79,7 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    props.mediaBucket.grantRead(serverRole);
     props.uploadsBucket.grantReadWrite(serverRole);
     props.skillsBucket.grantRead(serverRole);
 
@@ -195,7 +197,7 @@ export class ServerStack extends cdk.Stack {
         `-e COGNITO_USER_POOL_ID=${props.userPoolId}`,
         `-e COGNITO_CLIENT_ID=${props.userPoolClientId}`,
         `-e COGNITO_DOMAIN=${props.cognitoDomain}`,
-        `-e MEDIA_CDN_URL=${props.mediaCdnUrl}`,
+        `-e MEDIA_BUCKET=${props.mediaBucketName}`,
         `-e VECTORS_BUCKET=gremlin-vectors`,
         `-e UPLOADS_BUCKET=${props.uploadsBucketName}`,
         `-e SKILLS_BUCKET=${props.skillsBucketName}`,

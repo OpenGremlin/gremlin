@@ -1,11 +1,18 @@
-import * as path from "node:path";
+import * as fs from "node:fs/promises";
+import * as nodePath from "node:path";
+import { buildWorkspaceFileUrl } from "@gremlin/lib/services/workspace/buildFileUrl.js";
 import {
   detectRenderKind,
   languageByExtension,
 } from "@gremlin/lib/services/workspace/mime.js";
 import { readFile } from "@gremlin/lib/services/workspace/readFile.js";
+import imageSize from "image-size";
 import type { GremlinContext } from "../../context.js";
 import { parseFrontmatter } from "../shared/parseFrontmatter.js";
+
+function getWorkspacePath() {
+  return nodePath.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
+}
 
 interface FileParent {
   path: string;
@@ -13,6 +20,36 @@ interface FileParent {
   sizeBytes: number;
   mimeType: string | null;
   modifiedAt: string;
+}
+
+function getServerBase(): string {
+  const port = process.env.PORT || 3001;
+  return process.env.SERVER_URL ?? `http://localhost:${port}`;
+}
+
+async function getImageDimensions(
+  filePath: string,
+): Promise<{ width: number; height: number; aspectRatio: number } | null> {
+  try {
+    const workspacePath = getWorkspacePath();
+    const resolved = nodePath.resolve(workspacePath, filePath);
+    // Read only the first 512KB — image-size only needs the header
+    const handle = await fs.open(resolved, "r");
+    const buf = Buffer.alloc(512 * 1024);
+    const { bytesRead } = await handle.read(buf, 0, buf.length, 0);
+    await handle.close();
+    const result = imageSize(buf.subarray(0, bytesRead));
+    if (result.width && result.height) {
+      return {
+        width: result.width,
+        height: result.height,
+        aspectRatio: result.width / result.height,
+      };
+    }
+  } catch {
+    // Can't read dimensions — not critical
+  }
+  return null;
 }
 
 const file = async (
@@ -25,8 +62,9 @@ const file = async (
 };
 
 const render = async (parent: FileParent) => {
-  const ext = path.extname(parent.name);
+  const ext = nodePath.extname(parent.name);
   const kind = detectRenderKind(parent.mimeType, ext);
+  const serverBase = getServerBase();
 
   switch (kind) {
     case "document": {
@@ -60,24 +98,27 @@ const render = async (parent: FileParent) => {
         language: languageByExtension(ext),
       };
     }
-    case "image":
+    case "image": {
+      const dims = await getImageDimensions(parent.path);
       return {
         __typename: "ImageRender" as const,
-        url: null,
-        aspectRatio: null,
-        width: null,
-        height: null,
+        _filePath: parent.path,
+        _serverBase: serverBase,
+        aspectRatio: dims?.aspectRatio ?? null,
+        width: dims?.width ?? null,
+        height: dims?.height ?? null,
       };
+    }
     case "audio":
       return {
         __typename: "AudioRender" as const,
-        url: null,
+        url: buildWorkspaceFileUrl(serverBase, parent.path),
         durationSeconds: null,
       };
     case "video":
       return {
         __typename: "VideoRender" as const,
-        url: null,
+        url: buildWorkspaceFileUrl(serverBase, parent.path),
         thumbnailUrl: null,
         durationSeconds: null,
       };
@@ -90,10 +131,23 @@ const render = async (parent: FileParent) => {
   }
 };
 
+// ImageRender.url is a field with a width argument, so we resolve it lazily
+const imageRenderUrl = (
+  parent: { _filePath: string; _serverBase: string },
+  args: { width?: number | null },
+) => {
+  return buildWorkspaceFileUrl(parent._serverBase, parent._filePath, {
+    width: args.width,
+  });
+};
+
 export const fileResolvers = {
   Query: { file },
   File: { render },
   FileRender: {
     __resolveType: (obj: { __typename: string }) => obj.__typename,
+  },
+  ImageRender: {
+    url: imageRenderUrl,
   },
 };

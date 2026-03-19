@@ -17,13 +17,17 @@ import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 
 import { pubsub } from "./pubsub.js";
+import { filesRoute } from "./routes/filesRoute.js";
+import { mediaRoute } from "./routes/mediaRoute.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
-const MEDIA_CDN_URL = (
-  process.env.MEDIA_CDN_URL || `http://localhost:${process.env.PORT || 3001}`
+// Media is served from this server at /media/* (prod reads from S3, dev serves static files)
+const SERVER_BASE_URL = (
+  process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3001}`
 ).replace(/\/$/, "");
+const MEDIA_BASE_URL = `${SERVER_BASE_URL}/media`;
 
 let cachedAdminOrigin: string | undefined;
 async function _getAdminOrigin(): Promise<string> {
@@ -143,7 +147,7 @@ const yoga = createYoga({
       : (userByRequest.get(request) as AuthUser);
     return {
       user,
-      mediaCdnUrl: MEDIA_CDN_URL,
+      mediaBaseUrl: MEDIA_BASE_URL,
       resources,
       services,
       loaders: createLoaders(resources),
@@ -181,7 +185,7 @@ useServer(
       }
       return {
         user,
-        mediaCdnUrl: MEDIA_CDN_URL,
+        mediaBaseUrl: MEDIA_BASE_URL,
         resources,
         services,
         loaders: createLoaders(resources),
@@ -206,15 +210,19 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
-// Serve media assets locally (in production CloudFront handles this)
-if (!process.env.MEDIA_CDN_URL) {
+// Media assets: S3 + sharp in prod, local static files in dev
+if (process.env.MEDIA_BUCKET) {
+  app.get("/media/*", mediaRoute);
+} else {
   const mediaAssets = path.resolve(
-    __dirname,
+    path.dirname(new URL(import.meta.url).pathname),
     "../../../packages/media-server/assets",
   );
-  app.use("/avatars", express.static(path.join(mediaAssets, "avatars")));
-  app.use("/tasks", express.static(path.join(mediaAssets, "tasks")));
+  app.use("/media", express.static(mediaAssets));
 }
+
+// Workspace file serving (signed URLs)
+app.get("/api/files/*", filesRoute);
 
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");
@@ -282,7 +290,7 @@ loadSchedulerConfig().then(async () => {
   const svcCtx = {
     resources,
     services,
-    mediaCdnUrl: MEDIA_CDN_URL,
+    mediaBaseUrl: MEDIA_BASE_URL,
     log: logger.child({ component: "inbox" }),
   };
   stopSqsWorker = startSqsWorker(svcCtx);

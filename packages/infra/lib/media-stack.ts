@@ -14,6 +14,8 @@ const REPO_ROOT = path.resolve(__dirname, "../../..");
 
 export class MediaStack extends cdk.Stack {
   readonly cdnUrl: string;
+  readonly bucket: s3.IBucket;
+  readonly bucketName: string;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -87,6 +89,8 @@ export class MediaStack extends cdk.Stack {
       },
     });
 
+    this.bucket = bucket;
+    this.bucketName = bucket.bucketName;
     this.cdnUrl = `https://${distribution.distributionDomainName}`;
 
     new cdk.CfnOutput(this, "CdnUrl", {

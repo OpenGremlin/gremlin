@@ -40,7 +40,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   cognitoDomain: auth.cognitoDomain,
-  mediaCdnUrl: media.cdnUrl,
+  mediaBucket: media.bucket,
+  mediaBucketName: media.bucketName,
   uploadsBucket: db.uploadsBucket,
   uploadsBucketName: db.uploadsBucketName,
   skillsBucket: db.skillsBucket,
@@ -72,6 +73,5 @@ new AdminStack(app, "GremlinAdminStack", {
   userPoolId: auth.userPoolId,
   userPoolClientId: auth.userPoolClientId,
   cognitoDomain: auth.cognitoDomain,
-  mediaCdnUrl: media.cdnUrl,
   serverDns: server.serverDns,
 });

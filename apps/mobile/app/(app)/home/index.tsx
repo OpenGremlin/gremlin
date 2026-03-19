@@ -78,10 +78,7 @@ function TaskCard({ item }: { item: TaskItem }) {
             </Text>
           ) : null}
           {task.files && task.files.length > 0 ? (
-            <View
-              className="mt-2 gap-1"
-              onStartShouldSetResponder={() => true}
-            >
+            <View className="mt-2 gap-1" onStartShouldSetResponder={() => true}>
               {task.files.map((file) => (
                 <FileCard key={file.path} file={file} />
               ))}

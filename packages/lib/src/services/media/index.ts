@@ -3,7 +3,11 @@ export function buildMediaUrl(
   path: string,
   width?: number | null,
 ): string {
-  const url = new URL(path, cdnBase.endsWith("/") ? cdnBase : `${cdnBase}/`);
+  const relativePath = path.replace(/^\/+/, "");
+  const url = new URL(
+    relativePath,
+    cdnBase.endsWith("/") ? cdnBase : `${cdnBase}/`,
+  );
   if (width) url.searchParams.set("width", String(width));
   return url.toString();
 }

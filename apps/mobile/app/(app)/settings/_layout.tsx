@@ -23,7 +23,7 @@ export default function SettingsLayout() {
       />
       <Stack.Screen name="connections/[id]" options={{ title: "Connection" }} />
       <Stack.Screen name="files/index" options={{ title: "Files" }} />
-      <Stack.Screen name="files/view" options={{ title: "File" }} />
+      <Stack.Screen name="files/[...path]" options={{ title: "Files" }} />
     </Stack>
   );
 }

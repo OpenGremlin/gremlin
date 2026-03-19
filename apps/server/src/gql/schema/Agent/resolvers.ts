@@ -42,7 +42,7 @@ const unretireAgent: MutationResolvers["unretireAgent"] = (
 
 const imageUrl: AgentResolvers["imageUrl"] = (parent, args, ctx) => {
   const path = avatarPathById(parent.avatar) ?? parent.avatar;
-  return ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, path, args.width);
+  return ctx.services.media.buildMediaUrl(ctx.mediaBaseUrl, path, args.width);
 };
 
 const agentUpdated = {

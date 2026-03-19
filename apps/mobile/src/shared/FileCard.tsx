@@ -7,14 +7,13 @@ import {
   Image as ImageIcon,
 } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import type { AgentLogsQuery } from "../graphql/generated/graphql";
+import { Pressable, Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
-import { Markdown } from "./LogEntryView/Markdown";
+import type { FileNode } from "./FilePreview";
+import { FilePreview } from "./FilePreview";
 import { SheetModal } from "./SheetModal";
 
-type FileNode =
-  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
+export type { FileNode } from "./FilePreview";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -42,91 +41,6 @@ function FileIcon_({ render }: { render: FileNode["render"] }) {
   }
 }
 
-function FilePreview({ file }: { file: FileNode }) {
-  const { render } = file;
-
-  if (render.__typename === "DocumentRender") {
-    return (
-      <ScrollView
-        className="flex-1 bg-bg px-10 py-4"
-        contentContainerClassName="pb-16"
-      >
-        <Markdown>{render.markdown}</Markdown>
-      </ScrollView>
-    );
-  }
-
-  if (render.__typename === "CodeRender") {
-    return (
-      <ScrollView
-        className="flex-1 bg-bg px-4 py-4"
-        contentContainerClassName="pb-16"
-        horizontal={false}
-      >
-        <Text
-          className="text-xs text-text-muted mb-2"
-          style={{ fontFamily: "monospace" }}
-        >
-          {render.language}
-        </Text>
-        <Text
-          className="text-sm text-text-primary"
-          style={{ fontFamily: "monospace" }}
-          selectable
-        >
-          {render.content}
-        </Text>
-      </ScrollView>
-    );
-  }
-
-  if (render.__typename === "ImageRender") {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg p-6">
-        <Text className="text-text-muted text-sm">
-          Image preview not yet available
-        </Text>
-        {render.width != null && render.height != null && (
-          <Text className="text-text-muted text-xs mt-1">
-            {render.width} x {render.height}
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  if (
-    render.__typename === "AudioRender" ||
-    render.__typename === "VideoRender"
-  ) {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg p-6">
-        <Text className="text-text-muted text-sm">
-          {render.__typename === "AudioRender" ? "Audio" : "Video"} preview not
-          yet available
-        </Text>
-        {render.durationSeconds != null && (
-          <Text className="text-text-muted text-xs mt-1">
-            {Math.round(render.durationSeconds)}s
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  // UnknownRender
-  return (
-    <View className="flex-1 items-center justify-center bg-bg p-6">
-      <Text className="text-text-muted text-sm">
-        Cannot preview this file type
-      </Text>
-      {"mimeType" in render && render.mimeType && (
-        <Text className="text-text-muted text-xs mt-1">{render.mimeType}</Text>
-      )}
-    </View>
-  );
-}
-
 function cardSubtitle(file: FileNode): string {
   const parts: string[] = [];
   parts.push(formatFileSize(file.sizeBytes));
@@ -142,7 +56,8 @@ export function FileCard({ file }: { file: FileNode }) {
   const [open, setOpen] = useState(false);
   const canPreview =
     file.render.__typename === "DocumentRender" ||
-    file.render.__typename === "CodeRender";
+    file.render.__typename === "CodeRender" ||
+    file.render.__typename === "ImageRender";
   const isDocument = file.render.__typename === "DocumentRender";
   const displayTitle =
     isDocument && "title" in file.render
@@ -187,7 +102,7 @@ export function FileCard({ file }: { file: FileNode }) {
           title={displayTitle}
           onClose={() => setOpen(false)}
         >
-          <FilePreview file={file} />
+          <FilePreview render={file.render} />
         </SheetModal>
       )}
     </>

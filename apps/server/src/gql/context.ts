@@ -6,7 +6,7 @@ import type { Loaders } from "./loaders.js";
 
 export interface GremlinContext {
   user?: AuthUser;
-  mediaCdnUrl: string;
+  mediaBaseUrl: string;
   resources: Resources;
   services: Services;
   loaders: Loaders;

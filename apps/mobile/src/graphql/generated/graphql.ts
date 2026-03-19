@@ -1379,6 +1379,20 @@ export type WorkspaceFileQueryVariables = Exact<{
 
 export type WorkspaceFileQuery = { __typename?: 'Query', workspaceFile?: string | null };
 
+export type FileQueryVariables = Exact<{
+  path: Scalars['String']['input'];
+}>;
+
+
+export type FileQuery = { __typename?: 'Query', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+      | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+      | { __typename: 'CodeRender', content: string, language: string }
+      | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+      | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+      | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+      | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+     } | null };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -2553,3 +2567,44 @@ export const WorkspaceFileDocument = new TypedDocumentString(`
   workspaceFile(path: $path)
 }
     `) as unknown as TypedDocumentString<WorkspaceFileQuery, WorkspaceFileQueryVariables>;
+export const FileDocument = new TypedDocumentString(`
+    query File($path: String!) {
+  file(path: $path) {
+    path
+    name
+    sizeBytes
+    mimeType
+    modifiedAt
+    render {
+      __typename
+      ... on DocumentRender {
+        markdown
+        title
+      }
+      ... on CodeRender {
+        content
+        language
+      }
+      ... on ImageRender {
+        url(width: 800)
+        width
+        height
+        aspectRatio
+      }
+      ... on AudioRender {
+        url
+        durationSeconds
+      }
+      ... on VideoRender {
+        url
+        thumbnailUrl(width: 400)
+        durationSeconds
+      }
+      ... on UnknownRender {
+        mimeType
+        sizeBytes
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<FileQuery, FileQueryVariables>;

@@ -30,7 +30,7 @@ const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
 const imageUrl: TaskResolvers["imageUrl"] = (parent, args, ctx) =>
   parent.image
     ? ctx.services.media.buildMediaUrl(
-        ctx.mediaCdnUrl,
+        ctx.mediaBaseUrl,
         `tasks/${parent.image}`,
         args.width,
       )

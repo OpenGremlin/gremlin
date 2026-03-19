@@ -111,7 +111,7 @@ export function avatarPathById(id: string): string | undefined {
 const avatars: QueryResolvers["avatars"] = () => avatarList;
 
 const url: AvatarResolvers["url"] = (parent, args, ctx) =>
-  ctx.services.media.buildMediaUrl(ctx.mediaCdnUrl, parent.path, args.width);
+  ctx.services.media.buildMediaUrl(ctx.mediaBaseUrl, parent.path, args.width);
 
 export const avatarResolvers = {
   Query: { avatars },

@@ -17,7 +17,6 @@ export interface AdminStackProps extends cdk.StackProps {
   userPoolId: string;
   userPoolClientId: string;
   cognitoDomain: string;
-  mediaCdnUrl: string;
   serverDns: string;
 }
 
@@ -56,6 +55,41 @@ export class AdminStack extends cdk.Stack {
       additionalBehaviors: {
         "/graphql": apiBehavior,
         "/api/*": apiBehavior,
+        "/api/files/*": {
+          origin: serverOrigin,
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: new cloudfront.CachePolicy(this, "FilesCachePolicy", {
+            cachePolicyName: `GremlinFilesCache-${this.stackName}`,
+            queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(
+              "expires",
+              "sig",
+              "width",
+            ),
+            defaultTtl: cdk.Duration.hours(1),
+            maxTtl: cdk.Duration.hours(1),
+          }),
+        },
+        "/media/*": {
+          origin: serverOrigin,
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          cachePolicy: new cloudfront.CachePolicy(this, "MediaCachePolicy", {
+            cachePolicyName: `GremlinMediaCache-${this.stackName}`,
+            queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(
+              "width",
+              "height",
+              "quality",
+              "format",
+            ),
+            enableAcceptEncodingGzip: true,
+            enableAcceptEncodingBrotli: true,
+            defaultTtl: cdk.Duration.days(365),
+            maxTtl: cdk.Duration.days(365),
+          }),
+        },
       },
       defaultRootObject: "index.html",
       errorResponses: [
@@ -159,7 +193,7 @@ export class AdminStack extends cdk.Stack {
           `window.__GREMLIN_CONFIG__ = ${JSON.stringify({
             cognitoDomain: props.cognitoDomain,
             cognitoClientId: props.userPoolClientId,
-            mediaCdnUrl: props.mediaCdnUrl,
+            mediaBaseUrl: `${cfUrl}/media`,
           })};`,
         ),
       ],

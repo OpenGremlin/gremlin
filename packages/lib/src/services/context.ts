@@ -12,7 +12,7 @@ export interface ServiceContext {
   resources: Resources;
   services: Services;
   user?: AuthUser;
-  mediaCdnUrl: string;
+  mediaBaseUrl: string;
   log: Logger;
 }
 
@@ -22,13 +22,13 @@ export interface ServiceContext {
  */
 export function createServiceContext(opts: {
   pubsub: PubSub;
-  mediaCdnUrl?: string;
+  mediaBaseUrl?: string;
   logNamespace?: string;
 }): ServiceContext {
   return {
     resources: createResources(opts.pubsub),
     services: createServices(),
-    mediaCdnUrl: opts.mediaCdnUrl ?? process.env.MEDIA_CDN_URL ?? "",
+    mediaBaseUrl: opts.mediaBaseUrl ?? process.env.MEDIA_BASE_URL ?? "",
     log: createLogger(opts.logNamespace ?? "svc"),
   };
 }

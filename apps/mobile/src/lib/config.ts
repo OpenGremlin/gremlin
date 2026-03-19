@@ -12,7 +12,7 @@ declare const window: {
   __GREMLIN_CONFIG__?: {
     cognitoDomain?: string;
     cognitoClientId?: string;
-    mediaCdnUrl?: string;
+    mediaBaseUrl?: string;
   };
 };
 
