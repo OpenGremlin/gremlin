@@ -2,6 +2,7 @@ import { mergeTypeDefs } from "@graphql-tools/merge";
 import { agentTypeDefs } from "./Agent/typeDefs.js";
 import { agentJobTypeDefs } from "./AgentJob/typeDefs.js";
 import { agentLogTypeDefs } from "./AgentLog/typeDefs.js";
+import { attachmentTypeDefs } from "./Attachment/typeDefs.js";
 import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { baseTypeDefs } from "./base.js";
 import { documentTypeDefs } from "./Document/typeDefs.js";
@@ -17,6 +18,7 @@ import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
   baseTypeDefs,
+  attachmentTypeDefs,
   documentTypeDefs,
   fileTypeDefs,
   fileUploadTypeDefs,

@@ -43,7 +43,18 @@ export const TaskQuery = graphql(`
       updatedAt
       completedAt
       imageUrl(width: 200)
-      artifacts
+      attachments {
+        ... on FileAttachment {
+          file {
+            ...FileFields
+          }
+        }
+        ... on LinkAttachment {
+          url
+          title
+          description
+        }
+      }
       files {
         ...FileFields
       }
@@ -107,7 +118,18 @@ export const TaskUpdatedSubscription = graphql(`
       updatedAt
       completedAt
       imageUrl(width: 200)
-      artifacts
+      attachments {
+        ... on FileAttachment {
+          file {
+            ...FileFields
+          }
+        }
+        ... on LinkAttachment {
+          url
+          title
+          description
+        }
+      }
       files {
         ...FileFields
       }

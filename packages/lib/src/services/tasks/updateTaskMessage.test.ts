@@ -16,7 +16,7 @@ describe("updateTaskMessage", () => {
     completedAt: null,
     originJobId: null,
     image: null,
-    artifacts: [],
+    attachments: [],
   };
 
   beforeEach(() => {

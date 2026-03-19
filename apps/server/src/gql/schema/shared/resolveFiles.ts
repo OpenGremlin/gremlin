@@ -2,13 +2,13 @@ import { getFileInfo } from "@gremlin/lib/services/workspace/getFileInfo.js";
 
 /**
  * Shared helper for AgentLog and Task `files` resolvers.
- * Maps artifact paths to file-info objects with the server base URL attached.
+ * Maps file paths to file-info objects with the server base URL attached.
  */
 export async function resolveFiles(
-  artifacts: string[] | undefined,
+  filePaths: string[] | undefined,
   serverBaseUrl: string,
 ) {
-  const paths = artifacts ?? [];
+  const paths = filePaths ?? [];
   if (paths.length === 0) return [];
   const results = await Promise.all(
     paths.map(async (filePath: string) => {

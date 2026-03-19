@@ -41,7 +41,7 @@ describe("createTask", () => {
       completedAt: null,
       originJobId: null,
       image: null,
-      artifacts: [],
+      attachments: [],
     });
   });
 

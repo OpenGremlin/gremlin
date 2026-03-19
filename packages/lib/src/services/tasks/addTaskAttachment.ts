@@ -1,11 +1,12 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
+import type { Attachment } from "./attachment.js";
 
-export async function addTaskArtifact(
+export async function addTaskAttachment(
   ctx: ServiceContext,
   taskId: string,
-  filePath: string,
+  attachment: Attachment,
 ) {
   const table = ctx.resources.ddb.table;
   const now = new Date().toISOString();
@@ -15,9 +16,9 @@ export async function addTaskArtifact(
       TableName: table.getName(),
       Key: { pk: "TASK", sk: `TASK#${taskId}` },
       UpdateExpression:
-        "SET artifacts = list_append(if_not_exists(artifacts, :empty), :doc), updatedAt = :now",
+        "SET attachments = list_append(if_not_exists(attachments, :empty), :item), updatedAt = :now",
       ExpressionAttributeValues: {
-        ":doc": [filePath],
+        ":item": [attachment],
         ":empty": [],
         ":now": now,
       },

@@ -3,6 +3,8 @@ import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {
+  attachFileTool,
+  attachLinkTool,
   createBraveSearchTool,
   createDocumentTool,
   createTavilySearchTool,
@@ -93,6 +95,8 @@ export function buildTaskTools(
     postToMainLane: postToMainLaneTool(ctx, taskId),
     createDocument: createDocumentTool(ctx, taskId),
     updateDocument: updateDocumentTool(ctx),
+    attachFile: attachFileTool(ctx, taskId),
+    attachLink: attachLinkTool(ctx, taskId),
     saveMemory: saveMemoryTool(ctx, agentId),
     recallMemory: recallMemoryTool(ctx, agentId),
     listJobs: listJobsTool(ctx, agentId),

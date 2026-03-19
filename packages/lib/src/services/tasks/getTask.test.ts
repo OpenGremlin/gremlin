@@ -22,7 +22,7 @@ describe("getTask", () => {
       completedAt: null,
       originJobId: null,
       image: null,
-      artifacts: [],
+      attachments: [],
     };
 
     const mockSend = vi.fn().mockResolvedValue({ Item: task });

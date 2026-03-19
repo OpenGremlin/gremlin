@@ -23,7 +23,7 @@ export async function createTask(
     completedAt: null,
     originJobId: input.originJobId ?? null,
     image: null,
-    artifacts: [],
+    attachments: [],
   };
 
   // Write directly via document client so we can include GSI attributes.

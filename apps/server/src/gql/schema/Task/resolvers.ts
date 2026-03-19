@@ -10,6 +10,7 @@ import type {
   TaskResolvers,
 } from "../../resolverTypes.js";
 import { parseFrontmatter } from "../shared/parseFrontmatter.js";
+import { extractFilePaths } from "../shared/resolveAttachments.js";
 import { resolveFiles } from "../shared/resolveFiles.js";
 
 const tasks: QueryResolvers["tasks"] = (
@@ -36,11 +37,12 @@ const imageUrl: TaskResolvers["imageUrl"] = (parent, args, ctx) =>
       )
     : null;
 
-const artifacts: TaskResolvers["artifacts"] = (parent) =>
-  parent.artifacts ?? [];
+// biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
+const attachments = (parent: any) => parent.attachments ?? [];
 
 const documents: TaskResolvers["documents"] = async (parent) => {
-  const paths = parent.artifacts ?? [];
+  // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
+  const paths = extractFilePaths((parent as any).attachments);
   const results = await Promise.all(
     paths.map(async (filePath: string) => {
       try {
@@ -58,7 +60,7 @@ const documents: TaskResolvers["documents"] = async (parent) => {
 
 // biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
 const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
-  resolveFiles(parent.artifacts, ctx.serverBaseUrl);
+  resolveFiles(extractFilePaths(parent.attachments), ctx.serverBaseUrl);
 
 const logs: TaskResolvers["logs"] = (
   parent,
@@ -128,7 +130,7 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, imageUrl, artifacts, documents, files, logs },
+  Task: { agent, imageUrl, attachments, documents, files, logs },
   TaskEdge: { node },
   Subscription: {
     taskUpdated,

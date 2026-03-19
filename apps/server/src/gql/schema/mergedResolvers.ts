@@ -3,6 +3,7 @@ import type { IResolvers } from "@graphql-tools/utils";
 import { agentResolvers } from "./Agent/resolvers.js";
 import { agentJobResolvers } from "./AgentJob/resolvers.js";
 import { agentLogResolvers } from "./AgentLog/resolvers.js";
+import { attachmentResolvers } from "./Attachment/resolvers.js";
 import { avatarResolvers } from "./Avatar/resolvers.js";
 import { documentResolvers } from "./Document/resolvers.js";
 import { fileResolvers } from "./File/resolvers.js";
@@ -17,6 +18,7 @@ import { taskResolvers } from "./Task/resolvers.js";
 import { workspaceResolvers } from "./Workspace/resolvers.js";
 
 export const mergedResolvers: IResolvers = mergeResolvers([
+  attachmentResolvers,
   documentResolvers,
   fileResolvers,
   fileUploadResolvers,

@@ -12,6 +12,8 @@ You have tools available:
 - postToMainLane: Post a message to the main conversation as a reply from you. The user cannot see your task work directly — this is the only way to deliver your answer. Write naturally as if replying to the user.
 - createDocument: Create a document artifact attached to this task.
 - updateDocument: Revise an existing document using patches.
+- attachFile: Attach any file in the workspace as a task attachment (screenshots, images, CSVs, PDFs, etc.). Whenever you save a file that the user might find interesting — even intermediate results like screenshots, downloaded data, or debug output — call attachFile so it appears on the task.
+- attachLink: Attach a URL to this task. Use this for any webpage, article, dashboard, or external resource that is relevant to the work — things the user might want to revisit later.
 - requestApproval: Ask the user for a decision before proceeding.
 
 Sandbox (Linux VM for running commands):

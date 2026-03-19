@@ -69,7 +69,10 @@ export function createDocumentTool(ctx: ServiceContext, taskId: string | null) {
 
       await fs.writeFile(filePath, formatWithFrontmatter(title, body), "utf-8");
       if (taskId) {
-        await ctx.services.tasks.addTaskArtifact(ctx, taskId, relativePath);
+        await ctx.services.tasks.addTaskAttachment(ctx, taskId, {
+          type: "file",
+          path: relativePath,
+        });
       }
       return { path: relativePath, title };
     },
@@ -124,7 +127,9 @@ export function readDocumentTool() {
     description:
       "Read a document by its file path. Use this to inspect documents created by tasks.",
     inputSchema: z.object({
-      path: z.string().describe("The document file path (from task artifacts)"),
+      path: z
+        .string()
+        .describe("The document file path (from task attachments)"),
     }),
     execute: async ({ path: filePath }) => {
       const workspace = getWorkspacePath();

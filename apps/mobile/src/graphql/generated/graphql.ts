@@ -65,9 +65,12 @@ export type AgentJob = {
 export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
+  attachments: Array<Attachment>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
@@ -154,6 +157,8 @@ export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
 };
+
+export type Attachment = FileAttachment | LinkAttachment;
 
 export type AudioRender = {
   __typename?: 'AudioRender';
@@ -260,6 +265,11 @@ export type File = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type FileAttachment = {
+  __typename?: 'FileAttachment';
+  file: File;
+};
+
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
@@ -315,6 +325,13 @@ export type IntegrationProvider = {
   id: Scalars['ID']['output'];
   models?: Maybe<Array<ModelInfo>>;
   service: Scalars['String']['output'];
+};
+
+export type LinkAttachment = {
+  __typename?: 'LinkAttachment';
+  description?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
 };
 
 export type ModelInfo = {
@@ -804,11 +821,12 @@ export type SubscriptionTasksUpdatedArgs = {
 export type Task = {
   __typename?: 'Task';
   agent: Agent;
-  artifacts: Array<Scalars['String']['output']>;
+  attachments: Array<Attachment>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  /** @deprecated Use files instead */
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
@@ -1303,7 +1321,17 @@ export type TaskQueryVariables = Exact<{
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
+      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+            | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+            | { __typename: 'CodeRender', content: string, language: string }
+            | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+            | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+           } }
+      | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
+    >, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1349,7 +1377,17 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, attachments: Array<
+      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+            | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+            | { __typename: 'CodeRender', content: string, language: string }
+            | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+            | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+           } }
+      | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
+    >, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -2322,7 +2360,18 @@ export const TaskDocument = new TypedDocumentString(`
     updatedAt
     completedAt
     imageUrl(width: 200)
-    artifacts
+    attachments {
+      ... on FileAttachment {
+        file {
+          ...FileFields
+        }
+      }
+      ... on LinkAttachment {
+        url
+        title
+        description
+      }
+    }
     files {
       ...FileFields
     }
@@ -2497,7 +2546,18 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     updatedAt
     completedAt
     imageUrl(width: 200)
-    artifacts
+    attachments {
+      ... on FileAttachment {
+        file {
+          ...FileFields
+        }
+      }
+      ... on LinkAttachment {
+        url
+        title
+        description
+      }
+    }
     files {
       ...FileFields
     }

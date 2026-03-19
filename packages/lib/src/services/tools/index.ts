@@ -1,3 +1,5 @@
+export { attachFileTool } from "./attachFile.js";
+export { attachLinkTool } from "./attachLink.js";
 export { createBraveSearchTool } from "./braveSearch.js";
 export { delegateTaskTool } from "./delegateTask.js";
 export {

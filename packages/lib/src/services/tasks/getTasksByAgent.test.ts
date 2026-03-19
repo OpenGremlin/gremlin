@@ -23,7 +23,7 @@ describe("getTasksByAgent", () => {
         completedAt: null,
         originJobId: null,
         image: null,
-        artifacts: [],
+        attachments: [],
       },
       {
         id: "task-2",
@@ -35,7 +35,7 @@ describe("getTasksByAgent", () => {
         completedAt: null,
         originJobId: null,
         image: null,
-        artifacts: [],
+        attachments: [],
       },
     ];
 

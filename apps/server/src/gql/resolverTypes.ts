@@ -83,9 +83,12 @@ export type AgentJob = {
 export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
+  attachments: Array<Attachment>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
@@ -172,6 +175,8 @@ export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
 };
+
+export type Attachment = FileAttachment | LinkAttachment;
 
 export type AudioRender = {
   __typename?: 'AudioRender';
@@ -278,6 +283,11 @@ export type File = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type FileAttachment = {
+  __typename?: 'FileAttachment';
+  file: File;
+};
+
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
@@ -333,6 +343,13 @@ export type IntegrationProvider = {
   id: Scalars['ID']['output'];
   models?: Maybe<Array<ModelInfo>>;
   service: Scalars['String']['output'];
+};
+
+export type LinkAttachment = {
+  __typename?: 'LinkAttachment';
+  description?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
 };
 
 export type ModelInfo = {
@@ -818,11 +835,12 @@ export type SubscriptionTasksUpdatedArgs = {
 export type Task = {
   __typename?: 'Task';
   agent: Agent;
-  artifacts: Array<Scalars['String']['output']>;
+  attachments: Array<Attachment>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  /** @deprecated Use files instead */
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
@@ -982,6 +1000,10 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
+  Attachment:
+    | ( Omit<FileAttachment, 'file'> & { file: _RefType['File'] } )
+    | ( LinkAttachment )
+  ;
   ConnectionMeta:
     | ( ApiKeyConnectionMeta )
     | ( OAuthConnectionMeta )
@@ -1016,6 +1038,7 @@ export type ResolversTypes = {
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
+  Attachment: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Attachment']>;
   AudioRender: ResolverTypeWrapper<AudioRender>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
   Avatar: ResolverTypeWrapper<AvatarModel>;
@@ -1032,6 +1055,7 @@ export type ResolversTypes = {
   DocumentRender: ResolverTypeWrapper<DocumentRender>;
   EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
   File: ResolverTypeWrapper<Omit<File, 'render'> & { render: ResolversTypes['FileRender'] }>;
+  FileAttachment: ResolverTypeWrapper<Omit<FileAttachment, 'file'> & { file: ResolversTypes['File'] }>;
   FileRender: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['FileRender']>;
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
@@ -1042,6 +1066,7 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   IntegrationConnection: ResolverTypeWrapper<SafeIntegrationConnection>;
   IntegrationProvider: ResolverTypeWrapper<IntegrationProviderDef>;
+  LinkAttachment: ResolverTypeWrapper<LinkAttachment>;
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Notification: ResolverTypeWrapper<NotificationItem>;
@@ -1089,6 +1114,7 @@ export type ResolversParentTypes = {
   AgentWebSearchConfig: AgentWebSearchConfig;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
+  Attachment: ResolversUnionTypes<ResolversParentTypes>['Attachment'];
   AudioRender: AudioRender;
   AvailableScope: AvailableScope;
   Avatar: AvatarModel;
@@ -1105,6 +1131,7 @@ export type ResolversParentTypes = {
   DocumentRender: DocumentRender;
   EnabledModelEntry: EnabledModelEntry;
   File: Omit<File, 'render'> & { render: ResolversParentTypes['FileRender'] };
+  FileAttachment: Omit<FileAttachment, 'file'> & { file: ResolversParentTypes['File'] };
   FileRender: ResolversUnionTypes<ResolversParentTypes>['FileRender'];
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: FileUploadUrl;
@@ -1115,6 +1142,7 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']['output'];
   IntegrationConnection: SafeIntegrationConnection;
   IntegrationProvider: IntegrationProviderDef;
+  LinkAttachment: LinkAttachment;
   ModelInfo: ModelInfo;
   Mutation: Record<PropertyKey, never>;
   Notification: NotificationItem;
@@ -1176,6 +1204,7 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
 
 export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLog'] = ResolversParentTypes['AgentLog']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
@@ -1233,6 +1262,10 @@ export type AgentWebSearchConfigResolvers<ContextType = GremlinContext, ParentTy
 export type ApiKeyConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ApiKeyConnectionMeta'] = ResolversParentTypes['ApiKeyConnectionMeta']> = {
   accountId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type AttachmentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Attachment'] = ResolversParentTypes['Attachment']> = {
+  __resolveType: TypeResolveFn<'FileAttachment' | 'LinkAttachment', ParentType, ContextType>;
 };
 
 export type AudioRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AudioRender'] = ResolversParentTypes['AudioRender']> = {
@@ -1306,6 +1339,11 @@ export type FileResolvers<ContextType = GremlinContext, ParentType extends Resol
   sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type FileAttachmentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileAttachment'] = ResolversParentTypes['FileAttachment']> = {
+  file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type FileRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileRender'] = ResolversParentTypes['FileRender']> = {
   __resolveType: TypeResolveFn<'AudioRender' | 'CodeRender' | 'DocumentRender' | 'ImageRender' | 'UnknownRender' | 'VideoRender', ParentType, ContextType>;
 };
@@ -1348,6 +1386,13 @@ export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentTyp
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   models?: Resolver<Maybe<Array<ResolversTypes['ModelInfo']>>, ParentType, ContextType>;
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type LinkAttachmentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['LinkAttachment'] = ResolversParentTypes['LinkAttachment']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelInfo'] = ResolversParentTypes['ModelInfo']> = {
@@ -1521,7 +1566,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
 
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
-  artifacts?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
   completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
@@ -1587,6 +1632,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentSkill?: AgentSkillResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
+  Attachment?: AttachmentResolvers<ContextType>;
   AudioRender?: AudioRenderResolvers<ContextType>;
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
@@ -1599,12 +1645,14 @@ export type Resolvers<ContextType = GremlinContext> = {
   DocumentRender?: DocumentRenderResolvers<ContextType>;
   EnabledModelEntry?: EnabledModelEntryResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
+  FileAttachment?: FileAttachmentResolvers<ContextType>;
   FileRender?: FileRenderResolvers<ContextType>;
   FileUploadUrl?: FileUploadUrlResolvers<ContextType>;
   GlobalSettings?: GlobalSettingsResolvers<ContextType>;
   ImageRender?: ImageRenderResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
+  LinkAttachment?: LinkAttachmentResolvers<ContextType>;
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;

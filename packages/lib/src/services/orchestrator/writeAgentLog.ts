@@ -1,13 +1,14 @@
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
+import type { Attachment } from "../tasks/attachment.js";
 
 type TextLogEntry = {
   agentId: string;
   taskId: string | null;
   role: "AGENT" | "USER" | "SYSTEM";
   content: string;
-  artifacts?: string[];
+  attachments?: Attachment[];
 };
 
 type ToolLogEntry = {
@@ -50,8 +51,8 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     toolName: isToolEntry ? entry.toolName : null,
     toolInput: isToolEntry ? JSON.stringify(entry.toolInput) : null,
     toolResult: isToolEntry ? JSON.stringify(entry.toolResult) : null,
-    ...(!isToolEntry && entry.artifacts?.length
-      ? { artifacts: entry.artifacts }
+    ...(!isToolEntry && entry.attachments?.length
+      ? { attachments: entry.attachments }
       : {}),
     internal: (isToolEntry && entry.internal) || false,
     createdAt: now,

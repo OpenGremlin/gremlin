@@ -158,7 +158,7 @@ const completeFileUpload = async (
     taskId: input.taskId ?? null,
     role: "SYSTEM",
     content,
-    artifacts: [relativePath],
+    attachments: [{ type: "file", path: relativePath }],
   });
 
   log.info(

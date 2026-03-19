@@ -1,4 +1,4 @@
-import { addTaskArtifact } from "./addTaskArtifact.js";
+import { addTaskAttachment } from "./addTaskAttachment.js";
 import { createTask } from "./createTask.js";
 import { getAllTasks } from "./getAllTasks.js";
 import { getTask } from "./getTask.js";
@@ -7,8 +7,10 @@ import { postToMainLane } from "./postToMainLane.js";
 import { selectAndSetTaskImage } from "./selectTaskImage.js";
 import { updateTaskMessage } from "./updateTaskMessage.js";
 
+export type { Attachment } from "./attachment.js";
+
 export const taskService = {
-  addTaskArtifact,
+  addTaskAttachment,
   createTask,
   getAllTasks,
   getTask,

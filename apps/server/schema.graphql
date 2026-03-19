@@ -120,6 +120,18 @@ type Subscription {
   sandboxOutput(taskId: ID!): SandboxOutput!
 }
 
+union Attachment = FileAttachment | LinkAttachment
+
+type FileAttachment {
+  file: File!
+}
+
+type LinkAttachment {
+  url: String!
+  title: String
+  description: String
+}
+
 type Document {
   path: String!
   title: String!
@@ -251,8 +263,9 @@ type AgentLog {
   toolName: String
   toolInput: String
   toolResult: String
-  documents: [Document!]!
-  files: [File!]!
+  attachments: [Attachment!]!
+  documents: [Document!]! @deprecated(reason: "Use attachments instead")
+  files: [File!]! @deprecated(reason: "Use attachments instead")
   createdAt: String!
 }
 
@@ -524,9 +537,9 @@ type Task {
   completedAt: String
   originJobId: String
   imageUrl(width: Int): String
-  artifacts: [String!]!
-  documents: [Document!]! @deprecated(reason: "Use files instead")
-  files: [File!]!
+  attachments: [Attachment!]!
+  documents: [Document!]! @deprecated(reason: "Use attachments instead")
+  files: [File!]! @deprecated(reason: "Use attachments instead")
   logs(
     first: Int
     after: String

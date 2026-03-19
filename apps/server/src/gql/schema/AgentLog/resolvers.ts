@@ -8,6 +8,7 @@ import type {
   QueryResolvers,
 } from "../../resolverTypes.js";
 import { parseFrontmatter } from "../shared/parseFrontmatter.js";
+import { extractFilePaths } from "../shared/resolveAttachments.js";
 import { resolveFiles } from "../shared/resolveFiles.js";
 
 const agentLogs: QueryResolvers["agentLogs"] = (
@@ -40,9 +41,12 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
+const attachments = (parent: any) => parent.attachments ?? [];
+
 const documents: AgentLogResolvers["documents"] = async (parent) => {
-  // biome-ignore lint/suspicious/noExplicitAny: artifacts not in generated types yet
-  const paths = ((parent as any).artifacts as string[] | undefined) ?? [];
+  // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
+  const paths = extractFilePaths((parent as any).attachments);
   if (paths.length === 0) return [];
   const results = await Promise.all(
     paths.map(async (filePath: string) => {
@@ -61,10 +65,7 @@ const documents: AgentLogResolvers["documents"] = async (parent) => {
 
 // biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
 const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
-  resolveFiles(
-    (parent as { artifacts?: string[] }).artifacts,
-    ctx.serverBaseUrl,
-  );
+  resolveFiles(extractFilePaths(parent.attachments), ctx.serverBaseUrl);
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
@@ -102,6 +103,6 @@ export const agentLogResolvers = {
   Query: { agentLogs, taskLogs },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated },
-  AgentLog: { agent, documents, files },
+  AgentLog: { agent, attachments, documents, files },
   AgentLogEdge: { node },
 };
