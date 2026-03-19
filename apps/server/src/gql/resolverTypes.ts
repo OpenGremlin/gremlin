@@ -22,6 +22,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
 /** All built-in and custom scalars, mapped to their actual values */
@@ -85,6 +86,7 @@ export type AgentLog = {
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
@@ -171,6 +173,12 @@ export type ApiKeyConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
 };
 
+export type AudioRender = {
+  __typename?: 'AudioRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
 export type AvailableScope = {
   __typename?: 'AvailableScope';
   label: Scalars['String']['output'];
@@ -187,6 +195,12 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CodeRender = {
+  __typename?: 'CodeRender';
+  content: Scalars['String']['output'];
+  language: Scalars['String']['output'];
 };
 
 export type CompleteFileUploadInput = {
@@ -241,12 +255,30 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type DocumentRender = {
+  __typename?: 'DocumentRender';
+  markdown: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+};
+
 export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
 };
+
+export type File = {
+  __typename?: 'File';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  modifiedAt: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  render: FileRender;
+  sizeBytes: Scalars['Int']['output'];
+};
+
+export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
@@ -264,6 +296,19 @@ export type FileUploadUrl = {
 export type GlobalSettings = {
   __typename?: 'GlobalSettings';
   signupDisabled: Scalars['Boolean']['output'];
+};
+
+export type ImageRender = {
+  __typename?: 'ImageRender';
+  aspectRatio?: Maybe<Scalars['Float']['output']>;
+  height?: Maybe<Scalars['Int']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  width?: Maybe<Scalars['Int']['output']>;
+};
+
+
+export type ImageRenderUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type IntegrationConnection = {
@@ -571,6 +616,7 @@ export type Query = {
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
+  file?: Maybe<File>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -615,6 +661,11 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryEnabledModelsArgs = {
   providerId: Scalars['String']['input'];
+};
+
+
+export type QueryFileArgs = {
+  path: Scalars['String']['input'];
 };
 
 
@@ -701,6 +752,7 @@ export type SkillTemplate = {
   category?: Maybe<Scalars['String']['output']>;
   connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
+  displayName?: Maybe<Scalars['String']['output']>;
   hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -769,7 +821,9 @@ export type Task = {
   artifacts: Array<Scalars['String']['output']>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use files instead */
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
@@ -812,6 +866,12 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type UnknownRender = {
+  __typename?: 'UnknownRender';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  sizeBytes: Scalars['Int']['output'];
+};
+
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
@@ -827,6 +887,18 @@ export type UpdateAgentJobInput = {
   paused?: InputMaybe<Scalars['Boolean']['input']>;
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type VideoRender = {
+  __typename?: 'VideoRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  thumbnailUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type VideoRenderThumbnailUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type WorkspaceEntry = {
@@ -914,6 +986,14 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
     | ( ApiKeyConnectionMeta )
     | ( OAuthConnectionMeta )
   ;
+  FileRender:
+    | ( AudioRender )
+    | ( CodeRender )
+    | ( DocumentRender )
+    | ( ImageRender )
+    | ( UnknownRender )
+    | ( VideoRender )
+  ;
 };
 
 
@@ -936,9 +1016,11 @@ export type ResolversTypes = {
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
+  AudioRender: ResolverTypeWrapper<AudioRender>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CodeRender: ResolverTypeWrapper<CodeRender>;
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: ResolverTypeWrapper<CompletedFileUpload>;
   ConnectApiKeyResult: ResolverTypeWrapper<ConnectApiKeyResult>;
@@ -947,12 +1029,16 @@ export type ResolversTypes = {
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   Document: ResolverTypeWrapper<Document>;
+  DocumentRender: ResolverTypeWrapper<DocumentRender>;
   EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
+  File: ResolverTypeWrapper<Omit<File, 'render'> & { render: ResolversTypes['FileRender'] }>;
+  FileRender: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['FileRender']>;
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   GlobalSettings: ResolverTypeWrapper<GlobalSettings>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  ImageRender: ResolverTypeWrapper<ImageRender>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   IntegrationConnection: ResolverTypeWrapper<SafeIntegrationConnection>;
   IntegrationProvider: ResolverTypeWrapper<IntegrationProviderDef>;
@@ -978,8 +1064,10 @@ export type ResolversTypes = {
   TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
+  UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
+  VideoRender: ResolverTypeWrapper<VideoRender>;
   WorkspaceEntry: ResolverTypeWrapper<WorkspaceEntry>;
 };
 
@@ -1001,9 +1089,11 @@ export type ResolversParentTypes = {
   AgentWebSearchConfig: AgentWebSearchConfig;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
+  AudioRender: AudioRender;
   AvailableScope: AvailableScope;
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
+  CodeRender: CodeRender;
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: CompletedFileUpload;
   ConnectApiKeyResult: ConnectApiKeyResult;
@@ -1012,12 +1102,16 @@ export type ResolversParentTypes = {
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: DefaultModelResult;
   Document: Document;
+  DocumentRender: DocumentRender;
   EnabledModelEntry: EnabledModelEntry;
+  File: Omit<File, 'render'> & { render: ResolversParentTypes['FileRender'] };
+  FileRender: ResolversUnionTypes<ResolversParentTypes>['FileRender'];
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: FileUploadUrl;
   Float: Scalars['Float']['output'];
   GlobalSettings: GlobalSettings;
   ID: Scalars['ID']['output'];
+  ImageRender: ImageRender;
   Int: Scalars['Int']['output'];
   IntegrationConnection: SafeIntegrationConnection;
   IntegrationProvider: IntegrationProviderDef;
@@ -1041,8 +1135,10 @@ export type ResolversParentTypes = {
   TaskConnection: TaskConnectionModel;
   TaskEdge: TaskEdgeModel;
   TaskPageInfo: TaskPageInfoModel;
+  UnknownRender: UnknownRender;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
+  VideoRender: VideoRender;
   WorkspaceEntry: WorkspaceEntry;
 };
 
@@ -1083,6 +1179,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
+  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1138,6 +1235,12 @@ export type ApiKeyConnectionMetaResolvers<ContextType = GremlinContext, ParentTy
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type AudioRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AudioRender'] = ResolversParentTypes['AudioRender']> = {
+  durationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type AvailableScopeResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AvailableScope'] = ResolversParentTypes['AvailableScope']> = {
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   scope?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1147,6 +1250,12 @@ export type AvatarResolvers<ContextType = GremlinContext, ParentType extends Res
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
+};
+
+export type CodeRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CodeRender'] = ResolversParentTypes['CodeRender']> = {
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type CompletedFileUploadResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CompletedFileUpload'] = ResolversParentTypes['CompletedFileUpload']> = {
@@ -1176,10 +1285,29 @@ export type DocumentResolvers<ContextType = GremlinContext, ParentType extends R
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type DocumentRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DocumentRender'] = ResolversParentTypes['DocumentRender']> = {
+  markdown?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type EnabledModelEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['EnabledModelEntry'] = ResolversParentTypes['EnabledModelEntry']> = {
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type FileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = {
+  mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  modifiedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  render?: Resolver<ResolversTypes['FileRender'], ParentType, ContextType>;
+  sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type FileRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileRender'] = ResolversParentTypes['FileRender']> = {
+  __resolveType: TypeResolveFn<'AudioRender' | 'CodeRender' | 'DocumentRender' | 'ImageRender' | 'UnknownRender' | 'VideoRender', ParentType, ContextType>;
 };
 
 export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileUploadUrl'] = ResolversParentTypes['FileUploadUrl']> = {
@@ -1190,6 +1318,14 @@ export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType exte
 
 export type GlobalSettingsResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['GlobalSettings'] = ResolversParentTypes['GlobalSettings']> = {
   signupDisabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type ImageRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ImageRender'] = ResolversParentTypes['ImageRender']> = {
+  aspectRatio?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  height?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<ImageRenderUrlArgs>>;
+  width?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['IntegrationConnection'] = ResolversParentTypes['IntegrationConnection']> = {
@@ -1308,6 +1444,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
+  file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
@@ -1360,6 +1497,7 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   category?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   connections?: Resolver<Array<ResolversTypes['SkillConnectionRequirement']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  displayName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasInstall?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1387,6 +1525,7 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
+  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<TaskImageUrlArgs>>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
@@ -1413,6 +1552,19 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
+  mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type VideoRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['VideoRender'] = ResolversParentTypes['VideoRender']> = {
+  durationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  thumbnailUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<VideoRenderThumbnailUrlArgs>>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceEntry'] = ResolversParentTypes['WorkspaceEntry']> = {
   isDirectory?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1435,16 +1587,22 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentSkill?: AgentSkillResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
+  AudioRender?: AudioRenderResolvers<ContextType>;
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
+  CodeRender?: CodeRenderResolvers<ContextType>;
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;
   ConnectApiKeyResult?: ConnectApiKeyResultResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
   Document?: DocumentResolvers<ContextType>;
+  DocumentRender?: DocumentRenderResolvers<ContextType>;
   EnabledModelEntry?: EnabledModelEntryResolvers<ContextType>;
+  File?: FileResolvers<ContextType>;
+  FileRender?: FileRenderResolvers<ContextType>;
   FileUploadUrl?: FileUploadUrlResolvers<ContextType>;
   GlobalSettings?: GlobalSettingsResolvers<ContextType>;
+  ImageRender?: ImageRenderResolvers<ContextType>;
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
   ModelInfo?: ModelInfoResolvers<ContextType>;
@@ -1466,6 +1624,8 @@ export type Resolvers<ContextType = GremlinContext> = {
   TaskConnection?: TaskConnectionResolvers<ContextType>;
   TaskEdge?: TaskEdgeResolvers<ContextType>;
   TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
+  UnknownRender?: UnknownRenderResolvers<ContextType>;
+  VideoRender?: VideoRenderResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;
 };
 

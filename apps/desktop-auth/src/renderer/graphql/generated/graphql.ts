@@ -68,6 +68,7 @@ export type AgentLog = {
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
@@ -154,6 +155,12 @@ export type ApiKeyConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
 };
 
+export type AudioRender = {
+  __typename?: 'AudioRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
 export type AvailableScope = {
   __typename?: 'AvailableScope';
   label: Scalars['String']['output'];
@@ -170,6 +177,12 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CodeRender = {
+  __typename?: 'CodeRender';
+  content: Scalars['String']['output'];
+  language: Scalars['String']['output'];
 };
 
 export type CompleteFileUploadInput = {
@@ -224,12 +237,30 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type DocumentRender = {
+  __typename?: 'DocumentRender';
+  markdown: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+};
+
 export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
 };
+
+export type File = {
+  __typename?: 'File';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  modifiedAt: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  render: FileRender;
+  sizeBytes: Scalars['Int']['output'];
+};
+
+export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
@@ -247,6 +278,19 @@ export type FileUploadUrl = {
 export type GlobalSettings = {
   __typename?: 'GlobalSettings';
   signupDisabled: Scalars['Boolean']['output'];
+};
+
+export type ImageRender = {
+  __typename?: 'ImageRender';
+  aspectRatio?: Maybe<Scalars['Float']['output']>;
+  height?: Maybe<Scalars['Int']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  width?: Maybe<Scalars['Int']['output']>;
+};
+
+
+export type ImageRenderUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type IntegrationConnection = {
@@ -558,6 +602,7 @@ export type Query = {
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
+  file?: Maybe<File>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -602,6 +647,11 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryEnabledModelsArgs = {
   providerId: Scalars['String']['input'];
+};
+
+
+export type QueryFileArgs = {
+  path: Scalars['String']['input'];
 };
 
 
@@ -688,6 +738,7 @@ export type SkillTemplate = {
   category?: Maybe<Scalars['String']['output']>;
   connections: Array<SkillConnectionRequirement>;
   description: Scalars['String']['output'];
+  displayName?: Maybe<Scalars['String']['output']>;
   hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -756,7 +807,9 @@ export type Task = {
   artifacts: Array<Scalars['String']['output']>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use files instead */
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
@@ -799,6 +852,12 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type UnknownRender = {
+  __typename?: 'UnknownRender';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  sizeBytes: Scalars['Int']['output'];
+};
+
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
@@ -814,6 +873,18 @@ export type UpdateAgentJobInput = {
   paused?: InputMaybe<Scalars['Boolean']['input']>;
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type VideoRender = {
+  __typename?: 'VideoRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  thumbnailUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type VideoRenderThumbnailUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type WorkspaceEntry = {
