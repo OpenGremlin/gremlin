@@ -65,9 +65,12 @@ export type AgentJob = {
 export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
+  attachments: Array<Attachment>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
@@ -154,6 +157,8 @@ export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
 };
+
+export type Attachment = FileAttachment | LinkAttachment;
 
 export type AudioRender = {
   __typename?: 'AudioRender';
@@ -260,6 +265,11 @@ export type File = {
   sizeBytes: Scalars['Int']['output'];
 };
 
+export type FileAttachment = {
+  __typename?: 'FileAttachment';
+  file: File;
+};
+
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
@@ -315,6 +325,13 @@ export type IntegrationProvider = {
   id: Scalars['ID']['output'];
   models?: Maybe<Array<ModelInfo>>;
   service: Scalars['String']['output'];
+};
+
+export type LinkAttachment = {
+  __typename?: 'LinkAttachment';
+  description?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
 };
 
 export type ModelInfo = {
@@ -804,11 +821,12 @@ export type SubscriptionTasksUpdatedArgs = {
 export type Task = {
   __typename?: 'Task';
   agent: Agent;
-  artifacts: Array<Scalars['String']['output']>;
+  attachments: Array<Attachment>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  /** @deprecated Use files instead */
+  /** @deprecated Use attachments instead */
   documents: Array<Document>;
+  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
