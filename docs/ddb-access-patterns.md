@@ -18,6 +18,7 @@ Single-table design on `GremlinTable` with two GSIs. Sensitive entities (`Integr
 | Setting | `SETTING` | `SETTING#{key}` | — | — | — | — |
 | Skill | `SKILL` | `SKILL#{id}` | — | — | — | — |
 | Task | `TASK` | `TASK#{id}` | `TASK_AGENT#{agentId}` | `{createdAt}` | `TASK_ALL` | `{createdAt}#{id}` |
+| AgentSkill | `AGENT#{agentId}` | `AGENT_SKILL#{skillId}` | — | — | — | — |
 
 \* Stored in `SecretsTable`
 
@@ -38,6 +39,7 @@ Single-table design on `GremlinTable` with two GSIs. Sensitive entities (`Integr
 | Notifications by status | GSI1 | `gsi1pk = NOTIF_STATUS#{status}`, sort by `gsi1sk` |
 | Tasks by agent (paginated) | GSI1 | `gsi1pk = TASK_AGENT#{agentId}`, sort by `gsi1sk` |
 | All tasks (paginated) | GSI2 | `gsi2pk = TASK_ALL`, sort by `gsi2sk` |
+| Skills assigned to agent | Table | `pk = AGENT#{agentId}`, `sk begins_with AGENT_SKILL#` |
 | Get skill/profile/setting | Table | Direct PK+SK lookup |
 
 ## Notes

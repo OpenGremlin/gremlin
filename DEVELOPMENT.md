@@ -74,6 +74,9 @@ pnpm run deploy    # deploy all stacks
 | `packages/lib` | Shared services and business logic |
 | `packages/sandbox` | EC2 sandbox agent and WebSocket handler |
 | `packages/infra` | AWS CDK infrastructure stacks |
+| `packages/functions` | Lambda functions (EventBridge schedule targets, etc.) |
+| `packages/media-server` | Lambda-based media server for file serving |
+| `packages/logos` | Integration provider logos and brand assets |
 
 ## Desktop Auth App
 

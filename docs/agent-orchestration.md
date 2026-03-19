@@ -8,18 +8,17 @@ How agents execute work, manage long-running tasks, and resume after waiting.
 Agent
  ├── AgentLog (main conversation thread)
  ├── Task (discrete unit of work)
- │    ├── AgentLog (task sub-thread)
- │    └── TaskFollowUp (deferred wake-up)
- └── AgentJob (scheduled recurring trigger — already exists)
+ │    └── AgentLog (task sub-thread)
+ └── AgentJob (scheduled recurring trigger)
 ```
 
-**Agent** — A configured AI persona (Clawd, etc.). Has a free main lane: it can always accept new user commands or job triggers without being blocked by in-progress tasks.
+**Agent** — A configured AI persona. All work is serialized per-agent through the inbox queue (see `agent-inbox-queue.md`).
 
 **AgentLog** — The concrete chat log rendered in the UX. Every message, tool call, status update, and decision is an AgentLog entry. Entries are scoped to either the agent's main thread or to a specific Task. This is the source of truth for what happened and the context window for resuming work.
 
-**Task** — A discrete unit of work spawned by an agent. Has its own lane (independent of the main lane). Tasks have a lifecycle and generate their own AgentLog entries that render as a sub-thread branching off the main conversation at the point the task was created.
+**Task** — A discrete unit of work spawned by an agent. Has its own lane with its own AgentLog sub-thread branching off the main conversation at the point the task was created.
 
-**TaskFollowUp** — A deferred wake-up record. When an agent working on a task needs to wait (e.g., "email sent, check back in 15 minutes"), it writes a TaskFollowUp dated in the future. A cron job reads this table every 60 seconds and dispatches an agent to continue the task when a follow-up comes due.
+**Deferred wake-ups** — When an agent needs to wait (e.g., "check back in 15 minutes"), it creates a one-shot EventBridge Schedule that fires at the target time. The schedule target writes an `agent_self_followup` inbox item and rings the SQS doorbell. See `agent-inbox-queue.md` for details.
 
 ## Data Model
 
@@ -69,29 +68,6 @@ Query a task sub-thread: `GSI1PK = LOG_TASK#<taskId>`, sorted by `createdAt`.
 | GSI1PK | `TASK_AGENT#<agentId>` |
 | GSI1SK | `<createdAt>` |
 
-### TaskFollowUp
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique follow-up ID |
-| `taskId` | string | The task this follow-up belongs to |
-| `agentId` | string | The agent to dispatch |
-| `scheduledAt` | string (ISO 8601) | When this follow-up should fire |
-| `prompt` | string | Context/instructions for the agent when it resumes (e.g., "Check inbox for dealer reply. If replied, counter-offer. If not, wait another 15 min.") |
-| `active` | boolean | Whether this follow-up is still pending. Set to `false` when the agent picks it up or when cancelled. |
-| `createdAt` | string (ISO 8601) | When this follow-up was written |
-
-**DynamoDB key pattern:**
-
-| Key | Value |
-|-----|-------|
-| PK | `TASK_FOLLOW_UP` |
-| SK | `TASK_FOLLOW_UP#<id>` |
-| GSI1PK | `FOLLOWUP_ACTIVE` (only for active=true, enables efficient cron scan) |
-| GSI1SK | `<scheduledAt>` |
-
-The cron job queries: `GSI1PK = FOLLOWUP_ACTIVE` where `scheduledAt <= now`, sorted ascending.
-
 ## Lifecycle
 
 ### Task Execution Flow
@@ -114,73 +90,48 @@ Agent begins task work (status: running)
     ▼
 Agent sends email, needs to wait
     ├── AgentLog in task thread: "Email sent to dealer. Will check for reply in 15 minutes."
-    ├── Writes TaskFollowUp (scheduledAt: now + 15min, active: true)
+    ├── Creates one-shot EventBridge Schedule (now + 15min)
     ├── Updates Task (status: waiting, message: "Waiting for dealer reply")
     │
     ▼
-Agent turn ENDS — main lane is free
+Agent turn ENDS — inbox is free for next work
 ```
 
-### Cron Follow-Up Dispatch
+### EventBridge Follow-Up Dispatch
 
 ```
-Every 60 seconds, cron job runs:
+EventBridge Schedule fires at scheduled time:
     │
     ▼
-Query GSI1: FOLLOWUP_ACTIVE where scheduledAt <= now
+Lambda target writes inbox item:
+    { type: "agent_self_followup", payload: { taskId, prompt } }
+    + rings SQS doorbell
     │
     ▼
-For each due follow-up:
-    ├── Mark follow-up active=false (prevents duplicate dispatch)
-    ├── Load Task context
-    ├── Load AgentLog for the task (conversation history)
-    ├── Dispatch agent with:
-    │     - Task ID
-    │     - Follow-up prompt
-    │     - AgentLog history as context
+Consumer drains inbox, dispatches agent:
+    ├── Load Task context + AgentLog history
     │
     ▼
 Agent resumes task work
     ├── Checks email → no reply?
     │     ├── AgentLog: "No reply yet. Will check again in 15 minutes."
-    │     ├── Writes new TaskFollowUp (scheduledAt: now + 15min)
+    │     ├── Creates new EventBridge Schedule (now + 15min)
     │     └── Turn ends
     │
     ├── Checks email → reply found!
-    │     ├── AgentLog: "Dealer countered at $28k. Researching comparables..."
-    │     ├── Does more work (web search, compose counter-offer, send email)
-    │     ├── Writes another TaskFollowUp for the next check
+    │     ├── AgentLog: "Dealer countered at $28k..."
+    │     ├── Does more work, creates another follow-up schedule
     │     └── Turn ends
     │
     └── Task complete?
           ├── Updates Task (status: completed)
           ├── AgentLog: "Negotiation complete. Final price: $26,500."
-          └── No more follow-ups written — task is done
+          └── No more follow-ups — task is done
 ```
 
 ### Service Restart Recovery
 
-```
-On server startup:
-    │
-    ▼
-Query all Tasks where status IN (running, waiting, pending)
-    │
-    ▼
-For each incomplete task:
-    ├── If status = waiting AND has active TaskFollowUp:
-    │     └── Follow-up timer will handle it naturally (no action needed)
-    │
-    ├── If status = waiting AND no active TaskFollowUp:
-    │     └── Create a TaskFollowUp for now (immediate dispatch)
-    │
-    ├── If status = running (was mid-execution when server died):
-    │     └── Create a TaskFollowUp for now with prompt:
-    │         "Task was interrupted. Review AgentLog and resume."
-    │
-    └── If status = pending (never started):
-          └── Dispatch agent to begin the task
-```
+Recovery is handled by the inbox sweeper (see `agent-inbox-queue.md`). A periodic EventBridge rule queries for stale unread inbox items and re-rings SQS doorbells for any agent with unprocessed work. This covers server crashes, deploy restarts, and lost SQS messages without polling DynamoDB for tasks.
 
 ## UX Rendering
 
@@ -210,27 +161,24 @@ The AgentLog drives the conversation UI:
 └─────────────────────────────────────────┘
 ```
 
-The main lane stays free. The user asks about weather while the negotiation task is in `waiting` state — no conflict.
+User messages are queued in the inbox and processed after the current agent turn completes. See `agent-inbox-queue.md` for details on per-agent serialization.
 
 ## Relationship to Existing Entities
 
 | Existing | Role in new system |
 |----------|-------------------|
-| **Agent** | Unchanged. The AI persona. Tasks and logs reference `agentId`. |
-| **AgentJob** | Scheduled trigger. May spawn Tasks when it runs. `originJobId` on Task links back. |
-| **Status** | Remains as the public "finished work" summary. A completed Task may produce a Status as its final output. |
+| **Agent** | The AI persona. Tasks and logs reference `agentId`. |
+| **AgentJob** | Scheduled trigger. Spawns Tasks when it runs. `originJobId` on Task links back. |
 
 ## Key Design Decisions
 
 1. **AgentLog is append-only.** Never mutate or delete entries. This is both the UX conversation and the agent's memory.
 
-2. **TaskFollowUp is intentionally simple.** It's a one-shot deferred wake-up, not a full cron system. For recurring schedules, AgentJob already exists. TaskFollowUp handles the "check back in N minutes" pattern within a task.
+2. **Follow-ups use EventBridge one-shot schedules.** Not a polling system — each deferred wake-up is a precise one-shot schedule that auto-deletes after firing (`ActionAfterCompletion: DELETE`). For recurring schedules, AgentJob + EventBridge cron already exists.
 
-3. **Follow-ups are self-chaining.** The agent decides each time whether to write another follow-up or to complete/abandon the task. There is no pre-set retry limit in the data model — the agent's prompt and reasoning control when to stop.
+3. **Follow-ups are self-chaining.** The agent decides each time whether to create another follow-up schedule or to complete/abandon the task. There is no pre-set retry limit — the agent's prompt and reasoning control when to stop.
 
-4. **The cron marks follow-ups inactive before dispatching.** This prevents duplicate dispatch if the cron fires again before the agent finishes. If the agent crashes mid-execution, the restart recovery path handles it.
-
-5. **Tasks should finish or be abandoned before the agent takes new scheduled work.** The agent's main lane is always free for user commands, but when an AgentJob fires, it should check if its agent already has an active task and either wait or queue.
+4. **All work is serialized per-agent through the inbox.** See `agent-inbox-queue.md`. The inbox + SQS doorbell architecture ensures one processing loop per agent at a time.
 
 ## AI SDK
 
@@ -266,9 +214,4 @@ The React hooks (`useChat`, `useCompletion`) and Next.js route handlers are irre
 
 ### AgentJob → Task concurrency
 
-When an AgentJob fires and spawns a new Task, there may already be an older Task from the same AgentJob still in progress (e.g., the previous run is in `waiting` state, polling for an email reply). The new Task can still be created, but it should not begin execution until the older sibling completes. Two possible approaches:
-
-1. **FollowUp-based:** The new Task immediately writes a TaskFollowUp that polls for the older Task's completion before starting real work.
-2. **Event-based:** The new Task listens for a completion event from the older Task, avoiding polling entirely.
-
-Option 2 is cleaner but requires an event/notification mechanism we don't have yet. Will tackle this when we build the dispatch layer.
+When an AgentJob fires and spawns a new Task, there may already be an older Task from the same AgentJob still in progress. Per-agent serialization through the inbox naturally queues the new task behind the current one — it won't start until the agent's current work drains.

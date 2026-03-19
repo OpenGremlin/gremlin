@@ -73,13 +73,18 @@ Each work item is a row in the single-table DDB design.
 ### Work Types
 
 ```typescript
-type InboxItem =
-  | { type: "user_message"; payload: { content: string } }
-  | { type: "run_task"; payload: { taskId: string; prompt: string } }
-  | { type: "scheduled_job"; payload: { jobId: string; triggerTimeMs: number } }
-  | { type: "agent_self_followup"; payload: { taskId: string; prompt: string } }
-  | { type: "user_notification_reply"; payload: { notificationId: string; actionId: string } }
+type InboxItemType =
+  | "user_message"
+  | "user_task_message"
+  | "run_task"
+  | "scheduled_job"
+  | "agent_self_followup"
+  | "user_notification_reply"
+  | "core_memory_review";
 ```
+
+- `user_task_message` — user sends a message directed at a specific task (routed to main lane)
+- `core_memory_review` — periodic review of agent memory (routed to task lane)
 
 ## Enqueue
 
@@ -172,8 +177,8 @@ The `while (true)` loop is the key: after processing a batch, the consumer check
 
 The consumer splits the batch into two categories:
 
-- **Main-lane items** (`user_message`, `user_notification_reply`) — conversational. Written to the main-thread agent log and handled by `runMainLane()`. Multiple user messages are batched into a single turn — the agent sees all of them in its conversation history and responds holistically, like receiving multiple requirements at once.
-- **Task-lane items** (`run_task`, `scheduled_job`, `agent_self_followup`) — dispatched work. Each goes directly to `runTaskLane()` with its own task context, tools, and sub-thread. These run sequentially within the batch, not concurrently, preserving per-agent serialization.
+- **Main-lane items** (`user_message`, `user_task_message`, `user_notification_reply`) — conversational. Written to the main-thread agent log and handled by `runMainLane()`. Multiple user messages are batched into a single turn — the agent sees all of them in its conversation history and responds holistically, like receiving multiple requirements at once.
+- **Task-lane items** (`run_task`, `scheduled_job`, `agent_self_followup`, `core_memory_review`) — dispatched work. Each goes directly to `runTaskLane()` with its own task context, tools, and sub-thread. These run sequentially within the batch, not concurrently, preserving per-agent serialization.
 
 ```typescript
 async function routeBatch(ctx: ServiceContext, agentId: string, items: InboxItem[]) {

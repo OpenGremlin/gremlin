@@ -13,5 +13,6 @@ How was this implemented? Any notable design decisions?
 ## Testing
 
 - [ ] Linting passes (`pnpm lint`)
-- [ ] Typechecks pass (`cd apps/server && pnpm exec tsc --noEmit`)
+- [ ] Server typechecks pass (`cd apps/server && pnpm exec tsc --noEmit`)
+- [ ] Mobile typechecks pass (`cd apps/mobile && npx tsc --noEmit`)
 - [ ] Tested locally

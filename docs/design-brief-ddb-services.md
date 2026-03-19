@@ -43,6 +43,7 @@ Table name: `gremlin`
 | Setting | `SETTING` | `SETTING#{key}` | — | — | — | — |
 | Skill | `SKILL` | `SKILL#{id}` | — | — | — | — |
 | Task | `TASK` | `TASK#{id}` | `TASK_AGENT#{agentId}` | `{createdAt}` | `TASK_ALL` | `{createdAt}#{id}` |
+| AgentSkill | `AGENT#{agentId}` | `AGENT_SKILL#{skillId}` | — | — | — | — |
 
 \* Stored in `SecretsTable`
 
@@ -67,6 +68,7 @@ packages/lib/src/
 │           ├── profile.ts
 │           ├── setting.ts
 │           ├── skill.ts
+│           ├── agentSkill.ts
 │           └── task.ts
 ├── services/
 │   ├── index.ts              # Services interface + createServices()
@@ -110,9 +112,12 @@ Server startup
 ```ts
 interface GremlinContext {
   user?: AuthUser;
-  mediaCdnUrl: string;
+  serverBaseUrl: string;
+  mediaBaseUrl: string;
   resources: Resources;
   services: Services;
+  loaders: Loaders;
+  log: Logger;
 }
 ```
 
@@ -123,7 +128,8 @@ interface ServiceContext {
   resources: Resources;
   services: Services;
   user?: AuthUser;
-  mediaCdnUrl: string;
+  mediaBaseUrl: string;
+  log: Logger;
 }
 ```
 
@@ -165,6 +171,7 @@ mappers: {
   Setting: "../resources/ddb/schema/setting.js#SettingItem",
   Skill: "../resources/ddb/schema/skill.js#SkillItem",
   Task: "../resources/ddb/schema/task.js#TaskItem",
+  AgentSkill: "../resources/ddb/schema/agentSkill.js#AgentSkillItem",
   Avatar: "./schema/Avatar/resolvers.js#AvatarModel",  // static, no DDB
 }
 ```
