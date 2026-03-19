@@ -9,13 +9,13 @@ import {
   Text,
   View,
 } from "react-native";
-import type { Document } from "../../../src/graphql/generated/graphql";
+import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
 import { TasksQuery } from "../../../src/graphql/queries";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
-import { DocumentCard } from "../../../src/shared/DocumentCard";
 import { EmptyState } from "../../../src/shared/EmptyState";
+import { FileCard } from "../../../src/shared/FileCard";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { useTaskUpdates } from "../../../src/subscriptions";
@@ -24,6 +24,9 @@ function ListSeparator() {
   return <View className="h-px bg-border-subtle mx-4" />;
 }
 
+type FileNode =
+  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
+
 type TaskItem = {
   id: string;
   title: string;
@@ -31,7 +34,7 @@ type TaskItem = {
   agent: { id: string; name?: string };
   message?: string | null;
   imageUrl?: string | null;
-  documents?: Array<Document>;
+  files?: FileNode[];
 };
 
 function TaskCard({ item }: { item: TaskItem }) {
@@ -74,10 +77,13 @@ function TaskCard({ item }: { item: TaskItem }) {
               {task.message}
             </Text>
           ) : null}
-          {task.documents && task.documents.length > 0 ? (
-            <View className="mt-2 gap-1">
-              {task.documents.map((doc) => (
-                <DocumentCard key={doc.path} doc={doc} />
+          {task.files && task.files.length > 0 ? (
+            <View
+              className="mt-2 gap-1"
+              onStartShouldSetResponder={() => true}
+            >
+              {task.files.map((file) => (
+                <FileCard key={file.path} file={file} />
               ))}
             </View>
           ) : null}

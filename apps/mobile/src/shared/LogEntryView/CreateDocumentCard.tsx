@@ -1,19 +1,22 @@
 import { ActivityIndicator, Text, View } from "react-native";
-import type { Document } from "../../graphql/generated/graphql";
+import type { AgentLogsQuery } from "../../graphql/generated/graphql";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
-import { DocumentCard } from "./DocumentCard";
+import { FileCard } from "../FileCard";
 import { ToolBlock } from "./ToolBlock";
+
+type FileNode =
+  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
 
 export function CreateDocumentCard({
   toolInput,
   toolResult,
-  documents,
+  files,
   createdAt,
   showTimestamp,
 }: {
   toolInput: Record<string, unknown> | null;
   toolResult: Record<string, unknown> | null;
-  documents?: Document[];
+  files?: FileNode[];
   createdAt: string;
   showTimestamp: boolean;
 }) {
@@ -22,26 +25,34 @@ export function CreateDocumentCard({
     (toolResult?.path as string | undefined) ??
     (toolInput?.path as string | undefined);
 
-  const doc = docPath ? documents?.find((d) => d.path === docPath) : undefined;
+  const file = docPath ? files?.find((f) => f.path === docPath) : undefined;
 
-  if (doc) {
+  if (file) {
     return (
       <View className="py-2">
-        <DocumentCard doc={doc} />
+        <FileCard file={file} />
       </View>
     );
   }
 
   if (toolResult && docPath) {
+    // Fallback: tool finished but file not in the files array yet.
+    // Build a synthetic DocumentRender file for display.
+    const syntheticFile: FileNode = {
+      path: docPath,
+      name: docPath.split("/").pop() ?? "Document",
+      sizeBytes: 0,
+      mimeType: "text/markdown",
+      modifiedAt: createdAt,
+      render: {
+        __typename: "DocumentRender",
+        markdown: (toolInput?.body as string) ?? "",
+        title: (toolInput?.title as string) ?? null,
+      },
+    };
     return (
       <View className="py-2">
-        <DocumentCard
-          doc={{
-            path: docPath,
-            title: (toolInput?.title as string) ?? "Document",
-            body: (toolInput?.body as string) ?? null,
-          }}
-        />
+        <FileCard file={syntheticFile} />
       </View>
     );
   }

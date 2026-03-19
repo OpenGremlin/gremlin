@@ -1,5 +1,6 @@
 type Query {
   _empty: String
+  file(path: String!): File
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
   agentLogs(
@@ -125,6 +126,56 @@ type Document {
   body: String
 }
 
+type File {
+  path: String!
+  name: String!
+  sizeBytes: Int!
+  mimeType: String
+  modifiedAt: String!
+  render: FileRender!
+}
+
+union FileRender =
+  | ImageRender
+  | DocumentRender
+  | CodeRender
+  | AudioRender
+  | VideoRender
+  | UnknownRender
+
+type ImageRender {
+  url(width: Int): String
+  aspectRatio: Float
+  width: Int
+  height: Int
+}
+
+type DocumentRender {
+  markdown: String!
+  title: String
+}
+
+type CodeRender {
+  content: String!
+  language: String!
+}
+
+type AudioRender {
+  url: String
+  durationSeconds: Float
+}
+
+type VideoRender {
+  url: String
+  thumbnailUrl(width: Int): String
+  durationSeconds: Float
+}
+
+type UnknownRender {
+  mimeType: String
+  sizeBytes: Int!
+}
+
 input FileUploadRequest {
   filename: String!
   contentType: String!
@@ -201,6 +252,7 @@ type AgentLog {
   toolInput: String
   toolResult: String
   documents: [Document!]!
+  files: [File!]!
   createdAt: String!
 }
 
@@ -473,7 +525,8 @@ type Task {
   originJobId: String
   imageUrl(width: Int): String
   artifacts: [String!]!
-  documents: [Document!]!
+  documents: [Document!]! @deprecated(reason: "Use files instead")
+  files: [File!]!
   logs(
     first: Int
     after: String

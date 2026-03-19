@@ -13,14 +13,15 @@ import {
   XCircle,
 } from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
+import type { AgentLogsQuery } from "../../graphql/generated/graphql";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { FileCard } from "../FileCard";
 import { formatTime } from "../formatDate";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
-import { DocumentCard } from "./DocumentCard";
 import { FnLabel } from "./FnLabel";
 import { Markdown } from "./Markdown";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
@@ -82,17 +83,20 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+type FileNode =
+  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
+
 export function LogEntryView({
   message,
   agentId,
   showTimestamp,
-  documents,
+  taskFiles,
   sandboxStreams,
 }: {
   message: ChatMessage;
   agentId: string;
   showTimestamp: boolean;
-  documents?: Array<{ path: string; title: string; body?: string | null }>;
+  taskFiles?: FileNode[];
   sandboxStreams?: Map<string, CommandStream>;
 }) {
   const colors = useNavigationTheme();
@@ -115,7 +119,7 @@ export function LogEntryView({
   }
 
   if (message.role === AgentLogRole.Agent) {
-    const docs = "documents" in message ? (message.documents ?? []) : [];
+    const files = "files" in message ? (message.files ?? []) : [];
     return (
       <View className="py-2">
         <View className="flex-row justify-start">
@@ -123,10 +127,10 @@ export function LogEntryView({
             <Markdown variant="agent">{message.content}</Markdown>
           </View>
         </View>
-        {docs.length > 0 && (
+        {files.length > 0 && (
           <View className="mt-1.5 gap-1 max-w-[85%]">
-            {docs.map((doc) => (
-              <DocumentCard key={doc.path} doc={doc} />
+            {files.map((file) => (
+              <FileCard key={file.path} file={file} />
             ))}
           </View>
         )}
@@ -281,31 +285,31 @@ export function LogEntryView({
       return <ToolStatus icon={Calendar} text="Updated job" />;
     }
 
-    // createDocument -> DocumentCard (with pending/fallback states)
+    // createDocument -> FileCard (with pending/fallback states)
     if (tool.name === "createDocument") {
       return (
         <CreateDocumentCard
           toolInput={tool.input}
           toolResult={tool.result}
-          documents={documents}
+          files={taskFiles}
           createdAt={message.createdAt}
           showTimestamp={showTimestamp}
         />
       );
     }
 
-    // updateDocument -> DocumentCard
-    if (tool.name === "updateDocument" && documents) {
+    // updateDocument -> FileCard
+    if (tool.name === "updateDocument" && taskFiles) {
       const docPath =
         (tool.result?.path as string | undefined) ??
         (tool.input?.path as string | undefined);
-      const doc = docPath
-        ? documents.find((d) => d.path === docPath)
+      const file = docPath
+        ? taskFiles.find((f) => f.path === docPath)
         : undefined;
-      if (doc) {
+      if (file) {
         return (
           <View className="py-2">
-            <DocumentCard doc={doc} />
+            <FileCard file={file} />
           </View>
         );
       }

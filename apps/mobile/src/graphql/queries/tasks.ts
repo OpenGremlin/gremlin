@@ -15,10 +15,8 @@ export const TasksQuery = graphql(`
           message
           createdAt
           imageUrl(width: 200)
-          documents {
-            path
-            title
-            body
+          files {
+            ...FileFields
           }
         }
       }
@@ -46,10 +44,8 @@ export const TaskQuery = graphql(`
       completedAt
       imageUrl(width: 200)
       artifacts
-      documents {
-        path
-        title
-        body
+      files {
+        ...FileFields
       }
     }
   }
@@ -67,10 +63,8 @@ export const TaskLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
-          documents {
-            path
-            title
-            body
+          files {
+            ...FileFields
           }
           taskId
           createdAt
@@ -95,10 +89,8 @@ export const TaskLogSubscription = graphql(`
       toolName
       toolInput
       toolResult
-      documents {
-        path
-        title
-        body
+      files {
+        ...FileFields
       }
       taskId
       createdAt
@@ -116,10 +108,8 @@ export const TaskUpdatedSubscription = graphql(`
       completedAt
       imageUrl(width: 200)
       artifacts
-      documents {
-        path
-        title
-        body
+      files {
+        ...FileFields
       }
     }
   }

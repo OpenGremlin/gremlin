@@ -68,6 +68,7 @@ export type AgentLog = {
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
@@ -154,6 +155,12 @@ export type ApiKeyConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
 };
 
+export type AudioRender = {
+  __typename?: 'AudioRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
 export type AvailableScope = {
   __typename?: 'AvailableScope';
   label: Scalars['String']['output'];
@@ -170,6 +177,12 @@ export type Avatar = {
 
 export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CodeRender = {
+  __typename?: 'CodeRender';
+  content: Scalars['String']['output'];
+  language: Scalars['String']['output'];
 };
 
 export type CompleteFileUploadInput = {
@@ -224,12 +237,30 @@ export type Document = {
   title: Scalars['String']['output'];
 };
 
+export type DocumentRender = {
+  __typename?: 'DocumentRender';
+  markdown: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+};
+
 export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
 };
+
+export type File = {
+  __typename?: 'File';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  modifiedAt: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  render: FileRender;
+  sizeBytes: Scalars['Int']['output'];
+};
+
+export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
@@ -247,6 +278,19 @@ export type FileUploadUrl = {
 export type GlobalSettings = {
   __typename?: 'GlobalSettings';
   signupDisabled: Scalars['Boolean']['output'];
+};
+
+export type ImageRender = {
+  __typename?: 'ImageRender';
+  aspectRatio?: Maybe<Scalars['Float']['output']>;
+  height?: Maybe<Scalars['Int']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  width?: Maybe<Scalars['Int']['output']>;
+};
+
+
+export type ImageRenderUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type IntegrationConnection = {
@@ -558,6 +602,7 @@ export type Query = {
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
+  file?: Maybe<File>;
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
@@ -602,6 +647,11 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryEnabledModelsArgs = {
   providerId: Scalars['String']['input'];
+};
+
+
+export type QueryFileArgs = {
+  path: Scalars['String']['input'];
 };
 
 
@@ -757,7 +807,9 @@ export type Task = {
   artifacts: Array<Scalars['String']['output']>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
+  /** @deprecated Use files instead */
   documents: Array<Document>;
+  files: Array<File>;
   id: Scalars['ID']['output'];
   imageUrl?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
@@ -800,6 +852,12 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export type UnknownRender = {
+  __typename?: 'UnknownRender';
+  mimeType?: Maybe<Scalars['String']['output']>;
+  sizeBytes: Scalars['Int']['output'];
+};
+
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
@@ -815,6 +873,18 @@ export type UpdateAgentJobInput = {
   paused?: InputMaybe<Scalars['Boolean']['input']>;
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type VideoRender = {
+  __typename?: 'VideoRender';
+  durationSeconds?: Maybe<Scalars['Float']['output']>;
+  thumbnailUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type VideoRenderThumbnailUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type WorkspaceEntry = {
@@ -836,7 +906,14 @@ export type AgentLogsQueryVariables = Exact<{
 }>;
 
 
-export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+            | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+            | { __typename: 'CodeRender', content: string, language: string }
+            | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+            | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+           }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SendMessageMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -868,7 +945,14 @@ export type AgentLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } };
+export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+        | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+        | { __typename: 'CodeRender', content: string, language: string }
+        | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+        | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+       }> } };
 
 export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null };
 
@@ -919,6 +1003,15 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 
 
 export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null } };
+
+export type FileFieldsFragment = { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+    | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+    | { __typename: 'CodeRender', content: string, language: string }
+    | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+    | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+    | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+    | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+   };
 
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1196,14 +1289,28 @@ export type TasksQueryVariables = Exact<{
 }>;
 
 
-export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, imageUrl?: string | null, agent: { __typename?: 'Agent', id: string, name: string }, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+            | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+            | { __typename: 'CodeRender', content: string, language: string }
+            | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+            | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+           }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } | null };
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, agent: { __typename?: 'Agent', id: string }, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+        | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+        | { __typename: 'CodeRender', content: string, language: string }
+        | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+        | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+       }> } | null };
 
 export type TaskLogsQueryVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -1214,21 +1321,42 @@ export type TaskLogsQueryVariables = Exact<{
 }>;
 
 
-export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+            | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+            | { __typename: 'CodeRender', content: string, language: string }
+            | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+            | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+           }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskLogCreatedSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
 }>;
 
 
-export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } };
+export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+        | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+        | { __typename: 'CodeRender', content: string, language: string }
+        | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+        | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+       }> } };
 
 export type TaskUpdatedSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, documents: Array<{ __typename?: 'Document', path: string, title: string, body?: string | null }> } };
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, updatedAt: string, completedAt?: string | null, imageUrl?: string | null, artifacts: Array<string>, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+        | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
+        | { __typename: 'CodeRender', content: string, language: string }
+        | { __typename: 'DocumentRender', markdown: string, title?: string | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
+        | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
+       }> } };
 
 export type SandboxOutputSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -1297,6 +1425,45 @@ export const AgentDetailFragmentDoc = new TypedDocumentString(`
   }
 }
     `, {"fragmentName":"AgentDetail"}) as unknown as TypedDocumentString<AgentDetailFragment, unknown>;
+export const FileFieldsFragmentDoc = new TypedDocumentString(`
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}
+    `, {"fragmentName":"FileFields"}) as unknown as TypedDocumentString<FileFieldsFragment, unknown>;
 export const AgentLogsDocument = new TypedDocumentString(`
     query AgentLogs($agentId: ID!, $first: Int, $after: String, $last: Int, $before: String) {
   agentLogs(
@@ -1315,10 +1482,8 @@ export const AgentLogsDocument = new TypedDocumentString(`
         toolName
         toolInput
         toolResult
-        documents {
-          path
-          title
-          body
+        files {
+          ...FileFields
         }
         taskId
         createdAt
@@ -1332,7 +1497,43 @@ export const AgentLogsDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<AgentLogsQuery, AgentLogsQueryVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<AgentLogsQuery, AgentLogsQueryVariables>;
 export const SendMessageDocument = new TypedDocumentString(`
     mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {
   sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {
@@ -1369,16 +1570,50 @@ export const AgentLogCreatedDocument = new TypedDocumentString(`
     toolName
     toolInput
     toolResult
-    documents {
-      path
-      title
-      body
+    files {
+      ...FileFields
     }
     taskId
     createdAt
   }
 }
-    `) as unknown as TypedDocumentString<AgentLogCreatedSubscription, AgentLogCreatedSubscriptionVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<AgentLogCreatedSubscription, AgentLogCreatedSubscriptionVariables>;
 export const AgentsDocument = new TypedDocumentString(`
     query Agents {
   agents {
@@ -2010,10 +2245,8 @@ export const TasksDocument = new TypedDocumentString(`
         message
         createdAt
         imageUrl(width: 200)
-        documents {
-          path
-          title
-          body
+        files {
+          ...FileFields
         }
       }
     }
@@ -2025,7 +2258,43 @@ export const TasksDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<TasksQuery, TasksQueryVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<TasksQuery, TasksQueryVariables>;
 export const TaskDocument = new TypedDocumentString(`
     query Task($id: ID!) {
   task(id: $id) {
@@ -2040,14 +2309,48 @@ export const TaskDocument = new TypedDocumentString(`
     completedAt
     imageUrl(width: 200)
     artifacts
-    documents {
-      path
-      title
-      body
+    files {
+      ...FileFields
     }
   }
 }
-    `) as unknown as TypedDocumentString<TaskQuery, TaskQueryVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<TaskQuery, TaskQueryVariables>;
 export const TaskLogsDocument = new TypedDocumentString(`
     query TaskLogs($taskId: ID!, $first: Int, $after: String, $last: Int, $before: String) {
   taskLogs(
@@ -2066,10 +2369,8 @@ export const TaskLogsDocument = new TypedDocumentString(`
         toolName
         toolInput
         toolResult
-        documents {
-          path
-          title
-          body
+        files {
+          ...FileFields
         }
         taskId
         createdAt
@@ -2083,7 +2384,43 @@ export const TaskLogsDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<TaskLogsQuery, TaskLogsQueryVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<TaskLogsQuery, TaskLogsQueryVariables>;
 export const TaskLogCreatedDocument = new TypedDocumentString(`
     subscription TaskLogCreated($taskId: ID!) {
   taskLogCreated(taskId: $taskId) {
@@ -2093,16 +2430,50 @@ export const TaskLogCreatedDocument = new TypedDocumentString(`
     toolName
     toolInput
     toolResult
-    documents {
-      path
-      title
-      body
+    files {
+      ...FileFields
     }
     taskId
     createdAt
   }
 }
-    `) as unknown as TypedDocumentString<TaskLogCreatedSubscription, TaskLogCreatedSubscriptionVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<TaskLogCreatedSubscription, TaskLogCreatedSubscriptionVariables>;
 export const TaskUpdatedDocument = new TypedDocumentString(`
     subscription TaskUpdated($taskId: ID!) {
   taskUpdated(taskId: $taskId) {
@@ -2113,14 +2484,48 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     completedAt
     imageUrl(width: 200)
     artifacts
-    documents {
-      path
-      title
-      body
+    files {
+      ...FileFields
     }
   }
 }
-    `) as unknown as TypedDocumentString<TaskUpdatedSubscription, TaskUpdatedSubscriptionVariables>;
+    fragment FileFields on File {
+  path
+  name
+  sizeBytes
+  mimeType
+  modifiedAt
+  render {
+    __typename
+    ... on DocumentRender {
+      markdown
+      title
+    }
+    ... on CodeRender {
+      content
+      language
+    }
+    ... on ImageRender {
+      url(width: 800)
+      width
+      height
+      aspectRatio
+    }
+    ... on AudioRender {
+      url
+      durationSeconds
+    }
+    ... on VideoRender {
+      url
+      thumbnailUrl(width: 400)
+      durationSeconds
+    }
+    ... on UnknownRender {
+      mimeType
+      sizeBytes
+    }
+  }
+}`) as unknown as TypedDocumentString<TaskUpdatedSubscription, TaskUpdatedSubscriptionVariables>;
 export const SandboxOutputDocument = new TypedDocumentString(`
     subscription SandboxOutput($taskId: ID!) {
   sandboxOutput(taskId: $taskId) {

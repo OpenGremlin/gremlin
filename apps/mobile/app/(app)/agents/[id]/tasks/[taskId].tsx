@@ -87,7 +87,7 @@ export default function TaskThreadScreen() {
   const sandboxStreams = useSandboxOutput(taskId);
 
   const task = taskData?.task;
-  const taskDocs = task?.documents;
+  const taskFiles = task?.files;
 
   const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(
     id,
@@ -134,12 +134,12 @@ export default function TaskThreadScreen() {
           message={item}
           agentId={id}
           showTimestamp={show}
-          documents={taskDocs}
+          taskFiles={taskFiles}
           sandboxStreams={sandboxStreams}
         />
       );
     },
-    [messages, id, taskDocs, sandboxStreams],
+    [messages, id, taskFiles, sandboxStreams],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);

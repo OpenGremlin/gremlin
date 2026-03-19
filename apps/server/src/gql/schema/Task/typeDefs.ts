@@ -10,7 +10,8 @@ export const taskTypeDefs = /* GraphQL */ `
     originJobId: String
     imageUrl(width: Int): String
     artifacts: [String!]!
-    documents: [Document!]!
+    documents: [Document!]! @deprecated(reason: "Use files instead")
+    files: [File!]!
     logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }
 

@@ -34,7 +34,7 @@ describe("resolveToolFields", () => {
       toolName: "runCommand",
       toolInput: '{"command":"ls"}',
       toolResult: '{"output":"file.txt"}',
-      documents: [],
+      files: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("runCommand");
@@ -51,7 +51,7 @@ describe("resolveToolFields", () => {
       toolName: "myTool",
       toolInput: null,
       toolResult: null,
-      documents: [],
+      files: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("myTool");
@@ -69,7 +69,7 @@ describe("resolveToolFields", () => {
         result: { ok: true },
       }),
       createdAt: "",
-      documents: [],
+      files: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("legacyTool");
@@ -83,7 +83,7 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: '{"type":"something_else"}',
       createdAt: "",
-      documents: [],
+      files: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("tool");
@@ -97,7 +97,7 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: "plain text",
       createdAt: "",
-      documents: [],
+      files: [],
     };
     const result = resolveToolFields(entry);
     expect(result.name).toBe("tool");

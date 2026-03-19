@@ -10,10 +10,21 @@ export const taskSubscriptionManager = new SubscriptionManager(
     completedAt
     imageUrl(width: 200)
     artifacts
-    documents {
+    files {
       path
-      title
-      body
+      name
+      sizeBytes
+      mimeType
+      modifiedAt
+      render {
+        __typename
+        ... on DocumentRender { markdown title }
+        ... on CodeRender { content language }
+        ... on ImageRender { url(width: 800) width height aspectRatio }
+        ... on AudioRender { url durationSeconds }
+        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }
+        ... on UnknownRender { mimeType sizeBytes }
+      }
     }
   }
 }`,

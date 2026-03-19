@@ -2,6 +2,7 @@ import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@gremlin/lib/resources/ddb/schema/agentLog.js";
 import type { TaskItem } from "@gremlin/lib/resources/ddb/schema/task.js";
 import type { SandboxOutputEvent } from "@gremlin/lib/resources/pubsub.js";
+import { getFileInfo } from "@gremlin/lib/services/workspace/getFileInfo.js";
 import { readFile } from "@gremlin/lib/services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -9,15 +10,7 @@ import type {
   TaskEdgeResolvers,
   TaskResolvers,
 } from "../../resolverTypes.js";
-
-function parseFrontmatter(content: string): { title: string; body: string } {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) return { title: "", body: content };
-  const frontmatter = match[1];
-  const body = match[2];
-  const titleMatch = frontmatter.match(/^title:\s*(.+)$/m);
-  return { title: titleMatch?.[1]?.trim() ?? "", body };
-}
+import { parseFrontmatter } from "../shared/parseFrontmatter.js";
 
 const tasks: QueryResolvers["tasks"] = (
   _parent,
@@ -61,6 +54,22 @@ const documents: TaskResolvers["documents"] = async (parent) => {
     }),
   );
   return results.filter((d): d is NonNullable<typeof d> => d != null);
+};
+
+// biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
+const files = async (parent: any) => {
+  const paths = (parent.artifacts as string[] | undefined) ?? [];
+  if (paths.length === 0) return [];
+  const results = await Promise.all(
+    paths.map(async (filePath: string) => {
+      try {
+        return await getFileInfo(filePath);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return results.filter((f): f is NonNullable<typeof f> => f != null);
 };
 
 const logs: TaskResolvers["logs"] = (
@@ -131,7 +140,7 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, imageUrl, artifacts, documents, logs },
+  Task: { agent, imageUrl, artifacts, documents, files, logs },
   TaskEdge: { node },
   Subscription: {
     taskUpdated,

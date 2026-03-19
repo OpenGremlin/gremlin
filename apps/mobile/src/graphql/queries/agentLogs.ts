@@ -12,10 +12,8 @@ export const AgentLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
-          documents {
-            path
-            title
-            body
+          files {
+            ...FileFields
           }
           taskId
           createdAt
@@ -70,10 +68,8 @@ export const AgentLogSubscription = graphql(`
       toolName
       toolInput
       toolResult
-      documents {
-        path
-        title
-        body
+      files {
+        ...FileFields
       }
       taskId
       createdAt
