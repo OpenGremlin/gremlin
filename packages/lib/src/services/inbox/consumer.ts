@@ -331,5 +331,6 @@ async function writeFileUploadLog(
     taskId,
     role: "SYSTEM",
     content,
+    artifacts: [payload.path],
   });
 }
