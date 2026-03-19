@@ -7,9 +7,9 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { FileUploadState } from "../hooks/useFileUpload";
-import { formatFileSize } from "../hooks/useFileUpload";
-import { useNavigationTheme } from "../lib/useNavigationTheme";
+import type { FileUploadState } from "../../hooks/useFileUpload";
+import { formatFileSize } from "../../hooks/useFileUpload";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 
 function UploadProgressItem({ upload }: { upload: FileUploadState }) {
   const isDone = upload.status === "done";

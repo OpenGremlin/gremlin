@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
-import { IntegrationLogo } from "./IntegrationLogo";
+import { IntegrationLogo } from "../IntegrationLogo";
 
 interface ConnectionOption {
   id: string;

@@ -20,11 +20,11 @@ import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
-import { ConnectionPicker } from "../ConnectionPicker";
 import { groupSkillsByCategory } from "../categories";
 import { IntegrationLogo } from "../IntegrationLogo";
 import { SearchInput } from "../SearchInput";
 import { SheetModal } from "../SheetModal";
+import { ConnectionPicker } from "./ConnectionPicker";
 
 export function SkillsConfig({ agentId }: { agentId: string }) {
   const colors = useNavigationTheme();

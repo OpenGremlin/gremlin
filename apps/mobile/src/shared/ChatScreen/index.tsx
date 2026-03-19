@@ -23,10 +23,10 @@ import {
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { hexToTransparent } from "../../lib/color";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
-import { ChatInputBar } from "../ChatInputBar";
 import { LogEntryView } from "../LogEntryView";
 import { NotFound, QueryResult } from "../QueryResult";
 import { ChatHeaderTitle } from "./ChatHeaderTitle";
+import { ChatInputBar } from "./ChatInputBar";
 import { PendingMessageBubble } from "./PendingMessageBubble";
 
 type FileNode = ChatMessage["files"][number];
