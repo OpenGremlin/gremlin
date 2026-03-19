@@ -132,6 +132,22 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "apikey",
     availableScopes: [],
   },
+  {
+    id: "minimax",
+    service: "MiniMax",
+    category: "ai",
+    description: "MiniMax models",
+    connectionType: "apikey",
+    availableScopes: [],
+  },
+  {
+    id: "qwen",
+    service: "Qwen",
+    category: "ai",
+    description: "Qwen models via DashScope",
+    connectionType: "apikey",
+    availableScopes: [],
+  },
   // Web
   {
     id: "brave",

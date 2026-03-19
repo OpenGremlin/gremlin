@@ -1,3 +1,4 @@
+import { createAlibaba } from "@ai-sdk/alibaba";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createCohere } from "@ai-sdk/cohere";
@@ -10,6 +11,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createPerplexity } from "@ai-sdk/perplexity";
 import { createTogetherAI } from "@ai-sdk/togetherai";
 import { createXai } from "@ai-sdk/xai";
+import { createMinimax } from "vercel-minimax-ai-provider";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import type { LanguageModel } from "ai";
 import { createLogger } from "../../logger.js";
@@ -81,6 +83,14 @@ function createProviderModel(
     case "cohere": {
       const cohere = createCohere({ apiKey });
       return cohere(modelId);
+    }
+    case "minimax": {
+      const minimax = createMinimax({ apiKey });
+      return minimax(modelId);
+    }
+    case "qwen": {
+      const alibaba = createAlibaba({ apiKey });
+      return alibaba(modelId);
     }
     default:
       throw new Error(`Unknown provider: ${providerId}`);

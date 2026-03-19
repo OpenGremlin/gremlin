@@ -136,6 +136,16 @@ const providerConfigs: Record<string, ProviderConfig> = {
         .sort((a, b) => a.id.localeCompare(b.id));
     },
   },
+  minimax: {
+    url: "https://api.minimaxi.chat/v1/models",
+    headers: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
+    parse: parseOpenAIModels,
+  },
+  qwen: {
+    url: "https://dashscope.aliyuncs.com/compatible-mode/v1/models",
+    headers: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
+    parse: parseOpenAIModels,
+  },
 };
 
 /**

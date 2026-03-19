@@ -35,6 +35,8 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   together: require("@gremlin/logos/TogetherAI.svg"),
   fireworks: require("@gremlin/logos/FireworksAI.svg"),
   cohere: require("@gremlin/logos/Cohere.svg"),
+  minimax: require("@gremlin/logos/MiniMax.svg"),
+  qwen: require("@gremlin/logos/Qwen.svg"),
 };
 
 /** Light-mode overrides — only for logos that have a `_light` variant. */
