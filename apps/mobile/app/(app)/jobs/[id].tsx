@@ -217,7 +217,9 @@ export default function JobDetailScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="flex-row items-center gap-3">
-        <AgentAvatar id={job.agent.id} size={48} />
+        <Pressable onPress={() => router.push(`/agents/${job.agent.id}`)}>
+          <AgentAvatar id={job.agent.id} size={48} />
+        </Pressable>
         <View className="min-w-0 flex-1">
           <Text
             className="text-xl font-semibold text-text-primary"
