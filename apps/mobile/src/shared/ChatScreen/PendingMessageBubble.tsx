@@ -1,5 +1,5 @@
 import { ActivityIndicator, Text, View } from "react-native";
-import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 
 export function PendingMessageBubble({ content }: { content: string }) {
   const colors = useNavigationTheme();

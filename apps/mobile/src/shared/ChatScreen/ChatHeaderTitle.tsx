@@ -1,5 +1,5 @@
 import { Pressable, Text } from "react-native";
-import { AgentAvatar } from "./AgentAvatar";
+import { AgentAvatar } from "../AgentAvatar";
 
 export function ChatHeaderTitle({
   agentId,
