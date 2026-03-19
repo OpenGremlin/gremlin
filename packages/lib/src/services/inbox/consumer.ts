@@ -76,8 +76,7 @@ async function routeBatch(
       i.type === "user_task_message" ||
       i.type === "scheduled_job" ||
       i.type === "agent_self_followup" ||
-      i.type === "core_memory_review" ||
-      i.type === "file_upload",
+      i.type === "core_memory_review",
   );
 
   // --- Main lane: batch all conversational items into one turn ---
@@ -164,11 +163,6 @@ async function processTaskGroup(
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
-      case "file_upload": {
-        // Write log entry only — do not trigger inference
-        await writeFileUploadLog(ctx, agentId, taskId, payload);
-        break;
-      }
     }
   }
 
@@ -214,9 +208,6 @@ async function processNonTaskItem(
             "Core memory review failed",
           ),
         );
-      break;
-    case "file_upload":
-      await writeFileUploadLog(ctx, agentId, null, payload);
       break;
   }
 }
@@ -301,36 +292,5 @@ async function formatAndWriteNotificationReply(
     taskId: null,
     role: "SYSTEM",
     content,
-  });
-}
-
-/**
- * Write a SYSTEM log entry for a file upload. Does NOT trigger inference.
- */
-async function writeFileUploadLog(
-  ctx: ServiceContext,
-  agentId: string,
-  taskId: string | null,
-  payload: {
-    filename: string;
-    path: string;
-    sizeBytes: number;
-    contentType: string;
-  },
-) {
-  const content = JSON.stringify({
-    type: "file_upload",
-    filename: payload.filename,
-    path: payload.path,
-    sizeBytes: payload.sizeBytes,
-    contentType: payload.contentType,
-  });
-
-  await ctx.services.orchestrator.writeAgentLog(ctx, {
-    agentId,
-    taskId,
-    role: "SYSTEM",
-    content,
-    artifacts: [payload.path],
   });
 }

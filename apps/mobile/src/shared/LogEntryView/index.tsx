@@ -478,8 +478,19 @@ export function LogEntryView({
   if (message.role === AgentLogRole.System) {
     const parsed = safeParseJson(message.content);
 
-    // Handle file_upload entries with a dedicated card
+    // Handle file_upload entries — prefer FileCard (with preview modal)
+    // when resolved file data is available, fall back to static card
     if (parsed?.type === "file_upload") {
+      const files = "files" in message ? (message.files ?? []) : [];
+      if (files.length > 0) {
+        return (
+          <View className="py-1 gap-1">
+            {files.map((file) => (
+              <FileCard key={file.path} file={file} />
+            ))}
+          </View>
+        );
+      }
       return (
         <FileUploadCard
           data={parsed as Parameters<typeof FileUploadCard>[0]["data"]}

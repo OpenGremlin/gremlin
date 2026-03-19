@@ -143,17 +143,22 @@ const completeFileUpload = async (
       log.warn({ err, key: input.key }, "Failed to delete S3 upload object"),
     );
 
-  // Enqueue inbox item so agent gets notified
-  await ctx.services.inbox.enqueueWork(ctx, input.agentId, {
+  // Write agent log entry directly so the subscription fires immediately
+  // (going through the inbox consumer would delay it until SQS processes)
+  const content = JSON.stringify({
     type: "file_upload",
-    payload: {
-      agentId: input.agentId,
-      taskId: input.taskId ?? null,
-      filename: finalFilename,
-      path: relativePath,
-      sizeBytes: input.sizeBytes,
-      contentType: input.contentType,
-    },
+    filename: finalFilename,
+    path: relativePath,
+    sizeBytes: input.sizeBytes,
+    contentType: input.contentType,
+  });
+
+  await ctx.services.orchestrator.writeAgentLog(ctx, {
+    agentId: input.agentId,
+    taskId: input.taskId ?? null,
+    role: "SYSTEM",
+    content,
+    artifacts: [relativePath],
   });
 
   log.info(
