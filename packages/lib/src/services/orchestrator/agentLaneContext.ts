@@ -16,10 +16,15 @@ import {
   updateDocumentTool,
   updateJobTool,
   updateTaskMessageTool,
+  viewImageTool,
   webFetch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
-import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
+import {
+  activeSessions,
+  ensureSandboxTool,
+  runCommandTool,
+} from "./sandboxTools.js";
 
 /**
  * Per-agent context built once and shared across all lane invocations
@@ -106,6 +111,11 @@ export function buildTaskTools(
       ? {
           ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
           runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
+          ...(agent.config?.viewImage?.enabled
+            ? {
+                viewImage: viewImageTool(ctx, () => activeSessions.get(taskId)),
+              }
+            : {}),
         }
       : {}),
     ...skillTools.tools,

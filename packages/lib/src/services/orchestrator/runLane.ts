@@ -3,6 +3,7 @@ import type { ServiceContext } from "../context.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import { buildContextMessages, maybeCompact } from "./compaction.js";
 import { runAgentTurn } from "./runAgentTurn.js";
+import { writeAgentLog } from "./writeAgentLog.js";
 
 export interface LaneConfig {
   agentId: string;
@@ -49,15 +50,28 @@ export async function runLane(
   });
 
   // Run agent turn
-  const response = await runAgentTurn(ctx, {
-    agentId,
-    taskId,
-    systemPrompt,
-    timezone,
-    memoryContext,
-    messages,
-    tools,
-  });
+  let response: string;
+  try {
+    response = await runAgentTurn(ctx, {
+      agentId,
+      taskId,
+      systemPrompt,
+      timezone,
+      memoryContext,
+      messages,
+      tools,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    ctx.log.error({ err, agentId, taskId }, "Agent turn failed");
+    await writeAgentLog(ctx, {
+      agentId,
+      taskId,
+      role: "SYSTEM",
+      content: JSON.stringify({ type: "error", message }),
+    });
+    throw err;
+  }
 
   // Fire-and-forget compaction
   maybeCompact(ctx, {

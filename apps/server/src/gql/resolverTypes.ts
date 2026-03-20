@@ -1,4 +1,5 @@
 import { NotificationStatus } from '@gremlin/lib/enums.js';
+import { ToolName } from '@gremlin/lib/enums.js';
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentItem } from '@gremlin/lib/resources/ddb/schema/agent.js';
 import { AgentJobItem } from '@gremlin/lib/resources/ddb/schema/agentJob.js';
@@ -56,12 +57,14 @@ export type AgentConfig = {
   __typename?: 'AgentConfig';
   model?: Maybe<AgentModelConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
+  viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
 };
 
 export type AgentConfigInput = {
   model?: InputMaybe<AgentModelConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
 };
 
@@ -94,7 +97,7 @@ export type AgentLog = {
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
-  toolName?: Maybe<Scalars['String']['output']>;
+  toolName?: Maybe<ToolName>;
   toolResult?: Maybe<Scalars['String']['output']>;
 };
 
@@ -158,6 +161,15 @@ export type AgentSkill = {
   connectionStatuses: Array<SkillConnectionStatus>;
   skillId: Scalars['ID']['output'];
   template?: Maybe<SkillTemplate>;
+};
+
+export type AgentViewImageConfig = {
+  __typename?: 'AgentViewImageConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentViewImageConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentWebSearchConfig = {
@@ -884,6 +896,8 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export { ToolName };
+
 export type UnknownRender = {
   __typename?: 'UnknownRender';
   mimeType?: Maybe<Scalars['String']['output']>;
@@ -1035,6 +1049,8 @@ export type ResolversTypes = {
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: ResolverTypeWrapper<AgentSkillItem>;
+  AgentViewImageConfig: ResolverTypeWrapper<AgentViewImageConfig>;
+  AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
@@ -1089,6 +1105,7 @@ export type ResolversTypes = {
   TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
+  ToolName: ToolName;
   UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
@@ -1111,6 +1128,8 @@ export type ResolversParentTypes = {
   AgentSandboxConfig: AgentSandboxConfig;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: AgentSkillItem;
+  AgentViewImageConfig: AgentViewImageConfig;
+  AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: AgentWebSearchConfig;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
@@ -1185,6 +1204,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
 export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
+  viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
   webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
 };
 
@@ -1213,7 +1233,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  toolName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  toolName?: Resolver<Maybe<ResolversTypes['ToolName']>, ParentType, ContextType>;
   toolResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -1252,6 +1272,10 @@ export type AgentSkillResolvers<ContextType = GremlinContext, ParentType extends
   connectionStatuses?: Resolver<Array<ResolversTypes['SkillConnectionStatus']>, ParentType, ContextType>;
   skillId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   template?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
+};
+
+export type AgentViewImageConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentViewImageConfig'] = ResolversParentTypes['AgentViewImageConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type AgentWebSearchConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentWebSearchConfig'] = ResolversParentTypes['AgentWebSearchConfig']> = {
@@ -1597,6 +1621,8 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, createDocument?: any, delegateTask?: any, ensureSandbox?: any, listJobs?: any, postToMainLane?: any, readDocument?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestApproval?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateDocument?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any }, ResolversTypes['ToolName']>;
+
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1630,6 +1656,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
   AgentSkill?: AgentSkillResolvers<ContextType>;
+  AgentViewImageConfig?: AgentViewImageConfigResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
   Attachment?: AttachmentResolvers<ContextType>;
@@ -1672,6 +1699,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   TaskConnection?: TaskConnectionResolvers<ContextType>;
   TaskEdge?: TaskEdgeResolvers<ContextType>;
   TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
+  ToolName?: ToolNameResolvers;
   UnknownRender?: UnknownRenderResolvers<ContextType>;
   VideoRender?: VideoRenderResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;

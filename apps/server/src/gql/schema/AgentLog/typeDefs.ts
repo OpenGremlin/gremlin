@@ -1,3 +1,9 @@
+import { ToolName } from "@gremlin/lib/enums.js";
+
+const toolNameEnum = `enum ToolName {\n${Object.values(ToolName)
+  .map((v) => `    ${v}`)
+  .join("\n")}\n  }`;
+
 export const agentLogTypeDefs = /* GraphQL */ `
   enum AgentLogRole {
     AGENT
@@ -6,13 +12,15 @@ export const agentLogTypeDefs = /* GraphQL */ `
     TOOL
   }
 
+  ${toolNameEnum}
+
   type AgentLog {
     id: ID!
     agent: Agent!
     taskId: String
     role: AgentLogRole!
     content: String!
-    toolName: String
+    toolName: ToolName
     toolInput: String
     toolResult: String
     attachments: [Attachment!]!

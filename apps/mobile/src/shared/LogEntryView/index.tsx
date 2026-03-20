@@ -1,15 +1,21 @@
 import {
+  Bell,
   BookOpen,
   Brain,
   Calendar,
   CheckCircle,
   CircleAlert,
+  Eye,
   File,
+  FileText,
   Hammer,
   Key,
+  Link,
   List,
   Monitor,
   Save,
+  Search,
+  ShieldCheck,
   XCircle,
 } from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -25,7 +31,12 @@ import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { FnLabel } from "./FnLabel";
 import { Markdown } from "./Markdown";
-import { resolveToolFields, safeParseJson } from "./resolveToolFields";
+import {
+  isKnownTool,
+  resolveToolFields,
+  safeParseJson,
+  ToolName,
+} from "./resolveToolFields";
 import { ToolBlock } from "./ToolBlock";
 import { ToolStatus } from "./ToolStatus";
 
@@ -81,74 +92,31 @@ function FileUploadCard({
 type FileNode =
   AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
 
-export function LogEntryView({
-  message,
-  agentId,
-  showTimestamp,
-  taskFiles,
-  sandboxStreams,
-}: {
-  message: ChatMessage;
-  agentId: string;
-  showTimestamp: boolean;
-  taskFiles?: FileNode[];
-  sandboxStreams?: Map<string, CommandStream>;
-}) {
-  const colors = useNavigationTheme();
+/** Exhaustive-check helper — a `default` case calling this will error at compile time if a ToolName case is missing. */
+function assertNever(_value: never): null {
+  return null;
+}
 
-  if (message.role === AgentLogRole.User) {
-    return (
-      <View className="py-2">
-        <View className="flex-row justify-end">
-          <View className="max-w-[80%] bg-user-bubble rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
-            <Markdown variant="user">{message.content}</Markdown>
-          </View>
-        </View>
-        {showTimestamp && (
-          <Text className="text-[10px] text-text-muted text-right mt-1 mr-1">
-            {formatTime(message.createdAt)}
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  if (message.role === AgentLogRole.Agent) {
-    const files = "files" in message ? (message.files ?? []) : [];
-    return (
-      <View className="py-2">
-        <View className="flex-row justify-start">
-          <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
-            <Markdown variant="agent">{message.content}</Markdown>
-          </View>
-        </View>
-        {files.length > 0 && (
-          <View className="mt-1.5 gap-1 max-w-[85%]">
-            {files.map((file) => (
-              <FileCard key={file.path} file={file} />
-            ))}
-          </View>
-        )}
-        {showTimestamp && (
-          <Text className="text-[10px] text-text-muted mt-1 ml-1">
-            {formatTime(message.createdAt)}
-          </Text>
-        )}
-      </View>
-    );
-  }
-
-  if (message.role === AgentLogRole.Tool) {
-    const tool = resolveToolFields(message);
-
-    // updateTaskStatus / updateTaskMessage
-    if (tool.name === "updateTaskStatus" || tool.name === "updateTaskMessage") {
+function renderToolCall(
+  toolName: ToolName,
+  tool: {
+    input: Record<string, unknown> | null;
+    result: Record<string, unknown> | null;
+  },
+  message: ChatMessage,
+  agentId: string,
+  showTimestamp: boolean,
+  colors: ReturnType<typeof useNavigationTheme>,
+  taskFiles?: FileNode[],
+  sandboxStreams?: Map<string, CommandStream>,
+): React.ReactNode {
+  switch (toolName) {
+    case ToolName.UpdateTaskMessage: {
       const msg = tool.input?.message as string | undefined;
       return <ToolStatus icon={Hammer} text={msg || "Progress update"} />;
     }
 
-    // ensureSandbox
-    if (tool.name === "ensureSandbox") {
+    case ToolName.EnsureSandbox: {
       const status = tool.result?.status as string | undefined;
       if (status === "ready") {
         return (
@@ -177,36 +145,46 @@ export function LogEntryView({
       );
     }
 
-    // loadSkill
-    if (tool.name === "loadSkill") {
+    case ToolName.ReadSkill: {
       const skillId = tool.input?.skillId as string | undefined;
       if (tool.result?.error) {
         return (
           <ToolStatus
             icon={XCircle}
-            text={`Failed to load ${skillId ?? "skill"}: ${tool.result.error}`}
+            text={`Failed to read ${skillId ?? "skill"}: ${tool.result.error}`}
             variant="error"
-          />
-        );
-      }
-      if (!tool.result) {
-        return (
-          <ToolStatus
-            icon={BookOpen}
-            text={`Loading ${skillId ?? "skill"}...`}
           />
         );
       }
       return (
         <ToolStatus
           icon={BookOpen}
-          text={`Loaded ${skillId ?? "skill"} instructions`}
+          text={`Reading skill: ${skillId ?? "skill"}`}
         />
       );
     }
 
-    // authenticate
-    if (tool.name === "authenticate") {
+    case ToolName.ReadSkillReference: {
+      const skillId = tool.input?.skillId as string | undefined;
+      const reference = tool.input?.reference as string | undefined;
+      if (tool.result?.error) {
+        return (
+          <ToolStatus
+            icon={XCircle}
+            text={`Failed to read reference: ${tool.result.error}`}
+            variant="error"
+          />
+        );
+      }
+      return (
+        <ToolStatus
+          icon={Search}
+          text={`Reading skill (${skillId ?? "skill"}) reference: ${reference ?? "unknown"}`}
+        />
+      );
+    }
+
+    case ToolName.Authenticate: {
       const skillId = tool.input?.skillId as string | undefined;
       if (tool.result?.error) {
         return (
@@ -235,8 +213,7 @@ export function LogEntryView({
       );
     }
 
-    // saveMemory
-    if (tool.name === "saveMemory") {
+    case ToolName.SaveMemory: {
       const key =
         (tool.input?.key as string | undefined) ??
         (tool.input?.topic as string | undefined);
@@ -248,8 +225,7 @@ export function LogEntryView({
       );
     }
 
-    // recallMemory
-    if (tool.name === "recallMemory") {
+    case ToolName.RecallMemory: {
       const query = tool.input?.query as string | undefined;
       return (
         <ToolStatus
@@ -259,8 +235,7 @@ export function LogEntryView({
       );
     }
 
-    // scheduleJob
-    if (tool.name === "scheduleJob") {
+    case ToolName.ScheduleJob: {
       const schedule = tool.input?.schedule as string | undefined;
       return (
         <ToolStatus
@@ -270,18 +245,47 @@ export function LogEntryView({
       );
     }
 
-    // listJobs
-    if (tool.name === "listJobs") {
+    case ToolName.ListJobs:
       return <ToolStatus icon={List} text="Listed jobs" />;
-    }
 
-    // updateJob
-    if (tool.name === "updateJob") {
+    case ToolName.UpdateJob:
       return <ToolStatus icon={Calendar} text="Updated job" />;
+
+    case ToolName.AttachFile: {
+      const filePath = tool.input?.path as string | undefined;
+      const file = filePath
+        ? taskFiles?.find((f) => f.path === filePath)
+        : undefined;
+      if (file) {
+        return (
+          <View className="py-2">
+            <FileCard file={file} />
+          </View>
+        );
+      }
+      return (
+        <ToolStatus
+          icon={File}
+          text={`Attached file: ${filePath ?? "unknown"}`}
+        />
+      );
     }
 
-    // createDocument -> FileCard (with pending/fallback states)
-    if (tool.name === "createDocument") {
+    case ToolName.AttachLink: {
+      const url = tool.input?.url as string | undefined;
+      const title = tool.input?.title as string | undefined;
+      return (
+        <ToolStatus
+          icon={Link}
+          text={`Attaching link: ${title ?? url ?? "unknown"}`}
+        />
+      );
+    }
+
+    case ToolName.PostToMainLane:
+      return <ToolStatus icon={Bell} text="Posted update to main chat" />;
+
+    case ToolName.CreateDocument:
       return (
         <CreateDocumentCard
           toolInput={tool.input}
@@ -291,15 +295,13 @@ export function LogEntryView({
           showTimestamp={showTimestamp}
         />
       );
-    }
 
-    // updateDocument -> FileCard
-    if (tool.name === "updateDocument" && taskFiles) {
+    case ToolName.UpdateDocument: {
       const docPath =
         (tool.result?.path as string | undefined) ??
         (tool.input?.path as string | undefined);
       const file = docPath
-        ? taskFiles.find((f) => f.path === docPath)
+        ? taskFiles?.find((f) => f.path === docPath)
         : undefined;
       if (file) {
         return (
@@ -308,10 +310,36 @@ export function LogEntryView({
           </View>
         );
       }
+      return null;
     }
 
-    // delegateTask -> DelegateTaskCard
-    if (tool.name === "delegateTask") {
+    case ToolName.ReadDocument: {
+      const docPath = tool.input?.path as string | undefined;
+      return (
+        <ToolStatus
+          icon={FileText}
+          text={`Read document: ${docPath ?? "unknown"}`}
+        />
+      );
+    }
+
+    case ToolName.ViewImage: {
+      const imgPath = tool.input?.path as string | undefined;
+      if (tool.result?.type === "error") {
+        return (
+          <ToolStatus
+            icon={XCircle}
+            text={`${tool.result.message}`}
+            variant="error"
+          />
+        );
+      }
+      return (
+        <ToolStatus icon={Eye} text={`Viewed image: ${imgPath ?? "unknown"}`} />
+      );
+    }
+
+    case ToolName.DelegateTask:
       return (
         <DelegateTaskCard
           agentId={agentId}
@@ -319,10 +347,18 @@ export function LogEntryView({
           taskTitle={(tool.input?.title as string) ?? "Untitled task"}
         />
       );
+
+    case ToolName.RequestApproval: {
+      const question = tool.input?.question as string | undefined;
+      return (
+        <ToolStatus
+          icon={ShieldCheck}
+          text={question ?? "Requested approval"}
+        />
+      );
     }
 
-    // runCommand -> run() style label with streaming
-    if (tool.name === "runCommand") {
+    case ToolName.RunCommand: {
       const commandId = tool.result?.commandId as string | undefined;
       const command = (tool.input?.command as string | undefined) ?? "...";
       const hasResult = !!tool.result;
@@ -396,12 +432,7 @@ export function LogEntryView({
       );
     }
 
-    // webSearch (brave / tavily)
-    if (
-      tool.name === "webSearch" ||
-      tool.name === "braveSearch" ||
-      tool.name === "tavilySearch"
-    ) {
+    case ToolName.WebSearch: {
       const query = (tool.input?.query as string) ?? "...";
       const fnLabel = <FnLabel fn="search" arg={query} />;
       const resultText = tool.result
@@ -417,8 +448,7 @@ export function LogEntryView({
       );
     }
 
-    // webFetch
-    if (tool.name === "webFetch") {
+    case ToolName.WebFetch: {
       const url = (tool.input?.url as string) ?? "...";
       const fnLabel = <FnLabel fn="fetch" arg={url} />;
       const resultText = tool.result
@@ -434,7 +464,86 @@ export function LogEntryView({
       );
     }
 
-    // Generic tool: collapsible JSON
+    default:
+      return assertNever(toolName);
+  }
+}
+
+export function LogEntryView({
+  message,
+  agentId,
+  showTimestamp,
+  taskFiles,
+  sandboxStreams,
+}: {
+  message: ChatMessage;
+  agentId: string;
+  showTimestamp: boolean;
+  taskFiles?: FileNode[];
+  sandboxStreams?: Map<string, CommandStream>;
+}) {
+  const colors = useNavigationTheme();
+
+  if (message.role === AgentLogRole.User) {
+    return (
+      <View className="py-2">
+        <View className="flex-row justify-end">
+          <View className="max-w-[80%] bg-user-bubble rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
+            <Markdown variant="user">{message.content}</Markdown>
+          </View>
+        </View>
+        {showTimestamp && (
+          <Text className="text-[10px] text-text-muted text-right mt-1 mr-1">
+            {formatTime(message.createdAt)}
+          </Text>
+        )}
+      </View>
+    );
+  }
+
+  if (message.role === AgentLogRole.Agent) {
+    const files = "files" in message ? (message.files ?? []) : [];
+    return (
+      <View className="py-2">
+        <View className="flex-row justify-start">
+          <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+            <Markdown variant="agent">{message.content}</Markdown>
+          </View>
+        </View>
+        {files.length > 0 && (
+          <View className="mt-1.5 gap-1 max-w-[85%]">
+            {files.map((file) => (
+              <FileCard key={file.path} file={file} />
+            ))}
+          </View>
+        )}
+        {showTimestamp && (
+          <Text className="text-[10px] text-text-muted mt-1 ml-1">
+            {formatTime(message.createdAt)}
+          </Text>
+        )}
+      </View>
+    );
+  }
+
+  if (message.role === AgentLogRole.Tool) {
+    const tool = resolveToolFields(message);
+
+    if (isKnownTool(tool.name)) {
+      const rendered = renderToolCall(
+        tool.name,
+        tool,
+        message,
+        agentId,
+        showTimestamp,
+        colors,
+        taskFiles,
+        sandboxStreams,
+      );
+      if (rendered) return rendered;
+    }
+
+    // Unknown or unhandled tool: generic collapsible JSON
     const inputEmpty = !tool.input || Object.keys(tool.input).length === 0;
     const pending = inputEmpty && !tool.result;
 
@@ -489,6 +598,16 @@ export function LogEntryView({
       return (
         <FileUploadCard
           data={parsed as Parameters<typeof FileUploadCard>[0]["data"]}
+        />
+      );
+    }
+
+    if (parsed?.type === "error") {
+      return (
+        <ToolStatus
+          icon={CircleAlert}
+          text={String(parsed.message ?? "An error occurred")}
+          variant="error"
         />
       );
     }

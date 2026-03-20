@@ -37,6 +37,9 @@ export const AgentEntity = new Entity({
       browser: map({
         enabled: boolean(),
       }).optional(),
+      viewImage: map({
+        enabled: boolean(),
+      }).optional(),
     }).optional(),
   }),
   computeKey: ({ id }) => ({

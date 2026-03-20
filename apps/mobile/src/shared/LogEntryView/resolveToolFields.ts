@@ -1,4 +1,7 @@
+import { ToolName } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
+
+export { ToolName };
 
 export function safeParseJson(
   s: string | null | undefined,
@@ -11,8 +14,21 @@ export function safeParseJson(
   }
 }
 
+export type ResolvedTool = {
+  name: ToolName | (string & {});
+  input: Record<string, unknown> | null;
+  result: Record<string, unknown> | null;
+};
+
+const KNOWN_TOOLS = new Set<string>(Object.values(ToolName));
+
+/** Returns true if `name` is a known ToolName. Narrows the type for switch exhaustiveness. */
+export function isKnownTool(name: string): name is ToolName {
+  return KNOWN_TOOLS.has(name);
+}
+
 /** Normalize tool fields -- handles both typed columns and legacy JSON-in-content */
-export function resolveToolFields(entry: ChatMessage) {
+export function resolveToolFields(entry: ChatMessage): ResolvedTool {
   if (entry.toolName) {
     return {
       name: entry.toolName,

@@ -1,4 +1,5 @@
 import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
+import type { ToolName } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 import { requestApprovalTool } from "../tools/index.js";
 import { getModelForAgent } from "./model.js";
@@ -36,7 +37,7 @@ function withEagerLogging(
           agentId,
           taskId,
           role: "TOOL",
-          toolName: name,
+          toolName: name as ToolName,
           toolInput: input,
           toolResult: null,
           internal: false,
@@ -97,58 +98,65 @@ export async function runAgentTurn(
       }),
     });
   }
+  const onStepFinish = async (step: {
+    toolCalls: Array<{
+      toolName: string;
+      toolCallId?: string;
+      input?: unknown;
+    }>;
+    toolResults: Array<{ output?: unknown } | undefined>;
+  }) => {
+    for (let i = 0; i < step.toolCalls.length; i++) {
+      const toolCall = step.toolCalls[i];
+      const toolResult = step.toolResults[i];
+      const isInternal = INTERNAL_TOOLS.has(toolCall.toolName);
+      const toolCallId =
+        "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
+      const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
+
+      if (existing) {
+        await updateAgentLogResult(ctx, existing.logId, existing.createdAt, {
+          agentId: opts.agentId,
+          taskId: opts.taskId,
+          toolName: toolCall.toolName as ToolName,
+          toolInput: "input" in toolCall ? toolCall.input : undefined,
+          toolResult: toolResult?.output,
+        });
+      } else {
+        await writeAgentLog(ctx, {
+          agentId: opts.agentId,
+          taskId: opts.taskId,
+          role: "TOOL",
+          toolName: toolCall.toolName as ToolName,
+          toolInput: "input" in toolCall ? toolCall.input : undefined,
+          toolResult: toolResult?.output,
+          internal: isInternal,
+        });
+      }
+    }
+  };
+
+  const buildMessages = (): ModelMessage[] => [
+    {
+      role: "system",
+      content: opts.systemPrompt,
+      providerOptions: {
+        anthropic: { cacheControl: { type: "ephemeral" } },
+      },
+    },
+    { role: "system", content: `Current time: ${currentTime} (${tz})` },
+    ...(opts.memoryContext
+      ? [{ role: "system" as const, content: opts.memoryContext }]
+      : []),
+    ...opts.messages,
+  ];
+
   const result = await generateText({
     model,
-    messages: [
-      {
-        role: "system",
-        content: opts.systemPrompt,
-        providerOptions: {
-          anthropic: { cacheControl: { type: "ephemeral" } },
-        },
-      },
-      { role: "system", content: `Current time: ${currentTime} (${tz})` },
-      ...(opts.memoryContext
-        ? [{ role: "system" as const, content: opts.memoryContext }]
-        : []),
-      ...opts.messages,
-    ],
+    messages: buildMessages(),
     tools: allTools,
     stopWhen: [hasToolCall("requestApproval")],
-    onStepFinish: async (step) => {
-      for (let i = 0; i < step.toolCalls.length; i++) {
-        const toolCall = step.toolCalls[i];
-        const toolResult = step.toolResults[i];
-        const isInternal = INTERNAL_TOOLS.has(toolCall.toolName);
-        const toolCallId =
-          "toolCallId" in toolCall
-            ? (toolCall.toolCallId as string)
-            : undefined;
-        const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
-
-        if (existing) {
-          // Update the existing call entry with the result
-          await updateAgentLogResult(ctx, existing.logId, existing.createdAt, {
-            agentId: opts.agentId,
-            taskId: opts.taskId,
-            toolName: toolCall.toolName,
-            toolInput: "input" in toolCall ? toolCall.input : undefined,
-            toolResult: toolResult?.output,
-          });
-        } else {
-          // Internal tools or missing callLogId — write a single combined entry
-          await writeAgentLog(ctx, {
-            agentId: opts.agentId,
-            taskId: opts.taskId,
-            role: "TOOL",
-            toolName: toolCall.toolName,
-            toolInput: "input" in toolCall ? toolCall.input : undefined,
-            toolResult: toolResult?.output,
-            internal: isInternal,
-          });
-        }
-      }
-    },
+    onStepFinish,
   });
 
   // Log the final text response

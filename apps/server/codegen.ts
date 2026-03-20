@@ -10,6 +10,7 @@ const config: CodegenConfig = {
         contextType: "./context.js#GremlinContext",
         enumValues: {
           NotificationStatus: "@gremlin/lib/enums.js#NotificationStatus",
+          ToolName: "@gremlin/lib/enums.js#ToolName",
         },
         mappers: {
           Agent: "@gremlin/lib/resources/ddb/schema/agent.js#AgentItem",

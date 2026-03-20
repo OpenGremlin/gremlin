@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AgentLogRole } from "../../graphql/generated/graphql";
+import { AgentLogRole, ToolName } from "../../graphql/generated/graphql";
 import { resolveToolFields, safeParseJson } from "./resolveToolFields";
 
 describe("safeParseJson", () => {
@@ -31,7 +31,7 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: "ignored",
       createdAt: "",
-      toolName: "runCommand",
+      toolName: ToolName.RunCommand,
       toolInput: '{"command":"ls"}',
       toolResult: '{"output":"file.txt"}',
       files: [],
@@ -48,13 +48,13 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: "",
       createdAt: "",
-      toolName: "myTool",
+      toolName: ToolName.SaveMemory,
       toolInput: null,
       toolResult: null,
       files: [],
     };
     const result = resolveToolFields(entry);
-    expect(result.name).toBe("myTool");
+    expect(result.name).toBe("saveMemory");
     expect(result.input).toBeNull();
     expect(result.result).toBeNull();
   });

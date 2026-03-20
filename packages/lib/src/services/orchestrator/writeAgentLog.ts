@@ -1,4 +1,5 @@
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import type { ToolName } from "../../enums.js";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
@@ -15,7 +16,7 @@ type ToolLogEntry = {
   agentId: string;
   taskId: string | null;
   role: "TOOL";
-  toolName: string;
+  toolName: ToolName;
   toolInput: unknown;
   toolResult: unknown;
   internal?: boolean;
@@ -87,7 +88,7 @@ export async function updateAgentLogResult(
   entry: {
     agentId: string;
     taskId: string | null;
-    toolName: string;
+    toolName: ToolName;
     toolInput: unknown;
     toolResult: unknown;
   },

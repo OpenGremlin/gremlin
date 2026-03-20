@@ -38,12 +38,14 @@ export type AgentConfig = {
   __typename?: 'AgentConfig';
   model?: Maybe<AgentModelConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
+  viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
 };
 
 export type AgentConfigInput = {
   model?: InputMaybe<AgentModelConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
 };
 
@@ -76,7 +78,7 @@ export type AgentLog = {
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
-  toolName?: Maybe<Scalars['String']['output']>;
+  toolName?: Maybe<ToolName>;
   toolResult?: Maybe<Scalars['String']['output']>;
 };
 
@@ -140,6 +142,15 @@ export type AgentSkill = {
   connectionStatuses: Array<SkillConnectionStatus>;
   skillId: Scalars['ID']['output'];
   template?: Maybe<SkillTemplate>;
+};
+
+export type AgentViewImageConfig = {
+  __typename?: 'AgentViewImageConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentViewImageConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentWebSearchConfig = {
@@ -870,6 +881,31 @@ export type TaskPageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+export enum ToolName {
+  AttachFile = 'attachFile',
+  AttachLink = 'attachLink',
+  Authenticate = 'authenticate',
+  CreateDocument = 'createDocument',
+  DelegateTask = 'delegateTask',
+  EnsureSandbox = 'ensureSandbox',
+  ListJobs = 'listJobs',
+  PostToMainLane = 'postToMainLane',
+  ReadDocument = 'readDocument',
+  ReadSkill = 'readSkill',
+  ReadSkillReference = 'readSkillReference',
+  RecallMemory = 'recallMemory',
+  RequestApproval = 'requestApproval',
+  RunCommand = 'runCommand',
+  SaveMemory = 'saveMemory',
+  ScheduleJob = 'scheduleJob',
+  UpdateDocument = 'updateDocument',
+  UpdateJob = 'updateJob',
+  UpdateTaskMessage = 'updateTaskMessage',
+  ViewImage = 'viewImage',
+  WebFetch = 'webFetch',
+  WebSearch = 'webSearch'
+}
+
 export type UnknownRender = {
   __typename?: 'UnknownRender';
   mimeType?: Maybe<Scalars['String']['output']>;
@@ -924,7 +960,7 @@ export type AgentLogsQueryVariables = Exact<{
 }>;
 
 
-export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -963,7 +999,7 @@ export type AgentLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -972,7 +1008,7 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
 
-export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null };
+export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null };
 
 export type AgentsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -984,7 +1020,7 @@ export type AgentQueryVariables = Exact<{
 }>;
 
 
-export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null } | null };
+export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
 
 export type UpdateAgentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -992,7 +1028,7 @@ export type UpdateAgentMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null } | null };
+export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
 
 export type CreateAgentMutationVariables = Exact<{
   input: CreateAgentInput;
@@ -1020,7 +1056,7 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null } | null } };
+export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
 
 export type FileFieldsFragment = { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
     | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
@@ -1349,7 +1385,7 @@ export type TaskLogsQueryVariables = Exact<{
 }>;
 
 
-export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1363,7 +1399,7 @@ export type TaskLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1473,6 +1509,9 @@ export const AgentDetailFragmentDoc = new TypedDocumentString(`
     webSearch {
       enabled
       provider
+    }
+    viewImage {
+      enabled
     }
   }
 }
@@ -1706,6 +1745,9 @@ export const AgentDocument = new TypedDocumentString(`
       enabled
       provider
     }
+    viewImage {
+      enabled
+    }
   }
 }`) as unknown as TypedDocumentString<AgentQuery, AgentQueryVariables>;
 export const UpdateAgentDocument = new TypedDocumentString(`
@@ -1737,6 +1779,9 @@ export const UpdateAgentDocument = new TypedDocumentString(`
     webSearch {
       enabled
       provider
+    }
+    viewImage {
+      enabled
     }
   }
 }`) as unknown as TypedDocumentString<UpdateAgentMutation, UpdateAgentMutationVariables>;
@@ -1794,6 +1839,9 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     webSearch {
       enabled
       provider
+    }
+    viewImage {
+      enabled
     }
   }
 }`) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;

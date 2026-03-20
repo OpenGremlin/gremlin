@@ -1,3 +1,4 @@
+import { ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
@@ -252,7 +253,7 @@ async function handleScheduledJob(
     agentId,
     taskId: null,
     role: "TOOL",
-    toolName: "delegateTask",
+    toolName: ToolName.DelegateTask,
     toolInput: { title: job.name, prompt },
     toolResult: { taskId: task.id, title: job.name },
   });

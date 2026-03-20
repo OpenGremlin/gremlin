@@ -1,4 +1,4 @@
-import { Bot, Globe, Terminal } from "lucide-react-native";
+import { Bot, Eye, Globe, Terminal } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
@@ -25,6 +25,7 @@ interface PlainConfig {
     alwaysOn?: boolean;
   };
   webSearch?: { enabled: boolean; provider?: string };
+  viewImage?: { enabled: boolean };
 }
 
 function toPlainConfig(config: Agent["config"]): PlainConfig {
@@ -48,6 +49,9 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           enabled: config.webSearch.enabled,
           provider: config.webSearch.provider ?? undefined,
         }
+      : undefined,
+    viewImage: config?.viewImage
+      ? { enabled: config.viewImage.enabled }
       : undefined,
   };
 }
@@ -358,6 +362,33 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             </Text>
           </View>
         )}
+      </Card>
+
+      {/* View Images */}
+      <Card className="overflow-hidden">
+        <View className="flex-row items-center justify-between px-4 py-3">
+          <View className="flex-row items-center gap-3 flex-1">
+            <Eye size={18} color={colors.iconDefault} />
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-text-secondary">
+                View Images
+              </Text>
+              <Text className="text-xs text-text-muted">
+                {config.sandbox?.enabled
+                  ? "Let the agent see image files"
+                  : "Requires Sandbox to be enabled"}
+              </Text>
+            </View>
+          </View>
+          <Toggle
+            enabled={config.viewImage?.enabled ?? false}
+            disabled={!config.sandbox?.enabled}
+            onChange={() => {
+              const wasEnabled = config.viewImage?.enabled ?? false;
+              updateConfig({ viewImage: { enabled: !wasEnabled } });
+            }}
+          />
+        </View>
       </Card>
 
       {modelPickerOpen && (
