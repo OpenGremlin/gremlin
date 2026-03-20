@@ -31,6 +31,7 @@ export type UserInfoConfig =
       url: string;
       path: string;
       headers?: Record<string, string>;
+      httpMethod?: "GET" | "POST";
     }
   | { method: "graphql"; url: string; query: string; path: string };
 
@@ -269,6 +270,29 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
         method: "rest",
         url: "https://api.spotify.com/v1/me",
         path: "email",
+      },
+    },
+  ],
+  [
+    "dropbox",
+    {
+      providerId: "dropbox",
+      createAdapter: (id, secret, uri) => {
+        const p = new arctic.Dropbox(id, secret, uri);
+        return {
+          createAuthorizationURL: (state, _cv, scopes) =>
+            p.createAuthorizationURL(state, scopes),
+          validateAuthorizationCode: async (code, _cv) =>
+            wrapTokens(await p.validateAuthorizationCode(code)),
+        };
+      },
+      pkce: false,
+      extraAuthParams: { token_access_type: "offline" },
+      userInfo: {
+        method: "rest",
+        url: "https://api.dropboxapi.com/2/users/get_current_account",
+        path: "email",
+        httpMethod: "POST",
       },
     },
   ],

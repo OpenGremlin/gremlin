@@ -18,6 +18,7 @@ export const allLogos = [
   "Brave",
   "DeepSeek",
   "Discord",
+  "Dropbox",
   "Gemini",
   "GitHub",
   "GitLab",

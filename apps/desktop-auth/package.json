@@ -13,6 +13,7 @@
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@gremlin/providers": "workspace:*",
     "arctic": "^3.5.0",
     "@gremlin/logos": "workspace:*",
     "react": "^19",

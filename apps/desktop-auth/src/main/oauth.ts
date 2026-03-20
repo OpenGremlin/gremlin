@@ -50,7 +50,10 @@ async function resolveAccountId(
         Authorization: `Bearer ${tokens.accessToken}`,
         ...(userInfo.headers ?? {}),
       };
-      const res = await fetch(userInfo.url, { headers });
+      const res = await fetch(userInfo.url, {
+        method: userInfo.httpMethod ?? "GET",
+        headers,
+      });
       if (!res.ok) return "unknown";
       const data = await res.json();
       return String(getNestedValue(data, userInfo.path) ?? "unknown");

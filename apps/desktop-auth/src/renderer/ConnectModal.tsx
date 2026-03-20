@@ -95,7 +95,7 @@ export function ConnectModal({
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <img
-            src={getLogoUrl(provider.logo, isDark)}
+            src={getLogoUrl(provider, isDark)}
             alt={provider.service}
             className="h-8 w-8"
           />

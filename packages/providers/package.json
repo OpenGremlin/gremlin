@@ -1,0 +1,22 @@
+{
+  "name": "@gremlin/providers",
+  "version": "0.0.1",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@gremlin/logos": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

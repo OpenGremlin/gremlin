@@ -483,7 +483,7 @@ export function App() {
                       className="flex w-full items-center gap-3 px-4 py-3 text-left"
                     >
                       <img
-                        src={getLogoUrl(provider.logo, isDark)}
+                        src={getLogoUrl(provider, isDark)}
                         alt={provider.service}
                         className="h-6 w-6"
                       />
@@ -568,7 +568,7 @@ export function App() {
                 >
                   <div className="mb-3 flex w-full items-center justify-between">
                     <img
-                      src={getLogoUrl(provider.logo, isDark)}
+                      src={getLogoUrl(provider, isDark)}
                       alt={provider.service}
                       className="h-8 w-8"
                     />

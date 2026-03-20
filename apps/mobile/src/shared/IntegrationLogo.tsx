@@ -12,6 +12,7 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   trello: require("@gremlin/logos/Trello.svg"),
   slack: require("@gremlin/logos/Slack.svg"),
   discord: require("@gremlin/logos/Discord.svg"),
+  dropbox: require("@gremlin/logos/Dropbox.svg"),
   teams: require("@gremlin/logos/Teams.svg"),
   telegram: require("@gremlin/logos/Telegram.svg"),
   whatsapp: require("@gremlin/logos/WhatsApp.svg"),

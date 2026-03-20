@@ -20,6 +20,9 @@ importers:
       '@gremlin/logos':
         specifier: workspace:*
         version: link:../../packages/logos
+      '@gremlin/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
       arctic:
         specifier: ^3.5.0
         version: 3.7.0
@@ -442,6 +445,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.1000.0
         version: 3.1000.0(@aws-sdk/client-dynamodb@3.1000.0)
+      '@gremlin/providers':
+        specifier: workspace:*
+        version: link:../providers
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
@@ -527,6 +533,12 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.19.13
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/providers:
+    devDependencies:
       typescript:
         specifier: ^5
         version: 5.9.3
