@@ -38,12 +38,14 @@ export type AgentConfig = {
   __typename?: 'AgentConfig';
   model?: Maybe<AgentModelConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
+  viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
 };
 
 export type AgentConfigInput = {
   model?: InputMaybe<AgentModelConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
 };
 
@@ -76,7 +78,7 @@ export type AgentLog = {
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
-  toolName?: Maybe<Scalars['String']['output']>;
+  toolName?: Maybe<ToolName>;
   toolResult?: Maybe<Scalars['String']['output']>;
 };
 
@@ -140,6 +142,15 @@ export type AgentSkill = {
   connectionStatuses: Array<SkillConnectionStatus>;
   skillId: Scalars['ID']['output'];
   template?: Maybe<SkillTemplate>;
+};
+
+export type AgentViewImageConfig = {
+  __typename?: 'AgentViewImageConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentViewImageConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentWebSearchConfig = {
@@ -869,6 +880,31 @@ export type TaskPageInfo = {
   hasPreviousPage: Scalars['Boolean']['output'];
   startCursor?: Maybe<Scalars['String']['output']>;
 };
+
+export enum ToolName {
+  AttachFile = 'attachFile',
+  AttachLink = 'attachLink',
+  Authenticate = 'authenticate',
+  CreateDocument = 'createDocument',
+  DelegateTask = 'delegateTask',
+  EnsureSandbox = 'ensureSandbox',
+  ListJobs = 'listJobs',
+  PostToMainLane = 'postToMainLane',
+  ReadDocument = 'readDocument',
+  ReadSkill = 'readSkill',
+  ReadSkillReference = 'readSkillReference',
+  RecallMemory = 'recallMemory',
+  RequestApproval = 'requestApproval',
+  RunCommand = 'runCommand',
+  SaveMemory = 'saveMemory',
+  ScheduleJob = 'scheduleJob',
+  UpdateDocument = 'updateDocument',
+  UpdateJob = 'updateJob',
+  UpdateTaskMessage = 'updateTaskMessage',
+  ViewImage = 'viewImage',
+  WebFetch = 'webFetch',
+  WebSearch = 'webSearch'
+}
 
 export type UnknownRender = {
   __typename?: 'UnknownRender';
