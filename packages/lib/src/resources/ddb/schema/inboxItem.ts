@@ -11,6 +11,7 @@ export const InboxItemEntity = new Entity({
   schema: item({
     id: string().key(),
     agentId: string(),
+    lane: string(),
     type: string(),
     payload: string(),
     isRead: boolean(),

@@ -9,6 +9,7 @@ function makeItem(overrides: Partial<InboxItemItem> = {}): InboxItemItem {
   return {
     id: "item-1",
     agentId: "agent-1",
+    lane: "main",
     type: "message",
     payload: "{}",
     isRead: false,
@@ -75,7 +76,7 @@ describe("markRead", () => {
     expect(command.input).toMatchObject({
       TableName: "test-table",
       Key: {
-        pk: "AGENT_INBOX#agent-1",
+        pk: "AGENT_INBOX#agent-1#main",
         sk: "ITEM#2026-01-01T00:00:00Z#item-1",
       },
       ExpressionAttributeValues: {

@@ -28,7 +28,7 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
       void ctx.services.tasks.selectAndSetTaskImage(ctx, task);
 
       // Enqueue to inbox — the consumer picks it up after the current turn
-      await ctx.services.inbox.enqueueWork(ctx, agentId, {
+      await ctx.services.inbox.enqueueWork(ctx, agentId, `task:${task.id}`, {
         type: "run_task",
         payload: { taskId: task.id, prompt },
       });

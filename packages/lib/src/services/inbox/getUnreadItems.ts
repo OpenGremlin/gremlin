@@ -5,6 +5,7 @@ import type { ServiceContext } from "../context.js";
 export async function getUnreadItems(
   ctx: ServiceContext,
   agentId: string,
+  lane: string,
 ): Promise<InboxItemItem[]> {
   const table = ctx.resources.ddb.table;
   const { Items } = await table.getDocumentClient().send(
@@ -13,7 +14,7 @@ export async function getUnreadItems(
       KeyConditionExpression: "pk = :pk AND begins_with(sk, :prefix)",
       FilterExpression: "isRead = :false",
       ExpressionAttributeValues: {
-        ":pk": `AGENT_INBOX#${agentId}`,
+        ":pk": `AGENT_INBOX#${agentId}#${lane}`,
         ":prefix": "ITEM#",
         ":false": false,
       },

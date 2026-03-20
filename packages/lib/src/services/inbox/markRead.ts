@@ -17,7 +17,7 @@ export async function markRead(
         new UpdateCommand({
           TableName: table.getName(),
           Key: {
-            pk: `AGENT_INBOX#${item.agentId}`,
+            pk: `AGENT_INBOX#${item.agentId}#${item.lane}`,
             sk: `ITEM#${item.createdAt}#${item.id}`,
           },
           UpdateExpression:

@@ -27,13 +27,25 @@ interface ScheduleEvent {
   payload: Record<string, unknown>;
 }
 
+function getLane(event: ScheduleEvent): string {
+  switch (event.type) {
+    case "agent_self_followup":
+      return `task:${event.payload.taskId as string}`;
+    case "scheduled_job":
+    case "core_memory_review":
+      return "system";
+    default:
+      return "main";
+  }
+}
+
 export async function handler(event: ScheduleEvent) {
   if (event.type === "core_memory_review") {
     const agents = await getAgents(ctx);
     const activeAgents = agents.filter((a) => !a.retired);
     const results = await Promise.all(
       activeAgents.map((agent) =>
-        enqueueWork(ctx, agent.id, {
+        enqueueWork(ctx, agent.id, "system", {
           type: event.type,
           payload: event.payload,
         }),
@@ -46,7 +58,8 @@ export async function handler(event: ScheduleEvent) {
     throw new Error(`agentId is required for event type "${event.type}"`);
   }
 
-  const { id } = await enqueueWork(ctx, event.agentId, {
+  const lane = getLane(event);
+  const { id } = await enqueueWork(ctx, event.agentId, lane, {
     type: event.type,
     payload: event.payload,
   });

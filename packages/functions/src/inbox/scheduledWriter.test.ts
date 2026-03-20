@@ -48,8 +48,9 @@ describe("scheduledWriter", () => {
     expect(result.id).toBe("inbox-1");
 
     expect(mockEnqueueWork).toHaveBeenCalledTimes(1);
-    const [, agentId, input] = mockEnqueueWork.mock.calls[0];
+    const [, agentId, lane, input] = mockEnqueueWork.mock.calls[0];
     expect(agentId).toBe("agent-1");
+    expect(lane).toBe("system");
     expect(input.type).toBe("scheduled_job");
     expect(input.payload).toEqual({ jobId: "job-1" });
   });
@@ -63,11 +64,12 @@ describe("scheduledWriter", () => {
     const result = await handler({
       type: "agent_self_followup",
       agentId: "agent-2",
-      payload: {},
+      payload: { taskId: "task-1", prompt: "follow up" },
     });
 
     expect(result.statusCode).toBe(200);
-    const [, , input] = mockEnqueueWork.mock.calls[0];
+    const [, , lane, input] = mockEnqueueWork.mock.calls[0];
+    expect(lane).toBe("task:task-1");
     expect(input.type).toBe("agent_self_followup");
   });
 
@@ -97,6 +99,11 @@ describe("scheduledWriter", () => {
     expect(agentIds).toContain("agent-1");
     expect(agentIds).toContain("agent-3");
     expect(agentIds).not.toContain("agent-2");
+
+    // All should be on the system lane
+    for (const call of mockEnqueueWork.mock.calls) {
+      expect(call[2]).toBe("system");
+    }
   });
 
   it("throws when agentId is missing for non-fanout event types", async () => {

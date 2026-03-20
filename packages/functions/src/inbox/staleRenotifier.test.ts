@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockGetStaleUnreadAgentIds = vi.fn();
+const mockGetStaleUnreadTargets = vi.fn();
 const mockRingSqsDoorbells = vi.fn();
 
 vi.mock("@gremlin/lib/services/inbox/getStaleUnreadAgentIds.js", () => ({
-  getStaleUnreadAgentIds: (...args: unknown[]) =>
-    mockGetStaleUnreadAgentIds(...args),
+  getStaleUnreadTargets: (...args: unknown[]) =>
+    mockGetStaleUnreadTargets(...args),
 }));
 
 vi.mock("@gremlin/lib/services/inbox/ringSqsDoorbells.js", () => ({
@@ -28,13 +28,13 @@ vi.mock("@gremlin/lib/logger.js", () => ({
 const { handler } = await import("./staleRenotifier.js");
 
 beforeEach(() => {
-  mockGetStaleUnreadAgentIds.mockReset();
+  mockGetStaleUnreadTargets.mockReset();
   mockRingSqsDoorbells.mockReset().mockResolvedValue(undefined);
 });
 
 describe("staleRenotifier", () => {
   it("returns early when no stale items", async () => {
-    mockGetStaleUnreadAgentIds.mockResolvedValueOnce([]);
+    mockGetStaleUnreadTargets.mockResolvedValueOnce([]);
 
     const result = await handler();
 
@@ -43,23 +43,28 @@ describe("staleRenotifier", () => {
   });
 
   it("re-rings doorbells for agents with stale items", async () => {
-    mockGetStaleUnreadAgentIds.mockResolvedValueOnce(["agent-1", "agent-2"]);
+    const targets = [
+      { agentId: "agent-1", lane: "main" },
+      { agentId: "agent-2", lane: "task:task-1" },
+    ];
+    mockGetStaleUnreadTargets.mockResolvedValueOnce(targets);
 
     const result = await handler();
 
-    expect(result).toEqual({ statusCode: 200, agents: 2 });
+    expect(result).toEqual({ statusCode: 200, targets: 2 });
     expect(mockRingSqsDoorbells).toHaveBeenCalledTimes(1);
-    const [, agentIds] = mockRingSqsDoorbells.mock.calls[0];
-    expect(agentIds).toEqual(["agent-1", "agent-2"]);
+    const [, passedTargets] = mockRingSqsDoorbells.mock.calls[0];
+    expect(passedTargets).toEqual(targets);
   });
 
   it("passes context to service functions", async () => {
-    mockGetStaleUnreadAgentIds.mockResolvedValueOnce(["agent-1"]);
+    mockGetStaleUnreadTargets.mockResolvedValueOnce([
+      { agentId: "agent-1", lane: "main" },
+    ]);
 
     await handler();
 
-    // Both functions receive the context as first arg
-    const staleCtx = mockGetStaleUnreadAgentIds.mock.calls[0][0];
+    const staleCtx = mockGetStaleUnreadTargets.mock.calls[0][0];
     const doorbellCtx = mockRingSqsDoorbells.mock.calls[0][0];
     expect(staleCtx).toBe(doorbellCtx);
     expect(staleCtx.resources.ddb).toBeDefined();

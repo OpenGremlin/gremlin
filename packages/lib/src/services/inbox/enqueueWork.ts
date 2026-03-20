@@ -32,6 +32,7 @@ export interface EnqueueInput {
 export async function enqueueWork(
   ctx: ServiceContext,
   agentId: string,
+  lane: string,
   input: EnqueueInput,
 ) {
   const id = crypto.randomUUID();
@@ -41,12 +42,13 @@ export async function enqueueWork(
   const table = ctx.resources.ddb.table;
   const item = {
     _et: "InboxItem",
-    pk: `AGENT_INBOX#${agentId}`,
+    pk: `AGENT_INBOX#${agentId}#${lane}`,
     sk: `ITEM#${createdAt}#${id}`,
     gsi2pk: "INBOX_UNREAD",
     gsi2sk: createdAt,
     id,
     agentId,
+    lane,
     type: input.type,
     payload: payloadStr,
     isRead: false,
@@ -61,7 +63,7 @@ export async function enqueueWork(
   );
 
   ctx.log.info(
-    { agentId, inboxItemId: id, type: input.type },
+    { agentId, lane, inboxItemId: id, type: input.type },
     "Enqueued inbox item",
   );
 
@@ -74,7 +76,7 @@ export async function enqueueWork(
       .send(
         new SendMessageCommand({
           QueueUrl: queueUrl,
-          MessageBody: JSON.stringify({ agentId }),
+          MessageBody: JSON.stringify({ agentId, lane }),
         }),
       )
       .catch((err) =>

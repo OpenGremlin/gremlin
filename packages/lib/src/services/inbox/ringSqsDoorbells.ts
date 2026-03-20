@@ -15,12 +15,12 @@ async function getSqsClient() {
 }
 
 /**
- * Ring the SQS doorbell for each agent ID, notifying the consumer
+ * Ring the SQS doorbell for each agent + lane pair, notifying the consumer
  * that there is work to process.
  */
 export async function ringSqsDoorbells(
   ctx: ServiceContext,
-  agentIds: string[],
+  targets: Array<{ agentId: string; lane: string }>,
 ): Promise<void> {
   const queueUrl = process.env.DOORBELL_SQS_URL;
   if (!queueUrl) {
@@ -32,11 +32,11 @@ export async function ringSqsDoorbells(
   const sqs = await getSqsClient();
 
   await Promise.all(
-    agentIds.map((agentId) =>
+    targets.map((t) =>
       sqs.send(
         new SendMessageCommand({
           QueueUrl: queueUrl,
-          MessageBody: JSON.stringify({ agentId }),
+          MessageBody: JSON.stringify({ agentId: t.agentId, lane: t.lane }),
         }),
       ),
     ),

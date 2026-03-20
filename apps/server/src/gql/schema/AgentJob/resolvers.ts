@@ -38,7 +38,7 @@ const triggerJob: MutationResolvers["triggerJob"] = async (
 ) => {
   const job = await ctx.services.jobs.getJob(ctx, id);
   if (!job) throw new Error("Job not found");
-  await ctx.services.inbox.enqueueWork(ctx, job.agentId, {
+  await ctx.services.inbox.enqueueWork(ctx, job.agentId, "system", {
     type: "scheduled_job",
     payload: { jobId: id, triggerTimeMs: Date.now() },
   });

@@ -35,7 +35,7 @@ export async function resolveNotification(
 
   // Enqueue the reply — the consumer writes it to the log with full context
   ctx.services.inbox
-    .enqueueWork(ctx, existing.agentId, {
+    .enqueueWork(ctx, existing.agentId, "main", {
       type: "user_notification_reply",
       payload: { notificationId: id, actionId },
     })

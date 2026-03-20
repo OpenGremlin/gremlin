@@ -38,7 +38,7 @@ describe("getUnreadItems", () => {
     ];
     mockDocSend.mockResolvedValue({ Items: items });
 
-    const result = await getUnreadItems(ctx, "agent-1");
+    const result = await getUnreadItems(ctx, "agent-1", "main");
 
     expect(result).toEqual(items);
   });
@@ -46,22 +46,22 @@ describe("getUnreadItems", () => {
   it("returns empty array when no items", async () => {
     mockDocSend.mockResolvedValue({ Items: undefined });
 
-    const result = await getUnreadItems(ctx, "agent-1");
+    const result = await getUnreadItems(ctx, "agent-1", "main");
 
     expect(result).toEqual([]);
   });
 
-  it("passes correct agentId in query", async () => {
+  it("passes correct agentId and lane in query", async () => {
     mockDocSend.mockResolvedValue({ Items: [] });
 
-    await getUnreadItems(ctx, "agent-42");
+    await getUnreadItems(ctx, "agent-42", "task:task-1");
 
     expect(mockDocSend).toHaveBeenCalledOnce();
     const command = mockDocSend.mock.calls[0][0];
     expect(command.input).toMatchObject({
       TableName: "test-table",
       ExpressionAttributeValues: expect.objectContaining({
-        ":pk": "AGENT_INBOX#agent-42",
+        ":pk": "AGENT_INBOX#agent-42#task:task-1",
         ":prefix": "ITEM#",
         ":false": false,
       }),

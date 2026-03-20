@@ -5,14 +5,15 @@ const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Query GSI2 for unread inbox items older than the stale threshold
- * and return the unique set of agent IDs that have stuck work.
+ * and return the unique set of { agentId, lane } pairs that have stuck work.
  */
-export async function getStaleUnreadAgentIds(
+export async function getStaleUnreadTargets(
   ctx: ServiceContext,
-): Promise<string[]> {
+): Promise<Array<{ agentId: string; lane: string }>> {
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MS).toISOString();
   const table = ctx.resources.ddb.table;
-  const agentIds = new Set<string>();
+  const seen = new Set<string>();
+  const targets: Array<{ agentId: string; lane: string }> = [];
 
   let exclusiveStartKey: Record<string, unknown> | undefined;
 
@@ -26,17 +27,25 @@ export async function getStaleUnreadAgentIds(
           ":pk": "INBOX_UNREAD",
           ":cutoff": cutoff,
         },
-        ProjectionExpression: "agentId",
+        ProjectionExpression: "agentId, lane",
         ...(exclusiveStartKey && { ExclusiveStartKey: exclusiveStartKey }),
       }),
     );
 
     for (const item of result.Items ?? []) {
-      if (item.agentId) agentIds.add(item.agentId as string);
+      const agentId = item.agentId as string | undefined;
+      const lane = (item.lane as string | undefined) ?? "main";
+      if (!agentId) continue;
+
+      const key = `${agentId}#${lane}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        targets.push({ agentId, lane });
+      }
     }
 
     exclusiveStartKey = result.LastEvaluatedKey;
   } while (exclusiveStartKey);
 
-  return [...agentIds];
+  return targets;
 }

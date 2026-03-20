@@ -4,28 +4,39 @@ import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
 
 /**
- * In-memory set to enforce per-agent serialization.
- * Only one drain loop runs per agent at a time.
- * Redundant doorbells while an agent is active are no-ops.
+ * Tracks which lanes are currently draining.
+ * When a lane finishes a turn it always re-checks the inbox,
+ * so a doorbell that arrives while a lane is active is safe to ignore.
  */
-const activeAgents = new Set<string>();
+const activeLanes = new Set<string>();
+
+function laneKey(agentId: string, lane: string): string {
+  return `${agentId}#${lane}`;
+}
+
+// ---------------------------------------------------------------------------
+// Doorbell entry point
+// ---------------------------------------------------------------------------
 
 /**
- * Ring the doorbell for an agent.
- * If the agent is already processing, the active drain loop will
- * pick up new items automatically — this call is a no-op.
+ * Ring the doorbell for a specific agent + lane.
+ * If the lane is already draining, this is a no-op — the active drain
+ * loop will re-check the inbox after its current turn finishes.
  */
 export async function ringDoorbell(
   ctx: ServiceContext,
   agentId: string,
+  lane: string,
 ): Promise<void> {
-  if (activeAgents.has(agentId)) {
-    ctx.log.info({ agentId }, "Agent already active, skipping doorbell");
+  const key = laneKey(agentId, lane);
+
+  if (activeLanes.has(key)) {
+    ctx.log.info({ agentId, lane }, "Lane already active, skipping doorbell");
     return;
   }
 
-  ctx.log.info({ agentId }, "Agent waking up");
-  activeAgents.add(agentId);
+  ctx.log.info({ agentId, lane }, "Lane waking up");
+  activeLanes.add(key);
   try {
     const agentLaneCtx = await ctx.services.orchestrator.buildAgentLaneContext(
       ctx,
@@ -33,109 +44,75 @@ export async function ringDoorbell(
     );
 
     while (true) {
-      const items = await ctx.services.inbox.getUnreadItems(ctx, agentId);
+      const items = await ctx.services.inbox.getUnreadItems(ctx, agentId, lane);
       if (items.length === 0) break;
 
       ctx.log.info(
         {
           agentId,
+          lane,
           itemCount: items.length,
           types: items.map((i) => i.type),
         },
-        "Agent picked up inbox items",
+        "Lane picked up inbox items",
       );
 
       await ctx.services.inbox.markRead(ctx, items);
-      await routeBatch(ctx, agentLaneCtx, agentId, items);
+
+      if (lane === "main") {
+        await processMainLaneItems(ctx, agentLaneCtx, agentId, items);
+      } else if (lane.startsWith("task:")) {
+        const taskId = lane.slice(5);
+        await processTaskGroup(ctx, agentLaneCtx, agentId, taskId, items);
+      } else if (lane === "system") {
+        await processSystemItems(ctx, agentId, items);
+      }
     }
   } catch (err) {
-    ctx.log.error({ err, agentId }, "Consumer error");
+    ctx.log.error({ err, agentId, lane }, "Lane drain error");
   } finally {
-    ctx.log.info({ agentId }, "Agent going back to sleep");
-    activeAgents.delete(agentId);
+    ctx.log.info({ agentId, lane }, "Lane going back to sleep");
+    activeLanes.delete(key);
   }
 }
 
-/**
- * Split a batch of inbox items into main-lane (conversational) and
- * task-lane (dispatched work), then process each group.
- *
- * Main lane runs first so the user gets a response before background tasks.
- */
-async function routeBatch(
+// ---------------------------------------------------------------------------
+// Lane processors
+// ---------------------------------------------------------------------------
+
+/** Process main-lane (conversational) items: write to log, then run one inference. */
+async function processMainLaneItems(
   ctx: ServiceContext,
   agentLaneCtx: AgentLaneContext,
   agentId: string,
   items: InboxItemItem[],
-) {
-  const mainLaneItems = items.filter(
-    (i) => i.type === "user_message" || i.type === "user_notification_reply",
-  );
-  const taskLaneItems = items.filter(
-    (i) =>
-      i.type === "run_task" ||
-      i.type === "user_task_message" ||
-      i.type === "scheduled_job" ||
-      i.type === "agent_self_followup" ||
-      i.type === "core_memory_review",
-  );
+): Promise<void> {
+  let recallHint: string | undefined;
 
-  // --- Main lane: batch all conversational items into one turn ---
-  if (mainLaneItems.length > 0) {
-    let recallHint: string | undefined;
-
-    for (const item of mainLaneItems) {
-      const payload = JSON.parse(item.payload);
-      switch (item.type) {
-        case "user_message":
-          // Write the user message to the log now (at processing time, not send time)
-          await ctx.services.orchestrator.writeAgentLog(ctx, {
-            agentId,
-            taskId: null,
-            role: "USER",
-            content: payload.content,
-          });
-          recallHint = payload.content;
-          break;
-        case "user_notification_reply":
-          await formatAndWriteNotificationReply(ctx, agentId, payload);
-          break;
-      }
-    }
-
-    await ctx.services.orchestrator.runMainLane(
-      ctx,
-      agentLaneCtx,
-      agentId,
-      recallHint,
-    );
-  }
-
-  // --- Task lane: group by taskId, write all messages per task,
-  // then run one inference per task. Different tasks run in parallel. ---
-  const taskGroups = new Map<string, InboxItemItem[]>();
-  const nonTaskItems: InboxItemItem[] = [];
-
-  for (const item of taskLaneItems) {
+  for (const item of items) {
     const payload = JSON.parse(item.payload);
-    const tid = payload.taskId;
-    if (tid) {
-      const group = taskGroups.get(tid) ?? [];
-      group.push(item);
-      taskGroups.set(tid, group);
-    } else {
-      nonTaskItems.push(item);
+    switch (item.type) {
+      case "user_message":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "USER",
+          content: payload.content,
+        });
+        recallHint = payload.content;
+        break;
+      case "user_notification_reply":
+        await formatAndWriteNotificationReply(ctx, agentId, payload);
+        break;
     }
   }
 
-  await Promise.all([
-    // One inference per task, with all messages written to history first
-    ...[...taskGroups.entries()].map(([taskId, items]) =>
-      processTaskGroup(ctx, agentLaneCtx, agentId, taskId, items),
-    ),
-    // Non-task items run in parallel
-    ...nonTaskItems.map((item) => processNonTaskItem(ctx, agentId, item)),
-  ]);
+  await ctx.services.orchestrator.runMainLane(
+    ctx,
+    agentLaneCtx,
+    agentId,
+    recallHint,
+  );
 }
 
 /** Write all messages for a task to the log, then run one inference. */
@@ -146,7 +123,6 @@ async function processTaskGroup(
   taskId: string,
   items: InboxItemItem[],
 ) {
-  // Collect prompts — each gets logged, but only one inference runs at the end
   const prompts: Array<{ content: string; role: "SYSTEM" | "USER" }> = [];
 
   for (const item of items) {
@@ -158,9 +134,6 @@ async function processTaskGroup(
       case "user_task_message":
         prompts.push({ content: payload.content, role: "USER" });
         break;
-      case "scheduled_job":
-        await handleScheduledJob(ctx, agentId, payload);
-        return; // scheduled jobs handle their own inference
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
@@ -190,26 +163,29 @@ async function processTaskGroup(
   );
 }
 
-async function processNonTaskItem(
+/** Process system-lane items (scheduled jobs, core memory reviews). No inference. */
+async function processSystemItems(
   ctx: ServiceContext,
   agentId: string,
-  item: InboxItemItem,
-) {
-  const payload = JSON.parse(item.payload);
-  switch (item.type) {
-    case "scheduled_job":
-      await handleScheduledJob(ctx, agentId, payload);
-      break;
-    case "core_memory_review":
-      await ctx.services.memory
-        .reviewCoreMemories(ctx, agentId)
-        .catch((err) =>
-          ctx.log.error(
-            { err, component: "core-memories" },
-            "Core memory review failed",
-          ),
-        );
-      break;
+  items: InboxItemItem[],
+): Promise<void> {
+  for (const item of items) {
+    const payload = JSON.parse(item.payload);
+    switch (item.type) {
+      case "scheduled_job":
+        await handleScheduledJob(ctx, agentId, payload);
+        break;
+      case "core_memory_review":
+        await ctx.services.memory
+          .reviewCoreMemories(ctx, agentId)
+          .catch((err) =>
+            ctx.log.error(
+              { err, component: "core-memories" },
+              "Core memory review failed",
+            ),
+          );
+        break;
+    }
   }
 }
 
@@ -258,7 +234,7 @@ async function handleScheduledJob(
     toolResult: { taskId: task.id, title: job.name },
   });
 
-  await ctx.services.inbox.enqueueWork(ctx, agentId, {
+  await ctx.services.inbox.enqueueWork(ctx, agentId, `task:${task.id}`, {
     type: "run_task",
     payload: { taskId: task.id, prompt },
   });

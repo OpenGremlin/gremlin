@@ -8,12 +8,12 @@ export async function sendMessage(
 ) {
   // Enqueue to inbox — the consumer writes the log entry and runs inference
   if (taskId) {
-    await ctx.services.inbox.enqueueWork(ctx, agentId, {
+    await ctx.services.inbox.enqueueWork(ctx, agentId, `task:${taskId}`, {
       type: "user_task_message",
       payload: { taskId, content },
     });
   } else {
-    await ctx.services.inbox.enqueueWork(ctx, agentId, {
+    await ctx.services.inbox.enqueueWork(ctx, agentId, "main", {
       type: "user_message",
       payload: { content },
     });

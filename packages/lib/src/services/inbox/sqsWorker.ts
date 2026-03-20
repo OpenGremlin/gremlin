@@ -8,8 +8,8 @@ import { ringDoorbell } from "./consumer.js";
 
 /**
  * Start long-polling SQS for doorbell messages.
- * Each message contains { agentId } — we ack immediately and
- * let ringDoorbell handle the drain loop.
+ * Each message contains { agentId, lane } — we ack immediately and
+ * let ringDoorbell handle the drain loop for that lane.
  *
  * Only starts if DOORBELL_SQS_URL is set (deployed environment).
  * Returns a cleanup function to stop polling.
@@ -43,10 +43,10 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
         const messages = resp.Messages ?? [];
         await Promise.all(
           messages.map(async (msg) => {
-            const { agentId } = JSON.parse(msg.Body ?? "{}");
-            if (!agentId) return;
+            const { agentId, lane } = JSON.parse(msg.Body ?? "{}");
+            if (!agentId || !lane) return;
 
-            ctx.log.info({ agentId }, "SQS doorbell received");
+            ctx.log.info({ agentId, lane }, "SQS doorbell received");
 
             // Ack immediately — inbox is source of truth
             await sqs.send(
@@ -59,11 +59,12 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
             const doorbellLog = ctx.log.child({
               doorbellId: crypto.randomUUID(),
               agentId,
+              lane,
             });
 
             // Fire-and-forget — ringDoorbell handles errors
-            ringDoorbell({ ...ctx, log: doorbellLog }, agentId).catch((err) =>
-              doorbellLog.error({ err }, "SQS doorbell failed"),
+            ringDoorbell({ ...ctx, log: doorbellLog }, agentId, lane).catch(
+              (err) => doorbellLog.error({ err }, "SQS doorbell failed"),
             );
           }),
         );

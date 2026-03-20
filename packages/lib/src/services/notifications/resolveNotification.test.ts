@@ -90,6 +90,7 @@ describe("resolveNotification", () => {
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
       "agent-1",
+      "main",
       {
         type: "user_notification_reply",
         payload: { notificationId: "notif-1", actionId: "action-approve" },
