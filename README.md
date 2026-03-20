@@ -5,7 +5,7 @@
 <h1 align="center">OpenGremlin</h1>
 
 <p align="center">
-  Self-hosted AI agents with long-term memory, isolated sandboxes, and CLI tool use. Runs on AWS.
+  Safer cloud-native CLI agents. Self-hosted on your AWS account with isolated sandboxes and access controls.
 </p>
 
 <p align="center">
@@ -21,12 +21,14 @@ OpenGremlin deploys to your AWS account. Your keys, your data, your infrastructu
 ### Features
 
 - **Self-hosted** — Deploys via CDK to your AWS account. No SaaS, no data leaving your infra.
+- **Safe-ish by design** — Least privilege by default. Humans authenticate and authorize. Agents get short-lived access tokens. Sandboxed instances limit the blast radius.
 - **Isolated sandboxes** — Each agent gets its own EC2 instance for code execution, file operations, and tool use.
 - **Long-term memory** — Agents remember context across conversations.
 - **Local credential management** — OAuth flows run on your client. Credentials are stored securely in your cloud. Agents only receive short-lived access tokens.
-- **Three core concepts** — **Agents** (personality + memory), **Connections** (service auth), **Skills** (capabilities via CLI).
+- **Three core concepts** — **Agents** (personality, memory, and a sandbox), **Connections** (OAuth credentials and API keys — you pick the account, the scopes, and which agents get access), **Skills** (CLI tools an agent can use — a Gmail skill needs a Google connection, a browser skill needs nothing).
 - **Async tasks** — Agents delegate work to background workers. Scheduled jobs run on cron.
-- **Multi-model** — Claude, GPT, Llama, Mistral via Bedrock, or any provider you connect.
+- **Multi-model** — Claude, GPT, Gemini, Llama, Mistral via Bedrock, or any provider you connect.
+- **Mobile app** — React Native / Expo client for iOS, Android, and web. Chat with agents, manage connections, and approve auth on the go.
 
 ### How connections work
 
