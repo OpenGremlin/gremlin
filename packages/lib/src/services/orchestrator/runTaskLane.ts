@@ -1,5 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
+import type { Attachment } from "../tasks/attachment.js";
 import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -14,7 +15,7 @@ export async function runTaskLane(
   agentLaneCtx: AgentLaneContext,
   taskId: string,
   prompt: string,
-  opts?: { role?: "SYSTEM" | "USER" },
+  opts?: { role?: "SYSTEM" | "USER"; attachments?: Attachment[] },
 ): Promise<string> {
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
@@ -27,6 +28,7 @@ export async function runTaskLane(
     taskId,
     role: opts?.role ?? "SYSTEM",
     content: prompt,
+    attachments: opts?.attachments,
   });
 
   let systemPrompt = renderPrompt("taskSystem", {

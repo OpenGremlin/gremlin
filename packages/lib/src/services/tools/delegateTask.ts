@@ -17,8 +17,22 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
         .describe(
           "Detailed instructions for the task. Include all necessary context, file paths, and requirements — the task runs independently and cannot see the main conversation.",
         ),
+      attachments: z
+        .array(
+          z.object({
+            type: z.enum(["file", "link"]),
+            path: z.string().optional(),
+            url: z.string().optional(),
+            title: z.string().optional(),
+            description: z.string().optional(),
+          }),
+        )
+        .optional()
+        .describe(
+          "Files or links to pass to the task. Use this to forward uploaded images, documents, or URLs that the task needs to access. File paths are relative to the workspace.",
+        ),
     }),
-    execute: async ({ title, prompt }) => {
+    execute: async ({ title, prompt, attachments }) => {
       const task = await ctx.services.tasks.createTask(ctx, {
         agentId,
         title,
@@ -30,7 +44,11 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
       // Enqueue to inbox — the consumer picks it up after the current turn
       await ctx.services.inbox.enqueueWork(ctx, agentId, `task:${task.id}`, {
         type: "run_task",
-        payload: { taskId: task.id, prompt },
+        payload: {
+          taskId: task.id,
+          prompt,
+          ...(attachments?.length ? { attachments } : {}),
+        },
       });
 
       return { taskId: task.id, title };

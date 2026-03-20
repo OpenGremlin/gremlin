@@ -2,6 +2,7 @@ import { ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
+import type { Attachment } from "../tasks/attachment.js";
 
 /**
  * Tracks which lanes are currently draining.
@@ -123,13 +124,21 @@ async function processTaskGroup(
   taskId: string,
   items: InboxItemItem[],
 ) {
-  const prompts: Array<{ content: string; role: "SYSTEM" | "USER" }> = [];
+  const prompts: Array<{
+    content: string;
+    role: "SYSTEM" | "USER";
+    attachments?: Attachment[];
+  }> = [];
 
   for (const item of items) {
     const payload = JSON.parse(item.payload);
     switch (item.type) {
       case "run_task":
-        prompts.push({ content: payload.prompt, role: "SYSTEM" });
+        prompts.push({
+          content: payload.prompt,
+          role: "SYSTEM",
+          attachments: payload.attachments,
+        });
         break;
       case "user_task_message":
         prompts.push({ content: payload.content, role: "USER" });
@@ -149,6 +158,7 @@ async function processTaskGroup(
       taskId,
       role: prompts[i].role,
       content: prompts[i].content,
+      attachments: prompts[i].attachments,
     });
   }
 
@@ -159,7 +169,10 @@ async function processTaskGroup(
     agentLaneCtx,
     taskId,
     last.content,
-    last.role === "USER" ? { role: "USER" } : undefined,
+    {
+      role: last.role === "USER" ? "USER" : undefined,
+      attachments: last.attachments,
+    },
   );
 }
 

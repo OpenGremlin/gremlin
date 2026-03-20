@@ -80,22 +80,54 @@ export async function buildContextMessages(
   return { messages, postCompactionCount };
 }
 
-function mapEntry(node: {
+/** @internal Exported for testing. */
+export function formatAttachments(
+  attachments?: Array<{
+    type: string;
+    path?: string;
+    url?: string;
+    title?: string;
+  }>,
+): string {
+  if (!attachments || attachments.length === 0) return "";
+  const lines = attachments.map((a) => {
+    if (a.type === "file") return `  - File: ${a.path}`;
+    if (a.type === "link")
+      return `  - Link: ${a.url}${a.title ? ` (${a.title})` : ""}`;
+    return `  - ${JSON.stringify(a)}`;
+  });
+  return `\n\nAttached:\n${lines.join("\n")}`;
+}
+
+/** @internal Exported for testing. */
+export function mapEntry(node: {
   role: string;
   content: string;
   toolName?: string | null;
   toolInput?: string | null;
   toolResult?: string | null;
+  attachments?: Array<{
+    type: string;
+    path?: string;
+    url?: string;
+    title?: string;
+  }>;
   internal?: boolean;
 }): ModelMessage | null {
   if (node.role === "AGENT") {
     return { role: "assistant", content: node.content };
   }
   if (node.role === "USER") {
-    return { role: "user", content: node.content };
+    return {
+      role: "user",
+      content: node.content + formatAttachments(node.attachments),
+    };
   }
   if (node.role === "SYSTEM") {
-    return { role: "user", content: node.content };
+    return {
+      role: "user",
+      content: node.content + formatAttachments(node.attachments),
+    };
   }
   if (node.role === "TOOL" && !node.internal) {
     // Include tool calls as system context so the model knows what it already did.
