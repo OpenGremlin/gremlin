@@ -1,7 +1,8 @@
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
-import type { SandboxSession } from "../sandbox/types.js";
 
 const IMAGE_EXTENSIONS = new Set([
   ".png",
@@ -28,14 +29,15 @@ function getExtension(filePath: string): string {
   return dot >= 0 ? filePath.slice(dot).toLowerCase() : "";
 }
 
+function getWorkspacePath(): string {
+  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
+}
+
 type ViewImageResult =
-  | { type: "image"; data: string; mediaType: string; sizeKB: number }
+  | { type: "image"; path: string; mediaType: string; sizeKB: number }
   | { type: "error"; message: string };
 
-export function viewImageTool(
-  ctx: ServiceContext,
-  getSession: () => SandboxSession | undefined,
-) {
+export function viewImageTool(_ctx: ServiceContext) {
   return tool({
     description:
       "View an image file from the sandbox workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, and BMP. The file must already exist in the sandbox.",
@@ -55,69 +57,56 @@ export function viewImageTool(
         };
       }
 
-      const session = getSession();
-      if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
-        return {
-          type: "error",
-          message: "Sandbox is not online. Call ensureSandbox first.",
-        };
-      }
-
+      const workspacePath = getWorkspacePath();
       const resolved = filePath.startsWith("/")
         ? filePath
-        : `/workspace/${filePath}`;
+        : path.join(workspacePath, filePath);
 
-      // Check file exists and size
-      const sizeResult = await ctx.services.sandbox.execCommand(
-        session,
-        `stat -c %s ${JSON.stringify(resolved)} 2>/dev/null || echo "NOT_FOUND"`,
-      );
+      if (!resolved.startsWith(workspacePath)) {
+        return { type: "error", message: "Path is outside the workspace." };
+      }
 
-      const sizeStr = sizeResult.output.trim();
-      if (sizeStr === "NOT_FOUND" || sizeResult.exitCode !== 0) {
+      let stat: Awaited<ReturnType<typeof fs.stat>>;
+      try {
+        stat = await fs.stat(resolved);
+      } catch {
         return { type: "error", message: `File not found: ${resolved}` };
       }
 
-      const fileSize = Number.parseInt(sizeStr, 10);
-      if (fileSize > MAX_IMAGE_SIZE) {
+      if (stat.size > MAX_IMAGE_SIZE) {
         return {
           type: "error",
-          message: `Image too large (${(fileSize / 1024 / 1024).toFixed(1)} MB). Maximum is ${MAX_IMAGE_SIZE / 1024 / 1024} MB.`,
-        };
-      }
-
-      // Read as base64
-      const result = await ctx.services.sandbox.execCommand(
-        session,
-        `base64 -w 0 ${JSON.stringify(resolved)}`,
-      );
-
-      if (result.exitCode !== 0) {
-        return {
-          type: "error",
-          message: `Failed to read image: ${result.stderr || result.output}`,
+          message: `Image too large (${(stat.size / 1024 / 1024).toFixed(1)} MB). Maximum is ${MAX_IMAGE_SIZE / 1024 / 1024} MB.`,
         };
       }
 
       return {
         type: "image",
-        data: result.output.trim(),
+        path: resolved,
         mediaType: MIME_TYPES[ext] ?? "image/png",
-        sizeKB: Math.round(fileSize / 1024),
+        sizeKB: Math.round(stat.size / 1024),
       };
     },
-    toModelOutput({ output }) {
+    async toModelOutput({ output }) {
       if (output.type === "error") {
         return {
           type: "content",
-          value: [{ type: "text", text: output.message }],
+          value: [{ type: "text" as const, text: output.message }],
         };
       }
+      const data = await fs.readFile(output.path);
       return {
-        type: "content",
+        type: "content" as const,
         value: [
-          { type: "media", data: output.data, mediaType: output.mediaType },
-          { type: "text", text: `Image loaded (${output.sizeKB} KB).` },
+          {
+            type: "image-data" as const,
+            data: data.toString("base64"),
+            mediaType: output.mediaType,
+          },
+          {
+            type: "text" as const,
+            text: `Image loaded (${output.sizeKB} KB).`,
+          },
         ],
       };
     },

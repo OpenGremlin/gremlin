@@ -20,11 +20,7 @@ import {
   webFetch,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
-import {
-  activeSessions,
-  ensureSandboxTool,
-  runCommandTool,
-} from "./sandboxTools.js";
+import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
 
 /**
  * Per-agent context built once and shared across all lane invocations
@@ -113,7 +109,7 @@ export function buildTaskTools(
           runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
           ...(agent.config?.viewImage?.enabled
             ? {
-                viewImage: viewImageTool(ctx, () => activeSessions.get(taskId)),
+                viewImage: viewImageTool(ctx),
               }
             : {}),
         }
