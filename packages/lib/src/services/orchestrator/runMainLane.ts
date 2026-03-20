@@ -8,6 +8,7 @@ import {
   saveMemoryTool,
   scheduleJobTool,
   updateJobTool,
+  viewImageTool,
 } from "../tools/index.js";
 import type { AgentLaneContext } from "./agentLaneContext.js";
 import { runLane } from "./runLane.js";
@@ -42,6 +43,9 @@ export async function runMainLane(
       listJobs: listJobsTool(ctx, agentId),
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
+      ...(agent.config?.viewImage?.enabled
+        ? { viewImage: viewImageTool(ctx) }
+        : {}),
     },
     recallHint,
     timezone,

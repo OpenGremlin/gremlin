@@ -103,15 +103,13 @@ export function buildTaskTools(
     listJobs: listJobsTool(ctx, agentId),
     scheduleJob: scheduleJobTool(ctx, agentId),
     updateJob: updateJobTool(ctx, agentId),
+    ...(agent.config?.viewImage?.enabled
+      ? { viewImage: viewImageTool(ctx) }
+      : {}),
     ...(agent.config?.sandbox?.enabled
       ? {
           ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
           runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
-          ...(agent.config?.viewImage?.enabled
-            ? {
-                viewImage: viewImageTool(ctx),
-              }
-            : {}),
         }
       : {}),
     ...skillTools.tools,

@@ -273,6 +273,54 @@ describe("buildTaskTools", () => {
     expect(tools).toHaveProperty("webFetch");
   });
 
+  it("excludes viewImage when viewImage is not enabled", () => {
+    const tools = buildTaskTools(
+      ctx,
+      makeAgentLaneCtx({ agent: makeAgent({ config: null }) as any }),
+      "agent-1",
+      "task-1",
+    );
+
+    expect(tools).not.toHaveProperty("viewImage");
+  });
+
+  it("includes viewImage when viewImage is enabled without sandbox", () => {
+    const tools = buildTaskTools(
+      ctx,
+      makeAgentLaneCtx({
+        agent: makeAgent({
+          config: { viewImage: { enabled: true } },
+        }) as any,
+      }),
+      "agent-1",
+      "task-1",
+    );
+
+    expect(tools).toHaveProperty("viewImage");
+    expect(tools).not.toHaveProperty("ensureSandbox");
+    expect(tools).not.toHaveProperty("runCommand");
+  });
+
+  it("includes both viewImage and sandbox tools when both enabled", () => {
+    const tools = buildTaskTools(
+      ctx,
+      makeAgentLaneCtx({
+        agent: makeAgent({
+          config: {
+            sandbox: { enabled: true },
+            viewImage: { enabled: true },
+          },
+        }) as any,
+      }),
+      "agent-1",
+      "task-1",
+    );
+
+    expect(tools).toHaveProperty("viewImage");
+    expect(tools).toHaveProperty("ensureSandbox");
+    expect(tools).toHaveProperty("runCommand");
+  });
+
   it("includes skill tools from the agent lane context", () => {
     const customTool = { description: "custom", execute: vi.fn() };
     const tools = buildTaskTools(

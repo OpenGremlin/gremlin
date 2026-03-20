@@ -148,7 +148,7 @@ const completeFileUpload = async (
   const content = JSON.stringify({
     type: "file_upload",
     filename: finalFilename,
-    path: relativePath,
+    path: `/workspace/${relativePath}`,
     sizeBytes: input.sizeBytes,
     contentType: input.contentType,
   });

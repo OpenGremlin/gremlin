@@ -40,12 +40,12 @@ type ViewImageResult =
 export function viewImageTool(_ctx: ServiceContext) {
   return tool({
     description:
-      "View an image file from the sandbox workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, and BMP. The file must already exist in the sandbox.",
+      "View an image file from the workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, and BMP.",
     inputSchema: z.object({
       path: z
         .string()
         .describe(
-          "Path to the image file (absolute, or relative to /workspace)",
+          "Path to the image file, e.g. /workspace/uploads/2026-01-01/photo.png",
         ),
     }),
     execute: async ({ path: filePath }): Promise<ViewImageResult> => {
