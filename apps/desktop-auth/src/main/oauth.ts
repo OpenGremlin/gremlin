@@ -9,7 +9,7 @@ import {
   type UserInfoConfig,
 } from "./oauth-configs.js";
 
-const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/callback`;
+const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/callback`;
 
 interface OAuthFlowConfig {
   providerId: string;
@@ -125,7 +125,7 @@ export async function handleOAuthFlow(
       reject,
       cleanup,
     ) {
-      const url = new URL(req.url ?? "/", `http://localhost:${REDIRECT_PORT}`);
+      const url = new URL(req.url ?? "/", `http://127.0.0.1:${REDIRECT_PORT}`);
 
       if (url.pathname !== "/callback") {
         res.writeHead(404);

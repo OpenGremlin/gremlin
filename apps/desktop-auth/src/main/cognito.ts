@@ -4,7 +4,7 @@ import { URL } from "node:url";
 import { net } from "electron";
 import { REDIRECT_PORT, startCallbackServer } from "./callback-server.js";
 
-const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/cognito-callback`;
+const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/cognito-callback`;
 
 interface CognitoLoginConfig {
   cognitoDomain: string;
@@ -45,7 +45,7 @@ export function handleCognitoLogin(
       reject,
       cleanup,
     ) {
-      const url = new URL(req.url ?? "/", `http://localhost:${REDIRECT_PORT}`);
+      const url = new URL(req.url ?? "/", `http://127.0.0.1:${REDIRECT_PORT}`);
 
       if (url.pathname === "/cognito-callback" && req.method === "GET") {
         const code = url.searchParams.get("code");

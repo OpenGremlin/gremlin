@@ -122,7 +122,7 @@ export async function startCallbackServer<T>(
       reject(new CancelledError());
     };
 
-    server.listen(REDIRECT_PORT, () => {
+    server.listen(REDIRECT_PORT, "127.0.0.1", () => {
       shell.openExternal(opts.authUrl);
     });
 
