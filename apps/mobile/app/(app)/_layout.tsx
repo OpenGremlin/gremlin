@@ -2,6 +2,8 @@ import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PendingCommandApprovalsQuery } from "../../src/graphql/queries";
+import { useQuery } from "../../src/hooks/useQuery";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
@@ -10,6 +12,8 @@ export default function AppLayout() {
   const { token, loading } = useAuth();
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
+  const { data: approvalsData } = useQuery(PendingCommandApprovalsQuery);
+  const pendingCount = approvalsData?.pendingCommandApprovals?.length ?? 0;
 
   if (loading) {
     return (
@@ -52,6 +56,14 @@ export default function AppLayout() {
         options={{
           href: "/home",
           title: "Home",
+          tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: "#ef4444",
+            fontSize: 10,
+            minWidth: 18,
+            height: 18,
+            lineHeight: 18,
+          },
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Home size={22} color={color} />

@@ -644,6 +644,7 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
+  pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
@@ -1106,6 +1107,11 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 
 
 export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
+
+export type PendingCommandApprovalsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PendingCommandApprovalsQuery = { __typename?: 'Query', pendingCommandApprovals: Array<{ __typename?: 'CommandApproval', id: string, taskId: string, command: string, reason: string, status: CommandApprovalStatus, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string } }> };
 
 export type ResolveCommandApprovalMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1917,6 +1923,22 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     }
   }
 }`) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;
+export const PendingCommandApprovalsDocument = new TypedDocumentString(`
+    query PendingCommandApprovals {
+  pendingCommandApprovals {
+    id
+    agent {
+      id
+      name
+    }
+    taskId
+    command
+    reason
+    status
+    createdAt
+  }
+}
+    `) as unknown as TypedDocumentString<PendingCommandApprovalsQuery, PendingCommandApprovalsQueryVariables>;
 export const ResolveCommandApprovalDocument = new TypedDocumentString(`
     mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {
   resolveCommandApproval(id: $id, decision: $decision) {

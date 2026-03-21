@@ -11,17 +11,20 @@ import {
 } from "react-native";
 import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
 import {
+  PendingCommandApprovalsQuery,
   TasksQuery,
   TaskUpdatedSubscription,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
+import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
 import { timeAgo } from "../../../src/shared/formatDate";
+import { PendingApprovals } from "../../../src/shared/PendingApprovals";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
 function ListSeparator() {
@@ -108,7 +111,15 @@ export default function HomeScreen() {
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",
     });
-  const { refreshing, onRefresh } = useListRefresh(refetch);
+  const { data: approvalsData, refetch: refetchApprovals } = useQuery(
+    PendingCommandApprovalsQuery,
+  );
+  const approvals = approvalsData?.pendingCommandApprovals ?? [];
+
+  const { refreshing, onRefresh } = useListRefresh(() => {
+    refetch();
+    refetchApprovals();
+  });
 
   if (loading && nodes.length === 0) {
     return <QueryResult loading={loading} error={error} />;
@@ -120,6 +131,14 @@ export default function HomeScreen() {
       keyExtractor={keyExtractor}
       renderItem={renderTaskItem}
       ItemSeparatorComponent={ListSeparator}
+      ListHeaderComponent={
+        approvals.length > 0 ? (
+          <PendingApprovals
+            approvals={approvals}
+            onResolved={refetchApprovals}
+          />
+        ) : null
+      }
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

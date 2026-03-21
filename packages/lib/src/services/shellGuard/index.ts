@@ -1,6 +1,7 @@
 import { createAllowlistStore } from "./allowlistStore.js";
 import { createCommandApproval } from "./createCommandApproval.js";
 import { getCommandApproval } from "./getCommandApproval.js";
+import { getPendingCommandApprovals } from "./getPendingCommandApprovals.js";
 import { guardCommand } from "./guardCommand.js";
 import { hasPendingApproval } from "./hasPendingApproval.js";
 import { resolveCommandApproval } from "./resolveCommandApproval.js";
@@ -10,6 +11,7 @@ export const shellGuardService = {
   guardCommand,
   createCommandApproval,
   getCommandApproval,
+  getPendingCommandApprovals,
   hasPendingApproval,
   resolveCommandApproval,
 };

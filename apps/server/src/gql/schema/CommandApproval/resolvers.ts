@@ -1,5 +1,14 @@
 import type { GremlinContext } from "../../context.js";
 
+const pendingCommandApprovals = async (
+  _parent: unknown,
+  _args: unknown,
+  ctx: GremlinContext,
+) => {
+  // biome-ignore lint/suspicious/noExplicitAny: getPendingCommandApprovals not in generated types yet
+  return (ctx.services.shellGuard as any).getPendingCommandApprovals(ctx);
+};
+
 const resolveCommandApproval = async (
   _parent: unknown,
   { id, decision }: { id: string; decision: string },
@@ -21,6 +30,7 @@ const agent = async (parent: any, _args: unknown, ctx: GremlinContext) => {
 };
 
 export const commandApprovalResolvers = {
+  Query: { pendingCommandApprovals },
   Mutation: { resolveCommandApproval },
   CommandApproval: { agent },
 };

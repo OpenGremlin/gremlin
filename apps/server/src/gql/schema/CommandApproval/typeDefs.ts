@@ -22,6 +22,10 @@ export const commandApprovalTypeDefs = /* GraphQL */ `
     resolvedAt: String
   }
 
+  extend type Query {
+    pendingCommandApprovals: [CommandApproval!]!
+  }
+
   extend type Mutation {
     resolveCommandApproval(id: ID!, decision: CommandApprovalDecision!): CommandApproval
   }
