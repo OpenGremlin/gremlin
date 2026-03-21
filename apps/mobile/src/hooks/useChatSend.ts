@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FlatList } from "react-native";
-import { SendMessageMutation } from "../graphql/queries";
+import {
+  PendingInboxMessagesQuery,
+  SendMessageMutation,
+} from "../graphql/queries";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
 import type { ChatMessage } from "./useLogMessages";
@@ -20,6 +23,30 @@ export function useChatSend({
   const scrollToBottom = useCallback(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, []);
+
+  // Load pending inbox messages on mount (survives page reload)
+  useEffect(() => {
+    if (!agentId) return;
+    gql(PendingInboxMessagesQuery, { agentId, taskId })
+      .then((result) => {
+        const contents = result.pendingInboxMessages.map((m) => m.content);
+        if (contents.length > 0) {
+          setPendingMessages((prev) => {
+            const existing = new Set(prev);
+            const merged = [
+              ...prev,
+              ...contents.filter((c) => !existing.has(c)),
+            ];
+            return merged.length === prev.length ? prev : merged;
+          });
+        }
+      })
+      .catch((err) => {
+        clientLogger.error("Failed to load pending inbox messages", {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+  }, [agentId, taskId]);
 
   // Clear pending messages when they appear in the log
   useEffect(() => {

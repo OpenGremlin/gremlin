@@ -69,6 +69,27 @@ const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
+const pendingInboxMessages = async (
+  _parent: unknown,
+  { agentId, taskId }: { agentId: string; taskId?: string | null },
+  ctx: GremlinContext,
+) => {
+  const lane = taskId ? `task:${taskId}` : "main";
+  const items = await ctx.services.inbox.getUnreadItems(ctx, agentId, lane);
+
+  const userTypes = new Set(["user_message", "user_task_message"]);
+  return items
+    .filter((item) => userTypes.has(item.type))
+    .map((item) => {
+      const payload = JSON.parse(item.payload);
+      return {
+        id: item.id,
+        content: payload.content as string,
+        createdAt: item.createdAt,
+      };
+    });
+};
+
 const sendMessage = async (
   _parent: unknown,
   {
@@ -100,7 +121,7 @@ const agentLogCreated = {
 };
 
 export const agentLogResolvers = {
-  Query: { agentLogs, taskLogs },
+  Query: { agentLogs, taskLogs, pendingInboxMessages },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated },
   AgentLog: { agent, attachments, documents, files },

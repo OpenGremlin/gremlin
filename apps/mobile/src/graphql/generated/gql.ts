@@ -19,6 +19,7 @@ type Documents = {
     "\n  mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {\n    sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {\n      queued\n      content\n    }\n  }\n": typeof types.SendMessageDocument,
     "\n  mutation RequestFileUploads($agentId: String!, $taskId: String, $files: [FileUploadRequest!]!) {\n    requestFileUploads(agentId: $agentId, taskId: $taskId, files: $files) {\n      uploadId\n      presignedUrl\n      key\n    }\n  }\n": typeof types.RequestFileUploadsDocument,
     "\n  mutation CompleteFileUpload($input: CompleteFileUploadInput!) {\n    completeFileUpload(input: $input) {\n      path\n      filename\n      sizeBytes\n      contentType\n    }\n  }\n": typeof types.CompleteFileUploadDocument,
+    "\n  query PendingInboxMessages($agentId: ID!, $taskId: String) {\n    pendingInboxMessages(agentId: $agentId, taskId: $taskId) {\n      id\n      content\n      createdAt\n    }\n  }\n": typeof types.PendingInboxMessagesDocument,
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      commandApprovalId\n      files {\n        ...FileFields\n      }\n      taskId\n      createdAt\n    }\n  }\n": typeof types.AgentLogCreatedDocument,
     "\n  fragment AgentDetail on Agent {\n    id\n    name\n    avatar\n    portraitId\n    imageUrl(width: 200)\n    soul\n    retired\n    ttsVoice\n    config {\n      model {\n        type\n        modelId\n        connectionId\n      }\n      sandbox {\n        enabled\n        idleTimeoutMinutes\n        alwaysOn\n      }\n      webSearch {\n        enabled\n        provider\n      }\n      viewImage {\n        enabled\n      }\n    }\n  }\n": typeof types.AgentDetailFragmentDoc,
     "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n      retired\n    }\n  }\n": typeof types.AgentsDocument,
@@ -83,6 +84,7 @@ const documents: Documents = {
     "\n  mutation SendMessage($agentId: ID!, $content: String!, $taskId: String) {\n    sendMessage(agentId: $agentId, content: $content, taskId: $taskId) {\n      queued\n      content\n    }\n  }\n": types.SendMessageDocument,
     "\n  mutation RequestFileUploads($agentId: String!, $taskId: String, $files: [FileUploadRequest!]!) {\n    requestFileUploads(agentId: $agentId, taskId: $taskId, files: $files) {\n      uploadId\n      presignedUrl\n      key\n    }\n  }\n": types.RequestFileUploadsDocument,
     "\n  mutation CompleteFileUpload($input: CompleteFileUploadInput!) {\n    completeFileUpload(input: $input) {\n      path\n      filename\n      sizeBytes\n      contentType\n    }\n  }\n": types.CompleteFileUploadDocument,
+    "\n  query PendingInboxMessages($agentId: ID!, $taskId: String) {\n    pendingInboxMessages(agentId: $agentId, taskId: $taskId) {\n      id\n      content\n      createdAt\n    }\n  }\n": types.PendingInboxMessagesDocument,
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      id\n      role\n      content\n      toolName\n      toolInput\n      toolResult\n      commandApprovalId\n      files {\n        ...FileFields\n      }\n      taskId\n      createdAt\n    }\n  }\n": types.AgentLogCreatedDocument,
     "\n  fragment AgentDetail on Agent {\n    id\n    name\n    avatar\n    portraitId\n    imageUrl(width: 200)\n    soul\n    retired\n    ttsVoice\n    config {\n      model {\n        type\n        modelId\n        connectionId\n      }\n      sandbox {\n        enabled\n        idleTimeoutMinutes\n        alwaysOn\n      }\n      webSearch {\n        enabled\n        provider\n      }\n      viewImage {\n        enabled\n      }\n    }\n  }\n": types.AgentDetailFragmentDoc,
     "\n  query Agents {\n    agents {\n      id\n      name\n      soul\n      retired\n    }\n  }\n": types.AgentsDocument,
@@ -159,6 +161,10 @@ export function graphql(source: "\n  mutation RequestFileUploads($agentId: Strin
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CompleteFileUpload($input: CompleteFileUploadInput!) {\n    completeFileUpload(input: $input) {\n      path\n      filename\n      sizeBytes\n      contentType\n    }\n  }\n"): typeof import('./graphql').CompleteFileUploadDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PendingInboxMessages($agentId: ID!, $taskId: String) {\n    pendingInboxMessages(agentId: $agentId, taskId: $taskId) {\n      id\n      content\n      createdAt\n    }\n  }\n"): typeof import('./graphql').PendingInboxMessagesDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

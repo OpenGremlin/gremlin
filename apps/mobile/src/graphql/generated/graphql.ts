@@ -618,6 +618,13 @@ export type OAuthConnectionMeta = {
   scopes: Array<Scalars['String']['output']>;
 };
 
+export type PendingInboxMessage = {
+  __typename?: 'PendingInboxMessage';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
 export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
@@ -660,6 +667,7 @@ export type Query = {
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
+  pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
@@ -705,6 +713,12 @@ export type QueryEnabledModelsArgs = {
 
 export type QueryFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type QueryPendingInboxMessagesArgs = {
+  agentId: Scalars['ID']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1018,6 +1032,14 @@ export type CompleteFileUploadMutationVariables = Exact<{
 
 
 export type CompleteFileUploadMutation = { __typename?: 'Mutation', completeFileUpload: { __typename?: 'CompletedFileUpload', path: string, filename: string, sizeBytes: number, contentType: string } };
+
+export type PendingInboxMessagesQueryVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PendingInboxMessagesQuery = { __typename?: 'Query', pendingInboxMessages: Array<{ __typename?: 'PendingInboxMessage', id: string, content: string, createdAt: string }> };
 
 export type AgentLogCreatedSubscriptionVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1686,6 +1708,15 @@ export const CompleteFileUploadDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CompleteFileUploadMutation, CompleteFileUploadMutationVariables>;
+export const PendingInboxMessagesDocument = new TypedDocumentString(`
+    query PendingInboxMessages($agentId: ID!, $taskId: String) {
+  pendingInboxMessages(agentId: $agentId, taskId: $taskId) {
+    id
+    content
+    createdAt
+  }
+}
+    `) as unknown as TypedDocumentString<PendingInboxMessagesQuery, PendingInboxMessagesQueryVariables>;
 export const AgentLogCreatedDocument = new TypedDocumentString(`
     subscription AgentLogCreated($agentId: ID!) {
   agentLogCreated(agentId: $agentId) {

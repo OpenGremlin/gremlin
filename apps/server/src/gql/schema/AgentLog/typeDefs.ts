@@ -50,6 +50,13 @@ export const agentLogTypeDefs = /* GraphQL */ `
   extend type Query {
     agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
     taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+    pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
+  }
+
+  type PendingInboxMessage {
+    id: ID!
+    content: String!
+    createdAt: String!
   }
 
   type SendMessageResult {

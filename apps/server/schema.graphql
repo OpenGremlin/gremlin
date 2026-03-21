@@ -17,6 +17,7 @@ type Query {
     last: Int
     before: String
   ): AgentLogConnection!
+  pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -314,6 +315,12 @@ type AgentLogPageInfo {
 type AgentLogConnection {
   edges: [AgentLogEdge!]!
   pageInfo: AgentLogPageInfo!
+}
+
+type PendingInboxMessage {
+  id: ID!
+  content: String!
+  createdAt: String!
 }
 
 type SendMessageResult {

@@ -87,6 +87,7 @@ export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
   attachments: Array<Attachment>;
+  commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   /** @deprecated Use attachments instead */
@@ -219,6 +220,30 @@ export type CodeRender = {
   content: Scalars['String']['output'];
   language: Scalars['String']['output'];
 };
+
+export type CommandApproval = {
+  __typename?: 'CommandApproval';
+  agent: Agent;
+  command: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  decision?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  reason: Scalars['String']['output'];
+  resolvedAt?: Maybe<Scalars['String']['output']>;
+  status: CommandApprovalStatus;
+  taskId: Scalars['String']['output'];
+};
+
+export enum CommandApprovalDecision {
+  AllowAlways = 'ALLOW_ALWAYS',
+  AllowOnce = 'ALLOW_ONCE',
+  Deny = 'DENY'
+}
+
+export enum CommandApprovalStatus {
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
 
 export type CompleteFileUploadInput = {
   agentId: Scalars['String']['input'];
@@ -395,6 +420,7 @@ export type Mutation = {
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
+  resolveCommandApproval?: Maybe<CommandApproval>;
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
@@ -489,6 +515,12 @@ export type MutationRequestFileUploadsArgs = {
   agentId: Scalars['String']['input'];
   files: Array<FileUploadRequest>;
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationResolveCommandApprovalArgs = {
+  decision: CommandApprovalDecision;
+  id: Scalars['ID']['input'];
 };
 
 
@@ -601,6 +633,13 @@ export type OAuthConnectionMeta = {
   scopes: Array<Scalars['String']['output']>;
 };
 
+export type PendingInboxMessage = {
+  __typename?: 'PendingInboxMessage';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
 export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
@@ -643,6 +682,7 @@ export type Query = {
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
   notifications: Array<Notification>;
+  pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
@@ -688,6 +728,12 @@ export type QueryEnabledModelsArgs = {
 
 export type QueryFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type QueryPendingInboxMessagesArgs = {
+  agentId: Scalars['ID']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1053,6 +1099,9 @@ export type ResolversTypes = {
   Avatar: ResolverTypeWrapper<AvatarModel>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CodeRender: ResolverTypeWrapper<CodeRender>;
+  CommandApproval: ResolverTypeWrapper<Omit<CommandApproval, 'agent'> & { agent: ResolversTypes['Agent'] }>;
+  CommandApprovalDecision: CommandApprovalDecision;
+  CommandApprovalStatus: CommandApprovalStatus;
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: ResolverTypeWrapper<CompletedFileUpload>;
   ConnectApiKeyResult: ResolverTypeWrapper<ConnectApiKeyResult>;
@@ -1082,6 +1131,7 @@ export type ResolversTypes = {
   NotificationAction: ResolverTypeWrapper<NotificationAction>;
   NotificationStatus: NotificationStatus;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
+  PendingInboxMessage: ResolverTypeWrapper<PendingInboxMessage>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
   ProviderModelInfo: ResolverTypeWrapper<ProviderModelInfo>;
@@ -1131,6 +1181,7 @@ export type ResolversParentTypes = {
   Avatar: AvatarModel;
   Boolean: Scalars['Boolean']['output'];
   CodeRender: CodeRender;
+  CommandApproval: Omit<CommandApproval, 'agent'> & { agent: ResolversParentTypes['Agent'] };
   CompleteFileUploadInput: CompleteFileUploadInput;
   CompletedFileUpload: CompletedFileUpload;
   ConnectApiKeyResult: ConnectApiKeyResult;
@@ -1159,6 +1210,7 @@ export type ResolversParentTypes = {
   Notification: NotificationItem;
   NotificationAction: NotificationAction;
   OAuthConnectionMeta: OAuthConnectionMeta;
+  PendingInboxMessage: PendingInboxMessage;
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
   ProviderModelInfo: ProviderModelInfo;
@@ -1217,6 +1269,7 @@ export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends R
 export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLog'] = ResolversParentTypes['AgentLog']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
+  commandApprovalId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
@@ -1305,6 +1358,18 @@ export type CodeRenderResolvers<ContextType = GremlinContext, ParentType extends
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CommandApprovalResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CommandApproval'] = ResolversParentTypes['CommandApproval']> = {
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  command?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  decision?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resolvedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['CommandApprovalStatus'], ParentType, ContextType>;
+  taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type CompletedFileUploadResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CompletedFileUpload'] = ResolversParentTypes['CompletedFileUpload']> = {
@@ -1437,6 +1502,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   enableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
   removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
+  resolveCommandApproval?: Resolver<Maybe<ResolversTypes['CommandApproval']>, ParentType, ContextType, RequireFields<MutationResolveCommandApprovalArgs, 'decision' | 'id'>>;
   resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'action' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
@@ -1477,6 +1543,12 @@ export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentTyp
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PendingInboxMessageResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PendingInboxMessage'] = ResolversParentTypes['PendingInboxMessage']> = {
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
 export type ProfileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
   about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1508,6 +1580,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
+  pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
@@ -1654,6 +1727,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
   CodeRender?: CodeRenderResolvers<ContextType>;
+  CommandApproval?: CommandApprovalResolvers<ContextType>;
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;
   ConnectApiKeyResult?: ConnectApiKeyResultResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
@@ -1676,6 +1750,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   NotificationAction?: NotificationActionResolvers<ContextType>;
   NotificationStatus?: NotificationStatusResolvers;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
+  PendingInboxMessage?: PendingInboxMessageResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   ProviderModelInfo?: ProviderModelInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

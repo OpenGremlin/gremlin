@@ -60,6 +60,16 @@ export const CompleteFileUploadMutation = graphql(`
   }
 `);
 
+export const PendingInboxMessagesQuery = graphql(`
+  query PendingInboxMessages($agentId: ID!, $taskId: String) {
+    pendingInboxMessages(agentId: $agentId, taskId: $taskId) {
+      id
+      content
+      createdAt
+    }
+  }
+`);
+
 export const AgentLogSubscription = graphql(`
   subscription AgentLogCreated($agentId: ID!) {
     agentLogCreated(agentId: $agentId) {
