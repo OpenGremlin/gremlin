@@ -31,6 +31,7 @@ import { CommandApprovalCard } from "./CommandApprovalCard";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { FnLabel } from "./FnLabel";
+import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
 import {
   isKnownTool,
@@ -350,13 +351,26 @@ function renderToolCall(
       );
 
     case ToolName.RequestUserInput: {
-      const question = tool.input?.message as string | undefined;
-      return (
-        <ToolStatus
-          icon={ShieldCheck}
-          text={question ?? "Waiting for user input"}
-        />
-      );
+      const inputRequestId = tool.result?.inputRequestId as string | undefined;
+      const question =
+        (tool.input?.message as string) ?? "Waiting for user input";
+      const actions =
+        (tool.input?.actions as Array<{ label: string; style: string }>) ?? [];
+
+      if (inputRequestId && tool.result?.status === "pending") {
+        return (
+          <InputRequestCard
+            inputRequestId={inputRequestId}
+            message={question}
+            actions={actions}
+            createdAt={message.createdAt}
+            showTimestamp={showTimestamp}
+          />
+        );
+      }
+
+      // Fallback for old log entries without inputRequestId
+      return <ToolStatus icon={ShieldCheck} text={question} />;
     }
 
     case ToolName.RunCommand: {

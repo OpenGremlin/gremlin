@@ -1,13 +1,15 @@
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import type {
   PendingCommandApprovalsQuery as ApprovalsQueryType,
   UserInputRequestsQuery as InputRequestsQueryType,
 } from "../graphql/generated/graphql";
 import {
   PendingCommandApprovalsQuery,
+  PendingItemsUpdatedSubscription,
   UserInputRequestsQuery,
 } from "../graphql/queries";
 import { useQuery } from "../hooks/useQuery";
+import { useSubscription } from "../hooks/useSubscription";
 
 type Approval = ApprovalsQueryType["pendingCommandApprovals"][number];
 type InputRequest = InputRequestsQueryType["userInputRequests"][number];
@@ -38,6 +40,16 @@ export function PendingCountProvider({
   );
   const { data: inputRequestsData, refetch: refetchInputRequests } = useQuery(
     UserInputRequestsQuery,
+  );
+
+  // Refetch both lists whenever the server signals a change
+  useSubscription(
+    PendingItemsUpdatedSubscription,
+    {},
+    useCallback(() => {
+      refetchApprovals();
+      refetchInputRequests();
+    }, [refetchApprovals, refetchInputRequests]),
   );
 
   const approvals = approvalsData?.pendingCommandApprovals ?? [];

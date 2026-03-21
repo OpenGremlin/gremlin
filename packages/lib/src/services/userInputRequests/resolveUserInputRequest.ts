@@ -33,6 +33,8 @@ export async function resolveUserInputRequest(
     }),
   );
 
+  ctx.resources.pubsub.publish("pendingItemsUpdated");
+
   // Enqueue the reply — the consumer writes it to the log with full context
   ctx.services.inbox
     .enqueueWork(ctx, existing.agentId, existing.lane, {

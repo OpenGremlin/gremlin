@@ -22,6 +22,7 @@ export type PubSubEvents = {
   jobCreated: [AgentJobItem];
   [key: `inboxItemCreated:${string}`]: [InboxItemItem];
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
+  pendingItemsUpdated: [];
 };
 
 export interface PubSub {

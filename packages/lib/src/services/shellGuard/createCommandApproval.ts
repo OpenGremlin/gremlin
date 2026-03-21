@@ -49,5 +49,7 @@ export async function createCommandApproval(
     "Created command approval",
   );
 
+  ctx.resources.pubsub.publish("pendingItemsUpdated");
+
   return item;
 }

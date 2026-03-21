@@ -100,6 +100,32 @@ describe("resolveUserInputRequest", () => {
     );
   });
 
+  it("publishes pendingItemsUpdated to pubsub", async () => {
+    const existing = {
+      id: "req-1",
+      title: "Test",
+      status: "ACTIVE",
+      createdAt: "2024-01-01T00:00:00Z",
+      agentId: "agent-1",
+      lane: "main",
+    };
+
+    mockedGetUserInputRequest.mockResolvedValue(existing as any);
+
+    const mockDocSend = vi.fn().mockResolvedValue({});
+    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+      send: mockDocSend,
+    } as any);
+    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
+
+    await resolveUserInputRequest(ctx, "req-1", "Approve");
+
+    expect(ctx.resources.pubsub.publish).toHaveBeenCalledWith(
+      "pendingItemsUpdated",
+    );
+  });
+
   it("throws when user input request not found", async () => {
     mockedGetUserInputRequest.mockResolvedValue(null);
 

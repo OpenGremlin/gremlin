@@ -801,6 +801,7 @@ export type Subscription = {
   agentsUpdated: Agent;
   jobCreated: AgentJob;
   jobTaskCreated: Task;
+  pendingItemsUpdated: Scalars['Boolean']['output'];
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
@@ -1501,6 +1502,11 @@ export type DismissUserInputRequestMutationVariables = Exact<{
 
 
 export type DismissUserInputRequestMutation = { __typename?: 'Mutation', dismissUserInputRequest?: { __typename?: 'UserInputRequest', id: string, status: UserInputRequestStatus } | null };
+
+export type PendingItemsUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PendingItemsUpdatedSubscription = { __typename?: 'Subscription', pendingItemsUpdated: boolean };
 
 export type WorkspaceEntriesQueryVariables = Exact<{
   path: Scalars['String']['input'];
@@ -2761,6 +2767,11 @@ export const DismissUserInputRequestDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DismissUserInputRequestMutation, DismissUserInputRequestMutationVariables>;
+export const PendingItemsUpdatedDocument = new TypedDocumentString(`
+    subscription PendingItemsUpdated {
+  pendingItemsUpdated
+}
+    `) as unknown as TypedDocumentString<PendingItemsUpdatedSubscription, PendingItemsUpdatedSubscriptionVariables>;
 export const WorkspaceEntriesDocument = new TypedDocumentString(`
     query WorkspaceEntries($path: String!) {
   workspaceEntries(path: $path) {

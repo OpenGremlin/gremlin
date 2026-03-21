@@ -39,3 +39,9 @@ export const DismissUserInputRequestMutation = graphql(`
     }
   }
 `);
+
+export const PendingItemsUpdatedSubscription = graphql(`
+  subscription PendingItemsUpdated {
+    pendingItemsUpdated
+  }
+`);

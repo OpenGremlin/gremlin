@@ -76,6 +76,7 @@ type Documents = {
     "\n  query UserInputRequests {\n    userInputRequests {\n      id\n      agent {\n        id\n        name\n      }\n      turnId\n      message\n      actions {\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.UserInputRequestsDocument,
     "\n  mutation ResolveUserInputRequest($id: ID!, $action: String!) {\n    resolveUserInputRequest(id: $id, action: $action) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveUserInputRequestDocument,
     "\n  mutation DismissUserInputRequest($id: ID!) {\n    dismissUserInputRequest(id: $id) {\n      id\n      status\n    }\n  }\n": typeof types.DismissUserInputRequestDocument,
+    "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": typeof types.PendingItemsUpdatedDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": typeof types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": typeof types.WorkspaceFileDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": typeof types.FileDocument,
@@ -142,6 +143,7 @@ const documents: Documents = {
     "\n  query UserInputRequests {\n    userInputRequests {\n      id\n      agent {\n        id\n        name\n      }\n      turnId\n      message\n      actions {\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.UserInputRequestsDocument,
     "\n  mutation ResolveUserInputRequest($id: ID!, $action: String!) {\n    resolveUserInputRequest(id: $id, action: $action) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveUserInputRequestDocument,
     "\n  mutation DismissUserInputRequest($id: ID!) {\n    dismissUserInputRequest(id: $id) {\n      id\n      status\n    }\n  }\n": types.DismissUserInputRequestDocument,
+    "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": types.PendingItemsUpdatedDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": types.WorkspaceFileDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": types.FileDocument,
@@ -391,6 +393,10 @@ export function graphql(source: "\n  mutation ResolveUserInputRequest($id: ID!, 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation DismissUserInputRequest($id: ID!) {\n    dismissUserInputRequest(id: $id) {\n      id\n      status\n    }\n  }\n"): typeof import('./graphql').DismissUserInputRequestDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n"): typeof import('./graphql').PendingItemsUpdatedDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

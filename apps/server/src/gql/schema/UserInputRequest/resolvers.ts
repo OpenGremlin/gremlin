@@ -1,3 +1,5 @@
+import { map, pipe } from "@graphql-yoga/subscription";
+import type { GremlinContext } from "../../context.js";
 import type {
   MutationResolvers,
   QueryResolvers,
@@ -32,8 +34,18 @@ const agent: UserInputRequestResolvers["agent"] = async (
   return a;
 };
 
+const pendingItemsUpdated = {
+  subscribe: (_parent: unknown, _args: unknown, ctx: GremlinContext) =>
+    pipe(
+      ctx.resources.pubsub.subscribe("pendingItemsUpdated"),
+      map(() => true),
+    ),
+  resolve: () => true,
+};
+
 export const userInputRequestResolvers = {
   Query: { userInputRequests },
   Mutation: { resolveUserInputRequest, dismissUserInputRequest },
+  Subscription: { pendingItemsUpdated },
   UserInputRequest: { agent },
 };

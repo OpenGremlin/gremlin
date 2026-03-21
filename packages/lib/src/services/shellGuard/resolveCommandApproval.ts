@@ -59,6 +59,8 @@ export async function resolveCommandApproval(
     "Resolved command approval",
   );
 
+  ctx.resources.pubsub.publish("pendingItemsUpdated");
+
   // 3. Persist to allowlist for "allow always"
   if (decisionEnum === CommandApprovalDecision.AllowAlways) {
     const store = createAllowlistStore(ctx);

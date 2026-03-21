@@ -59,7 +59,9 @@ export function requestUserInputTool(
         }),
       );
 
-      return { ok: true };
+      ctx.resources.pubsub.publish("pendingItemsUpdated");
+
+      return { ok: true, inputRequestId: id, status: "pending" };
     },
   });
 }

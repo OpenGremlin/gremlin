@@ -28,5 +28,7 @@ export async function dismissUserInputRequest(
     }),
   );
 
+  ctx.resources.pubsub.publish("pendingItemsUpdated");
+
   return updated;
 }

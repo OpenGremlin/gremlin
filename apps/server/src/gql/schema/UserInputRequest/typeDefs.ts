@@ -29,4 +29,8 @@ export const userInputRequestTypeDefs = /* GraphQL */ `
     resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
     dismissUserInputRequest(id: ID!): UserInputRequest
   }
+
+  extend type Subscription {
+    pendingItemsUpdated: Boolean!
+  }
 `;

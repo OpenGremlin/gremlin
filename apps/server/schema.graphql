@@ -21,6 +21,7 @@ type Query {
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
+  pendingCommandApprovals: [CommandApproval!]!
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
@@ -29,7 +30,6 @@ type Query {
   bedrockEnabledModels: [String!]!
   bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
-  pendingCommandApprovals: [CommandApproval!]!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!
@@ -119,6 +119,7 @@ type Subscription {
   agentLogCreated(agentId: ID!): AgentLog!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
+  pendingItemsUpdated: Boolean!
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
   jobTaskCreated(jobId: ID!): Task!
