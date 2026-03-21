@@ -663,6 +663,7 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
+  pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
@@ -819,6 +820,7 @@ export type Subscription = {
   agentsUpdated: Agent;
   jobCreated: AgentJob;
   jobTaskCreated: Task;
+  pendingItemsUpdated: Scalars['Boolean']['output'];
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
@@ -1564,6 +1566,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
+  pendingCommandApprovals?: Resolver<Array<ResolversTypes['CommandApproval']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
@@ -1630,6 +1633,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
   jobCreated?: SubscriptionResolver<ResolversTypes['AgentJob'], "jobCreated", ParentType, ContextType>;
   jobTaskCreated?: SubscriptionResolver<ResolversTypes['Task'], "jobTaskCreated", ParentType, ContextType, RequireFields<SubscriptionJobTaskCreatedArgs, 'jobId'>>;
+  pendingItemsUpdated?: SubscriptionResolver<ResolversTypes['Boolean'], "pendingItemsUpdated", ParentType, ContextType>;
   sandboxOutput?: SubscriptionResolver<ResolversTypes['SandboxOutput'], "sandboxOutput", ParentType, ContextType, RequireFields<SubscriptionSandboxOutputArgs, 'taskId'>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;
   taskUpdated?: SubscriptionResolver<ResolversTypes['Task'], "taskUpdated", ParentType, ContextType, RequireFields<SubscriptionTaskUpdatedArgs, 'taskId'>>;

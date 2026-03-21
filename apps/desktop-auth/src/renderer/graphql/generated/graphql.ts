@@ -68,6 +68,7 @@ export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
   attachments: Array<Attachment>;
+  commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   /** @deprecated Use attachments instead */
@@ -125,12 +126,14 @@ export type AgentModelConfigInput = {
 export type AgentSandboxConfig = {
   __typename?: 'AgentSandboxConfig';
   alwaysOn?: Maybe<Scalars['Boolean']['output']>;
+  commandApproval: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   idleTimeoutMinutes?: Maybe<Scalars['Int']['output']>;
 };
 
 export type AgentSandboxConfigInput = {
   alwaysOn?: InputMaybe<Scalars['Boolean']['input']>;
+  commandApproval: Scalars['String']['input'];
   enabled: Scalars['Boolean']['input'];
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -200,6 +203,30 @@ export type CodeRender = {
   content: Scalars['String']['output'];
   language: Scalars['String']['output'];
 };
+
+export type CommandApproval = {
+  __typename?: 'CommandApproval';
+  agent: Agent;
+  command: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  decision?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  reason: Scalars['String']['output'];
+  resolvedAt?: Maybe<Scalars['String']['output']>;
+  status: CommandApprovalStatus;
+  taskId: Scalars['String']['output'];
+};
+
+export enum CommandApprovalDecision {
+  AllowAlways = 'ALLOW_ALWAYS',
+  AllowOnce = 'ALLOW_ONCE',
+  Deny = 'DENY'
+}
+
+export enum CommandApprovalStatus {
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
 
 export type CompleteFileUploadInput = {
   agentId: Scalars['String']['input'];
@@ -370,13 +397,14 @@ export type Mutation = {
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   disableModel: Scalars['Boolean']['output'];
-  dismissNotification?: Maybe<Notification>;
+  dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
-  resolveNotification?: Maybe<Notification>;
+  resolveCommandApproval?: Maybe<CommandApproval>;
+  resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
@@ -444,7 +472,7 @@ export type MutationDisableModelArgs = {
 };
 
 
-export type MutationDismissNotificationArgs = {
+export type MutationDismissUserInputRequestArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -473,7 +501,13 @@ export type MutationRequestFileUploadsArgs = {
 };
 
 
-export type MutationResolveNotificationArgs = {
+export type MutationResolveCommandApprovalArgs = {
+  decision: CommandApprovalDecision;
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationResolveUserInputRequestArgs = {
   action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
@@ -555,35 +589,18 @@ export type MutationUpdateProfileArgs = {
   input: ProfileInput;
 };
 
-export type Notification = {
-  __typename?: 'Notification';
-  actions: Array<NotificationAction>;
-  agent: Agent;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  message: Scalars['String']['output'];
-  resolvedAction?: Maybe<Scalars['String']['output']>;
-  status: NotificationStatus;
-  turnId?: Maybe<Scalars['String']['output']>;
-};
-
-export type NotificationAction = {
-  __typename?: 'NotificationAction';
-  label: Scalars['String']['output'];
-  style: Scalars['String']['output'];
-};
-
-export enum NotificationStatus {
-  Dismissed = 'DISMISSED',
-  Pending = 'PENDING',
-  Resolved = 'RESOLVED'
-}
-
 export type OAuthConnectionMeta = {
   __typename?: 'OAuthConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
   expiresAt?: Maybe<Scalars['String']['output']>;
   scopes: Array<Scalars['String']['output']>;
+};
+
+export type PendingInboxMessage = {
+  __typename?: 'PendingInboxMessage';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
 };
 
 export type Profile = {
@@ -627,7 +644,8 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
-  notifications: Array<Notification>;
+  pendingCommandApprovals: Array<CommandApproval>;
+  pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
@@ -637,6 +655,7 @@ export type Query = {
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
+  userInputRequests: Array<UserInputRequest>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
 };
@@ -673,6 +692,12 @@ export type QueryEnabledModelsArgs = {
 
 export type QueryFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type QueryPendingInboxMessagesArgs = {
+  agentId: Scalars['ID']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -776,6 +801,7 @@ export type Subscription = {
   agentsUpdated: Agent;
   jobCreated: AgentJob;
   jobTaskCreated: Task;
+  pendingItemsUpdated: Scalars['Boolean']['output'];
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
@@ -921,6 +947,30 @@ export type UpdateAgentJobInput = {
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type UserInputRequest = {
+  __typename?: 'UserInputRequest';
+  actions: Array<UserInputRequestAction>;
+  agent: Agent;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  resolvedAction?: Maybe<Scalars['String']['output']>;
+  status: UserInputRequestStatus;
+  turnId?: Maybe<Scalars['String']['output']>;
+};
+
+export type UserInputRequestAction = {
+  __typename?: 'UserInputRequestAction';
+  label: Scalars['String']['output'];
+  style: Scalars['String']['output'];
+};
+
+export enum UserInputRequestStatus {
+  Dismissed = 'DISMISSED',
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
 
 export type VideoRender = {
   __typename?: 'VideoRender';
