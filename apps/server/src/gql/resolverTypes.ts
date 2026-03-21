@@ -493,7 +493,7 @@ export type MutationRequestFileUploadsArgs = {
 
 
 export type MutationResolveNotificationArgs = {
-  actionId: Scalars['String']['input'];
+  action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
 
@@ -584,22 +584,15 @@ export type Notification = {
   resolvedAction?: Maybe<Scalars['String']['output']>;
   status: NotificationStatus;
   turnId?: Maybe<Scalars['String']['output']>;
-  type: NotificationType;
 };
 
 export type NotificationAction = {
   __typename?: 'NotificationAction';
-  id: Scalars['String']['output'];
   label: Scalars['String']['output'];
   style: Scalars['String']['output'];
 };
 
 export { NotificationStatus };
-
-export enum NotificationType {
-  Approval = 'APPROVAL',
-  Permission = 'PERMISSION'
-}
 
 export type OAuthConnectionMeta = {
   __typename?: 'OAuthConnectionMeta';
@@ -1088,7 +1081,6 @@ export type ResolversTypes = {
   Notification: ResolverTypeWrapper<NotificationItem>;
   NotificationAction: ResolverTypeWrapper<NotificationAction>;
   NotificationStatus: NotificationStatus;
-  NotificationType: NotificationType;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
@@ -1445,7 +1437,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   enableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
   removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
-  resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'actionId' | 'id'>>;
+  resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'action' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
@@ -1469,11 +1461,9 @@ export type NotificationResolvers<ContextType = GremlinContext, ParentType exten
   resolvedAction?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['NotificationStatus'], ParentType, ContextType>;
   turnId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['NotificationType'], ParentType, ContextType>;
 };
 
 export type NotificationActionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['NotificationAction'] = ResolversParentTypes['NotificationAction']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };

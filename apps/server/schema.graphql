@@ -83,7 +83,7 @@ type Mutation {
     tokenUrl: String
     tokenAuthMethod: String
   ): ID!
-  resolveNotification(id: ID!, actionId: String!): Notification
+  resolveNotification(id: ID!, action: String!): Notification
   dismissNotification(id: ID!): Notification
   updateProfile(input: ProfileInput!): Profile!
   updateGlobalSettings(signupDisabled: Boolean): GlobalSettings!
@@ -474,11 +474,6 @@ type IntegrationConnection {
   meta: ConnectionMeta!
 }
 
-enum NotificationType {
-  PERMISSION
-  APPROVAL
-}
-
 enum NotificationStatus {
   PENDING
   RESOLVED
@@ -486,7 +481,6 @@ enum NotificationStatus {
 }
 
 type NotificationAction {
-  id: String!
   label: String!
   style: String!
 }
@@ -494,7 +488,6 @@ type NotificationAction {
 type Notification {
   id: ID!
   agent: Agent!
-  type: NotificationType!
   turnId: String
   message: String!
   actions: [NotificationAction!]!

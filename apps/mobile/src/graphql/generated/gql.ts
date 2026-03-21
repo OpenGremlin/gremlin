@@ -52,8 +52,8 @@ type Documents = {
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id)\n  }\n": typeof types.TriggerJobDocument,
     "\n  subscription JobCreated {\n    jobCreated {\n      id\n    }\n  }\n": typeof types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": typeof types.CreateAgentJobDocument,
-    "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.NotificationsDocument,
-    "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveNotificationDocument,
+    "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      turnId\n      message\n      actions {\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": typeof types.NotificationsDocument,
+    "\n  mutation ResolveNotification($id: ID!, $action: String!) {\n    resolveNotification(id: $id, action: $action) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": typeof types.ResolveNotificationDocument,
     "\n  mutation DismissNotification($id: ID!) {\n    dismissNotification(id: $id) {\n      id\n      status\n    }\n  }\n": typeof types.DismissNotificationDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.ProfileDocument,
     "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.UpdateProfileDocument,
@@ -115,8 +115,8 @@ const documents: Documents = {
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id)\n  }\n": types.TriggerJobDocument,
     "\n  subscription JobCreated {\n    jobCreated {\n      id\n    }\n  }\n": types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      id\n    }\n  }\n": types.CreateAgentJobDocument,
-    "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.NotificationsDocument,
-    "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveNotificationDocument,
+    "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      turnId\n      message\n      actions {\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n": types.NotificationsDocument,
+    "\n  mutation ResolveNotification($id: ID!, $action: String!) {\n    resolveNotification(id: $id, action: $action) {\n      id\n      status\n      resolvedAction\n    }\n  }\n": types.ResolveNotificationDocument,
     "\n  mutation DismissNotification($id: ID!) {\n    dismissNotification(id: $id) {\n      id\n      status\n    }\n  }\n": types.DismissNotificationDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.ProfileDocument,
     "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.UpdateProfileDocument,
@@ -292,11 +292,11 @@ export function graphql(source: "\n  mutation CreateAgentJob($input: CreateAgent
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      type\n      turnId\n      message\n      actions {\n        id\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n"): typeof import('./graphql').NotificationsDocument;
+export function graphql(source: "\n  query Notifications {\n    notifications {\n      id\n      agent {\n        id\n        name\n      }\n      turnId\n      message\n      actions {\n        label\n        style\n      }\n      status\n      resolvedAction\n      createdAt\n    }\n  }\n"): typeof import('./graphql').NotificationsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation ResolveNotification($id: ID!, $actionId: String!) {\n    resolveNotification(id: $id, actionId: $actionId) {\n      id\n      status\n      resolvedAction\n    }\n  }\n"): typeof import('./graphql').ResolveNotificationDocument;
+export function graphql(source: "\n  mutation ResolveNotification($id: ID!, $action: String!) {\n    resolveNotification(id: $id, action: $action) {\n      id\n      status\n      resolvedAction\n    }\n  }\n"): typeof import('./graphql').ResolveNotificationDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -103,7 +103,7 @@ async function processMainLaneItems(
         recallHint = payload.content;
         break;
       case "user_notification_reply":
-        await formatAndWriteNotificationReply(ctx, agentId, payload);
+        await formatAndWriteNotificationReply(ctx, agentId, null, payload);
         break;
     }
   }
@@ -146,6 +146,11 @@ async function processTaskGroup(
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
+      case "user_notification_reply": {
+        const reply = await buildNotificationReplyContent(ctx, payload);
+        prompts.push({ content: reply, role: "SYSTEM" });
+        break;
+      }
     }
   }
 
@@ -253,33 +258,35 @@ async function handleScheduledJob(
   });
 }
 
-/**
- * Load the original notification and write a SYSTEM message to the
- * agent's main-lane log with enough context to act on the reply.
- */
-async function formatAndWriteNotificationReply(
+async function buildNotificationReplyContent(
   ctx: ServiceContext,
-  agentId: string,
-  payload: { notificationId: string; actionId: string },
-) {
+  payload: { notificationId: string; action: string },
+): Promise<string> {
   const notification = await ctx.services.notifications.getNotification(
     ctx,
     payload.notificationId,
   );
 
-  let content: string;
   if (notification) {
-    const actionLabel =
-      notification.actions.find((a) => a.id === payload.actionId)?.label ??
-      payload.actionId;
-    content = `The user responded to your approval request.\nRequest: "${notification.message}"\nUser selected: "${actionLabel}"`;
-  } else {
-    content = `The user responded to notification ${payload.notificationId} with action: ${payload.actionId}`;
+    return `The user responded to your approval request.\nRequest: "${notification.message}"\nUser selected: "${payload.action}"`;
   }
+  return `The user responded to a notification with action: ${payload.action}`;
+}
 
+/**
+ * Load the original notification and write a SYSTEM message to the
+ * appropriate lane log with enough context to act on the reply.
+ */
+async function formatAndWriteNotificationReply(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string | null,
+  payload: { notificationId: string; action: string },
+) {
+  const content = await buildNotificationReplyContent(ctx, payload);
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId,
-    taskId: null,
+    taskId,
     role: "SYSTEM",
     content,
   });

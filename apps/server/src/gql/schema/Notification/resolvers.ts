@@ -9,9 +9,9 @@ const notifications: QueryResolvers["notifications"] = (_parent, _args, ctx) =>
 
 const resolveNotification: MutationResolvers["resolveNotification"] = (
   _parent,
-  { id, actionId },
+  { id, action },
   ctx,
-) => ctx.services.notifications.resolveNotification(ctx, id, actionId);
+) => ctx.services.notifications.resolveNotification(ctx, id, action);
 
 const dismissNotification: MutationResolvers["dismissNotification"] = (
   _parent,

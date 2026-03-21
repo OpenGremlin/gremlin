@@ -14,12 +14,11 @@ export const NotificationEntity = new Entity({
   schema: item({
     id: string().key(),
     agentId: string(),
-    type: string(),
+    lane: string(),
     turnId: anyOf(string(), nul()),
     message: string(),
     actions: list(
       map({
-        id: string(),
         label: string(),
         style: string(),
       }),

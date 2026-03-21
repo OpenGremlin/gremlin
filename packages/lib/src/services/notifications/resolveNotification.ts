@@ -7,7 +7,7 @@ import { getNotification } from "./getNotification.js";
 export async function resolveNotification(
   ctx: ServiceContext,
   id: string,
-  actionId: string,
+  action: string,
 ): Promise<NotificationItem> {
   const existing = await getNotification(ctx, id);
   if (!existing) throw new Error(`Notification ${id} not found`);
@@ -15,7 +15,7 @@ export async function resolveNotification(
   const updated = {
     ...existing,
     status: NotificationStatus.Resolved,
-    resolvedAction: actionId,
+    resolvedAction: action,
   };
 
   const table = ctx.resources.ddb.table;
@@ -35,9 +35,9 @@ export async function resolveNotification(
 
   // Enqueue the reply — the consumer writes it to the log with full context
   ctx.services.inbox
-    .enqueueWork(ctx, existing.agentId, "main", {
+    .enqueueWork(ctx, existing.agentId, existing.lane, {
       type: "user_notification_reply",
-      payload: { notificationId: id, actionId },
+      payload: { notificationId: id, action },
     })
     .catch((err) =>
       ctx.log.error(

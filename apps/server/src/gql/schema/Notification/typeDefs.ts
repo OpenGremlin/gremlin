@@ -1,9 +1,4 @@
 export const notificationTypeDefs = /* GraphQL */ `
-  enum NotificationType {
-    PERMISSION
-    APPROVAL
-  }
-
   enum NotificationStatus {
     PENDING
     RESOLVED
@@ -11,7 +6,6 @@ export const notificationTypeDefs = /* GraphQL */ `
   }
 
   type NotificationAction {
-    id: String!
     label: String!
     style: String!
   }
@@ -19,7 +13,6 @@ export const notificationTypeDefs = /* GraphQL */ `
   type Notification {
     id: ID!
     agent: Agent!
-    type: NotificationType!
     turnId: String
     message: String!
     actions: [NotificationAction!]!
@@ -33,7 +26,7 @@ export const notificationTypeDefs = /* GraphQL */ `
   }
 
   extend type Mutation {
-    resolveNotification(id: ID!, actionId: String!): Notification
+    resolveNotification(id: ID!, action: String!): Notification
     dismissNotification(id: ID!): Notification
   }
 `;

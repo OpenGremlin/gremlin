@@ -474,7 +474,7 @@ export type MutationRequestFileUploadsArgs = {
 
 
 export type MutationResolveNotificationArgs = {
-  actionId: Scalars['String']['input'];
+  action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
 
@@ -565,12 +565,10 @@ export type Notification = {
   resolvedAction?: Maybe<Scalars['String']['output']>;
   status: NotificationStatus;
   turnId?: Maybe<Scalars['String']['output']>;
-  type: NotificationType;
 };
 
 export type NotificationAction = {
   __typename?: 'NotificationAction';
-  id: Scalars['String']['output'];
   label: Scalars['String']['output'];
   style: Scalars['String']['output'];
 };
@@ -579,11 +577,6 @@ export enum NotificationStatus {
   Dismissed = 'DISMISSED',
   Pending = 'PENDING',
   Resolved = 'RESOLVED'
-}
-
-export enum NotificationType {
-  Approval = 'APPROVAL',
-  Permission = 'PERMISSION'
 }
 
 export type OAuthConnectionMeta = {
@@ -1234,11 +1227,11 @@ export type CreateAgentJobMutation = { __typename?: 'Mutation', createAgentJob: 
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NotificationsQuery = { __typename?: 'Query', notifications: Array<{ __typename?: 'Notification', id: string, type: NotificationType, turnId?: string | null, message: string, status: NotificationStatus, resolvedAction?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string }, actions: Array<{ __typename?: 'NotificationAction', id: string, label: string, style: string }> }> };
+export type NotificationsQuery = { __typename?: 'Query', notifications: Array<{ __typename?: 'Notification', id: string, turnId?: string | null, message: string, status: NotificationStatus, resolvedAction?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string }, actions: Array<{ __typename?: 'NotificationAction', label: string, style: string }> }> };
 
 export type ResolveNotificationMutationVariables = Exact<{
   id: Scalars['ID']['input'];
-  actionId: Scalars['String']['input'];
+  action: Scalars['String']['input'];
 }>;
 
 
@@ -2108,11 +2101,9 @@ export const NotificationsDocument = new TypedDocumentString(`
       id
       name
     }
-    type
     turnId
     message
     actions {
-      id
       label
       style
     }
@@ -2123,8 +2114,8 @@ export const NotificationsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<NotificationsQuery, NotificationsQueryVariables>;
 export const ResolveNotificationDocument = new TypedDocumentString(`
-    mutation ResolveNotification($id: ID!, $actionId: String!) {
-  resolveNotification(id: $id, actionId: $actionId) {
+    mutation ResolveNotification($id: ID!, $action: String!) {
+  resolveNotification(id: $id, action: $action) {
     id
     status
     resolvedAction

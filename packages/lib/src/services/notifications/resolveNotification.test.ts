@@ -31,6 +31,7 @@ describe("resolveNotification", () => {
       status: "ACTIVE",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
+      lane: "main",
     };
 
     mockedGetNotification.mockResolvedValue(existing as any);
@@ -42,12 +43,12 @@ describe("resolveNotification", () => {
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
-    const result = await resolveNotification(ctx, "notif-1", "action-approve");
+    const result = await resolveNotification(ctx, "notif-1", "Approve");
 
     expect(result).toEqual({
       ...existing,
       status: "RESOLVED",
-      resolvedAction: "action-approve",
+      resolvedAction: "Approve",
     });
 
     expect(mockDocSend).toHaveBeenCalledOnce();
@@ -57,7 +58,7 @@ describe("resolveNotification", () => {
       Item: {
         ...existing,
         status: "RESOLVED",
-        resolvedAction: "action-approve",
+        resolvedAction: "Approve",
         _et: "Notification",
         pk: "NOTIFICATION",
         sk: "NOTIFICATION#notif-1",
@@ -67,13 +68,14 @@ describe("resolveNotification", () => {
     });
   });
 
-  it("enqueues inbox work with notification reply", async () => {
+  it("enqueues inbox work to the notification's originating lane", async () => {
     const existing = {
       id: "notif-1",
       title: "Test",
       status: "ACTIVE",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
+      lane: "task:task-42",
     };
 
     mockedGetNotification.mockResolvedValue(existing as any);
@@ -85,15 +87,15 @@ describe("resolveNotification", () => {
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
-    await resolveNotification(ctx, "notif-1", "action-approve");
+    await resolveNotification(ctx, "notif-1", "Approve");
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
       "agent-1",
-      "main",
+      "task:task-42",
       {
         type: "user_notification_reply",
-        payload: { notificationId: "notif-1", actionId: "action-approve" },
+        payload: { notificationId: "notif-1", action: "Approve" },
       },
     );
   });

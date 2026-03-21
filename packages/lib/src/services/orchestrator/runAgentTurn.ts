@@ -65,9 +65,10 @@ export async function runAgentTurn(
     tools?: Record<string, Tool>;
   },
 ): Promise<string> {
+  const lane = opts.taskId ? `task:${opts.taskId}` : "main";
   const baseTools = {
     ...opts.tools,
-    requestApproval: requestApprovalTool(ctx, opts.agentId),
+    requestApproval: requestApprovalTool(ctx, opts.agentId, lane),
   };
 
   // Wrap tools to emit a call log immediately when execution starts

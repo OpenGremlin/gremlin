@@ -21,13 +21,11 @@ function NotificationCard({
   onDismiss,
 }: {
   notification: Notification;
-  onAction: (notifId: string, actionId: string) => void;
+  onAction: (notifId: string, action: string) => void;
   onDismiss: (notifId: string) => void;
 }) {
   const resolved = notification.status !== "PENDING";
-  const resolvedLabel = notification.actions.find(
-    (a) => a.id === notification.resolvedAction,
-  )?.label;
+  const resolvedLabel = notification.resolvedAction;
 
   return (
     <Pressable
@@ -61,10 +59,10 @@ function NotificationCard({
             <View className="flex-row items-center gap-2 flex-wrap">
               {notification.actions.map((action) => (
                 <Pressable
-                  key={action.id}
+                  key={action.label}
                   onPress={(e) => {
                     e.stopPropagation();
-                    onAction(notification.id, action.id);
+                    onAction(notification.id, action.label);
                   }}
                   className={`rounded-full px-3 py-1 ${
                     action.style === "primary" ? "bg-accent" : "bg-surface-alt"
@@ -103,8 +101,8 @@ export default function NotificationsScreen() {
 
   const notifications = data?.notifications ?? [];
 
-  async function handleAction(notifId: string, actionId: string) {
-    await gql(ResolveNotificationMutation, { id: notifId, actionId: actionId });
+  async function handleAction(notifId: string, action: string) {
+    await gql(ResolveNotificationMutation, { id: notifId, action });
     refetch();
   }
 

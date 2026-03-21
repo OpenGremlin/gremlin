@@ -8,11 +8,9 @@ export const NotificationsQuery = graphql(`
         id
         name
       }
-      type
       turnId
       message
       actions {
-        id
         label
         style
       }
@@ -24,8 +22,8 @@ export const NotificationsQuery = graphql(`
 `);
 
 export const ResolveNotificationMutation = graphql(`
-  mutation ResolveNotification($id: ID!, $actionId: String!) {
-    resolveNotification(id: $id, actionId: $actionId) {
+  mutation ResolveNotification($id: ID!, $action: String!) {
+    resolveNotification(id: $id, action: $action) {
       id
       status
       resolvedAction

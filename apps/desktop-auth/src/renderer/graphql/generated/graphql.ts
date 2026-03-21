@@ -474,7 +474,7 @@ export type MutationRequestFileUploadsArgs = {
 
 
 export type MutationResolveNotificationArgs = {
-  actionId: Scalars['String']['input'];
+  action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
 
@@ -565,12 +565,10 @@ export type Notification = {
   resolvedAction?: Maybe<Scalars['String']['output']>;
   status: NotificationStatus;
   turnId?: Maybe<Scalars['String']['output']>;
-  type: NotificationType;
 };
 
 export type NotificationAction = {
   __typename?: 'NotificationAction';
-  id: Scalars['String']['output'];
   label: Scalars['String']['output'];
   style: Scalars['String']['output'];
 };
@@ -579,11 +577,6 @@ export enum NotificationStatus {
   Dismissed = 'DISMISSED',
   Pending = 'PENDING',
   Resolved = 'RESOLVED'
-}
-
-export enum NotificationType {
-  Approval = 'APPROVAL',
-  Permission = 'PERMISSION'
 }
 
 export type OAuthConnectionMeta = {

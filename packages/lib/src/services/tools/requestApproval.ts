@@ -4,21 +4,19 @@ import { z } from "zod";
 import { NotificationStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 
-export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
+export function requestApprovalTool(
+  ctx: ServiceContext,
+  agentId: string,
+  lane: string,
+) {
   return tool({
     description:
       "Request approval from the user before proceeding. This will send a notification and pause your execution until the user responds.",
     inputSchema: z.object({
-      type: z
-        .enum(["PERMISSION", "APPROVAL"])
-        .describe(
-          "PERMISSION for requesting access to a new integration scope, APPROVAL for any other decision",
-        ),
       message: z.string().describe("Explain what you need and why you need it"),
       actions: z
         .array(
           z.object({
-            id: z.string().describe("Unique action identifier"),
             label: z.string().describe("Button label shown to the user"),
             style: z
               .enum(["primary", "secondary"])
@@ -30,7 +28,7 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
         .min(2)
         .describe("The choices to present to the user"),
     }),
-    execute: async ({ type, message, actions }) => {
+    execute: async ({ message, actions }) => {
       const id = crypto.randomUUID();
       const createdAt = new Date().toISOString();
 
@@ -41,7 +39,7 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
           Item: {
             id,
             agentId,
-            type,
+            lane,
             turnId: null,
             message,
             actions,
@@ -57,7 +55,7 @@ export function requestApprovalTool(ctx: ServiceContext, agentId: string) {
         }),
       );
 
-      return { blocked: true, notificationId: id };
+      return { ok: true };
     },
   });
 }
