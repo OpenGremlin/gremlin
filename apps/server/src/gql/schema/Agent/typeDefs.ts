@@ -9,6 +9,7 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
     idleTimeoutMinutes: Int
     alwaysOn: Boolean
+    commandApproval: String!
   }
 
   type AgentWebSearchConfig {
@@ -54,6 +55,7 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
     idleTimeoutMinutes: Int
     alwaysOn: Boolean
+    commandApproval: String!
   }
 
   input AgentWebSearchConfigInput {

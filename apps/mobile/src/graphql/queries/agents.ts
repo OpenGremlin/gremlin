@@ -20,6 +20,7 @@ export const AgentDetailFragment = graphql(`
         enabled
         idleTimeoutMinutes
         alwaysOn
+        commandApproval
       }
       webSearch {
         enabled

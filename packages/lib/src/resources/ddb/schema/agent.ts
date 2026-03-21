@@ -29,6 +29,7 @@ export const AgentEntity = new Entity({
         enabled: boolean(),
         idleTimeoutMinutes: number().optional(),
         alwaysOn: boolean().optional(),
+        commandApproval: string(),
       }).optional(),
       webSearch: map({
         enabled: boolean(),

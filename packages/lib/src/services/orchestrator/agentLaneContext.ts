@@ -114,7 +114,7 @@ export function buildTaskTools(
             agentId,
             taskId,
             skillTools.getEnv,
-            true,
+            agent.config?.sandbox?.commandApproval !== "skip",
           ),
         }
       : {}),

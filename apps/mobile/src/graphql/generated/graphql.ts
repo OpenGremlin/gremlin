@@ -126,12 +126,14 @@ export type AgentModelConfigInput = {
 export type AgentSandboxConfig = {
   __typename?: 'AgentSandboxConfig';
   alwaysOn?: Maybe<Scalars['Boolean']['output']>;
+  commandApproval: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   idleTimeoutMinutes?: Maybe<Scalars['Int']['output']>;
 };
 
 export type AgentSandboxConfigInput = {
   alwaysOn?: InputMaybe<Scalars['Boolean']['input']>;
+  commandApproval: Scalars['String']['input'];
   enabled: Scalars['Boolean']['input'];
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -395,14 +397,14 @@ export type Mutation = {
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   disableModel: Scalars['Boolean']['output'];
-  dismissNotification?: Maybe<Notification>;
+  dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveCommandApproval?: Maybe<CommandApproval>;
-  resolveNotification?: Maybe<Notification>;
+  resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
@@ -470,7 +472,7 @@ export type MutationDisableModelArgs = {
 };
 
 
-export type MutationDismissNotificationArgs = {
+export type MutationDismissUserInputRequestArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -505,7 +507,7 @@ export type MutationResolveCommandApprovalArgs = {
 };
 
 
-export type MutationResolveNotificationArgs = {
+export type MutationResolveUserInputRequestArgs = {
   action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
@@ -587,30 +589,6 @@ export type MutationUpdateProfileArgs = {
   input: ProfileInput;
 };
 
-export type Notification = {
-  __typename?: 'Notification';
-  actions: Array<NotificationAction>;
-  agent: Agent;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  message: Scalars['String']['output'];
-  resolvedAction?: Maybe<Scalars['String']['output']>;
-  status: NotificationStatus;
-  turnId?: Maybe<Scalars['String']['output']>;
-};
-
-export type NotificationAction = {
-  __typename?: 'NotificationAction';
-  label: Scalars['String']['output'];
-  style: Scalars['String']['output'];
-};
-
-export enum NotificationStatus {
-  Dismissed = 'DISMISSED',
-  Pending = 'PENDING',
-  Resolved = 'RESOLVED'
-}
-
 export type OAuthConnectionMeta = {
   __typename?: 'OAuthConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -666,7 +644,6 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
-  notifications: Array<Notification>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
@@ -677,6 +654,7 @@ export type Query = {
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
+  userInputRequests: Array<UserInputRequest>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
 };
@@ -933,7 +911,7 @@ export enum ToolName {
   ReadSkill = 'readSkill',
   ReadSkillReference = 'readSkillReference',
   RecallMemory = 'recallMemory',
-  RequestApproval = 'requestApproval',
+  RequestUserInput = 'requestUserInput',
   RunCommand = 'runCommand',
   SaveMemory = 'saveMemory',
   ScheduleJob = 'scheduleJob',
@@ -967,6 +945,30 @@ export type UpdateAgentJobInput = {
   recurrence?: InputMaybe<Scalars['String']['input']>;
   timezone?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type UserInputRequest = {
+  __typename?: 'UserInputRequest';
+  actions: Array<UserInputRequestAction>;
+  agent: Agent;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  resolvedAction?: Maybe<Scalars['String']['output']>;
+  status: UserInputRequestStatus;
+  turnId?: Maybe<Scalars['String']['output']>;
+};
+
+export type UserInputRequestAction = {
+  __typename?: 'UserInputRequestAction';
+  label: Scalars['String']['output'];
+  style: Scalars['String']['output'];
+};
+
+export enum UserInputRequestStatus {
+  Dismissed = 'DISMISSED',
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
 
 export type VideoRender = {
   __typename?: 'VideoRender';
@@ -1055,7 +1057,7 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
 
-export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null };
+export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null };
 
 export type AgentsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1067,7 +1069,7 @@ export type AgentQueryVariables = Exact<{
 }>;
 
 
-export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
+export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
 
 export type UpdateAgentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1075,7 +1077,7 @@ export type UpdateAgentMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
+export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } | null };
 
 export type CreateAgentMutationVariables = Exact<{
   input: CreateAgentInput;
@@ -1103,7 +1105,7 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
+export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
 
 export type ResolveCommandApprovalMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1285,26 +1287,6 @@ export type CreateAgentJobMutationVariables = Exact<{
 
 
 export type CreateAgentJobMutation = { __typename?: 'Mutation', createAgentJob: { __typename?: 'AgentJob', id: string } };
-
-export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type NotificationsQuery = { __typename?: 'Query', notifications: Array<{ __typename?: 'Notification', id: string, turnId?: string | null, message: string, status: NotificationStatus, resolvedAction?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string }, actions: Array<{ __typename?: 'NotificationAction', label: string, style: string }> }> };
-
-export type ResolveNotificationMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  action: Scalars['String']['input'];
-}>;
-
-
-export type ResolveNotificationMutation = { __typename?: 'Mutation', resolveNotification?: { __typename?: 'Notification', id: string, status: NotificationStatus, resolvedAction?: string | null } | null };
-
-export type DismissNotificationMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type DismissNotificationMutation = { __typename?: 'Mutation', dismissNotification?: { __typename?: 'Notification', id: string, status: NotificationStatus } | null };
 
 export type ProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1494,6 +1476,26 @@ export type SandboxOutputSubscriptionVariables = Exact<{
 
 export type SandboxOutputSubscription = { __typename?: 'Subscription', sandboxOutput: { __typename?: 'SandboxOutput', commandId: string, stream: string, data: string, done?: boolean | null, exitCode?: number | null } };
 
+export type UserInputRequestsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserInputRequestsQuery = { __typename?: 'Query', userInputRequests: Array<{ __typename?: 'UserInputRequest', id: string, turnId?: string | null, message: string, status: UserInputRequestStatus, resolvedAction?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string }, actions: Array<{ __typename?: 'UserInputRequestAction', label: string, style: string }> }> };
+
+export type ResolveUserInputRequestMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  action: Scalars['String']['input'];
+}>;
+
+
+export type ResolveUserInputRequestMutation = { __typename?: 'Mutation', resolveUserInputRequest?: { __typename?: 'UserInputRequest', id: string, status: UserInputRequestStatus, resolvedAction?: string | null } | null };
+
+export type DismissUserInputRequestMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DismissUserInputRequestMutation = { __typename?: 'Mutation', dismissUserInputRequest?: { __typename?: 'UserInputRequest', id: string, status: UserInputRequestStatus } | null };
+
 export type WorkspaceEntriesQueryVariables = Exact<{
   path: Scalars['String']['input'];
 }>;
@@ -1560,6 +1562,7 @@ export const AgentDetailFragmentDoc = new TypedDocumentString(`
       enabled
       idleTimeoutMinutes
       alwaysOn
+      commandApproval
     }
     webSearch {
       enabled
@@ -1806,6 +1809,7 @@ export const AgentDocument = new TypedDocumentString(`
       enabled
       idleTimeoutMinutes
       alwaysOn
+      commandApproval
     }
     webSearch {
       enabled
@@ -1841,6 +1845,7 @@ export const UpdateAgentDocument = new TypedDocumentString(`
       enabled
       idleTimeoutMinutes
       alwaysOn
+      commandApproval
     }
     webSearch {
       enabled
@@ -1901,6 +1906,7 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
       enabled
       idleTimeoutMinutes
       alwaysOn
+      commandApproval
     }
     webSearch {
       enabled
@@ -2175,43 +2181,6 @@ export const CreateAgentJobDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CreateAgentJobMutation, CreateAgentJobMutationVariables>;
-export const NotificationsDocument = new TypedDocumentString(`
-    query Notifications {
-  notifications {
-    id
-    agent {
-      id
-      name
-    }
-    turnId
-    message
-    actions {
-      label
-      style
-    }
-    status
-    resolvedAction
-    createdAt
-  }
-}
-    `) as unknown as TypedDocumentString<NotificationsQuery, NotificationsQueryVariables>;
-export const ResolveNotificationDocument = new TypedDocumentString(`
-    mutation ResolveNotification($id: ID!, $action: String!) {
-  resolveNotification(id: $id, action: $action) {
-    id
-    status
-    resolvedAction
-  }
-}
-    `) as unknown as TypedDocumentString<ResolveNotificationMutation, ResolveNotificationMutationVariables>;
-export const DismissNotificationDocument = new TypedDocumentString(`
-    mutation DismissNotification($id: ID!) {
-  dismissNotification(id: $id) {
-    id
-    status
-  }
-}
-    `) as unknown as TypedDocumentString<DismissNotificationMutation, DismissNotificationMutationVariables>;
 export const ProfileDocument = new TypedDocumentString(`
     query Profile {
   profile {
@@ -2733,6 +2702,43 @@ export const SandboxOutputDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SandboxOutputSubscription, SandboxOutputSubscriptionVariables>;
+export const UserInputRequestsDocument = new TypedDocumentString(`
+    query UserInputRequests {
+  userInputRequests {
+    id
+    agent {
+      id
+      name
+    }
+    turnId
+    message
+    actions {
+      label
+      style
+    }
+    status
+    resolvedAction
+    createdAt
+  }
+}
+    `) as unknown as TypedDocumentString<UserInputRequestsQuery, UserInputRequestsQueryVariables>;
+export const ResolveUserInputRequestDocument = new TypedDocumentString(`
+    mutation ResolveUserInputRequest($id: ID!, $action: String!) {
+  resolveUserInputRequest(id: $id, action: $action) {
+    id
+    status
+    resolvedAction
+  }
+}
+    `) as unknown as TypedDocumentString<ResolveUserInputRequestMutation, ResolveUserInputRequestMutationVariables>;
+export const DismissUserInputRequestDocument = new TypedDocumentString(`
+    mutation DismissUserInputRequest($id: ID!) {
+  dismissUserInputRequest(id: $id) {
+    id
+    status
+  }
+}
+    `) as unknown as TypedDocumentString<DismissUserInputRequestMutation, DismissUserInputRequestMutationVariables>;
 export const WorkspaceEntriesDocument = new TypedDocumentString(`
     query WorkspaceEntries($path: String!) {
   workspaceEntries(path: $path) {

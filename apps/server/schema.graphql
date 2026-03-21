@@ -29,7 +29,7 @@ type Query {
   bedrockEnabledModels: [String!]!
   bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
-  notifications: [Notification!]!
+  userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!
   "All skill templates from the catalog"
@@ -88,8 +88,8 @@ type Mutation {
     tokenUrl: String
     tokenAuthMethod: String
   ): ID!
-  resolveNotification(id: ID!, action: String!): Notification
-  dismissNotification(id: ID!): Notification
+  resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
+  dismissUserInputRequest(id: ID!): UserInputRequest
   updateProfile(input: ProfileInput!): Profile!
   updateGlobalSettings(signupDisabled: Boolean): GlobalSettings!
   "Assign a skill to an agent"
@@ -281,7 +281,7 @@ enum ToolName {
   scheduleJob
   updateJob
   delegateTask
-  requestApproval
+  requestUserInput
 }
 
 type AgentLog {
@@ -338,6 +338,7 @@ type AgentSandboxConfig {
   enabled: Boolean!
   idleTimeoutMinutes: Int
   alwaysOn: Boolean
+  commandApproval: String!
 }
 
 type AgentWebSearchConfig {
@@ -378,6 +379,7 @@ input AgentSandboxConfigInput {
   enabled: Boolean!
   idleTimeoutMinutes: Int
   alwaysOn: Boolean
+  commandApproval: String!
 }
 
 input AgentWebSearchConfigInput {
@@ -509,24 +511,24 @@ type IntegrationConnection {
   meta: ConnectionMeta!
 }
 
-enum NotificationStatus {
+enum UserInputRequestStatus {
   PENDING
   RESOLVED
   DISMISSED
 }
 
-type NotificationAction {
+type UserInputRequestAction {
   label: String!
   style: String!
 }
 
-type Notification {
+type UserInputRequest {
   id: ID!
   agent: Agent!
   turnId: String
   message: String!
-  actions: [NotificationAction!]!
-  status: NotificationStatus!
+  actions: [UserInputRequestAction!]!
+  status: UserInputRequestStatus!
   resolvedAction: String
   createdAt: String!
 }

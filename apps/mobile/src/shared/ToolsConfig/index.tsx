@@ -23,6 +23,7 @@ interface PlainConfig {
     enabled: boolean;
     idleTimeoutMinutes?: number;
     alwaysOn?: boolean;
+    commandApproval: string;
   };
   webSearch?: { enabled: boolean; provider?: string };
   viewImage?: { enabled: boolean };
@@ -42,6 +43,7 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           enabled: config.sandbox.enabled,
           idleTimeoutMinutes: config.sandbox.idleTimeoutMinutes ?? undefined,
           alwaysOn: config.sandbox.alwaysOn ?? undefined,
+          commandApproval: config.sandbox.commandApproval,
         }
       : undefined,
     webSearch: config?.webSearch
@@ -212,12 +214,13 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               const wasEnabled = config.sandbox?.enabled ?? false;
               updateConfig({
                 sandbox: wasEnabled
-                  ? { enabled: false }
+                  ? { enabled: false, commandApproval: "ask" }
                   : {
                       enabled: true,
                       idleTimeoutMinutes:
                         config.sandbox?.idleTimeoutMinutes ?? 20,
                       alwaysOn: config.sandbox?.alwaysOn ?? false,
+                      commandApproval: config.sandbox?.commandApproval ?? "ask",
                     },
               });
             }}
@@ -225,6 +228,41 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         </View>
         {config.sandbox?.enabled && (
           <View className="mx-4 mb-3 ml-11 gap-3">
+            <View>
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-sm text-text-secondary">
+                  Command approval
+                </Text>
+              </View>
+              <View className="flex-row flex-wrap gap-1.5">
+                {(["ask", "skip"] as const).map((mode) => {
+                  const sandbox = config.sandbox ?? {
+                    enabled: true,
+                    commandApproval: "ask",
+                  };
+                  const current = sandbox.commandApproval ?? "ask";
+                  const selected = current === mode;
+                  const label = mode === "ask" ? "Ask" : "Skip";
+                  return (
+                    <Pressable
+                      key={mode}
+                      onPress={() =>
+                        updateConfig({
+                          sandbox: { ...sandbox, commandApproval: mode },
+                        })
+                      }
+                      className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                    >
+                      <Text
+                        className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
             <View className="flex-row items-center justify-between">
               <View>
                 <Text className="text-sm text-text-secondary">
@@ -237,7 +275,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               <Toggle
                 enabled={config.sandbox.alwaysOn ?? false}
                 onChange={() => {
-                  const sandbox = config.sandbox ?? { enabled: true };
+                  const sandbox = config.sandbox ?? {
+                    enabled: true,
+                    commandApproval: "ask",
+                  };
                   updateConfig({
                     sandbox: {
                       ...sandbox,
@@ -259,7 +300,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 </View>
                 <View className="flex-row flex-wrap gap-1.5">
                   {[10, 20, 30, 60, 120].map((mins) => {
-                    const sandbox = config.sandbox ?? { enabled: true };
+                    const sandbox = config.sandbox ?? {
+                      enabled: true,
+                      commandApproval: "ask",
+                    };
                     const selected =
                       (sandbox.idleTimeoutMinutes ?? 20) === mins;
                     return (

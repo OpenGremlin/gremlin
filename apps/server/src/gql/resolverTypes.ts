@@ -1,4 +1,4 @@
-import { NotificationStatus } from '@gremlin/lib/enums.js';
+import { UserInputRequestStatus } from '@gremlin/lib/enums.js';
 import { ToolName } from '@gremlin/lib/enums.js';
 import { GraphQLResolveInfo } from 'graphql';
 import { AgentItem } from '@gremlin/lib/resources/ddb/schema/agent.js';
@@ -9,7 +9,7 @@ import { AvatarModel } from './schema/Avatar/resolvers.js';
 import { IntegrationProviderDef } from '@gremlin/lib/services/integrations/providers.js';
 import { SafeIntegrationConnection } from '@gremlin/lib/services/integrations/getConnections.js';
 import { DefaultModelResult } from '@gremlin/lib/services/integrations/getDefaultModel.js';
-import { NotificationItem } from '@gremlin/lib/resources/ddb/schema/notification.js';
+import { UserInputRequestItem } from '@gremlin/lib/resources/ddb/schema/userInputRequest.js';
 import { ProfileItem } from '@gremlin/lib/resources/ddb/schema/profile.js';
 import { AgentSkillItem } from '@gremlin/lib/resources/ddb/schema/agentSkill.js';
 import { SkillTemplate as SkillTemplateModel } from '@gremlin/lib/services/skills/registry.js';
@@ -145,12 +145,14 @@ export type AgentModelConfigInput = {
 export type AgentSandboxConfig = {
   __typename?: 'AgentSandboxConfig';
   alwaysOn?: Maybe<Scalars['Boolean']['output']>;
+  commandApproval: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   idleTimeoutMinutes?: Maybe<Scalars['Int']['output']>;
 };
 
 export type AgentSandboxConfigInput = {
   alwaysOn?: InputMaybe<Scalars['Boolean']['input']>;
+  commandApproval: Scalars['String']['input'];
   enabled: Scalars['Boolean']['input'];
   idleTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -414,14 +416,14 @@ export type Mutation = {
   deleteAgentJob?: Maybe<AgentJob>;
   disableBedrockModel: Scalars['Boolean']['output'];
   disableModel: Scalars['Boolean']['output'];
-  dismissNotification?: Maybe<Notification>;
+  dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
   resolveCommandApproval?: Maybe<CommandApproval>;
-  resolveNotification?: Maybe<Notification>;
+  resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
@@ -489,7 +491,7 @@ export type MutationDisableModelArgs = {
 };
 
 
-export type MutationDismissNotificationArgs = {
+export type MutationDismissUserInputRequestArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -524,7 +526,7 @@ export type MutationResolveCommandApprovalArgs = {
 };
 
 
-export type MutationResolveNotificationArgs = {
+export type MutationResolveUserInputRequestArgs = {
   action: Scalars['String']['input'];
   id: Scalars['ID']['input'];
 };
@@ -606,26 +608,6 @@ export type MutationUpdateProfileArgs = {
   input: ProfileInput;
 };
 
-export type Notification = {
-  __typename?: 'Notification';
-  actions: Array<NotificationAction>;
-  agent: Agent;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  message: Scalars['String']['output'];
-  resolvedAction?: Maybe<Scalars['String']['output']>;
-  status: NotificationStatus;
-  turnId?: Maybe<Scalars['String']['output']>;
-};
-
-export type NotificationAction = {
-  __typename?: 'NotificationAction';
-  label: Scalars['String']['output'];
-  style: Scalars['String']['output'];
-};
-
-export { NotificationStatus };
-
 export type OAuthConnectionMeta = {
   __typename?: 'OAuthConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -681,7 +663,6 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
-  notifications: Array<Notification>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
@@ -692,6 +673,7 @@ export type Query = {
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
+  userInputRequests: Array<UserInputRequest>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
 };
@@ -960,6 +942,26 @@ export type UpdateAgentJobInput = {
   timezone?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UserInputRequest = {
+  __typename?: 'UserInputRequest';
+  actions: Array<UserInputRequestAction>;
+  agent: Agent;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  resolvedAction?: Maybe<Scalars['String']['output']>;
+  status: UserInputRequestStatus;
+  turnId?: Maybe<Scalars['String']['output']>;
+};
+
+export type UserInputRequestAction = {
+  __typename?: 'UserInputRequestAction';
+  label: Scalars['String']['output'];
+  style: Scalars['String']['output'];
+};
+
+export { UserInputRequestStatus };
+
 export type VideoRender = {
   __typename?: 'VideoRender';
   durationSeconds?: Maybe<Scalars['Float']['output']>;
@@ -1127,9 +1129,6 @@ export type ResolversTypes = {
   LinkAttachment: ResolverTypeWrapper<LinkAttachment>;
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
-  Notification: ResolverTypeWrapper<NotificationItem>;
-  NotificationAction: ResolverTypeWrapper<NotificationAction>;
-  NotificationStatus: NotificationStatus;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
   PendingInboxMessage: ResolverTypeWrapper<PendingInboxMessage>;
   Profile: ResolverTypeWrapper<ProfileItem>;
@@ -1151,6 +1150,9 @@ export type ResolversTypes = {
   UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
+  UserInputRequest: ResolverTypeWrapper<UserInputRequestItem>;
+  UserInputRequestAction: ResolverTypeWrapper<UserInputRequestAction>;
+  UserInputRequestStatus: UserInputRequestStatus;
   VideoRender: ResolverTypeWrapper<VideoRender>;
   WorkspaceEntry: ResolverTypeWrapper<WorkspaceEntry>;
 };
@@ -1207,8 +1209,6 @@ export type ResolversParentTypes = {
   LinkAttachment: LinkAttachment;
   ModelInfo: ModelInfo;
   Mutation: Record<PropertyKey, never>;
-  Notification: NotificationItem;
-  NotificationAction: NotificationAction;
   OAuthConnectionMeta: OAuthConnectionMeta;
   PendingInboxMessage: PendingInboxMessage;
   Profile: ProfileItem;
@@ -1229,6 +1229,8 @@ export type ResolversParentTypes = {
   UnknownRender: UnknownRender;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
+  UserInputRequest: UserInputRequestItem;
+  UserInputRequestAction: UserInputRequestAction;
   VideoRender: VideoRender;
   WorkspaceEntry: WorkspaceEntry;
 };
@@ -1307,6 +1309,7 @@ export type AgentModelConfigResolvers<ContextType = GremlinContext, ParentType e
 
 export type AgentSandboxConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentSandboxConfig'] = ResolversParentTypes['AgentSandboxConfig']> = {
   alwaysOn?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  commandApproval?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   idleTimeoutMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
@@ -1497,13 +1500,13 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   disableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   disableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
-  dismissNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationDismissNotificationArgs, 'id'>>;
+  dismissUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationDismissUserInputRequestArgs, 'id'>>;
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
   enableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
   removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
   resolveCommandApproval?: Resolver<Maybe<ResolversTypes['CommandApproval']>, ParentType, ContextType, RequireFields<MutationResolveCommandApprovalArgs, 'decision' | 'id'>>;
-  resolveNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationResolveNotificationArgs, 'action' | 'id'>>;
+  resolveUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationResolveUserInputRequestArgs, 'action' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
@@ -1517,24 +1520,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
 };
-
-export type NotificationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
-  actions?: Resolver<Array<ResolversTypes['NotificationAction']>, ParentType, ContextType>;
-  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  resolvedAction?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['NotificationStatus'], ParentType, ContextType>;
-  turnId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-};
-
-export type NotificationActionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['NotificationAction'] = ResolversParentTypes['NotificationAction']> = {
-  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type NotificationStatusResolvers = EnumResolverSignature<{ DISMISSED?: any, PENDING?: any, RESOLVED?: any }, ResolversTypes['NotificationStatus']>;
 
 export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthConnectionMeta'] = ResolversParentTypes['OAuthConnectionMeta']> = {
   accountId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1579,7 +1564,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
-  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
@@ -1588,6 +1572,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
+  userInputRequests?: Resolver<Array<ResolversTypes['UserInputRequest']>, ParentType, ContextType>;
   workspaceEntries?: Resolver<Array<ResolversTypes['WorkspaceEntry']>, ParentType, ContextType, RequireFields<QueryWorkspaceEntriesArgs, 'path'>>;
   workspaceFile?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryWorkspaceFileArgs, 'path'>>;
 };
@@ -1684,13 +1669,31 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, createDocument?: any, delegateTask?: any, ensureSandbox?: any, listJobs?: any, postToMainLane?: any, readDocument?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestApproval?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateDocument?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any }, ResolversTypes['ToolName']>;
+export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, createDocument?: any, delegateTask?: any, ensureSandbox?: any, listJobs?: any, postToMainLane?: any, readDocument?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateDocument?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any }, ResolversTypes['ToolName']>;
 
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   sizeBytes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export type UserInputRequestResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UserInputRequest'] = ResolversParentTypes['UserInputRequest']> = {
+  actions?: Resolver<Array<ResolversTypes['UserInputRequestAction']>, ParentType, ContextType>;
+  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resolvedAction?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['UserInputRequestStatus'], ParentType, ContextType>;
+  turnId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type UserInputRequestActionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UserInputRequestAction'] = ResolversParentTypes['UserInputRequestAction']> = {
+  label?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  style?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type UserInputRequestStatusResolvers = EnumResolverSignature<{ DISMISSED?: any, PENDING?: any, RESOLVED?: any }, ResolversTypes['UserInputRequestStatus']>;
 
 export type VideoRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['VideoRender'] = ResolversParentTypes['VideoRender']> = {
   durationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -1746,9 +1749,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   LinkAttachment?: LinkAttachmentResolvers<ContextType>;
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
-  Notification?: NotificationResolvers<ContextType>;
-  NotificationAction?: NotificationActionResolvers<ContextType>;
-  NotificationStatus?: NotificationStatusResolvers;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
   PendingInboxMessage?: PendingInboxMessageResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
@@ -1766,6 +1766,9 @@ export type Resolvers<ContextType = GremlinContext> = {
   TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
   ToolName?: ToolNameResolvers;
   UnknownRender?: UnknownRenderResolvers<ContextType>;
+  UserInputRequest?: UserInputRequestResolvers<ContextType>;
+  UserInputRequestAction?: UserInputRequestActionResolvers<ContextType>;
+  UserInputRequestStatus?: UserInputRequestStatusResolvers;
   VideoRender?: VideoRenderResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;
 };
