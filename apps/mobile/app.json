@@ -14,9 +14,24 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gremlin.app"
+      "bundleIdentifier": "com.gremlin.app",
+      "associatedDomains": ["applinks:opengremlin.com"]
     },
     "android": {
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "opengremlin.com",
+              "pathPrefix": "/oauth/callback"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0a",
         "foregroundImage": "./assets/android-icon-foreground.png",

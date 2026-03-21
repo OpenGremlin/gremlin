@@ -46,6 +46,28 @@ export class AdminStack extends cdk.Stack {
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
     };
 
+    // CloudFront behavior to serve .well-known files with correct headers
+    const wellKnownBehavior: cloudfront.BehaviorOptions = {
+      origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(
+        this,
+        "WellKnownHeaders",
+        {
+          customHeadersBehavior: {
+            customHeaders: [
+              {
+                header: "Content-Type",
+                value: "application/json",
+                override: true,
+              },
+            ],
+          },
+        },
+      ),
+    };
+
     const distribution = new cloudfront.Distribution(this, "AdminCdn", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
@@ -53,6 +75,7 @@ export class AdminStack extends cdk.Stack {
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
       additionalBehaviors: {
+        "/.well-known/*": wellKnownBehavior,
         "/graphql": apiBehavior,
         "/api/*": apiBehavior,
         "/api/files/*": {
@@ -168,7 +191,7 @@ export class AdminStack extends cdk.Stack {
                 "cp /asset-input/apps/mobile/package.json /asset-input/apps/mobile/app.json /asset-input/apps/mobile/tsconfig.json /asset-input/apps/mobile/global.css /asset-input/apps/mobile/babel.config.js /asset-input/apps/mobile/metro.config.js /asset-input/apps/mobile/tailwind.config.js /asset-input/apps/mobile/nativewind-env.d.ts /tmp/build/apps/mobile/",
                 "cp /asset-input/packages/logos/package.json /tmp/build/packages/logos/",
                 "cd /tmp/build && pnpm install --frozen-lockfile --ignore-scripts",
-                "cp -r /asset-input/apps/mobile/src /asset-input/apps/mobile/app /asset-input/apps/mobile/assets /tmp/build/apps/mobile/",
+                "cp -r /asset-input/apps/mobile/src /asset-input/apps/mobile/app /asset-input/apps/mobile/assets /asset-input/apps/mobile/public /tmp/build/apps/mobile/",
                 "cp -r /asset-input/packages/logos/*.svg /tmp/build/packages/logos/",
                 "cp -r /asset-input/branding/* /tmp/build/branding/",
                 "cd /tmp/build/apps/mobile && npx expo export --platform web",
