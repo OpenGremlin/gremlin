@@ -86,8 +86,8 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
           ) : null}
           {task.files && task.files.length > 0 ? (
             <View className="mt-2 gap-1" onStartShouldSetResponder={() => true}>
-              {task.files.map((file) => (
-                <FileCard key={file.path} file={file} />
+              {task.files.map((file, index) => (
+                <FileCard key={`${file.path}-${index}`} file={file} />
               ))}
             </View>
           ) : null}
