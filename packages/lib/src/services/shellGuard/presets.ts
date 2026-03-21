@@ -5,6 +5,23 @@
  * in an isolated sandbox. Higher tiers may warrant approval in restricted modes.
  */
 
+/** Shell builtins — not external commands, always safe. */
+export const SAFE_BINS_BUILTIN = [
+  "cd",
+  "exit",
+  "export",
+  "pwd",
+  "set",
+  "source",
+  "test",
+  "true",
+  "false",
+  "type",
+  "ulimit",
+  "umask",
+  "unset",
+] as const;
+
 /** Read-only inspection and text processing — always safe. */
 export const SAFE_BINS_READ = [
   "awk",
@@ -78,9 +95,14 @@ export const DANGEROUS_PATTERNS = [
 /** Preset configurations for common use cases. */
 export const PRESETS = {
   /** Full sandbox access — approve read, dev, and network commands. */
-  sandbox: [...SAFE_BINS_READ, ...SAFE_BINS_DEV, ...SAFE_BINS_NETWORK],
+  sandbox: [
+    ...SAFE_BINS_BUILTIN,
+    ...SAFE_BINS_READ,
+    ...SAFE_BINS_DEV,
+    ...SAFE_BINS_NETWORK,
+  ],
   /** Read-only — only text processing and inspection commands. */
-  restricted: [...SAFE_BINS_READ],
+  restricted: [...SAFE_BINS_BUILTIN, ...SAFE_BINS_READ],
 } as const;
 
 export type PresetName = keyof typeof PRESETS;

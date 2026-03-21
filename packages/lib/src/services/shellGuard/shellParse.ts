@@ -210,16 +210,6 @@ export function splitCommandChain(command: string): string[] | null {
 // Pipeline splitting (|)
 // ---------------------------------------------------------------------------
 
-const DISALLOWED_PIPELINE_TOKENS = new Set([
-  ">",
-  "<",
-  "`",
-  "\n",
-  "\r",
-  "(",
-  ")",
-]);
-
 /**
  * Split a single chain part by pipe operators, respecting quotes,
  * heredocs, and detecting disallowed constructs.
@@ -414,32 +404,23 @@ function splitShellPipeline(command: string): {
       continue;
     }
 
-    // Pipeline operators
-    if (ch === "|" && next === "|") {
-      return {
-        ok: false,
-        reason: "unsupported shell token: ||",
-        segments: [],
-      };
-    }
-    if (ch === "|" && next === "&") {
-      return {
-        ok: false,
-        reason: "unsupported shell token: |&",
-        segments: [],
-      };
-    }
-    if (ch === "|") {
+    // Pipe operator — splits pipeline segments
+    if (ch === "|" && next !== "|" && next !== "&") {
       emptySegment = true;
       pushPart();
       continue;
     }
-    if (ch === "&" || ch === ";") {
-      return {
-        ok: false,
-        reason: `unsupported shell token: ${ch}`,
-        segments: [],
-      };
+    // ||, |&, &, ; should have been caught by splitCommandChain.
+    // If they appear here, treat them as segment boundaries.
+    if ((ch === "|" && (next === "|" || next === "&")) || ch === ";") {
+      pushPart();
+      if (next === "|" || next === "&") i += 1;
+      continue;
+    }
+    if (ch === "&") {
+      // Background operator — just treat as end of segment
+      pushPart();
+      continue;
     }
 
     // Heredoc operator <<
@@ -467,11 +448,11 @@ function splitShellPipeline(command: string): {
       continue;
     }
 
-    // Disallowed tokens
-    if (DISALLOWED_PIPELINE_TOKENS.has(ch)) {
+    // Backticks and $() hide the real executable — reject them
+    if (ch === "`") {
       return {
         ok: false,
-        reason: `unsupported shell token: ${ch}`,
+        reason: "unsupported shell token: `",
         segments: [],
       };
     }

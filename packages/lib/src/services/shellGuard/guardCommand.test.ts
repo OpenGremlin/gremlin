@@ -25,7 +25,7 @@ describe("guardCommand", () => {
         command: "cat file.txt | grep foo | wc -l",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows safe dev commands", async () => {
@@ -34,7 +34,7 @@ describe("guardCommand", () => {
         command: "npm install && npm test",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows safe network commands in sandbox preset", async () => {
@@ -43,7 +43,7 @@ describe("guardCommand", () => {
         command: "curl https://example.com",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows git with full path", async () => {
@@ -52,7 +52,7 @@ describe("guardCommand", () => {
         command: "/usr/bin/git status",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows commands through env wrapper", async () => {
@@ -61,7 +61,7 @@ describe("guardCommand", () => {
         command: "env NODE_ENV=production node app.js",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows commands through timeout wrapper", async () => {
@@ -70,7 +70,16 @@ describe("guardCommand", () => {
         command: "timeout 30 npm test",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
+    });
+
+    it("allows shell builtins", async () => {
+      const result = await guardCommand({
+        ...base,
+        command: "cd /workspace && pwd",
+        allowlistProvider: mockAllowlistProvider(),
+      });
+      expect(result.status).toBe("allowed");
     });
   });
 
@@ -81,8 +90,8 @@ describe("guardCommand", () => {
         command: "ffmpeg -i video.mp4 output.gif",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
+      expect(result.status).toBe("approval_required");
+      if (result.status === "approval_required") {
         expect(result.reason).toContain("ffmpeg");
       }
     });
@@ -93,8 +102,8 @@ describe("guardCommand", () => {
         command: "ffmpeg -i video.mp4 -f wav - | sox - output.wav",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
+      expect(result.status).toBe("approval_required");
+      if (result.status === "approval_required") {
         expect(result.reason).toContain("ffmpeg");
         expect(result.reason).toContain("sox");
       }
@@ -106,8 +115,8 @@ describe("guardCommand", () => {
         command: "sudo apt-get install nginx",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
+      expect(result.status).toBe("approval_required");
+      if (result.status === "approval_required") {
         expect(result.reason).toContain("sudo");
       }
     });
@@ -120,8 +129,8 @@ describe("guardCommand", () => {
         command: "rm -rf /",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
+      expect(result.status).toBe("approval_required");
+      if (result.status === "approval_required") {
         expect(result.reason).toContain("dangerous pattern");
       }
     });
@@ -132,8 +141,8 @@ describe("guardCommand", () => {
         command: "rm -rf /*",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
+      expect(result.status).toBe("approval_required");
+      if (result.status === "approval_required") {
         expect(result.reason).toContain("dangerous pattern");
       }
     });
@@ -144,21 +153,30 @@ describe("guardCommand", () => {
         command: ":(){ :|:& };:",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
+      expect(result.status).toBe("approval_required");
     });
   });
 
   describe("unparseable commands", () => {
-    it("flags command substitution", async () => {
+    it("returns invalid for command substitution", async () => {
       const result = await guardCommand({
         ...base,
         command: "echo $(whoami)",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
-      if (result.needsApproval) {
-        expect(result.reason).toContain("Unable to parse");
+      expect(result.status).toBe("invalid");
+      if (result.status === "invalid") {
+        expect(result.error).toContain("could not be parsed");
       }
+    });
+
+    it("returns invalid for backticks", async () => {
+      const result = await guardCommand({
+        ...base,
+        command: "echo `whoami`",
+        allowlistProvider: mockAllowlistProvider(),
+      });
+      expect(result.status).toBe("invalid");
     });
   });
 
@@ -169,7 +187,7 @@ describe("guardCommand", () => {
         command: "ffmpeg -i video.mp4 output.gif",
         allowlistProvider: mockAllowlistProvider([{ pattern: "ffmpeg" }]),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("allows commands matching wildcard patterns", async () => {
@@ -178,7 +196,7 @@ describe("guardCommand", () => {
         command: "ffprobe video.mp4",
         allowlistProvider: mockAllowlistProvider([{ pattern: "ff*" }]),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("is case-insensitive", async () => {
@@ -187,7 +205,7 @@ describe("guardCommand", () => {
         command: "FFmpeg -i video.mp4 output.gif",
         allowlistProvider: mockAllowlistProvider([{ pattern: "ffmpeg" }]),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
   });
 
@@ -199,7 +217,7 @@ describe("guardCommand", () => {
         preset: "restricted",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
+      expect(result.status).toBe("approval_required");
     });
 
     it("restricted preset allows cat", async () => {
@@ -209,7 +227,7 @@ describe("guardCommand", () => {
         preset: "restricted",
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("additionalSafeBins extends the preset", async () => {
@@ -219,7 +237,7 @@ describe("guardCommand", () => {
         additionalSafeBins: ["ffmpeg"],
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(false);
+      expect(result.status).toBe("allowed");
     });
 
     it("safeBins overrides the preset", async () => {
@@ -229,7 +247,7 @@ describe("guardCommand", () => {
         safeBins: ["cat"], // ls not included
         allowlistProvider: mockAllowlistProvider(),
       });
-      expect(result.needsApproval).toBe(true);
+      expect(result.status).toBe("approval_required");
     });
   });
 });

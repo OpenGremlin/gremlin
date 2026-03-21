@@ -44,8 +44,9 @@ export interface GuardCommandParams {
 
 /** Result of evaluating a command against the guard policy. */
 export type GuardVerdict =
-  | { needsApproval: false }
-  | { needsApproval: true; reason: string };
+  | { status: "allowed" }
+  | { status: "approval_required"; reason: string }
+  | { status: "invalid"; error: string };
 
 /**
  * Evaluate a shell command against the guard policy.
@@ -74,7 +75,7 @@ export async function guardCommand(
       "Command matches dangerous pattern",
     );
     return {
-      needsApproval: true,
+      status: "approval_required",
       reason: `Matches dangerous pattern: "${dangerousMatch}"`,
     };
   }
@@ -89,11 +90,11 @@ export async function guardCommand(
         reason: analysis.reason,
         command: command.slice(0, 200),
       },
-      "Command unparseable — requires approval",
+      "Command unparseable — returning error to agent",
     );
     return {
-      needsApproval: true,
-      reason: `Unable to parse command: ${analysis.reason}`,
+      status: "invalid",
+      error: `Command could not be parsed: ${analysis.reason}. Rewrite the command to avoid unsupported syntax.`,
     };
   }
 
@@ -117,7 +118,7 @@ export async function guardCommand(
   }
 
   if (unsafeExecutables.length === 0) {
-    return { needsApproval: false };
+    return { status: "allowed" };
   }
 
   log.info(
@@ -126,7 +127,7 @@ export async function guardCommand(
   );
 
   return {
-    needsApproval: true,
+    status: "approval_required",
     reason: `Unknown executable(s): ${unsafeExecutables.join(", ")}`,
   };
 }

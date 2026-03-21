@@ -81,7 +81,26 @@ export async function ringDoorbell(
           break;
         }
 
-        await processTaskGroup(ctx, agentLaneCtx, agentId, taskId, items);
+        // Check if any items are resume_task — these skip the prompt flow
+        // and re-run inference directly from existing conversation history.
+        const hasResume = items.some((i) => i.type === "resume_task");
+        const nonResumeItems = items.filter((i) => i.type !== "resume_task");
+
+        if (nonResumeItems.length > 0) {
+          await processTaskGroup(
+            ctx,
+            agentLaneCtx,
+            agentId,
+            taskId,
+            nonResumeItems,
+          );
+        } else if (hasResume) {
+          await ctx.services.orchestrator.resumeTaskLane(
+            ctx,
+            agentLaneCtx,
+            taskId,
+          );
+        }
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }

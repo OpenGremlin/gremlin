@@ -45,7 +45,9 @@ export function CommandApprovalCard({
 
   if (resolved) {
     const label =
-      resolving === CommandApprovalDecision.Deny ? "Denied" : "Approved";
+      resolving === CommandApprovalDecision.Deny
+        ? "Command denied by user"
+        : "Approved";
     return (
       <ToolBlock
         label={fnLabel}

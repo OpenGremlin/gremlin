@@ -109,7 +109,13 @@ export function buildTaskTools(
     ...(agent.config?.sandbox?.enabled
       ? {
           ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
-          runCommand: runCommandTool(ctx, agentId, taskId, skillTools.getEnv),
+          runCommand: runCommandTool(
+            ctx,
+            agentId,
+            taskId,
+            skillTools.getEnv,
+            true,
+          ),
         }
       : {}),
     ...skillTools.tools,

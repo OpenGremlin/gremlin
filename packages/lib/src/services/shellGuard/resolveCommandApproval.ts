@@ -120,7 +120,7 @@ export async function resolveCommandApproval(
     }
   } else {
     toolResult = {
-      output: "This command is not allowed.",
+      output: "Command denied by user.",
       exitCode: 1,
     };
   }
@@ -135,12 +135,22 @@ export async function resolveCommandApproval(
     commandApprovalId: approvalId,
   });
 
-  // 5. Ring the doorbell so the agent can continue
-  const lane = approval.taskId ? `task:${approval.taskId}` : "main";
+  // 5. Resume inference. The log entry was already updated in-place,
+  // so the agent's conversation history is correct. Enqueue a resume_task
+  // item which triggers runLane without writing a new message to the log.
+  // Command approvals only happen on task lanes (sandbox tools require taskId).
+  if (!approval.taskId) {
+    ctx.log.error(
+      { commandApprovalId: approvalId },
+      "CommandApproval missing taskId — cannot resume",
+    );
+    return updated;
+  }
+  const lane = `task:${approval.taskId}`;
   await ctx.services.inbox
     .enqueueWork(ctx, approval.agentId, lane, {
-      type: "user_task_message",
-      payload: { content: "" },
+      type: "resume_task",
+      payload: { taskId: approval.taskId },
     })
     .catch((err) =>
       ctx.log.error(

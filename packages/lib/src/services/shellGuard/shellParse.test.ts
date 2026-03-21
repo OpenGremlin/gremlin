@@ -196,22 +196,27 @@ describe("analyzeCommand", () => {
     expect(result.reason).toContain("`");
   });
 
-  it("rejects redirections", () => {
-    const result = analyzeCommand("echo hello > /etc/passwd");
-    expect(result.ok).toBe(false);
-    expect(result.reason).toContain(">");
+  it("allows redirections in sandbox context", () => {
+    const result = analyzeCommand("echo hello > output.txt");
+    expect(result.ok).toBe(true);
+    expect(result.segments[0].executable).toBe("echo");
   });
 
-  it("rejects input redirection", () => {
-    const result = analyzeCommand("cat < /etc/shadow");
-    expect(result.ok).toBe(false);
-    expect(result.reason).toContain("<");
+  it("allows input redirection", () => {
+    const result = analyzeCommand("cat < input.txt");
+    expect(result.ok).toBe(true);
+    expect(result.segments[0].executable).toBe("cat");
   });
 
-  it("rejects subshells", () => {
+  it("allows heredocs with redirection", () => {
+    const result = analyzeCommand("cat > output.md <<'EOF'\nhello\nEOF");
+    expect(result.ok).toBe(true);
+    expect(result.segments[0].executable).toBe("cat");
+  });
+
+  it("allows subshells", () => {
     const result = analyzeCommand("(echo hello)");
-    expect(result.ok).toBe(false);
-    expect(result.reason).toContain("(");
+    expect(result.ok).toBe(true);
   });
 
   it("returns not-ok for empty command", () => {

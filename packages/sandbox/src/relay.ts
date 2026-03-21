@@ -8,10 +8,11 @@ import { createLogger } from "./log.js";
 
 const log = createLogger("relay");
 
+const isLocal = process.env.SANDBOX_LOCAL === "true";
 const WORKSPACE_DIR = existsSync("/workspace")
   ? "/workspace"
   : (process.env.SANDBOX_WORKSPACE ?? homedir());
-const SANDBOX_USER = process.env.SANDBOX_USER ?? "sandbox";
+const SANDBOX_USER = process.env.SANDBOX_USER ?? (isLocal ? "root" : "sandbox");
 const SANDBOX_HOME =
   SANDBOX_USER === "root" ? homedir() : `/home/${SANDBOX_USER}`;
 const TOOLS_ROOT = `${SANDBOX_HOME}/.tools`;

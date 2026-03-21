@@ -1,3 +1,4 @@
+import "./env.js";
 import { startHealthServer } from "./health.js";
 import { createLogger } from "./log.js";
 import { startRelay } from "./relay.js";

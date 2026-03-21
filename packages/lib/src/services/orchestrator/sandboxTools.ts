@@ -212,7 +212,14 @@ export function runCommandTool(
           allowlistProvider,
         });
 
-        if (verdict.needsApproval) {
+        if (verdict.status === "invalid") {
+          return {
+            output: verdict.error,
+            exitCode: 1,
+          };
+        }
+
+        if (verdict.status === "approval_required") {
           // Create a CommandApproval entity — the turn will end and
           // the frontend will render approval buttons on this tool call.
           const approval = await ctx.services.shellGuard.createCommandApproval(

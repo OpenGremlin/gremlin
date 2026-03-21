@@ -22,7 +22,8 @@ export type InboxItemType =
   | "scheduled_job"
   | "agent_self_followup"
   | "user_notification_reply"
-  | "core_memory_review";
+  | "core_memory_review"
+  | "resume_task";
 
 export interface EnqueueInput {
   type: InboxItemType;

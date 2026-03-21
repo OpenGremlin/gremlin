@@ -74,11 +74,13 @@ type InboxItemType =
   | "scheduled_job"
   | "agent_self_followup"
   | "user_notification_reply"
-  | "core_memory_review";
+  | "core_memory_review"
+  | "resume_task";
 ```
 
 - `user_task_message` — user sends a message directed at a specific task (routed to main lane)
 - `core_memory_review` — periodic review of agent memory (routed to task lane)
+- `resume_task` — resumes inference on a task lane from existing log without writing a new message (used by shell guard after command approval resolution)
 
 ## Enqueue
 
