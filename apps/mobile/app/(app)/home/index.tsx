@@ -14,6 +14,7 @@ import {
   PendingCommandApprovalsQuery,
   TasksQuery,
   TaskUpdatedSubscription,
+  UserInputRequestsQuery,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
@@ -25,6 +26,7 @@ import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { PendingApprovals } from "../../../src/shared/PendingApprovals";
+import { PendingInputRequests } from "../../../src/shared/PendingInputRequests";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
 function ListSeparator() {
@@ -115,10 +117,17 @@ export default function HomeScreen() {
     PendingCommandApprovalsQuery,
   );
   const approvals = approvalsData?.pendingCommandApprovals ?? [];
+  const { data: inputRequestsData, refetch: refetchInputRequests } = useQuery(
+    UserInputRequestsQuery,
+  );
+  const pendingInputRequests = (
+    inputRequestsData?.userInputRequests ?? []
+  ).filter((r) => r.status === "PENDING");
 
   const { refreshing, onRefresh } = useListRefresh(() => {
     refetch();
     refetchApprovals();
+    refetchInputRequests();
   });
 
   if (loading && nodes.length === 0) {
@@ -132,11 +141,17 @@ export default function HomeScreen() {
       renderItem={renderTaskItem}
       ItemSeparatorComponent={ListSeparator}
       ListHeaderComponent={
-        approvals.length > 0 ? (
-          <PendingApprovals
-            approvals={approvals}
-            onResolved={refetchApprovals}
-          />
+        approvals.length > 0 || pendingInputRequests.length > 0 ? (
+          <View>
+            <PendingApprovals
+              approvals={approvals}
+              onResolved={refetchApprovals}
+            />
+            <PendingInputRequests
+              requests={pendingInputRequests}
+              onResolved={refetchInputRequests}
+            />
+          </View>
         ) : null
       }
       refreshControl={

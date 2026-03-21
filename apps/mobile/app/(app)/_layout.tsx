@@ -2,7 +2,10 @@ import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { PendingCommandApprovalsQuery } from "../../src/graphql/queries";
+import {
+  PendingCommandApprovalsQuery,
+  UserInputRequestsQuery,
+} from "../../src/graphql/queries";
 import { useQuery } from "../../src/hooks/useQuery";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
@@ -13,7 +16,11 @@ export default function AppLayout() {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
   const { data: approvalsData } = useQuery(PendingCommandApprovalsQuery);
-  const pendingCount = approvalsData?.pendingCommandApprovals?.length ?? 0;
+  const { data: inputRequestsData } = useQuery(UserInputRequestsQuery);
+  const pendingCount =
+    (approvalsData?.pendingCommandApprovals?.length ?? 0) +
+    (inputRequestsData?.userInputRequests?.filter((r) => r.status === "PENDING")
+      ?.length ?? 0);
 
   if (loading) {
     return (
