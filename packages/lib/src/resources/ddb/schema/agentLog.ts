@@ -31,7 +31,7 @@ export const AgentLogEntity = new Entity({
       }),
     ).optional(),
     internal: boolean().optional().default(false),
-    notificationId: anyOf(string(), nul()).optional(),
+    requestId: anyOf(string(), nul()).optional(),
     commandApprovalId: anyOf(string(), nul()).optional(),
     createdAt: string(),
   }),

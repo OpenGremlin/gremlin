@@ -9,7 +9,8 @@ const config: CodegenConfig = {
       config: {
         contextType: "./context.js#GremlinContext",
         enumValues: {
-          NotificationStatus: "@gremlin/lib/enums.js#NotificationStatus",
+          UserInputRequestStatus:
+            "@gremlin/lib/enums.js#UserInputRequestStatus",
           ToolName: "@gremlin/lib/enums.js#ToolName",
         },
         mappers: {
@@ -31,8 +32,8 @@ const config: CodegenConfig = {
             "@gremlin/lib/services/integrations/getConnections.js#SafeIntegrationConnection",
           DefaultModel:
             "@gremlin/lib/services/integrations/getDefaultModel.js#DefaultModelResult",
-          Notification:
-            "@gremlin/lib/resources/ddb/schema/notification.js#NotificationItem",
+          UserInputRequest:
+            "@gremlin/lib/resources/ddb/schema/userInputRequest.js#UserInputRequestItem",
           Profile: "@gremlin/lib/resources/ddb/schema/profile.js#ProfileItem",
           AgentSkill:
             "@gremlin/lib/resources/ddb/schema/agentSkill.js#AgentSkillItem",

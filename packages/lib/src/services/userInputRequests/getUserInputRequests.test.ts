@@ -2,36 +2,35 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
-import { getNotification } from "./getNotification.js";
+import { getUserInputRequests } from "./getUserInputRequests.js";
 
-describe("getNotification", () => {
+describe("getUserInputRequests", () => {
   let ctx: DeepMockProxy<ServiceContext>;
 
   beforeEach(() => {
     ctx = createMockContext();
   });
 
-  it("returns the first item when found", async () => {
-    const notification = {
-      id: "notif-1",
-      title: "Test",
-      createdAt: "2024-01-01T00:00:00Z",
-    };
+  it("returns all user input requests", async () => {
+    const requests = [
+      { id: "req-1", title: "First" },
+      { id: "req-2", title: "Second" },
+    ];
 
     ctx.resources.ddb.table.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
-          send: vi.fn().mockResolvedValue({ Items: [notification] }),
+          send: vi.fn().mockResolvedValue({ Items: requests }),
         }),
       }),
     } as any);
 
-    const result = await getNotification(ctx, "notif-1");
+    const result = await getUserInputRequests(ctx);
 
-    expect(result).toEqual(notification);
+    expect(result).toEqual(requests);
   });
 
-  it("returns null when Items is empty", async () => {
+  it("returns empty array when no user input requests exist", async () => {
     ctx.resources.ddb.table.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
@@ -40,12 +39,12 @@ describe("getNotification", () => {
       }),
     } as any);
 
-    const result = await getNotification(ctx, "nonexistent");
+    const result = await getUserInputRequests(ctx);
 
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 
-  it("returns null when Items is undefined", async () => {
+  it("returns empty array when Items is undefined", async () => {
     ctx.resources.ddb.table.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
@@ -54,8 +53,8 @@ describe("getNotification", () => {
       }),
     } as any);
 
-    const result = await getNotification(ctx, "nonexistent");
+    const result = await getUserInputRequests(ctx);
 
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 });

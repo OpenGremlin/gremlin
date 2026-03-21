@@ -1,4 +1,4 @@
-export enum NotificationStatus {
+export enum UserInputRequestStatus {
   Dismissed = "DISMISSED",
   Pending = "PENDING",
   Resolved = "RESOLVED",
@@ -37,5 +37,5 @@ export enum ToolName {
   ScheduleJob = "scheduleJob",
   UpdateJob = "updateJob",
   DelegateTask = "delegateTask",
-  RequestApproval = "requestApproval",
+  RequestUserInput = "requestUserInput",
 }

@@ -20,7 +20,7 @@ type ToolLogEntry = {
   toolInput: unknown;
   toolResult: unknown;
   internal?: boolean;
-  notificationId?: string | null;
+  requestId?: string | null;
   commandApprovalId?: string | null;
 };
 
@@ -58,9 +58,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
       ? { attachments: entry.attachments }
       : {}),
     internal: (isToolEntry && entry.internal) || false,
-    ...(isToolEntry && entry.notificationId
-      ? { notificationId: entry.notificationId }
-      : {}),
+    ...(isToolEntry && entry.requestId ? { requestId: entry.requestId } : {}),
     ...(isToolEntry && entry.commandApprovalId
       ? { commandApprovalId: entry.commandApprovalId }
       : {}),

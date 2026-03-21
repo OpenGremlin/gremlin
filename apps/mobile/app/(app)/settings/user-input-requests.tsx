@@ -1,10 +1,10 @@
 import { router } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import type { NotificationsQuery as NotificationsQueryType } from "../../../src/graphql/generated/graphql";
+import type { UserInputRequestsQuery as UserInputRequestsQueryType } from "../../../src/graphql/generated/graphql";
 import {
-  DismissNotificationMutation,
-  NotificationsQuery,
-  ResolveNotificationMutation,
+  DismissUserInputRequestMutation,
+  ResolveUserInputRequestMutation,
+  UserInputRequestsQuery,
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
@@ -13,56 +13,56 @@ import { EmptyState } from "../../../src/shared/EmptyState";
 import { timeAgo } from "../../../src/shared/formatDate";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
-type Notification = NotificationsQueryType["notifications"][number];
+type UserInputRequest = UserInputRequestsQueryType["userInputRequests"][number];
 
-function NotificationCard({
-  notification,
+function UserInputRequestCard({
+  request,
   onAction,
   onDismiss,
 }: {
-  notification: Notification;
-  onAction: (notifId: string, action: string) => void;
-  onDismiss: (notifId: string) => void;
+  request: UserInputRequest;
+  onAction: (requestId: string, action: string) => void;
+  onDismiss: (requestId: string) => void;
 }) {
-  const resolved = notification.status !== "PENDING";
-  const resolvedLabel = notification.resolvedAction;
+  const resolved = request.status !== "PENDING";
+  const resolvedLabel = request.resolvedAction;
 
   return (
     <Pressable
-      onPress={() => router.push(`/agents/${notification.agent.id}`)}
+      onPress={() => router.push(`/agents/${request.agent.id}`)}
       className={`bg-surface border border-app-border rounded-xl p-4 ${resolved ? "opacity-40" : ""}`}
     >
       <View className="flex-row items-start gap-3">
         <View className="mt-0.5">
-          <AgentAvatar id={notification.agent.id} size={36} />
+          <AgentAvatar id={request.agent.id} size={36} />
         </View>
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
             <Text className="text-sm font-medium text-text-primary">
-              {notification.agent.name}
+              {request.agent.name}
             </Text>
             <Text className="text-[11px] text-text-muted shrink ml-2">
-              {timeAgo(notification.createdAt)}
+              {timeAgo(request.createdAt)}
             </Text>
           </View>
           <Text className="text-sm text-text-secondary mb-3">
-            {notification.message}
+            {request.message}
           </Text>
 
           {resolved ? (
             <Text className="text-xs text-text-muted">
-              {notification.status === "DISMISSED"
+              {request.status === "DISMISSED"
                 ? "Dismissed"
                 : (resolvedLabel ?? "Resolved")}
             </Text>
           ) : (
             <View className="flex-row items-center gap-2 flex-wrap">
-              {notification.actions.map((action) => (
+              {request.actions.map((action) => (
                 <Pressable
                   key={action.label}
                   onPress={(e) => {
                     e.stopPropagation();
-                    onAction(notification.id, action.label);
+                    onAction(request.id, action.label);
                   }}
                   className={`rounded-full px-3 py-1 ${
                     action.style === "primary" ? "bg-accent" : "bg-surface-alt"
@@ -82,7 +82,7 @@ function NotificationCard({
               <Pressable
                 onPress={(e) => {
                   e.stopPropagation();
-                  onDismiss(notification.id);
+                  onDismiss(request.id);
                 }}
                 className="ml-1"
               >
@@ -96,18 +96,18 @@ function NotificationCard({
   );
 }
 
-export default function NotificationsScreen() {
-  const { data, loading, error, refetch } = useQuery(NotificationsQuery);
+export default function UserInputRequestsScreen() {
+  const { data, loading, error, refetch } = useQuery(UserInputRequestsQuery);
 
-  const notifications = data?.notifications ?? [];
+  const requests = data?.userInputRequests ?? [];
 
-  async function handleAction(notifId: string, action: string) {
-    await gql(ResolveNotificationMutation, { id: notifId, action });
+  async function handleAction(requestId: string, action: string) {
+    await gql(ResolveUserInputRequestMutation, { id: requestId, action });
     refetch();
   }
 
-  async function handleDismiss(notifId: string) {
-    await gql(DismissNotificationMutation, { id: notifId });
+  async function handleDismiss(requestId: string) {
+    await gql(DismissUserInputRequestMutation, { id: requestId });
     refetch();
   }
 
@@ -115,16 +115,16 @@ export default function NotificationsScreen() {
     return <QueryResult loading={loading} error={error} />;
   }
 
-  if (notifications.length === 0) {
-    return <EmptyState message="No notifications yet" />;
+  if (requests.length === 0) {
+    return <EmptyState message="No requests yet" />;
   }
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="px-4 py-4 gap-3">
-      {notifications.map((n) => (
-        <NotificationCard
+      {requests.map((n) => (
+        <UserInputRequestCard
           key={n.id}
-          notification={n}
+          request={n}
           onAction={handleAction}
           onDismiss={handleDismiss}
         />

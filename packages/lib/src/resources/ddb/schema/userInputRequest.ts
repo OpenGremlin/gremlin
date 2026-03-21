@@ -7,8 +7,8 @@ import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
 import { GremlinTable } from "../table.js";
 
-export const NotificationEntity = new Entity({
-  name: "Notification",
+export const UserInputRequestEntity = new Entity({
+  name: "UserInputRequest",
   table: GremlinTable,
   timestamps: false,
   schema: item({
@@ -30,9 +30,9 @@ export const NotificationEntity = new Entity({
   // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
   // PutCommand because dynamodb-toolbox v2 computeKey ignores them.
   computeKey: ({ id }) => ({
-    pk: "NOTIFICATION",
-    sk: `NOTIFICATION#${id}`,
+    pk: "USER_INPUT_REQUEST",
+    sk: `USER_INPUT_REQUEST#${id}`,
   }),
 });
 
-export type NotificationItem = FormattedItem<typeof NotificationEntity>;
+export type UserInputRequestItem = FormattedItem<typeof UserInputRequestEntity>;

@@ -887,7 +887,7 @@ export enum ToolName {
   ReadSkill = 'readSkill',
   ReadSkillReference = 'readSkillReference',
   RecallMemory = 'recallMemory',
-  RequestApproval = 'requestApproval',
+  RequestUserInput = 'requestUserInput',
   RunCommand = 'runCommand',
   SaveMemory = 'saveMemory',
   ScheduleJob = 'scheduleJob',

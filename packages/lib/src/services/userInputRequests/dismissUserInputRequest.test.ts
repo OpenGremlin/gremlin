@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
-import { dismissNotification } from "./dismissNotification.js";
+import { dismissUserInputRequest } from "./dismissUserInputRequest.js";
 
 vi.mock("../../gql/resolverTypes.js", () => ({
-  NotificationStatus: { Dismissed: "DISMISSED", Resolved: "RESOLVED" },
+  UserInputRequestStatus: { Dismissed: "DISMISSED", Resolved: "RESOLVED" },
 }));
 
-vi.mock("./getNotification.js", () => ({
-  getNotification: vi.fn(),
+vi.mock("./getUserInputRequest.js", () => ({
+  getUserInputRequest: vi.fn(),
 }));
 
-import { getNotification } from "./getNotification.js";
+import { getUserInputRequest } from "./getUserInputRequest.js";
 
-const mockedGetNotification = vi.mocked(getNotification);
+const mockedGetUserInputRequest = vi.mocked(getUserInputRequest);
 
-describe("dismissNotification", () => {
+describe("dismissUserInputRequest", () => {
   let ctx: DeepMockProxy<ServiceContext>;
 
   beforeEach(() => {
@@ -26,14 +26,14 @@ describe("dismissNotification", () => {
 
   it("sets status to Dismissed and writes correct DDB item", async () => {
     const existing = {
-      id: "notif-1",
+      id: "req-1",
       title: "Test",
       status: "ACTIVE",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
     };
 
-    mockedGetNotification.mockResolvedValue(existing as any);
+    mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
     ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
@@ -41,7 +41,7 @@ describe("dismissNotification", () => {
     } as any);
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
 
-    const result = await dismissNotification(ctx, "notif-1");
+    const result = await dismissUserInputRequest(ctx, "req-1");
 
     expect(result).toEqual({ ...existing, status: "DISMISSED" });
 
@@ -52,20 +52,20 @@ describe("dismissNotification", () => {
       Item: {
         ...existing,
         status: "DISMISSED",
-        _et: "Notification",
-        pk: "NOTIFICATION",
-        sk: "NOTIFICATION#notif-1",
-        gsi1pk: "NOTIF_STATUS#DISMISSED",
+        _et: "UserInputRequest",
+        pk: "USER_INPUT_REQUEST",
+        sk: "USER_INPUT_REQUEST#req-1",
+        gsi1pk: "INPUT_REQUEST_STATUS#DISMISSED",
         gsi1sk: "2024-01-01T00:00:00Z",
       },
     });
   });
 
-  it("throws when notification not found", async () => {
-    mockedGetNotification.mockResolvedValue(null);
+  it("throws when user input request not found", async () => {
+    mockedGetUserInputRequest.mockResolvedValue(null);
 
-    await expect(dismissNotification(ctx, "nonexistent")).rejects.toThrow(
-      "Notification nonexistent not found",
+    await expect(dismissUserInputRequest(ctx, "nonexistent")).rejects.toThrow(
+      "UserInputRequest nonexistent not found",
     );
   });
 });

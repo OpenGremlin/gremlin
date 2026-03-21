@@ -2,7 +2,7 @@ import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
 import type { ToolName } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
-import { requestApprovalTool } from "../tools/index.js";
+import { requestUserInputTool } from "../tools/index.js";
 import { getModelForAgent } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
@@ -69,7 +69,7 @@ export async function runAgentTurn(
   const lane = opts.taskId ? `task:${opts.taskId}` : "main";
   const baseTools = {
     ...opts.tools,
-    requestApproval: requestApprovalTool(ctx, opts.agentId, lane),
+    requestUserInput: requestUserInputTool(ctx, opts.agentId, lane),
   };
 
   // Wrap tools to emit a call log immediately when execution starts
@@ -203,7 +203,7 @@ export async function runAgentTurn(
     model,
     messages: buildMessages(),
     tools: allTools,
-    stopWhen: [hasToolCall("requestApproval"), () => pendingCommandApproval],
+    stopWhen: [hasToolCall("requestUserInput"), () => pendingCommandApproval],
     onStepFinish,
   });
 

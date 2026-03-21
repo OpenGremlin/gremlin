@@ -23,7 +23,7 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
     title: "Human",
     items: [
       { label: "Profile", icon: User, href: "/settings/profile" },
-      { label: "Notifications", icon: Bell, href: "/settings/notifications" },
+      { label: "Requests", icon: Bell, href: "/settings/user-input-requests" },
     ],
   },
   {

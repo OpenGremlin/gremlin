@@ -10,11 +10,11 @@ import { documentTypeDefs } from "./Document/typeDefs.js";
 import { fileTypeDefs } from "./File/typeDefs.js";
 import { fileUploadTypeDefs } from "./FileUpload/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
-import { notificationTypeDefs } from "./Notification/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { settingsTypeDefs } from "./Settings/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { taskTypeDefs } from "./Task/typeDefs.js";
+import { userInputRequestTypeDefs } from "./UserInputRequest/typeDefs.js";
 import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
@@ -29,7 +29,7 @@ export const allTypeDefs = [
   avatarTypeDefs,
   commandApprovalTypeDefs,
   integrationTypeDefs,
-  notificationTypeDefs,
+  userInputRequestTypeDefs,
   profileTypeDefs,
   settingsTypeDefs,
   skillTypeDefs,

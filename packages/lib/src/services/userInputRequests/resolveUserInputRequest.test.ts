@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
-import { resolveNotification } from "./resolveNotification.js";
+import { resolveUserInputRequest } from "./resolveUserInputRequest.js";
 
 vi.mock("../../gql/resolverTypes.js", () => ({
-  NotificationStatus: { Dismissed: "DISMISSED", Resolved: "RESOLVED" },
+  UserInputRequestStatus: { Dismissed: "DISMISSED", Resolved: "RESOLVED" },
 }));
 
-vi.mock("./getNotification.js", () => ({
-  getNotification: vi.fn(),
+vi.mock("./getUserInputRequest.js", () => ({
+  getUserInputRequest: vi.fn(),
 }));
 
-import { getNotification } from "./getNotification.js";
+import { getUserInputRequest } from "./getUserInputRequest.js";
 
-const mockedGetNotification = vi.mocked(getNotification);
+const mockedGetUserInputRequest = vi.mocked(getUserInputRequest);
 
-describe("resolveNotification", () => {
+describe("resolveUserInputRequest", () => {
   let ctx: DeepMockProxy<ServiceContext>;
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe("resolveNotification", () => {
 
   it("sets status to Resolved with resolvedAction and writes correct DDB item", async () => {
     const existing = {
-      id: "notif-1",
+      id: "req-1",
       title: "Test",
       status: "ACTIVE",
       createdAt: "2024-01-01T00:00:00Z",
@@ -34,7 +34,7 @@ describe("resolveNotification", () => {
       lane: "main",
     };
 
-    mockedGetNotification.mockResolvedValue(existing as any);
+    mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
     ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
@@ -43,7 +43,7 @@ describe("resolveNotification", () => {
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
-    const result = await resolveNotification(ctx, "notif-1", "Approve");
+    const result = await resolveUserInputRequest(ctx, "req-1", "Approve");
 
     expect(result).toEqual({
       ...existing,
@@ -59,18 +59,18 @@ describe("resolveNotification", () => {
         ...existing,
         status: "RESOLVED",
         resolvedAction: "Approve",
-        _et: "Notification",
-        pk: "NOTIFICATION",
-        sk: "NOTIFICATION#notif-1",
-        gsi1pk: "NOTIF_STATUS#RESOLVED",
+        _et: "UserInputRequest",
+        pk: "USER_INPUT_REQUEST",
+        sk: "USER_INPUT_REQUEST#req-1",
+        gsi1pk: "INPUT_REQUEST_STATUS#RESOLVED",
         gsi1sk: "2024-01-01T00:00:00Z",
       },
     });
   });
 
-  it("enqueues inbox work to the notification's originating lane", async () => {
+  it("enqueues inbox work to the request's originating lane", async () => {
     const existing = {
-      id: "notif-1",
+      id: "req-1",
       title: "Test",
       status: "ACTIVE",
       createdAt: "2024-01-01T00:00:00Z",
@@ -78,7 +78,7 @@ describe("resolveNotification", () => {
       lane: "task:task-42",
     };
 
-    mockedGetNotification.mockResolvedValue(existing as any);
+    mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
     ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
@@ -87,24 +87,24 @@ describe("resolveNotification", () => {
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
-    await resolveNotification(ctx, "notif-1", "Approve");
+    await resolveUserInputRequest(ctx, "req-1", "Approve");
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
       "agent-1",
       "task:task-42",
       {
-        type: "user_notification_reply",
-        payload: { notificationId: "notif-1", action: "Approve" },
+        type: "user_input_request_reply",
+        payload: { requestId: "req-1", action: "Approve" },
       },
     );
   });
 
-  it("throws when notification not found", async () => {
-    mockedGetNotification.mockResolvedValue(null);
+  it("throws when user input request not found", async () => {
+    mockedGetUserInputRequest.mockResolvedValue(null);
 
     await expect(
-      resolveNotification(ctx, "nonexistent", "action-1"),
-    ).rejects.toThrow("Notification nonexistent not found");
+      resolveUserInputRequest(ctx, "nonexistent", "action-1"),
+    ).rejects.toThrow("UserInputRequest nonexistent not found");
   });
 });

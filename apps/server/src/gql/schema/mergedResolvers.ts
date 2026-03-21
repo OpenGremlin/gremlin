@@ -10,12 +10,11 @@ import { documentResolvers } from "./Document/resolvers.js";
 import { fileResolvers } from "./File/resolvers.js";
 import { fileUploadResolvers } from "./FileUpload/resolvers.js";
 import { integrationResolvers } from "./Integration/resolvers.js";
-
-import { notificationResolvers } from "./Notification/resolvers.js";
 import { profileResolvers } from "./Profile/resolvers.js";
 import { settingsResolvers } from "./Settings/resolvers.js";
 import { skillResolvers } from "./Skill/resolvers.js";
 import { taskResolvers } from "./Task/resolvers.js";
+import { userInputRequestResolvers } from "./UserInputRequest/resolvers.js";
 import { workspaceResolvers } from "./Workspace/resolvers.js";
 
 export const mergedResolvers: IResolvers = mergeResolvers([
@@ -29,7 +28,7 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   avatarResolvers,
   commandApprovalResolvers,
   integrationResolvers,
-  notificationResolvers,
+  userInputRequestResolvers,
   profileResolvers,
   settingsResolvers,
   skillResolvers,

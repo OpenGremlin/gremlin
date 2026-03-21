@@ -8,7 +8,10 @@ export default function SettingsLayout() {
   return (
     <Stack screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen name="index" options={{ title: "Settings" }} />
-      <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
+      <Stack.Screen
+        name="user-input-requests"
+        options={{ title: "Requests" }}
+      />
       <Stack.Screen name="profile" options={{ title: "Profile" }} />
       <Stack.Screen name="general" options={{ title: "General" }} />
       <Stack.Screen name="skills/index" options={{ title: "Skills" }} />

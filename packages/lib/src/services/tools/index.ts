@@ -19,7 +19,7 @@ export {
 } from "./jobs.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { postToMainLaneTool } from "./postToMainLane.js";
-export { requestApprovalTool } from "./requestApproval.js";
+export { requestUserInputTool } from "./requestUserInput.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
 export { updateTaskMessageTool } from "./updateTaskMessage.js";
 export { viewImageTool } from "./viewImage.js";

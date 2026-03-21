@@ -8,10 +8,6 @@ import {
 import { type JobService, jobService } from "./jobs/index.js";
 import { type MediaService, mediaService } from "./media/index.js";
 import { type MemoryService, memoryService } from "./memory/index.js";
-import {
-  type NotificationService,
-  notificationService,
-} from "./notifications/index.js";
 import { type OAuthService, oauthService } from "./oauth/index.js";
 import {
   type OrchestratorService,
@@ -25,6 +21,10 @@ import {
 } from "./shellGuard/index.js";
 import { type SkillService, skillService } from "./skills/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
+import {
+  type UserInputRequestService,
+  userInputRequestService,
+} from "./userInputRequests/index.js";
 import { type WorkspaceService, workspaceService } from "./workspace/index.js";
 
 export interface Services {
@@ -33,7 +33,7 @@ export interface Services {
   inbox: InboxService;
   jobs: JobService;
   integrations: IntegrationService;
-  notifications: NotificationService;
+  userInputRequests: UserInputRequestService;
   oauth: OAuthService;
 
   profile: ProfileService;
@@ -54,7 +54,7 @@ export function createServices(): Services {
     inbox: inboxService,
     jobs: jobService,
     integrations: integrationService,
-    notifications: notificationService,
+    userInputRequests: userInputRequestService,
     oauth: oauthService,
 
     profile: profileService,

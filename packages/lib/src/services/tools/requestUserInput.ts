@@ -1,19 +1,23 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { tool } from "ai";
 import { z } from "zod";
-import { NotificationStatus } from "../../enums.js";
+import { UserInputRequestStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 
-export function requestApprovalTool(
+export function requestUserInputTool(
   ctx: ServiceContext,
   agentId: string,
   lane: string,
 ) {
   return tool({
     description:
-      "Request approval from the user before proceeding. This will send a notification and pause your execution until the user responds.",
+      "Ask the user for permission or input before proceeding. Use this when you need the user to make a decision, confirm an action, or choose between options. Your execution will pause until the user responds.",
     inputSchema: z.object({
-      message: z.string().describe("Explain what you need and why you need it"),
+      message: z
+        .string()
+        .describe(
+          "Explain what you need from the user — what decision or permission you're asking for and why",
+        ),
       actions: z
         .array(
           z.object({
@@ -43,13 +47,13 @@ export function requestApprovalTool(
             turnId: null,
             message,
             actions,
-            status: NotificationStatus.Pending,
+            status: UserInputRequestStatus.Pending,
             resolvedAction: null,
             createdAt,
-            _et: "Notification",
-            pk: "NOTIFICATION",
-            sk: `NOTIFICATION#${id}`,
-            gsi1pk: `NOTIF_STATUS#${NotificationStatus.Pending}`,
+            _et: "UserInputRequest",
+            pk: "USER_INPUT_REQUEST",
+            sk: `USER_INPUT_REQUEST#${id}`,
+            gsi1pk: `INPUT_REQUEST_STATUS#${UserInputRequestStatus.Pending}`,
             gsi1sk: createdAt,
           },
         }),

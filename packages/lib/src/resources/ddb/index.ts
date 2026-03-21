@@ -7,11 +7,11 @@ import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
 import { InboxItemEntity } from "./schema/inboxItem.js";
 import { IntegrationConnectionEntity } from "./schema/integrationConnection.js";
 import { ModelProviderKeyEntity } from "./schema/modelProviderKey.js";
-import { NotificationEntity } from "./schema/notification.js";
 import { ProfileEntity } from "./schema/profile.js";
 import { SettingEntity } from "./schema/setting.js";
 import { SkillEntity } from "./schema/skill.js";
 import { TaskEntity } from "./schema/task.js";
+import { UserInputRequestEntity } from "./schema/userInputRequest.js";
 import { SecretsTable } from "./secretsTable.js";
 import { GremlinTable } from "./table.js";
 
@@ -29,7 +29,7 @@ export const ddb = {
     AgentSkill: AgentSkillEntity,
 
     CommandApproval: CommandApprovalEntity,
-    Notification: NotificationEntity,
+    UserInputRequest: UserInputRequestEntity,
     Profile: ProfileEntity,
     Setting: SettingEntity,
     Skill: SkillEntity,

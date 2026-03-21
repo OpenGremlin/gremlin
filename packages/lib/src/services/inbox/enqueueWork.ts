@@ -21,7 +21,7 @@ export type InboxItemType =
   | "run_task"
   | "scheduled_job"
   | "agent_self_followup"
-  | "user_notification_reply"
+  | "user_input_request_reply"
   | "core_memory_review"
   | "resume_task";
 

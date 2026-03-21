@@ -349,12 +349,12 @@ function renderToolCall(
         />
       );
 
-    case ToolName.RequestApproval: {
-      const question = tool.input?.question as string | undefined;
+    case ToolName.RequestUserInput: {
+      const question = tool.input?.message as string | undefined;
       return (
         <ToolStatus
           icon={ShieldCheck}
-          text={question ?? "Requested approval"}
+          text={question ?? "Waiting for user input"}
         />
       );
     }
