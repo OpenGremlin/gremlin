@@ -13,6 +13,8 @@ metadata:
   tags: [document, conversion, markdown, pdf, docx]
   install: |
     which pandoc || (apt-get update && apt-get install -y pandoc)
+  allowedCommands:
+    - pandoc
 ---
 
 # Pandoc

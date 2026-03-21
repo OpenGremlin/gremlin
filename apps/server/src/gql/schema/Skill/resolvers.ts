@@ -75,7 +75,7 @@ const unbindAgentSkillConnection: MutationResolvers["unbindAgentSkillConnection"
 // --- Type Resolvers ---
 
 const SkillTemplate: SkillTemplateResolvers = {
-  hasInstall: () => false,
+  hasInstall: (parent) => !!parent.install,
   connections: (parent) =>
     (parent.connections ?? []).map((conn) => {
       const provider = providerMap.get(conn.provider);

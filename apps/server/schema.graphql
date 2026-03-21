@@ -564,6 +564,8 @@ type SkillTemplate {
   icon: String
   tags: [String!]
   hasInstall: Boolean!
+  install: String
+  allowedCommands: [String!]
   connections: [SkillConnectionRequirement!]!
 }
 

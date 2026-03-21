@@ -13,7 +13,6 @@ import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 export default function AppLayout() {
   const { token, loading } = useAuth();
   const colors = useNavigationTheme();
-  const insets = useSafeAreaInsets();
 
   if (loading) {
     return (

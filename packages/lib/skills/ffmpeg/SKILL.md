@@ -14,6 +14,9 @@ metadata:
   tags: [video, audio, media, transcoding, conversion]
   install: |
     which ffmpeg || (apt-get update && apt-get install -y ffmpeg)
+  allowedCommands:
+    - ffmpeg
+    - ffprobe
 ---
 
 # FFmpeg

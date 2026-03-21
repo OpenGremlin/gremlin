@@ -13,6 +13,11 @@ metadata:
   tags: [image, photo, conversion, resize, graphics]
   install: |
     which magick || which convert || (apt-get update && apt-get install -y imagemagick)
+  allowedCommands:
+    - magick
+    - convert
+    - identify
+    - mogrify
 ---
 
 # ImageMagick

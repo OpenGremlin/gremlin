@@ -11,6 +11,10 @@ metadata:
   category: google-workspace
   icon: google
   tags: [google, slides, presentations, productivity]
+  install: |
+    which gws || npm install -g @googleworkspace/cli
+  allowedCommands:
+    - gws
   connections:
     - provider: google
       env:

@@ -13,6 +13,13 @@ metadata:
   tags: [graph, visualization, diagram, network, dot]
   install: |
     which dot || (apt-get update && apt-get install -y graphviz)
+  allowedCommands:
+    - dot
+    - neato
+    - fdp
+    - circo
+    - twopi
+    - sfdp
 ---
 
 # Graphviz

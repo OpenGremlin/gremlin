@@ -24,6 +24,10 @@ export interface SkillTemplate {
   homepage?: string;
   icon?: string;
   tags?: string[];
+  /** Shell commands to install the skill's CLI tool(s). Runs once on first use. Should be idempotent. */
+  install?: string;
+  /** Executable patterns auto-added to the agent's shell guard allowlist when the skill is mounted. Supports trailing * wildcards. */
+  allowedCommands?: string[];
   /** Auth connections the skill needs */
   connections?: SkillConnectionRequirement[];
   /** The Markdown body after frontmatter — loaded on initialization, not at catalog time */

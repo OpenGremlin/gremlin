@@ -12,6 +12,10 @@ metadata:
   category: google-workspace
   icon: google
   tags: [google, drive, files, storage, productivity]
+  install: |
+    which gws || npm install -g @googleworkspace/cli
+  allowedCommands:
+    - gws
   connections:
     - provider: google
       env:

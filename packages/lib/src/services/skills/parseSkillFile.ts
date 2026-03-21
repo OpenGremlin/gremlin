@@ -18,6 +18,10 @@ const metadataSchema = z.object({
   category: z.string().optional(),
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  /** Shell commands to install the skill's CLI tool(s). Runs once on first use. Should be idempotent. */
+  install: z.string().optional(),
+  /** Executable patterns auto-added to the agent's shell guard allowlist when the skill is mounted. Supports trailing * wildcards. */
+  allowedCommands: z.array(z.string()).optional(),
   connections: z.array(connectionSchema).optional(),
 });
 
@@ -56,6 +60,8 @@ export function parseSkillFile(
       category: fm.metadata.category,
       icon: fm.metadata.icon,
       tags: fm.metadata.tags,
+      install: fm.metadata.install,
+      allowedCommands: fm.metadata.allowedCommands,
       connections: fm.metadata.connections,
       instructions: body.trim() || undefined,
     };

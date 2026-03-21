@@ -71,5 +71,21 @@ describe("SKILL.md validation", () => {
       const template = parseSkillFile(id, content);
       expect(template?.instructions).toBeTruthy();
     });
+
+    it("has install instructions", () => {
+      const template = parseSkillFile(id, content);
+      expect(
+        template?.install,
+        `${id} is missing metadata.install`,
+      ).toBeTruthy();
+    });
+
+    it("has at least one allowedCommands entry", () => {
+      const template = parseSkillFile(id, content);
+      expect(
+        template?.allowedCommands?.length,
+        `${id} is missing metadata.allowedCommands`,
+      ).toBeGreaterThan(0);
+    });
   });
 });

@@ -13,6 +13,8 @@ metadata:
   tags: [diagram, chart, flowchart, visualization, documentation]
   install: |
     which mmdc || npm install -g @mermaid-js/mermaid-cli
+  allowedCommands:
+    - mmdc
 ---
 
 # Mermaid CLI

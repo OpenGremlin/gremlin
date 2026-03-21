@@ -799,6 +799,7 @@ export type SkillConnectionStatus = {
 
 export type SkillTemplate = {
   __typename?: 'SkillTemplate';
+  allowedCommands?: Maybe<Array<Scalars['String']['output']>>;
   author?: Maybe<Scalars['String']['output']>;
   category?: Maybe<Scalars['String']['output']>;
   connections: Array<SkillConnectionRequirement>;
@@ -807,6 +808,7 @@ export type SkillTemplate = {
   hasInstall: Scalars['Boolean']['output'];
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  install?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
@@ -1613,6 +1615,7 @@ export type SkillConnectionStatusResolvers<ContextType = GremlinContext, ParentT
 };
 
 export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SkillTemplate'] = ResolversParentTypes['SkillTemplate']> = {
+  allowedCommands?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   author?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   category?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   connections?: Resolver<Array<ResolversTypes['SkillConnectionRequirement']>, ParentType, ContextType>;
@@ -1621,6 +1624,7 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   hasInstall?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  install?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

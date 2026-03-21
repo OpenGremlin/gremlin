@@ -14,6 +14,8 @@ metadata:
   tags: [sql, data, analytics, csv, parquet, json]
   install: |
     which duckdb || pip install duckdb-cli
+  allowedCommands:
+    - duckdb
 ---
 
 # DuckDB

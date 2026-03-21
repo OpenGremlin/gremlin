@@ -74,6 +74,13 @@ export async function buildSkillTools(
         instructions: template.instructions ?? "",
       };
 
+      if (template.install) {
+        result.install = template.install;
+      }
+      if (template.allowedCommands?.length) {
+        result.allowedCommands = template.allowedCommands;
+      }
+
       if (references.length > 0) {
         result.availableReferences = references;
         result.hint = references

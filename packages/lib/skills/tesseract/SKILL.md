@@ -13,6 +13,8 @@ metadata:
   tags: [ocr, text-extraction, image, document, scan]
   install: |
     which tesseract || (apt-get update && apt-get install -y tesseract-ocr)
+  allowedCommands:
+    - tesseract
 ---
 
 # Tesseract OCR

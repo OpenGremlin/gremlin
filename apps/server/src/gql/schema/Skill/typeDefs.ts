@@ -10,6 +10,8 @@ export const skillTypeDefs = /* GraphQL */ `
     icon: String
     tags: [String!]
     hasInstall: Boolean!
+    install: String
+    allowedCommands: [String!]
     connections: [SkillConnectionRequirement!]!
   }
 

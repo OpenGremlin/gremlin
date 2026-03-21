@@ -5,15 +5,19 @@ RUN corepack enable
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY apps/server/package.json apps/server/
 COPY packages/lib/package.json packages/lib/
+COPY packages/providers/package.json packages/providers/
+COPY packages/logos/package.json packages/logos/
 COPY packages/infra/package.json packages/infra/
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Stage 2: build lib + server
 FROM deps AS build
+COPY packages/logos/ packages/logos/
+COPY packages/providers/ packages/providers/
 COPY packages/lib/ packages/lib/
 COPY apps/server/ apps/server/
 COPY tsconfig.base.json ./
-RUN pnpm --filter @gremlin/lib build && pnpm --filter @gremlin/server build
+RUN pnpm --filter @gremlin/providers build && pnpm --filter @gremlin/lib build && pnpm --filter @gremlin/server build
 
 # Stage 3: production dependencies only
 FROM deps AS prod-deps

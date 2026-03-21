@@ -14,6 +14,8 @@ metadata:
   tags: [video, audio, download, youtube, media]
   install: |
     which yt-dlp || pip install yt-dlp
+  allowedCommands:
+    - yt-dlp
 ---
 
 # yt-dlp

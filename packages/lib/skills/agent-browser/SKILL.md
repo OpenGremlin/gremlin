@@ -15,6 +15,8 @@ metadata:
   install: |
     npm install -g agent-browser
     agent-browser install
+  allowedCommands:
+    - agent-browser
 ---
 
 # Browser Automation with agent-browser
