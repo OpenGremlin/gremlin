@@ -8,6 +8,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
+import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { timeAgo } from "../../../src/shared/formatDate";
@@ -98,17 +99,20 @@ function UserInputRequestCard({
 
 export default function UserInputRequestsScreen() {
   const { data, loading, error, refetch } = useQuery(UserInputRequestsQuery);
+  const { refetchInputRequests } = usePendingCount();
 
   const requests = data?.userInputRequests ?? [];
 
   async function handleAction(requestId: string, action: string) {
     await gql(ResolveUserInputRequestMutation, { id: requestId, action });
     refetch();
+    refetchInputRequests();
   }
 
   async function handleDismiss(requestId: string) {
     await gql(DismissUserInputRequestMutation, { id: requestId });
     refetch();
+    refetchInputRequests();
   }
 
   if (loading || error) {

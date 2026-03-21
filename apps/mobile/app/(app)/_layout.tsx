@@ -2,25 +2,18 @@ import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  PendingCommandApprovalsQuery,
-  UserInputRequestsQuery,
-} from "../../src/graphql/queries";
-import { useQuery } from "../../src/hooks/useQuery";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
+import {
+  PendingCountProvider,
+  usePendingCount,
+} from "../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 
 export default function AppLayout() {
   const { token, loading } = useAuth();
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
-  const { data: approvalsData } = useQuery(PendingCommandApprovalsQuery);
-  const { data: inputRequestsData } = useQuery(UserInputRequestsQuery);
-  const pendingCount =
-    (approvalsData?.pendingCommandApprovals?.length ?? 0) +
-    (inputRequestsData?.userInputRequests?.filter((r) => r.status === "PENDING")
-      ?.length ?? 0);
 
   if (loading) {
     return (
@@ -36,6 +29,18 @@ export default function AppLayout() {
   if (isAuthEnabled() && !token) {
     return <Redirect href="/login" />;
   }
+
+  return (
+    <PendingCountProvider>
+      <AppTabs />
+    </PendingCountProvider>
+  );
+}
+
+function AppTabs() {
+  const colors = useNavigationTheme();
+  const insets = useSafeAreaInsets();
+  const { pendingCount } = usePendingCount();
 
   return (
     <Tabs

@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { CommandApprovalDecision } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
 import { gql } from "../../lib/auth";
+import { usePendingCount } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { FnLabel } from "./FnLabel";
@@ -24,6 +25,7 @@ export function CommandApprovalCard({
 }) {
   const { isDark } = useTheme();
   const colors = useNavigationTheme();
+  const { refetchApprovals } = usePendingCount();
   const [resolving, setResolving] = useState<string | null>(null);
   const [resolved, setResolved] = useState(false);
 
@@ -36,6 +38,7 @@ export function CommandApprovalCard({
         decision,
       });
       setResolved(true);
+      refetchApprovals();
     } catch {
       setResolving(null);
     }

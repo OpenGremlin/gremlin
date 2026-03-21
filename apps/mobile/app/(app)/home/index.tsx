@@ -11,15 +11,13 @@ import {
 } from "react-native";
 import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
 import {
-  PendingCommandApprovalsQuery,
   TasksQuery,
   TaskUpdatedSubscription,
-  UserInputRequestsQuery,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
+import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
@@ -113,16 +111,12 @@ export default function HomeScreen() {
     usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
       direction: "newest-first",
     });
-  const { data: approvalsData, refetch: refetchApprovals } = useQuery(
-    PendingCommandApprovalsQuery,
-  );
-  const approvals = approvalsData?.pendingCommandApprovals ?? [];
-  const { data: inputRequestsData, refetch: refetchInputRequests } = useQuery(
-    UserInputRequestsQuery,
-  );
-  const pendingInputRequests = (
-    inputRequestsData?.userInputRequests ?? []
-  ).filter((r) => r.status === "PENDING");
+  const {
+    approvals,
+    inputRequests: pendingInputRequests,
+    refetchApprovals,
+    refetchInputRequests,
+  } = usePendingCount();
 
   const { refreshing, onRefresh } = useListRefresh(() => {
     refetch();
