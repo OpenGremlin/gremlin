@@ -242,7 +242,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   };
                   const current = sandbox.commandApproval ?? "ask";
                   const selected = current === mode;
-                  const label = mode === "ask" ? "Ask" : "Skip";
+                  const label =
+                    mode === "ask" ? "Ask user" : "Dangerously skip approval";
                   return (
                     <Pressable
                       key={mode}
