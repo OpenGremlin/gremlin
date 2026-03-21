@@ -31,6 +31,20 @@ import { PendingMessageBubble } from "./PendingMessageBubble";
 
 type FileNode = ChatMessage["files"][number];
 
+const flatListContentStyle = {
+  paddingHorizontal: 16,
+  paddingTop: 8,
+  paddingBottom: 140,
+} as const;
+
+const overlayContainerStyle = {
+  position: "absolute" as const,
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 2,
+};
+
 interface ChatScreenProps {
   agentId: string;
   taskId?: string;
@@ -154,11 +168,7 @@ export function ChatScreen({
         inverted
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 8,
-          paddingBottom: 140,
-        }}
+        contentContainerStyle={flatListContentStyle}
         keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           loadingMore ? (
@@ -178,16 +188,7 @@ export function ChatScreen({
         }
       />
 
-      <View
-        pointerEvents="box-none"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 2,
-        }}
-      >
+      <View pointerEvents="box-none" style={overlayContainerStyle}>
         <LinearGradient
           colors={[
             colors.background,

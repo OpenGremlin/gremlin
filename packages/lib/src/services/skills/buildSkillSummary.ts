@@ -27,13 +27,16 @@ export async function buildSkillSummary(
   }
 
   const bucketName = getSkillsBucket();
+
+  // Fetch all templates in parallel
+  const templates = await Promise.all(
+    agentSkills.map((s) => getSkillTemplateFromS3(bucketName, s.skillId)),
+  );
+
   const skillEntries: string[] = [];
 
-  for (const agentSkill of agentSkills) {
-    const template = await getSkillTemplateFromS3(
-      bucketName,
-      agentSkill.skillId,
-    );
+  for (let i = 0; i < agentSkills.length; i++) {
+    const template = templates[i];
     if (!template) continue;
 
     const label = template.displayName ?? template.name;
@@ -42,27 +45,28 @@ export async function buildSkillSummary(
     // List available connections
     if (template.connections?.length) {
       const rawBindings = parseConnectionBindings(
-        agentSkill.connectionBindings,
+        agentSkills[i].connectionBindings,
       );
       const bindings = await filterRevokedBindings(ctx.resources, rawBindings);
 
-      const connectionParts: string[] = [];
-      for (const connReq of template.connections) {
-        const boundIds = bindings[connReq.provider] ?? [];
-        if (boundIds.length === 0) continue;
-
-        const accounts = await loadActiveConnectionLabels(
-          ctx.resources,
-          boundIds,
-        );
-        if (accounts.length === 0) continue;
-
-        for (const a of accounts) {
-          connectionParts.push(
-            `  - ${connReq.provider} (${a.label}):\n    \`authenticate('${template.id}', '${a.id}')\``,
+      // Fetch all connection labels in parallel
+      const connResults = await Promise.all(
+        template.connections.map(async (connReq) => {
+          const boundIds = bindings[connReq.provider] ?? [];
+          if (boundIds.length === 0) return null;
+          const accounts = await loadActiveConnectionLabels(
+            ctx.resources,
+            boundIds,
           );
-        }
-      }
+          if (accounts.length === 0) return null;
+          return accounts.map(
+            (a) =>
+              `  - ${connReq.provider} (${a.label}):\n    \`authenticate('${template.id}', '${a.id}')\``,
+          );
+        }),
+      );
+
+      const connectionParts = connResults.filter(Boolean).flat() as string[];
 
       if (connectionParts.length > 0) {
         entry += `\n  Available connections:\n${connectionParts.join("\n")}`;

@@ -33,7 +33,6 @@ export default function ConnectionDetailScreen() {
   }
 
   const meta = connection.meta;
-  const _accountId = meta.accountId ?? null;
   const scopes = meta.__typename === "OAuthConnectionMeta" ? meta.scopes : null;
 
   async function doRevoke() {

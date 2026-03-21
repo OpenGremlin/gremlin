@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Home } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -41,7 +41,7 @@ type TaskItem = {
   files?: FileNode[];
 };
 
-function TaskCard({ item }: { item: TaskItem }) {
+const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const [override, setOverride] = useState<Partial<TaskItem>>({});
   const task = { ...item, ...override };
   const { agent } = task;
@@ -95,7 +95,12 @@ function TaskCard({ item }: { item: TaskItem }) {
       </View>
     </Pressable>
   );
-}
+});
+
+const renderTaskItem = ({ item }: { item: TaskItem }) => (
+  <TaskCard item={item} />
+);
+const keyExtractor = (item: TaskItem) => item.id;
 
 export default function HomeScreen() {
   const colors = useNavigationTheme();
@@ -112,8 +117,8 @@ export default function HomeScreen() {
   return (
     <FlatList
       data={nodes}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <TaskCard item={item} />}
+      keyExtractor={keyExtractor}
+      renderItem={renderTaskItem}
       ItemSeparatorComponent={ListSeparator}
       refreshControl={
         <RefreshControl

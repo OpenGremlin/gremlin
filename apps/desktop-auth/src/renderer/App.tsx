@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConnectModal } from "./ConnectModal.js";
 import { isCancelled } from "./errors.js";
 import { getLogoUrl, oauthProviders, type ProviderMeta } from "./providers.js";
@@ -59,6 +59,11 @@ export function App() {
   >(null);
   const [showServerHelp, setShowServerHelp] = useState(false);
 
+  const normalizedUrl = useMemo(
+    () => serverUrl.replace(/\/+$/, ""),
+    [serverUrl],
+  );
+
   // Cognito refresh state (not persisted — refresh token is kept in localStorage)
   const cognitoConfigRef = useRef<{
     cognitoDomain: string;
@@ -69,11 +74,21 @@ export function App() {
   useEffect(() => savePersistent("gremlin-server-url", serverUrl), [serverUrl]);
   useEffect(() => savePersistent("gremlin-auth-token", authToken), [authToken]);
 
+  const handleLogout = useCallback(() => {
+    setAuthToken("");
+    setConnectionOk(null);
+    setProviderStates({});
+    setConnections([]);
+    cognitoConfigRef.current = null;
+    localStorage.removeItem("gremlin-auth-token");
+    localStorage.removeItem("gremlin-cognito-refresh-token");
+    localStorage.removeItem("gremlin-cognito-expires-at");
+  }, []);
+
   // On mount with existing token, fetch auth config so we can refresh later
   useEffect(() => {
     if (!authToken || !serverUrl.trim() || cognitoConfigRef.current) return;
-    const url = serverUrl.replace(/\/+$/, "");
-    fetch(`${url}/api/auth-config`)
+    fetch(`${normalizedUrl}/api/auth-config`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.cognitoDomain && data?.clientId) {
@@ -84,7 +99,7 @@ export function App() {
         }
       })
       .catch(() => {});
-  }, [authToken, serverUrl]);
+  }, [authToken, serverUrl, normalizedUrl]);
 
   // Auto-refresh Cognito token before expiry
   useEffect(() => {
@@ -125,13 +140,11 @@ export function App() {
           handleLogout();
         });
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: refresh should re-run when token changes, handleLogout is stable
   }, [authToken, handleLogout]);
 
   const graphqlFetch = useCallback(
     async (query: string, variables?: Record<string, unknown>) => {
-      const url = serverUrl.replace(/\/+$/, "");
-      const res = await fetch(`${url}/graphql`, {
+      const res = await fetch(`${normalizedUrl}/graphql`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -144,7 +157,7 @@ export function App() {
       if (json.errors?.length) throw new Error(json.errors[0].message);
       return json.data;
     },
-    [serverUrl, authToken],
+    [normalizedUrl, authToken],
   );
   const graphqlFetchRef = useRef(graphqlFetch);
   graphqlFetchRef.current = graphqlFetch;
@@ -219,8 +232,7 @@ export function App() {
     setLoggingIn(true);
     setLoginError(null);
     try {
-      const url = serverUrl.replace(/\/+$/, "");
-      const res = await fetch(`${url}/api/auth-config`);
+      const res = await fetch(`${normalizedUrl}/api/auth-config`);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const { cognitoDomain, clientId } = await res.json();
       if (!cognitoDomain || !clientId) {
@@ -245,17 +257,6 @@ export function App() {
     } finally {
       setLoggingIn(false);
     }
-  }
-
-  function handleLogout() {
-    setAuthToken("");
-    setConnectionOk(null);
-    setProviderStates({});
-    setConnections([]);
-    cognitoConfigRef.current = null;
-    localStorage.removeItem("gremlin-auth-token");
-    localStorage.removeItem("gremlin-cognito-refresh-token");
-    localStorage.removeItem("gremlin-cognito-expires-at");
   }
 
   async function handleConnect(

@@ -89,8 +89,17 @@ export function ModelPicker({
     );
   }
 
-  // Group by section for headers
-  let lastSection = "";
+  // Pre-compute which items start a new section
+  const sectionStarts = new Set<string>();
+  {
+    let prev = "";
+    for (const opt of options) {
+      if (opt.section !== prev) {
+        sectionStarts.add(opt.key);
+        prev = opt.section;
+      }
+    }
+  }
 
   return (
     <SheetModal visible title="Choose Model" onClose={onClose}>
@@ -104,8 +113,7 @@ export function ModelPicker({
           keyExtractor={(item) => item.key}
           contentContainerClassName="pb-6"
           renderItem={({ item }) => {
-            const showHeader = item.section !== lastSection;
-            lastSection = item.section;
+            const showHeader = sectionStarts.has(item.key);
             const selected = isSelected(item);
             return (
               <>

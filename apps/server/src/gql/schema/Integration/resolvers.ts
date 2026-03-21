@@ -1,10 +1,29 @@
 import type { SafeIntegrationConnection } from "@gremlin/lib/services/integrations/getConnections.js";
+import type { GremlinContext } from "../../context.js";
 import type {
   IntegrationConnectionResolvers,
   IntegrationProviderResolvers,
   MutationResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
+
+// Per-request cache for connections to avoid repeated DynamoDB scans
+// when resolving connectionCount + hasConnection across multiple providers.
+const connectionsCache = new WeakMap<
+  object,
+  Promise<SafeIntegrationConnection[]>
+>();
+
+function getConnectionsCached(
+  ctx: GremlinContext,
+): Promise<SafeIntegrationConnection[]> {
+  let cached = connectionsCache.get(ctx.resources);
+  if (!cached) {
+    cached = ctx.services.integrations.getConnections(ctx.resources);
+    connectionsCache.set(ctx.resources, cached);
+  }
+  return cached;
+}
 
 const integrationProviders: QueryResolvers["integrationProviders"] = (
   _parent,
@@ -65,9 +84,7 @@ const connectionCount: IntegrationProviderResolvers["connectionCount"] = async (
   _args,
   ctx,
 ) => {
-  const connections = await ctx.services.integrations.getConnections(
-    ctx.resources,
-  );
+  const connections = await getConnectionsCached(ctx);
   return connections.filter((c) => c.providerId === parent.id).length;
 };
 
@@ -78,9 +95,7 @@ const hasConnection: IntegrationProviderResolvers["hasConnection"] = async (
 ) => {
   // Bedrock uses server-side AWS credentials — always connected
   if (parent.connectionType === "bedrock") return true;
-  const connections = await ctx.services.integrations.getConnections(
-    ctx.resources,
-  );
+  const connections = await getConnectionsCached(ctx);
   return connections.some((c) => c.providerId === parent.id);
 };
 

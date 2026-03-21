@@ -538,6 +538,10 @@ importers:
         version: 5.9.3
 
   packages/providers:
+    dependencies:
+      '@gremlin/logos':
+        specifier: workspace:*
+        version: link:../logos
     devDependencies:
       typescript:
         specifier: ^5

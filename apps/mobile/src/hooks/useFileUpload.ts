@@ -25,8 +25,6 @@ interface PresignedUpload {
   key: string;
 }
 
-export { formatFileSize } from "../shared/formatFileSize";
-
 interface UploadableFile {
   name: string;
   size: number;
@@ -115,8 +113,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
         return;
       }
 
-      const offset =
-        uploads.length > files.length ? uploads.length - files.length : 0;
+      const offset = oversized.length;
 
       const uploadPromises = files.map(async (file, i) => {
         const idx = offset + i;
@@ -186,7 +183,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
       await Promise.allSettled(uploadPromises);
     },
-    [agentId, taskId, updateUpload, uploads.length],
+    [agentId, taskId, updateUpload],
   );
 
   const isUploading = uploads.some(
@@ -196,13 +193,10 @@ export function useFileUpload(agentId: string, taskId?: string) {
       u.status === "completing",
   );
 
-  const hasResults = uploads.length > 0;
-
   return {
     uploads,
     uploadFiles,
     clearUploads,
     isUploading,
-    hasResults,
   };
 }
