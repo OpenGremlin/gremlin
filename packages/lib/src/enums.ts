@@ -4,6 +4,17 @@ export enum NotificationStatus {
   Resolved = "RESOLVED",
 }
 
+export enum CommandApprovalStatus {
+  Pending = "PENDING",
+  Resolved = "RESOLVED",
+}
+
+export enum CommandApprovalDecision {
+  AllowOnce = "ALLOW_ONCE",
+  AllowAlways = "ALLOW_ALWAYS",
+  Deny = "DENY",
+}
+
 export enum ToolName {
   UpdateTaskMessage = "updateTaskMessage",
   PostToMainLane = "postToMainLane",

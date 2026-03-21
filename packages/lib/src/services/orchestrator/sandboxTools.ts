@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
 import type { CommandResult, SandboxSession } from "../sandbox/types.js";
+import { createAllowlistStore } from "../shellGuard/allowlistStore.js";
 
 const log = createLogger("sandbox:tools");
 
@@ -182,6 +183,7 @@ export function runCommandTool(
   agentId: string,
   taskId: string,
   skillEnvProvider?: () => Record<string, string>,
+  shellGuardEnabled?: boolean,
 ) {
   return tool({
     description:
@@ -198,6 +200,47 @@ export function runCommandTool(
           error:
             "Sandbox is not online. Call ensureSandbox first to boot it up.",
         };
+      }
+
+      // Shell guard: evaluate command against allowlist and safe bins
+      if (shellGuardEnabled) {
+        const allowlistProvider = createAllowlistStore(ctx);
+        const verdict = await ctx.services.shellGuard.guardCommand({
+          command,
+          agentId,
+          taskId,
+          allowlistProvider,
+        });
+
+        if (verdict.needsApproval) {
+          // Create a CommandApproval entity — the turn will end and
+          // the frontend will render approval buttons on this tool call.
+          const approval = await ctx.services.shellGuard.createCommandApproval(
+            ctx,
+            {
+              agentId,
+              taskId,
+              command,
+              reason: verdict.reason,
+            },
+          );
+
+          log.info(
+            {
+              agentId,
+              taskId,
+              commandApprovalId: approval.id,
+              reason: verdict.reason,
+            },
+            "Command requires approval — pausing turn",
+          );
+
+          return {
+            status: "pending_approval",
+            commandApprovalId: approval.id,
+            reason: verdict.reason,
+          };
+        }
       }
 
       session.lastActivityAt = Date.now();

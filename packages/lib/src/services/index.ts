@@ -19,6 +19,10 @@ import {
 } from "./orchestrator/index.js";
 import { type ProfileService, profileService } from "./profile/index.js";
 import { type SandboxService, sandboxService } from "./sandbox/index.js";
+import {
+  type ShellGuardService,
+  shellGuardService,
+} from "./shellGuard/index.js";
 import { type SkillService, skillService } from "./skills/index.js";
 import { type TaskService, taskService } from "./tasks/index.js";
 import { type WorkspaceService, workspaceService } from "./workspace/index.js";
@@ -38,6 +42,7 @@ export interface Services {
   memory: MemoryService;
   orchestrator: OrchestratorService;
   sandbox: SandboxService;
+  shellGuard: ShellGuardService;
   tasks: TaskService;
   workspace: WorkspaceService;
 }
@@ -58,6 +63,7 @@ export function createServices(): Services {
     memory: memoryService,
     orchestrator: orchestratorService,
     sandbox: sandboxService,
+    shellGuard: shellGuardService,
     tasks: taskService,
     workspace: workspaceService,
   };

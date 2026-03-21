@@ -64,6 +64,23 @@ export async function ringDoorbell(
         await processMainLaneItems(ctx, agentLaneCtx, agentId, items);
       } else if (lane.startsWith("task:")) {
         const taskId = lane.slice(5);
+
+        // Guard: don't start a new turn if there's a pending command approval.
+        // Items stay marked read — when the approval resolves, the doorbell
+        // will re-trigger and the consumer will process them.
+        const pending = await ctx.services.shellGuard.hasPendingApproval(
+          ctx,
+          agentId,
+          taskId,
+        );
+        if (pending) {
+          ctx.log.info(
+            { agentId, taskId, lane },
+            "Skipping turn — pending command approval",
+          );
+          break;
+        }
+
         await processTaskGroup(ctx, agentLaneCtx, agentId, taskId, items);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);

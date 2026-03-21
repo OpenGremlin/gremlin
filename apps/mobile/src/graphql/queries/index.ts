@@ -1,5 +1,6 @@
 export * from "./agentLogs";
 export * from "./agents";
+export * from "./commandApproval";
 export * from "./fragments";
 export * from "./integrations";
 export * from "./jobs";

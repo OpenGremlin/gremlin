@@ -74,6 +74,7 @@ export const TaskLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
+          commandApprovalId
           files {
             ...FileFields
           }

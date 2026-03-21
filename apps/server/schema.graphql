@@ -64,6 +64,10 @@ type Mutation {
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
   unretireAgent(id: ID!): Agent!
+  resolveCommandApproval(
+    id: ID!
+    decision: CommandApprovalDecision!
+  ): CommandApproval
   connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
@@ -288,6 +292,7 @@ type AgentLog {
   toolName: ToolName
   toolInput: String
   toolResult: String
+  commandApprovalId: String
   attachments: [Attachment!]!
   documents: [Document!]! @deprecated(reason: "Use attachments instead")
   files: [File!]! @deprecated(reason: "Use attachments instead")
@@ -402,6 +407,29 @@ type Avatar {
   id: ID!
   name: String!
   url(width: Int): String!
+}
+
+enum CommandApprovalStatus {
+  PENDING
+  RESOLVED
+}
+
+enum CommandApprovalDecision {
+  ALLOW_ONCE
+  ALLOW_ALWAYS
+  DENY
+}
+
+type CommandApproval {
+  id: ID!
+  agent: Agent!
+  taskId: String!
+  command: String!
+  reason: String!
+  status: CommandApprovalStatus!
+  decision: String
+  createdAt: String!
+  resolvedAt: String
 }
 
 type AvailableScope {

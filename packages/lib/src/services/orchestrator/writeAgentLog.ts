@@ -20,6 +20,8 @@ type ToolLogEntry = {
   toolInput: unknown;
   toolResult: unknown;
   internal?: boolean;
+  notificationId?: string | null;
+  commandApprovalId?: string | null;
 };
 
 export type LogEntry = TextLogEntry | ToolLogEntry;
@@ -56,6 +58,12 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
       ? { attachments: entry.attachments }
       : {}),
     internal: (isToolEntry && entry.internal) || false,
+    ...(isToolEntry && entry.notificationId
+      ? { notificationId: entry.notificationId }
+      : {}),
+    ...(isToolEntry && entry.commandApprovalId
+      ? { commandApprovalId: entry.commandApprovalId }
+      : {}),
     createdAt: now,
   };
 
@@ -91,19 +99,28 @@ export async function updateAgentLogResult(
     toolName: ToolName;
     toolInput: unknown;
     toolResult: unknown;
+    commandApprovalId?: string | null;
   },
 ) {
   const table = ctx.resources.ddb.table;
+
+  const updateParts = ["toolResult = :result", "toolInput = :input"];
+  const exprValues: Record<string, unknown> = {
+    ":result": JSON.stringify(entry.toolResult),
+    ":input": JSON.stringify(entry.toolInput),
+  };
+
+  if (entry.commandApprovalId) {
+    updateParts.push("commandApprovalId = :caid");
+    exprValues[":caid"] = entry.commandApprovalId;
+  }
 
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
       Key: { pk: "AGENT_LOG", sk: `AGENT_LOG#${logId}` },
-      UpdateExpression: "SET toolResult = :result, toolInput = :input",
-      ExpressionAttributeValues: {
-        ":result": JSON.stringify(entry.toolResult),
-        ":input": JSON.stringify(entry.toolInput),
-      },
+      UpdateExpression: `SET ${updateParts.join(", ")}`,
+      ExpressionAttributeValues: exprValues,
     }),
   );
 
@@ -116,6 +133,9 @@ export async function updateAgentLogResult(
     toolName: entry.toolName,
     toolInput: JSON.stringify(entry.toolInput),
     toolResult: JSON.stringify(entry.toolResult),
+    ...(entry.commandApprovalId
+      ? { commandApprovalId: entry.commandApprovalId }
+      : {}),
     internal: false,
     createdAt,
   });

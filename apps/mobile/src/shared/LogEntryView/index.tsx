@@ -27,6 +27,7 @@ import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { FileCard } from "../FileCard";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
+import { CommandApprovalCard } from "./CommandApprovalCard";
 import { CreateDocumentCard } from "./CreateDocumentCard";
 import { DelegateTaskCard } from "./DelegateTaskCard";
 import { FnLabel } from "./FnLabel";
@@ -361,6 +362,25 @@ function renderToolCall(
     case ToolName.RunCommand: {
       const commandId = tool.result?.commandId as string | undefined;
       const command = (tool.input?.command as string | undefined) ?? "...";
+      const reason = (tool.result?.reason as string | undefined) ?? "";
+      const approvalId =
+        (message.commandApprovalId as string | undefined) ??
+        (tool.result?.commandApprovalId as string | undefined);
+      const approvalStatus = tool.result?.status as string | undefined;
+
+      // Show approval card when pending
+      if (approvalId && approvalStatus === "pending_approval") {
+        return (
+          <CommandApprovalCard
+            commandApprovalId={approvalId}
+            command={command}
+            reason={reason}
+            createdAt={message.createdAt}
+            showTimestamp={showTimestamp}
+          />
+        );
+      }
+
       const hasResult = !!tool.result;
       const output = (tool.result?.output as string) ?? "";
       const exitCode = tool.result?.exitCode as number | undefined;

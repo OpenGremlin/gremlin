@@ -12,6 +12,7 @@ export const AgentLogsQuery = graphql(`
           toolName
           toolInput
           toolResult
+          commandApprovalId
           files {
             ...FileFields
           }
@@ -68,6 +69,7 @@ export const AgentLogSubscription = graphql(`
       toolName
       toolInput
       toolResult
+      commandApprovalId
       files {
         ...FileFields
       }

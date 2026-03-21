@@ -31,6 +31,8 @@ export const AgentLogEntity = new Entity({
       }),
     ).optional(),
     internal: boolean().optional().default(false),
+    notificationId: anyOf(string(), nul()).optional(),
+    commandApprovalId: anyOf(string(), nul()).optional(),
     createdAt: string(),
   }),
   // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK

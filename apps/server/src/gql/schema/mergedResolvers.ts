@@ -5,6 +5,7 @@ import { agentJobResolvers } from "./AgentJob/resolvers.js";
 import { agentLogResolvers } from "./AgentLog/resolvers.js";
 import { attachmentResolvers } from "./Attachment/resolvers.js";
 import { avatarResolvers } from "./Avatar/resolvers.js";
+import { commandApprovalResolvers } from "./CommandApproval/resolvers.js";
 import { documentResolvers } from "./Document/resolvers.js";
 import { fileResolvers } from "./File/resolvers.js";
 import { fileUploadResolvers } from "./FileUpload/resolvers.js";
@@ -26,6 +27,7 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   agentLogResolvers,
   agentResolvers,
   avatarResolvers,
+  commandApprovalResolvers,
   integrationResolvers,
   notificationResolvers,
   profileResolvers,

@@ -1,3 +1,4 @@
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
 import type { ToolName } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
@@ -99,6 +100,9 @@ export async function runAgentTurn(
       }),
     });
   }
+  // Track whether a command approval was created — if so, halt after this step
+  let pendingCommandApproval = false;
+
   const onStepFinish = async (step: {
     toolCalls: Array<{
       toolName: string;
@@ -115,13 +119,56 @@ export async function runAgentTurn(
         "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
       const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
 
+      // Extract commandApprovalId from runCommand results
+      const resultOutput = toolResult?.output as
+        | Record<string, unknown>
+        | undefined;
+      const commandApprovalId =
+        toolCall.toolName === "runCommand" && resultOutput?.commandApprovalId
+          ? (resultOutput.commandApprovalId as string)
+          : undefined;
+
+      if (commandApprovalId) {
+        pendingCommandApproval = true;
+      }
+
       if (existing) {
+        // If this is a command approval, back-fill the logEntryId on the
+        // CommandApproval entity so resolveCommandApproval can update this
+        // log entry later.
+        if (commandApprovalId) {
+          const table = ctx.resources.ddb.table;
+          await table
+            .getDocumentClient()
+            .send(
+              new UpdateCommand({
+                TableName: table.getName(),
+                Key: {
+                  pk: "COMMAND_APPROVAL",
+                  sk: `COMMAND_APPROVAL#${commandApprovalId}`,
+                },
+                UpdateExpression:
+                  "SET logEntryId = :logId, createdAt = :createdAt",
+                ExpressionAttributeValues: {
+                  ":logId": existing.logId,
+                  ":createdAt": existing.createdAt,
+                },
+              }),
+            )
+            .catch((err) =>
+              ctx.log.error(
+                { err, commandApprovalId },
+                "Failed to back-fill logEntryId on CommandApproval",
+              ),
+            );
+        }
         await updateAgentLogResult(ctx, existing.logId, existing.createdAt, {
           agentId: opts.agentId,
           taskId: opts.taskId,
           toolName: toolCall.toolName as ToolName,
           toolInput: "input" in toolCall ? toolCall.input : undefined,
           toolResult: toolResult?.output,
+          commandApprovalId,
         });
       } else {
         await writeAgentLog(ctx, {
@@ -156,7 +203,7 @@ export async function runAgentTurn(
     model,
     messages: buildMessages(),
     tools: allTools,
-    stopWhen: [hasToolCall("requestApproval")],
+    stopWhen: [hasToolCall("requestApproval"), () => pendingCommandApproval],
     onStepFinish,
   });
 

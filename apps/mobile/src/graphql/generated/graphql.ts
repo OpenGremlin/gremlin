@@ -68,6 +68,7 @@ export type AgentLog = {
   __typename?: 'AgentLog';
   agent: Agent;
   attachments: Array<Attachment>;
+  commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   /** @deprecated Use attachments instead */
@@ -200,6 +201,30 @@ export type CodeRender = {
   content: Scalars['String']['output'];
   language: Scalars['String']['output'];
 };
+
+export type CommandApproval = {
+  __typename?: 'CommandApproval';
+  agent: Agent;
+  command: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  decision?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  reason: Scalars['String']['output'];
+  resolvedAt?: Maybe<Scalars['String']['output']>;
+  status: CommandApprovalStatus;
+  taskId: Scalars['String']['output'];
+};
+
+export enum CommandApprovalDecision {
+  AllowAlways = 'ALLOW_ALWAYS',
+  AllowOnce = 'ALLOW_ONCE',
+  Deny = 'DENY'
+}
+
+export enum CommandApprovalStatus {
+  Pending = 'PENDING',
+  Resolved = 'RESOLVED'
+}
 
 export type CompleteFileUploadInput = {
   agentId: Scalars['String']['input'];
@@ -376,6 +401,7 @@ export type Mutation = {
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
+  resolveCommandApproval?: Maybe<CommandApproval>;
   resolveNotification?: Maybe<Notification>;
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
@@ -470,6 +496,12 @@ export type MutationRequestFileUploadsArgs = {
   agentId: Scalars['String']['input'];
   files: Array<FileUploadRequest>;
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationResolveCommandApprovalArgs = {
+  decision: CommandApprovalDecision;
+  id: Scalars['ID']['input'];
 };
 
 
@@ -953,7 +985,7 @@ export type AgentLogsQueryVariables = Exact<{
 }>;
 
 
-export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -992,7 +1024,7 @@ export type AgentLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1050,6 +1082,14 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 
 
 export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
+
+export type ResolveCommandApprovalMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  decision: CommandApprovalDecision;
+}>;
+
+
+export type ResolveCommandApprovalMutation = { __typename?: 'Mutation', resolveCommandApproval?: { __typename?: 'CommandApproval', id: string, status: CommandApprovalStatus, decision?: string | null } | null };
 
 export type FileFieldsFragment = { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
     | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
@@ -1378,7 +1418,7 @@ export type TaskLogsQueryVariables = Exact<{
 }>;
 
 
-export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
+export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, files: Array<{ __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, render:
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1566,6 +1606,7 @@ export const AgentLogsDocument = new TypedDocumentString(`
         toolName
         toolInput
         toolResult
+        commandApprovalId
         files {
           ...FileFields
         }
@@ -1654,6 +1695,7 @@ export const AgentLogCreatedDocument = new TypedDocumentString(`
     toolName
     toolInput
     toolResult
+    commandApprovalId
     files {
       ...FileFields
     }
@@ -1838,6 +1880,15 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     }
   }
 }`) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;
+export const ResolveCommandApprovalDocument = new TypedDocumentString(`
+    mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {
+  resolveCommandApproval(id: $id, decision: $decision) {
+    id
+    status
+    decision
+  }
+}
+    `) as unknown as TypedDocumentString<ResolveCommandApprovalMutation, ResolveCommandApprovalMutationVariables>;
 export const IntegrationProvidersDocument = new TypedDocumentString(`
     query IntegrationProviders {
   integrationProviders {
@@ -2471,6 +2522,7 @@ export const TaskLogsDocument = new TypedDocumentString(`
         toolName
         toolInput
         toolResult
+        commandApprovalId
         files {
           ...FileFields
         }

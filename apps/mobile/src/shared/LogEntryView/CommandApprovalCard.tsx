@@ -1,0 +1,161 @@
+import { ShieldAlert } from "lucide-react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { CommandApprovalDecision } from "../../graphql/generated/graphql";
+import { ResolveCommandApprovalMutation } from "../../graphql/queries";
+import { gql } from "../../lib/auth";
+import { useTheme } from "../../lib/ThemeContext";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { FnLabel } from "./FnLabel";
+import { ToolBlock } from "./ToolBlock";
+
+export function CommandApprovalCard({
+  commandApprovalId,
+  command,
+  reason,
+  createdAt,
+  showTimestamp,
+}: {
+  commandApprovalId: string;
+  command: string;
+  reason: string;
+  createdAt: string;
+  showTimestamp: boolean;
+}) {
+  const { isDark } = useTheme();
+  const colors = useNavigationTheme();
+  const [resolving, setResolving] = useState<string | null>(null);
+  const [resolved, setResolved] = useState(false);
+
+  const handleResolve = async (decision: CommandApprovalDecision) => {
+    if (resolving) return;
+    setResolving(decision);
+    try {
+      await gql(ResolveCommandApprovalMutation, {
+        id: commandApprovalId,
+        decision,
+      });
+      setResolved(true);
+    } catch {
+      setResolving(null);
+    }
+  };
+
+  const fnLabel = <FnLabel fn="run" arg={command} />;
+
+  if (resolved) {
+    const label =
+      resolving === CommandApprovalDecision.Deny ? "Denied" : "Approved";
+    return (
+      <ToolBlock
+        label={fnLabel}
+        createdAt={createdAt}
+        showTimestamp={showTimestamp}
+      >
+        <View className="flex-row items-center gap-1.5 px-3 py-2">
+          <ShieldAlert size={13} color={colors.iconMuted} />
+          <Text className="text-xs text-text-muted italic">{label}</Text>
+        </View>
+      </ToolBlock>
+    );
+  }
+
+  return (
+    <ToolBlock
+      label={fnLabel}
+      createdAt={createdAt}
+      showTimestamp={showTimestamp}
+    >
+      <View className="px-3 py-2 gap-2">
+        {reason ? (
+          <Text className="text-xs text-text-secondary">{reason}</Text>
+        ) : null}
+
+        <View
+          className="rounded-lg px-3 py-2"
+          style={{
+            backgroundColor: isDark ? "#1a1a1a" : "#e4e4e4",
+          }}
+        >
+          <Text
+            className="text-xs font-mono"
+            style={{ color: isDark ? "#e5e5e5" : "#171717" }}
+            numberOfLines={3}
+          >
+            {command}
+          </Text>
+        </View>
+
+        <View className="flex-row gap-2 pt-1">
+          <Pressable
+            onPress={() => handleResolve(CommandApprovalDecision.AllowOnce)}
+            disabled={!!resolving}
+            className="flex-1 rounded-lg py-2 items-center border"
+            style={{
+              borderColor: isDark ? "#404040" : "#d4d4d4",
+              backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5",
+              opacity: resolving ? 0.5 : 1,
+            }}
+          >
+            {resolving === CommandApprovalDecision.AllowOnce ? (
+              <ActivityIndicator size={14} color={colors.iconMuted} />
+            ) : (
+              <Text className="text-xs font-medium text-text-secondary">
+                Allow Once
+              </Text>
+            )}
+          </Pressable>
+
+          <Pressable
+            onPress={() => handleResolve(CommandApprovalDecision.AllowAlways)}
+            disabled={!!resolving}
+            className="flex-1 rounded-lg py-2 items-center"
+            style={{
+              backgroundColor: resolving
+                ? isDark
+                  ? "#3730a3"
+                  : "#c7d2fe"
+                : isDark
+                  ? "#4338ca"
+                  : "#4f46e5",
+              opacity: resolving ? 0.5 : 1,
+            }}
+          >
+            {resolving === CommandApprovalDecision.AllowAlways ? (
+              <ActivityIndicator size={14} color="#ffffff" />
+            ) : (
+              <Text
+                className="text-xs font-medium"
+                style={{ color: isDark ? "#e0e7ff" : "#ffffff" }}
+              >
+                Allow Always
+              </Text>
+            )}
+          </Pressable>
+
+          <Pressable
+            onPress={() => handleResolve(CommandApprovalDecision.Deny)}
+            disabled={!!resolving}
+            className="flex-1 rounded-lg py-2 items-center border"
+            style={{
+              borderColor: isDark ? "#7f1d1d" : "#fecaca",
+              backgroundColor: isDark ? "#1c1111" : "#fef2f2",
+              opacity: resolving ? 0.5 : 1,
+            }}
+          >
+            {resolving === CommandApprovalDecision.Deny ? (
+              <ActivityIndicator size={14} color={colors.error} />
+            ) : (
+              <Text
+                className="text-xs font-medium"
+                style={{ color: colors.error }}
+              >
+                Deny
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
+    </ToolBlock>
+  );
+}
