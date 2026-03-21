@@ -1,7 +1,9 @@
-import { ToolName } from "../../enums.js";
+import { CommandApprovalDecision, ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
+import { activeSessions } from "../orchestrator/sandboxTools.js";
+import { updateAgentLogResult } from "../orchestrator/writeAgentLog.js";
 import type { Attachment } from "../tasks/attachment.js";
 
 /**
@@ -83,8 +85,18 @@ export async function ringDoorbell(
 
         // Check if any items are resume_task — these skip the prompt flow
         // and re-run inference directly from existing conversation history.
-        const hasResume = items.some((i) => i.type === "resume_task");
+        const resumeItems = items.filter((i) => i.type === "resume_task");
         const nonResumeItems = items.filter((i) => i.type !== "resume_task");
+
+        // If a resume carries an approvalId, execute the approved command
+        // (or write denial) before resuming inference. This runs inside the
+        // drain loop so activeLanes blocks concurrent doorbells.
+        for (const ri of resumeItems) {
+          const rPayload = JSON.parse(ri.payload);
+          if (rPayload.approvalId) {
+            await executeApprovedCommand(ctx, rPayload.approvalId);
+          }
+        }
 
         if (nonResumeItems.length > 0) {
           await processTaskGroup(
@@ -94,7 +106,7 @@ export async function ringDoorbell(
             taskId,
             nonResumeItems,
           );
-        } else if (hasResume) {
+        } else if (resumeItems.length > 0) {
           await ctx.services.orchestrator.resumeTaskLane(
             ctx,
             agentLaneCtx,
@@ -111,6 +123,77 @@ export async function ringDoorbell(
     ctx.log.info({ agentId, lane }, "Lane going back to sleep");
     activeLanes.delete(key);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Command approval execution
+// ---------------------------------------------------------------------------
+
+/**
+ * Execute a resolved CommandApproval and update its agent log entry in-place.
+ * Called inside the consumer drain loop so the lane stays in `activeLanes`.
+ */
+async function executeApprovedCommand(
+  ctx: ServiceContext,
+  approvalId: string,
+): Promise<void> {
+  const approval = await ctx.services.shellGuard.getCommandApproval(
+    ctx,
+    approvalId,
+  );
+  if (!approval || !approval.logEntryId) return;
+
+  const isAllowed =
+    approval.decision === CommandApprovalDecision.AllowOnce ||
+    approval.decision === CommandApprovalDecision.AllowAlways;
+
+  let toolResult: unknown;
+
+  if (isAllowed) {
+    const session = activeSessions.get(approval.taskId);
+    if (session?.ws && session.ws.readyState === session.ws.OPEN) {
+      try {
+        const result = await ctx.services.sandbox.execCommand(
+          session,
+          approval.command,
+        );
+        const output = result.stderr
+          ? `${result.output}\n\n[stderr]\n${result.stderr}`
+          : result.output;
+        toolResult = {
+          output,
+          exitCode: result.exitCode,
+          timedOut: result.timedOut,
+        };
+      } catch {
+        toolResult = {
+          output:
+            "Sandbox connection lost. Call ensureSandbox to reconnect, then retry.",
+          exitCode: -1,
+        };
+      }
+    } else {
+      toolResult = {
+        output:
+          "Sandbox is not online. Call ensureSandbox first to boot it up.",
+        exitCode: -1,
+      };
+    }
+  } else {
+    toolResult = {
+      output: "Command denied by user.",
+      exitCode: 1,
+    };
+  }
+
+  await updateAgentLogResult(ctx, approval.logEntryId, approval.createdAt, {
+    agentId: approval.agentId,
+    taskId: approval.taskId,
+    toolName: "runCommand" as ToolName,
+    toolInput: { command: approval.command },
+    toolResult,
+    commandApprovalId: approvalId,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -138,8 +221,8 @@ async function processMainLaneItems(
         });
         recallHint = payload.content;
         break;
-      case "user_notification_reply":
-        await formatAndWriteNotificationReply(ctx, agentId, null, payload);
+      case "user_input_request_reply":
+        await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
         break;
     }
   }
@@ -182,8 +265,8 @@ async function processTaskGroup(
       case "agent_self_followup":
         prompts.push({ content: payload.prompt, role: "SYSTEM" });
         break;
-      case "user_notification_reply": {
-        const reply = await buildNotificationReplyContent(ctx, payload);
+      case "user_input_request_reply": {
+        const reply = await buildInputRequestReplyContent(ctx, payload);
         prompts.push({ content: reply, role: "SYSTEM" });
         break;
       }
@@ -294,32 +377,32 @@ async function handleScheduledJob(
   });
 }
 
-async function buildNotificationReplyContent(
+async function buildInputRequestReplyContent(
   ctx: ServiceContext,
-  payload: { notificationId: string; action: string },
+  payload: { requestId: string; action: string },
 ): Promise<string> {
-  const notification = await ctx.services.notifications.getNotification(
+  const request = await ctx.services.userInputRequests.getUserInputRequest(
     ctx,
-    payload.notificationId,
+    payload.requestId,
   );
 
-  if (notification) {
-    return `The user responded to your approval request.\nRequest: "${notification.message}"\nUser selected: "${payload.action}"`;
+  if (request) {
+    return `The user responded to your approval request.\nRequest: "${request.message}"\nUser selected: "${payload.action}"`;
   }
-  return `The user responded to a notification with action: ${payload.action}`;
+  return `The user responded to a request with action: ${payload.action}`;
 }
 
 /**
- * Load the original notification and write a SYSTEM message to the
+ * Load the original user input request and write a SYSTEM message to the
  * appropriate lane log with enough context to act on the reply.
  */
-async function formatAndWriteNotificationReply(
+async function formatAndWriteInputRequestReply(
   ctx: ServiceContext,
   agentId: string,
   taskId: string | null,
-  payload: { notificationId: string; action: string },
+  payload: { requestId: string; action: string },
 ) {
-  const content = await buildNotificationReplyContent(ctx, payload);
+  const content = await buildInputRequestReplyContent(ctx, payload);
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId,
     taskId,
