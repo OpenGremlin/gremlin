@@ -224,6 +224,7 @@ export const providers: IntegrationProviderDef[] = [
     logo: "Notion.svg",
     tokenUrl: "https://api.notion.com/v1/oauth/token",
     tokenAuthMethod: "basic",
+    hidden: true,
     availableScopes: [
       { scope: "read_content", label: "Read Pages" },
       { scope: "insert_content", label: "Create Content" },
@@ -238,6 +239,7 @@ export const providers: IntegrationProviderDef[] = [
     logo: "Linear.svg",
     logoLight: "Linear_light.svg",
     tokenUrl: "https://api.linear.app/oauth/token",
+    hidden: true,
     availableScopes: [
       { scope: "read", label: "Read Issues" },
       { scope: "write", label: "Create & Update Issues" },
@@ -250,6 +252,7 @@ export const providers: IntegrationProviderDef[] = [
     description: "Boards & Cards",
     connectionType: "custom",
     logo: "Trello.svg",
+    hidden: true,
     availableScopes: [
       { scope: "read", label: "Read Boards" },
       { scope: "write", label: "Create & Move Cards" },
@@ -357,6 +360,8 @@ export const providers: IntegrationProviderDef[] = [
     logo: "GitHub.svg",
     logoLight: "GitHub_light.svg",
     tokenUrl: "https://github.com/login/oauth/access_token",
+    defaultClientId: "Ov23lifJONH8V9JAhnBe",
+    defaultClientSecret: "3d861f0b933a5d877917702e3d004646230dc722",
     availableScopes: [
       { scope: "repo", label: "Access Repositories" },
       { scope: "issues:read", label: "Read Issues" },
@@ -370,6 +375,7 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "oauth",
     logo: "GitLab.svg",
     tokenUrl: "https://gitlab.com/oauth/token",
+    hidden: true,
     availableScopes: [
       { scope: "read_repository", label: "Read Repositories" },
       { scope: "api", label: "API Access" },
@@ -383,6 +389,7 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "oauth",
     logo: "Jira.svg",
     tokenUrl: "https://auth.atlassian.com/oauth/token",
+    hidden: true,
     availableScopes: [
       { scope: "read:jira-work", label: "Read Issues" },
       { scope: "write:jira-work", label: "Create & Update Issues" },
@@ -412,6 +419,7 @@ export const providers: IntegrationProviderDef[] = [
     description: "Lights & Scenes",
     connectionType: "custom",
     logo: "Hue.svg",
+    hidden: true,
     availableScopes: [
       { scope: "lights:read", label: "Read Light State" },
       { scope: "lights:write", label: "Control Lights" },
@@ -424,6 +432,7 @@ export const providers: IntegrationProviderDef[] = [
     description: "Devices & Automations",
     connectionType: "custom",
     logo: "HomeAssistant.svg",
+    hidden: true,
     availableScopes: [
       { scope: "state:read", label: "Read Device State" },
       { scope: "service:call", label: "Control Devices" },
