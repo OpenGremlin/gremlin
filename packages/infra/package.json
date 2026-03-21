@@ -9,7 +9,8 @@
     "synth": "cdk synth",
     "deploy": "cdk deploy --all",
     "diff": "cdk diff --all",
-    "clean": "rm -rf dist cdk.out"
+    "clean": "rm -rf dist cdk.out",
+    "test": "echo 'No tests'"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1003.0",

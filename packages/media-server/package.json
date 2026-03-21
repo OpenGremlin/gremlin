@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "echo 'No tests'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3",

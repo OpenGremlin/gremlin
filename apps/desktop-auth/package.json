@@ -10,7 +10,8 @@
     "build:main": "node build-main.mjs",
     "build:renderer": "vite build",
     "build": "pnpm build:main && pnpm build:renderer",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "test": "echo 'No tests'"
   },
   "dependencies": {
     "@gremlin/providers": "workspace:*",

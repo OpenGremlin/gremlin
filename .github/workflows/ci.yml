@@ -46,8 +46,4 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo build --filter=@gremlin/lib
-      - run: pnpm --filter @gremlin/lib exec vitest run
-      - run: pnpm --filter @gremlin/server exec vitest run
-      - run: pnpm --filter @gremlin/functions exec vitest run
-      - run: pnpm --filter @gremlin/mobile exec vitest run
+      - run: pnpm test
