@@ -1,10 +1,9 @@
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { CommandApprovalStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 
 /**
- * Return all command approvals with status PENDING.
- * The result set should be small since agents block until each approval is resolved.
+ * Return all command approvals (pending and resolved).
+ * The client filters to pending where needed.
  */
 export async function getPendingCommandApprovals(ctx: ServiceContext) {
   const table = ctx.resources.ddb.table;
@@ -12,11 +11,8 @@ export async function getPendingCommandApprovals(ctx: ServiceContext) {
     new QueryCommand({
       TableName: table.getName(),
       KeyConditionExpression: "pk = :pk",
-      FilterExpression: "#status = :status",
-      ExpressionAttributeNames: { "#status": "status" },
       ExpressionAttributeValues: {
         ":pk": "COMMAND_APPROVAL",
-        ":status": CommandApprovalStatus.Pending,
       },
     }),
   );

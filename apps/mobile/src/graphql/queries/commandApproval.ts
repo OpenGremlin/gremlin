@@ -12,6 +12,7 @@ export const PendingCommandApprovalsQuery = graphql(`
       command
       reason
       status
+      decision
       createdAt
     }
   }

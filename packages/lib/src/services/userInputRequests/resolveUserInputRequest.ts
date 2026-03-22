@@ -11,6 +11,11 @@ export async function resolveUserInputRequest(
 ): Promise<UserInputRequestItem> {
   const existing = await getUserInputRequest(ctx, id);
   if (!existing) throw new Error(`UserInputRequest ${id} not found`);
+  if (existing.status !== UserInputRequestStatus.Pending) {
+    throw new Error(
+      `UserInputRequest ${id} is already ${existing.status.toLowerCase()}`,
+    );
+  }
 
   const updated = {
     ...existing,

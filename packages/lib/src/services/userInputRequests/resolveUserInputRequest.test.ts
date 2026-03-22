@@ -28,7 +28,7 @@ describe("resolveUserInputRequest", () => {
     const existing = {
       id: "req-1",
       title: "Test",
-      status: "ACTIVE",
+      status: "PENDING",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
       lane: "main",
@@ -72,7 +72,7 @@ describe("resolveUserInputRequest", () => {
     const existing = {
       id: "req-1",
       title: "Test",
-      status: "ACTIVE",
+      status: "PENDING",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
       lane: "task:task-42",
@@ -104,7 +104,7 @@ describe("resolveUserInputRequest", () => {
     const existing = {
       id: "req-1",
       title: "Test",
-      status: "ACTIVE",
+      status: "PENDING",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
       lane: "main",
@@ -132,5 +132,16 @@ describe("resolveUserInputRequest", () => {
     await expect(
       resolveUserInputRequest(ctx, "nonexistent", "action-1"),
     ).rejects.toThrow("UserInputRequest nonexistent not found");
+  });
+
+  it("throws when user input request is already resolved", async () => {
+    mockedGetUserInputRequest.mockResolvedValue({
+      id: "req-1",
+      status: "RESOLVED",
+    } as any);
+
+    await expect(
+      resolveUserInputRequest(ctx, "req-1", "Approve"),
+    ).rejects.toThrow("UserInputRequest req-1 is already resolved");
   });
 });

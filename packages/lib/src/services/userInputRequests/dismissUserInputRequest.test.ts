@@ -28,7 +28,7 @@ describe("dismissUserInputRequest", () => {
     const existing = {
       id: "req-1",
       title: "Test",
-      status: "ACTIVE",
+      status: "PENDING",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
     };
@@ -65,7 +65,7 @@ describe("dismissUserInputRequest", () => {
     const existing = {
       id: "req-1",
       title: "Test",
-      status: "ACTIVE",
+      status: "PENDING",
       createdAt: "2024-01-01T00:00:00Z",
       agentId: "agent-1",
     };
@@ -90,6 +90,17 @@ describe("dismissUserInputRequest", () => {
 
     await expect(dismissUserInputRequest(ctx, "nonexistent")).rejects.toThrow(
       "UserInputRequest nonexistent not found",
+    );
+  });
+
+  it("throws when user input request is already dismissed", async () => {
+    mockedGetUserInputRequest.mockResolvedValue({
+      id: "req-1",
+      status: "DISMISSED",
+    } as any);
+
+    await expect(dismissUserInputRequest(ctx, "req-1")).rejects.toThrow(
+      "UserInputRequest req-1 is already dismissed",
     );
   });
 });

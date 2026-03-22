@@ -570,7 +570,6 @@ export type MutationSubmitOAuthConnectionArgs = {
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
-  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1167,7 +1166,7 @@ export type RemoveCommandAllowlistEntryMutation = { __typename?: 'Mutation', rem
 export type PendingCommandApprovalsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type PendingCommandApprovalsQuery = { __typename?: 'Query', pendingCommandApprovals: Array<{ __typename?: 'CommandApproval', id: string, taskId: string, command: string, reason: string, status: CommandApprovalStatus, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string } }> };
+export type PendingCommandApprovalsQuery = { __typename?: 'Query', pendingCommandApprovals: Array<{ __typename?: 'CommandApproval', id: string, taskId: string, command: string, reason: string, status: CommandApprovalStatus, decision?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string } }> };
 
 export type ResolveCommandApprovalMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2014,6 +2013,7 @@ export const PendingCommandApprovalsDocument = new TypedDocumentString(`
     command
     reason
     status
+    decision
     createdAt
   }
 }

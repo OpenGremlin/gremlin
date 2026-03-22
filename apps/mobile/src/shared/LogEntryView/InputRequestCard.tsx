@@ -26,7 +26,9 @@ export function InputRequestCard({
 }) {
   const { isDark } = useTheme();
   const colors = useNavigationTheme();
-  const { refetchInputRequests } = usePendingCount();
+  const { allInputRequests, refetchInputRequests } = usePendingCount();
+  const serverRequest = allInputRequests.find((r) => r.id === inputRequestId);
+  const isPending = serverRequest?.status === "PENDING";
   const [resolving, setResolving] = useState<string | null>(null);
   const [resolved, setResolved] = useState<string | null>(null);
 
@@ -66,20 +68,68 @@ export function InputRequestCard({
     </View>
   );
 
-  if (resolved) {
-    const resolvedLabel =
-      resolved === "__dismiss__" ? "Dismissed" : `Responded: ${resolved}`;
+  if (resolved || !isPending) {
+    const chosenAction =
+      resolved && resolved !== "__dismiss__"
+        ? resolved
+        : (serverRequest?.resolvedAction ?? null);
+    const wasDismissed =
+      resolved === "__dismiss__" || serverRequest?.status === "DISMISSED";
+
     return (
       <ToolBlock
         label={label}
         createdAt={createdAt}
         showTimestamp={showTimestamp}
       >
-        <View className="flex-row items-center gap-1.5 px-3 py-2">
-          <MessageCircleQuestion size={13} color={colors.iconMuted} />
-          <Text className="text-xs text-text-muted italic">
-            {resolvedLabel}
-          </Text>
+        <View className="px-3 py-2 gap-2">
+          <Text className="text-sm text-text-secondary">{message}</Text>
+          <View className="flex-row items-center gap-2 flex-wrap pt-1">
+            {wasDismissed ? (
+              <View className="rounded-lg py-1.5 px-3 bg-surface-alt">
+                <Text className="text-xs text-text-muted italic">
+                  Dismissed
+                </Text>
+              </View>
+            ) : (
+              actions.map((action) => {
+                const isChosen = action.label === chosenAction;
+                return (
+                  <View
+                    key={action.label}
+                    className="rounded-lg py-1.5 px-3"
+                    style={{
+                      backgroundColor: isChosen
+                        ? isDark
+                          ? "#1e3a5f"
+                          : "#dbeafe"
+                        : isDark
+                          ? "#1a1a1a"
+                          : "#f5f5f5",
+                      borderWidth: isChosen ? 1 : 0,
+                      borderColor: isDark ? "#3b82f6" : "#93c5fd",
+                      opacity: isChosen ? 1 : 0.4,
+                    }}
+                  >
+                    <Text
+                      className="text-xs font-medium"
+                      style={{
+                        color: isChosen
+                          ? isDark
+                            ? "#93c5fd"
+                            : "#1d4ed8"
+                          : isDark
+                            ? "#a3a3a3"
+                            : "#525252",
+                      }}
+                    >
+                      {action.label}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+          </View>
         </View>
       </ToolBlock>
     );

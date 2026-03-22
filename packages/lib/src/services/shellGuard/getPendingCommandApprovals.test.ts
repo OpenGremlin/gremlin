@@ -63,7 +63,7 @@ describe("getPendingCommandApprovals", () => {
     expect(result).toEqual([]);
   });
 
-  it("queries with correct partition key and status filter", async () => {
+  it("queries with correct partition key", async () => {
     mockDocSend.mockResolvedValue({ Items: [] });
 
     await getPendingCommandApprovals(ctx);
@@ -73,10 +73,9 @@ describe("getPendingCommandApprovals", () => {
     const input = command.input;
     expect(input.TableName).toBe("test-table");
     expect(input.KeyConditionExpression).toBe("pk = :pk");
-    expect(input.FilterExpression).toBe("#status = :status");
+    expect(input.FilterExpression).toBeUndefined();
     expect(input.ExpressionAttributeValues).toEqual({
       ":pk": "COMMAND_APPROVAL",
-      ":status": "PENDING",
     });
   });
 });

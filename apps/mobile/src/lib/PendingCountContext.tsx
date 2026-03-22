@@ -16,7 +16,9 @@ type InputRequest = InputRequestsQueryType["userInputRequests"][number];
 
 interface PendingCountValue {
   approvals: Approval[];
+  allApprovals: Approval[];
   inputRequests: InputRequest[];
+  allInputRequests: InputRequest[];
   pendingCount: number;
   refetchApprovals: () => void;
   refetchInputRequests: () => void;
@@ -24,7 +26,9 @@ interface PendingCountValue {
 
 const PendingCountContext = createContext<PendingCountValue>({
   approvals: [],
+  allApprovals: [],
   inputRequests: [],
+  allInputRequests: [],
   pendingCount: 0,
   refetchApprovals: () => {},
   refetchInputRequests: () => {},
@@ -52,23 +56,27 @@ export function PendingCountProvider({
     }, [refetchApprovals, refetchInputRequests]),
   );
 
-  const approvals = approvalsData?.pendingCommandApprovals ?? [];
-  const inputRequests = (inputRequestsData?.userInputRequests ?? []).filter(
-    (r) => r.status === "PENDING",
-  );
+  const allApprovals = approvalsData?.pendingCommandApprovals ?? [];
+  const approvals = allApprovals.filter((a) => a.status === "PENDING");
+  const allInputRequests = inputRequestsData?.userInputRequests ?? [];
+  const inputRequests = allInputRequests.filter((r) => r.status === "PENDING");
   const pendingCount = approvals.length + inputRequests.length;
 
   const value = useMemo(
     () => ({
       approvals,
+      allApprovals,
       inputRequests,
+      allInputRequests,
       pendingCount,
       refetchApprovals,
       refetchInputRequests,
     }),
     [
       approvals,
+      allApprovals,
       inputRequests,
+      allInputRequests,
       pendingCount,
       refetchApprovals,
       refetchInputRequests,
