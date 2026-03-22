@@ -57,12 +57,12 @@ async function loadSchedulerConfig() {
   try {
     const ssm = new SSMClient({});
     const params = [
-      "/gremlin/schedule-target-lambda-arn",
+      "/gremlin/schedule-target-queue-arn",
       "/gremlin/scheduler-role-arn",
       "/gremlin/doorbell-queue-url",
     ];
     const envKeys = [
-      "SCHEDULE_TARGET_LAMBDA_ARN",
+      "SCHEDULE_TARGET_QUEUE_ARN",
       "SCHEDULER_ROLE_ARN",
       "DOORBELL_SQS_URL",
     ];

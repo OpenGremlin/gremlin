@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-sqs";
 import type { ServiceContext } from "../context.js";
 import { ringDoorbell } from "./consumer.js";
+import { handleScheduleEvent } from "./handleScheduleEvent.js";
 
 /**
  * Start long-polling SQS for doorbell messages.
@@ -43,10 +44,7 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
         const messages = resp.Messages ?? [];
         await Promise.all(
           messages.map(async (msg) => {
-            const { agentId, lane } = JSON.parse(msg.Body ?? "{}");
-            if (!agentId || !lane) return;
-
-            ctx.log.info({ agentId, lane }, "SQS doorbell received");
+            const body = JSON.parse(msg.Body ?? "{}");
 
             // Ack immediately — inbox is source of truth
             await sqs.send(
@@ -55,6 +53,22 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
                 ReceiptHandle: msg.ReceiptHandle,
               }),
             );
+
+            // Schedule events have a `type` field; doorbell messages have agentId + lane
+            if (body.type) {
+              ctx.log.info({ type: body.type }, "SQS schedule event received");
+              const scheduleLog = ctx.log.child({
+                scheduleId: crypto.randomUUID(),
+                type: body.type,
+              });
+              await handleScheduleEvent({ ...ctx, log: scheduleLog }, body);
+              return;
+            }
+
+            const { agentId, lane } = body;
+            if (!agentId || !lane) return;
+
+            ctx.log.info({ agentId, lane }, "SQS doorbell received");
 
             const doorbellLog = ctx.log.child({
               doorbellId: crypto.randomUUID(),

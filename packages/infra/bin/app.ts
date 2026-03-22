@@ -51,8 +51,6 @@ const server = new ServerStack(app, "GremlinServerStack", {
 // 3. Messaging — depends on Database, Server
 new MessagingStack(app, "GremlinMessagingStack", {
   env,
-  table: db.table,
-  tableName: db.tableName,
   serverRole: server.serverRole,
 });
 

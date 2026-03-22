@@ -35,6 +35,7 @@ export async function enqueueWork(
   agentId: string,
   lane: string,
   input: EnqueueInput,
+  opts?: { skipDoorbell?: boolean },
 ) {
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
@@ -70,7 +71,7 @@ export async function enqueueWork(
 
   // Ring the doorbell via SQS
   const queueUrl = process.env.DOORBELL_SQS_URL;
-  if (queueUrl) {
+  if (queueUrl && !opts?.skipDoorbell) {
     const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
     const sqs = await getSqsClient();
     sqs

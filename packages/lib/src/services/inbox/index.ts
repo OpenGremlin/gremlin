@@ -6,15 +6,12 @@ import { enqueueWork } from "./enqueueWork.js";
 import { getStaleUnreadTargets } from "./getStaleUnreadAgentIds.js";
 import { getUnreadItems } from "./getUnreadItems.js";
 import { markRead } from "./markRead.js";
-import { ringSqsDoorbells } from "./ringSqsDoorbells.js";
-
 export const inboxService = {
   enqueueWork,
   getStaleUnreadTargets,
   getUnreadItems,
   markRead,
   ringDoorbell,
-  ringSqsDoorbells,
   createCronSchedule,
   createFollowUpSchedule,
   deleteCronSchedule,

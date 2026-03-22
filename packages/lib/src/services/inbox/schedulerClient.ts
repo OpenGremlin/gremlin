@@ -15,10 +15,10 @@ export function getSchedulerClient() {
 export const log = logger.child({ component: "scheduler" });
 
 export function getSchedulerConfig() {
-  const targetArn = process.env.SCHEDULE_TARGET_LAMBDA_ARN;
+  const targetArn = process.env.SCHEDULE_TARGET_QUEUE_ARN;
   const roleArn = process.env.SCHEDULER_ROLE_ARN;
   if (!targetArn || !roleArn) {
-    log.warn("Missing SCHEDULE_TARGET_LAMBDA_ARN or SCHEDULER_ROLE_ARN");
+    log.warn("Missing SCHEDULE_TARGET_QUEUE_ARN or SCHEDULER_ROLE_ARN");
     return null;
   }
   return { targetArn, roleArn };
