@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import type { LucideIcon } from "lucide-react-native";
 import {
-  Bell,
   FolderOpen,
   Globe,
   LogOut,
@@ -36,7 +35,6 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
     title: "Human",
     items: [
       { label: "Profile", icon: User, href: "/settings/profile" },
-      { label: "Requests", icon: Bell, href: "/settings/user-input-requests" },
       {
         label: "Connect Mobile App",
         icon: Smartphone,
