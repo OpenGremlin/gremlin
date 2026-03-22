@@ -4,9 +4,11 @@ import { storage } from "./storage";
 
 const TOKEN_KEY = "gremlin_admin_token";
 const REFRESH_TOKEN_KEY = "gremlin_refresh_token";
+const ACCESS_TOKEN_KEY = "gremlin_access_token";
 
 let _cachedToken: string | null = null;
 let _cachedRefreshToken: string | null = null;
+let _cachedAccessToken: string | null = null;
 let _onUnauthorized: (() => void) | null = null;
 let _refreshPromise: Promise<boolean> | null = null;
 
@@ -58,12 +60,26 @@ async function setRefreshToken(t: string): Promise<void> {
   await storage.setItem(REFRESH_TOKEN_KEY, t);
 }
 
+async function getAccessToken(): Promise<string | null> {
+  if (_cachedAccessToken) return _cachedAccessToken;
+  const token = await storage.getItem(ACCESS_TOKEN_KEY);
+  _cachedAccessToken = token;
+  return token;
+}
+
+async function setAccessToken(t: string): Promise<void> {
+  _cachedAccessToken = t;
+  await storage.setItem(ACCESS_TOKEN_KEY, t);
+}
+
 export async function clearToken(): Promise<void> {
   _cachedToken = null;
   _cachedRefreshToken = null;
+  _cachedAccessToken = null;
   await Promise.all([
     storage.deleteItem(TOKEN_KEY),
     storage.deleteItem(REFRESH_TOKEN_KEY),
+    storage.deleteItem(ACCESS_TOKEN_KEY),
   ]);
 }
 
@@ -103,6 +119,9 @@ export async function cognitoLogin(
   const result = data.AuthenticationResult;
   if (result.RefreshToken) {
     await setRefreshToken(result.RefreshToken);
+  }
+  if (result.AccessToken) {
+    await setAccessToken(result.AccessToken);
   }
   return { idToken: result.IdToken };
 }
@@ -149,6 +168,9 @@ async function _doRefresh(): Promise<boolean> {
       return false;
     }
     await setToken(data.AuthenticationResult.IdToken);
+    if (data.AuthenticationResult.AccessToken) {
+      await setAccessToken(data.AuthenticationResult.AccessToken);
+    }
     clientLogger.info("Token refreshed successfully");
     return true;
   } catch (err) {
@@ -205,6 +227,34 @@ export async function cognitoConfirmSignup(
   if (data.__type) {
     const message =
       data.message ?? data.__type.split("#").pop() ?? "Confirmation failed";
+    throw new Error(message);
+  }
+}
+
+export async function cognitoChangePassword(
+  previousPassword: string,
+  proposedPassword: string,
+): Promise<void> {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw new Error("Not authenticated");
+  }
+  const res = await fetch(cognitoEndpoint(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-amz-json-1.1",
+      "X-Amz-Target": "AWSCognitoIdentityProviderService.ChangePassword",
+    },
+    body: JSON.stringify({
+      AccessToken: accessToken,
+      PreviousPassword: previousPassword,
+      ProposedPassword: proposedPassword,
+    }),
+  });
+  const data = await res.json();
+  if (data.__type) {
+    const message =
+      data.message ?? data.__type.split("#").pop() ?? "Password change failed";
     throw new Error(message);
   }
 }

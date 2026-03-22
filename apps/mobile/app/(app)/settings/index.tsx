@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react-native";
 import {
   FolderOpen,
   Globe,
+  KeyRound,
   LogOut,
   Monitor,
   Moon,
@@ -29,7 +30,14 @@ type SettingsItem = {
 const sections: Array<{ title: string; items: SettingsItem[] }> = [
   {
     title: "Human",
-    items: [{ label: "Profile", icon: User, href: "/settings/profile" }],
+    items: [
+      { label: "Profile", icon: User, href: "/settings/profile" },
+      {
+        label: "Change Password",
+        icon: KeyRound,
+        href: "/settings/change-password",
+      },
+    ],
   },
   {
     title: "Agents",
