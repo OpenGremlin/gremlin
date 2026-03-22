@@ -57,7 +57,6 @@ ipcMain.handle(
     config: {
       providerId: string;
       clientId: string;
-      clientSecret: string;
       scopes: string[];
     },
   ) => {

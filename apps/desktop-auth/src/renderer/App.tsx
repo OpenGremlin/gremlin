@@ -261,17 +261,15 @@ export function App() {
 
   async function handleConnect(
     provider: ProviderMeta,
-    config: { clientId: string; clientSecret: string; scopes: string[] },
+    config: { clientId: string; scopes: string[] },
   ) {
     // Save credentials for this provider
     savePersistent(`gremlin-${provider.id}-clientId`, config.clientId);
-    savePersistent(`gremlin-${provider.id}-clientSecret`, config.clientSecret);
 
     // Start OAuth flow via IPC
     const result = await window.electronAPI.startOAuth({
       providerId: provider.id,
       clientId: config.clientId,
-      clientSecret: config.clientSecret,
       scopes: config.scopes,
     });
 
@@ -285,9 +283,7 @@ export function App() {
         $scopes: [String!]!
         $accountId: String
         $clientId: String
-        $clientSecret: String
         $tokenUrl: String
-        $tokenAuthMethod: String
       ) {
         submitOAuthConnection(
           providerId: $providerId
@@ -297,9 +293,7 @@ export function App() {
           scopes: $scopes
           accountId: $accountId
           clientId: $clientId
-          clientSecret: $clientSecret
           tokenUrl: $tokenUrl
-          tokenAuthMethod: $tokenAuthMethod
         )
       }`,
       {
@@ -310,9 +304,7 @@ export function App() {
         scopes: result.scopes,
         accountId: result.accountId ?? null,
         clientId: config.clientId,
-        clientSecret: config.clientSecret,
         tokenUrl: provider.tokenUrl,
-        tokenAuthMethod: provider.tokenAuthMethod ?? null,
       },
     );
 
@@ -604,11 +596,6 @@ export function App() {
           initialClientId={
             loadSaved(`gremlin-${activeProvider.id}-clientId`) ||
             activeProvider.defaultClientId ||
-            ""
-          }
-          initialClientSecret={
-            loadSaved(`gremlin-${activeProvider.id}-clientSecret`) ||
-            activeProvider.defaultClientSecret ||
             ""
           }
           onClose={() => setActiveProvider(null)}

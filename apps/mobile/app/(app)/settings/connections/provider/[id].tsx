@@ -697,7 +697,6 @@ function OAuthDetailView({
   const hasDefaults = !!defaults.clientId;
   const [useDefaults, setUseDefaults] = useState(hasDefaults);
   const [clientId, setClientId] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
     () => new Set(provider.availableScopes.map((s) => s.scope)),
   );
@@ -705,9 +704,6 @@ function OAuthDetailView({
   const [error, setError] = useState<string | null>(null);
 
   const effectiveClientId = useDefaults ? defaults.clientId : clientId;
-  const effectiveClientSecret = useDefaults
-    ? defaults.clientSecret
-    : clientSecret;
 
   const inputClass =
     "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
@@ -722,8 +718,8 @@ function OAuthDetailView({
   }
 
   async function handleConnect() {
-    if (!effectiveClientId || !effectiveClientSecret) {
-      setError("Client ID and Client Secret are required.");
+    if (!effectiveClientId) {
+      setError("Client ID is required.");
       return;
     }
     if (selectedScopes.size === 0) {
@@ -734,12 +730,9 @@ function OAuthDetailView({
     setConnecting(true);
     setError(null);
     try {
-      await connectOAuthProvider(
-        provider.id,
-        effectiveClientId,
-        effectiveClientSecret,
-        [...selectedScopes],
-      );
+      await connectOAuthProvider(provider.id, effectiveClientId, [
+        ...selectedScopes,
+      ]);
       refetch();
     } catch (err) {
       if (err instanceof Error && err.message === "OAuth flow was cancelled") {
@@ -823,29 +816,16 @@ function OAuthDetailView({
           </Card>
         )}
         {!useDefaults && (
-          <>
-            <TextInput
-              className={inputClass}
-              value={clientId}
-              onChangeText={setClientId}
-              placeholder="Client ID"
-              placeholderTextColor={colors.placeholderText}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!connecting}
-            />
-            <TextInput
-              className={inputClass}
-              value={clientSecret}
-              onChangeText={setClientSecret}
-              placeholder="Client Secret"
-              placeholderTextColor={colors.placeholderText}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!connecting}
-            />
-          </>
+          <TextInput
+            className={inputClass}
+            value={clientId}
+            onChangeText={setClientId}
+            placeholder="Client ID"
+            placeholderTextColor={colors.placeholderText}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!connecting}
+          />
         )}
       </View>
 
@@ -885,7 +865,7 @@ function OAuthDetailView({
 
       <Button
         onPress={handleConnect}
-        disabled={!effectiveClientId || !effectiveClientSecret}
+        disabled={!effectiveClientId}
         loading={connecting}
         fullWidth
       >

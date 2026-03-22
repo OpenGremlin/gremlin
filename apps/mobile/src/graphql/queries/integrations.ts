@@ -161,9 +161,7 @@ export const SubmitOAuthConnectionMutation = graphql(`
     $scopes: [String!]!
     $accountId: String
     $clientId: String
-    $clientSecret: String
     $tokenUrl: String
-    $tokenAuthMethod: String
   ) {
     submitOAuthConnection(
       providerId: $providerId
@@ -173,9 +171,7 @@ export const SubmitOAuthConnectionMutation = graphql(`
       scopes: $scopes
       accountId: $accountId
       clientId: $clientId
-      clientSecret: $clientSecret
       tokenUrl: $tokenUrl
-      tokenAuthMethod: $tokenAuthMethod
     )
   }
 `);

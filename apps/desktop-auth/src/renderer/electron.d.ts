@@ -2,7 +2,6 @@ interface ElectronAPI {
   startOAuth(config: {
     providerId: string;
     clientId: string;
-    clientSecret: string;
     scopes: string[];
   }): Promise<{
     accessToken: string;

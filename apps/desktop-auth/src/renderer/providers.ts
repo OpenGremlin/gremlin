@@ -7,7 +7,6 @@ import GoogleLogo from "@gremlin/logos/Google.svg";
 import JiraLogo from "@gremlin/logos/Jira.svg";
 import LinearLogo from "@gremlin/logos/Linear.svg";
 import LinearLightLogo from "@gremlin/logos/Linear_light.svg";
-import NotionLogo from "@gremlin/logos/Notion.svg";
 import SpotifyLogo from "@gremlin/logos/Spotify.svg";
 import TeamsLogo from "@gremlin/logos/Teams.svg";
 import { type IntegrationProviderDef, providers } from "@gremlin/providers";
@@ -15,7 +14,7 @@ import { type IntegrationProviderDef, providers } from "@gremlin/providers";
 /** Map logo filenames to Vite-resolved asset URLs. */
 const logoAssets: Record<string, string> = {
   "Google.svg": GoogleLogo,
-  "Notion.svg": NotionLogo,
+
   "Linear.svg": LinearLogo,
   "Linear_light.svg": LinearLightLogo,
   "Discord.svg": DiscordLogo,

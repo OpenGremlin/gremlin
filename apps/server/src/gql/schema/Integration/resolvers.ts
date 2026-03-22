@@ -187,9 +187,7 @@ const submitOAuthConnection: MutationResolvers["submitOAuthConnection"] = (
     scopes,
     accountId,
     clientId,
-    clientSecret,
     tokenUrl,
-    tokenAuthMethod,
   },
   ctx,
 ) =>
@@ -202,9 +200,7 @@ const submitOAuthConnection: MutationResolvers["submitOAuthConnection"] = (
     scopes,
     accountId ?? undefined,
     clientId ?? undefined,
-    clientSecret ?? undefined,
     tokenUrl ?? undefined,
-    tokenAuthMethod ?? undefined,
   );
 
 export const integrationResolvers = {

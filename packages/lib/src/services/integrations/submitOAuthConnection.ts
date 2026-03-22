@@ -12,9 +12,7 @@ export async function submitOAuthConnection(
   scopes: string[],
   accountId: string | undefined,
   clientId: string | undefined,
-  clientSecret: string | undefined,
   tokenUrl: string | undefined,
-  tokenAuthMethod: string | undefined,
 ): Promise<string> {
   const def = providers.find((p) => p.id === providerId);
   if (!def) throw new Error(`Unknown provider: ${providerId}`);
@@ -40,9 +38,7 @@ export async function submitOAuthConnection(
         scopes: scopes.join(","),
         accountId: accountId ?? "unknown",
         clientId,
-        clientSecret,
         tokenUrl,
-        tokenAuthMethod,
       },
     })
     .send();

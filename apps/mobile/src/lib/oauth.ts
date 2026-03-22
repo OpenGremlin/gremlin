@@ -22,14 +22,10 @@ interface OAuthProviderConfig {
   providerId: string;
   authorizeUrl: string;
   tokenUrl: string;
-  pkce: boolean;
   defaultScopes?: string[];
   scopePrefix?: string;
   extraAuthParams?: Record<string, string>;
-  /** Some providers (Notion) require Basic auth for token exchange. */
-  tokenAuthMethod?: "body" | "basic";
   defaultClientId?: string;
-  defaultClientSecret?: string;
   userInfo: UserInfoConfig;
 }
 
@@ -52,31 +48,12 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "google",
       authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenUrl: "https://oauth2.googleapis.com/token",
-      pkce: true,
       defaultScopes: ["openid", "email"],
       scopePrefix: "https://www.googleapis.com/auth/",
       extraAuthParams: { access_type: "offline", prompt: "consent" },
       defaultClientId:
         "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
-      defaultClientSecret: "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",
       userInfo: { method: "id_token" },
-    },
-  ],
-  [
-    "notion",
-    {
-      providerId: "notion",
-      authorizeUrl: "https://api.notion.com/v1/oauth/authorize",
-      tokenUrl: "https://api.notion.com/v1/oauth/token",
-      pkce: false,
-      extraAuthParams: { owner: "user" },
-      tokenAuthMethod: "basic",
-      userInfo: {
-        method: "rest",
-        url: "https://api.notion.com/v1/users/me",
-        path: "name",
-        headers: { "Notion-Version": "2022-06-28" },
-      },
     },
   ],
   [
@@ -85,7 +62,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "linear",
       authorizeUrl: "https://linear.app/oauth/authorize",
       tokenUrl: "https://api.linear.app/oauth/token",
-      pkce: false,
       userInfo: {
         method: "graphql",
         url: "https://api.linear.app/graphql",
@@ -100,7 +76,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "discord",
       authorizeUrl: "https://discord.com/api/oauth2/authorize",
       tokenUrl: "https://discord.com/api/oauth2/token",
-      pkce: false,
       defaultScopes: ["identify", "email"],
       userInfo: {
         method: "rest",
@@ -116,7 +91,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       authorizeUrl:
         "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
       tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-      pkce: true,
       defaultScopes: ["openid", "email", "offline_access"],
       scopePrefix: "https://graph.microsoft.com/",
       userInfo: {
@@ -132,7 +106,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "github",
       authorizeUrl: "https://github.com/login/oauth/authorize",
       tokenUrl: "https://github.com/login/oauth/access_token",
-      pkce: false,
       userInfo: {
         method: "rest",
         url: "https://api.github.com/user",
@@ -146,7 +119,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "gitlab",
       authorizeUrl: "https://gitlab.com/oauth/authorize",
       tokenUrl: "https://gitlab.com/oauth/token",
-      pkce: false,
       userInfo: {
         method: "rest",
         url: "https://gitlab.com/api/v4/user",
@@ -160,7 +132,6 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "jira",
       authorizeUrl: "https://auth.atlassian.com/authorize",
       tokenUrl: "https://auth.atlassian.com/oauth/token",
-      pkce: false,
       extraAuthParams: { audience: "api.atlassian.com", prompt: "consent" },
       userInfo: {
         method: "rest",
@@ -175,9 +146,7 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "spotify",
       authorizeUrl: "https://accounts.spotify.com/authorize",
       tokenUrl: "https://accounts.spotify.com/api/token",
-      pkce: false,
       defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
-      defaultClientSecret: "bd7c953c3ce747288f231bc1abcf40e0",
       userInfo: {
         method: "rest",
         url: "https://api.spotify.com/v1/me",
@@ -297,34 +266,22 @@ async function exchangeCode(
   code: string,
   redirectUri: string,
   clientId: string,
-  clientSecret: string,
-  codeVerifier: string | null,
+  codeVerifier: string,
 ): Promise<TokenResponse> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
     redirect_uri: redirectUri,
+    client_id: clientId,
+    code_verifier: codeVerifier,
   });
-
-  if (codeVerifier) {
-    body.set("code_verifier", codeVerifier);
-  }
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/x-www-form-urlencoded",
-    Accept: "application/json",
-  };
-
-  if (config.tokenAuthMethod === "basic") {
-    headers.Authorization = `Basic ${btoa(`${clientId}:${clientSecret}`)}`;
-  } else {
-    body.set("client_id", clientId);
-    body.set("client_secret", clientSecret);
-  }
 
   const res = await fetch(config.tokenUrl, {
     method: "POST",
-    headers,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
     body: body.toString(),
   });
 
@@ -359,19 +316,16 @@ export function isOAuthAvailable(): boolean {
 
 export function getOAuthDefaults(providerId: string): {
   clientId: string;
-  clientSecret: string;
 } {
   const config = providerConfigs.get(providerId);
   return {
     clientId: config?.defaultClientId ?? "",
-    clientSecret: config?.defaultClientSecret ?? "",
   };
 }
 
 export async function startOAuthFlow(
   providerId: string,
   clientId: string,
-  clientSecret: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
   const config = providerConfigs.get(providerId);
@@ -387,14 +341,8 @@ export async function startOAuthFlow(
     ),
   ];
 
-  // Generate PKCE if needed
-  let codeVerifier: string | null = null;
-  let codeChallenge: string | null = null;
-  if (config.pkce) {
-    const pkce = await generatePKCE();
-    codeVerifier = pkce.codeVerifier;
-    codeChallenge = pkce.codeChallenge;
-  }
+  // Generate PKCE
+  const { codeVerifier, codeChallenge } = await generatePKCE();
 
   // Generate state
   const stateBytes = Crypto.getRandomBytes(16);
@@ -406,14 +354,11 @@ export async function startOAuthFlow(
   authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("code_challenge", codeChallenge);
+  authUrl.searchParams.set("code_challenge_method", "S256");
 
   if (allScopes.length > 0) {
     authUrl.searchParams.set("scope", allScopes.join(" "));
-  }
-
-  if (codeChallenge) {
-    authUrl.searchParams.set("code_challenge", codeChallenge);
-    authUrl.searchParams.set("code_challenge_method", "S256");
   }
 
   if (config.extraAuthParams) {
@@ -460,7 +405,6 @@ export async function startOAuthFlow(
     code,
     REDIRECT_URI,
     clientId,
-    clientSecret,
     codeVerifier,
   );
 
@@ -489,15 +433,9 @@ import { SubmitOAuthConnectionMutation } from "../graphql/queries/integrations";
 export async function connectOAuthProvider(
   providerId: string,
   clientId: string,
-  clientSecret: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
-  const result = await startOAuthFlow(
-    providerId,
-    clientId,
-    clientSecret,
-    scopes,
-  );
+  const result = await startOAuthFlow(providerId, clientId, scopes);
 
   const config = providerConfigs.get(providerId);
   await gql(SubmitOAuthConnectionMutation, {
@@ -508,9 +446,7 @@ export async function connectOAuthProvider(
     scopes: result.scopes,
     accountId: result.accountId ?? null,
     clientId,
-    clientSecret,
     tokenUrl: config?.tokenUrl ?? null,
-    tokenAuthMethod: config?.tokenAuthMethod ?? null,
   });
 
   return result;

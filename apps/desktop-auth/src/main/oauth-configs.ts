@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import * as arctic from "arctic";
 
 // ---------------------------------------------------------------------------
@@ -15,12 +16,12 @@ export interface TokenResult {
 export interface OAuthAdapter {
   createAuthorizationURL(
     state: string,
-    codeVerifier: string | null,
+    codeVerifier: string,
     scopes: string[],
   ): URL;
   validateAuthorizationCode(
     code: string,
-    codeVerifier: string | null,
+    codeVerifier: string,
   ): Promise<TokenResult>;
 }
 
@@ -37,12 +38,7 @@ export type UserInfoConfig =
 
 export interface DesktopOAuthConfig {
   providerId: string;
-  createAdapter: (
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string,
-  ) => OAuthAdapter;
-  pkce: boolean;
+  createAdapter: (clientId: string, redirectUri: string) => OAuthAdapter;
   defaultScopes?: string[];
   scopePrefix?: string;
   extraAuthParams?: Record<string, string>;
@@ -73,6 +69,63 @@ function wrapTokens(tokens: arctic.OAuth2Tokens): TokenResult {
   return result;
 }
 
+/**
+ * Generate a PKCE code challenge from a code verifier (S256).
+ */
+function s256Challenge(verifier: string): string {
+  return createHash("sha256").update(verifier).digest("base64url");
+}
+
+/**
+ * Create an adapter that manually handles PKCE for arctic providers
+ * whose API doesn't accept a codeVerifier parameter.
+ */
+function manualPkceAdapter(
+  tokenUrl: string,
+  createArcticUrl: (state: string, scopes: string[]) => URL,
+  clientId: string,
+  redirectUri: string,
+): OAuthAdapter {
+  return {
+    createAuthorizationURL(state, codeVerifier, scopes) {
+      const url = createArcticUrl(state, scopes);
+      url.searchParams.set("code_challenge", s256Challenge(codeVerifier));
+      url.searchParams.set("code_challenge_method", "S256");
+      return url;
+    },
+    async validateAuthorizationCode(code, codeVerifier) {
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        code_verifier: codeVerifier,
+      });
+      const res = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: body.toString(),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Token exchange failed (${res.status}): ${text}`);
+      }
+      const data = await res.json();
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        idToken: data.id_token,
+        accessTokenExpiresAt: data.expires_in
+          ? new Date(Date.now() + data.expires_in * 1000)
+          : undefined,
+      };
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Provider configs
 // ---------------------------------------------------------------------------
@@ -82,16 +135,15 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "google",
     {
       providerId: "google",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Google(id, secret, uri);
+      createAdapter: (id, uri) => {
+        const p = new arctic.Google(id, "", uri);
         return {
           createAuthorizationURL: (state, cv, scopes) =>
-            p.createAuthorizationURL(state, cv ?? "", scopes),
+            p.createAuthorizationURL(state, cv, scopes),
           validateAuthorizationCode: async (code, cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, cv ?? "")),
+            wrapTokens(await p.validateAuthorizationCode(code, cv)),
         };
       },
-      pkce: true,
       defaultScopes: ["openid", "email"],
       scopePrefix: "https://www.googleapis.com/auth/",
       extraAuthParams: { access_type: "offline", prompt: "consent" },
@@ -99,42 +151,20 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     },
   ],
   [
-    "notion",
-    {
-      providerId: "notion",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Notion(id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, _scopes) =>
-            p.createAuthorizationURL(state),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
-      extraAuthParams: { owner: "user" },
-      userInfo: {
-        method: "rest",
-        url: "https://api.notion.com/v1/users/me",
-        path: "name",
-        headers: { "Notion-Version": "2022-06-28" },
-      },
-    },
-  ],
-  [
     "linear",
     {
       providerId: "linear",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Linear(id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
+      createAdapter: (id, uri) =>
+        manualPkceAdapter(
+          "https://api.linear.app/oauth/token",
+          (state, scopes) =>
+            new arctic.Linear(id, "", uri).createAuthorizationURL(
+              state,
+              scopes,
+            ),
+          id,
+          uri,
+        ),
       userInfo: {
         method: "graphql",
         url: "https://api.linear.app/graphql",
@@ -147,16 +177,15 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "discord",
     {
       providerId: "discord",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Discord(id, secret, uri);
+      createAdapter: (id, uri) => {
+        const p = new arctic.Discord(id, "", uri);
         return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, null, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, null)),
+          createAuthorizationURL: (state, cv, scopes) =>
+            p.createAuthorizationURL(state, cv, scopes),
+          validateAuthorizationCode: async (code, cv) =>
+            wrapTokens(await p.validateAuthorizationCode(code, cv)),
         };
       },
-      pkce: false,
       defaultScopes: ["identify", "email"],
       userInfo: {
         method: "rest",
@@ -169,16 +198,15 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "teams",
     {
       providerId: "teams",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.MicrosoftEntraId("common", id, secret, uri);
+      createAdapter: (id, uri) => {
+        const p = new arctic.MicrosoftEntraId("common", id, "", uri);
         return {
           createAuthorizationURL: (state, cv, scopes) =>
-            p.createAuthorizationURL(state, cv ?? "", scopes),
+            p.createAuthorizationURL(state, cv, scopes),
           validateAuthorizationCode: async (code, cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, cv ?? "")),
+            wrapTokens(await p.validateAuthorizationCode(code, cv)),
         };
       },
-      pkce: true,
       defaultScopes: ["openid", "email", "offline_access"],
       scopePrefix: "https://graph.microsoft.com/",
       userInfo: {
@@ -192,16 +220,17 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "github",
     {
       providerId: "github",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.GitHub(id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
+      createAdapter: (id, uri) =>
+        manualPkceAdapter(
+          "https://github.com/login/oauth/access_token",
+          (state, scopes) =>
+            new arctic.GitHub(id, "", uri).createAuthorizationURL(
+              state,
+              scopes,
+            ),
+          id,
+          uri,
+        ),
       userInfo: {
         method: "rest",
         url: "https://api.github.com/user",
@@ -213,16 +242,19 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "gitlab",
     {
       providerId: "gitlab",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.GitLab("https://gitlab.com", id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
+      createAdapter: (id, uri) =>
+        manualPkceAdapter(
+          "https://gitlab.com/oauth/token",
+          (state, scopes) =>
+            new arctic.GitLab(
+              "https://gitlab.com",
+              id,
+              "",
+              uri,
+            ).createAuthorizationURL(state, scopes),
+          id,
+          uri,
+        ),
       userInfo: {
         method: "rest",
         url: "https://gitlab.com/api/v4/user",
@@ -234,16 +266,17 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "jira",
     {
       providerId: "jira",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Atlassian(id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
+      createAdapter: (id, uri) =>
+        manualPkceAdapter(
+          "https://auth.atlassian.com/oauth/token",
+          (state, scopes) =>
+            new arctic.Atlassian(id, "", uri).createAuthorizationURL(
+              state,
+              scopes,
+            ),
+          id,
+          uri,
+        ),
       extraAuthParams: { audience: "api.atlassian.com", prompt: "consent" },
       userInfo: {
         method: "rest",
@@ -256,16 +289,15 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "spotify",
     {
       providerId: "spotify",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Spotify(id, secret, uri);
+      createAdapter: (id, uri) => {
+        const p = new arctic.Spotify(id, "", uri);
         return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, null, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code, null)),
+          createAuthorizationURL: (state, cv, scopes) =>
+            p.createAuthorizationURL(state, cv, scopes),
+          validateAuthorizationCode: async (code, cv) =>
+            wrapTokens(await p.validateAuthorizationCode(code, cv)),
         };
       },
-      pkce: false,
       userInfo: {
         method: "rest",
         url: "https://api.spotify.com/v1/me",
@@ -277,16 +309,17 @@ export const desktopOAuthConfigs = new Map<string, DesktopOAuthConfig>([
     "dropbox",
     {
       providerId: "dropbox",
-      createAdapter: (id, secret, uri) => {
-        const p = new arctic.Dropbox(id, secret, uri);
-        return {
-          createAuthorizationURL: (state, _cv, scopes) =>
-            p.createAuthorizationURL(state, scopes),
-          validateAuthorizationCode: async (code, _cv) =>
-            wrapTokens(await p.validateAuthorizationCode(code)),
-        };
-      },
-      pkce: false,
+      createAdapter: (id, uri) =>
+        manualPkceAdapter(
+          "https://api.dropboxapi.com/oauth2/token",
+          (state, scopes) =>
+            new arctic.Dropbox(id, "", uri).createAuthorizationURL(
+              state,
+              scopes,
+            ),
+          id,
+          uri,
+        ),
       extraAuthParams: { token_access_type: "offline" },
       userInfo: {
         method: "rest",

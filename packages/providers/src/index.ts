@@ -38,12 +38,8 @@ export interface IntegrationProviderDef {
   logoLight?: string;
   /** OAuth token endpoint URL */
   tokenUrl?: string;
-  /** How to authenticate when exchanging tokens */
-  tokenAuthMethod?: "body" | "basic";
   /** Public OAuth app key shipped with the desktop client */
   defaultClientId?: string;
-  /** Public OAuth app secret shipped with the desktop client */
-  defaultClientSecret?: string;
 }
 
 export const providers: IntegrationProviderDef[] = [
@@ -208,26 +204,10 @@ export const providers: IntegrationProviderDef[] = [
     tokenUrl: "https://oauth2.googleapis.com/token",
     defaultClientId:
       "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
-    defaultClientSecret: "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",
     availableScopes: [
       { scope: "gmail.readonly", label: "Read Gmail" },
       { scope: "gmail.send", label: "Send Gmail" },
       { scope: "documents.readonly", label: "Read Google Docs" },
-    ],
-  },
-  {
-    id: "notion",
-    service: "Notion",
-    category: "productivity",
-    description: "Pages & Databases",
-    connectionType: "oauth",
-    logo: "Notion.svg",
-    tokenUrl: "https://api.notion.com/v1/oauth/token",
-    tokenAuthMethod: "basic",
-    hidden: true,
-    availableScopes: [
-      { scope: "read_content", label: "Read Pages" },
-      { scope: "insert_content", label: "Create Content" },
     ],
   },
   {
@@ -267,7 +247,6 @@ export const providers: IntegrationProviderDef[] = [
     logo: "Dropbox.svg",
     tokenUrl: "https://api.dropboxapi.com/oauth2/token",
     defaultClientId: "i1lwuckf843zcf0",
-    defaultClientSecret: "focs9pjbj5c5bc8",
     availableScopes: [
       { scope: "account_info.read", label: "View Account Info" },
       { scope: "files.metadata.read", label: "Read File Metadata" },
@@ -361,7 +340,6 @@ export const providers: IntegrationProviderDef[] = [
     logoLight: "GitHub_light.svg",
     tokenUrl: "https://github.com/login/oauth/access_token",
     defaultClientId: "Ov23lifJONH8V9JAhnBe",
-    defaultClientSecret: "3d861f0b933a5d877917702e3d004646230dc722",
     availableScopes: [
       { scope: "repo", label: "Access Repositories" },
       { scope: "issues:read", label: "Read Issues" },
@@ -405,7 +383,6 @@ export const providers: IntegrationProviderDef[] = [
     logo: "Spotify.svg",
     tokenUrl: "https://accounts.spotify.com/api/token",
     defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
-    defaultClientSecret: "bd7c953c3ce747288f231bc1abcf40e0",
     availableScopes: [
       { scope: "user-read-playback-state", label: "Read Playback State" },
       { scope: "playlist-read-private", label: "Read Private Playlists" },

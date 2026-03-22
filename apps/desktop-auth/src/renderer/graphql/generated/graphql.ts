@@ -167,6 +167,11 @@ export type AgentWebSearchConfigInput = {
   provider?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AllowlistEntry = {
+  __typename?: 'AllowlistEntry';
+  pattern: Scalars['String']['output'];
+};
+
 export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -386,6 +391,7 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  addCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   /** Bind a connection to an agent's skill */
@@ -400,6 +406,7 @@ export type Mutation = {
   dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
+  removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -418,6 +425,12 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+};
+
+
+export type MutationAddCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
 };
 
 
@@ -488,6 +501,12 @@ export type MutationEnableModelArgs = {
 };
 
 
+export type MutationRemoveCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
+};
+
+
 export type MutationRemoveSkillArgs = {
   agentId: Scalars['ID']['input'];
   skillId: Scalars['ID']['input'];
@@ -540,12 +559,10 @@ export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
   clientId?: InputMaybe<Scalars['String']['input']>;
-  clientSecret?: InputMaybe<Scalars['String']['input']>;
   expiresAt?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
-  tokenAuthMethod?: InputMaybe<Scalars['String']['input']>;
   tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -638,6 +655,7 @@ export type Query = {
   avatars: Array<Avatar>;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
+  commandAllowlist: Array<AllowlistEntry>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -681,6 +699,11 @@ export type QueryAgentLogsArgs = {
 
 
 export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
 };
 

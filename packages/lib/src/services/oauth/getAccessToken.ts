@@ -69,13 +69,7 @@ export async function getAccessTokenForConnection(
   const meta = connection.connectionMeta;
 
   // Check if token is expired or about to expire
-  if (
-    meta.expiresAt &&
-    meta.refreshToken &&
-    meta.tokenUrl &&
-    meta.clientId &&
-    meta.clientSecret
-  ) {
+  if (meta.expiresAt && meta.refreshToken && meta.tokenUrl && meta.clientId) {
     const expiresAt = new Date(meta.expiresAt).getTime();
     if (Date.now() >= expiresAt - EXPIRY_BUFFER_MS) {
       log.info(
@@ -97,10 +91,9 @@ async function refreshAndStore(
   connection: IntegrationConnectionItem,
 ): Promise<string> {
   const meta = connection.connectionMeta;
-  const { refreshToken, tokenUrl, clientId, clientSecret, tokenAuthMethod } =
-    meta;
+  const { refreshToken, tokenUrl, clientId } = meta;
 
-  if (!refreshToken || !tokenUrl || !clientId || !clientSecret) {
+  if (!refreshToken || !tokenUrl || !clientId) {
     throw new Error(
       `Cannot refresh OAuth connection ${connection.id}: missing credentials`,
     );
@@ -109,19 +102,13 @@ async function refreshAndStore(
   const body = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: refreshToken,
+    client_id: clientId,
   });
 
   const headers: Record<string, string> = {
     "Content-Type": "application/x-www-form-urlencoded",
     Accept: "application/json",
   };
-
-  if (tokenAuthMethod === "basic") {
-    headers.Authorization = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
-  } else {
-    body.set("client_id", clientId);
-    body.set("client_secret", clientSecret);
-  }
 
   const res = await fetch(tokenUrl, {
     method: "POST",

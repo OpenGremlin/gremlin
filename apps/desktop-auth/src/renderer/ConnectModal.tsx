@@ -6,24 +6,17 @@ import { useTheme } from "./useTheme.js";
 interface ConnectModalProps {
   provider: ProviderMeta;
   initialClientId: string;
-  initialClientSecret: string;
   onClose: () => void;
-  onConnect: (config: {
-    clientId: string;
-    clientSecret: string;
-    scopes: string[];
-  }) => Promise<void>;
+  onConnect: (config: { clientId: string; scopes: string[] }) => Promise<void>;
 }
 
 export function ConnectModal({
   provider,
   initialClientId,
-  initialClientSecret,
   onClose,
   onConnect,
 }: ConnectModalProps) {
   const [clientId, setClientId] = useState(initialClientId);
-  const [clientSecret, setClientSecret] = useState(initialClientSecret);
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
     () => new Set(provider.scopes.map((s) => s.scope)),
   );
@@ -51,8 +44,8 @@ export function ConnectModal({
   }
 
   async function handleConnect() {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      setError("Client ID and Client Secret are required.");
+    if (!clientId.trim()) {
+      setError("Client ID is required.");
       return;
     }
     if (selectedScopes.size === 0) {
@@ -66,7 +59,6 @@ export function ConnectModal({
     try {
       await onConnect({
         clientId: clientId.trim(),
-        clientSecret: clientSecret.trim(),
         scopes: [...selectedScopes],
       });
     } catch (err) {
@@ -129,19 +121,6 @@ export function ConnectModal({
               onChange={(e) => setClientId(e.target.value)}
               className="w-full rounded-lg border border-edge-strong bg-card px-3 py-2 text-sm text-fg placeholder-fg-faint outline-none focus:border-indigo-500"
               placeholder="Enter your OAuth client ID"
-              disabled={loading}
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-fg-secondary">
-              Client Secret
-            </span>
-            <input
-              type="password"
-              value={clientSecret}
-              onChange={(e) => setClientSecret(e.target.value)}
-              className="w-full rounded-lg border border-edge-strong bg-card px-3 py-2 text-sm text-fg placeholder-fg-faint outline-none focus:border-indigo-500"
-              placeholder="Enter your OAuth client secret"
               disabled={loading}
             />
           </label>

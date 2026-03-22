@@ -14,7 +14,6 @@ const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/callback`;
 interface OAuthFlowConfig {
   providerId: string;
   clientId: string;
-  clientSecret: string;
   scopes: string[];
 }
 
@@ -82,11 +81,7 @@ export async function handleOAuthFlow(
     throw new Error(`No OAuth config for provider: ${config.providerId}`);
   }
 
-  const adapter = providerConfig.createAdapter(
-    config.clientId,
-    config.clientSecret,
-    REDIRECT_URI,
-  );
+  const adapter = providerConfig.createAdapter(config.clientId, REDIRECT_URI);
 
   // Build scopes
   const allScopes = [
@@ -96,10 +91,8 @@ export async function handleOAuthFlow(
     ),
   ];
 
-  // Generate PKCE verifier if needed
-  const codeVerifier = providerConfig.pkce
-    ? randomBytes(32).toString("base64url")
-    : null;
+  // Always use PKCE
+  const codeVerifier = randomBytes(32).toString("base64url");
 
   // Generate state
   const state = randomBytes(16).toString("base64url");
