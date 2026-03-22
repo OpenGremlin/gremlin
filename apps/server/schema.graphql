@@ -1,5 +1,6 @@
 type Query {
   _empty: String
+  commandAllowlist(agentId: ID!): [AllowlistEntry!]!
   file(path: String!): File
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
@@ -47,6 +48,11 @@ type Query {
 
 type Mutation {
   _empty: String
+  addCommandAllowlistEntry(agentId: ID!, pattern: String!): [AllowlistEntry!]!
+  removeCommandAllowlistEntry(
+    agentId: ID!
+    pattern: String!
+  ): [AllowlistEntry!]!
   requestFileUploads(
     agentId: String!
     taskId: String
@@ -125,6 +131,10 @@ type Subscription {
   jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
+}
+
+type AllowlistEntry {
+  pattern: String!
 }
 
 union Attachment = FileAttachment | LinkAttachment

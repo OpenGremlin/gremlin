@@ -29,6 +29,9 @@ type Documents = {
     "\n  mutation RetireAgent($id: ID!) {\n    retireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": typeof types.RetireAgentDocument,
     "\n  mutation UnretireAgent($id: ID!) {\n    unretireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": typeof types.UnretireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      ...AgentDetail\n    }\n  }\n": typeof types.AgentUpdatedDocument,
+    "\n  query CommandAllowlist($agentId: ID!) {\n    commandAllowlist(agentId: $agentId) {\n      pattern\n    }\n  }\n": typeof types.CommandAllowlistDocument,
+    "\n  mutation AddCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    addCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n": typeof types.AddCommandAllowlistEntryDocument,
+    "\n  mutation RemoveCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    removeCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n": typeof types.RemoveCommandAllowlistEntryDocument,
     "\n  query PendingCommandApprovals {\n    pendingCommandApprovals {\n      id\n      agent {\n        id\n        name\n      }\n      taskId\n      command\n      reason\n      status\n      createdAt\n    }\n  }\n": typeof types.PendingCommandApprovalsDocument,
     "\n  mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {\n    resolveCommandApproval(id: $id, decision: $decision) {\n      id\n      status\n      decision\n    }\n  }\n": typeof types.ResolveCommandApprovalDocument,
     "\n  fragment FileFields on File {\n    path\n    name\n    sizeBytes\n    mimeType\n    modifiedAt\n    render {\n      __typename\n      ... on DocumentRender { markdown title }\n      ... on CodeRender { content language }\n      ... on ImageRender { url(width: 800) width height aspectRatio }\n      ... on AudioRender { url durationSeconds }\n      ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n      ... on UnknownRender { mimeType sizeBytes }\n    }\n  }\n": typeof types.FileFieldsFragmentDoc,
@@ -96,6 +99,9 @@ const documents: Documents = {
     "\n  mutation RetireAgent($id: ID!) {\n    retireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": types.RetireAgentDocument,
     "\n  mutation UnretireAgent($id: ID!) {\n    unretireAgent(id: $id) {\n      id\n      retired\n    }\n  }\n": types.UnretireAgentDocument,
     "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      ...AgentDetail\n    }\n  }\n": types.AgentUpdatedDocument,
+    "\n  query CommandAllowlist($agentId: ID!) {\n    commandAllowlist(agentId: $agentId) {\n      pattern\n    }\n  }\n": types.CommandAllowlistDocument,
+    "\n  mutation AddCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    addCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n": types.AddCommandAllowlistEntryDocument,
+    "\n  mutation RemoveCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    removeCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n": types.RemoveCommandAllowlistEntryDocument,
     "\n  query PendingCommandApprovals {\n    pendingCommandApprovals {\n      id\n      agent {\n        id\n        name\n      }\n      taskId\n      command\n      reason\n      status\n      createdAt\n    }\n  }\n": types.PendingCommandApprovalsDocument,
     "\n  mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {\n    resolveCommandApproval(id: $id, decision: $decision) {\n      id\n      status\n      decision\n    }\n  }\n": types.ResolveCommandApprovalDocument,
     "\n  fragment FileFields on File {\n    path\n    name\n    sizeBytes\n    mimeType\n    modifiedAt\n    render {\n      __typename\n      ... on DocumentRender { markdown title }\n      ... on CodeRender { content language }\n      ... on ImageRender { url(width: 800) width height aspectRatio }\n      ... on AudioRender { url durationSeconds }\n      ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n      ... on UnknownRender { mimeType sizeBytes }\n    }\n  }\n": types.FileFieldsFragmentDoc,
@@ -205,6 +211,18 @@ export function graphql(source: "\n  mutation UnretireAgent($id: ID!) {\n    unr
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription AgentUpdated($agentId: ID!) {\n    agentUpdated(agentId: $agentId) {\n      ...AgentDetail\n    }\n  }\n"): typeof import('./graphql').AgentUpdatedDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query CommandAllowlist($agentId: ID!) {\n    commandAllowlist(agentId: $agentId) {\n      pattern\n    }\n  }\n"): typeof import('./graphql').CommandAllowlistDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    addCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n"): typeof import('./graphql').AddCommandAllowlistEntryDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveCommandAllowlistEntry($agentId: ID!, $pattern: String!) {\n    removeCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {\n      pattern\n    }\n  }\n"): typeof import('./graphql').RemoveCommandAllowlistEntryDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

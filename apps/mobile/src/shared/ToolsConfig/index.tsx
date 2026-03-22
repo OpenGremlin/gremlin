@@ -11,6 +11,7 @@ import {
 import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
@@ -330,6 +331,9 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   })}
                 </View>
               </View>
+            )}
+            {config.sandbox?.commandApproval === "ask" && (
+              <AllowlistConfig agentId={agent.id} />
             )}
           </View>
         )}

@@ -186,6 +186,11 @@ export type AgentWebSearchConfigInput = {
   provider?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AllowlistEntry = {
+  __typename?: 'AllowlistEntry';
+  pattern: Scalars['String']['output'];
+};
+
 export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -405,6 +410,7 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  addCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   /** Bind a connection to an agent's skill */
@@ -419,6 +425,7 @@ export type Mutation = {
   dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
+  removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -437,6 +444,12 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+};
+
+
+export type MutationAddCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
 };
 
 
@@ -504,6 +517,12 @@ export type MutationEnableBedrockModelArgs = {
 export type MutationEnableModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
 };
 
 
@@ -657,6 +676,7 @@ export type Query = {
   avatars: Array<Avatar>;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
+  commandAllowlist: Array<AllowlistEntry>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -700,6 +720,11 @@ export type QueryAgentLogsArgs = {
 
 
 export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
 };
 
@@ -1098,6 +1123,7 @@ export type ResolversTypes = {
   AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
+  AllowlistEntry: ResolverTypeWrapper<AllowlistEntry>;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
   Attachment: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Attachment']>;
   AudioRender: ResolverTypeWrapper<AudioRender>;
@@ -1180,6 +1206,7 @@ export type ResolversParentTypes = {
   AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: AgentWebSearchConfig;
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
+  AllowlistEntry: AllowlistEntry;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
   Attachment: ResolversUnionTypes<ResolversParentTypes>['Attachment'];
   AudioRender: AudioRender;
@@ -1333,6 +1360,10 @@ export type AgentViewImageConfigResolvers<ContextType = GremlinContext, ParentTy
 export type AgentWebSearchConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentWebSearchConfig'] = ResolversParentTypes['AgentWebSearchConfig']> = {
   enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   provider?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type AllowlistEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AllowlistEntry'] = ResolversParentTypes['AllowlistEntry']> = {
+  pattern?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type ApiKeyConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ApiKeyConnectionMeta'] = ResolversParentTypes['ApiKeyConnectionMeta']> = {
@@ -1495,6 +1526,7 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  addCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationAddCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
@@ -1507,6 +1539,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   dismissUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationDismissUserInputRequestArgs, 'id'>>;
   enableBedrockModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
   enableModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
+  removeCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationRemoveCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
   removeSkill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
   resolveCommandApproval?: Resolver<Maybe<ResolversTypes['CommandApproval']>, ParentType, ContextType, RequireFields<MutationResolveCommandApprovalArgs, 'decision' | 'id'>>;
@@ -1562,6 +1595,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;
@@ -1732,6 +1766,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentSkill?: AgentSkillResolvers<ContextType>;
   AgentViewImageConfig?: AgentViewImageConfigResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
+  AllowlistEntry?: AllowlistEntryResolvers<ContextType>;
   ApiKeyConnectionMeta?: ApiKeyConnectionMetaResolvers<ContextType>;
   Attachment?: AttachmentResolvers<ContextType>;
   AudioRender?: AudioRenderResolvers<ContextType>;

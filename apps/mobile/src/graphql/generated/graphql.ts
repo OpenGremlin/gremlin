@@ -167,6 +167,11 @@ export type AgentWebSearchConfigInput = {
   provider?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AllowlistEntry = {
+  __typename?: 'AllowlistEntry';
+  pattern: Scalars['String']['output'];
+};
+
 export type ApiKeyConnectionMeta = {
   __typename?: 'ApiKeyConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -386,6 +391,7 @@ export type ModelInfo = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
+  addCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   /** Bind a connection to an agent's skill */
@@ -400,6 +406,7 @@ export type Mutation = {
   dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableBedrockModel: Scalars['Boolean']['output'];
   enableModel: Scalars['Boolean']['output'];
+  removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
   removeSkill: Scalars['Boolean']['output'];
   requestFileUploads: Array<FileUploadUrl>;
@@ -418,6 +425,12 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+};
+
+
+export type MutationAddCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
 };
 
 
@@ -485,6 +498,12 @@ export type MutationEnableBedrockModelArgs = {
 export type MutationEnableModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveCommandAllowlistEntryArgs = {
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
 };
 
 
@@ -638,6 +657,7 @@ export type Query = {
   avatars: Array<Avatar>;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
+  commandAllowlist: Array<AllowlistEntry>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -681,6 +701,11 @@ export type QueryAgentLogsArgs = {
 
 
 export type QueryAgentSkillsArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
 };
 
@@ -1110,6 +1135,29 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 
 
 export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null } | null } };
+
+export type CommandAllowlistQueryVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+}>;
+
+
+export type CommandAllowlistQuery = { __typename?: 'Query', commandAllowlist: Array<{ __typename?: 'AllowlistEntry', pattern: string }> };
+
+export type AddCommandAllowlistEntryMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
+}>;
+
+
+export type AddCommandAllowlistEntryMutation = { __typename?: 'Mutation', addCommandAllowlistEntry: Array<{ __typename?: 'AllowlistEntry', pattern: string }> };
+
+export type RemoveCommandAllowlistEntryMutationVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+  pattern: Scalars['String']['input'];
+}>;
+
+
+export type RemoveCommandAllowlistEntryMutation = { __typename?: 'Mutation', removeCommandAllowlistEntry: Array<{ __typename?: 'AllowlistEntry', pattern: string }> };
 
 export type PendingCommandApprovalsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1931,6 +1979,27 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     }
   }
 }`) as unknown as TypedDocumentString<AgentUpdatedSubscription, AgentUpdatedSubscriptionVariables>;
+export const CommandAllowlistDocument = new TypedDocumentString(`
+    query CommandAllowlist($agentId: ID!) {
+  commandAllowlist(agentId: $agentId) {
+    pattern
+  }
+}
+    `) as unknown as TypedDocumentString<CommandAllowlistQuery, CommandAllowlistQueryVariables>;
+export const AddCommandAllowlistEntryDocument = new TypedDocumentString(`
+    mutation AddCommandAllowlistEntry($agentId: ID!, $pattern: String!) {
+  addCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {
+    pattern
+  }
+}
+    `) as unknown as TypedDocumentString<AddCommandAllowlistEntryMutation, AddCommandAllowlistEntryMutationVariables>;
+export const RemoveCommandAllowlistEntryDocument = new TypedDocumentString(`
+    mutation RemoveCommandAllowlistEntry($agentId: ID!, $pattern: String!) {
+  removeCommandAllowlistEntry(agentId: $agentId, pattern: $pattern) {
+    pattern
+  }
+}
+    `) as unknown as TypedDocumentString<RemoveCommandAllowlistEntryMutation, RemoveCommandAllowlistEntryMutationVariables>;
 export const PendingCommandApprovalsDocument = new TypedDocumentString(`
     query PendingCommandApprovals {
   pendingCommandApprovals {
