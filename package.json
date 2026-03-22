@@ -3,7 +3,8 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter='!@gremlin/mobile'",
+    "mobile": "turbo dev --filter=@gremlin/mobile",
     "build": "turbo build",
     "clean": "turbo clean",
     "lint": "biome check .",
