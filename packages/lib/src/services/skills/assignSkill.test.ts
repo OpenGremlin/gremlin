@@ -19,7 +19,7 @@ vi.mock("../shellGuard/allowlistStore.js", () => ({
 
 // Mock skill template lookup
 const mockGetSkillTemplateFromS3 = vi.fn();
-vi.mock("./skillScanner.js", () => ({
+vi.mock("./skillScanner/index.js", () => ({
   getSkillTemplateFromS3: (...args: unknown[]) =>
     mockGetSkillTemplateFromS3(...args),
 }));
