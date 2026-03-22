@@ -225,7 +225,14 @@ export const integrationResolvers = {
     disableBedrockModel,
     submitOAuthConnection,
   },
-  IntegrationProvider: { connectionCount, hasConnection },
+  IntegrationProvider: {
+    connectionCount,
+    hasConnection,
+    extraAuthParams: (parent: { extraAuthParams?: Record<string, string> }) =>
+      parent.extraAuthParams ? JSON.stringify(parent.extraAuthParams) : null,
+    userInfo: (parent: { userInfo?: unknown }) =>
+      parent.userInfo ? JSON.stringify(parent.userInfo) : null,
+  },
   IntegrationConnection: { provider, meta },
   ConnectionMeta: {
     __resolveType(obj: { __typename: string }) {

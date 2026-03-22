@@ -19,15 +19,15 @@ type UserInfoConfig =
     }
   | { method: "graphql"; url: string; query: string; path: string };
 
-interface OAuthProviderConfig {
-  providerId: string;
-  authorizeUrl: string;
-  tokenUrl: string;
-  defaultScopes?: string[];
-  scopePrefix?: string;
-  extraAuthParams?: Record<string, string>;
-  defaultClientId?: string;
-  userInfo: UserInfoConfig;
+export interface OAuthProviderConfig {
+  id: string;
+  authorizeUrl?: string | null;
+  tokenUrl?: string | null;
+  defaultClientId?: string | null;
+  defaultScopes?: ReadonlyArray<string> | null;
+  scopePrefix?: string | null;
+  extraAuthParams?: string | null;
+  userInfo?: string | null;
 }
 
 export interface OAuthFlowResult {
@@ -37,142 +37,6 @@ export interface OAuthFlowResult {
   accountId?: string;
   scopes: string[];
 }
-
-// ---------------------------------------------------------------------------
-// Provider configs
-// ---------------------------------------------------------------------------
-
-const providerConfigs = new Map<string, OAuthProviderConfig>([
-  [
-    "google",
-    {
-      providerId: "google",
-      authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-      tokenUrl: "https://oauth2.googleapis.com/token",
-      defaultScopes: ["openid", "email"],
-      scopePrefix: "https://www.googleapis.com/auth/",
-      extraAuthParams: { access_type: "offline", prompt: "consent" },
-      defaultClientId:
-        "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
-      userInfo: { method: "id_token" },
-    },
-  ],
-  [
-    "linear",
-    {
-      providerId: "linear",
-      authorizeUrl: "https://linear.app/oauth/authorize",
-      tokenUrl: "https://api.linear.app/oauth/token",
-      userInfo: {
-        method: "graphql",
-        url: "https://api.linear.app/graphql",
-        query: "{ viewer { email } }",
-        path: "data.viewer.email",
-      },
-    },
-  ],
-  [
-    "discord",
-    {
-      providerId: "discord",
-      authorizeUrl: "https://discord.com/api/oauth2/authorize",
-      tokenUrl: "https://discord.com/api/oauth2/token",
-      defaultScopes: ["identify", "email"],
-      userInfo: {
-        method: "rest",
-        url: "https://discord.com/api/users/@me",
-        path: "email",
-      },
-    },
-  ],
-  [
-    "teams",
-    {
-      providerId: "teams",
-      authorizeUrl:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-      tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-      defaultScopes: ["openid", "email", "offline_access"],
-      scopePrefix: "https://graph.microsoft.com/",
-      userInfo: {
-        method: "rest",
-        url: "https://graph.microsoft.com/v1.0/me",
-        path: "mail",
-      },
-    },
-  ],
-  [
-    "github",
-    {
-      providerId: "github",
-      authorizeUrl: "https://github.com/login/oauth/authorize",
-      tokenUrl: "https://github.com/login/oauth/access_token",
-      defaultClientId: "Ov23lifJONH8V9JAhnBe",
-      userInfo: {
-        method: "rest",
-        url: "https://api.github.com/user",
-        path: "login",
-      },
-    },
-  ],
-  [
-    "gitlab",
-    {
-      providerId: "gitlab",
-      authorizeUrl: "https://gitlab.com/oauth/authorize",
-      tokenUrl: "https://gitlab.com/oauth/token",
-      userInfo: {
-        method: "rest",
-        url: "https://gitlab.com/api/v4/user",
-        path: "email",
-      },
-    },
-  ],
-  [
-    "jira",
-    {
-      providerId: "jira",
-      authorizeUrl: "https://auth.atlassian.com/authorize",
-      tokenUrl: "https://auth.atlassian.com/oauth/token",
-      extraAuthParams: { audience: "api.atlassian.com", prompt: "consent" },
-      userInfo: {
-        method: "rest",
-        url: "https://api.atlassian.com/me",
-        path: "email",
-      },
-    },
-  ],
-  [
-    "spotify",
-    {
-      providerId: "spotify",
-      authorizeUrl: "https://accounts.spotify.com/authorize",
-      tokenUrl: "https://accounts.spotify.com/api/token",
-      defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
-      userInfo: {
-        method: "rest",
-        url: "https://api.spotify.com/v1/me",
-        path: "email",
-      },
-    },
-  ],
-  [
-    "dropbox",
-    {
-      providerId: "dropbox",
-      authorizeUrl: "https://www.dropbox.com/oauth2/authorize",
-      tokenUrl: "https://api.dropboxapi.com/oauth2/token",
-      defaultClientId: "i1lwuckf843zcf0",
-      extraAuthParams: { token_access_type: "offline" },
-      userInfo: {
-        method: "rest",
-        url: "https://api.dropboxapi.com/2/users/get_current_account",
-        path: "email",
-        httpMethod: "POST",
-      },
-    },
-  ],
-]);
 
 // ---------------------------------------------------------------------------
 // PKCE helpers
@@ -283,7 +147,7 @@ interface TokenResponse {
 }
 
 async function exchangeCode(
-  config: OAuthProviderConfig,
+  tokenUrl: string,
   code: string,
   redirectUri: string,
   clientId: string,
@@ -297,7 +161,7 @@ async function exchangeCode(
     code_verifier: codeVerifier,
   });
 
-  const res = await fetch(config.tokenUrl, {
+  const res = await fetch(tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -335,30 +199,31 @@ export function isOAuthAvailable(): boolean {
   return Platform.OS !== "web";
 }
 
-export function getOAuthDefaults(providerId: string): {
-  clientId: string;
-} {
-  const config = providerConfigs.get(providerId);
-  return {
-    clientId: config?.defaultClientId ?? "",
-  };
-}
-
 export async function startOAuthFlow(
-  providerId: string,
+  provider: OAuthProviderConfig,
   clientId: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
-  const config = providerConfigs.get(providerId);
-  if (!config) {
-    throw new Error(`No OAuth config for provider: ${providerId}`);
+  if (!provider.authorizeUrl) {
+    throw new Error(`No OAuth authorize URL for provider: ${provider.id}`);
+  }
+  if (!provider.tokenUrl) {
+    throw new Error(`No OAuth token URL for provider: ${provider.id}`);
   }
 
+  const extraAuthParams: Record<string, string> = provider.extraAuthParams
+    ? JSON.parse(provider.extraAuthParams)
+    : {};
+  const userInfo: UserInfoConfig | undefined = provider.userInfo
+    ? JSON.parse(provider.userInfo)
+    : undefined;
+
   // Build scopes
+  const defaultScopes = provider.defaultScopes ?? [];
   const allScopes = [
-    ...(config.defaultScopes ?? []),
+    ...defaultScopes,
     ...scopes.map((s) =>
-      config.scopePrefix ? `${config.scopePrefix}${s}` : s,
+      provider.scopePrefix ? `${provider.scopePrefix}${s}` : s,
     ),
   ];
 
@@ -370,7 +235,7 @@ export async function startOAuthFlow(
   const state = toBase64Url(stateBytes);
 
   // Build authorization URL
-  const authUrl = new URL(config.authorizeUrl);
+  const authUrl = new URL(provider.authorizeUrl);
   authUrl.searchParams.set("client_id", clientId);
   authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
   authUrl.searchParams.set("response_type", "code");
@@ -382,13 +247,11 @@ export async function startOAuthFlow(
     authUrl.searchParams.set("scope", allScopes.join(" "));
   }
 
-  if (config.extraAuthParams) {
-    for (const [key, value] of Object.entries(config.extraAuthParams)) {
-      authUrl.searchParams.set(key, value);
-    }
+  for (const [key, value] of Object.entries(extraAuthParams)) {
+    authUrl.searchParams.set(key, value);
   }
 
-  clientLogger.info("Starting OAuth flow", { providerId });
+  clientLogger.info("Starting OAuth flow", { providerId: provider.id });
 
   // Open browser and wait for redirect
   const result = await WebBrowser.openAuthSessionAsync(
@@ -422,7 +285,7 @@ export async function startOAuthFlow(
 
   // Exchange code for tokens
   const tokens = await exchangeCode(
-    config,
+    provider.tokenUrl,
     code,
     REDIRECT_URI,
     clientId,
@@ -430,9 +293,14 @@ export async function startOAuthFlow(
   );
 
   // Resolve account ID
-  const accountId = await resolveAccountId(config.userInfo, tokens);
+  const accountId = userInfo
+    ? await resolveAccountId(userInfo, tokens)
+    : "unknown";
 
-  clientLogger.info("OAuth flow completed", { providerId, accountId });
+  clientLogger.info("OAuth flow completed", {
+    providerId: provider.id,
+    accountId,
+  });
 
   return {
     accessToken: tokens.accessToken,
@@ -452,22 +320,21 @@ export async function startOAuthFlow(
 import { SubmitOAuthConnectionMutation } from "../graphql/queries/integrations";
 
 export async function connectOAuthProvider(
-  providerId: string,
+  provider: OAuthProviderConfig,
   clientId: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
-  const result = await startOAuthFlow(providerId, clientId, scopes);
+  const result = await startOAuthFlow(provider, clientId, scopes);
 
-  const config = providerConfigs.get(providerId);
   await gql(SubmitOAuthConnectionMutation, {
-    providerId,
+    providerId: provider.id,
     accessToken: result.accessToken,
     refreshToken: result.refreshToken ?? null,
     expiresAt: result.expiresAt ?? null,
     scopes: result.scopes,
     accountId: result.accountId ?? null,
     clientId,
-    tokenUrl: config?.tokenUrl ?? null,
+    tokenUrl: provider.tokenUrl ?? null,
   });
 
   return result;

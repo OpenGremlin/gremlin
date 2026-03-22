@@ -378,15 +378,22 @@ export type IntegrationConnection = {
 
 export type IntegrationProvider = {
   __typename?: 'IntegrationProvider';
+  authorizeUrl?: Maybe<Scalars['String']['output']>;
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
   connectionCount: Scalars['Int']['output'];
   connectionType: Scalars['String']['output'];
+  defaultClientId?: Maybe<Scalars['String']['output']>;
+  defaultScopes?: Maybe<Array<Scalars['String']['output']>>;
   description: Scalars['String']['output'];
+  extraAuthParams?: Maybe<Scalars['String']['output']>;
   hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   models?: Maybe<Array<ModelInfo>>;
+  scopePrefix?: Maybe<Scalars['String']['output']>;
   service: Scalars['String']['output'];
+  tokenUrl?: Maybe<Scalars['String']['output']>;
+  userInfo?: Maybe<Scalars['String']['output']>;
 };
 
 export type LinkAttachment = {
@@ -1494,15 +1501,22 @@ export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentT
 };
 
 export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['IntegrationProvider'] = ResolversParentTypes['IntegrationProvider']> = {
+  authorizeUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   availableScopes?: Resolver<Array<ResolversTypes['AvailableScope']>, ParentType, ContextType>;
   category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   connectionCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   connectionType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  defaultClientId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  defaultScopes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  extraAuthParams?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   models?: Resolver<Maybe<Array<ResolversTypes['ModelInfo']>>, ParentType, ContextType>;
+  scopePrefix?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tokenUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  userInfo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type LinkAttachmentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['LinkAttachment'] = ResolversParentTypes['LinkAttachment']> = {

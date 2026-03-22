@@ -25,8 +25,8 @@ import { useQuery } from "../../../../../src/hooks/useQuery";
 import { gql } from "../../../../../src/lib/auth";
 import {
   connectOAuthProvider,
-  getOAuthDefaults,
   isOAuthAvailable,
+  type OAuthProviderConfig,
 } from "../../../../../src/lib/oauth";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
@@ -679,16 +679,14 @@ function BedrockDetailView({
 function OAuthDetailView({
   provider,
 }: {
-  provider: {
-    id: string;
+  provider: OAuthProviderConfig & {
     service: string;
     hasConnection: boolean;
     availableScopes: ReadonlyArray<{ scope: string; label: string }>;
   };
 }) {
   const colors = useNavigationTheme();
-  const defaults = getOAuthDefaults(provider.id);
-  const hasDefaults = !!defaults.clientId;
+  const hasDefaults = !!provider.defaultClientId;
   const [useDefaults, setUseDefaults] = useState(hasDefaults);
   const [clientId, setClientId] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
@@ -697,7 +695,9 @@ function OAuthDetailView({
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveClientId = useDefaults ? defaults.clientId : clientId;
+  const effectiveClientId = useDefaults
+    ? (provider.defaultClientId ?? "")
+    : clientId;
 
   function toggleScope(scope: string) {
     setSelectedScopes((prev) => {
@@ -721,7 +721,7 @@ function OAuthDetailView({
     setConnecting(true);
     setError(null);
     try {
-      await connectOAuthProvider(provider.id, effectiveClientId, [
+      await connectOAuthProvider(provider, effectiveClientId, [
         ...selectedScopes,
       ]);
       router.navigate(

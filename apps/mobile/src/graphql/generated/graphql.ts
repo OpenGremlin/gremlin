@@ -359,15 +359,22 @@ export type IntegrationConnection = {
 
 export type IntegrationProvider = {
   __typename?: 'IntegrationProvider';
+  authorizeUrl?: Maybe<Scalars['String']['output']>;
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
   connectionCount: Scalars['Int']['output'];
   connectionType: Scalars['String']['output'];
+  defaultClientId?: Maybe<Scalars['String']['output']>;
+  defaultScopes?: Maybe<Array<Scalars['String']['output']>>;
   description: Scalars['String']['output'];
+  extraAuthParams?: Maybe<Scalars['String']['output']>;
   hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   models?: Maybe<Array<ModelInfo>>;
+  scopePrefix?: Maybe<Scalars['String']['output']>;
   service: Scalars['String']['output'];
+  tokenUrl?: Maybe<Scalars['String']['output']>;
+  userInfo?: Maybe<Scalars['String']['output']>;
 };
 
 export type LinkAttachment = {
@@ -1182,7 +1189,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2029,6 +2036,13 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     category
     description
     connectionType
+    authorizeUrl
+    tokenUrl
+    defaultClientId
+    defaultScopes
+    scopePrefix
+    extraAuthParams
+    userInfo
     availableScopes {
       scope
       label

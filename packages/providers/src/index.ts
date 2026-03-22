@@ -22,6 +22,17 @@ export interface ModelDef {
   outputCost?: number;
 }
 
+export type UserInfoConfig =
+  | { method: "id_token" }
+  | {
+      method: "rest";
+      url: string;
+      path: string;
+      headers?: Record<string, string>;
+      httpMethod?: "GET" | "POST";
+    }
+  | { method: "graphql"; url: string; query: string; path: string };
+
 export interface IntegrationProviderDef {
   id: string;
   service: string;
@@ -36,10 +47,20 @@ export interface IntegrationProviderDef {
   logo: string;
   /** Light-mode logo variant filename, if available */
   logoLight?: string;
+  /** OAuth authorization endpoint URL */
+  authorizeUrl?: string;
   /** OAuth token endpoint URL */
   tokenUrl?: string;
   /** Public OAuth app key shipped with the client */
   defaultClientId?: string;
+  /** Default scopes to always request */
+  defaultScopes?: string[];
+  /** Prefix to prepend to user-selected scopes */
+  scopePrefix?: string;
+  /** Extra query params for the authorization URL */
+  extraAuthParams?: Record<string, string>;
+  /** How to resolve the connected account identity after OAuth */
+  userInfo?: UserInfoConfig;
 }
 
 export const providers: IntegrationProviderDef[] = [
@@ -201,13 +222,33 @@ export const providers: IntegrationProviderDef[] = [
     description: "Gmail & Google Docs",
     connectionType: "oauth",
     logo: "Google.svg",
+    authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",
     defaultClientId:
       "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
+    defaultScopes: ["openid", "email"],
+    scopePrefix: "https://www.googleapis.com/auth/",
+    extraAuthParams: { access_type: "offline", prompt: "consent" },
+    userInfo: { method: "id_token" },
     availableScopes: [
+      // Gmail
       { scope: "gmail.readonly", label: "Read Gmail" },
       { scope: "gmail.send", label: "Send Gmail" },
+      // Calendar
+      { scope: "calendar.readonly", label: "Read Calendar" },
+      { scope: "calendar.events", label: "Manage Calendar Events" },
+      // Docs
       { scope: "documents.readonly", label: "Read Google Docs" },
+      { scope: "documents", label: "Edit Google Docs" },
+      // Drive
+      { scope: "drive.readonly", label: "Read Google Drive" },
+      { scope: "drive.file", label: "Manage Google Drive Files" },
+      // Sheets
+      { scope: "spreadsheets.readonly", label: "Read Google Sheets" },
+      { scope: "spreadsheets", label: "Edit Google Sheets" },
+      // Slides
+      { scope: "presentations.readonly", label: "Read Google Slides" },
+      { scope: "presentations", label: "Edit Google Slides" },
     ],
   },
   {
@@ -218,7 +259,14 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "oauth",
     logo: "Linear.svg",
     logoLight: "Linear_light.svg",
+    authorizeUrl: "https://linear.app/oauth/authorize",
     tokenUrl: "https://api.linear.app/oauth/token",
+    userInfo: {
+      method: "graphql",
+      url: "https://api.linear.app/graphql",
+      query: "{ viewer { email } }",
+      path: "data.viewer.email",
+    },
     hidden: true,
     availableScopes: [
       { scope: "read", label: "Read Issues" },
@@ -245,8 +293,16 @@ export const providers: IntegrationProviderDef[] = [
     description: "Files & Cloud Storage",
     connectionType: "oauth",
     logo: "Dropbox.svg",
+    authorizeUrl: "https://www.dropbox.com/oauth2/authorize",
     tokenUrl: "https://api.dropboxapi.com/oauth2/token",
     defaultClientId: "i1lwuckf843zcf0",
+    extraAuthParams: { token_access_type: "offline" },
+    userInfo: {
+      method: "rest",
+      url: "https://api.dropboxapi.com/2/users/get_current_account",
+      path: "email",
+      httpMethod: "POST",
+    },
     availableScopes: [
       { scope: "account_info.read", label: "View Account Info" },
       { scope: "files.metadata.read", label: "Read File Metadata" },
@@ -282,7 +338,14 @@ export const providers: IntegrationProviderDef[] = [
     description: "Servers & Direct Messages",
     connectionType: "oauth",
     logo: "Discord.svg",
+    authorizeUrl: "https://discord.com/api/oauth2/authorize",
     tokenUrl: "https://discord.com/api/oauth2/token",
+    defaultScopes: ["identify", "email"],
+    userInfo: {
+      method: "rest",
+      url: "https://discord.com/api/users/@me",
+      path: "email",
+    },
     hidden: true,
     availableScopes: [
       { scope: "guilds", label: "Access Servers" },
@@ -296,7 +359,16 @@ export const providers: IntegrationProviderDef[] = [
     description: "Chats & Channels",
     connectionType: "oauth",
     logo: "Teams.svg",
+    authorizeUrl:
+      "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    defaultScopes: ["openid", "email", "offline_access"],
+    scopePrefix: "https://graph.microsoft.com/",
+    userInfo: {
+      method: "rest",
+      url: "https://graph.microsoft.com/v1.0/me",
+      path: "mail",
+    },
     hidden: true,
     availableScopes: [
       { scope: "Chat.Read", label: "Read Chats" },
@@ -338,8 +410,14 @@ export const providers: IntegrationProviderDef[] = [
     connectionType: "oauth",
     logo: "GitHub.svg",
     logoLight: "GitHub_light.svg",
+    authorizeUrl: "https://github.com/login/oauth/authorize",
     tokenUrl: "https://github.com/login/oauth/access_token",
     defaultClientId: "Ov23lifJONH8V9JAhnBe",
+    userInfo: {
+      method: "rest",
+      url: "https://api.github.com/user",
+      path: "login",
+    },
     availableScopes: [
       { scope: "repo", label: "Access Repositories" },
       { scope: "issues:read", label: "Read Issues" },
@@ -352,7 +430,13 @@ export const providers: IntegrationProviderDef[] = [
     description: "Repositories & Merge Requests",
     connectionType: "oauth",
     logo: "GitLab.svg",
+    authorizeUrl: "https://gitlab.com/oauth/authorize",
     tokenUrl: "https://gitlab.com/oauth/token",
+    userInfo: {
+      method: "rest",
+      url: "https://gitlab.com/api/v4/user",
+      path: "email",
+    },
     hidden: true,
     availableScopes: [
       { scope: "read_repository", label: "Read Repositories" },
@@ -366,7 +450,14 @@ export const providers: IntegrationProviderDef[] = [
     description: "Issues & Sprints",
     connectionType: "oauth",
     logo: "Jira.svg",
+    authorizeUrl: "https://auth.atlassian.com/authorize",
     tokenUrl: "https://auth.atlassian.com/oauth/token",
+    extraAuthParams: { audience: "api.atlassian.com", prompt: "consent" },
+    userInfo: {
+      method: "rest",
+      url: "https://api.atlassian.com/me",
+      path: "email",
+    },
     hidden: true,
     availableScopes: [
       { scope: "read:jira-work", label: "Read Issues" },
@@ -381,11 +472,33 @@ export const providers: IntegrationProviderDef[] = [
     description: "Playlists & Listening History",
     connectionType: "oauth",
     logo: "Spotify.svg",
+    authorizeUrl: "https://accounts.spotify.com/authorize",
     tokenUrl: "https://accounts.spotify.com/api/token",
     defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
+    defaultScopes: ["user-read-email"],
+    userInfo: {
+      method: "rest",
+      url: "https://api.spotify.com/v1/me",
+      path: "email",
+    },
     availableScopes: [
-      { scope: "user-read-playback-state", label: "Read Playback State" },
+      // Playlists
       { scope: "playlist-read-private", label: "Read Private Playlists" },
+      {
+        scope: "playlist-read-collaborative",
+        label: "Read Collaborative Playlists",
+      },
+      { scope: "playlist-modify-public", label: "Edit Public Playlists" },
+      { scope: "playlist-modify-private", label: "Edit Private Playlists" },
+      // Playback
+      { scope: "user-read-playback-state", label: "Read Playback State" },
+      { scope: "user-modify-playback-state", label: "Control Playback" },
+      { scope: "user-read-currently-playing", label: "Read Currently Playing" },
+      { scope: "streaming", label: "Stream Audio (Premium)" },
+      // Library & History
+      { scope: "user-read-recently-played", label: "Read Recently Played" },
+      { scope: "user-library-read", label: "Read Saved Library" },
+      { scope: "user-library-modify", label: "Edit Saved Library" },
     ],
   },
   // Smart Home

@@ -45,6 +45,13 @@ export const integrationTypeDefs = /* GraphQL */ `
     models: [ModelInfo!]
     connectionCount: Int!
     hasConnection: Boolean!
+    authorizeUrl: String
+    tokenUrl: String
+    defaultClientId: String
+    defaultScopes: [String!]
+    scopePrefix: String
+    extraAuthParams: String
+    userInfo: String
   }
 
   type OAuthConnectionMeta {

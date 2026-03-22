@@ -8,6 +8,13 @@ export const IntegrationProvidersQuery = graphql(`
       category
       description
       connectionType
+      authorizeUrl
+      tokenUrl
+      defaultClientId
+      defaultScopes
+      scopePrefix
+      extraAuthParams
+      userInfo
       availableScopes {
         scope
         label

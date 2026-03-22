@@ -252,7 +252,7 @@ app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {
   res.status(204).end();
 });
 
-// Auth config (unauthenticated — needed by admin and desktop app before login)
+// Auth config (unauthenticated — needed by apps before login)
 app.get("/api/auth-config", async (_req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const cognitoDomain = process.env.COGNITO_DOMAIN;
