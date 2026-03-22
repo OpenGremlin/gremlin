@@ -1,15 +1,10 @@
-import {
-  GetObjectCommand,
-  ListObjectsV2Command,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { createLogger } from "../../../logger.js";
 import { parseSkillFile } from "../parseSkillFile.js";
 import type { SkillTemplate } from "../registry.js";
+import { getS3Client } from "../s3Client.js";
 
 const log = createLogger("skills:scanner:s3");
-
-const s3 = new S3Client({});
 
 export async function scanS3Catalog(
   bucketName: string,
@@ -73,7 +68,7 @@ export async function listS3References(
 ): Promise<string[]> {
   const prefix = `core/${skillId}/references/`;
   try {
-    const result = await s3.send(
+    const result = await (await getS3Client()).send(
       new ListObjectsV2Command({
         Bucket: bucketName,
         Prefix: prefix,
@@ -94,7 +89,7 @@ async function listDirectories(
   bucket: string,
   prefix: string,
 ): Promise<string[]> {
-  const result = await s3.send(
+  const result = await (await getS3Client()).send(
     new ListObjectsV2Command({
       Bucket: bucket,
       Prefix: prefix,
@@ -109,7 +104,7 @@ async function listDirectories(
 
 async function getFile(bucket: string, key: string): Promise<string | null> {
   try {
-    const result = await s3.send(
+    const result = await (await getS3Client()).send(
       new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
     return (await result.Body?.transformToString("utf-8")) ?? null;

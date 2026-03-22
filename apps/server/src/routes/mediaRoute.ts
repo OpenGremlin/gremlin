@@ -1,15 +1,10 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { createLogger } from "@gremlin/lib/logger.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
+import { getS3Client } from "../gql/schema/FileUpload/s3.js";
 
 const log = createLogger("media");
-
-let s3: S3Client | undefined;
-function getS3(): S3Client {
-  s3 ??= new S3Client({});
-  return s3;
-}
 
 const ALLOWED_FORMATS = ["jpeg", "png", "webp", "avif"] as const;
 type ImageFormat = (typeof ALLOWED_FORMATS)[number];
@@ -103,7 +98,7 @@ export async function mediaRoute(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const response = await getS3().send(
+    const response = await (await getS3Client()).send(
       new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
     const body = response.Body;

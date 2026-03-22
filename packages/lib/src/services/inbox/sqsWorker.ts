@@ -1,11 +1,11 @@
 import {
   DeleteMessageCommand,
   ReceiveMessageCommand,
-  SQSClient,
 } from "@aws-sdk/client-sqs";
 import type { ServiceContext } from "../context.js";
 import { ringDoorbell } from "./consumer.js";
 import { handleScheduleEvent } from "./handleScheduleEvent.js";
+import { getSqsClient } from "./sqsClient.js";
 
 /**
  * Start long-polling SQS for doorbell messages.
@@ -23,14 +23,10 @@ export function startSqsWorker(ctx: ServiceContext): () => void {
   }
 
   ctx.log.info("Starting SQS worker");
-  const sqs = new SQSClient({
-    ...(process.env.LOCALSTACK_ENDPOINT && {
-      endpoint: process.env.LOCALSTACK_ENDPOINT,
-    }),
-  });
   let shuttingDown = false;
 
   const poll = async () => {
+    const sqs = await getSqsClient();
     while (!shuttingDown) {
       try {
         const resp = await sqs.send(

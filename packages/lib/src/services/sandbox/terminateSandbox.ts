@@ -1,9 +1,9 @@
-import { EC2Client, StopInstancesCommand } from "@aws-sdk/client-ec2";
+import { StopInstancesCommand } from "@aws-sdk/client-ec2";
 import { createLogger } from "../../logger.js";
+import { getEc2Client } from "./ec2Client.js";
 import type { SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:terminate");
-const ec2 = new EC2Client({});
 
 export async function terminateSandbox(session: SandboxSession): Promise<void> {
   log.info(
@@ -29,6 +29,7 @@ export async function terminateSandbox(session: SandboxSession): Promise<void> {
     { agentId: session.agentId, instanceId: session.instanceId },
     "Stopping EC2 instance",
   );
+  const ec2 = await getEc2Client();
   await ec2.send(
     new StopInstancesCommand({
       InstanceIds: [session.instanceId],

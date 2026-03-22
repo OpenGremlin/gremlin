@@ -15,7 +15,9 @@ function getLogFilePath(app: string): string {
   return join(dir, `${hour}.log`);
 }
 
-export function createLogger(service: string): pino.Logger {
+// Single root logger with one transport — avoids registering an exit
+// listener per createLogger() call (each pino transport adds one).
+function buildRootLogger(): pino.Logger {
   const targets: TransportTargetOptions[] = [];
 
   if (isProduction) {
@@ -37,12 +39,15 @@ export function createLogger(service: string): pino.Logger {
   return pino({
     level: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
     transport: { targets },
-    base: {
-      service,
-      env: process.env.NODE_ENV || "development",
-    },
+    base: { env: process.env.NODE_ENV || "development" },
     serializers: pino.stdSerializers,
   });
+}
+
+const rootLogger = buildRootLogger();
+
+export function createLogger(service: string): pino.Logger {
+  return rootLogger.child({ service });
 }
 
 export const logger = createLogger("gremlin-server");

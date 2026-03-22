@@ -1,19 +1,6 @@
-import type { SQSClient as SQSClientType } from "@aws-sdk/client-sqs";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
-
-let _sqs: SQSClientType | undefined;
-async function getSqsClient() {
-  if (!_sqs) {
-    const { SQSClient } = await import("@aws-sdk/client-sqs");
-    _sqs = new SQSClient({
-      ...(process.env.LOCALSTACK_ENDPOINT && {
-        endpoint: process.env.LOCALSTACK_ENDPOINT,
-      }),
-    });
-  }
-  return _sqs;
-}
+import { getSqsClient } from "./sqsClient.js";
 
 export type InboxItemType =
   | "user_message"

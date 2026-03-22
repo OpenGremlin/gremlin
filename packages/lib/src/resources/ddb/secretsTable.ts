@@ -1,15 +1,8 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { Table } from "dynamodb-toolbox/table";
+import { ddbClient } from "./client.js";
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  ...(process.env.LOCALSTACK_ENDPOINT && {
-    endpoint: process.env.LOCALSTACK_ENDPOINT,
-  }),
-});
-
-const documentClient = DynamoDBDocumentClient.from(client);
+const documentClient = DynamoDBDocumentClient.from(ddbClient);
 
 export const SecretsTable = new Table({
   name: process.env.SECRETS_TABLE_NAME || "gremlin-secrets",

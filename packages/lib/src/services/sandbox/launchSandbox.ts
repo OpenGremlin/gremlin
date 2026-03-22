@@ -1,17 +1,16 @@
 import {
   DescribeInstancesCommand,
-  EC2Client,
   RunInstancesCommand,
   StartInstancesCommand,
   TerminateInstancesCommand,
 } from "@aws-sdk/client-ec2";
-import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { createLogger } from "../../logger.js";
+import { getEc2Client } from "./ec2Client.js";
+import { getSsmClient } from "./ssmClient.js";
 import type { SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:launch");
-const ec2 = new EC2Client({});
-const ssm = new SSMClient({});
 
 let cachedLaunchTemplateId: string | undefined;
 let cachedSubnetId: string | undefined;
@@ -37,6 +36,7 @@ async function getSandboxConfig(): Promise<{
     cachedSubnetId = process.env.SANDBOX_EC2_SUBNET_ID;
   } else {
     log.info("Loading sandbox config from SSM");
+    const ssm = await getSsmClient();
     const [ltRes, subnetRes] = await Promise.all([
       ssm.send(
         new GetParameterCommand({
@@ -75,6 +75,7 @@ async function getInstanceState(instanceId: string): Promise<{
   state: string | undefined;
   privateIp: string | undefined;
 }> {
+  const ec2 = await getEc2Client();
   const desc = await ec2.send(
     new DescribeInstancesCommand({ InstanceIds: [instanceId] }),
   );
@@ -148,6 +149,7 @@ export async function launchInstance(
     { agentId, existingInstanceId },
     "Launching EC2 sandbox instance (non-blocking)",
   );
+  const ec2 = await getEc2Client();
   const { launchTemplateId, subnetId } = await getSandboxConfig();
 
   // Try to reuse existing instance if it's on the current launch template

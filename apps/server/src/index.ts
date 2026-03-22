@@ -1,12 +1,13 @@
 import "./env.js";
 import { createServer } from "node:http";
 import path from "node:path";
-import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { createLogger, logger } from "@gremlin/lib/logger.js";
 import { createResources } from "@gremlin/lib/resources/index.js";
 import type { PubSub } from "@gremlin/lib/resources/pubsub.js";
 import { createServices } from "@gremlin/lib/services/index.js";
+import { getSsmClient } from "@gremlin/lib/services/sandbox/ssmClient.js";
 import express from "express";
 import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
@@ -35,7 +36,7 @@ async function getServerBaseUrl(): Promise<string> {
   }
   if (!SKIP_AUTH) {
     try {
-      const ssm = new SSMClient({});
+      const ssm = await getSsmClient();
       const res = await ssm.send(
         new GetParameterCommand({ Name: "/gremlin/admin-url" }),
       );
@@ -55,7 +56,7 @@ async function getServerBaseUrl(): Promise<string> {
 async function loadSchedulerConfig() {
   if (process.env.LOCALSTACK_ENDPOINT) return; // local dev — no SSM
   try {
-    const ssm = new SSMClient({});
+    const ssm = await getSsmClient();
     const params = [
       "/gremlin/schedule-target-queue-arn",
       "/gremlin/scheduler-role-arn",
