@@ -4,7 +4,7 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "turbo dev --filter='!@gremlin/mobile'",
-    "mobile": "turbo dev --filter=@gremlin/mobile",
+    "mobile": "pnpm --filter @gremlin/mobile dev",
     "build": "turbo build",
     "clean": "turbo clean",
     "lint": "biome check .",
