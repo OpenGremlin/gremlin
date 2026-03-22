@@ -168,7 +168,6 @@ export const SubmitOAuthConnectionMutation = graphql(`
     $scopes: [String!]!
     $accountId: String
     $clientId: String
-    $tokenUrl: String
   ) {
     submitOAuthConnection(
       providerId: $providerId
@@ -178,7 +177,6 @@ export const SubmitOAuthConnectionMutation = graphql(`
       scopes: $scopes
       accountId: $accountId
       clientId: $clientId
-      tokenUrl: $tokenUrl
     )
   }
 `);

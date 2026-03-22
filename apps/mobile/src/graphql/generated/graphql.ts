@@ -1289,7 +1289,6 @@ export type SubmitOAuthConnectionMutationVariables = Exact<{
   scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
   clientId?: InputMaybe<Scalars['String']['input']>;
-  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -2174,7 +2173,7 @@ export const DisableBedrockModelDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<DisableBedrockModelMutation, DisableBedrockModelMutationVariables>;
 export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
-    mutation SubmitOAuthConnection($providerId: String!, $accessToken: String!, $refreshToken: String, $expiresAt: String, $scopes: [String!]!, $accountId: String, $clientId: String, $tokenUrl: String) {
+    mutation SubmitOAuthConnection($providerId: String!, $accessToken: String!, $refreshToken: String, $expiresAt: String, $scopes: [String!]!, $accountId: String, $clientId: String) {
   submitOAuthConnection(
     providerId: $providerId
     accessToken: $accessToken
@@ -2183,7 +2182,6 @@ export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
     scopes: $scopes
     accountId: $accountId
     clientId: $clientId
-    tokenUrl: $tokenUrl
   )
 }
     `) as unknown as TypedDocumentString<SubmitOAuthConnectionMutation, SubmitOAuthConnectionMutationVariables>;

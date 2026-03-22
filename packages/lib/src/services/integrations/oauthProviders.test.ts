@@ -37,6 +37,12 @@ describe("OAuth provider userInfo config", () => {
     if (!provider.userInfo) continue;
 
     describe(`${provider.id} userInfo`, () => {
+      if (provider.userInfo?.method === "id_token") {
+        it("uses id_token method", () => {
+          expect(provider.userInfo?.method).toBe("id_token");
+        });
+      }
+
       if (provider.userInfo?.method === "rest") {
         it("has url and path", () => {
           const info = provider.userInfo as {

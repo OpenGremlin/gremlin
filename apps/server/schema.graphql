@@ -91,7 +91,6 @@ type Mutation {
     scopes: [String!]!
     accountId: String
     clientId: String
-    tokenUrl: String
   ): ID!
   resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
   dismissUserInputRequest(id: ID!): UserInputRequest

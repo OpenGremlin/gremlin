@@ -589,7 +589,6 @@ export type MutationSubmitOAuthConnectionArgs = {
   providerId: Scalars['String']['input'];
   refreshToken?: InputMaybe<Scalars['String']['input']>;
   scopes: Array<Scalars['String']['input']>;
-  tokenUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 

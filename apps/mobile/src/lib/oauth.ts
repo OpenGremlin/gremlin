@@ -334,7 +334,6 @@ export async function connectOAuthProvider(
     scopes: result.scopes,
     accountId: result.accountId ?? null,
     clientId,
-    tokenUrl: provider.tokenUrl ?? null,
   });
 
   return result;
