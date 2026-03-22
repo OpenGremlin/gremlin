@@ -4,7 +4,8 @@
 #   1. docker compose up -d                            # DynamoDB, SQS, Scheduler auto-created via init hook
 #   2. pnpm --filter @gremlin/server run db:seed       # Seed agent data
 #   3. Uncomment LOCALSTACK_ENDPOINT and DOORBELL_SQS_URL in .env
-#   4. pnpm --filter @gremlin/server dev
+#   4. Set SANDBOX_LOCAL=true in .env                    # Routes sandbox to local container
+#   5. pnpm --filter @gremlin/server dev
 #
 # LocalStack provides local DynamoDB, SQS, and EventBridge Scheduler.
 # Bedrock and S3 Vectors remain cloud-connected.
@@ -21,6 +22,16 @@ services:
     environment:
       - SERVICES=dynamodb,sqs,scheduler
       - PERSISTENCE=1
+
+  sandbox:
+    build:
+      context: .
+      dockerfile: packages/sandbox/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8083:8083"
+    environment:
+      - SANDBOX_LOCAL=true
 
 volumes:
   localstack-data:

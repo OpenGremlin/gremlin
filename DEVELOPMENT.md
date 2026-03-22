@@ -8,6 +8,7 @@ cp .env.example .env
 docker compose up -d
 pnpm --filter server db:seed
 pnpm dev
+pnpm mobile
 ```
 
 ## Mobile App
@@ -34,6 +35,19 @@ pnpm --filter @gremlin/mobile codegen
 ```
 cd apps/mobile && npx tsc --noEmit
 ```
+
+## Local Sandbox
+
+In production, each agent gets a dedicated EC2 instance running the sandbox relay (`packages/sandbox`). The relay is a WebSocket server (port 8080) that spawns PTY shells and executes commands inside the container. The main server connects to it over WebSocket to run agent tool calls (shell commands, file operations, etc.).
+
+For local development, `docker compose up -d` starts a sandbox container alongside LocalStack. To route the server to it instead of trying to launch EC2 instances:
+
+1. Set `SANDBOX_LOCAL=true` in your `.env`
+2. The server will connect to `ws://localhost:8080` (override with `SANDBOX_LOCAL_WS_URL` if needed)
+
+The relevant code path is in `packages/lib/src/services/sandbox/launchSandbox.ts` — when `SANDBOX_LOCAL` is set, `tryQuickConnect()` skips EC2 entirely and returns a session pointing at the local URL.
+
+The sandbox container includes Go, Rust, Python, and standard dev tools. It runs commands as a non-root `sandbox` user inside a `/workspace` directory.
 
 ## Testing
 
