@@ -195,8 +195,6 @@ export class AdminStack extends cdk.Stack {
                 "cp -r /asset-input/packages/logos/*.svg /tmp/build/packages/logos/",
                 "cp -r /asset-input/branding/* /tmp/build/branding/",
                 "cd /tmp/build/apps/mobile && npx expo export --platform web",
-                // Inject <script src="/config.js"> before </head> so runtime config loads first
-                "sed -i 's|</head>|<script src=\"/config.js\"></script></head>|' /tmp/build/apps/mobile/dist/index.html",
                 "cp -r /tmp/build/apps/mobile/dist/. /asset-output/",
               ].join(" && "),
             ],
@@ -210,14 +208,14 @@ export class AdminStack extends cdk.Stack {
             "reference",
           ],
         }),
-        // Runtime config injected as a separate file (CDK tokens resolve at deploy time)
+        // Server config endpoint (fetched by web app on load, and by native app after QR code scan)
         s3deploy.Source.data(
-          "config.js",
-          `window.__GREMLIN_CONFIG__ = ${JSON.stringify({
+          ".well-known/gremlin-config.json",
+          JSON.stringify({
+            apiUrl: cfUrl,
             cognitoDomain: props.cognitoDomain,
             cognitoClientId: props.userPoolClientId,
-            mediaBaseUrl: `${cfUrl}/media`,
-          })};`,
+          }),
         ),
       ],
       destinationBucket: adminBucket,
