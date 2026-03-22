@@ -38,7 +38,7 @@ export interface IntegrationProviderDef {
   logoLight?: string;
   /** OAuth token endpoint URL */
   tokenUrl?: string;
-  /** Public OAuth app key shipped with the desktop client */
+  /** Public OAuth app key shipped with the client */
   defaultClientId?: string;
 }
 

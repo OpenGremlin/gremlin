@@ -15,6 +15,7 @@ type UserInfoConfig =
       url: string;
       path: string;
       headers?: Record<string, string>;
+      httpMethod?: "GET" | "POST";
     }
   | { method: "graphql"; url: string; query: string; path: string };
 
@@ -106,6 +107,7 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
       providerId: "github",
       authorizeUrl: "https://github.com/login/oauth/authorize",
       tokenUrl: "https://github.com/login/oauth/access_token",
+      defaultClientId: "Ov23lifJONH8V9JAhnBe",
       userInfo: {
         method: "rest",
         url: "https://api.github.com/user",
@@ -151,6 +153,22 @@ const providerConfigs = new Map<string, OAuthProviderConfig>([
         method: "rest",
         url: "https://api.spotify.com/v1/me",
         path: "email",
+      },
+    },
+  ],
+  [
+    "dropbox",
+    {
+      providerId: "dropbox",
+      authorizeUrl: "https://www.dropbox.com/oauth2/authorize",
+      tokenUrl: "https://api.dropboxapi.com/oauth2/token",
+      defaultClientId: "i1lwuckf843zcf0",
+      extraAuthParams: { token_access_type: "offline" },
+      userInfo: {
+        method: "rest",
+        url: "https://api.dropboxapi.com/2/users/get_current_account",
+        path: "email",
+        httpMethod: "POST",
       },
     },
   ],
@@ -226,7 +244,10 @@ async function resolveAccountId(
           Authorization: `Bearer ${tokens.accessToken}`,
           ...(userInfo.headers ?? {}),
         };
-        const res = await fetch(userInfo.url, { headers });
+        const res = await fetch(userInfo.url, {
+          method: userInfo.httpMethod ?? "GET",
+          headers,
+        });
         if (!res.ok) return "unknown";
         const data = await res.json();
         return String(getNestedValue(data, userInfo.path) ?? "unknown");

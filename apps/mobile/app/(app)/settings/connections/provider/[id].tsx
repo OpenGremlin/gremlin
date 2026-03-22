@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -314,7 +314,9 @@ function ApiKeyDetailView({
         apiKey: apiKeyInput.trim(),
       });
       setApiKeyInput("");
-      refetch();
+      router.navigate(
+        `/settings/connections?connected=${encodeURIComponent(provider.id)}`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to connect");
     } finally {
@@ -676,7 +678,6 @@ function BedrockDetailView({
 
 function OAuthDetailView({
   provider,
-  refetch,
 }: {
   provider: {
     id: string;
@@ -684,7 +685,6 @@ function OAuthDetailView({
     hasConnection: boolean;
     availableScopes: ReadonlyArray<{ scope: string; label: string }>;
   };
-  refetch: () => void;
 }) {
   const colors = useNavigationTheme();
   const defaults = getOAuthDefaults(provider.id);
@@ -724,7 +724,9 @@ function OAuthDetailView({
       await connectOAuthProvider(provider.id, effectiveClientId, [
         ...selectedScopes,
       ]);
-      refetch();
+      router.navigate(
+        `/settings/connections?connected=${encodeURIComponent(provider.id)}`,
+      );
     } catch (err) {
       if (err instanceof Error && err.message === "OAuth flow was cancelled") {
         // User dismissed the browser — not an error
@@ -916,7 +918,7 @@ export default function IntegrationDetailScreen() {
           </Text>
         </Card>
       ) : provider.connectionType === "oauth" ? (
-        <OAuthDetailView provider={provider} refetch={refetch} />
+        <OAuthDetailView provider={provider} />
       ) : (
         <Card className="p-5">
           <Text className="text-sm text-text-muted">
