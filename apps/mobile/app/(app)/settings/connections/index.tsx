@@ -164,32 +164,41 @@ export default function IntegrationsScreen() {
                 (p) => p.id === defaultModel.providerId,
               );
               return (
-                <Card className="p-4">
-                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
+                <View className="gap-2">
+                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
                     Default Model
                   </Text>
-                  <Text className="text-sm font-medium text-text-primary">
-                    {defaultModel.modelId}
-                  </Text>
-                  {modelProvider && (
-                    <Text className="text-xs text-text-muted mt-0.5">
-                      {modelProvider.service}
-                    </Text>
-                  )}
-                </Card>
+                  <Card className="p-4 flex-row items-center gap-3">
+                    {modelProvider && (
+                      <IntegrationLogo id={modelProvider.id} size={32} />
+                    )}
+                    <View className="flex-1">
+                      <Text className="text-sm font-medium text-text-primary">
+                        {defaultModel.modelId}
+                      </Text>
+                      {modelProvider && (
+                        <Text className="text-xs text-text-secondary mt-0.5">
+                          {modelProvider.service}
+                        </Text>
+                      )}
+                    </View>
+                  </Card>
+                </View>
               );
             }
 
             if (aiProviders.length > 0) {
               return (
-                <Card className="p-4">
-                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">
+                <View className="gap-2">
+                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
                     Default Model
                   </Text>
-                  <Text className="text-sm text-text-muted">
-                    No default model selected. Using Bedrock Claude Sonnet 4.
-                  </Text>
-                </Card>
+                  <Card className="p-4">
+                    <Text className="text-sm text-text-muted">
+                      No default model selected. Using Bedrock Claude Sonnet 4.
+                    </Text>
+                  </Card>
+                </View>
               );
             }
 
@@ -216,10 +225,17 @@ export default function IntegrationsScreen() {
                       className="text-sm font-medium text-text-primary"
                       numberOfLines={1}
                     >
-                      {conn.meta.accountId && conn.meta.accountId !== "unknown"
-                        ? conn.meta.accountId
-                        : conn.provider.service}
+                      {conn.provider.service}
                     </Text>
+                    {conn.meta.accountId &&
+                      conn.meta.accountId !== "unknown" && (
+                        <Text
+                          className="text-xs text-text-secondary"
+                          numberOfLines={1}
+                        >
+                          {conn.meta.accountId}
+                        </Text>
+                      )}
                   </View>
                   <Text className="text-xs text-text-muted" numberOfLines={1}>
                     {formatDate(conn.connectedAt)}
