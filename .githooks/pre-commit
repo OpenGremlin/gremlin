@@ -1,13 +1,13 @@
 #!/bin/sh
 set -e
 
-echo "Running pre-push checks..."
+echo "Running pre-commit checks..."
 
 echo "→ Lint"
 pnpm lint
 
-echo "→ Typecheck"
-pnpm --filter @gremlin/lib build
+echo "→ Build & Typecheck"
+pnpm turbo build --filter @gremlin/server --filter @gremlin/mobile
 pnpm --filter @gremlin/server exec tsc --noEmit
 pnpm --filter @gremlin/mobile exec tsc --noEmit
 
