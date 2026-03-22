@@ -7,7 +7,6 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { useAuth } from "../src/lib/AuthContext";
@@ -16,7 +15,7 @@ import {
   cognitoLogin,
   cognitoSignup,
 } from "../src/lib/auth";
-import { useNavigationTheme } from "../src/lib/useNavigationTheme";
+import { Input } from "../src/shared/Input";
 
 const gremlinLogo = require("../../../branding/gremlin_logo.svg");
 
@@ -24,7 +23,6 @@ type Mode = "login" | "signup" | "confirm";
 
 export default function LoginScreen() {
   const { login, signupDisabled } = useAuth();
-  const colors = useNavigationTheme();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -106,10 +104,9 @@ export default function LoginScreen() {
 
         <View className="gap-3">
           {mode === "confirm" ? (
-            <TextInput
-              className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
+            <Input
+              size="lg"
               placeholder="Verification code"
-              placeholderTextColor={colors.placeholderText}
               value={code}
               onChangeText={setCode}
               keyboardType="number-pad"
@@ -119,20 +116,18 @@ export default function LoginScreen() {
             />
           ) : (
             <>
-              <TextInput
-                className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
+              <Input
+                size="lg"
                 placeholder="Email"
-                placeholderTextColor={colors.placeholderText}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
               />
-              <TextInput
-                className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
+              <Input
+                size="lg"
                 placeholder="Password"
-                placeholderTextColor={colors.placeholderText}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry

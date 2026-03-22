@@ -1,20 +1,19 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   AgentsQuery,
   CreateAgentJobMutation,
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
-import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";
+import { Input } from "../../../src/shared/Input";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 export default function NewJobScreen() {
-  const colors = useNavigationTheme();
   const { data: agentsData } = useQuery(AgentsQuery);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
@@ -65,9 +64,6 @@ export default function NewJobScreen() {
     }
   };
 
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-sm";
-
   return (
     <ScrollView
       className="flex-1"
@@ -76,19 +72,13 @@ export default function NewJobScreen() {
     >
       <View className="gap-2">
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
-        <TextInput
-          className={inputClass}
-          value={name}
-          onChangeText={setName}
-          placeholder="Job name"
-          placeholderTextColor={colors.placeholderText}
-        />
+        <Input value={name} onChangeText={setName} placeholder="Job name" />
       </View>
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-text-secondary">Agent</Text>
         <Pressable
-          className={inputClass}
+          className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5"
           onPress={() => setAgentPickerOpen(true)}
         >
           <Text
@@ -112,12 +102,10 @@ export default function NewJobScreen() {
         <Text className="text-sm font-medium text-text-secondary">
           Recurrence
         </Text>
-        <TextInput
-          className={inputClass}
+        <Input
           value={recurrence}
           onChangeText={setRecurrence}
           placeholder="Every weekday at 9am"
-          placeholderTextColor={colors.placeholderText}
         />
       </View>
 
@@ -128,7 +116,7 @@ export default function NewJobScreen() {
         <TimezonePicker
           value={timezone}
           onChange={setTimezone}
-          className={inputClass}
+          className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm leading-[18px] text-text-primary"
         />
       </View>
 
@@ -136,12 +124,10 @@ export default function NewJobScreen() {
         <Text className="text-sm font-medium text-text-secondary">
           Description
         </Text>
-        <TextInput
-          className={inputClass}
+        <Input
           value={description}
           onChangeText={setDescription}
           placeholder="What should this job do?"
-          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={4}
           textAlignVertical="top"

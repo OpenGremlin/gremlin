@@ -1,8 +1,9 @@
 import { Check } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, Text, type TextInput, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { Input } from "./Input";
 import { SheetModal } from "./SheetModal";
 
 export interface PickerOption {
@@ -52,11 +53,10 @@ export function PickerModal({
     <SheetModal visible={visible} title={title} onClose={onClose}>
       {searchable && (
         <View className="px-4 py-2 border-b border-app-border">
-          <TextInput
+          <Input
             ref={searchRef}
-            className="bg-surface-alt rounded-lg px-3 py-2 text-sm text-text-primary"
+            className="bg-surface-alt border-0"
             placeholder="Search..."
-            placeholderTextColor={colors.placeholderText}
             value={search}
             onLayout={() => setTimeout(() => searchRef.current?.focus(), 300)}
             onChangeText={setSearch}

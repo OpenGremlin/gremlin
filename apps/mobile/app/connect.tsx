@@ -12,19 +12,17 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { decodeQrPayload, fetchServerConfig } from "../src/lib/connectUtils";
 import { useServerConfig } from "../src/lib/ServerConfigContext";
-import { useNavigationTheme } from "../src/lib/useNavigationTheme";
+import { Input } from "../src/shared/Input";
 
 const gremlinLogo = require("../../../branding/gremlin_logo.svg");
 
 type Step = "scan" | "confirm" | "manual";
 
 export default function ConnectScreen() {
-  const colors = useNavigationTheme();
   const { setConfig } = useServerConfig();
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -192,10 +190,9 @@ export default function ConnectScreen() {
 
         {step === "manual" && (
           <View className="gap-3">
-            <TextInput
-              className="bg-input-bg border border-input-border rounded-xl px-4 py-3.5 text-text-primary text-base"
+            <Input
+              size="lg"
               placeholder="https://your-server.cloudfront.net"
-              placeholderTextColor={colors.placeholderText}
               value={manualUrl}
               onChangeText={setManualUrl}
               keyboardType="url"

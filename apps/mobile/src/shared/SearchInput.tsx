@@ -1,5 +1,5 @@
-import { TextInput, type TextInputProps } from "react-native";
-import { useNavigationTheme } from "../lib/useNavigationTheme";
+import type { TextInputProps } from "react-native";
+import { Input } from "./Input";
 
 type SearchInputProps = {
   value: string;
@@ -8,19 +8,12 @@ type SearchInputProps = {
 } & Omit<TextInputProps, "value" | "onChangeText" | "placeholder">;
 
 export function SearchInput({
-  value,
-  onChangeText,
   placeholder = "Search...",
   ...rest
 }: SearchInputProps) {
-  const colors = useNavigationTheme();
   return (
-    <TextInput
-      className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary"
-      value={value}
-      onChangeText={onChangeText}
+    <Input
       placeholder={placeholder}
-      placeholderTextColor={colors.placeholderText}
       autoCapitalize="none"
       autoCorrect={false}
       {...rest}

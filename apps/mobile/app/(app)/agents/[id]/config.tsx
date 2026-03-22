@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   AgentQuery,
   AvatarsQuery,
@@ -19,13 +19,11 @@ import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
+import { Input } from "../../../../src/shared/Input";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SaveButton } from "../../../../src/shared/SaveButton";
 import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
-
-const INPUT_CLASS =
-  "bg-surface-alt border border-app-border rounded-lg px-4 py-3 text-text-primary text-sm";
 
 export default function AgentConfigScreen() {
   const colors = useNavigationTheme();
@@ -166,24 +164,20 @@ export default function AgentConfigScreen() {
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
-        <TextInput
-          className={INPUT_CLASS}
+        <Input
           value={name}
           onChangeText={setName}
           placeholder="Agent name"
-          placeholderTextColor={colors.placeholderText}
           editable={!agent.retired}
         />
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Soul</Text>
-        <TextInput
-          className={INPUT_CLASS}
+        <Input
           value={soul}
           onChangeText={setSoul}
           placeholder="Who is this agent?"
-          placeholderTextColor={colors.placeholderText}
           multiline
           numberOfLines={6}
           textAlignVertical="top"

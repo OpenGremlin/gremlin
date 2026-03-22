@@ -100,7 +100,7 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
             placeholder="e.g. docker, npm, cargo"
             placeholderTextColor={colors.placeholderText}
             autoFocus
-            className="flex-1 px-3 py-2 rounded-lg border bg-surface-alt border-app-border text-sm text-text-secondary font-mono"
+            className="flex-1 px-3 py-2 rounded-lg border bg-surface-alt border-app-border text-sm leading-[18px] text-text-secondary font-mono"
           />
           <Pressable
             onPress={addEntry}

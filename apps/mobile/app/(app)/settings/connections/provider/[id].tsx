@@ -6,7 +6,6 @@ import {
   ScrollView,
   Switch,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import {
@@ -32,6 +31,7 @@ import {
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
+import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
@@ -300,13 +300,9 @@ function ApiKeyDetailView({
   defaultModel: DefaultModel;
   refetch: () => void;
 }) {
-  const colors = useNavigationTheme();
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
 
   async function handleSaveApiKey() {
     if (!apiKeyInput.trim()) return;
@@ -331,12 +327,10 @@ function ApiKeyDetailView({
       {!provider.hasConnection ? (
         <View className="gap-3">
           <Text className="text-sm font-medium text-text-primary">API Key</Text>
-          <TextInput
-            className={inputClass}
+          <Input
             value={apiKeyInput}
             onChangeText={setApiKeyInput}
             placeholder={`Enter your ${provider.service} API key`}
-            placeholderTextColor={colors.placeholderText}
             secureTextEntry
             autoCapitalize="none"
           />
@@ -705,9 +699,6 @@ function OAuthDetailView({
 
   const effectiveClientId = useDefaults ? defaults.clientId : clientId;
 
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
-
   function toggleScope(scope: string) {
     setSelectedScopes((prev) => {
       const next = new Set(prev);
@@ -816,12 +807,10 @@ function OAuthDetailView({
           </Card>
         )}
         {!useDefaults && (
-          <TextInput
-            className={inputClass}
+          <Input
             value={clientId}
             onChangeText={setClientId}
             placeholder="Client ID"
-            placeholderTextColor={colors.placeholderText}
             autoCapitalize="none"
             autoCorrect={false}
             editable={!connecting}

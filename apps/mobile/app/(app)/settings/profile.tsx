@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import {
   ProfileQuery,
   UpdateProfileMutation,
 } from "../../../src/graphql/queries";
 import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
-import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
+import { Input } from "../../../src/shared/Input";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
@@ -21,7 +21,6 @@ interface ProfileFormValues {
 }
 
 export default function ProfileScreen() {
-  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
 
@@ -71,9 +70,6 @@ export default function ProfileScreen() {
     return <QueryResult loading={loading} error={error} />;
   }
 
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm text-text-primary";
-
   return (
     <ScrollView
       className="flex-1"
@@ -86,12 +82,7 @@ export default function ProfileScreen() {
           control={control}
           name="displayName"
           render={({ field: { onChange, value } }) => (
-            <TextInput
-              className={inputClass}
-              value={value}
-              onChangeText={onChange}
-              placeholderTextColor={colors.placeholderText}
-            />
+            <Input value={value} onChangeText={onChange} />
           )}
         />
       </View>
@@ -102,15 +93,13 @@ export default function ProfileScreen() {
           control={control}
           name="about"
           render={({ field: { onChange, value } }) => (
-            <TextInput
-              className={inputClass}
+            <Input
               value={value}
               onChangeText={onChange}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
               style={{ minHeight: 80 }}
-              placeholderTextColor={colors.placeholderText}
             />
           )}
         />
@@ -122,12 +111,10 @@ export default function ProfileScreen() {
           control={control}
           name="website"
           render={({ field: { onChange, value } }) => (
-            <TextInput
-              className={inputClass}
+            <Input
               value={value}
               onChangeText={onChange}
               placeholder="https://"
-              placeholderTextColor={colors.placeholderText}
               autoCapitalize="none"
               keyboardType="url"
             />
@@ -144,7 +131,7 @@ export default function ProfileScreen() {
             <TimezonePicker
               value={value}
               onChange={onChange}
-              className={inputClass}
+              className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm leading-[18px] text-text-primary"
             />
           )}
         />

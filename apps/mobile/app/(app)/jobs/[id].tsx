@@ -2,14 +2,7 @@ import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import type { AgentJobQuery as AgentJobQueryType } from "../../../src/graphql/generated/graphql";
 import {
   AgentJobQuery,
@@ -22,11 +15,11 @@ import {
 import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
-import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Card } from "../../../src/shared/Card";
 import { DestructiveButton } from "../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../src/shared/formatDate";
+import { Input } from "../../../src/shared/Input";
 import { PickerModal } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
 import { SaveButton } from "../../../src/shared/SaveButton";
@@ -37,7 +30,6 @@ type Job = NonNullable<AgentJobQueryType["agentJob"]>;
 type JobTask = Job["tasks"][number];
 
 export default function JobDetailScreen() {
-  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(AgentJobQuery, {
     id: id ?? "",
@@ -207,9 +199,6 @@ export default function JobDetailScreen() {
     ...job.tasks,
   ].slice(0, 10);
 
-  const inputClass =
-    "bg-input-bg border border-input-border rounded-lg px-4 py-3 text-text-primary text-sm";
-
   return (
     <ScrollView
       className="flex-1"
@@ -294,7 +283,7 @@ export default function JobDetailScreen() {
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Agent</Text>
             <Pressable onPress={() => setAgentPickerOpen(true)}>
-              <View className={inputClass}>
+              <View className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5">
                 <Text className="text-sm text-text-primary">
                   {agentOptions.find((a) => a.value === currentAgentId)
                     ?.label ?? job.agent.name}
@@ -312,22 +301,18 @@ export default function JobDetailScreen() {
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Name</Text>
-            <TextInput
-              className={inputClass}
+            <Input
               value={currentName}
               onChangeText={(val) => setName(val === job.name ? null : val)}
-              placeholderTextColor={colors.placeholderText}
             />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Recurrence</Text>
-            <TextInput
-              className={inputClass}
+            <Input
               value={currentRecurrence}
               onChangeText={(val) =>
                 setRecurrence(val === job.recurrence ? null : val)
               }
-              placeholderTextColor={colors.placeholderText}
               autoCapitalize="none"
             />
           </View>
@@ -336,18 +321,16 @@ export default function JobDetailScreen() {
             <TimezonePicker
               value={currentTimezone}
               onChange={(val) => setTimezone(val === job.timezone ? null : val)}
-              className={inputClass}
+              className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm leading-[18px] text-text-primary"
             />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Description</Text>
-            <TextInput
-              className={inputClass}
+            <Input
               value={currentDescription ?? ""}
               onChangeText={(val) =>
                 setDescription(val === job.description ? null : val)
               }
-              placeholderTextColor={colors.placeholderText}
               multiline
               textAlignVertical="top"
               style={{ minHeight: 80 }}
