@@ -70,24 +70,12 @@ pnpm run deploy    # deploy all stacks
 |---|---|
 | `apps/mobile` | React Native / Expo app — web, iOS, and Android |
 | `apps/server` | Node.js backend — Express, GraphQL, DynamoDB, SQS |
-| `apps/desktop-auth` | Electron app for desktop OAuth flows (Gremlin Connect) |
 | `packages/lib` | Shared services and business logic |
 | `packages/sandbox` | EC2 sandbox agent and WebSocket handler |
 | `packages/infra` | AWS CDK infrastructure stacks |
 | `packages/functions` | Lambda functions (EventBridge schedule targets, etc.) |
 | `packages/media-server` | Lambda-based media server for file serving |
 | `packages/logos` | Integration provider logos and brand assets |
-
-## Desktop Auth App
-
-The `apps/desktop-auth` Electron app handles OAuth connections from your machine. OAuth client secrets and authorization codes never touch the server — the entire flow happens locally, and only the resulting access tokens are submitted.
-
-```
-cd apps/desktop-auth
-pnpm install
-pnpm dev            # starts Vite + Electron
-pnpm build          # builds main process + renderer
-```
 
 ## Conventions
 

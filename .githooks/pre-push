@@ -14,7 +14,6 @@ pnpm --filter @gremlin/mobile exec tsc --noEmit
 echo "→ Codegen"
 pnpm --filter @gremlin/server codegen
 pnpm --filter @gremlin/mobile codegen
-pnpm --filter desktop-auth codegen
 if ! git diff --quiet; then
   echo "ERROR: Codegen produced uncommitted changes. Please commit them before pushing."
   git diff --stat

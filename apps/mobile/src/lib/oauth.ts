@@ -38,7 +38,7 @@ export interface OAuthFlowResult {
 }
 
 // ---------------------------------------------------------------------------
-// Provider configs — mirrors desktop-auth/src/main/oauth-configs.ts
+// Provider configs
 // ---------------------------------------------------------------------------
 
 const providerConfigs = new Map<string, OAuthProviderConfig>([

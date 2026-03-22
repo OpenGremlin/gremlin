@@ -24,7 +24,7 @@ OpenGremlin deploys to your AWS account. Your keys, your data, your infrastructu
 - **Safe-ish by design** — Least privilege by default. Humans authenticate and authorize. Agents get short-lived access tokens. Sandboxed instances limit the blast radius.
 - **Isolated sandboxes** — Each agent gets its own EC2 instance for code execution, file operations, and tool use.
 - **Long-term memory** — Agents remember context across conversations.
-- **Local credential management** — OAuth flows run on your client. Credentials are stored securely in your cloud. Agents only receive short-lived access tokens.
+- **Local credential management** — OAuth flows run on the mobile app. Credentials are stored securely in your cloud. Agents only receive short-lived access tokens.
 - **Three core concepts** — **Agents** (personality, memory, and a sandbox), **Connections** (OAuth credentials and API keys — you pick the account, the scopes, and which agents get access), **Skills** (CLI tools an agent can use — a Gmail skill needs a Google connection, a browser skill needs nothing).
 - **Async tasks** — Agents delegate work to background workers. Scheduled jobs run on cron.
 - **Multi-model** — Claude, GPT, Gemini, Llama, Mistral via Bedrock, or any provider you connect.
@@ -32,14 +32,12 @@ OpenGremlin deploys to your AWS account. Your keys, your data, your infrastructu
 
 ### How connections work
 
-> 🚧 **Migrating to mobile client** — Auth flow is moving to mobile client, Gremlin Connect will be removed.
+OAuth flows run on the **mobile app** (`apps/mobile`):
 
-**Gremlin Connect** is a desktop app (Electron) that handles OAuth on your machine:
-
-1. You enter your OAuth app credentials (client ID and secret) in Gremlin Connect.
-2. The app opens your browser for the consent screen.
-3. Your browser redirects back to `localhost`.
-4. Gremlin Connect exchanges the auth code for tokens locally.
+1. Enter your OAuth client ID in the mobile app.
+2. The app opens a browser for the consent screen.
+3. The browser redirects back to the app.
+4. The app exchanges the auth code for tokens locally.
 5. Tokens are sent to your server over HTTPS.
 
 Agents only get short-lived access tokens for the current task. They can't mint new tokens or access services you haven't connected.
@@ -107,7 +105,7 @@ This deploys the server, database, admin dashboard, auth, and sandboxes. The dep
 
 #### 3. Connect services
 
-1. Open the **Gremlin Connect** desktop app (`apps/desktop-auth`)
+1. Open the **mobile app** (`apps/mobile`) on your device or in a browser
 2. Enter your server URL and log in
 3. Add a provider with your OAuth credentials, select scopes, and authorize
 4. The connection appears in the admin dashboard — agents can now use it
