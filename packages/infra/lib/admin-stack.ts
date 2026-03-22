@@ -46,28 +46,6 @@ export class AdminStack extends cdk.Stack {
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
     };
 
-    // CloudFront behavior to serve .well-known files with correct headers
-    const wellKnownBehavior: cloudfront.BehaviorOptions = {
-      origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-      responseHeadersPolicy: new cloudfront.ResponseHeadersPolicy(
-        this,
-        "WellKnownHeaders",
-        {
-          customHeadersBehavior: {
-            customHeaders: [
-              {
-                header: "Content-Type",
-                value: "application/json",
-                override: true,
-              },
-            ],
-          },
-        },
-      ),
-    };
-
     const distribution = new cloudfront.Distribution(this, "AdminCdn", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
@@ -75,7 +53,6 @@ export class AdminStack extends cdk.Stack {
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
       additionalBehaviors: {
-        "/.well-known/*": wellKnownBehavior,
         "/graphql": apiBehavior,
         "/api/*": apiBehavior,
         "/api/files/*": {
@@ -208,15 +185,6 @@ export class AdminStack extends cdk.Stack {
             "reference",
           ],
         }),
-        // Server config endpoint (fetched by web app on load, and by native app after QR code scan)
-        s3deploy.Source.data(
-          ".well-known/gremlin-config.json",
-          JSON.stringify({
-            apiUrl: cfUrl,
-            cognitoDomain: props.cognitoDomain,
-            cognitoClientId: props.userPoolClientId,
-          }),
-        ),
       ],
       destinationBucket: adminBucket,
       distribution,

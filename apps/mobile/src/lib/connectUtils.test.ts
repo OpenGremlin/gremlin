@@ -116,7 +116,7 @@ describe("fetchServerConfig", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ apiUrl: "https://example.com" }),
+        json: async () => ({}),
       }),
     );
     await expect(fetchServerConfig("https://example.com")).rejects.toThrow(
@@ -131,9 +131,8 @@ describe("fetchServerConfig", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          apiUrl: "https://example.com",
           cognitoDomain: "evil.example.com",
-          cognitoClientId: "abc123",
+          clientId: "abc123",
         }),
       }),
     );
@@ -149,9 +148,8 @@ describe("fetchServerConfig", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          apiUrl: "https://d1234.cloudfront.net",
           cognitoDomain: "my-app.auth.us-east-1.amazoncognito.com",
-          cognitoClientId: "abc123",
+          clientId: "abc123",
         }),
       }),
     );
@@ -164,14 +162,14 @@ describe("fetchServerConfig", () => {
     vi.unstubAllGlobals();
   });
 
-  it("falls back to input URL when apiUrl is missing", async () => {
+  it("uses input URL as serverUrl", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           cognitoDomain: "my-app.auth.us-east-1.amazoncognito.com",
-          cognitoClientId: "abc123",
+          clientId: "abc123",
         }),
       }),
     );
@@ -180,18 +178,66 @@ describe("fetchServerConfig", () => {
     vi.unstubAllGlobals();
   });
 
-  it("strips trailing slash from server URL", async () => {
+  it("maps clientId from response to cognitoClientId in config", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          cognitoDomain: "my-app.auth.us-east-1.amazoncognito.com",
+          clientId: "server-client-id-123",
+        }),
+      }),
+    );
+    const cfg = await fetchServerConfig("https://example.com");
+    expect(cfg.cognitoClientId).toBe("server-client-id-123");
+    // Should not have a clientId field — only cognitoClientId
+    expect(cfg).not.toHaveProperty("clientId");
+    vi.unstubAllGlobals();
+  });
+
+  it("throws when cognitoDomain is present but clientId is missing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          cognitoDomain: "my-app.auth.us-east-1.amazoncognito.com",
+        }),
+      }),
+    );
+    await expect(fetchServerConfig("https://example.com")).rejects.toThrow(
+      "missing required fields",
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("throws when clientId is present but cognitoDomain is missing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ clientId: "abc123" }),
+      }),
+    );
+    await expect(fetchServerConfig("https://example.com")).rejects.toThrow(
+      "missing required fields",
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("strips trailing slash and hits /api/auth-config", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         cognitoDomain: "my-app.auth.us-east-1.amazoncognito.com",
-        cognitoClientId: "abc123",
+        clientId: "abc123",
       }),
     });
     vi.stubGlobal("fetch", mockFetch);
     await fetchServerConfig("https://my-server.com/");
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://my-server.com/.well-known/gremlin-config.json",
+      "https://my-server.com/api/auth-config",
     );
     vi.unstubAllGlobals();
   });

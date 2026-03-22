@@ -27,25 +27,27 @@ const ServerConfigContext = createContext<ServerConfigState>({
 });
 
 /**
- * Fetches server config for web.
- * Production: /.well-known/gremlin-config.json (served by CloudFront)
- * Dev: falls back to EXPO_PUBLIC_ env vars from .env
+ * Fetches server config for web from /api/auth-config.
+ * In prod, CloudFront routes /api/* to the server.
+ * In dev, the Expo proxy or CORS handles localhost:3001.
  */
 async function fetchWebConfig(): Promise<ServerConfig | null> {
+  // In dev, hit the local server directly; in prod, same origin
+  const baseUrl = __DEV__ ? "http://localhost:3001" : "";
   try {
-    const res = await fetch("/.well-known/gremlin-config.json");
+    const res = await fetch(`${baseUrl}/api/auth-config`);
     if (res.ok) {
       const data = await res.json();
-      if (data.cognitoDomain && data.cognitoClientId) {
+      if (data.cognitoDomain && data.clientId) {
         return {
-          serverUrl: data.apiUrl || window.location.origin,
+          serverUrl: baseUrl || window.location.origin,
           cognitoDomain: data.cognitoDomain,
-          cognitoClientId: data.cognitoClientId,
+          cognitoClientId: data.clientId,
         };
       }
     }
   } catch {
-    // Expected to fail in local dev — fall through to env vars
+    // Server not running — fall through to env vars
   }
 
   const domain = process.env.EXPO_PUBLIC_COGNITO_DOMAIN;

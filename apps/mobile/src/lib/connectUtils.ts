@@ -30,18 +30,18 @@ export function isValidCognitoDomain(domain: string): boolean {
   return COGNITO_DOMAIN_RE.test(`https://${domain}`);
 }
 
-/** Fetch and validate server config from a /.well-known endpoint */
+/** Fetch and validate server config from the /api/auth-config endpoint */
 export async function fetchServerConfig(
   serverUrl: string,
 ): Promise<ServerConfig> {
-  const url = `${serverUrl.replace(/\/$/, "")}/.well-known/gremlin-config.json`;
-  const res = await fetch(url);
+  const base = serverUrl.replace(/\/$/, "");
+  const res = await fetch(`${base}/api/auth-config`);
   if (!res.ok) {
     throw new Error(`Server returned ${res.status}`);
   }
   const cfg = await res.json();
 
-  if (!cfg.cognitoDomain || !cfg.cognitoClientId) {
+  if (!cfg.cognitoDomain || !cfg.clientId) {
     throw new Error("Invalid server config: missing required fields");
   }
   if (!isValidCognitoDomain(cfg.cognitoDomain)) {
@@ -49,8 +49,8 @@ export async function fetchServerConfig(
   }
 
   return {
-    serverUrl: cfg.apiUrl || serverUrl,
+    serverUrl: base,
     cognitoDomain: cfg.cognitoDomain,
-    cognitoClientId: cfg.cognitoClientId,
+    cognitoClientId: cfg.clientId,
   };
 }

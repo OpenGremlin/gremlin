@@ -9,11 +9,12 @@ export default function SettingsLayout() {
     <Stack screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen name="index" options={{ title: "Settings" }} />
       <Stack.Screen name="profile" options={{ title: "Profile" }} />
-      <Stack.Screen name="general" options={{ title: "General" }} />
+      <Stack.Screen name="server-settings" options={{ title: "Settings" }} />
       <Stack.Screen
         name="connect-mobile"
         options={{ title: "Connect Mobile App" }}
       />
+      <Stack.Screen name="server" options={{ title: "Connected Server" }} />
       <Stack.Screen name="skills/index" options={{ title: "Skills" }} />
       <Stack.Screen name="skills/[id]" options={{ title: "Skill" }} />
       <Stack.Screen

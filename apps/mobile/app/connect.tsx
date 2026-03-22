@@ -40,7 +40,7 @@ export default function ConnectScreen() {
       setError("");
       setLoading(true);
       try {
-        if (!url.startsWith("https://")) {
+        if (!__DEV__ && !url.startsWith("https://")) {
           throw new Error("Server URL must use HTTPS");
         }
         const cfg = await fetchServerConfig(url);
