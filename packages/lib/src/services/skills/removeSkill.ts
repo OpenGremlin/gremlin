@@ -3,7 +3,7 @@ import type { ServiceContext } from "../context.js";
 import { createAllowlistStore } from "../shellGuard/allowlistStore.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
+import { getSkillTemplateFromS3 } from "./skillScanner/index.js";
 
 /**
  * Remove a skill assignment from an agent.

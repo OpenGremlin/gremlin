@@ -16,6 +16,7 @@ export async function saveMemory(
   content: string,
 ): Promise<{ date: string; saved: boolean }> {
   await ensureVectorIndex(ctx);
+  if (!ctx.resources.s3vectors) return { date: todayStamp(), saved: false };
 
   const date = todayStamp();
   const vectorKey = `${agentId}:${date}`;

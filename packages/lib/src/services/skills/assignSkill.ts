@@ -3,7 +3,7 @@ import type { AgentSkillItem } from "../../resources/ddb/schema/agentSkill.js";
 import type { ServiceContext } from "../context.js";
 import { createAllowlistStore } from "../shellGuard/allowlistStore.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
+import { getSkillTemplateFromS3 } from "./skillScanner/index.js";
 
 /**
  * Assign a skill to an agent with optional connection bindings.

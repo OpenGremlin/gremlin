@@ -6,7 +6,6 @@ export interface S3VectorsResource {
   bucketName: string;
 }
 
-export const s3vectors: S3VectorsResource = {
-  client: s3VectorsClient,
-  bucketName: process.env.VECTORS_BUCKET || "gremlin-vectors",
-};
+export const s3vectors: S3VectorsResource | null = process.env.VECTORS_BUCKET
+  ? { client: s3VectorsClient, bucketName: process.env.VECTORS_BUCKET }
+  : null;

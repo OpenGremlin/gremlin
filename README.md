@@ -117,7 +117,8 @@ pnpm install
 cp .env.example .env
 docker compose up -d          # LocalStack (DynamoDB, SQS)
 pnpm --filter server db:seed  # seed sample data
-pnpm dev                      # server + admin UI
+pnpm dev                      # server
+pnpm mobile                   # Expo app (Web, iOS, Android)
 ```
 
 > **Note:** AWS credentials are still needed for Bedrock (LLM calls) — LocalStack handles DynamoDB and SQS only.

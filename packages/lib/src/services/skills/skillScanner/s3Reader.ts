@@ -3,42 +3,27 @@ import {
   ListObjectsV2Command,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { createLogger } from "../../logger.js";
-import { parseSkillFile } from "./parseSkillFile.js";
-import type { SkillTemplate } from "./registry.js";
+import { createLogger } from "../../../logger.js";
+import { parseSkillFile } from "../parseSkillFile.js";
+import type { SkillTemplate } from "../registry.js";
 
-const log = createLogger("skills:scanner");
+const log = createLogger("skills:scanner:s3");
 
 const s3 = new S3Client({});
 
-let cachedCatalog: SkillTemplate[] | null = null;
-let cacheExpiry = 0;
-
-const CACHE_TTL_MS = 60_000; // 1 minute
-
-/**
- * Scan S3 for SKILL.md files and return parsed skill templates.
- * Results are cached in memory with a 1-minute TTL.
- */
-export async function scanSkillCatalog(
+export async function scanS3Catalog(
   bucketName: string,
 ): Promise<SkillTemplate[]> {
-  const now = Date.now();
-  if (cachedCatalog && now < cacheExpiry) {
-    return cachedCatalog;
-  }
-
   const templates: SkillTemplate[] = [];
 
   for (const prefix of ["core/"]) {
-    const dirs = await listSkillDirectories(bucketName, prefix);
+    const dirs = await listDirectories(bucketName, prefix);
 
     for (const dir of dirs) {
       try {
-        const content = await getSkillFile(bucketName, `${dir}SKILL.md`);
+        const content = await getFile(bucketName, `${dir}SKILL.md`);
         if (!content) continue;
 
-        // Derive ID from directory name: "core/github/" → "github"
         const id = dir.replace(prefix, "").replace(/\/$/, "");
         const template = parseSkillFile(id, content);
         if (template) {
@@ -52,22 +37,17 @@ export async function scanSkillCatalog(
     }
   }
 
-  cachedCatalog = templates;
-  cacheExpiry = now + CACHE_TTL_MS;
-
   return templates;
 }
 
-/** Look up a single skill template by ID */
-export async function getSkillTemplateFromS3(
+export async function getS3Template(
   bucketName: string,
   skillId: string,
 ): Promise<SkillTemplate | null> {
-  // Try core/ prefix first
   for (const prefix of ["core/"]) {
     const key = `${prefix}${skillId}/SKILL.md`;
     try {
-      const content = await getSkillFile(bucketName, key);
+      const content = await getFile(bucketName, key);
       if (content) {
         return parseSkillFile(skillId, content);
       }
@@ -78,29 +58,16 @@ export async function getSkillTemplateFromS3(
   return null;
 }
 
-/**
- * Fetch a reference file from a skill's references/ directory on S3.
- * Accepts a short name like "send" and resolves to "references/send.md".
- */
-export async function getSkillReferenceFromS3(
+export async function getS3Reference(
   bucketName: string,
   skillId: string,
   name: string,
 ): Promise<string | null> {
-  // Sanitize: block path traversal and slashes
-  if (name.includes("..") || name.includes("/") || name.includes("\\")) {
-    return null;
-  }
-
   const key = `core/${skillId}/references/${name}.md`;
-  return getSkillFile(bucketName, key);
+  return getFile(bucketName, key);
 }
 
-/**
- * List available reference file names for a skill.
- * Returns short names (e.g. ["send", "triage", "read"]).
- */
-export async function listSkillReferencesFromS3(
+export async function listS3References(
   bucketName: string,
   skillId: string,
 ): Promise<string[]> {
@@ -123,13 +90,7 @@ export async function listSkillReferencesFromS3(
   }
 }
 
-/** Invalidate the in-memory cache */
-export function invalidateSkillCache(): void {
-  cachedCatalog = null;
-  cacheExpiry = 0;
-}
-
-async function listSkillDirectories(
+async function listDirectories(
   bucket: string,
   prefix: string,
 ): Promise<string[]> {
@@ -146,10 +107,7 @@ async function listSkillDirectories(
     .filter((p): p is string => !!p);
 }
 
-async function getSkillFile(
-  bucket: string,
-  key: string,
-): Promise<string | null> {
+async function getFile(bucket: string, key: string): Promise<string | null> {
   try {
     const result = await s3.send(
       new GetObjectCommand({ Bucket: bucket, Key: key }),

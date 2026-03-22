@@ -1,7 +1,11 @@
 /**
- * Returns the S3 bucket name for skill files.
- * Falls back to a default if not set (for local dev).
+ * Returns the S3 bucket name for skill files, or null to use local filesystem.
+ * Throws in production if not set.
  */
-export function getSkillsBucket(): string {
-  return process.env.SKILLS_BUCKET ?? "gremlin-skills";
+export function getSkillsBucket(): string | null {
+  const bucket = process.env.SKILLS_BUCKET || null;
+  if (!bucket && process.env.NODE_ENV === "production") {
+    throw new Error("SKILLS_BUCKET must be set in production");
+  }
+  return bucket;
 }

@@ -47,13 +47,7 @@ async function fetchWebConfig(): Promise<ServerConfig | null> {
       }
     }
   } catch {
-    // Server not running — fall through to env vars
-  }
-
-  const domain = process.env.EXPO_PUBLIC_COGNITO_DOMAIN;
-  const clientId = process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID;
-  if (domain && clientId) {
-    return { serverUrl: "", cognitoDomain: domain, cognitoClientId: clientId };
+    // Server not running
   }
   return null;
 }

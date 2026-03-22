@@ -6,7 +6,7 @@ import {
   loadActiveConnectionLabels,
 } from "./loadActiveConnections.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
+import { getSkillTemplateFromS3 } from "./skillScanner/index.js";
 
 export interface SkillSummaryResult {
   promptSection: string;

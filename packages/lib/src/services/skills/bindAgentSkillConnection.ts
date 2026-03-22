@@ -4,7 +4,7 @@ import type { AgentSkillItem } from "../../resources/ddb/schema/agentSkill.js";
 import type { ServiceContext } from "../context.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
-import { getSkillTemplateFromS3 } from "./skillScanner.js";
+import { getSkillTemplateFromS3 } from "./skillScanner/index.js";
 
 /**
  * Bind a connection to an agent skill's provider slot.

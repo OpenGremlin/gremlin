@@ -23,6 +23,7 @@ export async function recallMemories(
   topK = 5,
 ): Promise<{ recent: RecalledMemory[]; relevant: RecalledMemory[] }> {
   await ensureVectorIndex(ctx);
+  if (!ctx.resources.s3vectors) return { recent: [], relevant: [] };
 
   const { client, bucketName } = ctx.resources.s3vectors;
 

@@ -4,7 +4,7 @@ import { parseConnectionBindings } from "@gremlin/lib/services/skills/parseConne
 import {
   getSkillTemplateFromS3,
   scanSkillCatalog,
-} from "@gremlin/lib/services/skills/skillScanner.js";
+} from "@gremlin/lib/services/skills/skillScanner/index.js";
 import type {
   AgentSkillResolvers,
   MutationResolvers,

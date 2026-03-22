@@ -14,7 +14,7 @@ import {
   getSkillReferenceFromS3,
   getSkillTemplateFromS3,
   listSkillReferencesFromS3,
-} from "./skillScanner.js";
+} from "./skillScanner/index.js";
 
 const log = createLogger("skills:tools");
 

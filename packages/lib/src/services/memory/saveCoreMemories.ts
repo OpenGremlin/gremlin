@@ -13,6 +13,7 @@ export async function saveCoreMemories(
   memories: CoreMemory[],
 ): Promise<void> {
   await ensureVectorIndex(ctx);
+  if (!ctx.resources.s3vectors) return;
 
   const { client, bucketName } = ctx.resources.s3vectors;
   const key = `${agentId}:core`;

@@ -13,6 +13,7 @@ const INDEX_NAME = "memories";
 
 export async function ensureVectorIndex(ctx: ServiceContext): Promise<void> {
   if (initialized) return;
+  if (!ctx.resources.s3vectors) return;
 
   const { client, bucketName } = ctx.resources.s3vectors;
 
