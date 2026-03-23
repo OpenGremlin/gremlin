@@ -7,8 +7,8 @@ const monorepoRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
-// Watch all monorepo packages
-config.watchFolders = [monorepoRoot];
+// Watch all monorepo packages (preserve Expo's defaults)
+config.watchFolders = [...(config.watchFolders || []), monorepoRoot];
 
 // Exclude heavy directories that cause EMFILE errors
 config.resolver.blockList = [/packages\/infra\/cdk\.out\/.*/];

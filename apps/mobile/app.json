@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Gremlin",
+    "name": "OpenGremlin",
     "slug": "gremlin",
     "version": "0.0.1",
     "scheme": "gremlin",
@@ -14,8 +14,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gremlin.app",
-      "associatedDomains": ["applinks:opengremlin.com"]
+      "bundleIdentifier": "com.opengremlin.mobile",
+      "buildNumber": "1",
+      "associatedDomains": ["applinks:opengremlin.com"],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "intentFilters": [
@@ -38,7 +42,11 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.gremlin.app"
+      "package": "com.gremlin.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -52,7 +60,15 @@
         {
           "cameraPermission": "Allow Gremlin to scan QR codes for server setup."
         }
-      ]
-    ]
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e64cbb1c-27a5-44b0-b8f3-4fe9fa00a0ec"
+      }
+    }
   }
 }

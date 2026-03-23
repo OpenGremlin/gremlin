@@ -1,0 +1,54 @@
+# EAS Build ignore file — exclude everything not needed for the mobile build
+# When present, this REPLACES .gitignore for determining what to upload
+
+# Dependencies (EAS reinstalls these)
+node_modules/
+
+# Build artifacts and caches
+.expo/
+dist/
+web-build/
+.turbo/
+cdk.out/
+cdk.context.json
+*.tsbuildinfo
+
+# Sibling apps (not needed for mobile build)
+apps/server/
+apps/admin/
+
+# Packages not used by mobile
+packages/infra/
+packages/lib/
+packages/media-server/
+packages/functions/
+packages/sandbox/
+packages/providers/
+
+# Non-essential root directories
+reference/
+logs/
+
+# Native artifacts
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Git history (EAS doesn't need it)
+.git/
+
+# Misc
+.DS_Store
+*.pem
+.env*.local
+*.docx
+~$*
