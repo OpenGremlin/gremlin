@@ -28,6 +28,12 @@ packages/providers/
 # Non-essential root directories
 reference/
 logs/
+docs/
+localstack/
+
+# Generated native folders (from expo prebuild)
+apps/mobile/ios/
+apps/mobile/android/
 
 # Native artifacts
 *.orig.*

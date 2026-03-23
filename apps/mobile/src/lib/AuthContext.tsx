@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { getApiUrl } = require("./config");
     const apiUrl = getApiUrl();
+    if (!apiUrl) return;
     fetch(`${apiUrl}/api/auth-config`)
       .then((r) => r.json())
       .then((data) => {

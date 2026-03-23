@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "OpenGremlin",
+    "owner": "marvinli",
     "slug": "gremlin",
     "version": "0.0.1",
     "scheme": "gremlin",
@@ -15,7 +16,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.opengremlin.mobile",
-      "buildNumber": "1",
       "associatedDomains": ["applinks:opengremlin.com"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false

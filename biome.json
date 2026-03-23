@@ -38,7 +38,9 @@
       "!**/dist",
       "!**/cdk.out",
       "!reference",
-      "!**/resolverTypes.ts"
+      "!**/resolverTypes.ts",
+      "!apps/mobile/ios",
+      "!apps/mobile/android"
     ],
     "ignoreUnknown": true
   },
