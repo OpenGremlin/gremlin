@@ -53,18 +53,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Sync NativeWind color scheme (for dark: class support)
-  useEffect(() => {
-    if (!loaded) return;
-    if (mode === "system") {
-      setColorScheme("system");
-    } else {
-      setColorScheme(mode);
-    }
-  }, [mode, loaded, setColorScheme]);
-
   // Derive isDark from our own state, not NativeWind's return value
   const isDark = mode === "system" ? systemScheme === "dark" : mode === "dark";
+
+  // Sync NativeWind color scheme (for dark: class support)
+  // Always pass the resolved value so dark: classes stay in sync with CSS vars
+  useEffect(() => {
+    if (!loaded) return;
+    setColorScheme(isDark ? "dark" : "light");
+  }, [isDark, loaded, setColorScheme]);
 
   const themeStyle = useMemo(
     () => vars(isDark ? darkVars : lightVars),
