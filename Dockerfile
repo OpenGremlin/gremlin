@@ -1,23 +1,18 @@
-# Stage 1: install all dependencies
-FROM node:20-slim AS deps
+# Stage 1: prune monorepo to only what @gremlin/server needs
+FROM node:20-slim AS prune
+WORKDIR /workspace
+RUN corepack enable && npm install -g turbo
+COPY . .
+RUN turbo prune @gremlin/server --out-dir /pruned
+
+# Stage 2: install dependencies + build
+FROM node:20-slim AS build
 WORKDIR /workspace
 RUN corepack enable
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/server/package.json apps/server/
-COPY packages/lib/package.json packages/lib/
-COPY packages/providers/package.json packages/providers/
-COPY packages/logos/package.json packages/logos/
-COPY packages/infra/package.json packages/infra/
+COPY --from=prune /pruned/ .
+COPY tsconfig.base.json .
 RUN pnpm install --frozen-lockfile --ignore-scripts
-
-# Stage 2: build lib + server
-FROM deps AS build
-COPY packages/logos/ packages/logos/
-COPY packages/providers/ packages/providers/
-COPY packages/lib/ packages/lib/
-COPY apps/server/ apps/server/
-COPY tsconfig.base.json ./
-RUN pnpm --filter @gremlin/providers build && pnpm --filter @gremlin/lib build && pnpm --filter @gremlin/server build
+RUN pnpm turbo build --filter=@gremlin/server
 
 # Stage 3: bundle with pnpm deploy
 FROM build AS deploy

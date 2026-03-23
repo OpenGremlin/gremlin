@@ -10,6 +10,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "codegen": "graphql-codegen --config codegen.ts",
+    "build:web": "expo export --platform web",
     "test": "vitest run"
   },
   "dependencies": {
