@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { clientLogger } from "../lib/logger";
-import { wsClient } from "../lib/wsClient";
+import { getWsClient } from "../lib/wsClient";
 
 export function useSubscription<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,
@@ -21,7 +21,7 @@ export function useSubscription<TResult, TVariables>(
   useEffect(() => {
     if (!queryStr) return;
 
-    const unsubscribe = wsClient.subscribe(
+    const unsubscribe = getWsClient().subscribe(
       { query: queryStr, variables: stableVars },
       {
         next: ({ data }) => {

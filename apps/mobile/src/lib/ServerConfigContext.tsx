@@ -12,6 +12,7 @@ import {
   type ServerConfig,
   saveServerConfig,
 } from "./config";
+import { initWsClient } from "./wsClient";
 
 interface ServerConfigState {
   config: ServerConfig | null;
@@ -70,13 +71,17 @@ export function ServerConfigProvider({
       } else {
         cfg = await loadServerConfig();
       }
-      if (cfg) applyServerConfig(cfg);
+      if (cfg) {
+        applyServerConfig(cfg);
+        initWsClient();
+      }
       setState({ config: cfg, loaded: true });
     })();
   }, []);
 
   const setConfig = useCallback(async (cfg: ServerConfig) => {
     await saveServerConfig(cfg);
+    initWsClient();
     setState({ config: cfg, loaded: true });
   }, []);
 
