@@ -359,6 +359,7 @@ export type IntegrationConnection = {
 
 export type IntegrationProvider = {
   __typename?: 'IntegrationProvider';
+  android?: Maybe<OAuthPlatformOverride>;
   authorizeUrl?: Maybe<Scalars['String']['output']>;
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
@@ -370,6 +371,7 @@ export type IntegrationProvider = {
   extraAuthParams?: Maybe<Scalars['String']['output']>;
   hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  ios?: Maybe<OAuthPlatformOverride>;
   models?: Maybe<Array<ModelInfo>>;
   scopePrefix?: Maybe<Scalars['String']['output']>;
   service: Scalars['String']['output'];
@@ -617,6 +619,12 @@ export type OAuthConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
   expiresAt?: Maybe<Scalars['String']['output']>;
   scopes: Array<Scalars['String']['output']>;
+};
+
+export type OAuthPlatformOverride = {
+  __typename?: 'OAuthPlatformOverride';
+  clientId: Scalars['String']['output'];
+  redirectUri: Scalars['String']['output'];
 };
 
 export type PendingInboxMessage = {
@@ -1188,7 +1196,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2042,6 +2050,14 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     scopePrefix
     extraAuthParams
     userInfo
+    ios {
+      clientId
+      redirectUri
+    }
+    android {
+      clientId
+      redirectUri
+    }
     availableScopes {
       scope
       label

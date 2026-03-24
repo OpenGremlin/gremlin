@@ -378,6 +378,7 @@ export type IntegrationConnection = {
 
 export type IntegrationProvider = {
   __typename?: 'IntegrationProvider';
+  android?: Maybe<OAuthPlatformOverride>;
   authorizeUrl?: Maybe<Scalars['String']['output']>;
   availableScopes: Array<AvailableScope>;
   category: Scalars['String']['output'];
@@ -389,6 +390,7 @@ export type IntegrationProvider = {
   extraAuthParams?: Maybe<Scalars['String']['output']>;
   hasConnection: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  ios?: Maybe<OAuthPlatformOverride>;
   models?: Maybe<Array<ModelInfo>>;
   scopePrefix?: Maybe<Scalars['String']['output']>;
   service: Scalars['String']['output'];
@@ -636,6 +638,12 @@ export type OAuthConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
   expiresAt?: Maybe<Scalars['String']['output']>;
   scopes: Array<Scalars['String']['output']>;
+};
+
+export type OAuthPlatformOverride = {
+  __typename?: 'OAuthPlatformOverride';
+  clientId: Scalars['String']['output'];
+  redirectUri: Scalars['String']['output'];
 };
 
 export type PendingInboxMessage = {
@@ -1164,6 +1172,7 @@ export type ResolversTypes = {
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
+  OAuthPlatformOverride: ResolverTypeWrapper<OAuthPlatformOverride>;
   PendingInboxMessage: ResolverTypeWrapper<PendingInboxMessage>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
@@ -1245,6 +1254,7 @@ export type ResolversParentTypes = {
   ModelInfo: ModelInfo;
   Mutation: Record<PropertyKey, never>;
   OAuthConnectionMeta: OAuthConnectionMeta;
+  OAuthPlatformOverride: OAuthPlatformOverride;
   PendingInboxMessage: PendingInboxMessage;
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
@@ -1500,6 +1510,7 @@ export type IntegrationConnectionResolvers<ContextType = GremlinContext, ParentT
 };
 
 export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['IntegrationProvider'] = ResolversParentTypes['IntegrationProvider']> = {
+  android?: Resolver<Maybe<ResolversTypes['OAuthPlatformOverride']>, ParentType, ContextType>;
   authorizeUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   availableScopes?: Resolver<Array<ResolversTypes['AvailableScope']>, ParentType, ContextType>;
   category?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1511,6 +1522,7 @@ export type IntegrationProviderResolvers<ContextType = GremlinContext, ParentTyp
   extraAuthParams?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  ios?: Resolver<Maybe<ResolversTypes['OAuthPlatformOverride']>, ParentType, ContextType>;
   models?: Resolver<Maybe<Array<ResolversTypes['ModelInfo']>>, ParentType, ContextType>;
   scopePrefix?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   service?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1574,6 +1586,11 @@ export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentTyp
   expiresAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   scopes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OAuthPlatformOverrideResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthPlatformOverride'] = ResolversParentTypes['OAuthPlatformOverride']> = {
+  clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  redirectUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type PendingInboxMessageResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PendingInboxMessage'] = ResolversParentTypes['PendingInboxMessage']> = {
@@ -1804,6 +1821,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
+  OAuthPlatformOverride?: OAuthPlatformOverrideResolvers<ContextType>;
   PendingInboxMessage?: PendingInboxMessageResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   ProviderModelInfo?: ProviderModelInfoResolvers<ContextType>;

@@ -8,14 +8,16 @@ export function encodeBase64Url(str: string): string {
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/** Build a gremlin:// deep link URL for a server */
+/** Build a universal-link connect URL for a server */
 export function buildConnectUrl(serverUrl: string): string {
-  return `gremlin://connect/${encodeBase64Url(serverUrl)}`;
+  return `https://opengremlin.com/connect/${encodeBase64Url(serverUrl)}`;
 }
 
-/** Decode a gremlin://connect/<base64url> QR payload. Returns the server URL or null. */
+/** Decode a connect QR payload. Accepts both the universal link and legacy gremlin:// formats. Returns the server URL or null. */
 export function decodeQrPayload(data: string): string | null {
-  const match = data.match(/^gremlin:\/\/connect\/(.+)$/);
+  const match = data.match(
+    /^(?:https:\/\/opengremlin\.com\/connect|gremlin:\/\/connect)\/(.+)$/,
+  );
   if (!match) return null;
   try {
     const base64 = match[1].replace(/-/g, "+").replace(/_/g, "/");

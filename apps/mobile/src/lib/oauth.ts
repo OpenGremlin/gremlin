@@ -1,4 +1,5 @@
 import * as Crypto from "expo-crypto";
+import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 import { gql } from "./auth";
@@ -19,6 +20,11 @@ type UserInfoConfig =
     }
   | { method: "graphql"; url: string; query: string; path: string };
 
+export interface OAuthPlatformOverride {
+  clientId: string;
+  redirectUri: string;
+}
+
 export interface OAuthProviderConfig {
   id: string;
   authorizeUrl?: string | null;
@@ -28,6 +34,8 @@ export interface OAuthProviderConfig {
   scopePrefix?: string | null;
   extraAuthParams?: string | null;
   userInfo?: string | null;
+  ios?: OAuthPlatformOverride | null;
+  android?: OAuthPlatformOverride | null;
 }
 
 export interface OAuthFlowResult {
@@ -189,7 +197,70 @@ async function exchangeCode(
 // Redirect URI
 // ---------------------------------------------------------------------------
 
-const REDIRECT_URI = "gremlin://oauth/callback";
+const DEFAULT_REDIRECT_URI = "https://opengremlin.com/oauth/callback";
+
+// ---------------------------------------------------------------------------
+// Platform-aware client resolution
+// ---------------------------------------------------------------------------
+
+function resolvePlatformOAuth(provider: OAuthProviderConfig): {
+  clientId: string;
+  redirectUri: string;
+} {
+  const override =
+    Platform.OS === "ios"
+      ? provider.ios
+      : Platform.OS === "android"
+        ? provider.android
+        : null;
+
+  return {
+    clientId: override?.clientId ?? provider.defaultClientId ?? "",
+    redirectUri: override?.redirectUri ?? DEFAULT_REDIRECT_URI,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Browser helpers
+// ---------------------------------------------------------------------------
+
+/** Open an auth session using the right strategy for the redirect URI scheme. */
+async function openAuthAndWaitForCallback(
+  authUrl: string,
+  redirectUri: string,
+): Promise<URL> {
+  // Custom schemes (e.g. com.googleusercontent.apps.XXX://) work natively
+  // with openAuthSessionAsync which gives an in-app browser sheet.
+  if (!redirectUri.startsWith("https://")) {
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+    if (result.type !== "success") {
+      throw new Error("OAuth flow was cancelled");
+    }
+    return new URL(result.url);
+  }
+
+  // HTTPS redirect URIs (universal links) require a Linking listener
+  // because ASWebAuthenticationSession doesn't intercept https callbacks.
+  return new Promise<URL>((resolve, reject) => {
+    let resolved = false;
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      if (!url.startsWith(redirectUri)) return;
+      resolved = true;
+      subscription.remove();
+      WebBrowser.dismissBrowser();
+      resolve(new URL(url));
+    });
+
+    WebBrowser.openBrowserAsync(authUrl, {
+      presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
+    }).then(() => {
+      if (!resolved) {
+        subscription.remove();
+        reject(new Error("OAuth flow was cancelled"));
+      }
+    });
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Main OAuth flow
@@ -201,9 +272,13 @@ export function isOAuthAvailable(): boolean {
 
 export async function startOAuthFlow(
   provider: OAuthProviderConfig,
-  clientId: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
+  const { clientId, redirectUri } = resolvePlatformOAuth(provider);
+
+  if (!clientId) {
+    throw new Error(`No OAuth client configured for provider: ${provider.id}`);
+  }
   if (!provider.authorizeUrl) {
     throw new Error(`No OAuth authorize URL for provider: ${provider.id}`);
   }
@@ -237,7 +312,7 @@ export async function startOAuthFlow(
   // Build authorization URL
   const authUrl = new URL(provider.authorizeUrl);
   authUrl.searchParams.set("client_id", clientId);
-  authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("state", state);
   authUrl.searchParams.set("code_challenge", codeChallenge);
@@ -253,18 +328,10 @@ export async function startOAuthFlow(
 
   clientLogger.info("Starting OAuth flow", { providerId: provider.id });
 
-  // Open browser and wait for redirect
-  const result = await WebBrowser.openAuthSessionAsync(
+  const callbackUrl = await openAuthAndWaitForCallback(
     authUrl.toString(),
-    REDIRECT_URI,
+    redirectUri,
   );
-
-  if (result.type !== "success") {
-    throw new Error("OAuth flow was cancelled");
-  }
-
-  // Parse the callback URL
-  const callbackUrl = new URL(result.url);
   const error = callbackUrl.searchParams.get("error");
   if (error) {
     const errorDesc = callbackUrl.searchParams.get("error_description");
@@ -287,7 +354,7 @@ export async function startOAuthFlow(
   const tokens = await exchangeCode(
     provider.tokenUrl,
     code,
-    REDIRECT_URI,
+    redirectUri,
     clientId,
     codeVerifier,
   );
@@ -321,10 +388,10 @@ import { SubmitOAuthConnectionMutation } from "../graphql/queries/integrations";
 
 export async function connectOAuthProvider(
   provider: OAuthProviderConfig,
-  clientId: string,
   scopes: string[],
 ): Promise<OAuthFlowResult> {
-  const result = await startOAuthFlow(provider, clientId, scopes);
+  const { clientId } = resolvePlatformOAuth(provider);
+  const result = await startOAuthFlow(provider, scopes);
 
   await gql(SubmitOAuthConnectionMutation, {
     providerId: provider.id,

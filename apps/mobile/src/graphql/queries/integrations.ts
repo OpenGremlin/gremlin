@@ -15,6 +15,14 @@ export const IntegrationProvidersQuery = graphql(`
       scopePrefix
       extraAuthParams
       userInfo
+      ios {
+        clientId
+        redirectUri
+      }
+      android {
+        clientId
+        redirectUri
+      }
       availableScopes {
         scope
         label

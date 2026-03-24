@@ -33,6 +33,13 @@ export type UserInfoConfig =
     }
   | { method: "graphql"; url: string; query: string; path: string };
 
+export interface OAuthPlatformOverride {
+  /** Platform-specific OAuth client ID */
+  clientId: string;
+  /** Platform-specific redirect URI (e.g. reverse client ID scheme for iOS) */
+  redirectUri: string;
+}
+
 export interface IntegrationProviderDef {
   id: string;
   service: string;
@@ -61,6 +68,10 @@ export interface IntegrationProviderDef {
   extraAuthParams?: Record<string, string>;
   /** How to resolve the connected account identity after OAuth */
   userInfo?: UserInfoConfig;
+  /** iOS-specific OAuth client override (e.g. Google iOS client with reverse client ID redirect) */
+  ios?: OAuthPlatformOverride;
+  /** Android-specific OAuth client override */
+  android?: OAuthPlatformOverride;
 }
 
 export const providers: IntegrationProviderDef[] = [
@@ -225,7 +236,13 @@ export const providers: IntegrationProviderDef[] = [
     authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",
     defaultClientId:
-      "641099907982-t0ev4f32k7ghr5g3otf8m3mi4q29nf9j.apps.googleusercontent.com",
+      "641099907982-k16ejd03g4efigpcdbknrg9vmghnkm5h.apps.googleusercontent.com",
+    ios: {
+      clientId:
+        "641099907982-k16ejd03g4efigpcdbknrg9vmghnkm5h.apps.googleusercontent.com",
+      redirectUri:
+        "com.googleusercontent.apps.641099907982-k16ejd03g4efigpcdbknrg9vmghnkm5h:/oauthredirect",
+    },
     defaultScopes: ["openid", "email"],
     scopePrefix: "https://www.googleapis.com/auth/",
     extraAuthParams: { access_type: "offline", prompt: "consent" },

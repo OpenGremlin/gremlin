@@ -29,14 +29,23 @@ describe("encodeBase64Url", () => {
 });
 
 describe("decodeQrPayload", () => {
-  it("decodes a valid gremlin:// payload", () => {
+  it("decodes a universal link payload", () => {
+    const url = "https://d1234.cloudfront.net";
+    const encoded = encodeBase64Url(url);
+    const result = decodeQrPayload(
+      `https://opengremlin.com/connect/${encoded}`,
+    );
+    expect(result).toBe(url);
+  });
+
+  it("decodes a legacy gremlin:// payload", () => {
     const url = "https://d1234.cloudfront.net";
     const encoded = encodeBase64Url(url);
     const result = decodeQrPayload(`gremlin://connect/${encoded}`);
     expect(result).toBe(url);
   });
 
-  it("returns null for non-gremlin URLs", () => {
+  it("returns null for unrelated URLs", () => {
     expect(decodeQrPayload("https://example.com")).toBeNull();
   });
 
@@ -45,7 +54,9 @@ describe("decodeQrPayload", () => {
   });
 
   it("returns null for invalid base64", () => {
-    expect(decodeQrPayload("gremlin://connect/!!!invalid!!!")).toBeNull();
+    expect(
+      decodeQrPayload("https://opengremlin.com/connect/!!!invalid!!!"),
+    ).toBeNull();
   });
 
   it("returns null for wrong scheme", () => {
@@ -64,7 +75,7 @@ describe("buildConnectUrl + decodeQrPayload round-trip", () => {
   for (const url of urls) {
     it(`round-trips ${url}`, () => {
       const qr = buildConnectUrl(url);
-      expect(qr).toMatch(/^gremlin:\/\/connect\//);
+      expect(qr).toMatch(/^https:\/\/opengremlin\.com\/connect\//);
       const decoded = decodeQrPayload(qr);
       expect(decoded).toBe(url);
     });

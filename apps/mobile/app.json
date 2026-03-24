@@ -4,7 +4,7 @@
     "owner": "marvinli",
     "slug": "gremlin",
     "version": "0.0.1",
-    "scheme": "gremlin",
+    "scheme": "opengremlin",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/icon.png",
@@ -18,7 +18,14 @@
       "bundleIdentifier": "com.opengremlin.mobile",
       "associatedDomains": ["applinks:opengremlin.com"],
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.641099907982-k16ejd03g4efigpcdbknrg9vmghnkm5h"
+            ]
+          }
+        ]
       }
     },
     "android": {
@@ -31,6 +38,11 @@
               "scheme": "https",
               "host": "opengremlin.com",
               "pathPrefix": "/oauth/callback"
+            },
+            {
+              "scheme": "https",
+              "host": "opengremlin.com",
+              "pathPrefix": "/connect/"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]

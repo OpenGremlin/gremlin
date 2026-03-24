@@ -35,6 +35,11 @@ export const integrationTypeDefs = /* GraphQL */ `
     models: [ProviderModelInfo!]!
   }
 
+  type OAuthPlatformOverride {
+    clientId: String!
+    redirectUri: String!
+  }
+
   type IntegrationProvider {
     id: ID!
     service: String!
@@ -52,6 +57,8 @@ export const integrationTypeDefs = /* GraphQL */ `
     scopePrefix: String
     extraAuthParams: String
     userInfo: String
+    ios: OAuthPlatformOverride
+    android: OAuthPlatformOverride
   }
 
   type OAuthConnectionMeta {

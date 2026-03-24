@@ -503,6 +503,13 @@ type IntegrationProvider {
   scopePrefix: String
   extraAuthParams: String
   userInfo: String
+  ios: OAuthPlatformOverride
+  android: OAuthPlatformOverride
+}
+
+type OAuthPlatformOverride {
+  clientId: String!
+  redirectUri: String!
 }
 
 type OAuthConnectionMeta {

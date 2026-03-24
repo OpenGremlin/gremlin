@@ -686,18 +686,11 @@ function OAuthDetailView({
   };
 }) {
   const colors = useNavigationTheme();
-  const hasDefaults = !!provider.defaultClientId;
-  const [useDefaults, setUseDefaults] = useState(hasDefaults);
-  const [clientId, setClientId] = useState("");
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(
     () => new Set(provider.availableScopes.map((s) => s.scope)),
   );
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const effectiveClientId = useDefaults
-    ? (provider.defaultClientId ?? "")
-    : clientId;
 
   function toggleScope(scope: string) {
     setSelectedScopes((prev) => {
@@ -709,10 +702,6 @@ function OAuthDetailView({
   }
 
   async function handleConnect() {
-    if (!effectiveClientId) {
-      setError("Client ID is required.");
-      return;
-    }
     if (selectedScopes.size === 0) {
       setError("Select at least one scope.");
       return;
@@ -721,9 +710,7 @@ function OAuthDetailView({
     setConnecting(true);
     setError(null);
     try {
-      await connectOAuthProvider(provider, effectiveClientId, [
-        ...selectedScopes,
-      ]);
+      await connectOAuthProvider(provider, [...selectedScopes]);
       router.navigate(
         `/settings/connections?connected=${encodeURIComponent(provider.id)}`,
       );
@@ -748,6 +735,17 @@ function OAuthDetailView({
     );
   }
 
+  if (!provider.defaultClientId) {
+    return (
+      <Card className="p-5">
+        <Text className="text-sm text-text-muted">
+          No OAuth client configured for this provider. Contact your server
+          admin to set one up.
+        </Text>
+      </Card>
+    );
+  }
+
   return (
     <>
       {provider.hasConnection && (
@@ -764,61 +762,6 @@ function OAuthDetailView({
           </View>
         </Card>
       )}
-
-      <View className="gap-3">
-        <Text className="text-sm font-medium text-text-primary">
-          OAuth Client
-        </Text>
-        {hasDefaults && (
-          <>
-            <Pressable
-              onPress={() => setUseDefaults((v) => !v)}
-              disabled={connecting}
-              className="flex-row items-center justify-between bg-surface border border-app-border rounded-xl px-4 py-3 active:bg-surface-alt"
-            >
-              <Text className="text-sm text-text-primary">
-                Use Gremlin client
-              </Text>
-              <Switch
-                value={useDefaults}
-                onValueChange={setUseDefaults}
-                disabled={connecting}
-                trackColor={{ false: colors.border, true: colors.accent }}
-              />
-            </Pressable>
-            {!useDefaults && (
-              <Card className="p-4">
-                <Text className="text-xs text-text-muted mb-1">
-                  Redirect URI (add this to your OAuth app)
-                </Text>
-                <Text className="text-sm text-accent font-mono">
-                  gremlin://oauth/callback
-                </Text>
-              </Card>
-            )}
-          </>
-        )}
-        {!hasDefaults && (
-          <Card className="p-4">
-            <Text className="text-xs text-text-muted mb-1">
-              Redirect URI (add this to your OAuth app)
-            </Text>
-            <Text className="text-sm text-accent font-mono">
-              gremlin://oauth/callback
-            </Text>
-          </Card>
-        )}
-        {!useDefaults && (
-          <Input
-            value={clientId}
-            onChangeText={setClientId}
-            placeholder="Client ID"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={!connecting}
-          />
-        )}
-      </View>
 
       {provider.availableScopes.length > 0 && (
         <View className="gap-2">
@@ -856,7 +799,7 @@ function OAuthDetailView({
 
       <Button
         onPress={handleConnect}
-        disabled={!effectiveClientId}
+        disabled={connecting}
         loading={connecting}
         fullWidth
       >
