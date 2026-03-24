@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.opengremlin.mobile",
+      "appleTeamId": "7WGYS2TFHY",
       "associatedDomains": ["applinks:opengremlin.com"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,

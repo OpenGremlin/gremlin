@@ -21,7 +21,8 @@
     "production": {
       "ios": {
         "appleId": "marvinli@gmail.com",
-        "ascAppId": "6761018937"
+        "ascAppId": "6761018937",
+        "appleTeamId": "7WGYS2TFHY"
       }
     }
   }
