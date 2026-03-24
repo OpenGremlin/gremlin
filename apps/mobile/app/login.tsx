@@ -17,7 +17,7 @@ import {
 } from "../src/lib/auth";
 import { Input } from "../src/shared/Input";
 
-const gremlinLogo = require("../../../branding/gremlin_logo.svg");
+const gremlinLogo = require("../assets/gremlin_logo_wings.svg");
 
 type Mode = "login" | "signup" | "confirm";
 

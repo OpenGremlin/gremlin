@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="branding/gremlin_logo.svg" width="200" alt="OpenGremlin" />
+  <img src="apps/mobile/assets/gremlin_logo_wings.svg" width="200" alt="OpenGremlin" />
 </p>
 
 <h1 align="center">OpenGremlin</h1>

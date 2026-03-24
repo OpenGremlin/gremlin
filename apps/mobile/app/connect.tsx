@@ -18,7 +18,7 @@ import { decodeQrPayload, fetchServerConfig } from "../src/lib/connectUtils";
 import { useServerConfig } from "../src/lib/ServerConfigContext";
 import { Input } from "../src/shared/Input";
 
-const gremlinLogo = require("../../../branding/gremlin_logo.svg");
+const gremlinLogo = require("../assets/gremlin_logo_wings.svg");
 
 type Step = "scan" | "confirm" | "manual";
 
