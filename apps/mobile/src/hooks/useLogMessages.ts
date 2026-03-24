@@ -93,5 +93,6 @@ export function useLogMessages(
     hasMore,
     loadMore,
     loadingMore,
+    fetchNewer,
   };
 }

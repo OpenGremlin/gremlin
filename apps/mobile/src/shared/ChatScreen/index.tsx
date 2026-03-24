@@ -3,13 +3,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -84,7 +85,18 @@ export function ChatScreen({
     hasMore,
     loadMore,
     loadingMore,
+    fetchNewer,
   } = useLogMessages(scope);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchNewer();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchNewer]);
 
   const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
     { agentId, taskId, messages },
@@ -169,6 +181,13 @@ export function ChatScreen({
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
         contentContainerStyle={flatListContentStyle}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.loadingIndicator}
+          />
+        }
         keyboardShouldPersistTaps="handled"
         ListFooterComponent={
           loadingMore ? (
