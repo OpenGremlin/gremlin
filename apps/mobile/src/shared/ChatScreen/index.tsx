@@ -1,11 +1,14 @@
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActionSheetIOS,
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -142,25 +145,83 @@ export function ChatScreen({
     return () => clearTimeout(timer);
   }, [uploads, clearUploads]);
 
-  const handlePickFiles = useCallback(async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        multiple: true,
-        copyToCacheDirectory: true,
-      });
-      if (result.canceled || !result.assets || result.assets.length === 0)
-        return;
-      const files = result.assets.map((asset) => ({
+  const pickDocuments = useCallback(async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      multiple: true,
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets || result.assets.length === 0) return;
+    uploadFiles(
+      result.assets.map((asset) => ({
         name: asset.name,
         size: asset.size ?? 0,
         type: asset.mimeType ?? "application/octet-stream",
         uri: asset.uri,
-      }));
-      uploadFiles(files);
-    } catch {
-      // User cancelled or error
-    }
+      })),
+    );
   }, [uploadFiles]);
+
+  const pickImages = useCallback(async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+    uploadFiles(
+      result.assets.map((asset) => ({
+        name: asset.fileName ?? asset.uri.split("/").pop() ?? "image",
+        size: asset.fileSize ?? 0,
+        type: asset.mimeType ?? "image/jpeg",
+        uri: asset.uri,
+      })),
+    );
+  }, [uploadFiles]);
+
+  const takePhoto = useCallback(async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+    if (result.canceled || result.assets.length === 0) return;
+    const asset = result.assets[0];
+    uploadFiles([
+      {
+        name: asset.fileName ?? asset.uri.split("/").pop() ?? "photo",
+        size: asset.fileSize ?? 0,
+        type: asset.mimeType ?? "image/jpeg",
+        uri: asset.uri,
+      },
+    ]);
+  }, [uploadFiles]);
+
+  const handlePickFiles = useCallback(() => {
+    if (Platform.OS === "web") {
+      pickDocuments();
+      return;
+    }
+
+    const options = ["Photo Library", "Take Photo", "Choose File", "Cancel"];
+    const cancelIndex = 3;
+
+    const handleOption = (index: number) => {
+      if (index === 0) pickImages();
+      else if (index === 1) takePhoto();
+      else if (index === 2) pickDocuments();
+    };
+
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: cancelIndex },
+        handleOption,
+      );
+    } else {
+      Alert.alert("Upload", undefined, [
+        { text: "Photo Library", onPress: () => pickImages() },
+        { text: "Take Photo", onPress: () => takePhoto() },
+        { text: "Choose File", onPress: () => pickDocuments() },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
+  }, [pickDocuments, pickImages, takePhoto]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
