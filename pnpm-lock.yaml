@@ -171,9 +171,6 @@ importers:
       '@aws-sdk/client-ssm':
         specifier: ^3.1000.0
         version: 3.1000.0
-      '@aws-sdk/client-sts':
-        specifier: ^3.1004.0
-        version: 3.1004.0
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.1000.0
         version: 3.1000.0(@aws-sdk/client-dynamodb@3.1000.0)
@@ -387,9 +384,6 @@ importers:
       '@aws-sdk/client-ssm':
         specifier: ^3.1000.0
         version: 3.1000.0
-      '@aws-sdk/client-sts':
-        specifier: ^3.1004.0
-        version: 3.1004.0
       '@aws-sdk/credential-providers':
         specifier: ^3.1000.0
         version: 3.1000.0
@@ -12117,9 +12111,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.74.89': {}
