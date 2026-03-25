@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useReducer, useRef } from "react";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { clientLogger } from "../lib/logger";
 import { useSubscription } from "./useSubscription";
@@ -11,7 +11,7 @@ export interface CommandStream {
 
 export function useSandboxOutput(taskId: string) {
   const streamsRef = useRef(new Map<string, CommandStream>());
-  const [, setVersion] = useState(0);
+  const [, forceRender] = useReducer((x: number) => x + 1, 0);
 
   useSubscription(
     SandboxOutputSubscription,
@@ -35,7 +35,7 @@ export function useSandboxOutput(taskId: string) {
       }
 
       streamsRef.current.set(chunk.commandId, existing);
-      setVersion((v) => v + 1);
+      forceRender();
     }, []),
   );
 

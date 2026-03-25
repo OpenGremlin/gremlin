@@ -20,7 +20,6 @@ export function useQuery<TResult, TVariables>(
   const [data, setData] = useState<TResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
 
   const serializedVars = variables ? JSON.stringify(variables) : undefined;
   const stableVars = useMemo(
@@ -31,43 +30,35 @@ export function useQuery<TResult, TVariables>(
     [serializedVars],
   );
 
-  const refetch = useCallback(() => setVersion((v) => v + 1), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchVersion = version;
-
+  const fetchData = useCallback(async () => {
     setData(null);
     setLoading(true);
     setError(null);
-    // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
-    gql<TResult, any>(query as any, stableVars as any)
-      .then((result) => {
-        if (!cancelled && fetchVersion === version) setData(result);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const msg = err instanceof Error ? err.message : String(err);
-          clientLogger.error("useQuery failed", { error: msg });
-          setError(msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [query, stableVars, version]);
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
+      const result = await gql<TResult, any>(query as any, stableVars as any);
+      setData(result);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      clientLogger.error("useQuery failed", { error: msg });
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [query, stableVars]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Auto-refetch when connectivity is restored and the query is in an error state.
   const errorRef = useRef(error);
   errorRef.current = error;
   useEffect(() => {
     return onConnectivityChange((online) => {
-      if (online && errorRef.current) refetch();
+      if (online && errorRef.current) fetchData();
     });
-  }, [refetch]);
+  }, [fetchData]);
 
-  return { data, loading, error, refetch, setData };
+  return { data, loading, error, refetch: fetchData, setData };
 }

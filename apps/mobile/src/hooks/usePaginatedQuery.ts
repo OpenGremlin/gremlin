@@ -33,7 +33,6 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const [version, setVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
   const newestCursorRef = useRef<string | null>(null);
 
@@ -49,39 +48,33 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const selectorRef = useRef(connectionSelector);
   selectorRef.current = connectionSelector;
 
-  useEffect(() => {
-    let cancelled = false;
-    const fetchVersion = version;
-
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-
-    // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
-    (gql as any)(query, { ...stableVars, last: PAGE_SIZE })
-      .then((result: TResult) => {
-        if (cancelled || fetchVersion !== version) return;
-        const conn = selectorRef.current(result);
-        const items = conn.edges.map((e) => e.node);
-        setNodes(direction === "newest-first" ? items.reverse() : items);
-        setHasMore(conn.pageInfo.hasPreviousPage);
-        cursorRef.current = conn.pageInfo.startCursor ?? null;
-        newestCursorRef.current = conn.pageInfo.endCursor ?? null;
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const msg = err instanceof Error ? err.message : String(err);
-          clientLogger.error("usePaginatedQuery failed", { error: msg });
-          setError(msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
+      const result: TResult = await (gql as any)(query, {
+        ...stableVars,
+        last: PAGE_SIZE,
       });
+      const conn = selectorRef.current(result);
+      const items = conn.edges.map((e) => e.node);
+      setNodes(direction === "newest-first" ? items.reverse() : items);
+      setHasMore(conn.pageInfo.hasPreviousPage);
+      cursorRef.current = conn.pageInfo.startCursor ?? null;
+      newestCursorRef.current = conn.pageInfo.endCursor ?? null;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      clientLogger.error("usePaginatedQuery failed", { error: msg });
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, [query, stableVars, direction]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [query, stableVars, direction, version]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const loadMore = useCallback(async () => {
     if (!cursorRef.current || !hasMore) return;
@@ -179,8 +172,8 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     setNodes([]);
     cursorRef.current = null;
     newestCursorRef.current = null;
-    setVersion((v) => v + 1);
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   // Auto-refetch when connectivity is restored and the query is in an error state.
   const errorRef = useRef(error);
