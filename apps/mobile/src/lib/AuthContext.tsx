@@ -12,6 +12,11 @@ import {
   setOnUnauthorized,
   setToken,
 } from "./auth";
+import { setLoggerTokenProvider } from "./logger";
+
+// Wire the logger's token provider once at module load to break the
+// auth ↔ logger circular dependency.
+setLoggerTokenProvider(getToken);
 
 interface AuthState {
   token: string | null;

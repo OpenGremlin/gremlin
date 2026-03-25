@@ -1,5 +1,4 @@
 import { AppState, Platform } from "react-native";
-import { getToken } from "./auth";
 import { getApiUrl } from "./config";
 
 type LogLevel = "error" | "warn" | "info" | "debug";
@@ -17,13 +16,20 @@ const MAX_BATCH_SIZE = 50;
 
 const buffer: LogEntry[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let _getToken: (() => Promise<string | null>) | null = null;
+
+/** Called once at startup to wire in the token provider without a circular import. */
+export function setLoggerTokenProvider(fn: () => Promise<string | null>) {
+  _getToken = fn;
+}
 
 function flush() {
   if (buffer.length === 0) return;
   const batch = buffer.splice(0, MAX_BATCH_SIZE);
   const API_URL = getApiUrl();
 
-  getToken().then((token) => {
+  const tokenPromise = _getToken ? _getToken() : Promise.resolve(null);
+  tokenPromise.then((token) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
