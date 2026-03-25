@@ -14,6 +14,7 @@ export default function AgentChatScreen() {
     data: agentData,
     loading,
     error,
+    refetch,
   } = useQuery(AgentQuery, { id: id ?? "" });
 
   const agent = agentData?.agent;
@@ -32,6 +33,7 @@ export default function AgentChatScreen() {
         }
         loading={loading}
         error={error}
+        onRetry={refetch}
         notFound={!loading && !error && !agent}
         notFoundLabel="Agent not found"
         disabled={!!agent?.retired}

@@ -65,7 +65,7 @@ export default function AgentsScreen() {
         />
       }
     >
-      <QueryResult loading={loading} error={error} />
+      <QueryResult loading={loading} error={error} onRetry={refetch} />
 
       {!loading && activeAgents.length === 0 && (
         <EmptyState

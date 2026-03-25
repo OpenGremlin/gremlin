@@ -79,7 +79,7 @@ export default function JobsScreen() {
         />
       }
     >
-      <QueryResult loading={loading} error={error} />
+      <QueryResult loading={loading} error={error} onRetry={refetch} />
 
       {!loading && jobs.length === 0 && (
         <EmptyState

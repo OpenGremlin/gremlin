@@ -124,8 +124,8 @@ export default function HomeScreen() {
     refetchInputRequests();
   });
 
-  if (loading && nodes.length === 0) {
-    return <QueryResult loading={loading} error={error} />;
+  if ((loading || error) && nodes.length === 0) {
+    return <QueryResult loading={loading} error={error} onRetry={refetch} />;
   }
 
   return (

@@ -1,13 +1,16 @@
 import { Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
+import { ErrorState } from "./ErrorState";
 
 export function QueryResult({
   loading,
   error,
+  onRetry,
 }: {
   loading: boolean;
   error: string | null;
+  onRetry?: () => void;
 }) {
   const colors = useNavigationTheme();
 
@@ -24,11 +27,18 @@ export function QueryResult({
     );
   }
 
-  return (
-    <View className="px-4 pt-4">
-      {error && <Text className="text-sm text-error">Error: {error}</Text>}
-    </View>
-  );
+  if (error) {
+    return (
+      <View
+        className="flex-1 justify-center"
+        style={{ backgroundColor: colors.background }}
+      >
+        <ErrorState message={error} onRetry={onRetry} />
+      </View>
+    );
+  }
+
+  return null;
 }
 
 export function NotFound({ label }: { label: string }) {

@@ -14,6 +14,7 @@ export default function TaskThreadScreen() {
     data: taskData,
     loading,
     error,
+    refetch,
   } = useQuery(TaskQuery, { id: taskId });
 
   const task = taskData?.task;
@@ -29,6 +30,7 @@ export default function TaskThreadScreen() {
         headerTitlePress={() => router.navigate(`/agents/${id}`)}
         loading={loading}
         error={error}
+        onRetry={refetch}
         notFound={!loading && !error && !task}
         notFoundLabel="Task not found"
         taskFiles={task?.files}

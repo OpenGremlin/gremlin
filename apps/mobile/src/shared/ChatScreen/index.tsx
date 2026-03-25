@@ -59,6 +59,7 @@ interface ChatScreenProps {
   headerRight?: ReactNode;
   loading: boolean;
   error: string | null;
+  onRetry?: () => void;
   notFound: boolean;
   notFoundLabel?: string;
   disabled?: boolean;
@@ -74,6 +75,7 @@ export function ChatScreen({
   headerRight,
   loading: externalLoading,
   error,
+  onRetry,
   notFound,
   notFoundLabel,
   disabled,
@@ -183,7 +185,7 @@ export function ChatScreen({
     return <QueryResult loading error={null} />;
   }
   if (error) {
-    return <QueryResult loading={false} error={error} />;
+    return <QueryResult loading={false} error={error} onRetry={onRetry} />;
   }
   if (notFound) {
     return <NotFound label={notFoundLabel ?? "Not found"} />;
