@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
-import { isOnline, onConnectivityChange } from "../lib/networkState";
+import { onConnectivityChange } from "../lib/networkState";
 
 const PAGE_SIZE = 20;
 
@@ -52,18 +52,6 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   // biome-ignore lint/correctness/useExhaustiveDependencies: _version is intentionally included to trigger refetch
   useEffect(() => {
     let cancelled = false;
-
-    if (!isOnline()) {
-      setError("No internet connection");
-      setLoading(false);
-      const unsub = onConnectivityChange((online) => {
-        if (online && !cancelled) setVersion((v) => v + 1);
-      });
-      return () => {
-        cancelled = true;
-        unsub();
-      };
-    }
 
     setLoading(true);
     setError(null);
@@ -193,6 +181,15 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     newestCursorRef.current = null;
     setVersion((v) => v + 1);
   }, []);
+
+  // Auto-refetch when connectivity is restored and the query is in an error state.
+  const errorRef = useRef(error);
+  errorRef.current = error;
+  useEffect(() => {
+    return onConnectivityChange((online) => {
+      if (online && errorRef.current) refetch();
+    });
+  }, [refetch]);
 
   return {
     nodes,

@@ -42,9 +42,11 @@ export function useLogMessages(
   const {
     nodes: messages,
     loading,
+    error,
     hasMore,
     loadMore,
     loadingMore,
+    refetch,
     appendNode,
     replaceOrAppend,
     fetchNewer,
@@ -90,9 +92,11 @@ export function useLogMessages(
   return {
     messages,
     loading,
+    error,
     hasMore,
     loadMore,
     loadingMore,
+    refetch,
     fetchNewer,
   };
 }

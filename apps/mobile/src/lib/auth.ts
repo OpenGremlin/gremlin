@@ -1,5 +1,6 @@
 import { config, getApiUrl } from "./config";
 import { clientLogger } from "./logger";
+import { reportConnectivity } from "./networkState";
 import { storage } from "./storage";
 
 const TOKEN_KEY = "gremlin_admin_token";
@@ -277,6 +278,22 @@ export async function gql(
 }
 
 async function _gqlRequest(
+  query: { toString(): string },
+  variables?: unknown,
+): Promise<unknown> {
+  try {
+    const result = await _gqlFetch(query, variables);
+    reportConnectivity(true);
+    return result;
+  } catch (err) {
+    if (err instanceof TypeError && /fetch|network/i.test(err.message)) {
+      reportConnectivity(false);
+    }
+    throw err;
+  }
+}
+
+async function _gqlFetch(
   query: { toString(): string },
   variables?: unknown,
 ): Promise<unknown> {

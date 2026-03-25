@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
-import { isOnline, onConnectivityChange } from "../lib/networkState";
+import { onConnectivityChange } from "../lib/networkState";
 
 export function useQuery<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,
@@ -31,25 +31,12 @@ export function useQuery<TResult, TVariables>(
     [serializedVars],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: _version is intentionally included to trigger refetch
   useEffect(() => {
     let cancelled = false;
 
-    if (!isOnline()) {
-      setError("No internet connection");
-      setLoading(false);
-      const unsub = onConnectivityChange((online) => {
-        if (online && !cancelled) setVersion((v) => v + 1);
-      });
-      return () => {
-        cancelled = true;
-        unsub();
-      };
-    }
-
-    if (_version === 0) {
-      setData(null);
-      setLoading(true);
-    }
+    setData(null);
+    setLoading(true);
     setError(null);
     // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
     gql<TResult, any>(query as any, stableVars as any)
@@ -71,11 +58,17 @@ export function useQuery<TResult, TVariables>(
     };
   }, [query, stableVars, _version]);
 
-  return {
-    data,
-    loading,
-    error,
-    refetch: () => setVersion((v) => v + 1),
-    setData,
-  };
+  const refetch = () => setVersion((v) => v + 1);
+
+  // Auto-refetch when connectivity is restored and the query is in an error state.
+  const errorRef = useRef(error);
+  errorRef.current = error;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch is stable, subscribe once on mount
+  useEffect(() => {
+    return onConnectivityChange((online) => {
+      if (online && errorRef.current) refetch();
+    });
+  }, []);
+
+  return { data, loading, error, refetch, setData };
 }

@@ -89,6 +89,7 @@ export function ChatScreen({
   const {
     messages,
     loading: messagesLoading,
+    error: messagesError,
     hasMore,
     loadMore,
     loadingMore,
@@ -183,8 +184,12 @@ export function ChatScreen({
   if (externalLoading || messagesLoading) {
     return <QueryResult loading error={null} />;
   }
-  if (error) {
-    return <QueryResult loading={false} error={error} onRetry={onRetry} />;
+
+  const combinedError = error || messagesError;
+  if (combinedError) {
+    return (
+      <QueryResult loading={false} error={combinedError} onRetry={onRetry} />
+    );
   }
   if (notFound) {
     return <NotFound label={notFoundLabel ?? "Not found"} />;

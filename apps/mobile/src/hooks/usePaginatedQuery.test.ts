@@ -1,18 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-let mockIsOnline = true;
-let connectivityListeners: Array<(online: boolean) => void> = [];
-
-vi.mock("../lib/networkState", () => ({
-  isOnline: () => mockIsOnline,
-  onConnectivityChange: (cb: (online: boolean) => void) => {
-    connectivityListeners.push(cb);
-    return () => {
-      connectivityListeners = connectivityListeners.filter((l) => l !== cb);
-    };
-  },
-}));
-
 const mockGqlResult: unknown = {
   connection: {
     edges: [],
@@ -24,9 +11,14 @@ const mockGqlResult: unknown = {
     },
   },
 };
+let mockGqlError: Error | null = null;
 
 vi.mock("../lib/auth", () => ({
-  gql: vi.fn(() => Promise.resolve(mockGqlResult)),
+  gql: vi.fn(() =>
+    mockGqlError
+      ? Promise.reject(mockGqlError)
+      : Promise.resolve(mockGqlResult),
+  ),
 }));
 
 vi.mock("../lib/logger", () => ({
@@ -34,7 +26,6 @@ vi.mock("../lib/logger", () => ({
 }));
 
 let stateUpdates: Record<string, unknown[]> = {};
-let effectCleanups: Array<() => void> = [];
 let effectCallbacks: Array<() => (() => void) | undefined> = [];
 
 vi.mock("react", () => {
@@ -84,70 +75,20 @@ const selector = (data: { connection: unknown }) => data.connection as any;
 function resetMocks() {
   stateUpdates = {};
   effectCallbacks = [];
-  effectCleanups = [];
-  connectivityListeners = [];
-  mockIsOnline = true;
+  mockGqlError = null;
 }
 
 function runEffects() {
   for (const fn of effectCallbacks) {
-    const cleanup = fn();
-    if (typeof cleanup === "function") effectCleanups.push(cleanup);
+    fn();
   }
   effectCallbacks = [];
 }
 
-describe("usePaginatedQuery offline behavior", () => {
+describe("usePaginatedQuery", () => {
   beforeEach(resetMocks);
 
-  it("sets error when offline and does not call gql", async () => {
-    mockIsOnline = false;
-    const { gql } = await import("../lib/auth");
-
-    usePaginatedQuery(fakeQuery, selector);
-    runEffects();
-
-    // error state (state_3 = error: nodes=0, loading=1, loadingMore=2, error=3)
-    expect(stateUpdates.state_3?.at(-1)).toBe("No internet connection");
-    // loading set to false
-    expect(stateUpdates.state_1?.at(-1)).toBe(false);
-    expect(gql).not.toHaveBeenCalled();
-  });
-
-  it("subscribes to connectivity changes when offline", () => {
-    mockIsOnline = false;
-
-    usePaginatedQuery(fakeQuery, selector);
-    runEffects();
-
-    expect(connectivityListeners).toHaveLength(1);
-  });
-
-  it("triggers refetch when connectivity is restored", () => {
-    mockIsOnline = false;
-
-    usePaginatedQuery(fakeQuery, selector);
-    runEffects();
-
-    connectivityListeners[0](true);
-
-    // _version state (state_5: nodes=0, loading=1, loadingMore=2, error=3, hasMore=4, _version=5)
-    expect(stateUpdates.state_5?.at(-1)).toBe(1);
-  });
-
-  it("cleans up connectivity listener on unmount", () => {
-    mockIsOnline = false;
-
-    usePaginatedQuery(fakeQuery, selector);
-    runEffects();
-
-    expect(connectivityListeners).toHaveLength(1);
-    for (const cleanup of effectCleanups) cleanup();
-    expect(connectivityListeners).toHaveLength(0);
-  });
-
-  it("proceeds with fetch when online", async () => {
-    mockIsOnline = true;
+  it("calls gql on mount", async () => {
     const { gql } = await import("../lib/auth");
 
     usePaginatedQuery(fakeQuery, selector);
@@ -155,5 +96,25 @@ describe("usePaginatedQuery offline behavior", () => {
 
     await new Promise((r) => setTimeout(r, 0));
     expect(gql).toHaveBeenCalled();
+  });
+
+  it("sets error on failure", async () => {
+    mockGqlError = new Error("boom");
+
+    usePaginatedQuery(fakeQuery, selector);
+    runEffects();
+
+    await new Promise((r) => setTimeout(r, 0));
+    // state_3 = error (nodes=0, loading=1, loadingMore=2, error=3)
+    expect(stateUpdates.state_3?.at(-1)).toBe("boom");
+  });
+
+  it("sets loading on mount", async () => {
+    usePaginatedQuery(fakeQuery, selector);
+    runEffects();
+
+    await new Promise((r) => setTimeout(r, 0));
+    // state_1 = loading
+    expect(stateUpdates.state_1).toContain(true);
   });
 });
