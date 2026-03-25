@@ -60,29 +60,43 @@ export function useChatSend({
     });
   }, [messages, pendingMessages.length]);
 
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
   const handleSend = useCallback(async () => {
     const content = input.trim();
-    if (!content || !agentId) return;
-    setInput("");
-    setPendingMessages((prev) => [...prev, content]);
-    scrollToBottom();
+    if (!content || !agentId || sending) return;
+    setSending(true);
+    setSendError(null);
     clientLogger.info("Sending message", { agentId, taskId });
     try {
-      await gql(SendMessageMutation, {
-        agentId,
-        content,
-        ...(taskId ? { taskId } : {}),
-      });
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out")), 15_000),
+      );
+      await Promise.race([
+        gql(SendMessageMutation, {
+          agentId,
+          content,
+          ...(taskId ? { taskId } : {}),
+        }),
+        timeout,
+      ]);
       clientLogger.debug("Message sent successfully", { agentId, taskId });
+      setInput("");
+      setPendingMessages((prev) => [...prev, content]);
+      scrollToBottom();
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       clientLogger.error("Failed to send message", {
         agentId,
         taskId,
-        error: err instanceof Error ? err.message : String(err),
+        error: msg,
       });
-      setPendingMessages((prev) => prev.filter((m) => m !== content));
+      setSendError(msg);
+    } finally {
+      setSending(false);
     }
-  }, [input, agentId, taskId, scrollToBottom]);
+  }, [input, agentId, taskId, sending, scrollToBottom]);
 
   return {
     input,
@@ -91,5 +105,8 @@ export function useChatSend({
     listRef,
     scrollToBottom,
     handleSend,
+    sending,
+    sendError,
+    clearSendError: useCallback(() => setSendError(null), []),
   };
 }

@@ -63,6 +63,7 @@ interface ChatInputBarProps {
   input: string;
   setInput: (v: string) => void;
   onSend: () => void;
+  sending?: boolean;
   disabled?: boolean;
   uploads: FileUploadState[];
   isUploading: boolean;
@@ -73,6 +74,7 @@ export function ChatInputBar({
   input,
   setInput,
   onSend,
+  sending,
   disabled,
   uploads,
   isUploading,
@@ -82,7 +84,8 @@ export function ChatInputBar({
   const inputRef = useRef<TextInput>(null);
   const baseHeight = useRef(0);
   const [inputHeight, setInputHeight] = useState(0);
-  const canSend = input.trim().length > 0;
+  const hasText = input.trim().length > 0;
+  const canSend = hasText && !sending;
   const hasUploads = uploads.length > 0;
 
   useEffect(() => {
@@ -150,14 +153,19 @@ export function ChatInputBar({
           blurOnSubmit={false}
         />
 
-        {canSend && (
+        {(canSend || sending) && (
           <View style={{ justifyContent: "flex-end", paddingBottom: 2 }}>
             <Pressable
               onPress={onSend}
-              className="rounded-full items-center justify-center bg-accent active:bg-accent-light"
+              disabled={!canSend}
+              className={`rounded-full items-center justify-center bg-accent ${canSend ? "active:bg-accent-light" : "opacity-50"}`}
               style={{ width: 34, height: 34 }}
             >
-              <ArrowUp size={18} color="#fff" />
+              {sending ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <ArrowUp size={18} color="#fff" />
+              )}
             </Pressable>
           </View>
         )}

@@ -105,9 +105,8 @@ export function ChatScreen({
     }
   }, [fetchNewer]);
 
-  const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
-    { agentId, taskId, messages },
-  );
+  const { input, setInput, pendingMessages, listRef, handleSend, sending } =
+    useChatSend({ agentId, taskId, messages });
 
   // On web, the 4× scaleY(-1) fix normalizes scroll direction, so we need to
   // manually scroll to the bottom on initial load to show the newest messages.
@@ -284,6 +283,7 @@ export function ChatScreen({
         input={input}
         setInput={setInput}
         onSend={handleSend}
+        sending={sending}
         disabled={disabled}
         uploads={uploads}
         isUploading={isUploading}
