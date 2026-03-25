@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
+import { isOnline, onConnectivityChange } from "../lib/networkState";
 
 export function useQuery<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,
@@ -32,6 +33,19 @@ export function useQuery<TResult, TVariables>(
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!isOnline()) {
+      setError("No internet connection");
+      setLoading(false);
+      const unsub = onConnectivityChange((online) => {
+        if (online && !cancelled) setVersion((v) => v + 1);
+      });
+      return () => {
+        cancelled = true;
+        unsub();
+      };
+    }
+
     if (_version === 0) {
       setData(null);
       setLoading(true);

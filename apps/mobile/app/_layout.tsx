@@ -1,9 +1,11 @@
 import "../global.css";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
 import { AuthProvider } from "../src/lib/AuthContext";
 import { ServerConfigProvider } from "../src/lib/ServerConfigContext";
 import { ThemeProvider, useTheme } from "../src/lib/ThemeContext";
+import { NetworkBanner } from "../src/shared/NetworkBanner";
 
 function StatusBarThemed() {
   const { isDark } = useTheme();
@@ -16,7 +18,10 @@ export default function RootLayout() {
       <ServerConfigProvider>
         <AuthProvider>
           <StatusBarThemed />
-          <Slot />
+          <View style={{ flex: 1 }}>
+            <Slot />
+            <NetworkBanner />
+          </View>
         </AuthProvider>
       </ServerConfigProvider>
     </ThemeProvider>

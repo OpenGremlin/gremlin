@@ -17,6 +17,10 @@ export default defineConfig({
         "./__mocks__/expo-secure-store.ts",
         import.meta.url,
       ).pathname,
+      "@react-native-community/netinfo": new URL(
+        "./__mocks__/@react-native-community/netinfo.ts",
+        import.meta.url,
+      ).pathname,
     },
   },
 });
