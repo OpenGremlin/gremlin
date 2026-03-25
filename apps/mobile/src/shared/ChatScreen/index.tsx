@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -36,6 +36,11 @@ const flatListContentStyle = {
   paddingHorizontal: 16,
   paddingTop: 8,
   paddingBottom: 140,
+  // react-native-web bug: `inverted` applies scaleY(-1) three times (outer
+  // scroll, inner scroll, and each cell wrapper) instead of the expected two.
+  // Adding a fourth flip on the content container makes the total even, so
+  // cell content renders right-side up. No-op on native (inverted works there).
+  ...(Platform.OS === "web" && { transform: [{ scaleY: -1 }] }),
 } as const;
 
 const overlayContainerStyle = {
@@ -101,6 +106,24 @@ export function ChatScreen({
   const { input, setInput, pendingMessages, listRef, handleSend } = useChatSend(
     { agentId, taskId, messages },
   );
+
+  // On web, the 4× scaleY(-1) fix normalizes scroll direction, so we need to
+  // manually scroll to the bottom on initial load to show the newest messages.
+  // scrollToEnd doesn't work here because FlatList's inverted logic reverses
+  // the meaning of "end". Use scrollToOffset with a large value instead.
+  const didInitialScroll = useRef(false);
+  useEffect(() => {
+    if (
+      Platform.OS !== "web" ||
+      didInitialScroll.current ||
+      messages.length === 0
+    )
+      return;
+    didInitialScroll.current = true;
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({ offset: 999999, animated: false });
+    });
+  }, [messages.length, listRef]);
 
   const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(
     agentId,

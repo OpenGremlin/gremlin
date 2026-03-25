@@ -56,6 +56,10 @@ export function getWsClient(): Client {
   return _wsClient;
 }
 
+export function tryGetWsClient(): Client | null {
+  return _wsClient;
+}
+
 export function useWsReconnect(callback: () => void) {
   const ref = useRef(callback);
   ref.current = callback;
