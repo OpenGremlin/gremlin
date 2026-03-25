@@ -18,7 +18,6 @@ npx --yes turbo prune @gremlin/mobile --out-dir /tmp/pruned
 cd /tmp/pruned
 # Copy files turbo prune doesn't track
 cp "$REPO_ROOT"/tsconfig.base.json .
-cp -r "$REPO_ROOT"/branding branding/
 
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm --filter @gremlin/mobile run build:web
