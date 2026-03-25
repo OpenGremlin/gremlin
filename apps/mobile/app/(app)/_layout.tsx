@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
-import { ActivityIndicator, Platform, View } from "react-native";
+import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
@@ -9,6 +9,7 @@ import {
   usePendingCount,
 } from "../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
+import { DelayedSpinner } from "../../src/shared/DelayedSpinner";
 
 export default function AppLayout() {
   const { token, loading } = useAuth();
@@ -20,7 +21,7 @@ export default function AppLayout() {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: colors.background }}
       >
-        <ActivityIndicator size="large" color={colors.accentIndicator} />
+        <DelayedSpinner />
       </View>
     );
   }
