@@ -33,7 +33,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const [_version, setVersion] = useState(0);
+  const [version, setVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
   const newestCursorRef = useRef<string | null>(null);
 
@@ -49,9 +49,9 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   const selectorRef = useRef(connectionSelector);
   selectorRef.current = connectionSelector;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: _version is intentionally included to trigger refetch
   useEffect(() => {
     let cancelled = false;
+    const fetchVersion = version;
 
     setLoading(true);
     setError(null);
@@ -59,7 +59,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     // biome-ignore lint/suspicious/noExplicitAny: pagination merges cursor params
     (gql as any)(query, { ...stableVars, last: PAGE_SIZE })
       .then((result: TResult) => {
-        if (cancelled) return;
+        if (cancelled || fetchVersion !== version) return;
         const conn = selectorRef.current(result);
         const items = conn.edges.map((e) => e.node);
         setNodes(direction === "newest-first" ? items.reverse() : items);
@@ -81,7 +81,7 @@ export function usePaginatedQuery<TResult, TNode extends { id: string }>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars, direction, _version]);
+  }, [query, stableVars, direction, version]);
 
   const loadMore = useCallback(async () => {
     if (!cursorRef.current || !hasMore) return;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
@@ -20,7 +20,7 @@ export function useQuery<TResult, TVariables>(
   const [data, setData] = useState<TResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [_version, setVersion] = useState(0);
+  const [version, setVersion] = useState(0);
 
   const serializedVars = variables ? JSON.stringify(variables) : undefined;
   const stableVars = useMemo(
@@ -31,9 +31,11 @@ export function useQuery<TResult, TVariables>(
     [serializedVars],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: _version is intentionally included to trigger refetch
+  const refetch = useCallback(() => setVersion((v) => v + 1), []);
+
   useEffect(() => {
     let cancelled = false;
+    const fetchVersion = version;
 
     setData(null);
     setLoading(true);
@@ -41,7 +43,7 @@ export function useQuery<TResult, TVariables>(
     // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
     gql<TResult, any>(query as any, stableVars as any)
       .then((result) => {
-        if (!cancelled) setData(result);
+        if (!cancelled && fetchVersion === version) setData(result);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -56,19 +58,16 @@ export function useQuery<TResult, TVariables>(
     return () => {
       cancelled = true;
     };
-  }, [query, stableVars, _version]);
-
-  const refetch = () => setVersion((v) => v + 1);
+  }, [query, stableVars, version]);
 
   // Auto-refetch when connectivity is restored and the query is in an error state.
   const errorRef = useRef(error);
   errorRef.current = error;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch is stable, subscribe once on mount
   useEffect(() => {
     return onConnectivityChange((online) => {
       if (online && errorRef.current) refetch();
     });
-  }, []);
+  }, [refetch]);
 
   return { data, loading, error, refetch, setData };
 }

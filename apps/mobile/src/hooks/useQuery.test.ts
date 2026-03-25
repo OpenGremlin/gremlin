@@ -48,6 +48,7 @@ vi.mock("react", () => {
       if (!memoCache.has(key)) memoCache.set(key, fn());
       return memoCache.get(key);
     },
+    useCallback: (fn: unknown) => fn,
     useRef: (initial: unknown) => {
       const idx = refIndex++;
       if (!refs.has(idx)) refs.set(idx, { current: initial });
