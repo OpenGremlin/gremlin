@@ -1,5 +1,5 @@
-import { Bot, Eye, Globe, Info, Terminal } from "lucide-react-native";
-import { useState } from "react";
+import { Bot, Globe, Info, Terminal } from "lucide-react-native";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
@@ -101,6 +101,20 @@ function getModelLabel(
   return "Select a model";
 }
 
+function resolveModelIds(
+  model: PlainConfig["model"],
+): { providerId: string; modelId: string } | null {
+  if (!model) return null;
+  if (model.type === "bedrock" && model.modelId) {
+    return { providerId: "bedrock", modelId: model.modelId };
+  }
+  if (model.type === "connection" && model.connectionId) {
+    const [providerId, modelId] = model.connectionId.split(":", 2);
+    return { providerId, modelId };
+  }
+  return null;
+}
+
 export function ToolsConfig({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
@@ -120,6 +134,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [saving, setSaving] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
+  const [modelModalities, setModelModalities] = useState<string[] | null>(null);
 
   // Sync from server when agent prop updates
   const serverConfig = agent.config;
@@ -131,19 +146,52 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
   const config = localConfig;
 
-  async function updateConfig(patch: Partial<typeof config>) {
-    const merged = { ...config, ...patch };
-    setLocalConfig(merged);
-    setSaving(true);
-    try {
-      await gql(UpdateAgentDoc, {
-        id: agent.id,
-        input: { config: merged },
+  const updateConfig = useCallback(
+    async (patch: Partial<PlainConfig>) => {
+      setLocalConfig((prev) => {
+        const merged = { ...prev, ...patch };
+        setSaving(true);
+        gql(UpdateAgentDoc, {
+          id: agent.id,
+          input: { config: merged },
+        }).finally(() => setSaving(false));
+        return merged;
       });
-    } finally {
-      setSaving(false);
+    },
+    [agent.id],
+  );
+
+  // Fetch modalities for the selected model
+  const configModel = config.model;
+  useEffect(() => {
+    const ids = resolveModelIds(configModel);
+    if (!ids) {
+      setModelModalities(null);
+      return;
     }
-  }
+    let cancelled = false;
+    gql(EnabledModelDetailsQuery, { providerId: ids.providerId }).then(
+      (result) => {
+        if (cancelled) return;
+        const detail = result.enabledModelDetails.find(
+          (d) => d.id === ids.modelId,
+        );
+        setModelModalities(detail?.supportedModalities ?? null);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [configModel]);
+
+  const supportsImages = modelModalities?.includes("image") ?? true;
+
+  // Auto-disable viewImage when the model does not support images
+  useEffect(() => {
+    if (!supportsImages && config.viewImage?.enabled) {
+      updateConfig({ viewImage: { enabled: false } });
+    }
+  }, [supportsImages, config.viewImage?.enabled, updateConfig]);
 
   const modelLabel = getModelLabel(
     config.model,
@@ -199,23 +247,13 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             </Pressable>
             <Pressable
               onPress={async () => {
-                const m = config.model;
-                if (!m) return;
-                let providerId: string;
-                let modelId: string;
-                if (m.type === "bedrock" && m.modelId) {
-                  providerId = "bedrock";
-                  modelId = m.modelId;
-                } else if (m.type === "connection" && m.connectionId) {
-                  [providerId, modelId] = m.connectionId.split(":", 2);
-                } else {
-                  return;
-                }
+                const ids = resolveModelIds(config.model);
+                if (!ids) return;
                 const result = await gql(EnabledModelDetailsQuery, {
-                  providerId,
+                  providerId: ids.providerId,
                 });
                 const detail = result.enabledModelDetails.find(
-                  (d) => d.id === modelId,
+                  (d) => d.id === ids.modelId,
                 );
                 if (detail) setModelDetail(detail);
               }}
@@ -225,33 +263,34 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             </Pressable>
           </View>
         )}
-      </Card>
-
-      {/* View Images */}
-      <Card className="overflow-hidden">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <View className="flex-row items-center gap-3 flex-1">
-            <Eye size={18} color={colors.iconDefault} />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-text-secondary">
-                View Images
-              </Text>
-              <Text className="text-xs text-text-muted">
-                {config.sandbox?.enabled
-                  ? "Let the agent see image files"
-                  : "Requires Sandbox to be enabled"}
-              </Text>
+        {config.model && (
+          <View className="px-4 pb-3 ml-7">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text className="text-sm text-text-secondary">View Images</Text>
+                <Text className="text-xs text-text-muted">
+                  {!config.sandbox?.enabled
+                    ? "Requires Sandbox to be enabled"
+                    : !supportsImages
+                      ? "Selected model does not support images"
+                      : "Let the agent see image files"}
+                </Text>
+              </View>
+              <Toggle
+                enabled={
+                  supportsImages &&
+                  !!config.sandbox?.enabled &&
+                  (config.viewImage?.enabled ?? false)
+                }
+                disabled={!config.sandbox?.enabled || !supportsImages}
+                onChange={() => {
+                  const wasEnabled = config.viewImage?.enabled ?? false;
+                  updateConfig({ viewImage: { enabled: !wasEnabled } });
+                }}
+              />
             </View>
           </View>
-          <Toggle
-            enabled={config.viewImage?.enabled ?? false}
-            disabled={!config.sandbox?.enabled}
-            onChange={() => {
-              const wasEnabled = config.viewImage?.enabled ?? false;
-              updateConfig({ viewImage: { enabled: !wasEnabled } });
-            }}
-          />
-        </View>
+        )}
       </Card>
 
       {/* Sandbox */}
