@@ -30,9 +30,15 @@ export function useQuery<TResult, TVariables>(
     [serializedVars],
   );
 
+  const isInitialFetch = useRef(true);
+
   const fetchData = useCallback(async () => {
-    setData(null);
-    setLoading(true);
+    // Only show loading spinner on the initial fetch — keep stale data
+    // visible during background refetches to avoid flicker and scroll jumps.
+    if (isInitialFetch.current) {
+      setData(null);
+      setLoading(true);
+    }
     setError(null);
     try {
       // biome-ignore lint/suspicious/noExplicitAny: implementation passes through to untyped fetch
@@ -44,10 +50,12 @@ export function useQuery<TResult, TVariables>(
       setError(msg);
     } finally {
       setLoading(false);
+      isInitialFetch.current = false;
     }
   }, [query, stableVars]);
 
   useEffect(() => {
+    isInitialFetch.current = true;
     fetchData();
   }, [fetchData]);
 
