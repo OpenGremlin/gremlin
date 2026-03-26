@@ -22,6 +22,9 @@ export interface EnabledModel {
   reasoning: boolean;
   inputCost?: number;
   outputCost?: number;
+  supportedModalities?: string[];
+  supportedOutputModalities?: string[];
+  outputCostPerImage?: number;
 }
 
 function settingKey(providerId: string): string {

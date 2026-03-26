@@ -27,6 +27,9 @@ export interface ModelMetadata {
   supports_function_calling?: boolean;
   supports_reasoning?: boolean;
   supports_response_schema?: boolean;
+  supported_modalities?: string[];
+  supported_output_modalities?: string[];
+  output_cost_per_image?: number;
 }
 
 /** Modes we surface, mapped to our ModelType */

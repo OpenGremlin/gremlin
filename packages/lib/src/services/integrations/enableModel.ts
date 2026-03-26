@@ -29,6 +29,9 @@ function snapshotModel(
     reasoning: meta?.supports_reasoning ?? false,
     inputCost: meta?.input_cost_per_token,
     outputCost: meta?.output_cost_per_token,
+    supportedModalities: meta?.supported_modalities,
+    supportedOutputModalities: meta?.supported_output_modalities,
+    outputCostPerImage: meta?.output_cost_per_image,
   };
 }
 

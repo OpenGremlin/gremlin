@@ -49,6 +49,29 @@ describe("lookupModelMetadata", () => {
     const meta = lookupModelMetadata("unknown_provider", "some-model");
     expect(meta).toBeNull();
   });
+
+  it("includes supported_modalities when present", () => {
+    const meta = lookupModelMetadata("openai", "codex-mini-latest");
+    expect(meta).not.toBeNull();
+    expect(meta?.supported_modalities).toEqual(
+      expect.arrayContaining(["text"]),
+    );
+  });
+
+  it("includes supported_output_modalities when present", () => {
+    const meta = lookupModelMetadata("openai", "codex-mini-latest");
+    expect(meta).not.toBeNull();
+    expect(meta?.supported_output_modalities).toEqual(
+      expect.arrayContaining(["text"]),
+    );
+  });
+
+  it("includes output_cost_per_image for image models", () => {
+    const meta = lookupModelMetadata("bedrock", "amazon.nova-canvas-v1:0");
+    if (meta) {
+      expect(meta.output_cost_per_image).toBeTypeOf("number");
+    }
+  });
 });
 
 describe("classifyModelFromStore", () => {
