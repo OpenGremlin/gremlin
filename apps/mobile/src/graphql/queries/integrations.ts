@@ -30,11 +30,7 @@ export const IntegrationProvidersQuery = graphql(`
       models {
         id
         name
-        contextWindow
-        maxTokens
-        reasoning
-        inputCost
-        outputCost
+        mode
       }
       connectionCount
       hasConnection
@@ -87,7 +83,7 @@ export const ConnectApiKeyMutation = graphql(`
       models {
         id
         name
-        type
+        mode
       }
     }
   }
@@ -98,7 +94,7 @@ export const ProviderModelsQuery = graphql(`
     providerModels(providerId: $providerId) {
       id
       name
-      type
+      mode
     }
   }
 `);
@@ -133,7 +129,7 @@ export const AllEnabledModelsQuery = graphql(`
       providerId
       modelId
       modelName
-      modelType
+      modelMode
     }
   }
 `);
@@ -161,12 +157,7 @@ export const BedrockAvailableModelsQuery = graphql(`
     bedrockAvailableModels {
       id
       name
-      type
-      contextWindow
-      maxTokens
-      reasoning
-      inputCost
-      outputCost
+      mode
     }
   }
 `);

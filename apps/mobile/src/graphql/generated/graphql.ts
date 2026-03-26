@@ -295,8 +295,8 @@ export type DocumentRender = {
 export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
+  modelMode: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
-  modelType: Scalars['String']['output'];
   providerId: Scalars['String']['output'];
 };
 
@@ -390,14 +390,18 @@ export type LinkAttachment = {
 
 export type ModelInfo = {
   __typename?: 'ModelInfo';
-  contextWindow: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
-  inputCost?: Maybe<Scalars['Float']['output']>;
-  maxTokens: Scalars['Int']['output'];
+  inputCostPerImage?: Maybe<Scalars['Float']['output']>;
+  inputCostPerImageToken?: Maybe<Scalars['Float']['output']>;
+  inputCostPerToken?: Maybe<Scalars['Float']['output']>;
+  maxInputTokens?: Maybe<Scalars['Int']['output']>;
+  mode: Scalars['String']['output'];
   name: Scalars['String']['output'];
-  outputCost?: Maybe<Scalars['Float']['output']>;
-  reasoning: Scalars['Boolean']['output'];
-  type: Scalars['String']['output'];
+  outputCostPerImage?: Maybe<Scalars['Float']['output']>;
+  outputCostPerImageToken?: Maybe<Scalars['Float']['output']>;
+  outputCostPerToken?: Maybe<Scalars['Float']['output']>;
+  supportedModalities?: Maybe<Array<Scalars['String']['output']>>;
+  supportedOutputModalities?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type Mutation = {
@@ -664,8 +668,8 @@ export type ProfileInput = {
 export type ProviderModelInfo = {
   __typename?: 'ProviderModelInfo';
   id: Scalars['ID']['output'];
+  mode: Scalars['String']['output'];
   name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
 };
 
 export type Query = {
@@ -1210,7 +1214,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null, defaultImageModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, mode: string }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null, defaultImageModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1226,14 +1230,14 @@ export type ConnectApiKeyMutationVariables = Exact<{
 }>;
 
 
-export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: { __typename?: 'ConnectApiKeyResult', connectionId: string, models: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, type: string }> } };
+export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: { __typename?: 'ConnectApiKeyResult', connectionId: string, models: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, mode: string }> } };
 
 export type ProviderModelsQueryVariables = Exact<{
   providerId: Scalars['String']['input'];
 }>;
 
 
-export type ProviderModelsQuery = { __typename?: 'Query', providerModels: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, type: string }> };
+export type ProviderModelsQuery = { __typename?: 'Query', providerModels: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, mode: string }> };
 
 export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1268,7 +1272,7 @@ export type EnabledModelsQuery = { __typename?: 'Query', enabledModels: Array<st
 export type AllEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllEnabledModelsQuery = { __typename?: 'Query', allEnabledModels: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null, modelType: string }> };
+export type AllEnabledModelsQuery = { __typename?: 'Query', allEnabledModels: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null, modelMode: string }> };
 
 export type EnableModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1295,7 +1299,7 @@ export type BedrockEnabledModelsQuery = { __typename?: 'Query', bedrockEnabledMo
 export type BedrockAvailableModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BedrockAvailableModelsQuery = { __typename?: 'Query', bedrockAvailableModels: Array<{ __typename?: 'ModelInfo', id: string, name: string, type: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> };
+export type BedrockAvailableModelsQuery = { __typename?: 'Query', bedrockAvailableModels: Array<{ __typename?: 'ModelInfo', id: string, name: string, mode: string }> };
 
 export type EnableBedrockModelMutationVariables = Exact<{
   modelId: Scalars['String']['input'];
@@ -2088,11 +2092,7 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     models {
       id
       name
-      contextWindow
-      maxTokens
-      reasoning
-      inputCost
-      outputCost
+      mode
     }
     connectionCount
     hasConnection
@@ -2143,7 +2143,7 @@ export const ConnectApiKeyDocument = new TypedDocumentString(`
     models {
       id
       name
-      type
+      mode
     }
   }
 }
@@ -2153,7 +2153,7 @@ export const ProviderModelsDocument = new TypedDocumentString(`
   providerModels(providerId: $providerId) {
     id
     name
-    type
+    mode
   }
 }
     `) as unknown as TypedDocumentString<ProviderModelsQuery, ProviderModelsQueryVariables>;
@@ -2183,7 +2183,7 @@ export const AllEnabledModelsDocument = new TypedDocumentString(`
     providerId
     modelId
     modelName
-    modelType
+    modelMode
   }
 }
     `) as unknown as TypedDocumentString<AllEnabledModelsQuery, AllEnabledModelsQueryVariables>;
@@ -2207,12 +2207,7 @@ export const BedrockAvailableModelsDocument = new TypedDocumentString(`
   bedrockAvailableModels {
     id
     name
-    type
-    contextWindow
-    maxTokens
-    reasoning
-    inputCost
-    outputCost
+    mode
   }
 }
     `) as unknown as TypedDocumentString<BedrockAvailableModelsQuery, BedrockAvailableModelsQueryVariables>;

@@ -12,17 +12,24 @@ export interface AvailableScope {
   label: string;
 }
 
+export type ModelMode = "chat" | "image_generation";
+
+/** @deprecated Use ModelMode instead */
 export type ModelType = "llm" | "image";
 
 export interface ModelDef {
   id: string;
   name: string;
-  type: ModelType;
-  contextWindow: number;
-  maxTokens: number;
-  reasoning: boolean;
-  inputCost?: number;
-  outputCost?: number;
+  mode: ModelMode;
+  maxInputTokens?: number;
+  inputCostPerToken?: number;
+  outputCostPerToken?: number;
+  supportedModalities?: string[];
+  supportedOutputModalities?: string[];
+  inputCostPerImage?: number;
+  inputCostPerImageToken?: number;
+  outputCostPerImage?: number;
+  outputCostPerImageToken?: number;
 }
 
 export type UserInfoConfig =

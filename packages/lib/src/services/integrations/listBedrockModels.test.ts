@@ -31,14 +31,14 @@ vi.mock("./modelMetadataStore.js", () => ({
       modelId.includes("stable-image") ||
       modelId.includes("stable-diffusion")
     )
-      return "image" as const;
+      return "image_generation" as const;
     if (
       modelId.includes("claude") ||
       modelId.includes("llama") ||
       modelId.includes("nova-pro") ||
       modelId.includes("nova-lite")
     )
-      return "llm" as const;
+      return "chat" as const;
     // Unknown model — not in store
     return null;
   }),
@@ -84,9 +84,9 @@ describe("listBedrockModels", () => {
 
     expect(models).toHaveLength(2);
     expect(models[0].id).toBe("us.anthropic.claude-sonnet-4-6");
-    expect(models[0].type).toBe("llm");
+    expect(models[0].mode).toBe("chat");
     expect(models[1].id).toBe("us.meta.llama4-scout-17b-instruct-v1:0");
-    expect(models[1].type).toBe("llm");
+    expect(models[1].mode).toBe("chat");
   });
 
   it("classifies image models from the metadata store", async () => {
@@ -110,9 +110,9 @@ describe("listBedrockModels", () => {
 
     expect(models).toHaveLength(2);
     expect(models[0].id).toBe("us.amazon.nova-canvas-v1:0");
-    expect(models[0].type).toBe("image");
+    expect(models[0].mode).toBe("image_generation");
     expect(models[1].id).toBe("us.anthropic.claude-sonnet-4-6");
-    expect(models[1].type).toBe("llm");
+    expect(models[1].mode).toBe("chat");
   });
 
   it("filters out models not found in the metadata store", async () => {

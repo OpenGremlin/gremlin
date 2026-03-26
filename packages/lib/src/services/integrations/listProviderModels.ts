@@ -1,10 +1,10 @@
-import type { ModelType } from "@gremlin/providers";
+import type { ModelMode } from "@gremlin/providers";
 import { classifyModelFromStore } from "./modelMetadataStore.js";
 
 export interface ProviderModel {
   id: string;
   name: string;
-  type: ModelType;
+  mode: ModelMode;
 }
 
 interface ProviderConfig {
@@ -184,9 +184,9 @@ export async function listProviderModels(
   // Cross-reference with LiteLLM metadata store
   const result: ProviderModel[] = [];
   for (const model of rawModels) {
-    const type = classifyModelFromStore(providerId, model.id);
-    if (type) {
-      result.push({ id: model.id, name: model.name, type });
+    const mode = classifyModelFromStore(providerId, model.id);
+    if (mode) {
+      result.push({ id: model.id, name: model.name, mode });
     }
   }
 

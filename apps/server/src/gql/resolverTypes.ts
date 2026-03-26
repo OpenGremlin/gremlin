@@ -314,8 +314,8 @@ export type DocumentRender = {
 export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
+  modelMode: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
-  modelType: Scalars['String']['output'];
   providerId: Scalars['String']['output'];
 };
 
@@ -409,14 +409,18 @@ export type LinkAttachment = {
 
 export type ModelInfo = {
   __typename?: 'ModelInfo';
-  contextWindow: Scalars['Int']['output'];
   id: Scalars['ID']['output'];
-  inputCost?: Maybe<Scalars['Float']['output']>;
-  maxTokens: Scalars['Int']['output'];
+  inputCostPerImage?: Maybe<Scalars['Float']['output']>;
+  inputCostPerImageToken?: Maybe<Scalars['Float']['output']>;
+  inputCostPerToken?: Maybe<Scalars['Float']['output']>;
+  maxInputTokens?: Maybe<Scalars['Int']['output']>;
+  mode: Scalars['String']['output'];
   name: Scalars['String']['output'];
-  outputCost?: Maybe<Scalars['Float']['output']>;
-  reasoning: Scalars['Boolean']['output'];
-  type: Scalars['String']['output'];
+  outputCostPerImage?: Maybe<Scalars['Float']['output']>;
+  outputCostPerImageToken?: Maybe<Scalars['Float']['output']>;
+  outputCostPerToken?: Maybe<Scalars['Float']['output']>;
+  supportedModalities?: Maybe<Array<Scalars['String']['output']>>;
+  supportedOutputModalities?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type Mutation = {
@@ -683,8 +687,8 @@ export type ProfileInput = {
 export type ProviderModelInfo = {
   __typename?: 'ProviderModelInfo';
   id: Scalars['ID']['output'];
+  mode: Scalars['String']['output'];
   name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
 };
 
 export type Query = {
@@ -1474,8 +1478,8 @@ export type DocumentRenderResolvers<ContextType = GremlinContext, ParentType ext
 
 export type EnabledModelEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['EnabledModelEntry'] = ResolversParentTypes['EnabledModelEntry']> = {
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  modelMode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  modelType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1554,14 +1558,18 @@ export type LinkAttachmentResolvers<ContextType = GremlinContext, ParentType ext
 };
 
 export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelInfo'] = ResolversParentTypes['ModelInfo']> = {
-  contextWindow?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  inputCost?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  maxTokens?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  inputCostPerImage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  inputCostPerImageToken?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  inputCostPerToken?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  maxInputTokens?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  outputCost?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  reasoning?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  outputCostPerImage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  outputCostPerImageToken?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  outputCostPerToken?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  supportedModalities?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  supportedOutputModalities?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -1626,8 +1634,8 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
 
 export type ProviderModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ProviderModelInfo'] = ResolversParentTypes['ProviderModelInfo']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {

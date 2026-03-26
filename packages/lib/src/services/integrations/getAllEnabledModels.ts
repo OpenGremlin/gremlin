@@ -7,7 +7,7 @@ export interface EnabledModelEntry {
   providerId: string;
   modelId: string;
   modelName: string | null;
-  modelType: string;
+  modelMode: string;
 }
 
 /**
@@ -25,7 +25,7 @@ export async function getAllEnabledModels(
         providerId: p.id,
         modelId: m.id,
         modelName: m.name !== m.id ? m.name : null,
-        modelType: m.type,
+        modelMode: m.mode,
       }));
     }),
   );

@@ -51,16 +51,9 @@ export async function listBedrockModels(): Promise<ModelDef[]> {
 
   const models: ModelDef[] = [];
   for (const p of profiles) {
-    const type = classifyModelFromStore("bedrock", p.id);
-    if (type) {
-      models.push({
-        id: p.id,
-        name: p.name,
-        type,
-        contextWindow: 0,
-        maxTokens: 0,
-        reasoning: false,
-      });
+    const mode = classifyModelFromStore("bedrock", p.id);
+    if (mode) {
+      models.push({ id: p.id, name: p.name, mode });
     }
   }
 

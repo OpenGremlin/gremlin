@@ -18,10 +18,7 @@ function model(id: string, name?: string): EnabledModel {
   return {
     id,
     name: name ?? id,
-    type: "llm",
-    contextWindow: 0,
-    maxTokens: 0,
-    reasoning: false,
+    mode: "chat",
   };
 }
 

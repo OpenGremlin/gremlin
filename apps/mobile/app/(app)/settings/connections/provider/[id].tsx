@@ -36,26 +36,27 @@ import { SearchInput } from "../../../../../src/shared/SearchInput";
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
-type ModelType = "llm" | "image";
+type ModelMode = "chat" | "image_generation";
 
-const MODEL_TYPE_LABELS: Record<ModelType, string> = {
-  llm: "Language Models",
-  image: "Image Models",
+const MODEL_MODE_LABELS: Record<ModelMode, string> = {
+  chat: "Language Models",
+  image_generation: "Image Models",
 };
 
 async function setDefaultForType(
-  modelType: ModelType,
+  modelMode: ModelMode,
   providerId: string,
   modelId: string,
 ) {
   const vars = { providerId, modelId };
-  if (modelType === "image") return gql(SetDefaultImageModelMutation, vars);
+  if (modelMode === "image_generation")
+    return gql(SetDefaultImageModelMutation, vars);
   return gql(SetDefaultModelMutation, vars);
 }
 
 function TypedModelList({
   providerId,
-  modelType,
+  modelMode,
   label,
   allModels,
   enabledModelIds,
@@ -65,9 +66,9 @@ function TypedModelList({
   refetchModels,
 }: {
   providerId: string;
-  modelType: ModelType;
+  modelMode: ModelMode;
   label: string;
-  allModels: { id: string; name: string; type: string }[];
+  allModels: { id: string; name: string; mode: string }[];
   enabledModelIds: string[];
   defaultModel: DefaultModel;
   refetchEnabled: () => void;
@@ -82,7 +83,7 @@ function TypedModelList({
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
 
-  const modelsOfType = allModels.filter((m) => m.type === modelType);
+  const modelsOfType = allModels.filter((m) => m.mode === modelMode);
   if (modelsOfType.length === 0) return null;
 
   const isDefaultProvider = defaultModel?.providerId === providerId;
@@ -133,7 +134,7 @@ function TypedModelList({
     setSettingModel(modelId);
     setError(null);
     try {
-      await setDefaultForType(modelType, providerId, modelId);
+      await setDefaultForType(modelMode, providerId, modelId);
       refetchParent();
     } catch (err) {
       setError(
@@ -316,9 +317,9 @@ function ApiKeyModelLists({
   const allModels = modelsData?.providerModels ?? [];
   const enabledModelIds = enabledData?.enabledModels ?? [];
 
-  const defaultsByType: Record<ModelType, DefaultModel> = {
-    llm: defaultModel,
-    image: defaultImageModel,
+  const defaultsByMode: Record<ModelMode, DefaultModel> = {
+    chat: defaultModel,
+    image_generation: defaultImageModel,
   };
 
   if (modelsLoading) {
@@ -330,22 +331,22 @@ function ApiKeyModelLists({
     );
   }
 
-  // Determine which model types this provider has
-  const types = (["llm", "image"] as const).filter((t) =>
-    allModels.some((m) => m.type === t),
+  // Determine which model modes this provider has
+  const modes = (["chat", "image_generation"] as const).filter((m) =>
+    allModels.some((model) => model.mode === m),
   );
 
   return (
     <>
-      {types.map((t) => (
+      {modes.map((m) => (
         <TypedModelList
-          key={t}
+          key={m}
           providerId={providerId}
-          modelType={t}
-          label={MODEL_TYPE_LABELS[t]}
+          modelMode={m}
+          label={MODEL_MODE_LABELS[m]}
           allModels={allModels}
           enabledModelIds={enabledModelIds}
-          defaultModel={defaultsByType[t]}
+          defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
           refetchParent={refetchParent}
           refetchModels={refetchModels}
@@ -475,17 +476,17 @@ function BedrockDetailView({
   const allModels = (availableData?.bedrockAvailableModels ?? []).map((m) => ({
     id: m.id,
     name: m.name,
-    type: m.type,
+    mode: m.mode,
   }));
   const enabledModelIds = enabledData?.enabledModels ?? [];
 
-  const defaultsByType: Record<ModelType, DefaultModel> = {
-    llm: defaultModel,
-    image: defaultImageModel,
+  const defaultsByMode: Record<ModelMode, DefaultModel> = {
+    chat: defaultModel,
+    image_generation: defaultImageModel,
   };
 
-  const types = (["llm", "image"] as const).filter((t) =>
-    allModels.some((m) => m.type === t),
+  const modes = (["chat", "image_generation"] as const).filter((m) =>
+    allModels.some((model) => model.mode === m),
   );
 
   return (
@@ -512,15 +513,15 @@ function BedrockDetailView({
         </View>
       )}
 
-      {types.map((t) => (
+      {modes.map((m) => (
         <TypedModelList
-          key={t}
+          key={m}
           providerId={provider.id}
-          modelType={t}
-          label={MODEL_TYPE_LABELS[t]}
+          modelMode={m}
+          label={MODEL_MODE_LABELS[m]}
           allModels={allModels}
           enabledModelIds={enabledModelIds}
-          defaultModel={defaultsByType[t]}
+          defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
           refetchParent={refetch}
           refetchModels={refetchModels}

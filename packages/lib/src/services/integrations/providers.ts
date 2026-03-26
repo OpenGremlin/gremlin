@@ -3,6 +3,7 @@ export {
   type IntegrationCategory,
   type IntegrationProviderDef,
   type ModelDef,
+  type ModelMode,
   type ModelType,
   providers,
 } from "@gremlin/providers";

@@ -18,20 +18,24 @@ function snapshotModel(
   modelId: string,
   displayName?: string,
 ): EnabledModel {
-  const type = classifyModelFromStore(providerId, modelId) ?? "llm";
+  const mode = classifyModelFromStore(providerId, modelId) ?? "chat";
   const meta = lookupModelMetadata(providerId, modelId);
+  // Default chat models to ["text"] when the metadata doesn't specify modalities
+  const defaultModalities = mode === "chat" ? ["text"] : undefined;
   return {
     id: modelId,
     name: displayName ?? modelId,
-    type,
-    contextWindow: meta?.max_input_tokens ?? 0,
-    maxTokens: meta?.max_output_tokens ?? meta?.max_tokens ?? 0,
-    reasoning: meta?.supports_reasoning ?? false,
-    inputCost: meta?.input_cost_per_token,
-    outputCost: meta?.output_cost_per_token,
-    supportedModalities: meta?.supported_modalities,
-    supportedOutputModalities: meta?.supported_output_modalities,
+    mode,
+    maxInputTokens: meta?.max_input_tokens,
+    inputCostPerToken: meta?.input_cost_per_token,
+    outputCostPerToken: meta?.output_cost_per_token,
+    supportedModalities: meta?.supported_modalities ?? defaultModalities,
+    supportedOutputModalities:
+      meta?.supported_output_modalities ?? defaultModalities,
+    inputCostPerImage: meta?.input_cost_per_image,
+    inputCostPerImageToken: meta?.input_cost_per_image_token,
     outputCostPerImage: meta?.output_cost_per_image,
+    outputCostPerImageToken: meta?.output_cost_per_image_token,
   };
 }
 
@@ -43,9 +47,9 @@ export async function enableModel(
 ): Promise<boolean> {
   // Bedrock uses server-side credentials — test inference to verify access
   if (providerId === "bedrock") {
-    const type = classifyModelFromStore(providerId, modelId);
+    const mode = classifyModelFromStore(providerId, modelId);
     // Only test text models — image models don't support generateText
-    if (type !== "image") {
+    if (mode !== "image_generation") {
       const bedrock = createAmazonBedrock({
         credentialProvider: fromNodeProviderChain(),
       });

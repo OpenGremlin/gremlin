@@ -7,12 +7,16 @@ export const integrationTypeDefs = /* GraphQL */ `
   type ModelInfo {
     id: ID!
     name: String!
-    type: String!
-    contextWindow: Int!
-    maxTokens: Int!
-    reasoning: Boolean!
-    inputCost: Float
-    outputCost: Float
+    mode: String!
+    maxInputTokens: Int
+    inputCostPerToken: Float
+    outputCostPerToken: Float
+    supportedModalities: [String!]
+    supportedOutputModalities: [String!]
+    inputCostPerImage: Float
+    inputCostPerImageToken: Float
+    outputCostPerImage: Float
+    outputCostPerImageToken: Float
   }
 
   type DefaultModel {
@@ -24,14 +28,14 @@ export const integrationTypeDefs = /* GraphQL */ `
   type ProviderModelInfo {
     id: ID!
     name: String!
-    type: String!
+    mode: String!
   }
 
   type EnabledModelEntry {
     providerId: String!
     modelId: String!
     modelName: String
-    modelType: String!
+    modelMode: String!
   }
 
   type ConnectApiKeyResult {

@@ -75,12 +75,14 @@ describe("lookupModelMetadata", () => {
 });
 
 describe("classifyModelFromStore", () => {
-  it("classifies chat models as llm", () => {
-    expect(classifyModelFromStore("openai", "gpt-4o")).toBe("llm");
+  it("classifies chat models as chat", () => {
+    expect(classifyModelFromStore("openai", "gpt-4o")).toBe("chat");
   });
 
-  it("classifies image_generation models as image", () => {
-    expect(classifyModelFromStore("openai", "dall-e-3")).toBe("image");
+  it("classifies image_generation models as image_generation", () => {
+    expect(classifyModelFromStore("openai", "dall-e-3")).toBe(
+      "image_generation",
+    );
   });
 
   it("returns null for embedding models (hidden)", () => {
@@ -95,7 +97,7 @@ describe("classifyModelFromStore", () => {
   });
 
   it("works with provider-prefixed lookups", () => {
-    expect(classifyModelFromStore("xai", "grok-3")).toBe("llm");
+    expect(classifyModelFromStore("xai", "grok-3")).toBe("chat");
   });
 
   it("returns null for audio_speech models (hidden)", () => {

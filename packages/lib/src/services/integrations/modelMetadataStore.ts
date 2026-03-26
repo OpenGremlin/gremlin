@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ModelType } from "@gremlin/providers";
+import type { ModelMode } from "@gremlin/providers";
 import { createLogger } from "../../logger.js";
 
 const log = createLogger("model-metadata-store");
@@ -29,14 +29,14 @@ export interface ModelMetadata {
   supports_response_schema?: boolean;
   supported_modalities?: string[];
   supported_output_modalities?: string[];
+  input_cost_per_image?: number;
+  input_cost_per_image_token?: number;
   output_cost_per_image?: number;
+  output_cost_per_image_token?: number;
 }
 
-/** Modes we surface, mapped to our ModelType */
-const MODE_TO_TYPE: Record<string, ModelType> = {
-  chat: "llm",
-  image_generation: "image",
-};
+/** Modes we surface */
+const SURFACED_MODES = new Set<string>(["chat", "image_generation"]);
 
 /**
  * Map our provider IDs to the prefix LiteLLM uses in its keys.
@@ -209,14 +209,14 @@ export function lookupModelMetadata(
 
 /**
  * Classify a model using the LiteLLM store.
- * Returns the ModelType if the model is found and has a surfaceable mode,
+ * Returns the ModelMode if the model is found and has a surfaceable mode,
  * or null if the model should be hidden.
  */
 export function classifyModelFromStore(
   providerId: string,
   modelId: string,
-): ModelType | null {
+): ModelMode | null {
   const meta = lookupModelMetadata(providerId, modelId);
   if (!meta) return null;
-  return MODE_TO_TYPE[meta.mode] ?? null;
+  return SURFACED_MODES.has(meta.mode) ? (meta.mode as ModelMode) : null;
 }
