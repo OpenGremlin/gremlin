@@ -155,7 +155,10 @@ describe("viewImageTool", () => {
             data: imgData.toString("base64"),
             mediaType: "image/png",
           },
-          { type: "text", text: "Image loaded (1 KB)." },
+          {
+            type: "text",
+            text: "Image viewed (1 KB). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.",
+          },
         ],
       });
     });

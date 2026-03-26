@@ -105,7 +105,7 @@ export function viewImageTool(_ctx: ServiceContext) {
           },
           {
             type: "text" as const,
-            text: `Image loaded (${output.sizeKB} KB).`,
+            text: `Image viewed (${output.sizeKB} KB). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.`,
           },
         ],
       };

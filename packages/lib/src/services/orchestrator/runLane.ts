@@ -49,28 +49,56 @@ export async function runLane(
     core: coreMemories,
   });
 
-  // Run agent turn
+  // Run agent turn — on LLM API errors, log the error and retry so the
+  // model can see what went wrong and adapt (e.g. avoid an oversized image).
+  const MAX_ERROR_RETRIES = 2;
   let response: string;
-  try {
-    response = await runAgentTurn(ctx, {
-      agentId,
-      taskId,
-      systemPrompt,
-      timezone,
-      memoryContext,
-      messages,
-      tools,
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    ctx.log.error({ err, agentId, taskId }, "Agent turn failed");
-    await writeAgentLog(ctx, {
-      agentId,
-      taskId,
-      role: "SYSTEM",
-      content: JSON.stringify({ type: "error", message }),
-    });
-    throw err;
+  let errorRetries = 0;
+
+  while (true) {
+    try {
+      response = await runAgentTurn(ctx, {
+        agentId,
+        taskId,
+        systemPrompt,
+        timezone,
+        memoryContext,
+        messages:
+          errorRetries > 0
+            ? await buildContextMessages(ctx, { agentId, taskId }).then(
+                (r) => r.messages,
+              )
+            : messages,
+        tools,
+      });
+      break;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      ctx.log.error({ err, agentId, taskId }, "Agent turn failed");
+      await writeAgentLog(ctx, {
+        agentId,
+        taskId,
+        role: "SYSTEM",
+        content: JSON.stringify({
+          type: "error",
+          message: `An error occurred while processing your last action: ${message}`,
+        }),
+      });
+
+      errorRetries++;
+      if (errorRetries >= MAX_ERROR_RETRIES) {
+        ctx.log.error(
+          { agentId, taskId, errorRetries },
+          "Max error retries reached, giving up",
+        );
+        throw err;
+      }
+
+      ctx.log.info(
+        { agentId, taskId, errorRetries },
+        "Retrying agent turn after error",
+      );
+    }
   }
 
   // Fire-and-forget compaction
