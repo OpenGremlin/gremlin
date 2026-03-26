@@ -25,7 +25,10 @@ export function ToolStatus({
   return (
     <View className="flex-row items-center gap-1.5 py-1.5 px-1">
       <Icon size={13} color={iconColor} />
-      <Text className="text-xs text-text-muted italic" numberOfLines={2}>
+      <Text
+        className="text-xs text-text-muted italic"
+        numberOfLines={variant === "error" ? undefined : 2}
+      >
         {text}
       </Text>
     </View>
