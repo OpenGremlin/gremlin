@@ -13,7 +13,7 @@ import {
  * Build an EnabledModel snapshot from the LiteLLM metadata store.
  * Falls back to sensible defaults if the model isn't in the store.
  */
-function snapshotModel(
+export function snapshotModel(
   providerId: string,
   modelId: string,
   displayName?: string,
@@ -22,6 +22,12 @@ function snapshotModel(
   const meta = lookupModelMetadata(providerId, modelId);
   // Default chat models to ["text"] when the metadata doesn't specify modalities
   const defaultModalities = mode === "chat" ? ["text"] : undefined;
+  let modalities = meta?.supported_modalities ?? defaultModalities;
+  // Many models set supports_vision but have an empty supported_modalities array;
+  // ensure "image" is present so downstream vision checks work correctly.
+  if (meta?.supports_vision && modalities && !modalities.includes("image")) {
+    modalities = [...modalities, "image"];
+  }
   return {
     id: modelId,
     name: displayName ?? modelId,
@@ -29,7 +35,7 @@ function snapshotModel(
     maxInputTokens: meta?.max_input_tokens,
     inputCostPerToken: meta?.input_cost_per_token,
     outputCostPerToken: meta?.output_cost_per_token,
-    supportedModalities: meta?.supported_modalities ?? defaultModalities,
+    supportedModalities: modalities,
     supportedOutputModalities:
       meta?.supported_output_modalities ?? defaultModalities,
     inputCostPerImage: meta?.input_cost_per_image,
