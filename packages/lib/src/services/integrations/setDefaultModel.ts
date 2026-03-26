@@ -4,10 +4,13 @@ import { invalidateModelCache } from "../orchestrator/model.js";
 import { getEnabledModels } from "./getEnabledModels.js";
 import { providers } from "./providers.js";
 
+type DefaultModelKey = "defaultModel" | "defaultImageModel";
+
 export async function setDefaultModel(
   ctx: ServiceContext,
   providerId: string,
   modelId: string,
+  key: DefaultModelKey = "defaultModel",
 ): Promise<void> {
   const provider = providers.find(
     (p) => p.id === providerId && p.category === "ai",
@@ -24,7 +27,7 @@ export async function setDefaultModel(
 
   await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
     .item({
-      key: "defaultModel",
+      key,
       value: JSON.stringify({ providerId, modelId }),
     })
     .send();

@@ -22,6 +22,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   type ProviderModelInfo {
     id: ID!
     name: String!
+    type: String!
   }
 
   type EnabledModelEntry {
@@ -87,6 +88,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationProviders: [IntegrationProvider!]!
     integrationConnections: [IntegrationConnection!]!
     defaultModel: DefaultModel
+    defaultImageModel: DefaultModel
     enabledModels(providerId: String!): [String!]!
     allEnabledModels: [EnabledModelEntry!]!
     bedrockEnabledModels: [String!]!
@@ -98,6 +100,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
     revokeIntegrationConnection(id: ID!): Boolean!
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
+    setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
     enableModel(providerId: String!, modelId: String!): Boolean!
     disableModel(providerId: String!, modelId: String!): Boolean!
     enableBedrockModel(modelId: String!): Boolean!

@@ -19,6 +19,7 @@ import {
   EnableModelMutation,
   IntegrationProvidersQuery,
   ProviderModelsQuery,
+  SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../../src/graphql/queries";
 import { useQuery } from "../../../../../src/hooks/useQuery";
@@ -48,25 +49,45 @@ type ProviderModel = {
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
-function ApiKeyModelList({
+type ModelType = "llm" | "image";
+
+const MODEL_TYPE_LABELS: Record<ModelType, string> = {
+  llm: "Language Models",
+  image: "Image Models",
+};
+
+async function setDefaultForType(
+  modelType: ModelType,
+  providerId: string,
+  modelId: string,
+) {
+  const vars = { providerId, modelId };
+  if (modelType === "image") return gql(SetDefaultImageModelMutation, vars);
+  return gql(SetDefaultModelMutation, vars);
+}
+
+function TypedModelList({
   providerId,
+  modelType,
+  label,
+  allModels,
+  enabledModelIds,
   defaultModel,
+  refetchEnabled,
   refetchParent,
+  refetchModels,
 }: {
   providerId: string;
+  modelType: ModelType;
+  label: string;
+  allModels: { id: string; name: string; type: string }[];
+  enabledModelIds: string[];
   defaultModel: DefaultModel;
+  refetchEnabled: () => void;
   refetchParent: () => void;
+  refetchModels: () => void;
 }) {
   const colors = useNavigationTheme();
-  const {
-    data: modelsData,
-    loading: modelsLoading,
-    refetch: refetchModels,
-  } = useQuery(ProviderModelsQuery, { providerId });
-  const { data: enabledData, refetch: refetchEnabled } = useQuery(
-    EnabledModelsQuery,
-    { providerId },
-  );
   const [enablingModel, setEnablingModel] = useState<string | null>(null);
   const [disablingModel, setDisablingModel] = useState<string | null>(null);
   const [settingModel, setSettingModel] = useState<string | null>(null);
@@ -74,12 +95,14 @@ function ApiKeyModelList({
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
 
-  const isDefaultProvider = defaultModel?.providerId === providerId;
-  const allModels = modelsData?.providerModels ?? [];
-  const enabledModelIds = enabledData?.enabledModels ?? [];
+  const modelsOfType = allModels.filter((m) => m.type === modelType);
+  if (modelsOfType.length === 0) return null;
 
-  const enabledModels = allModels.filter((m) => enabledModelIds.includes(m.id));
-  const availableModels = allModels.filter(
+  const isDefaultProvider = defaultModel?.providerId === providerId;
+  const enabledModels = modelsOfType.filter((m) =>
+    enabledModelIds.includes(m.id),
+  );
+  const availableModels = modelsOfType.filter(
     (m) => !enabledModelIds.includes(m.id),
   );
 
@@ -123,7 +146,7 @@ function ApiKeyModelList({
     setSettingModel(modelId);
     setError(null);
     try {
-      await gql(SetDefaultModelMutation, { providerId, modelId });
+      await setDefaultForType(modelType, providerId, modelId);
       refetchParent();
     } catch (err) {
       setError(
@@ -134,17 +157,12 @@ function ApiKeyModelList({
     }
   }
 
-  if (modelsLoading) {
-    return (
-      <View className="py-4 items-center">
-        <ActivityIndicator color={colors.accentIndicator} size="small" />
-        <Text className="text-xs text-text-muted mt-2">Fetching models...</Text>
-      </View>
-    );
-  }
-
   return (
-    <>
+    <View className="gap-3">
+      <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        {label}
+      </Text>
+
       {error ? (
         <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
           <Text className="text-sm text-red-300">{error}</Text>
@@ -155,7 +173,7 @@ function ApiKeyModelList({
       {enabledModels.length > 0 && (
         <View className="gap-1">
           <Text className="text-sm font-medium text-text-primary mb-1">
-            Enabled Models
+            Enabled
           </Text>
           <Card className="overflow-hidden">
             {enabledModels.map((model, i) => {
@@ -220,7 +238,7 @@ function ApiKeyModelList({
             className="flex-row items-center justify-between"
           >
             <Text className="text-sm font-medium text-text-primary">
-              Available Models
+              Available
               <Text className="text-text-muted font-normal">
                 {" "}
                 ({availableModels.length})
@@ -282,6 +300,70 @@ function ApiKeyModelList({
           )}
         </View>
       )}
+    </View>
+  );
+}
+
+function ApiKeyModelLists({
+  providerId,
+  defaultModel,
+  defaultImageModel,
+  refetchParent,
+}: {
+  providerId: string;
+  defaultModel: DefaultModel;
+  defaultImageModel: DefaultModel;
+  refetchParent: () => void;
+}) {
+  const colors = useNavigationTheme();
+  const {
+    data: modelsData,
+    loading: modelsLoading,
+    refetch: refetchModels,
+  } = useQuery(ProviderModelsQuery, { providerId });
+  const { data: enabledData, refetch: refetchEnabled } = useQuery(
+    EnabledModelsQuery,
+    { providerId },
+  );
+
+  const allModels = modelsData?.providerModels ?? [];
+  const enabledModelIds = enabledData?.enabledModels ?? [];
+
+  const defaultsByType: Record<ModelType, DefaultModel> = {
+    llm: defaultModel,
+    image: defaultImageModel,
+  };
+
+  if (modelsLoading) {
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator color={colors.accentIndicator} size="small" />
+        <Text className="text-xs text-text-muted mt-2">Fetching models...</Text>
+      </View>
+    );
+  }
+
+  // Determine which model types this provider has
+  const types = (["llm", "image"] as const).filter((t) =>
+    allModels.some((m) => m.type === t),
+  );
+
+  return (
+    <>
+      {types.map((t) => (
+        <TypedModelList
+          key={t}
+          providerId={providerId}
+          modelType={t}
+          label={MODEL_TYPE_LABELS[t]}
+          allModels={allModels}
+          enabledModelIds={enabledModelIds}
+          defaultModel={defaultsByType[t]}
+          refetchEnabled={refetchEnabled}
+          refetchParent={refetchParent}
+          refetchModels={refetchModels}
+        />
+      ))}
     </>
   );
 }
@@ -289,6 +371,7 @@ function ApiKeyModelList({
 function ApiKeyDetailView({
   provider,
   defaultModel,
+  defaultImageModel,
   refetch,
 }: {
   provider: {
@@ -298,6 +381,7 @@ function ApiKeyDetailView({
     hasConnection: boolean;
   };
   defaultModel: DefaultModel;
+  defaultImageModel: DefaultModel;
   refetch: () => void;
 }) {
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -365,9 +449,10 @@ function ApiKeyDetailView({
       ) : null}
 
       {provider.hasConnection && (
-        <ApiKeyModelList
+        <ApiKeyModelLists
           providerId={provider.id}
           defaultModel={defaultModel}
+          defaultImageModel={defaultImageModel}
           refetchParent={refetch}
         />
       )}
@@ -814,7 +899,7 @@ export default function IntegrationDetailScreen() {
   const { data, loading, error, refetch } = useQuery(IntegrationProvidersQuery);
   const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
   const defaultModel = data?.defaultModel ?? null;
-
+  const defaultImageModel = data?.defaultImageModel ?? null;
   if (loading || error) {
     return <QueryResult loading={loading} error={error} />;
   }
@@ -851,6 +936,7 @@ export default function IntegrationDetailScreen() {
         <ApiKeyDetailView
           provider={provider}
           defaultModel={defaultModel ?? null}
+          defaultImageModel={defaultImageModel ?? null}
           refetch={refetch}
         />
       ) : provider.connectionType === "custom" ? (

@@ -1,20 +1,20 @@
+import type { ModelType } from "@gremlin/providers";
+import { classifyModelFromStore } from "./modelMetadataStore.js";
+
 export interface ProviderModel {
   id: string;
   name: string;
+  type: ModelType;
 }
 
 interface ProviderConfig {
   url: string;
   headers: (apiKey: string) => Record<string, string>;
-  parse: (body: unknown) => ProviderModel[];
+  parse: (body: unknown) => { id: string; name: string }[];
 }
 
-/** Models we don't surface (embeddings, tts, image, moderation, etc.) */
-const OPENAI_SKIP =
-  /^(text-embedding|dall-e|tts-|whisper|babbage|davinci|gpt-3\.5|chatgpt|o1-pro)/;
-
 /** Parse the standard OpenAI-compatible { data: [{ id }] } format */
-function parseOpenAIModels(body: unknown): ProviderModel[] {
+function parseOpenAIModels(body: unknown): { id: string; name: string }[] {
   const data = (body as { data?: { id: string }[] }).data;
   if (!Array.isArray(data)) return [];
   return data
@@ -40,11 +40,9 @@ const providerConfigs: Record<string, ProviderConfig> = {
     url: "https://api.openai.com/v1/models",
     headers: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
     parse: (body) => {
-      const data = (body as { data?: { id: string; owned_by?: string }[] })
-        .data;
+      const data = (body as { data?: { id: string }[] }).data;
       if (!Array.isArray(data)) return [];
       return data
-        .filter((m) => !OPENAI_SKIP.test(m.id))
         .map((m) => ({ id: m.id, name: m.id }))
         .sort((a, b) => a.id.localeCompare(b.id));
     },
@@ -64,9 +62,6 @@ const providerConfigs: Record<string, ProviderConfig> = {
       ).models;
       if (!Array.isArray(models)) return [];
       return models
-        .filter((m) =>
-          m.supportedGenerationMethods?.includes("generateContent"),
-        )
         .map((m) => ({
           id: m.name.replace(/^models\//, ""),
           name: m.displayName ?? m.name,
@@ -105,7 +100,6 @@ const providerConfigs: Record<string, ProviderConfig> = {
     parse: (body) => {
       const data = (body as { data?: { id: string; display_name?: string }[] })
         .data;
-      // Together may return array directly or wrapped in { data: [...] }
       const models = Array.isArray(data)
         ? data
         : Array.isArray(body)
@@ -126,12 +120,9 @@ const providerConfigs: Record<string, ProviderConfig> = {
     url: "https://api.cohere.com/v2/models",
     headers: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
     parse: (body) => {
-      const models = (
-        body as { models?: { name: string; endpoints?: string[] }[] }
-      ).models;
+      const models = (body as { models?: { name: string }[] }).models;
       if (!Array.isArray(models)) return [];
       return models
-        .filter((m) => m.endpoints?.includes("chat"))
         .map((m) => ({ id: m.name, name: m.name }))
         .sort((a, b) => a.id.localeCompare(b.id));
     },
@@ -149,8 +140,10 @@ const providerConfigs: Record<string, ProviderConfig> = {
 };
 
 /**
- * Fetch available models from a provider's API.
- * Throws if the API key is invalid or the request fails.
+ * Fetch available models from a provider's API, then cross-reference
+ * each model against the LiteLLM metadata store.
+ * Models not found in the store are hidden.
+ * Models are classified by their LiteLLM `mode` field.
  */
 export async function listProviderModels(
   providerId: string,
@@ -186,5 +179,16 @@ export async function listProviderModels(
   }
 
   const body = await res.json();
-  return config.parse(body);
+  const rawModels = config.parse(body);
+
+  // Cross-reference with LiteLLM metadata store
+  const result: ProviderModel[] = [];
+  for (const model of rawModels) {
+    const type = classifyModelFromStore(providerId, model.id);
+    if (type) {
+      result.push({ id: model.id, name: model.name, type });
+    }
+  }
+
+  return result;
 }

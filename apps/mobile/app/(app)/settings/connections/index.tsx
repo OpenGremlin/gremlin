@@ -156,53 +156,78 @@ export default function IntegrationsScreen() {
           !error &&
           (() => {
             const defaultModel = providers.data?.defaultModel;
+            const defaultImageModel = providers.data?.defaultImageModel;
             const allProviders = providerList;
             const aiProviders = allProviders.filter((p) => p.category === "ai");
 
-            if (defaultModel) {
-              const modelProvider = allProviders.find(
-                (p) => p.id === defaultModel.providerId,
-              );
-              return (
-                <View className="gap-2">
-                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
-                    Default Model
-                  </Text>
-                  <Card className="p-4 flex-row items-center gap-3">
-                    {modelProvider && (
-                      <IntegrationLogo id={modelProvider.id} size={32} />
-                    )}
-                    <View className="flex-1">
-                      <Text className="text-sm font-medium text-text-primary">
-                        {defaultModel.modelId}
-                      </Text>
+            if (
+              !defaultModel &&
+              !defaultImageModel &&
+              aiProviders.length === 0
+            ) {
+              return null;
+            }
+
+            const defaults = [
+              {
+                label: "Language Model",
+                model: defaultModel,
+                fallback: "Using Bedrock Claude Sonnet 4",
+              },
+              {
+                label: "Image Model",
+                model: defaultImageModel,
+                fallback: null,
+              },
+            ];
+
+            return (
+              <View className="gap-2">
+                <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+                  Default Models
+                </Text>
+                {defaults.map(({ label, model, fallback }) => {
+                  if (!model && !fallback) return null;
+                  const modelProvider = model
+                    ? allProviders.find((p) => p.id === model.providerId)
+                    : null;
+                  return (
+                    <Card
+                      key={label}
+                      className="p-4 flex-row items-center gap-3"
+                    >
                       {modelProvider && (
-                        <Text className="text-xs text-text-secondary mt-0.5">
-                          {modelProvider.service}
-                        </Text>
+                        <IntegrationLogo id={modelProvider.id} size={32} />
                       )}
-                    </View>
-                  </Card>
-                </View>
-              );
-            }
-
-            if (aiProviders.length > 0) {
-              return (
-                <View className="gap-2">
-                  <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
-                    Default Model
-                  </Text>
-                  <Card className="p-4">
-                    <Text className="text-sm text-text-muted">
-                      No default model selected. Using Bedrock Claude Sonnet 4.
-                    </Text>
-                  </Card>
-                </View>
-              );
-            }
-
-            return null;
+                      <View className="flex-1">
+                        {model ? (
+                          <>
+                            <Text className="text-sm font-medium text-text-primary">
+                              {model.modelId}
+                            </Text>
+                            <Text className="text-xs text-text-secondary mt-0.5">
+                              {label}
+                              {modelProvider
+                                ? ` · ${modelProvider.service}`
+                                : ""}
+                            </Text>
+                          </>
+                        ) : (
+                          <>
+                            <Text className="text-sm text-text-muted">
+                              {fallback}
+                            </Text>
+                            <Text className="text-xs text-text-secondary mt-0.5">
+                              {label}
+                            </Text>
+                          </>
+                        )}
+                      </View>
+                    </Card>
+                  );
+                })}
+              </View>
+            );
           })()}
 
         {connectionList.length > 0 && (

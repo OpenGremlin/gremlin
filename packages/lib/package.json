@@ -10,7 +10,7 @@
     "./*": "./dist/*.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/data dist/",
     "invoke": "tsx src/utils/invoke/index.ts",
     "clean": "rm -rf dist",
     "test": "vitest run"

@@ -289,6 +289,12 @@ app.get("/api/health", (_req, res) => {
 let stopSqsWorker: (() => void) | undefined;
 
 loadSchedulerConfig().then(async () => {
+  // Pre-load model metadata from remote (or local fallback)
+  const { preloadModelMetadataStore } = await import(
+    "@gremlin/lib/services/integrations/modelMetadataStore.js"
+  );
+  preloadModelMetadataStore().catch(() => {});
+
   // Start SQS worker if queue URL is available (deployed environment)
   const { startSqsWorker } = await import(
     "@gremlin/lib/services/inbox/sqsWorker.js"

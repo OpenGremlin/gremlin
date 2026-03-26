@@ -424,6 +424,7 @@ export type Mutation = {
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
+  setDefaultImageModel: Scalars['Boolean']['output'];
   setDefaultModel: Scalars['Boolean']['output'];
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
@@ -558,6 +559,12 @@ export type MutationSendMessageArgs = {
 };
 
 
+export type MutationSetDefaultImageModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationSetDefaultModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
@@ -653,6 +660,7 @@ export type ProviderModelInfo = {
   __typename?: 'ProviderModelInfo';
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Query = {
@@ -670,6 +678,7 @@ export type Query = {
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   commandAllowlist: Array<AllowlistEntry>;
+  defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -1196,7 +1205,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null, defaultImageModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1212,14 +1221,14 @@ export type ConnectApiKeyMutationVariables = Exact<{
 }>;
 
 
-export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: { __typename?: 'ConnectApiKeyResult', connectionId: string, models: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string }> } };
+export type ConnectApiKeyMutation = { __typename?: 'Mutation', connectApiKey: { __typename?: 'ConnectApiKeyResult', connectionId: string, models: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, type: string }> } };
 
 export type ProviderModelsQueryVariables = Exact<{
   providerId: Scalars['String']['input'];
 }>;
 
 
-export type ProviderModelsQuery = { __typename?: 'Query', providerModels: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string }> };
+export type ProviderModelsQuery = { __typename?: 'Query', providerModels: Array<{ __typename?: 'ProviderModelInfo', id: string, name: string, type: string }> };
 
 export type RevokeConnectionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1235,6 +1244,14 @@ export type SetDefaultModelMutationVariables = Exact<{
 
 
 export type SetDefaultModelMutation = { __typename?: 'Mutation', setDefaultModel: boolean };
+
+export type SetDefaultImageModelMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  modelId: Scalars['String']['input'];
+}>;
+
+
+export type SetDefaultImageModelMutation = { __typename?: 'Mutation', setDefaultImageModel: boolean };
 
 export type EnabledModelsQueryVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -2078,6 +2095,10 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     providerId
     modelId
   }
+  defaultImageModel {
+    providerId
+    modelId
+  }
 }
     `) as unknown as TypedDocumentString<IntegrationProvidersQuery, IntegrationProvidersQueryVariables>;
 export const IntegrationConnectionsDocument = new TypedDocumentString(`
@@ -2114,6 +2135,7 @@ export const ConnectApiKeyDocument = new TypedDocumentString(`
     models {
       id
       name
+      type
     }
   }
 }
@@ -2123,6 +2145,7 @@ export const ProviderModelsDocument = new TypedDocumentString(`
   providerModels(providerId: $providerId) {
     id
     name
+    type
   }
 }
     `) as unknown as TypedDocumentString<ProviderModelsQuery, ProviderModelsQueryVariables>;
@@ -2136,6 +2159,11 @@ export const SetDefaultModelDocument = new TypedDocumentString(`
   setDefaultModel(providerId: $providerId, modelId: $modelId)
 }
     `) as unknown as TypedDocumentString<SetDefaultModelMutation, SetDefaultModelMutationVariables>;
+export const SetDefaultImageModelDocument = new TypedDocumentString(`
+    mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {
+  setDefaultImageModel(providerId: $providerId, modelId: $modelId)
+}
+    `) as unknown as TypedDocumentString<SetDefaultImageModelMutation, SetDefaultImageModelMutationVariables>;
 export const EnabledModelsDocument = new TypedDocumentString(`
     query EnabledModels($providerId: String!) {
   enabledModels(providerId: $providerId)

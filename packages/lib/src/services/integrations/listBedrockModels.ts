@@ -56,6 +56,7 @@ export async function listBedrockModels(): Promise<ModelDef[]> {
   const models: ModelDef[] = profiles.map((p) => ({
     id: p.id,
     name: p.name,
+    type: "llm",
     contextWindow: 0,
     maxTokens: 0,
     reasoning: false,

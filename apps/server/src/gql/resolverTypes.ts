@@ -443,6 +443,7 @@ export type Mutation = {
   retireAgent: Agent;
   revokeIntegrationConnection: Scalars['Boolean']['output'];
   sendMessage: SendMessageResult;
+  setDefaultImageModel: Scalars['Boolean']['output'];
   setDefaultModel: Scalars['Boolean']['output'];
   submitOAuthConnection: Scalars['ID']['output'];
   triggerJob: Scalars['Boolean']['output'];
@@ -577,6 +578,12 @@ export type MutationSendMessageArgs = {
 };
 
 
+export type MutationSetDefaultImageModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationSetDefaultModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
@@ -672,6 +679,7 @@ export type ProviderModelInfo = {
   __typename?: 'ProviderModelInfo';
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Query = {
@@ -689,6 +697,7 @@ export type Query = {
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   commandAllowlist: Array<AllowlistEntry>;
+  defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -1570,6 +1579,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
+  setDefaultImageModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultImageModelArgs, 'modelId' | 'providerId'>>;
   setDefaultModel?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
   submitOAuthConnection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationSubmitOAuthConnectionArgs, 'accessToken' | 'providerId' | 'scopes'>>;
   triggerJob?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationTriggerJobArgs, 'id'>>;
@@ -1609,6 +1619,7 @@ export type ProfileResolvers<ContextType = GremlinContext, ParentType extends Re
 export type ProviderModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ProviderModelInfo'] = ResolversParentTypes['ProviderModelInfo']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -1624,6 +1635,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
+  defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;

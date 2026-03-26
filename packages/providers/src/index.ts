@@ -12,9 +12,12 @@ export interface AvailableScope {
   label: string;
 }
 
+export type ModelType = "llm" | "image";
+
 export interface ModelDef {
   id: string;
   name: string;
+  type: ModelType;
   contextWindow: number;
   maxTokens: number;
   reasoning: boolean;

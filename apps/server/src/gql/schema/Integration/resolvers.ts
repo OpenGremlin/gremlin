@@ -41,6 +41,12 @@ const integrationConnections: QueryResolvers["integrationConnections"] = (
 const defaultModel: QueryResolvers["defaultModel"] = (_parent, _args, ctx) =>
   ctx.services.integrations.getDefaultModel(ctx);
 
+const defaultImageModel: QueryResolvers["defaultImageModel"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.getDefaultModel(ctx, "defaultImageModel");
+
 const allEnabledModels: QueryResolvers["allEnabledModels"] = (
   _parent,
   _args,
@@ -154,6 +160,20 @@ const setDefaultModel: MutationResolvers["setDefaultModel"] = async (
   return true;
 };
 
+const setDefaultImageModel: MutationResolvers["setDefaultImageModel"] = async (
+  _parent,
+  { providerId, modelId },
+  ctx,
+) => {
+  await ctx.services.integrations.setDefaultModel(
+    ctx,
+    providerId,
+    modelId,
+    "defaultImageModel",
+  );
+  return true;
+};
+
 const enableModelMutation: MutationResolvers["enableModel"] = async (
   _parent,
   { providerId, modelId },
@@ -207,6 +227,7 @@ export const integrationResolvers = {
     integrationProviders,
     integrationConnections,
     defaultModel,
+    defaultImageModel,
     allEnabledModels,
     enabledModels,
     bedrockEnabledModels,
@@ -217,6 +238,7 @@ export const integrationResolvers = {
     connectApiKey,
     revokeIntegrationConnection,
     setDefaultModel,
+    setDefaultImageModel,
     enableModel: enableModelMutation,
     disableModel: disableModelMutation,
     enableBedrockModel,

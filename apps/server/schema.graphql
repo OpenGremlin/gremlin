@@ -26,6 +26,7 @@ type Query {
   integrationProviders: [IntegrationProvider!]!
   integrationConnections: [IntegrationConnection!]!
   defaultModel: DefaultModel
+  defaultImageModel: DefaultModel
   enabledModels(providerId: String!): [String!]!
   allEnabledModels: [EnabledModelEntry!]!
   bedrockEnabledModels: [String!]!
@@ -79,6 +80,7 @@ type Mutation {
   connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
+  setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
   enableModel(providerId: String!, modelId: String!): Boolean!
   disableModel(providerId: String!, modelId: String!): Boolean!
   enableBedrockModel(modelId: String!): Boolean!
@@ -473,6 +475,7 @@ type DefaultModel {
 type ProviderModelInfo {
   id: ID!
   name: String!
+  type: String!
 }
 
 type EnabledModelEntry {
@@ -484,6 +487,11 @@ type EnabledModelEntry {
 type ConnectApiKeyResult {
   connectionId: ID!
   models: [ProviderModelInfo!]!
+}
+
+type OAuthPlatformOverride {
+  clientId: String!
+  redirectUri: String!
 }
 
 type IntegrationProvider {
@@ -505,11 +513,6 @@ type IntegrationProvider {
   userInfo: String
   ios: OAuthPlatformOverride
   android: OAuthPlatformOverride
-}
-
-type OAuthPlatformOverride {
-  clientId: String!
-  redirectUri: String!
 }
 
 type OAuthConnectionMeta {

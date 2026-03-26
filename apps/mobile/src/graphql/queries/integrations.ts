@@ -43,6 +43,10 @@ export const IntegrationProvidersQuery = graphql(`
       providerId
       modelId
     }
+    defaultImageModel {
+      providerId
+      modelId
+    }
   }
 `);
 
@@ -81,6 +85,7 @@ export const ConnectApiKeyMutation = graphql(`
       models {
         id
         name
+        type
       }
     }
   }
@@ -91,6 +96,7 @@ export const ProviderModelsQuery = graphql(`
     providerModels(providerId: $providerId) {
       id
       name
+      type
     }
   }
 `);
@@ -104,6 +110,12 @@ export const RevokeConnectionMutation = graphql(`
 export const SetDefaultModelMutation = graphql(`
   mutation SetDefaultModel($providerId: String!, $modelId: String!) {
     setDefaultModel(providerId: $providerId, modelId: $modelId)
+  }
+`);
+
+export const SetDefaultImageModelMutation = graphql(`
+  mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {
+    setDefaultImageModel(providerId: $providerId, modelId: $modelId)
   }
 `);
 

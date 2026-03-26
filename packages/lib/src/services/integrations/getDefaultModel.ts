@@ -6,13 +6,16 @@ export interface DefaultModelResult {
   modelId: string;
 }
 
+type DefaultModelKey = "defaultModel" | "defaultImageModel";
+
 export async function getDefaultModel(
   ctx: ServiceContext,
+  key: DefaultModelKey = "defaultModel",
 ): Promise<DefaultModelResult | null> {
   const { Item } = await ctx.resources.ddb.entities.Setting.build(
     GetItemCommand,
   )
-    .key({ key: "defaultModel" })
+    .key({ key })
     .send();
 
   if (!Item) return null;
