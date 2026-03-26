@@ -2,8 +2,6 @@ import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { MutationResolvers, QueryResolvers } from "../../resolverTypes.js";
 
-const SETTINGS_KEY = "globalSettings";
-
 interface GlobalSettingsData {
   signupDisabled: boolean;
 }
@@ -17,14 +15,30 @@ const globalSettings: QueryResolvers["globalSettings"] = async (
   _args,
   ctx,
 ) => {
-  const { Item } = await ctx.resources.ddb.entities.Setting.build(
+  const { Item } = await ctx.resources.ddb.entities.GlobalSettings.build(
     GetItemCommand,
   )
-    .key({ key: SETTINGS_KEY })
+    .key({ id: "global" })
     .send();
 
-  if (!Item) return { ...DEFAULTS };
-  return { ...DEFAULTS, ...JSON.parse(Item.value) };
+  if (Item) return { signupDisabled: Item.signupDisabled };
+
+  // Fallback: read from legacy Setting and lazy-migrate
+  const { Item: legacy } = await ctx.resources.ddb.entities.Setting.build(
+    GetItemCommand,
+  )
+    .key({ key: "globalSettings" })
+    .send();
+
+  if (legacy) {
+    const parsed = { ...DEFAULTS, ...JSON.parse(legacy.value) };
+    await ctx.resources.ddb.entities.GlobalSettings.build(PutItemCommand)
+      .item({ id: "global", signupDisabled: parsed.signupDisabled })
+      .send();
+    return parsed;
+  }
+
+  return { ...DEFAULTS };
 };
 
 const updateGlobalSettings: MutationResolvers["updateGlobalSettings"] = async (
@@ -32,22 +46,22 @@ const updateGlobalSettings: MutationResolvers["updateGlobalSettings"] = async (
   args,
   ctx,
 ) => {
-  const { Item } = await ctx.resources.ddb.entities.Setting.build(
+  const { Item } = await ctx.resources.ddb.entities.GlobalSettings.build(
     GetItemCommand,
   )
-    .key({ key: SETTINGS_KEY })
+    .key({ id: "global" })
     .send();
 
   const current: GlobalSettingsData = Item
-    ? { ...DEFAULTS, ...JSON.parse(Item.value) }
+    ? { signupDisabled: Item.signupDisabled }
     : { ...DEFAULTS };
 
   if (args.signupDisabled != null) {
     current.signupDisabled = args.signupDisabled;
   }
 
-  await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
-    .item({ key: SETTINGS_KEY, value: JSON.stringify(current) })
+  await ctx.resources.ddb.entities.GlobalSettings.build(PutItemCommand)
+    .item({ id: "global", ...current })
     .send();
 
   return current;

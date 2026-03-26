@@ -6,6 +6,11 @@ import { providers } from "./providers.js";
 
 type DefaultModelKey = "defaultModel" | "defaultImageModel";
 
+const KEY_TO_MODEL_TYPE: Record<DefaultModelKey, string> = {
+  defaultModel: "chat",
+  defaultImageModel: "image",
+};
+
 export async function setDefaultModel(
   ctx: ServiceContext,
   providerId: string,
@@ -19,7 +24,6 @@ export async function setDefaultModel(
     throw new Error(`Unknown AI provider: ${providerId}`);
   }
 
-  // Verify the model has been enabled for this provider
   const enabled = await getEnabledModels(ctx.resources, providerId);
   if (!enabled.some((m) => m.id === modelId)) {
     throw new Error(`Model not enabled: ${modelId}. Enable it first.`);
@@ -27,14 +31,12 @@ export async function setDefaultModel(
 
   const model = enabled.find((m) => m.id === modelId);
 
-  await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
+  await ctx.resources.ddb.entities.DefaultModel.build(PutItemCommand)
     .item({
-      key,
-      value: JSON.stringify({
-        providerId,
-        modelId,
-        modelName: model?.name ?? modelId,
-      }),
+      modelType: KEY_TO_MODEL_TYPE[key],
+      providerId,
+      modelId,
+      modelName: model?.name ?? modelId,
     })
     .send();
 

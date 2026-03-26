@@ -30,19 +30,15 @@ export async function revokeConnection(
   // If this was an AI provider connection, clear default model if it references the same provider
   const provider = providers.find((p) => p.id === Item.providerId);
   if (provider?.category === "ai") {
-    const { Item: setting } = await resources.ddb.entities.Setting.build(
-      GetItemCommand,
-    )
-      .key({ key: "defaultModel" })
-      .send();
+    const { Item: defaultModel } =
+      await resources.ddb.entities.DefaultModel.build(GetItemCommand)
+        .key({ modelType: "chat" })
+        .send();
 
-    if (setting) {
-      const defaultModel = JSON.parse(setting.value);
-      if (defaultModel.providerId === Item.providerId) {
-        await resources.ddb.entities.Setting.build(DeleteItemCommand)
-          .key({ key: "defaultModel" })
-          .send();
-      }
+    if (defaultModel && defaultModel.providerId === Item.providerId) {
+      await resources.ddb.entities.DefaultModel.build(DeleteItemCommand)
+        .key({ modelType: "chat" })
+        .send();
     }
 
     invalidateModelCache();

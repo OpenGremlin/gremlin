@@ -1,4 +1,5 @@
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
+import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { ServiceContext } from "../context.js";
 
 export interface DefaultModelResult {
@@ -9,17 +10,48 @@ export interface DefaultModelResult {
 
 type DefaultModelKey = "defaultModel" | "defaultImageModel";
 
+const KEY_TO_MODEL_TYPE: Record<DefaultModelKey, string> = {
+  defaultModel: "chat",
+  defaultImageModel: "image",
+};
+
 export async function getDefaultModel(
   ctx: ServiceContext,
   key: DefaultModelKey = "defaultModel",
 ): Promise<DefaultModelResult | null> {
-  const { Item } = await ctx.resources.ddb.entities.Setting.build(
+  const modelType = KEY_TO_MODEL_TYPE[key];
+
+  const { Item } = await ctx.resources.ddb.entities.DefaultModel.build(
+    GetItemCommand,
+  )
+    .key({ modelType })
+    .send();
+
+  if (Item) {
+    return {
+      providerId: Item.providerId,
+      modelId: Item.modelId,
+      modelName: Item.modelName,
+    };
+  }
+
+  // Fallback: read from legacy Setting and lazy-migrate
+  const { Item: legacy } = await ctx.resources.ddb.entities.Setting.build(
     GetItemCommand,
   )
     .key({ key })
     .send();
 
-  if (!Item) return null;
+  if (!legacy) return null;
 
-  return JSON.parse(Item.value) as DefaultModelResult;
+  const parsed = JSON.parse(legacy.value) as DefaultModelResult;
+  await ctx.resources.ddb.entities.DefaultModel.build(PutItemCommand)
+    .item({
+      modelType,
+      providerId: parsed.providerId,
+      modelId: parsed.modelId,
+      modelName: parsed.modelName ?? undefined,
+    })
+    .send();
+  return parsed;
 }

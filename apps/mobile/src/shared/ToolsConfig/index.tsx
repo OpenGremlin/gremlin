@@ -195,6 +195,33 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         )}
       </Card>
 
+      {/* View Images */}
+      <Card className="overflow-hidden">
+        <View className="flex-row items-center justify-between px-4 py-3">
+          <View className="flex-row items-center gap-3 flex-1">
+            <Eye size={18} color={colors.iconDefault} />
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-text-secondary">
+                View Images
+              </Text>
+              <Text className="text-xs text-text-muted">
+                {config.sandbox?.enabled
+                  ? "Let the agent see image files"
+                  : "Requires Sandbox to be enabled"}
+              </Text>
+            </View>
+          </View>
+          <Toggle
+            enabled={config.viewImage?.enabled ?? false}
+            disabled={!config.sandbox?.enabled}
+            onChange={() => {
+              const wasEnabled = config.viewImage?.enabled ?? false;
+              updateConfig({ viewImage: { enabled: !wasEnabled } });
+            }}
+          />
+        </View>
+      </Card>
+
       {/* Sandbox */}
       <Card className="overflow-hidden">
         <View className="flex-row items-center justify-between px-4 py-3">
@@ -411,33 +438,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             </Text>
           </View>
         )}
-      </Card>
-
-      {/* View Images */}
-      <Card className="overflow-hidden">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <View className="flex-row items-center gap-3 flex-1">
-            <Eye size={18} color={colors.iconDefault} />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-text-secondary">
-                View Images
-              </Text>
-              <Text className="text-xs text-text-muted">
-                {config.sandbox?.enabled
-                  ? "Let the agent see image files"
-                  : "Requires Sandbox to be enabled"}
-              </Text>
-            </View>
-          </View>
-          <Toggle
-            enabled={config.viewImage?.enabled ?? false}
-            disabled={!config.sandbox?.enabled}
-            onChange={() => {
-              const wasEnabled = config.viewImage?.enabled ?? false;
-              updateConfig({ viewImage: { enabled: !wasEnabled } });
-            }}
-          />
-        </View>
       </Card>
 
       {modelPickerOpen && (

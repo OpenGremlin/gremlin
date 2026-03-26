@@ -59,19 +59,17 @@ describe("setDefaultModel", () => {
 
     const mockSend = vi.fn().mockResolvedValue({});
     const mockItem = vi.fn().mockReturnValue({ send: mockSend });
-    ctx.resources.ddb.entities.Setting.build.mockReturnValue({
+    ctx.resources.ddb.entities.DefaultModel.build.mockReturnValue({
       item: mockItem,
     } as any);
 
     await setDefaultModel(ctx, "bedrock", "us.anthropic.claude-sonnet-4-6");
 
     expect(mockItem).toHaveBeenCalledWith({
-      key: "defaultModel",
-      value: JSON.stringify({
-        providerId: "bedrock",
-        modelId: "us.anthropic.claude-sonnet-4-6",
-        modelName: "Claude Sonnet 4.6",
-      }),
+      modelType: "chat",
+      providerId: "bedrock",
+      modelId: "us.anthropic.claude-sonnet-4-6",
+      modelName: "Claude Sonnet 4.6",
     });
   });
 
@@ -88,19 +86,17 @@ describe("setDefaultModel", () => {
 
     const mockSend = vi.fn().mockResolvedValue({});
     const mockItem = vi.fn().mockReturnValue({ send: mockSend });
-    ctx.resources.ddb.entities.Setting.build.mockReturnValue({
+    ctx.resources.ddb.entities.DefaultModel.build.mockReturnValue({
       item: mockItem,
     } as any);
 
     await setDefaultModel(ctx, "anthropic", "claude-sonnet-4-6");
 
     expect(mockItem).toHaveBeenCalledWith({
-      key: "defaultModel",
-      value: JSON.stringify({
-        providerId: "anthropic",
-        modelId: "claude-sonnet-4-6",
-        modelName: "claude-sonnet-4-6",
-      }),
+      modelType: "chat",
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-6",
+      modelName: "claude-sonnet-4-6",
     });
   });
 });

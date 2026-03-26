@@ -268,12 +268,13 @@ app.get("/api/auth-config", async (_req, res) => {
     const { GetItemCommand } = await import(
       "dynamodb-toolbox/entity/actions/get"
     );
-    const { Item } = await resources.ddb.entities.Setting.build(GetItemCommand)
-      .key({ key: "globalSettings" })
+    const { Item } = await resources.ddb.entities.GlobalSettings.build(
+      GetItemCommand,
+    )
+      .key({ id: "global" })
       .send();
     if (Item) {
-      const settings = JSON.parse(Item.value);
-      signupDisabled = settings.signupDisabled === true;
+      signupDisabled = Item.signupDisabled === true;
     }
   } catch {
     // Settings not available yet — default to allowing signup

@@ -1,5 +1,6 @@
 import type { ModelMode } from "@gremlin/providers";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
+import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
 
 const BEDROCK_DEFAULTS: EnabledModel[] = [
@@ -25,10 +26,6 @@ export interface EnabledModel {
   outputCostPerImageToken?: number;
 }
 
-function settingKey(providerId: string): string {
-  return `enabledModels:${providerId}`;
-}
-
 /** Map legacy `type` values to `mode` */
 const TYPE_TO_MODE: Record<string, ModelMode> = {
   llm: "chat",
@@ -45,7 +42,6 @@ function migrateIfNeeded(raw: unknown[]): EnabledModel[] {
       return { id: entry, name: entry, mode: "chat" as ModelMode };
     }
     const obj = entry as Record<string, unknown>;
-    // Migrate legacy `type` field to `mode`
     if (obj.type && !obj.mode) {
       obj.mode = TYPE_TO_MODE[obj.type as string] ?? "chat";
       delete obj.type;
@@ -54,26 +50,60 @@ function migrateIfNeeded(raw: unknown[]): EnabledModel[] {
   });
 }
 
-export async function getEnabledModels(
+/**
+ * Read from legacy Setting entity, lazy-migrate to new EnabledModels entity.
+ */
+async function readLegacy(
   resources: Resources,
   providerId: string,
-): Promise<EnabledModel[]> {
+): Promise<EnabledModel[] | null> {
   const { Item } = await resources.ddb.entities.Setting.build(GetItemCommand)
-    .key({ key: settingKey(providerId) })
+    .key({ key: `enabledModels:${providerId}` })
     .send();
 
-  if (Item) return migrateIfNeeded(JSON.parse(Item.value) as unknown[]);
+  if (Item) {
+    const models = migrateIfNeeded(JSON.parse(Item.value) as unknown[]);
+    await resources.ddb.entities.EnabledModels.build(PutItemCommand)
+      .item({ providerId, models })
+      .send();
+    return models;
+  }
 
-  // Migrate: check legacy key for bedrock
+  // Legacy bedrock-specific key
   if (providerId === "bedrock") {
     const { Item: legacy } = await resources.ddb.entities.Setting.build(
       GetItemCommand,
     )
       .key({ key: "bedrockEnabledModels" })
       .send();
-    if (legacy) return migrateIfNeeded(JSON.parse(legacy.value) as unknown[]);
-    return [...BEDROCK_DEFAULTS];
+    if (legacy) {
+      const models = migrateIfNeeded(JSON.parse(legacy.value) as unknown[]);
+      await resources.ddb.entities.EnabledModels.build(PutItemCommand)
+        .item({ providerId, models })
+        .send();
+      return models;
+    }
   }
 
+  return null;
+}
+
+export async function getEnabledModels(
+  resources: Resources,
+  providerId: string,
+): Promise<EnabledModel[]> {
+  const { Item } = await resources.ddb.entities.EnabledModels.build(
+    GetItemCommand,
+  )
+    .key({ providerId })
+    .send();
+
+  if (Item) return Item.models as EnabledModel[];
+
+  // Fallback: read from legacy Setting and lazy-migrate
+  const migrated = await readLegacy(resources, providerId);
+  if (migrated) return migrated;
+
+  if (providerId === "bedrock") return [...BEDROCK_DEFAULTS];
   return [];
 }

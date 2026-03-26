@@ -4,6 +4,9 @@ import { AgentLogEntity } from "./schema/agentLog.js";
 import { AgentSkillEntity } from "./schema/agentSkill.js";
 import { CommandApprovalEntity } from "./schema/commandApproval.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
+import { DefaultModelEntity } from "./schema/defaultModel.js";
+import { EnabledModelsEntity } from "./schema/enabledModels.js";
+import { GlobalSettingsEntity } from "./schema/globalSettings.js";
 import { InboxItemEntity } from "./schema/inboxItem.js";
 import { IntegrationConnectionEntity } from "./schema/integrationConnection.js";
 import { ModelProviderKeyEntity } from "./schema/modelProviderKey.js";
@@ -20,6 +23,9 @@ export const ddb = {
   secretsTable: SecretsTable,
   entities: {
     CronJobTrigger: CronJobTriggerEntity,
+    DefaultModel: DefaultModelEntity,
+    EnabledModels: EnabledModelsEntity,
+    GlobalSettings: GlobalSettingsEntity,
     InboxItem: InboxItemEntity,
     IntegrationConnection: IntegrationConnectionEntity,
     ModelProviderKey: ModelProviderKeyEntity,

@@ -60,11 +60,8 @@ export async function enableModel(
   const enabled = await getEnabledModels(resources, providerId);
   if (!enabled.some((m) => m.id === modelId)) {
     enabled.push(snapshotModel(providerId, modelId, displayName));
-    await resources.ddb.entities.Setting.build(PutItemCommand)
-      .item({
-        key: `enabledModels:${providerId}`,
-        value: JSON.stringify(enabled),
-      })
+    await resources.ddb.entities.EnabledModels.build(PutItemCommand)
+      .item({ providerId, models: enabled })
       .send();
   }
 

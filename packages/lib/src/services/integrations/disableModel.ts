@@ -13,31 +13,25 @@ export async function disableModel(
   const enabled = await getEnabledModels(resources, providerId);
   const updated = enabled.filter((m) => m.id !== modelId);
 
-  await resources.ddb.entities.Setting.build(PutItemCommand)
-    .item({
-      key: `enabledModels:${providerId}`,
-      value: JSON.stringify(updated),
-    })
+  await resources.ddb.entities.EnabledModels.build(PutItemCommand)
+    .item({ providerId, models: updated })
     .send();
 
   // If the default model was this model, clear it
-  const { Item: setting } = await resources.ddb.entities.Setting.build(
-    GetItemCommand,
-  )
-    .key({ key: "defaultModel" })
-    .send();
+  const { Item: defaultModel } =
+    await resources.ddb.entities.DefaultModel.build(GetItemCommand)
+      .key({ modelType: "chat" })
+      .send();
 
-  if (setting) {
-    const defaultModel = JSON.parse(setting.value);
-    if (
-      defaultModel.providerId === providerId &&
-      defaultModel.modelId === modelId
-    ) {
-      await resources.ddb.entities.Setting.build(DeleteItemCommand)
-        .key({ key: "defaultModel" })
-        .send();
-      invalidateModelCache();
-    }
+  if (
+    defaultModel &&
+    defaultModel.providerId === providerId &&
+    defaultModel.modelId === modelId
+  ) {
+    await resources.ddb.entities.DefaultModel.build(DeleteItemCommand)
+      .key({ modelType: "chat" })
+      .send();
+    invalidateModelCache();
   }
 
   return true;
