@@ -29,4 +29,4 @@ Use the issue templates for bug reports and feature requests.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [AGPL-3.0 license](LICENSE).
+By contributing, you agree that your contributions will be licensed under the [MIT license](LICENSE).

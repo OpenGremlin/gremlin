@@ -1,7 +1,7 @@
 {
   "name": "gremlin",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "scripts": {
     "dev": "turbo dev --filter='!@gremlin/mobile'",
     "mobile": "pnpm --filter @gremlin/mobile dev",

@@ -2,7 +2,7 @@
   "name": "@gremlin/infra",
   "version": "0.0.1",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "cdk": "cdk",
