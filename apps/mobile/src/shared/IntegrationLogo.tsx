@@ -1,6 +1,17 @@
 import { Image } from "expo-image";
+import type { LucideIcon } from "lucide-react-native";
+import {
+  Database,
+  FileText,
+  Globe,
+  ImageIcon,
+  ScanText,
+  Video,
+  Workflow,
+} from "lucide-react-native";
 import { Text, View } from "react-native";
 import { useTheme } from "../lib/ThemeContext";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
@@ -40,6 +51,17 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   qwen: require("@gremlin/logos/Qwen.svg"),
 };
 
+/** Lucide icon fallbacks for skill icons that don't have SVG logos. */
+const iconMap: Record<string, LucideIcon> = {
+  database: Database,
+  diagram: Workflow,
+  "file-text": FileText,
+  globe: Globe,
+  image: ImageIcon,
+  scan: ScanText,
+  video: Video,
+};
+
 /** Light-mode overrides — only for logos that have a `_light` variant. */
 const lightLogoOverrides: Record<string, ReturnType<typeof require>> = {
   anthropic: require("@gremlin/logos/Anthropic_light.svg"),
@@ -58,6 +80,7 @@ export function IntegrationLogo({
   size?: number;
 }) {
   const { isDark } = useTheme();
+  const colors = useNavigationTheme();
   const logo =
     (!isDark ? lightLogoOverrides[id] : undefined) ?? darkLogoMap[id];
 
@@ -75,6 +98,19 @@ export function IntegrationLogo({
       </View>
     );
   }
+
+  const Icon = iconMap[id];
+  if (Icon) {
+    return (
+      <View
+        className="rounded-lg bg-surface-alt items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <Icon size={size * 0.55} color={colors.iconDefault} />
+      </View>
+    );
+  }
+
   return (
     <View
       className="rounded-full bg-surface-alt items-center justify-center"
