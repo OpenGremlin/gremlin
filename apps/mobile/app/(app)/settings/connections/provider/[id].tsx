@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { Trash2 } from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import {
   BedrockAvailableModelsQuery,
   ConnectApiKeyMutation,
   DisableModelMutation,
+  EnabledModelDetailsQuery,
   EnabledModelsQuery,
   EnableModelMutation,
   IntegrationProvidersQuery,
@@ -31,6 +33,8 @@ import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
+import type { ModelDetail } from "../../../../../src/shared/ModelDetailModal";
+import { ModelDetailModal } from "../../../../../src/shared/ModelDetailModal";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
 
@@ -60,6 +64,7 @@ function TypedModelList({
   label,
   allModels,
   enabledModelIds,
+  modelDetails,
   defaultModel,
   refetchEnabled,
   refetchParent,
@@ -70,6 +75,7 @@ function TypedModelList({
   label: string;
   allModels: { id: string; name: string; mode: string }[];
   enabledModelIds: string[];
+  modelDetails: ModelDetail[];
   defaultModel: DefaultModel;
   refetchEnabled: () => void;
   refetchParent: () => void;
@@ -82,6 +88,7 @@ function TypedModelList({
   const [error, setError] = useState<string | null>(null);
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedModel, setSelectedModel] = useState<ModelDetail | null>(null);
 
   const modelsOfType = allModels.filter((m) => m.mode === modelMode);
   if (modelsOfType.length === 0) return null;
@@ -170,11 +177,15 @@ function TypedModelList({
               const isDisabling = disablingModel === model.id;
               const isSetting = settingModel === model.id;
               const busy = isDisabling || isSetting;
+              const detail = modelDetails.find((d) => d.id === model.id);
 
               return (
-                <View
+                <Pressable
                   key={model.id}
-                  className={`flex-row items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
+                  onPress={() => {
+                    if (detail) setSelectedModel(detail);
+                  }}
+                  className={`flex-row items-center justify-between px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
                 >
                   <View className="flex-1 mr-3">
                     <Text className="text-sm text-text-primary">
@@ -187,15 +198,29 @@ function TypedModelList({
                       size="small"
                     />
                   ) : isDefault ? (
-                    <View className="flex-row items-center gap-1.5">
-                      <View className="w-2 h-2 rounded-full bg-accent" />
-                      <Text className="text-xs text-accent">Default</Text>
+                    <View className="flex-row items-center gap-3">
+                      <View className="flex-row items-center gap-1.5">
+                        <View className="w-2 h-2 rounded-full bg-accent" />
+                        <Text className="text-xs text-accent">Default</Text>
+                      </View>
+                      <Pressable
+                        hitSlop={8}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleDisable(model.id);
+                        }}
+                      >
+                        <Trash2 size={14} color={colors.error} />
+                      </Pressable>
                     </View>
                   ) : (
                     <View className="flex-row items-center gap-4">
                       <Pressable
                         hitSlop={8}
-                        onPress={() => handleSetDefault(model.id)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleSetDefault(model.id);
+                        }}
                       >
                         <Text className="text-xs font-medium text-accent">
                           Set Default
@@ -203,20 +228,26 @@ function TypedModelList({
                       </Pressable>
                       <Pressable
                         hitSlop={8}
-                        onPress={() => handleDisable(model.id)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleDisable(model.id);
+                        }}
                       >
-                        <Text className="text-xs font-medium text-error">
-                          Remove
-                        </Text>
+                        <Trash2 size={14} color={colors.error} />
                       </Pressable>
                     </View>
                   )}
-                </View>
+                </Pressable>
               );
             })}
           </Card>
         </View>
       )}
+
+      <ModelDetailModal
+        model={selectedModel}
+        onClose={() => setSelectedModel(null)}
+      />
 
       {/* ── Available Models ── */}
       {availableModels.length > 0 && (
@@ -313,9 +344,13 @@ function ApiKeyModelLists({
     EnabledModelsQuery,
     { providerId },
   );
+  const { data: detailsData } = useQuery(EnabledModelDetailsQuery, {
+    providerId,
+  });
 
   const allModels = modelsData?.providerModels ?? [];
   const enabledModelIds = enabledData?.enabledModels ?? [];
+  const modelDetails = detailsData?.enabledModelDetails ?? [];
 
   const defaultsByMode: Record<ModelMode, DefaultModel> = {
     chat: defaultModel,
@@ -346,6 +381,7 @@ function ApiKeyModelLists({
           label={MODEL_MODE_LABELS[m]}
           allModels={allModels}
           enabledModelIds={enabledModelIds}
+          modelDetails={modelDetails}
           defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
           refetchParent={refetchParent}
@@ -472,6 +508,9 @@ function BedrockDetailView({
     EnabledModelsQuery,
     { providerId: provider.id },
   );
+  const { data: detailsData } = useQuery(EnabledModelDetailsQuery, {
+    providerId: provider.id,
+  });
 
   const allModels = (availableData?.bedrockAvailableModels ?? []).map((m) => ({
     id: m.id,
@@ -479,6 +518,7 @@ function BedrockDetailView({
     mode: m.mode,
   }));
   const enabledModelIds = enabledData?.enabledModels ?? [];
+  const modelDetails = detailsData?.enabledModelDetails ?? [];
 
   const defaultsByMode: Record<ModelMode, DefaultModel> = {
     chat: defaultModel,
@@ -521,6 +561,7 @@ function BedrockDetailView({
           label={MODEL_MODE_LABELS[m]}
           allModels={allModels}
           enabledModelIds={enabledModelIds}
+          modelDetails={modelDetails}
           defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
           refetchParent={refetch}

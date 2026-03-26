@@ -47,6 +47,7 @@ type Documents = {
     "\n  mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {\n    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)\n  }\n": typeof types.EnableModelDocument,
     "\n  mutation DisableModel($providerId: String!, $modelId: String!) {\n    disableModel(providerId: $providerId, modelId: $modelId)\n  }\n": typeof types.DisableModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": typeof types.BedrockEnabledModelsDocument,
+    "\n  query EnabledModelDetails($providerId: String!) {\n    enabledModelDetails(providerId: $providerId) {\n      id\n      name\n      mode\n      maxInputTokens\n      inputCostPerToken\n      outputCostPerToken\n      supportedModalities\n      supportedOutputModalities\n      inputCostPerImage\n      inputCostPerImageToken\n      outputCostPerImage\n      outputCostPerImageToken\n    }\n  }\n": typeof types.EnabledModelDetailsDocument,
     "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      mode\n    }\n  }\n": typeof types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": typeof types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": typeof types.DisableBedrockModelDocument,
@@ -118,6 +119,7 @@ const documents: Documents = {
     "\n  mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {\n    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)\n  }\n": types.EnableModelDocument,
     "\n  mutation DisableModel($providerId: String!, $modelId: String!) {\n    disableModel(providerId: $providerId, modelId: $modelId)\n  }\n": types.DisableModelDocument,
     "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n": types.BedrockEnabledModelsDocument,
+    "\n  query EnabledModelDetails($providerId: String!) {\n    enabledModelDetails(providerId: $providerId) {\n      id\n      name\n      mode\n      maxInputTokens\n      inputCostPerToken\n      outputCostPerToken\n      supportedModalities\n      supportedOutputModalities\n      inputCostPerImage\n      inputCostPerImageToken\n      outputCostPerImage\n      outputCostPerImageToken\n    }\n  }\n": types.EnabledModelDetailsDocument,
     "\n  query BedrockAvailableModels {\n    bedrockAvailableModels {\n      id\n      name\n      mode\n    }\n  }\n": types.BedrockAvailableModelsDocument,
     "\n  mutation EnableBedrockModel($modelId: String!) {\n    enableBedrockModel(modelId: $modelId)\n  }\n": types.EnableBedrockModelDocument,
     "\n  mutation DisableBedrockModel($modelId: String!) {\n    disableBedrockModel(modelId: $modelId)\n  }\n": types.DisableBedrockModelDocument,
@@ -285,6 +287,10 @@ export function graphql(source: "\n  mutation DisableModel($providerId: String!,
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query BedrockEnabledModels {\n    bedrockEnabledModels\n  }\n"): typeof import('./graphql').BedrockEnabledModelsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query EnabledModelDetails($providerId: String!) {\n    enabledModelDetails(providerId: $providerId) {\n      id\n      name\n      mode\n      maxInputTokens\n      inputCostPerToken\n      outputCostPerToken\n      supportedModalities\n      supportedOutputModalities\n      inputCostPerImage\n      inputCostPerImageToken\n      outputCostPerImage\n      outputCostPerImageToken\n    }\n  }\n"): typeof import('./graphql').EnabledModelDetailsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -152,6 +152,25 @@ export const BedrockEnabledModelsQuery = graphql(`
   }
 `);
 
+export const EnabledModelDetailsQuery = graphql(`
+  query EnabledModelDetails($providerId: String!) {
+    enabledModelDetails(providerId: $providerId) {
+      id
+      name
+      mode
+      maxInputTokens
+      inputCostPerToken
+      outputCostPerToken
+      supportedModalities
+      supportedOutputModalities
+      inputCostPerImage
+      inputCostPerImageToken
+      outputCostPerImage
+      outputCostPerImageToken
+    }
+  }
+`);
+
 export const BedrockAvailableModelsQuery = graphql(`
   query BedrockAvailableModels {
     bedrockAvailableModels {

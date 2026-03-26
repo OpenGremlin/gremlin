@@ -146,7 +146,7 @@ export function SheetModal({
             </View>
 
             <View
-              className="flex-row items-center justify-between pl-10 pr-4 pt-2 pb-4"
+              className="flex-row items-center justify-between px-4 pt-2 pb-4"
               {...panResponder.panHandlers}
             >
               <Text

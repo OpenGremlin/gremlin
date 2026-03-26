@@ -689,6 +689,7 @@ export type Query = {
   commandAllowlist: Array<AllowlistEntry>;
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
+  enabledModelDetails: Array<ModelInfo>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
   globalSettings: GlobalSettings;
@@ -737,6 +738,11 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryEnabledModelDetailsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -1295,6 +1301,13 @@ export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }
 
 
 export type BedrockEnabledModelsQuery = { __typename?: 'Query', bedrockEnabledModels: Array<string> };
+
+export type EnabledModelDetailsQueryVariables = Exact<{
+  providerId: Scalars['String']['input'];
+}>;
+
+
+export type EnabledModelDetailsQuery = { __typename?: 'Query', enabledModelDetails: Array<{ __typename?: 'ModelInfo', id: string, name: string, mode: string, maxInputTokens?: number | null, inputCostPerToken?: number | null, outputCostPerToken?: number | null, supportedModalities?: Array<string> | null, supportedOutputModalities?: Array<string> | null, inputCostPerImage?: number | null, inputCostPerImageToken?: number | null, outputCostPerImage?: number | null, outputCostPerImageToken?: number | null }> };
 
 export type BedrockAvailableModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2202,6 +2215,24 @@ export const BedrockEnabledModelsDocument = new TypedDocumentString(`
   bedrockEnabledModels
 }
     `) as unknown as TypedDocumentString<BedrockEnabledModelsQuery, BedrockEnabledModelsQueryVariables>;
+export const EnabledModelDetailsDocument = new TypedDocumentString(`
+    query EnabledModelDetails($providerId: String!) {
+  enabledModelDetails(providerId: $providerId) {
+    id
+    name
+    mode
+    maxInputTokens
+    inputCostPerToken
+    outputCostPerToken
+    supportedModalities
+    supportedOutputModalities
+    inputCostPerImage
+    inputCostPerImageToken
+    outputCostPerImage
+    outputCostPerImageToken
+  }
+}
+    `) as unknown as TypedDocumentString<EnabledModelDetailsQuery, EnabledModelDetailsQueryVariables>;
 export const BedrockAvailableModelsDocument = new TypedDocumentString(`
     query BedrockAvailableModels {
   bedrockAvailableModels {

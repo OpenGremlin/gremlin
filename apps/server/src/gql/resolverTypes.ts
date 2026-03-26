@@ -708,6 +708,7 @@ export type Query = {
   commandAllowlist: Array<AllowlistEntry>;
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
+  enabledModelDetails: Array<ModelInfo>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
   globalSettings: GlobalSettings;
@@ -756,6 +757,11 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryEnabledModelDetailsArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -1653,6 +1659,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
   defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
+  enabledModelDetails?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType, RequireFields<QueryEnabledModelDetailsArgs, 'providerId'>>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;

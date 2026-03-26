@@ -10,14 +10,18 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import {
+  EnabledModelDetailsQuery,
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
+import { gql } from "../../../../src/lib/auth";
 import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
+import type { ModelDetail } from "../../../../src/shared/ModelDetailModal";
+import { ModelDetailModal } from "../../../../src/shared/ModelDetailModal";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 import { Toast } from "../../../../src/shared/Toast";
@@ -94,6 +98,7 @@ export default function IntegrationsScreen() {
   const [highlightedProvider, setHighlightedProvider] = useState<string | null>(
     null,
   );
+  const [selectedModel, setSelectedModel] = useState<ModelDetail | null>(null);
   const processedParam = useRef<string | null>(null);
 
   const loading = providers.loading || connections.loading;
@@ -192,45 +197,57 @@ export default function IntegrationsScreen() {
                     ? allProviders.find((p) => p.id === model.providerId)
                     : null;
                   return (
-                    <Card
+                    <Pressable
                       key={label}
-                      className="p-4 flex-row items-center gap-3"
+                      disabled={!model}
+                      onPress={async () => {
+                        if (!model) return;
+                        const result = await gql(EnabledModelDetailsQuery, {
+                          providerId: model.providerId,
+                        });
+                        const detail = result.enabledModelDetails.find(
+                          (m) => m.id === model.modelId,
+                        );
+                        if (detail) setSelectedModel(detail);
+                      }}
                     >
-                      {modelProvider && (
-                        <IntegrationLogo id={modelProvider.id} size={32} />
-                      )}
-                      <View className="flex-1">
-                        {model ? (
-                          <>
-                            {model.modelName && (
-                              <Text className="text-sm font-medium text-text-primary">
-                                {model.modelName}
-                              </Text>
-                            )}
-                            <Text
-                              className={`text-xs ${model.modelName ? "text-text-muted" : "text-sm font-medium text-text-primary"} mt-0.5`}
-                            >
-                              {model.modelId}
-                            </Text>
-                            <Text className="text-xs text-text-secondary mt-0.5">
-                              {label}
-                              {modelProvider
-                                ? ` · ${modelProvider.service}`
-                                : ""}
-                            </Text>
-                          </>
-                        ) : (
-                          <>
-                            <Text className="text-sm text-text-muted">
-                              {fallback}
-                            </Text>
-                            <Text className="text-xs text-text-secondary mt-0.5">
-                              {label}
-                            </Text>
-                          </>
+                      <Card className="p-4 flex-row items-center gap-3">
+                        {modelProvider && (
+                          <IntegrationLogo id={modelProvider.id} size={32} />
                         )}
-                      </View>
-                    </Card>
+                        <View className="flex-1">
+                          {model ? (
+                            <>
+                              {model.modelName && (
+                                <Text className="text-sm font-medium text-text-primary">
+                                  {model.modelName}
+                                </Text>
+                              )}
+                              <Text
+                                className={`text-xs ${model.modelName ? "text-text-muted" : "text-sm font-medium text-text-primary"} mt-0.5`}
+                              >
+                                {model.modelId}
+                              </Text>
+                              <Text className="text-xs text-text-secondary mt-0.5">
+                                {label}
+                                {modelProvider
+                                  ? ` · ${modelProvider.service}`
+                                  : ""}
+                              </Text>
+                            </>
+                          ) : (
+                            <>
+                              <Text className="text-sm text-text-muted">
+                                {fallback}
+                              </Text>
+                              <Text className="text-xs text-text-secondary mt-0.5">
+                                {label}
+                              </Text>
+                            </>
+                          )}
+                        </View>
+                      </Card>
+                    </Pressable>
                   );
                 })}
               </View>
@@ -331,6 +348,11 @@ export default function IntegrationsScreen() {
           </View>
         ))}
       </ScrollView>
+
+      <ModelDetailModal
+        model={selectedModel}
+        onClose={() => setSelectedModel(null)}
+      />
     </View>
   );
 }

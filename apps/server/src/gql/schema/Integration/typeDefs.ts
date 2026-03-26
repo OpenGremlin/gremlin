@@ -101,6 +101,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     bedrockEnabledModels: [String!]!
     bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
+    enabledModelDetails(providerId: String!): [ModelInfo!]!
   }
 
   extend type Mutation {

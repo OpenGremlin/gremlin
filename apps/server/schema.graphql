@@ -32,6 +32,7 @@ type Query {
   bedrockEnabledModels: [String!]!
   bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
+  enabledModelDetails(providerId: String!): [ModelInfo!]!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!
