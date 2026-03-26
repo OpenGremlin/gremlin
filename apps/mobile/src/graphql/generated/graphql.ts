@@ -1417,7 +1417,7 @@ export type AgentSkillsQueryVariables = Exact<{
 }>;
 
 
-export type AgentSkillsQuery = { __typename?: 'Query', agentSkills: Array<{ __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean }> } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> }> };
+export type AgentSkillsQuery = { __typename?: 'Query', agentSkills: Array<{ __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, displayName?: string | null, description: string, version: string, category?: string | null, icon?: string | null, connections: Array<{ __typename?: 'SkillConnectionRequirement', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean }> } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> }> };
 
 export type AssignSkillMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1425,7 +1425,7 @@ export type AssignSkillMutationVariables = Exact<{
 }>;
 
 
-export type AssignSkillMutation = { __typename?: 'Mutation', assignSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, description: string, version: string, category?: string | null, icon?: string | null } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> } };
+export type AssignSkillMutation = { __typename?: 'Mutation', assignSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string, assignedAt: string, template?: { __typename?: 'SkillTemplate', id: string, name: string, displayName?: string | null, description: string, version: string, category?: string | null, icon?: string | null } | null, connectionStatuses: Array<{ __typename?: 'SkillConnectionStatus', provider: string, providerName: string, reason: string, optional: boolean, multi: boolean, boundConnectionIds: Array<string>, connected: boolean }> } };
 
 export type RemoveSkillMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -2430,6 +2430,7 @@ export const AgentSkillsDocument = new TypedDocumentString(`
     template {
       id
       name
+      displayName
       description
       version
       category
@@ -2463,6 +2464,7 @@ export const AssignSkillDocument = new TypedDocumentString(`
     template {
       id
       name
+      displayName
       description
       version
       category

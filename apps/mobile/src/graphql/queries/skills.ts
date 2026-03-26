@@ -59,6 +59,7 @@ export const AgentSkillsQuery = graphql(`
       template {
         id
         name
+        displayName
         description
         version
         category
@@ -93,6 +94,7 @@ export const AssignSkillMutation = graphql(`
       template {
         id
         name
+        displayName
         description
         version
         category

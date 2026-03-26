@@ -118,6 +118,7 @@ function AgentSkillCard({
     skillId: string;
     template?: {
       name: string;
+      displayName?: string | null;
       description: string;
       icon?: string | null;
       connections: ReadonlyArray<{
@@ -222,7 +223,7 @@ function AgentSkillCard({
       >
         <View className="flex-1 min-w-0">
           <Text className="text-sm font-medium text-text-primary">
-            {template.name}
+            {template.displayName ?? template.name}
           </Text>
           <Text className="text-xs text-text-muted" numberOfLines={1}>
             {template.description}
