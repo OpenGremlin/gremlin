@@ -43,7 +43,7 @@ export async function runMainLane(
       listJobs: listJobsTool(ctx, agentId),
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
-      ...(agent.config?.viewImage?.enabled
+      ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
         ? { viewImage: viewImageTool(ctx) }
         : {}),
     },

@@ -1,4 +1,5 @@
 import type { ServiceContext } from "../context.js";
+import type { EnabledModel } from "../integrations/getEnabledModels.js";
 import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
@@ -33,6 +34,42 @@ export interface AgentLaneContext {
   timezone: string | undefined;
   skillSummary: { promptSection: string };
   skillTools: SkillToolsResult;
+  modelSupportsImages: boolean;
+}
+
+/**
+ * Resolve the selected model's metadata and check whether it supports images.
+ */
+async function resolveModelSupportsImages(
+  ctx: ServiceContext,
+  agentModel:
+    | { type: string; modelId?: string; connectionId?: string }
+    | undefined
+    | null,
+): Promise<boolean> {
+  if (!agentModel) return true; // no override → assume default supports images
+  let providerId: string;
+  let modelId: string;
+  if (agentModel.type === "bedrock" && agentModel.modelId) {
+    providerId = "bedrock";
+    modelId = agentModel.modelId;
+  } else if (agentModel.type === "connection" && agentModel.connectionId) {
+    [providerId, modelId] = agentModel.connectionId.split(":", 2);
+  } else {
+    return true;
+  }
+  let models: EnabledModel[];
+  try {
+    models = await ctx.services.integrations.getEnabledModels(
+      ctx.resources,
+      providerId,
+    );
+  } catch {
+    return true; // on error, don't block the tool
+  }
+  const match = models.find((m) => m.id === modelId);
+  if (!match?.supportedModalities) return true;
+  return match.supportedModalities.includes("image");
 }
 
 /**
@@ -48,7 +85,7 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
-  const [skillSummary, skillTools] = await Promise.all([
+  const [skillSummary, skillTools, modelSupportsImages] = await Promise.all([
     buildSkillSummary(ctx, agentId).catch((err) => {
       ctx.log.error(
         { err, component: "skills" },
@@ -63,9 +100,18 @@ export async function buildAgentLaneContext(
       );
       return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
     }),
+    resolveModelSupportsImages(ctx, agent.config?.model),
   ]);
 
-  return { agent, profile, displayName, timezone, skillSummary, skillTools };
+  return {
+    agent,
+    profile,
+    displayName,
+    timezone,
+    skillSummary,
+    skillTools,
+    modelSupportsImages,
+  };
 }
 
 /**
@@ -103,7 +149,7 @@ export function buildTaskTools(
     listJobs: listJobsTool(ctx, agentId),
     scheduleJob: scheduleJobTool(ctx, agentId),
     updateJob: updateJobTool(ctx, agentId),
-    ...(agent.config?.viewImage?.enabled
+    ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
       ? { viewImage: viewImageTool(ctx) }
       : {}),
     ...(agent.config?.sandbox?.enabled

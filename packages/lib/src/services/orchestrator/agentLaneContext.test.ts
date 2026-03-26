@@ -65,6 +65,7 @@ function makeAgentLaneCtx(
     timezone: "America/New_York",
     skillSummary: { promptSection: "" },
     skillTools: { tools: {}, getEnv: () => ({}) },
+    modelSupportsImages: true,
     ...overrides,
   };
 }
@@ -299,6 +300,22 @@ describe("buildTaskTools", () => {
     expect(tools).toHaveProperty("viewImage");
     expect(tools).not.toHaveProperty("ensureSandbox");
     expect(tools).not.toHaveProperty("runCommand");
+  });
+
+  it("excludes viewImage when enabled but model does not support images", () => {
+    const tools = buildTaskTools(
+      ctx,
+      makeAgentLaneCtx({
+        agent: makeAgent({
+          config: { viewImage: { enabled: true } },
+        }) as any,
+        modelSupportsImages: false,
+      }),
+      "agent-1",
+      "task-1",
+    );
+
+    expect(tools).not.toHaveProperty("viewImage");
   });
 
   it("includes both viewImage and sandbox tools when both enabled", () => {
