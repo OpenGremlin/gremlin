@@ -202,7 +202,14 @@ export default function IntegrationsScreen() {
                       <View className="flex-1">
                         {model ? (
                           <>
-                            <Text className="text-sm font-medium text-text-primary">
+                            {model.modelName && (
+                              <Text className="text-sm font-medium text-text-primary">
+                                {model.modelName}
+                              </Text>
+                            )}
+                            <Text
+                              className={`text-xs ${model.modelName ? "text-text-muted" : "text-sm font-medium text-text-primary"} mt-0.5`}
+                            >
                               {model.modelId}
                             </Text>
                             <Text className="text-xs text-text-secondary mt-0.5">

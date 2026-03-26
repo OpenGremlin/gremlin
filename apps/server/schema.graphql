@@ -81,9 +81,13 @@ type Mutation {
   revokeIntegrationConnection(id: ID!): Boolean!
   setDefaultModel(providerId: String!, modelId: String!): Boolean!
   setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
-  enableModel(providerId: String!, modelId: String!): Boolean!
+  enableModel(
+    providerId: String!
+    modelId: String!
+    modelName: String
+  ): Boolean!
   disableModel(providerId: String!, modelId: String!): Boolean!
-  enableBedrockModel(modelId: String!): Boolean!
+  enableBedrockModel(modelId: String!, modelName: String): Boolean!
   disableBedrockModel(modelId: String!): Boolean!
   submitOAuthConnection(
     providerId: String!
@@ -460,6 +464,7 @@ type AvailableScope {
 type ModelInfo {
   id: ID!
   name: String!
+  type: String!
   contextWindow: Int!
   maxTokens: Int!
   reasoning: Boolean!
@@ -470,6 +475,7 @@ type ModelInfo {
 type DefaultModel {
   providerId: String!
   modelId: String!
+  modelName: String
 }
 
 type ProviderModelInfo {
@@ -482,6 +488,7 @@ type EnabledModelEntry {
   providerId: String!
   modelId: String!
   modelName: String
+  modelType: String!
 }
 
 type ConnectApiKeyResult {

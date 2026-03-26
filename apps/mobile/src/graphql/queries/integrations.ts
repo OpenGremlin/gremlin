@@ -42,10 +42,12 @@ export const IntegrationProvidersQuery = graphql(`
     defaultModel {
       providerId
       modelId
+      modelName
     }
     defaultImageModel {
       providerId
       modelId
+      modelName
     }
   }
 `);
@@ -131,13 +133,14 @@ export const AllEnabledModelsQuery = graphql(`
       providerId
       modelId
       modelName
+      modelType
     }
   }
 `);
 
 export const EnableModelMutation = graphql(`
-  mutation EnableModel($providerId: String!, $modelId: String!) {
-    enableModel(providerId: $providerId, modelId: $modelId)
+  mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {
+    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)
   }
 `);
 
@@ -158,6 +161,7 @@ export const BedrockAvailableModelsQuery = graphql(`
     bedrockAvailableModels {
       id
       name
+      type
       contextWindow
       maxTokens
       reasoning

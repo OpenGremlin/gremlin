@@ -53,17 +53,28 @@ const allEnabledModels: QueryResolvers["allEnabledModels"] = (
   ctx,
 ) => ctx.services.integrations.getAllEnabledModels(ctx.resources);
 
-const enabledModels: QueryResolvers["enabledModels"] = (
+const enabledModels: QueryResolvers["enabledModels"] = async (
   _parent,
   { providerId },
   ctx,
-) => ctx.services.integrations.getEnabledModels(ctx.resources, providerId);
+) => {
+  const models = await ctx.services.integrations.getEnabledModels(
+    ctx.resources,
+    providerId,
+  );
+  return models.map((m) => m.id);
+};
 
-const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = (
+const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = async (
   _parent,
   _args,
   ctx,
-) => ctx.services.integrations.getBedrockEnabledModels(ctx.resources);
+) => {
+  const models = await ctx.services.integrations.getBedrockEnabledModels(
+    ctx.resources,
+  );
+  return models.map((m) => m.id);
+};
 
 const bedrockAvailableModels: QueryResolvers["bedrockAvailableModels"] = (
   _parent,
@@ -176,9 +187,15 @@ const setDefaultImageModel: MutationResolvers["setDefaultImageModel"] = async (
 
 const enableModelMutation: MutationResolvers["enableModel"] = async (
   _parent,
-  { providerId, modelId },
+  { providerId, modelId, modelName },
   ctx,
-) => ctx.services.integrations.enableModel(ctx.resources, providerId, modelId);
+) =>
+  ctx.services.integrations.enableModel(
+    ctx.resources,
+    providerId,
+    modelId,
+    modelName ?? undefined,
+  );
 
 const disableModelMutation: MutationResolvers["disableModel"] = async (
   _parent,
@@ -188,9 +205,14 @@ const disableModelMutation: MutationResolvers["disableModel"] = async (
 
 const enableBedrockModel: MutationResolvers["enableBedrockModel"] = async (
   _parent,
-  { modelId },
+  { modelId, modelName },
   ctx,
-) => ctx.services.integrations.enableBedrockModel(ctx.resources, modelId);
+) =>
+  ctx.services.integrations.enableBedrockModel(
+    ctx.resources,
+    modelId,
+    modelName ?? undefined,
+  );
 
 const disableBedrockModel: MutationResolvers["disableBedrockModel"] = async (
   _parent,

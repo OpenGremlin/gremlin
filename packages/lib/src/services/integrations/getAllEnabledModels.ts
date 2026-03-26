@@ -1,4 +1,5 @@
 import type { Resources } from "../../resources/index.js";
+import type { EnabledModel } from "./getEnabledModels.js";
 import { getEnabledModels } from "./getEnabledModels.js";
 import { providers } from "./providers.js";
 
@@ -6,6 +7,7 @@ export interface EnabledModelEntry {
   providerId: string;
   modelId: string;
   modelName: string | null;
+  modelType: string;
 }
 
 /**
@@ -18,11 +20,12 @@ export async function getAllEnabledModels(
 
   const results = await Promise.all(
     aiProviders.map(async (p) => {
-      const modelIds = await getEnabledModels(resources, p.id);
-      return modelIds.map((modelId) => ({
+      const models: EnabledModel[] = await getEnabledModels(resources, p.id);
+      return models.map((m) => ({
         providerId: p.id,
-        modelId,
-        modelName: null as string | null,
+        modelId: m.id,
+        modelName: m.name !== m.id ? m.name : null,
+        modelType: m.type,
       }));
     }),
   );

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
+import type { EnabledModel } from "./getEnabledModels.js";
 import { setDefaultModel } from "./setDefaultModel.js";
 
 vi.mock("./getEnabledModels.js", () => ({
@@ -12,6 +13,17 @@ vi.mock("../orchestrator/model.js", () => ({
 }));
 
 const { getEnabledModels } = await import("./getEnabledModels.js");
+
+function model(id: string, name?: string): EnabledModel {
+  return {
+    id,
+    name: name ?? id,
+    type: "llm",
+    contextWindow: 0,
+    maxTokens: 0,
+    reasoning: false,
+  };
+}
 
 describe("setDefaultModel", () => {
   let ctx: DeepMockProxy<ServiceContext>;
@@ -35,7 +47,7 @@ describe("setDefaultModel", () => {
 
   it("throws when model is not enabled", async () => {
     vi.mocked(getEnabledModels).mockResolvedValue([
-      "us.anthropic.claude-sonnet-4-6",
+      model("us.anthropic.claude-sonnet-4-6", "Claude Sonnet 4.6"),
     ]);
 
     await expect(
@@ -45,7 +57,7 @@ describe("setDefaultModel", () => {
 
   it("succeeds for enabled bedrock model", async () => {
     vi.mocked(getEnabledModels).mockResolvedValue([
-      "us.anthropic.claude-sonnet-4-6",
+      model("us.anthropic.claude-sonnet-4-6", "Claude Sonnet 4.6"),
     ]);
 
     const mockSend = vi.fn().mockResolvedValue({});
@@ -61,6 +73,7 @@ describe("setDefaultModel", () => {
       value: JSON.stringify({
         providerId: "bedrock",
         modelId: "us.anthropic.claude-sonnet-4-6",
+        modelName: "Claude Sonnet 4.6",
       }),
     });
   });
@@ -74,7 +87,7 @@ describe("setDefaultModel", () => {
   });
 
   it("succeeds for enabled apikey provider model", async () => {
-    vi.mocked(getEnabledModels).mockResolvedValue(["claude-sonnet-4-6"]);
+    vi.mocked(getEnabledModels).mockResolvedValue([model("claude-sonnet-4-6")]);
 
     const mockSend = vi.fn().mockResolvedValue({});
     const mockItem = vi.fn().mockReturnValue({ send: mockSend });
@@ -89,6 +102,7 @@ describe("setDefaultModel", () => {
       value: JSON.stringify({
         providerId: "anthropic",
         modelId: "claude-sonnet-4-6",
+        modelName: "claude-sonnet-4-6",
       }),
     });
   });

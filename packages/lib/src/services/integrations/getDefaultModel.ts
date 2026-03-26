@@ -4,6 +4,7 @@ import type { ServiceContext } from "../context.js";
 export interface DefaultModelResult {
   providerId: string;
   modelId: string;
+  modelName?: string | null;
 }
 
 type DefaultModelKey = "defaultModel" | "defaultImageModel";

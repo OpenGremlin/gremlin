@@ -11,7 +11,7 @@ export async function disableModel(
   modelId: string,
 ): Promise<boolean> {
   const enabled = await getEnabledModels(resources, providerId);
-  const updated = enabled.filter((id) => id !== modelId);
+  const updated = enabled.filter((m) => m.id !== modelId);
 
   await resources.ddb.entities.Setting.build(PutItemCommand)
     .item({

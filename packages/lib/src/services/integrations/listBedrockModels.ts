@@ -3,6 +3,7 @@ import {
   ListInferenceProfilesCommand,
 } from "@aws-sdk/client-bedrock";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
+import { classifyModelFromStore } from "./modelMetadataStore.js";
 import type { ModelDef } from "./providers.js";
 
 const client = new BedrockClient({
@@ -14,14 +15,11 @@ let cachedModels: ModelDef[] | null = null;
 let cacheExpiry = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-/** Skip image, embedding, video, and other non-text-generation profiles */
-const NON_TEXT_PATTERN =
-  /stable|upscale|embed|pegasus|marengo|image|recolor|inpaint|outpaint|style-(?:transfer|guide)|erase|sketch|structure|background|replace/i;
-
 /**
  * Fetch available inference profiles from AWS Bedrock via ListInferenceProfiles.
  * Returns cross-region inference profile IDs (e.g. us.anthropic.claude-sonnet-4-6)
  * that can be used directly for model invocation.
+ * Models are classified using the LiteLLM metadata store.
  * Results are cached for 5 minutes.
  */
 export async function listBedrockModels(): Promise<ModelDef[]> {
@@ -40,9 +38,7 @@ export async function listBedrockModels(): Promise<ModelDef[]> {
       if (
         p.inferenceProfileId &&
         p.inferenceProfileName &&
-        p.status === "ACTIVE" &&
-        !NON_TEXT_PATTERN.test(p.inferenceProfileId) &&
-        !NON_TEXT_PATTERN.test(p.inferenceProfileName)
+        p.status === "ACTIVE"
       ) {
         profiles.push({
           id: p.inferenceProfileId,
@@ -53,14 +49,20 @@ export async function listBedrockModels(): Promise<ModelDef[]> {
     nextToken = resp.nextToken;
   } while (nextToken);
 
-  const models: ModelDef[] = profiles.map((p) => ({
-    id: p.id,
-    name: p.name,
-    type: "llm",
-    contextWindow: 0,
-    maxTokens: 0,
-    reasoning: false,
-  }));
+  const models: ModelDef[] = [];
+  for (const p of profiles) {
+    const type = classifyModelFromStore("bedrock", p.id);
+    if (type) {
+      models.push({
+        id: p.id,
+        name: p.name,
+        type,
+        contextWindow: 0,
+        maxTokens: 0,
+        reasoning: false,
+      });
+    }
+  }
 
   models.sort((a, b) => a.id.localeCompare(b.id));
 

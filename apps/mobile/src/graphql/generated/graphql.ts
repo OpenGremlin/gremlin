@@ -275,6 +275,7 @@ export type CreateAgentJobInput = {
 export type DefaultModel = {
   __typename?: 'DefaultModel';
   modelId: Scalars['String']['output'];
+  modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
 };
 
@@ -295,6 +296,7 @@ export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
+  modelType: Scalars['String']['output'];
   providerId: Scalars['String']['output'];
 };
 
@@ -395,6 +397,7 @@ export type ModelInfo = {
   name: Scalars['String']['output'];
   outputCost?: Maybe<Scalars['Float']['output']>;
   reasoning: Scalars['Boolean']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -502,11 +505,13 @@ export type MutationDismissUserInputRequestArgs = {
 
 export type MutationEnableBedrockModelArgs = {
   modelId: Scalars['String']['input'];
+  modelName?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type MutationEnableModelArgs = {
   modelId: Scalars['String']['input'];
+  modelName?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
 };
 
@@ -1205,7 +1210,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
 export type IntegrationProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null, defaultImageModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string } | null };
+export type IntegrationProvidersQuery = { __typename?: 'Query', integrationProviders: Array<{ __typename?: 'IntegrationProvider', id: string, service: string, category: string, description: string, connectionType: string, authorizeUrl?: string | null, tokenUrl?: string | null, defaultClientId?: string | null, defaultScopes?: Array<string> | null, scopePrefix?: string | null, extraAuthParams?: string | null, userInfo?: string | null, connectionCount: number, hasConnection: boolean, ios?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, android?: { __typename?: 'OAuthPlatformOverride', clientId: string, redirectUri: string } | null, availableScopes: Array<{ __typename?: 'AvailableScope', scope: string, label: string }>, models?: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> | null }>, defaultModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null, defaultImageModel?: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } | null };
 
 export type IntegrationConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1263,11 +1268,12 @@ export type EnabledModelsQuery = { __typename?: 'Query', enabledModels: Array<st
 export type AllEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllEnabledModelsQuery = { __typename?: 'Query', allEnabledModels: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null }> };
+export type AllEnabledModelsQuery = { __typename?: 'Query', allEnabledModels: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null, modelType: string }> };
 
 export type EnableModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
   modelId: Scalars['String']['input'];
+  modelName?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -1289,7 +1295,7 @@ export type BedrockEnabledModelsQuery = { __typename?: 'Query', bedrockEnabledMo
 export type BedrockAvailableModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BedrockAvailableModelsQuery = { __typename?: 'Query', bedrockAvailableModels: Array<{ __typename?: 'ModelInfo', id: string, name: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> };
+export type BedrockAvailableModelsQuery = { __typename?: 'Query', bedrockAvailableModels: Array<{ __typename?: 'ModelInfo', id: string, name: string, type: string, contextWindow: number, maxTokens: number, reasoning: boolean, inputCost?: number | null, outputCost?: number | null }> };
 
 export type EnableBedrockModelMutationVariables = Exact<{
   modelId: Scalars['String']['input'];
@@ -2094,10 +2100,12 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
   defaultModel {
     providerId
     modelId
+    modelName
   }
   defaultImageModel {
     providerId
     modelId
+    modelName
   }
 }
     `) as unknown as TypedDocumentString<IntegrationProvidersQuery, IntegrationProvidersQueryVariables>;
@@ -2175,12 +2183,13 @@ export const AllEnabledModelsDocument = new TypedDocumentString(`
     providerId
     modelId
     modelName
+    modelType
   }
 }
     `) as unknown as TypedDocumentString<AllEnabledModelsQuery, AllEnabledModelsQueryVariables>;
 export const EnableModelDocument = new TypedDocumentString(`
-    mutation EnableModel($providerId: String!, $modelId: String!) {
-  enableModel(providerId: $providerId, modelId: $modelId)
+    mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {
+  enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)
 }
     `) as unknown as TypedDocumentString<EnableModelMutation, EnableModelMutationVariables>;
 export const DisableModelDocument = new TypedDocumentString(`
@@ -2198,6 +2207,7 @@ export const BedrockAvailableModelsDocument = new TypedDocumentString(`
   bedrockAvailableModels {
     id
     name
+    type
     contextWindow
     maxTokens
     reasoning

@@ -294,6 +294,7 @@ export type CreateAgentJobInput = {
 export type DefaultModel = {
   __typename?: 'DefaultModel';
   modelId: Scalars['String']['output'];
+  modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
 };
 
@@ -314,6 +315,7 @@ export type EnabledModelEntry = {
   __typename?: 'EnabledModelEntry';
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
+  modelType: Scalars['String']['output'];
   providerId: Scalars['String']['output'];
 };
 
@@ -414,6 +416,7 @@ export type ModelInfo = {
   name: Scalars['String']['output'];
   outputCost?: Maybe<Scalars['Float']['output']>;
   reasoning: Scalars['Boolean']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -521,11 +524,13 @@ export type MutationDismissUserInputRequestArgs = {
 
 export type MutationEnableBedrockModelArgs = {
   modelId: Scalars['String']['input'];
+  modelName?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type MutationEnableModelArgs = {
   modelId: Scalars['String']['input'];
+  modelName?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
 };
 
@@ -1451,6 +1456,7 @@ export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType ext
 
 export type DefaultModelResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DefaultModel'] = ResolversParentTypes['DefaultModel']> = {
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1469,6 +1475,7 @@ export type DocumentRenderResolvers<ContextType = GremlinContext, ParentType ext
 export type EnabledModelEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['EnabledModelEntry'] = ResolversParentTypes['EnabledModelEntry']> = {
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  modelType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1554,6 +1561,7 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   outputCost?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   reasoning?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {

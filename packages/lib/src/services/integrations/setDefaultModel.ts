@@ -21,14 +21,20 @@ export async function setDefaultModel(
 
   // Verify the model has been enabled for this provider
   const enabled = await getEnabledModels(ctx.resources, providerId);
-  if (!enabled.includes(modelId)) {
+  if (!enabled.some((m) => m.id === modelId)) {
     throw new Error(`Model not enabled: ${modelId}. Enable it first.`);
   }
+
+  const model = enabled.find((m) => m.id === modelId);
 
   await ctx.resources.ddb.entities.Setting.build(PutItemCommand)
     .item({
       key,
-      value: JSON.stringify({ providerId, modelId }),
+      value: JSON.stringify({
+        providerId,
+        modelId,
+        modelName: model?.name ?? modelId,
+      }),
     })
     .send();
 

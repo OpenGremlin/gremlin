@@ -7,6 +7,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   type ModelInfo {
     id: ID!
     name: String!
+    type: String!
     contextWindow: Int!
     maxTokens: Int!
     reasoning: Boolean!
@@ -17,6 +18,7 @@ export const integrationTypeDefs = /* GraphQL */ `
   type DefaultModel {
     providerId: String!
     modelId: String!
+    modelName: String
   }
 
   type ProviderModelInfo {
@@ -29,6 +31,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     providerId: String!
     modelId: String!
     modelName: String
+    modelType: String!
   }
 
   type ConnectApiKeyResult {
@@ -101,9 +104,9 @@ export const integrationTypeDefs = /* GraphQL */ `
     revokeIntegrationConnection(id: ID!): Boolean!
     setDefaultModel(providerId: String!, modelId: String!): Boolean!
     setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
-    enableModel(providerId: String!, modelId: String!): Boolean!
+    enableModel(providerId: String!, modelId: String!, modelName: String): Boolean!
     disableModel(providerId: String!, modelId: String!): Boolean!
-    enableBedrockModel(modelId: String!): Boolean!
+    enableBedrockModel(modelId: String!, modelName: String): Boolean!
     disableBedrockModel(modelId: String!): Boolean!
     submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): ID!
   }

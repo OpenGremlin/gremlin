@@ -16,6 +16,34 @@ vi.mock("@aws-sdk/credential-providers", () => ({
   fromNodeProviderChain: vi.fn(),
 }));
 
+// Mock the metadata store to control classification
+vi.mock("./modelMetadataStore.js", () => ({
+  classifyModelFromStore: vi.fn((_providerId: string, modelId: string) => {
+    // Simulate LiteLLM store: classify known models, return null for unknown
+    if (
+      modelId.includes("embed") ||
+      modelId.includes("pegasus") ||
+      modelId.includes("marengo")
+    )
+      return null;
+    if (
+      modelId.includes("canvas") ||
+      modelId.includes("stable-image") ||
+      modelId.includes("stable-diffusion")
+    )
+      return "image" as const;
+    if (
+      modelId.includes("claude") ||
+      modelId.includes("llama") ||
+      modelId.includes("nova-pro") ||
+      modelId.includes("nova-lite")
+    )
+      return "llm" as const;
+    // Unknown model — not in store
+    return null;
+  }),
+}));
+
 // Must import after mocks
 const { listBedrockModels } = await import("./listBedrockModels.js");
 
@@ -35,7 +63,7 @@ describe("listBedrockModels", () => {
     vi.useRealTimers();
   });
 
-  it("returns active text-generation inference profiles", async () => {
+  it("returns active inference profiles classified by the metadata store", async () => {
     mockSend.mockResolvedValueOnce({
       inferenceProfileSummaries: [
         {
@@ -56,11 +84,12 @@ describe("listBedrockModels", () => {
 
     expect(models).toHaveLength(2);
     expect(models[0].id).toBe("us.anthropic.claude-sonnet-4-6");
-    expect(models[0].name).toBe("US Anthropic Claude Sonnet 4.6");
+    expect(models[0].type).toBe("llm");
     expect(models[1].id).toBe("us.meta.llama4-scout-17b-instruct-v1:0");
+    expect(models[1].type).toBe("llm");
   });
 
-  it("filters out non-text profiles (image, embed, video)", async () => {
+  it("classifies image models from the metadata store", async () => {
     mockSend.mockResolvedValueOnce({
       inferenceProfileSummaries: [
         {
@@ -69,18 +98,34 @@ describe("listBedrockModels", () => {
           status: "ACTIVE",
         },
         {
-          inferenceProfileId: "us.stability.stable-image-inpaint-v1:0",
-          inferenceProfileName: "US Stable Image Inpaint",
+          inferenceProfileId: "us.amazon.nova-canvas-v1:0",
+          inferenceProfileName: "US Amazon Nova Canvas",
+          status: "ACTIVE",
+        },
+      ],
+      nextToken: undefined,
+    });
+
+    const models = await listBedrockModels();
+
+    expect(models).toHaveLength(2);
+    expect(models[0].id).toBe("us.amazon.nova-canvas-v1:0");
+    expect(models[0].type).toBe("image");
+    expect(models[1].id).toBe("us.anthropic.claude-sonnet-4-6");
+    expect(models[1].type).toBe("llm");
+  });
+
+  it("filters out models not found in the metadata store", async () => {
+    mockSend.mockResolvedValueOnce({
+      inferenceProfileSummaries: [
+        {
+          inferenceProfileId: "us.anthropic.claude-sonnet-4-6",
+          inferenceProfileName: "US Anthropic Claude Sonnet 4.6",
           status: "ACTIVE",
         },
         {
           inferenceProfileId: "us.cohere.embed-v4:0",
           inferenceProfileName: "US Cohere Embed v4",
-          status: "ACTIVE",
-        },
-        {
-          inferenceProfileId: "us.stability.stable-creative-upscale-v1:0",
-          inferenceProfileName: "US Stable Image Creative Upscale",
           status: "ACTIVE",
         },
         {

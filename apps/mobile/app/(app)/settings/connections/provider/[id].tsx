@@ -10,11 +10,8 @@ import {
 } from "react-native";
 import {
   BedrockAvailableModelsQuery,
-  BedrockEnabledModelsQuery,
   ConnectApiKeyMutation,
-  DisableBedrockModelMutation,
   DisableModelMutation,
-  EnableBedrockModelMutation,
   EnabledModelsQuery,
   EnableModelMutation,
   IntegrationProvidersQuery,
@@ -36,16 +33,6 @@ import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
-
-type ProviderModel = {
-  id: string;
-  name: string;
-  contextWindow: number;
-  maxTokens: number;
-  reasoning: boolean;
-  inputCost?: number | null;
-  outputCost?: number | null;
-};
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
@@ -115,11 +102,11 @@ function TypedModelList({
       )
     : availableModels;
 
-  async function handleEnable(modelId: string) {
+  async function handleEnable(modelId: string, modelName?: string) {
     setEnablingModel(modelId);
     setError(null);
     try {
-      await gql(EnableModelMutation, { providerId, modelId });
+      await gql(EnableModelMutation, { providerId, modelId, modelName });
       refetchEnabled();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to enable model");
@@ -270,7 +257,7 @@ function TypedModelList({
                     <Pressable
                       key={model.id}
                       disabled={isEnabling}
-                      onPress={() => handleEnable(model.id)}
+                      onPress={() => handleEnable(model.id, model.name)}
                       className={`flex-row items-center justify-between px-4 py-2.5 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
                     >
                       <Text className="text-sm text-text-secondary flex-1 mr-3">
@@ -460,28 +447,10 @@ function ApiKeyDetailView({
   );
 }
 
-/** Group inference profile IDs by provider prefix (e.g. "Anthropic", "Meta") */
-function groupByProvider(
-  models: ProviderModel[],
-): { provider: string; models: ProviderModel[] }[] {
-  const map = new Map<string, ProviderModel[]>();
-  for (const m of models) {
-    // ID format: "us.anthropic.claude-..." → provider = "Anthropic"
-    const parts = m.id.split(".");
-    const raw = parts.length >= 3 ? parts[1] : parts[0];
-    const provider = raw.charAt(0).toUpperCase() + raw.slice(1);
-    const list = map.get(provider) ?? [];
-    list.push(m);
-    map.set(provider, list);
-  }
-  return [...map.entries()]
-    .map(([provider, models]) => ({ provider, models }))
-    .sort((a, b) => a.provider.localeCompare(b.provider));
-}
-
 function BedrockDetailView({
   provider,
   defaultModel,
+  defaultImageModel,
   refetch,
 }: {
   provider: {
@@ -489,97 +458,35 @@ function BedrockDetailView({
     service: string;
   };
   defaultModel: DefaultModel;
+  defaultImageModel: DefaultModel;
   refetch: () => void;
 }) {
   const colors = useNavigationTheme();
-  const { data: enabledData, refetch: refetchEnabled } = useQuery(
-    BedrockEnabledModelsQuery,
-  );
   const {
     data: availableData,
     loading: modelsLoading,
     refetch: refetchModels,
   } = useQuery(BedrockAvailableModelsQuery);
-  const [enablingModel, setEnablingModel] = useState<string | null>(null);
-  const [disablingModel, setDisablingModel] = useState<string | null>(null);
-  const [settingModel, setSettingModel] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showAvailable, setShowAvailable] = useState(true);
-  const [search, setSearch] = useState("");
-
-  const enabledModelIds = enabledData?.bedrockEnabledModels ?? [];
-  const isDefaultProvider = defaultModel?.providerId === provider.id;
-  const allModels: ProviderModel[] = (
-    availableData?.bedrockAvailableModels ?? []
-  ).map((m) => ({
-    id: m.id,
-    name: m.name,
-    contextWindow: m.contextWindow,
-    maxTokens: m.maxTokens,
-    reasoning: m.reasoning,
-    inputCost: m.inputCost,
-    outputCost: m.outputCost,
-  }));
-
-  const enabledModels = allModels.filter((m) => enabledModelIds.includes(m.id));
-  const availableModels = allModels.filter(
-    (m) => !enabledModelIds.includes(m.id),
+  const { data: enabledData, refetch: refetchEnabled } = useQuery(
+    EnabledModelsQuery,
+    { providerId: provider.id },
   );
 
-  const query = search.toLowerCase().trim();
-  const filteredAvailable = query
-    ? availableModels.filter(
-        (m) =>
-          m.id.toLowerCase().includes(query) ||
-          m.name.toLowerCase().includes(query),
-      )
-    : availableModels;
-  const groupedAvailable = groupByProvider(filteredAvailable);
+  const allModels = (availableData?.bedrockAvailableModels ?? []).map((m) => ({
+    id: m.id,
+    name: m.name,
+    type: m.type,
+  }));
+  const enabledModelIds = enabledData?.enabledModels ?? [];
 
-  async function handleEnable(modelId: string) {
-    setEnablingModel(modelId);
-    setError(null);
-    try {
-      await gql(EnableBedrockModelMutation, { modelId });
-      refetchEnabled();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to enable model");
-    } finally {
-      setEnablingModel(null);
-    }
-  }
+  const defaultsByType: Record<ModelType, DefaultModel> = {
+    llm: defaultModel,
+    image: defaultImageModel,
+  };
 
-  async function handleDisable(modelId: string) {
-    setDisablingModel(modelId);
-    setError(null);
-    try {
-      await gql(DisableBedrockModelMutation, { modelId });
-      refetchEnabled();
-      refetch();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to disable model");
-    } finally {
-      setDisablingModel(null);
-    }
-  }
-
-  async function handleSetDefault(modelId: string) {
-    setSettingModel(modelId);
-    setError(null);
-    try {
-      await gql(SetDefaultModelMutation, {
-        providerId: provider.id,
-        modelId,
-      });
-      refetch();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to set default model",
-      );
-    } finally {
-      setSettingModel(null);
-    }
-  }
+  const types = (["llm", "image"] as const).filter((t) =>
+    allModels.some((m) => m.type === t),
+  );
 
   return (
     <>
@@ -596,12 +503,6 @@ function BedrockDetailView({
         </View>
       </Card>
 
-      {error ? (
-        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
-          <Text className="text-sm text-red-300">{error}</Text>
-        </View>
-      ) : null}
-
       {modelsLoading && (
         <View className="py-4 items-center">
           <ActivityIndicator color={colors.accentIndicator} size="small" />
@@ -611,152 +512,20 @@ function BedrockDetailView({
         </View>
       )}
 
-      {/* ── Enabled Models ── */}
-      {!modelsLoading && enabledModels.length > 0 && (
-        <View className="gap-1">
-          <Text className="text-sm font-medium text-text-primary mb-1">
-            Enabled Models
-          </Text>
-          <Card className="overflow-hidden">
-            {enabledModels.map((model, i) => {
-              const isDefault =
-                isDefaultProvider && defaultModel?.modelId === model.id;
-              const isDisabling = disablingModel === model.id;
-              const isSetting = settingModel === model.id;
-              const busy = isDisabling || isSetting;
-
-              return (
-                <View
-                  key={model.id}
-                  className={`flex-row items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
-                >
-                  <View className="flex-1 mr-3">
-                    <Text className="text-sm text-text-primary">
-                      {model.name}
-                    </Text>
-                  </View>
-                  {busy ? (
-                    <ActivityIndicator
-                      color={colors.accentIndicator}
-                      size="small"
-                    />
-                  ) : isDefault ? (
-                    <View className="flex-row items-center gap-1.5">
-                      <View className="w-2 h-2 rounded-full bg-accent" />
-                      <Text className="text-xs text-accent">Default</Text>
-                    </View>
-                  ) : (
-                    <View className="flex-row items-center gap-4">
-                      <Pressable
-                        hitSlop={8}
-                        onPress={() => handleSetDefault(model.id)}
-                      >
-                        <Text className="text-xs font-medium text-accent">
-                          Set Default
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        hitSlop={8}
-                        onPress={() => handleDisable(model.id)}
-                      >
-                        <Text className="text-xs font-medium text-error">
-                          Remove
-                        </Text>
-                      </Pressable>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-          </Card>
-        </View>
-      )}
-
-      {!modelsLoading && enabledModels.length === 0 && (
-        <View className="py-3 items-center">
-          <Text className="text-sm text-text-muted">
-            No models enabled yet. Add one below.
-          </Text>
-        </View>
-      )}
-
-      {/* ── Available Models ── */}
-      {!modelsLoading && availableModels.length > 0 && (
-        <View className="gap-2">
-          <Pressable
-            onPress={() => setShowAvailable((v) => !v)}
-            className="flex-row items-center justify-between"
-          >
-            <Text className="text-sm font-medium text-text-primary">
-              Available Models
-              <Text className="text-text-muted font-normal">
-                {" "}
-                ({availableModels.length})
-              </Text>
-            </Text>
-            <View className="flex-row items-center gap-2">
-              <Pressable onPress={() => refetchModels()}>
-                <Text className="text-xs text-accent">Refresh</Text>
-              </Pressable>
-              <Text className="text-xs text-text-muted">
-                {showAvailable ? "Hide" : "Show"}
-              </Text>
-            </View>
-          </Pressable>
-
-          {showAvailable && (
-            <>
-              <SearchInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Search models..."
-              />
-
-              {groupedAvailable.map((group) => (
-                <View key={group.provider}>
-                  <Text className="text-[10px] font-bold text-text-muted uppercase tracking-wider px-1 mb-1">
-                    {group.provider}
-                  </Text>
-                  <Card className="overflow-hidden">
-                    {group.models.map((model, i) => {
-                      const isEnabling = enablingModel === model.id;
-
-                      return (
-                        <Pressable
-                          key={model.id}
-                          disabled={isEnabling}
-                          onPress={() => handleEnable(model.id)}
-                          className={`flex-row items-center justify-between px-4 py-2.5 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
-                        >
-                          <Text className="text-sm text-text-secondary flex-1 mr-3">
-                            {model.name}
-                          </Text>
-                          {isEnabling ? (
-                            <ActivityIndicator
-                              color={colors.accentIndicator}
-                              size="small"
-                            />
-                          ) : (
-                            <Text className="text-xs font-medium text-success">
-                              Enable
-                            </Text>
-                          )}
-                        </Pressable>
-                      );
-                    })}
-                  </Card>
-                </View>
-              ))}
-
-              {groupedAvailable.length === 0 && query && (
-                <Text className="text-sm text-text-muted text-center py-3">
-                  No models matching "{search}"
-                </Text>
-              )}
-            </>
-          )}
-        </View>
-      )}
+      {types.map((t) => (
+        <TypedModelList
+          key={t}
+          providerId={provider.id}
+          modelType={t}
+          label={MODEL_TYPE_LABELS[t]}
+          allModels={allModels}
+          enabledModelIds={enabledModelIds}
+          defaultModel={defaultsByType[t]}
+          refetchEnabled={refetchEnabled}
+          refetchParent={refetch}
+          refetchModels={refetchModels}
+        />
+      ))}
     </>
   );
 }
@@ -930,6 +699,7 @@ export default function IntegrationDetailScreen() {
         <BedrockDetailView
           provider={provider}
           defaultModel={defaultModel ?? null}
+          defaultImageModel={defaultImageModel ?? null}
           refetch={refetch}
         />
       ) : provider.connectionType === "apikey" ? (

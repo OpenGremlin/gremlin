@@ -160,8 +160,24 @@ export async function preloadModelMetadataStore(): Promise<void> {
 }
 
 /**
+ * Strip the region prefix from a Bedrock inference profile ID.
+ * e.g. "us.anthropic.claude-sonnet-4-6" → "anthropic.claude-sonnet-4-6"
+ */
+function stripBedrockRegionPrefix(modelId: string): string {
+  const dot = modelId.indexOf(".");
+  if (dot === -1) return modelId;
+  const prefix = modelId.slice(0, dot);
+  // Region prefixes are short lowercase alpha strings (us, eu, ap, etc.)
+  if (/^[a-z]{2,4}$/.test(prefix)) {
+    return modelId.slice(dot + 1);
+  }
+  return modelId;
+}
+
+/**
  * Look up a model's metadata in the LiteLLM store.
  * Tries bare model ID first, then provider-prefixed key.
+ * For Bedrock, also tries stripping the region prefix from inference profile IDs.
  */
 export function lookupModelMetadata(
   providerId: string,
@@ -177,6 +193,12 @@ export function lookupModelMetadata(
   if (prefix) {
     const prefixed = `${prefix}/${modelId}`;
     if (data[prefixed]) return data[prefixed];
+  }
+
+  // Bedrock inference profile IDs have a region prefix (e.g. us.anthropic.claude-sonnet-4-6)
+  if (providerId === "bedrock") {
+    const stripped = stripBedrockRegionPrefix(modelId);
+    if (stripped !== modelId && data[stripped]) return data[stripped];
   }
 
   return null;

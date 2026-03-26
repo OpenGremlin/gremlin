@@ -5,6 +5,7 @@ import { enableModel } from "./enableModel.js";
 export async function enableBedrockModel(
   resources: Resources,
   modelId: string,
+  displayName?: string,
 ): Promise<boolean> {
-  return enableModel(resources, "bedrock", modelId);
+  return enableModel(resources, "bedrock", modelId, displayName);
 }
