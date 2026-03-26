@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FlatList } from "react-native";
+import { type FlatList, Platform } from "react-native";
 import {
   PendingInboxMessagesQuery,
   SendMessageMutation,
@@ -21,7 +21,10 @@ export function useChatSend({
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const listRef = useRef<FlatList>(null);
   const scrollToBottom = useCallback(() => {
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    // On web, the inverted FlatList scaleY(-1) workaround reverses scroll
+    // semantics: offset 0 = visual top (oldest), large offset = visual bottom.
+    const offset = Platform.OS === "web" ? 999999 : 0;
+    listRef.current?.scrollToOffset({ offset, animated: true });
   }, []);
 
   // Load pending inbox messages on mount (survives page reload)

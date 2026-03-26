@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { ActivityIndicator, Platform, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "../src/lib/AuthContext";
 import { isAuthEnabled } from "../src/lib/auth";
 import { useServerConfig } from "../src/lib/ServerConfigContext";
@@ -21,8 +21,8 @@ export default function Index() {
     );
   }
 
-  // On native, redirect to connect screen if no server is configured
-  if (Platform.OS !== "web" && !config) {
+  // Redirect to connect screen if no server is configured
+  if (!config) {
     return <Redirect href="/connect" />;
   }
 

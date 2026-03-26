@@ -259,7 +259,7 @@ app.get("/api/auth-config", async (_req, res) => {
   const cognitoDomain = process.env.COGNITO_DOMAIN;
   const clientId = process.env.COGNITO_CLIENT_ID;
   if (!cognitoDomain || !clientId) {
-    res.status(503).json({ error: "Auth not configured" });
+    res.json({ skipAuth: true });
     return;
   }
   // Check if signup is disabled

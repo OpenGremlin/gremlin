@@ -43,6 +43,11 @@ export async function fetchServerConfig(
   }
   const cfg = await res.json();
 
+  // Server running with SKIP_AUTH — no Cognito fields needed
+  if (cfg.skipAuth) {
+    return { serverUrl: base, cognitoDomain: "", cognitoClientId: "" };
+  }
+
   if (!cfg.cognitoDomain || !cfg.clientId) {
     throw new Error("Invalid server config: missing required fields");
   }

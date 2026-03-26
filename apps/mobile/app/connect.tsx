@@ -26,7 +26,9 @@ export default function ConnectScreen() {
   const { setConfig } = useServerConfig();
   const [permission, requestPermission] = useCameraPermissions();
 
-  const [step, setStep] = useState<Step>("scan");
+  const [step, setStep] = useState<Step>(
+    Platform.OS === "web" ? "manual" : "scan",
+  );
   const [serverUrl, setServerUrl] = useState("");
   const [manualUrl, setManualUrl] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +45,7 @@ export default function ConnectScreen() {
         }
         const cfg = await fetchServerConfig(url);
         await setConfig(cfg);
-        router.replace("/login");
+        router.replace("/");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Connection failed");
         setLoading(false);

@@ -33,22 +33,26 @@ const ServerConfigContext = createContext<ServerConfigState>({
  * In dev, the Expo proxy or CORS handles localhost:3001.
  */
 async function fetchWebConfig(): Promise<ServerConfig | null> {
-  // In dev, hit the local server directly; in prod, same origin
+  // 1. Check localStorage for a previously saved config (e.g. from connect screen)
+  const saved = await loadServerConfig();
+  if (saved) return saved;
+
+  // 2. Try same-origin — works in prod where CloudFront serves app + API.
+  //    In dev, fall back to localhost:3001 so queries work without the connect screen.
   const baseUrl = __DEV__ ? "http://localhost:3001" : "";
   try {
     const res = await fetch(`${baseUrl}/api/auth-config`);
     if (res.ok) {
       const data = await res.json();
-      if (data.cognitoDomain && data.clientId) {
-        return {
-          serverUrl: baseUrl || window.location.origin,
-          cognitoDomain: data.cognitoDomain,
-          cognitoClientId: data.clientId,
-        };
-      }
+      const serverUrl = baseUrl || window.location.origin;
+      return {
+        serverUrl,
+        cognitoDomain: data.cognitoDomain ?? "",
+        cognitoClientId: data.clientId ?? "",
+      };
     }
   } catch {
-    // Server not running
+    // Server not running — show connect screen
   }
   return null;
 }
