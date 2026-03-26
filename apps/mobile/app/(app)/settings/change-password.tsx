@@ -105,12 +105,10 @@ export default function ChangePasswordScreen() {
         />
       </View>
 
-      {error && (
-        <Text className="text-sm text-red-600 dark:text-red-400">{error}</Text>
-      )}
+      {error && <Text className="text-sm text-error">{error}</Text>}
 
       {success && (
-        <Text className="text-sm text-green-600 dark:text-green-400">
+        <Text className="text-sm text-success">
           Password changed successfully
         </Text>
       )}

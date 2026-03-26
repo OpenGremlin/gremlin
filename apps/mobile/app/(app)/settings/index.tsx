@@ -178,12 +178,10 @@ export default function SettingsScreen() {
 
       <Pressable
         onPress={logout}
-        className="flex-row items-center justify-center gap-2 py-3.5 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 active:opacity-70"
+        className="flex-row items-center justify-center gap-2 py-3.5 rounded-lg border border-error-border bg-error-surface active:opacity-70"
       >
-        <LogOut size={18} color="#ef4444" />
-        <Text className="text-base font-medium text-red-600 dark:text-red-400">
-          Log Out
-        </Text>
+        <LogOut size={18} color={colors.error} />
+        <Text className="text-base font-medium text-error">Log Out</Text>
       </Pressable>
     </ScrollView>
   );

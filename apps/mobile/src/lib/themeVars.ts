@@ -25,6 +25,8 @@ export const lightVars = {
   "--color-warning-surface": "rgba(217, 119, 6, 0.12)",
   "--color-error": "#dc2626",
   "--color-error-surface": "rgba(220, 38, 38, 0.12)",
+  "--color-error-border": "rgba(220, 38, 38, 0.3)",
+  "--color-warning-border": "rgba(217, 119, 6, 0.3)",
   "--color-user-bubble": "#4f46e5",
 };
 
@@ -55,5 +57,7 @@ export const darkVars = {
   "--color-warning-surface": "rgba(251, 191, 36, 0.15)",
   "--color-error": "#f87171",
   "--color-error-surface": "rgba(248, 113, 113, 0.15)",
+  "--color-error-border": "rgba(248, 113, 113, 0.3)",
+  "--color-warning-border": "rgba(251, 191, 36, 0.3)",
   "--color-user-bubble": "#4338ca",
 };

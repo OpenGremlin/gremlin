@@ -4,9 +4,11 @@ import { Pressable, Text, View } from "react-native";
 import { clearToken } from "../../../src/lib/auth";
 import { clearServerConfig } from "../../../src/lib/config";
 import { useServerConfig } from "../../../src/lib/ServerConfigContext";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Card } from "../../../src/shared/Card";
 
 export default function ServerScreen() {
+  const colors = useNavigationTheme();
   const { config } = useServerConfig();
 
   const handleDisconnect = async () => {
@@ -33,12 +35,10 @@ export default function ServerScreen() {
 
       <Pressable
         onPress={handleDisconnect}
-        className="flex-row items-center justify-center gap-2 py-3.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 active:opacity-70"
+        className="flex-row items-center justify-center gap-2 py-3.5 rounded-lg border border-warning-border bg-warning-surface active:opacity-70"
       >
-        <Unplug size={18} color="#d97706" />
-        <Text className="text-base font-medium text-amber-600 dark:text-amber-400">
-          Disconnect
-        </Text>
+        <Unplug size={18} color={colors.warning} />
+        <Text className="text-base font-medium text-warning">Disconnect</Text>
       </Pressable>
     </View>
   );

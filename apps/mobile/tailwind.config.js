@@ -32,6 +32,8 @@ module.exports = {
         "warning-surface": "var(--color-warning-surface)",
         error: "var(--color-error)",
         "error-surface": "var(--color-error-surface)",
+        "error-border": "var(--color-error-border)",
+        "warning-border": "var(--color-warning-border)",
         "user-bubble": "var(--color-user-bubble)",
       },
     },
