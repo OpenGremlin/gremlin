@@ -1,10 +1,11 @@
-import { Bot, Eye, Globe, Terminal } from "lucide-react-native";
+import { Bot, Eye, Globe, Info, Terminal } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
+  EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
@@ -13,6 +14,8 @@ import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
+import type { ModelDetail } from "../ModelDetailModal";
+import { ModelDetailModal } from "../ModelDetailModal";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
 
@@ -116,6 +119,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   );
   const [saving, setSaving] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
 
   // Sync from server when agent prop updates
   const serverConfig = agent.config;
@@ -186,12 +190,40 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           />
         </View>
         {config.model && (
-          <Pressable
-            onPress={() => setModelPickerOpen(true)}
-            className="mx-4 mb-3 ml-11 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
-          >
-            <Text className="text-sm text-text-secondary">{modelLabel}</Text>
-          </Pressable>
+          <View className="mx-4 mb-3 ml-11 flex-row items-center gap-2">
+            <Pressable
+              onPress={() => setModelPickerOpen(true)}
+              className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+            >
+              <Text className="text-sm text-text-secondary">{modelLabel}</Text>
+            </Pressable>
+            <Pressable
+              onPress={async () => {
+                const m = config.model;
+                if (!m) return;
+                let providerId: string;
+                let modelId: string;
+                if (m.type === "bedrock" && m.modelId) {
+                  providerId = "bedrock";
+                  modelId = m.modelId;
+                } else if (m.type === "connection" && m.connectionId) {
+                  [providerId, modelId] = m.connectionId.split(":", 2);
+                } else {
+                  return;
+                }
+                const result = await gql(EnabledModelDetailsQuery, {
+                  providerId,
+                });
+                const detail = result.enabledModelDetails.find(
+                  (d) => d.id === modelId,
+                );
+                if (detail) setModelDetail(detail);
+              }}
+              className="p-2"
+            >
+              <Info size={18} color={colors.iconDefault} />
+            </Pressable>
+          </View>
         )}
       </Card>
 
@@ -448,6 +480,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           onClose={() => setModelPickerOpen(false)}
         />
       )}
+
+      <ModelDetailModal
+        model={modelDetail}
+        onClose={() => setModelDetail(null)}
+      />
     </View>
   );
 }
