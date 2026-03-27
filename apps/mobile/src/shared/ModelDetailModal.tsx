@@ -1,3 +1,4 @@
+import type React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SheetModal } from "./SheetModal";
 
@@ -28,9 +29,11 @@ export type { ModelDetail };
 export function ModelDetailModal({
   model,
   onClose,
+  actions,
 }: {
   model: ModelDetail | null;
   onClose: () => void;
+  actions?: (model: ModelDetail) => React.ReactNode;
 }) {
   if (!model) return null;
 
@@ -89,6 +92,7 @@ export function ModelDetailModal({
             </Text>
           </View>
         ))}
+        {actions ? <View className="pt-4">{actions(model)}</View> : null}
       </ScrollView>
     </SheetModal>
   );

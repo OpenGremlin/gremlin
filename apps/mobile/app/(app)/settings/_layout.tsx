@@ -21,6 +21,11 @@ export default function SettingsLayout() {
       <Stack.Screen name="server" options={{ title: "Connected Server" }} />
       <Stack.Screen name="skills/index" options={{ title: "Skills" }} />
       <Stack.Screen name="skills/[id]" options={{ title: "Skill" }} />
+      <Stack.Screen name="models/index" options={{ title: "Models" }} />
+      <Stack.Screen
+        name="models/provider/[id]"
+        options={{ title: "Provider" }}
+      />
       <Stack.Screen
         name="connections/index"
         options={{ title: "Connections" }}

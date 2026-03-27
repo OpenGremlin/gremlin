@@ -10,18 +10,14 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import {
-  EnabledModelDetailsQuery,
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
-import { gql } from "../../../../src/lib/auth";
 import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
-import type { ModelDetail } from "../../../../src/shared/ModelDetailModal";
-import { ModelDetailModal } from "../../../../src/shared/ModelDetailModal";
 import { QueryResult } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 import { Toast } from "../../../../src/shared/Toast";
@@ -98,7 +94,6 @@ export default function IntegrationsScreen() {
   const [highlightedProvider, setHighlightedProvider] = useState<string | null>(
     null,
   );
-  const [selectedModel, setSelectedModel] = useState<ModelDetail | null>(null);
   const processedParam = useRef<string | null>(null);
 
   const loading = providers.loading || connections.loading;
@@ -134,12 +129,17 @@ export default function IntegrationsScreen() {
 
   const query = search.toLowerCase().trim();
 
+  const nonAiProviders = useMemo(
+    () => providerList.filter((p) => p.category !== "ai"),
+    [providerList],
+  );
+
   const filteredProviders = useMemo(
     () =>
       query
-        ? providerList.filter((p) => p.service.toLowerCase().includes(query))
-        : providerList,
-    [providerList, query],
+        ? nonAiProviders.filter((p) => p.service.toLowerCase().includes(query))
+        : nonAiProviders,
+    [nonAiProviders, query],
   );
 
   const grouped = groupByCategory(filteredProviders);
@@ -157,108 +157,8 @@ export default function IntegrationsScreen() {
       >
         <QueryResult loading={loading} error={error} />
 
-        {!loading &&
-          !error &&
-          (() => {
-            const defaultModel = providers.data?.defaultModel;
-            const defaultImageModel = providers.data?.defaultImageModel;
-            const allProviders = providerList;
-            const aiProviders = allProviders.filter((p) => p.category === "ai");
-
-            if (
-              !defaultModel &&
-              !defaultImageModel &&
-              aiProviders.length === 0
-            ) {
-              return null;
-            }
-
-            const defaults = [
-              {
-                label: "Language Model",
-                model: defaultModel,
-                fallback: "Using Bedrock Claude Sonnet 4",
-              },
-              {
-                label: "Image Model",
-                model: defaultImageModel,
-                fallback: null,
-              },
-            ];
-
-            return (
-              <View className="gap-2">
-                <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
-                  Default Models
-                </Text>
-                {defaults.map(({ label, model, fallback }) => {
-                  if (!model && !fallback) return null;
-                  const modelProvider = model
-                    ? allProviders.find((p) => p.id === model.providerId)
-                    : null;
-                  return (
-                    <Pressable
-                      key={label}
-                      disabled={!model}
-                      onPress={async () => {
-                        if (!model) return;
-                        const result = await gql(EnabledModelDetailsQuery, {
-                          providerId: model.providerId,
-                        });
-                        const detail = result.enabledModelDetails.find(
-                          (m) => m.id === model.modelId,
-                        );
-                        if (detail) setSelectedModel(detail);
-                      }}
-                    >
-                      <Card className="p-4 flex-row items-center gap-3">
-                        {modelProvider && (
-                          <IntegrationLogo id={modelProvider.id} size={32} />
-                        )}
-                        <View className="flex-1">
-                          {model ? (
-                            <>
-                              {model.modelName && (
-                                <Text className="text-sm font-medium text-text-primary">
-                                  {model.modelName}
-                                </Text>
-                              )}
-                              <Text
-                                className={`text-xs ${model.modelName ? "text-text-muted" : "text-sm font-medium text-text-primary"} mt-0.5`}
-                              >
-                                {model.modelId}
-                              </Text>
-                              <Text className="text-xs text-text-secondary mt-0.5">
-                                {label}
-                                {modelProvider
-                                  ? ` · ${modelProvider.service}`
-                                  : ""}
-                              </Text>
-                            </>
-                          ) : (
-                            <>
-                              <Text className="text-sm text-text-muted">
-                                {fallback}
-                              </Text>
-                              <Text className="text-xs text-text-secondary mt-0.5">
-                                {label}
-                              </Text>
-                            </>
-                          )}
-                        </View>
-                      </Card>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            );
-          })()}
-
         {connectionList.length > 0 && (
           <View className="gap-2">
-            <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
-              Connections
-            </Text>
             <Card className="overflow-hidden">
               {connectionList.map((conn, i) => (
                 <Pressable
@@ -295,11 +195,11 @@ export default function IntegrationsScreen() {
           </View>
         )}
 
-        {connectionList.length > 0 && (
+        {connectionList.length > 0 && grouped.length > 0 && (
           <View className="border-b border-app-border" />
         )}
 
-        {!loading && !error && (
+        {!loading && !error && grouped.length > 0 && (
           <SearchInput
             value={search}
             onChangeText={setSearch}
@@ -314,9 +214,7 @@ export default function IntegrationsScreen() {
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {group.items.map((provider) => {
-                const isConnected =
-                  provider.connectionType === "bedrock" ||
-                  provider.connectionCount > 0;
+                const isConnected = provider.connectionCount > 0;
                 return (
                   <HighlightableProviderTile
                     key={provider.id}
@@ -331,28 +229,25 @@ export default function IntegrationsScreen() {
                     >
                       {provider.service}
                     </Text>
-                    {provider.connectionType === "bedrock" ? (
-                      <View className="flex-row items-center gap-1">
-                        <CircleCheck size={10} color="#059669" />
-                        <Text className="text-[10px] text-emerald-600">
-                          Connected
-                        </Text>
-                      </View>
-                    ) : (
-                      <ConnectionCountBadge count={provider.connectionCount} />
-                    )}
+                    <ConnectionCountBadge count={provider.connectionCount} />
                   </HighlightableProviderTile>
                 );
               })}
             </View>
           </View>
         ))}
-      </ScrollView>
 
-      <ModelDetailModal
-        model={selectedModel}
-        onClose={() => setSelectedModel(null)}
-      />
+        {!loading &&
+          !error &&
+          grouped.length === 0 &&
+          connectionList.length === 0 && (
+            <Card className="p-5">
+              <Text className="text-sm text-text-muted text-center">
+                No integration providers available.
+              </Text>
+            </Card>
+          )}
+      </ScrollView>
     </View>
   );
 }

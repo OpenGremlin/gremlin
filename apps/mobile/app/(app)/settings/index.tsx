@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import type { LucideIcon } from "lucide-react-native";
 import {
+  Cpu,
   FolderOpen,
   Globe,
   KeyRound,
@@ -42,8 +43,9 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
   {
     title: "Agents",
     items: [
-      { label: "Skills", icon: Sparkles, href: "/settings/skills" },
+      { label: "Models", icon: Cpu, href: "/settings/models" },
       { label: "Connections", icon: Plug, href: "/settings/connections" },
+      { label: "Skills", icon: Sparkles, href: "/settings/skills" },
       { label: "Files", icon: FolderOpen, href: "/settings/files" },
     ],
   },
