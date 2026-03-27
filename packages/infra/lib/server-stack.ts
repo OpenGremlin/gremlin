@@ -54,6 +54,7 @@ export class ServerStack extends cdk.Stack {
       file: "Dockerfile",
       exclude: ["**/cdk.out"],
       platform: ecr_assets.Platform.LINUX_ARM64,
+      buildSsh: "default",
     });
 
     // ── IAM role for EC2 instance ────────────────────────────
