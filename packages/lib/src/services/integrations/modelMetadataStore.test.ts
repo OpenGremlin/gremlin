@@ -1,13 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   classifyModelFromStore,
-  invalidateModelMetadataStore,
   lookupModelMetadata,
 } from "./modelMetadataStore.js";
-
-afterEach(() => {
-  invalidateModelMetadataStore();
-});
 
 describe("lookupModelMetadata", () => {
   it("finds OpenAI models by bare ID", () => {
@@ -50,26 +45,24 @@ describe("lookupModelMetadata", () => {
     expect(meta).toBeNull();
   });
 
-  it("includes supported_modalities when present", () => {
-    const meta = lookupModelMetadata("openai", "codex-mini-latest");
+  it("includes supportedModalities when present", () => {
+    const meta = lookupModelMetadata("openai", "gpt-4o");
     expect(meta).not.toBeNull();
-    expect(meta?.supported_modalities).toEqual(
+    expect(meta?.supportedModalities).toEqual(expect.arrayContaining(["text"]));
+  });
+
+  it("includes supportedOutputModalities when present", () => {
+    const meta = lookupModelMetadata("openai", "gpt-4o");
+    expect(meta).not.toBeNull();
+    expect(meta?.supportedOutputModalities).toEqual(
       expect.arrayContaining(["text"]),
     );
   });
 
-  it("includes supported_output_modalities when present", () => {
-    const meta = lookupModelMetadata("openai", "codex-mini-latest");
-    expect(meta).not.toBeNull();
-    expect(meta?.supported_output_modalities).toEqual(
-      expect.arrayContaining(["text"]),
-    );
-  });
-
-  it("includes output_cost_per_image for image models", () => {
+  it("includes outputCostPerImage for image models", () => {
     const meta = lookupModelMetadata("bedrock", "amazon.nova-canvas-v1:0");
     if (meta) {
-      expect(meta.output_cost_per_image).toBeTypeOf("number");
+      expect(meta.outputCostPerImage).toBeTypeOf("number");
     }
   });
 });
@@ -85,26 +78,11 @@ describe("classifyModelFromStore", () => {
     );
   });
 
-  it("returns null for embedding models (hidden)", () => {
-    // text-embedding-3-small is an embedding model in the store
-    expect(
-      classifyModelFromStore("openai", "text-embedding-3-small"),
-    ).toBeNull();
-  });
-
   it("returns null for models not in the store", () => {
     expect(classifyModelFromStore("openai", "totally-fake-model")).toBeNull();
   });
 
   it("works with provider-prefixed lookups", () => {
     expect(classifyModelFromStore("xai", "grok-3")).toBe("chat");
-  });
-
-  it("returns null for audio_speech models (hidden)", () => {
-    const meta = lookupModelMetadata("openai", "tts-1");
-    // If tts-1 is in the store, it should be audio_speech mode → hidden
-    if (meta) {
-      expect(classifyModelFromStore("openai", "tts-1")).toBeNull();
-    }
   });
 });

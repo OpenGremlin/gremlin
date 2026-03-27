@@ -67,6 +67,7 @@ function TypedModelList({
   modelDetails,
   defaultModel,
   refetchEnabled,
+  refetchDetails,
   refetchParent,
   refetchModels,
 }: {
@@ -78,6 +79,7 @@ function TypedModelList({
   modelDetails: ModelDetail[];
   defaultModel: DefaultModel;
   refetchEnabled: () => void;
+  refetchDetails: () => void;
   refetchParent: () => void;
   refetchModels: () => void;
 }) {
@@ -116,6 +118,7 @@ function TypedModelList({
     try {
       await gql(EnableModelMutation, { providerId, modelId, modelName });
       refetchEnabled();
+      refetchDetails();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to enable model");
     } finally {
@@ -344,9 +347,10 @@ function ApiKeyModelLists({
     EnabledModelsQuery,
     { providerId },
   );
-  const { data: detailsData } = useQuery(EnabledModelDetailsQuery, {
-    providerId,
-  });
+  const { data: detailsData, refetch: refetchDetails } = useQuery(
+    EnabledModelDetailsQuery,
+    { providerId },
+  );
 
   const allModels = modelsData?.providerModels ?? [];
   const enabledModelIds = enabledData?.enabledModels ?? [];
@@ -384,6 +388,7 @@ function ApiKeyModelLists({
           modelDetails={modelDetails}
           defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
+          refetchDetails={refetchDetails}
           refetchParent={refetchParent}
           refetchModels={refetchModels}
         />
@@ -508,9 +513,10 @@ function BedrockDetailView({
     EnabledModelsQuery,
     { providerId: provider.id },
   );
-  const { data: detailsData } = useQuery(EnabledModelDetailsQuery, {
-    providerId: provider.id,
-  });
+  const { data: detailsData, refetch: refetchDetails } = useQuery(
+    EnabledModelDetailsQuery,
+    { providerId: provider.id },
+  );
 
   const allModels = (availableData?.bedrockAvailableModels ?? []).map((m) => ({
     id: m.id,
@@ -564,6 +570,7 @@ function BedrockDetailView({
           modelDetails={modelDetails}
           defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
+          refetchDetails={refetchDetails}
           refetchParent={refetch}
           refetchModels={refetchModels}
         />

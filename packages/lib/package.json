@@ -10,13 +10,12 @@
     "./*": "./dist/*.js"
   },
   "scripts": {
-    "build": "tsc && cp -r src/data dist/",
+    "build": "tsc",
     "invoke": "tsx src/utils/invoke/index.ts",
     "clean": "rm -rf dist",
     "test": "vitest run"
   },
   "dependencies": {
-    "@gremlin/providers": "workspace:*",
     "@ai-sdk/alibaba": "^1.0.10",
     "@ai-sdk/amazon-bedrock": "^4.0.69",
     "@ai-sdk/anthropic": "^3.0.53",
@@ -41,6 +40,8 @@
     "@aws-sdk/client-ssm": "^3.1000.0",
     "@aws-sdk/credential-providers": "^3.1000.0",
     "@aws-sdk/lib-dynamodb": "^3.1000.0",
+    "@gremlin/models": "github:OpenGremlin/gremlin-models",
+    "@gremlin/providers": "workspace:*",
     "@mozilla/readability": "^0.6.0",
     "@repeaterjs/repeater": "^3.0.6",
     "ai": "^6.0.105",

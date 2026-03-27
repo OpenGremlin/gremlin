@@ -2,6 +2,7 @@ import type { ModelMode } from "@gremlin/providers";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
+import { lookupModelMetadata } from "./modelMetadataStore.js";
 
 const BEDROCK_DEFAULTS: EnabledModel[] = [
   {
@@ -51,6 +52,33 @@ function migrateIfNeeded(raw: unknown[]): EnabledModel[] {
 }
 
 /**
+ * Enrich an enabled model with metadata from the model store.
+ * The store is the source of truth for cost, token limits, and modality data.
+ */
+function enrichFromStore(
+  providerId: string,
+  model: EnabledModel,
+): EnabledModel {
+  const meta = lookupModelMetadata(providerId, model.id);
+  if (!meta) return model;
+
+  return {
+    id: model.id,
+    name: model.name,
+    mode: model.mode,
+    maxInputTokens: meta.maxInputTokens,
+    inputCostPerToken: meta.inputCostPerToken,
+    outputCostPerToken: meta.outputCostPerToken,
+    supportedModalities: meta.supportedModalities,
+    supportedOutputModalities: meta.supportedOutputModalities,
+    inputCostPerImage: meta.inputCostPerImage,
+    inputCostPerImageToken: meta.inputCostPerImageToken,
+    outputCostPerImage: meta.outputCostPerImage,
+    outputCostPerImageToken: meta.outputCostPerImageToken,
+  };
+}
+
+/**
  * Read from legacy Setting entity, lazy-migrate to new EnabledModels entity.
  */
 async function readLegacy(
@@ -92,18 +120,27 @@ export async function getEnabledModels(
   resources: Resources,
   providerId: string,
 ): Promise<EnabledModel[]> {
+  let models: EnabledModel[];
+
   const { Item } = await resources.ddb.entities.EnabledModels.build(
     GetItemCommand,
   )
     .key({ providerId })
     .send();
 
-  if (Item) return Item.models as EnabledModel[];
+  if (Item) {
+    models = Item.models as EnabledModel[];
+  } else {
+    // Fallback: read from legacy Setting and lazy-migrate
+    const migrated = await readLegacy(resources, providerId);
+    if (migrated) {
+      models = migrated;
+    } else if (providerId === "bedrock") {
+      models = [...BEDROCK_DEFAULTS];
+    } else {
+      models = [];
+    }
+  }
 
-  // Fallback: read from legacy Setting and lazy-migrate
-  const migrated = await readLegacy(resources, providerId);
-  if (migrated) return migrated;
-
-  if (providerId === "bedrock") return [...BEDROCK_DEFAULTS];
-  return [];
+  return models.map((m) => enrichFromStore(providerId, m));
 }

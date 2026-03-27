@@ -390,6 +390,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.1000.0
         version: 3.1000.0(@aws-sdk/client-dynamodb@3.1000.0)
+      '@gremlin/models':
+        specifier: github:OpenGremlin/gremlin-models
+        version: git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8
       '@gremlin/providers':
         specifier: workspace:*
         version: link:../providers
@@ -1263,6 +1266,11 @@ packages:
 
   '@babel/parser@7.29.0':
     resolution: {integrity: sha512-IyDgFV5GeDUVX4YdF/3CPULtVGSXXMLh1xVIgdCgxApktqnQV0r7/8Nqthg+8YLGaAtdyIlo2qIdZrbCv4+7ww==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.29.2':
+    resolution: {integrity: sha512-4GgRzy/+fsBa72/RZVJmGKPmZu9Byn8o4MoLpmNe1m8ZfYnz5emHLQz3U4gLud6Zwl0RZIcgiLD7Uq7ySFuDLA==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -2598,6 +2606,10 @@ packages:
   '@graphql-yoga/typed-event-target@3.0.2':
     resolution: {integrity: sha512-ZpJxMqB+Qfe3rp6uszCQoag4nSw42icURnBRfFYSOmTgEeOe4rD0vYlbA8spvCu2TlCesNTlEN9BLWtQqLxabA==}
     engines: {node: '>=18.0.0'}
+
+  '@gremlin/models@git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8':
+    resolution: {commit: 936adf447bb426616f8905b9f3f72903a93061a8, repo: git@github.com:OpenGremlin/gremlin-models.git, type: git}
+    version: 0.1.0
 
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
@@ -9737,6 +9749,11 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.0
 
+  '@babel/parser@7.29.2':
+    dependencies:
+      '@babel/types': 7.29.0
+    optional: true
+
   '@babel/plugin-proposal-decorators@7.29.0(@babel/core@7.29.0)':
     dependencies:
       '@babel/core': 7.29.0
@@ -11405,6 +11422,8 @@ snapshots:
       '@repeaterjs/repeater': 3.0.6
       tslib: 2.8.1
 
+  '@gremlin/models@git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8': {}
+
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
       '@img/sharp-libvips-darwin-arm64': 1.0.4
@@ -12036,7 +12055,7 @@ snapshots:
   '@react-native/codegen@0.84.1(@babel/core@7.29.0)':
     dependencies:
       '@babel/core': 7.29.0
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       hermes-parser: 0.32.0
       invariant: 2.2.4
       nullthrows: 1.1.1
