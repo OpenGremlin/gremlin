@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import sharp from "sharp";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createMockContext } from "../__testing__/mockContext.js";
 import { viewImageTool } from "./viewImage.js";
@@ -132,10 +133,20 @@ describe("viewImageTool", () => {
       });
     });
 
-    it("reads file and returns base64 image-data for success results", async () => {
+    it("reads file, resizes to fit 1024x1024, and returns WebP", async () => {
       const imgPath = path.join(tmpDir, "real.png");
-      const imgData = Buffer.from("fake-png-bytes");
-      await fs.writeFile(imgPath, imgData);
+      // Create a 2048x1024 PNG so sharp has a valid image to process
+      const pngBuffer = await sharp({
+        create: {
+          width: 2048,
+          height: 1024,
+          channels: 3,
+          background: { r: 255, g: 0, b: 0 },
+        },
+      })
+        .png()
+        .toBuffer();
+      await fs.writeFile(imgPath, pngBuffer);
 
       const t = createTool();
       const output = await t.toModelOutput?.({
@@ -143,24 +154,29 @@ describe("viewImageTool", () => {
           type: "image",
           path: imgPath,
           mediaType: "image/png",
-          sizeKB: 1,
+          sizeKB: Math.round(pngBuffer.length / 1024),
         },
       } as any);
 
-      expect(output).toEqual({
-        type: "content",
-        value: [
-          {
-            type: "image-data",
-            data: imgData.toString("base64"),
-            mediaType: "image/png",
-          },
-          {
-            type: "text",
-            text: "Image viewed (1 KB). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.",
-          },
-        ],
-      });
+      expect(output).toHaveProperty("type", "content");
+      const value = (output as any).value;
+      expect(value).toHaveLength(2);
+      expect(value[0].type).toBe("image-data");
+      expect(value[0].mediaType).toBe("image/webp");
+
+      // Verify the output is valid WebP constrained to 1024x1024
+      const decoded = await sharp(
+        Buffer.from(value[0].data, "base64"),
+      ).metadata();
+      expect(decoded.format).toBe("webp");
+      expect(decoded.width).toBeLessThanOrEqual(1024);
+      expect(decoded.height).toBeLessThanOrEqual(1024);
+      // Original was 2048x1024, so resized should be 1024x512
+      expect(decoded.width).toBe(1024);
+      expect(decoded.height).toBe(512);
+
+      expect(value[1].type).toBe("text");
+      expect(value[1].text).toContain("converted to WebP");
     });
   });
 });

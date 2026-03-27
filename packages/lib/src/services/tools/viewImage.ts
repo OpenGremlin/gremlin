@@ -1,8 +1,11 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { tool } from "ai";
+import sharp from "sharp";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+
+const MAX_DIMENSION = 1024;
 
 const IMAGE_EXTENSIONS = new Set([
   ".png",
@@ -94,18 +97,22 @@ export function viewImageTool(_ctx: ServiceContext) {
           value: [{ type: "text" as const, text: output.message }],
         };
       }
-      const data = await fs.readFile(output.path);
+      const raw = await fs.readFile(output.path);
+      const data = await sharp(raw)
+        .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside" })
+        .webp({ quality: 90 })
+        .toBuffer();
       return {
         type: "content" as const,
         value: [
           {
             type: "image-data" as const,
             data: data.toString("base64"),
-            mediaType: output.mediaType,
+            mediaType: "image/webp",
           },
           {
             type: "text" as const,
-            text: `Image viewed (${output.sizeKB} KB). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.`,
+            text: `Image viewed (${Math.round(data.length / 1024)} KB, converted to WebP). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.`,
           },
         ],
       };
