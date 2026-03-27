@@ -12,6 +12,8 @@ export interface LaneConfig {
   tools: Record<string, Tool>;
   recallHint?: string;
   timezone?: string;
+  /** Initial user-role prompt to prepend if not yet in the log (avoids read-after-write race). */
+  initialPrompt?: string;
 }
 
 /**
@@ -22,13 +24,28 @@ export async function runLane(
   ctx: ServiceContext,
   config: LaneConfig,
 ): Promise<string> {
-  const { agentId, taskId, systemPrompt, tools, recallHint, timezone } = config;
+  const {
+    agentId,
+    taskId,
+    systemPrompt,
+    tools,
+    recallHint,
+    timezone,
+    initialPrompt,
+  } = config;
 
   // Build conversation history with compaction support
   const { messages, postCompactionCount } = await buildContextMessages(ctx, {
     agentId,
     taskId,
   });
+
+  // If an initial prompt was provided and the log came back empty (DynamoDB
+  // eventual consistency), inject it so the conversation always starts with
+  // a user message.
+  if (initialPrompt && messages.length === 0) {
+    messages.push({ role: "user", content: initialPrompt });
+  }
 
   // Recall memories
   const [memories, coreMemories] = await Promise.all([

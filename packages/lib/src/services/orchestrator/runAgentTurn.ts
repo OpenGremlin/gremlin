@@ -184,24 +184,16 @@ export async function runAgentTurn(
     }
   };
 
-  const buildMessages = (): ModelMessage[] => [
-    {
-      role: "system",
-      content: opts.systemPrompt,
-      providerOptions: {
-        anthropic: { cacheControl: { type: "ephemeral" } },
-      },
-    },
-    { role: "system", content: `Current time: ${currentTime} (${tz})` },
-    ...(opts.memoryContext
-      ? [{ role: "system" as const, content: opts.memoryContext }]
-      : []),
-    ...opts.messages,
+  const systemParts = [
+    opts.systemPrompt,
+    `Current time: ${currentTime} (${tz})`,
+    ...(opts.memoryContext ? [opts.memoryContext] : []),
   ];
 
   const result = await generateText({
     model,
-    messages: buildMessages(),
+    system: systemParts.join("\n\n"),
+    messages: opts.messages,
     tools: allTools,
     stopWhen: [hasToolCall("requestUserInput"), () => pendingCommandApproval],
     onStepFinish,

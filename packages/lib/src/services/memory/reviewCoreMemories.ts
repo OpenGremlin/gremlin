@@ -68,14 +68,9 @@ export async function reviewCoreMemories(
 
   const result = await generateText({
     model,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You maintain a set of core memories — long-term behavioral tenets derived from daily experiences. Respond with ONLY a JSON array, no markdown fences or explanation.",
-      },
-      { role: "user", content: prompt },
-    ],
+    system:
+      "You maintain a set of core memories — long-term behavioral tenets derived from daily experiences. Respond with ONLY a JSON array, no markdown fences or explanation.",
+    messages: [{ role: "user", content: prompt }],
   });
 
   // Parse the LLM response

@@ -57,5 +57,6 @@ export async function runTaskLane(
     tools: buildTaskTools(ctx, agentLaneCtx, task.agentId, taskId),
     recallHint: prompt,
     timezone,
+    initialPrompt: prompt,
   });
 }
