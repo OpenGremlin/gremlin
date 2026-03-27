@@ -18,6 +18,12 @@ const IMAGE_MIME_PREFIXES = [
   "image/webp",
   "image/avif",
   "image/gif",
+  "image/bmp",
+  "image/tiff",
+  "image/heic",
+  "image/heif",
+  "image/svg+xml",
+  "image/x-icon",
 ];
 
 /**
@@ -73,17 +79,18 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
 
     if (isResizableImage && requestedWidth && requestedWidth > 0) {
       const inputBytes = await fs.readFile(resolved);
-      let pipeline = sharp(inputBytes);
-      pipeline = pipeline.resize({
-        width: Math.min(requestedWidth, 3000),
-        fit: "inside",
-        withoutEnlargement: true,
-      });
+      const buffer = await sharp(inputBytes)
+        .resize({
+          width: Math.min(requestedWidth, 3000),
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 90 })
+        .toBuffer();
 
-      const buffer = await pipeline.toBuffer();
       res
         .status(200)
-        .set("Content-Type", mime)
+        .set("Content-Type", "image/webp")
         .set("Cache-Control", "public, max-age=3600")
         .send(buffer);
     } else {

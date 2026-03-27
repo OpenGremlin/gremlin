@@ -1,6 +1,7 @@
-import { Image, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import type { AgentLogsQuery, FileQuery } from "../graphql/generated/graphql";
 import { Markdown } from "./LogEntryView/Markdown";
+import { ZoomableImage } from "./ZoomableImage";
 
 export type FileNode =
   AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
@@ -51,24 +52,18 @@ export function FilePreview({
   if (render.__typename === "ImageRender") {
     if (render.url) {
       return (
-        <ScrollView
-          className="flex-1 bg-bg"
-          contentContainerClassName="items-center p-4 pb-16"
-        >
-          <Image
-            source={{ uri: render.url }}
-            style={{
-              width: "100%",
-              aspectRatio: render.aspectRatio ?? 1,
-            }}
-            resizeMode="contain"
+        <View className="flex-1 bg-bg items-center p-4 pb-16">
+          <ZoomableImage
+            url={render.url}
+            hiresUrl={render.hiresUrl}
+            aspectRatio={render.aspectRatio ?? 1}
           />
           {render.width != null && render.height != null && (
             <Text className="text-text-muted text-xs mt-2">
               {render.width} x {render.height}
             </Text>
           )}
-        </ScrollView>
+        </View>
       );
     }
     return (

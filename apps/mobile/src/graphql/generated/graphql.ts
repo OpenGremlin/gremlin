@@ -1070,7 +1070,7 @@ export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: '
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
            }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
@@ -1117,7 +1117,7 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
         | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
@@ -1212,7 +1212,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
     | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
     | { __typename: 'CodeRender', content: string, language: string }
     | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-    | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+    | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
     | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
     | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
    };
@@ -1490,7 +1490,7 @@ export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConn
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
            }> } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
@@ -1505,7 +1505,7 @@ export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
            } }
@@ -1514,7 +1514,7 @@ export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
         | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } | null };
@@ -1532,7 +1532,7 @@ export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'Ag
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
            }> } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
@@ -1546,7 +1546,7 @@ export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogC
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
         | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
@@ -1561,7 +1561,7 @@ export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated
             | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+            | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
            } }
@@ -1570,7 +1570,7 @@ export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated
         | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
         | { __typename: 'CodeRender', content: string, language: string }
         | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+        | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
         | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
@@ -1630,7 +1630,7 @@ export type FileQuery = { __typename?: 'Query', file?: { __typename?: 'File', pa
       | { __typename: 'AudioRender', url?: string | null, durationSeconds?: number | null }
       | { __typename: 'CodeRender', content: string, language: string }
       | { __typename: 'DocumentRender', markdown: string, title?: string | null }
-      | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null }
+      | { __typename: 'ImageRender', url?: string | null, width?: number | null, height?: number | null, aspectRatio?: number | null, hiresUrl?: string | null }
       | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
       | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
      } | null };
@@ -1704,6 +1704,7 @@ export const FileFieldsFragmentDoc = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -1776,6 +1777,7 @@ export const AgentLogsDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -1866,6 +1868,7 @@ export const AgentLogCreatedDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2605,6 +2608,7 @@ export const TasksDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2672,6 +2676,7 @@ export const TaskDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2743,6 +2748,7 @@ export const TaskLogsDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2796,6 +2802,7 @@ export const TaskLogCreatedDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2859,6 +2866,7 @@ export const TaskUpdatedDocument = new TypedDocumentString(`
     }
     ... on ImageRender {
       url(width: 800)
+      hiresUrl: url(width: 2400)
       width
       height
       aspectRatio
@@ -2967,6 +2975,7 @@ export const FileDocument = new TypedDocumentString(`
       }
       ... on ImageRender {
         url(width: 800)
+        hiresUrl: url(width: 2400)
         width
         height
         aspectRatio
