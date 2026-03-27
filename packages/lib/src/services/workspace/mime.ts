@@ -11,6 +11,8 @@ const MIME_MAP: Record<string, string> = {
   ".tiff": "image/tiff",
   ".tif": "image/tiff",
   ".avif": "image/avif",
+  ".heic": "image/heic",
+  ".heif": "image/heif",
 
   // Audio
   ".mp3": "audio/mpeg",

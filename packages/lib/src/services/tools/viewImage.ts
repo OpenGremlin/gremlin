@@ -14,6 +14,13 @@ const IMAGE_EXTENSIONS = new Set([
   ".gif",
   ".webp",
   ".bmp",
+  ".heic",
+  ".heif",
+  ".tiff",
+  ".tif",
+  ".avif",
+  ".svg",
+  ".ico",
 ]);
 
 const MIME_TYPES: Record<string, string> = {
@@ -23,6 +30,13 @@ const MIME_TYPES: Record<string, string> = {
   ".gif": "image/gif",
   ".webp": "image/webp",
   ".bmp": "image/bmp",
+  ".heic": "image/heic",
+  ".heif": "image/heif",
+  ".tiff": "image/tiff",
+  ".tif": "image/tiff",
+  ".avif": "image/avif",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
 };
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -43,7 +57,7 @@ type ViewImageResult =
 export function viewImageTool(_ctx: ServiceContext) {
   return tool({
     description:
-      "View an image file from the workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, and BMP.",
+      "View an image file from the workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, BMP, HEIC, TIFF, AVIF, SVG, and ICO.",
     inputSchema: z.object({
       path: z
         .string()

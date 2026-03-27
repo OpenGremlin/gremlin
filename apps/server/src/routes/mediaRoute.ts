@@ -6,9 +6,6 @@ import { getS3Client } from "../gql/schema/FileUpload/s3.js";
 
 const log = createLogger("media");
 
-const ALLOWED_FORMATS = ["jpeg", "png", "webp", "avif"] as const;
-type ImageFormat = (typeof ALLOWED_FORMATS)[number];
-
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -22,39 +19,17 @@ function parseImageParams(query: Record<string, unknown>) {
     typeof query.height === "string"
       ? clamp(Number.parseInt(query.height, 10), 1, 3000)
       : undefined;
-  const quality =
-    typeof query.quality === "string"
-      ? clamp(Number.parseInt(query.quality, 10), 1, 100)
-      : 80;
-  const format =
-    typeof query.format === "string"
-      ? (query.format as ImageFormat)
-      : undefined;
 
   if (width !== undefined && Number.isNaN(width)) return null;
   if (height !== undefined && Number.isNaN(height)) return null;
-  if (format && !ALLOWED_FORMATS.includes(format)) return null;
 
-  return { width, height, quality, format };
-}
-
-function inferFormat(contentType: string | undefined): ImageFormat {
-  if (contentType?.includes("png")) return "png";
-  if (contentType?.includes("webp")) return "webp";
-  if (contentType?.includes("avif")) return "avif";
-  return "jpeg";
+  return { width, height };
 }
 
 async function processImage(
   inputBytes: Buffer,
-  params: {
-    width?: number;
-    height?: number;
-    quality: number;
-    format?: ImageFormat;
-  },
-  contentType?: string,
-): Promise<{ buffer: Buffer; format: ImageFormat }> {
+  params: { width?: number; height?: number },
+): Promise<Buffer> {
   let pipeline = sharp(inputBytes);
 
   if (params.width || params.height) {
@@ -66,10 +41,7 @@ async function processImage(
     });
   }
 
-  const outputFormat = params.format ?? inferFormat(contentType);
-  pipeline = pipeline.toFormat(outputFormat, { quality: params.quality });
-
-  return { buffer: await pipeline.toBuffer(), format: outputFormat };
+  return pipeline.webp({ quality: 90 }).toBuffer();
 }
 
 /**
@@ -110,17 +82,13 @@ export async function mediaRoute(req: Request, res: Response): Promise<void> {
     const inputBytes = await streamToBuffer(body);
     const isImage = response.ContentType?.startsWith("image/");
 
-    if (isImage && (params.width || params.height || params.format)) {
-      const result = await processImage(
-        inputBytes,
-        params,
-        response.ContentType,
-      );
+    if (isImage) {
+      const result = await processImage(inputBytes, params);
       res
         .status(200)
-        .set("Content-Type", `image/${result.format}`)
+        .set("Content-Type", "image/webp")
         .set("Cache-Control", "public, max-age=31536000, immutable")
-        .send(result.buffer);
+        .send(result);
     } else {
       res
         .status(200)
