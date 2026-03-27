@@ -20,6 +20,7 @@
       "associatedDomains": ["applinks:opengremlin.com"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryAddUsageDescription": "Save photos you take to your camera roll.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [

@@ -1,6 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
+import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
@@ -180,11 +181,17 @@ export function ChatScreen({
   }, [uploadFiles]);
 
   const takePhoto = useCallback(async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) return;
-    const result = await ImagePicker.launchCameraAsync({ quality: 1 });
+    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!cameraPermission.granted) return;
+    const result = await ImagePicker.launchCameraAsync();
     if (result.canceled || result.assets.length === 0) return;
     const asset = result.assets[0];
+
+    // Save to camera roll — discard the photo if permission is denied
+    const mediaPermission = await MediaLibrary.requestPermissionsAsync();
+    if (!mediaPermission.granted) return;
+    await MediaLibrary.saveToLibraryAsync(asset.uri);
+
     uploadFiles([
       {
         name: asset.fileName ?? asset.uri.split("/").pop() ?? "photo",
