@@ -273,6 +273,10 @@ export function ChatScreen({
         onEndReached={hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
         contentContainerStyle={flatListContentStyle}
+        // On web the scaleY(-1) inversion hack causes VirtualizedList spacers
+        // to appear as visible gaps. Disable windowing on web so all items
+        // stay mounted (the list is small enough that this is fine).
+        {...(Platform.OS === "web" && { windowSize: 100 })}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
