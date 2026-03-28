@@ -1,13 +1,6 @@
 import { AlertCircle, CircleCheck } from "lucide-react-native";
-import { useEffect } from "react";
-import { Text, View } from "react-native";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from "react-native-reanimated";
+import { useEffect, useRef } from "react";
+import { Animated, Text, View } from "react-native";
 
 type ToastVariant = "success" | "error";
 
@@ -44,24 +37,28 @@ export function Toast({
 }) {
   const v = variantStyles[variant];
   const Icon = variantIcons[variant];
-  const opacity = useSharedValue(0);
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      opacity.value = withTiming(1, { duration: 200 });
-      // Auto-dismiss
-      opacity.value = withDelay(
-        duration,
-        withTiming(0, { duration: 300 }, (finished) => {
-          if (finished) runOnJS(onDismiss)();
-        }),
-      );
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(() => {
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 300,
+          delay: duration,
+          useNativeDriver: false,
+        }).start(({ finished }) => {
+          if (finished) onDismiss();
+        });
+      });
+    } else {
+      opacity.setValue(0);
     }
   }, [visible, duration, onDismiss, opacity]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
 
   if (!visible) return null;
 
@@ -76,12 +73,11 @@ export function Toast({
         zIndex: 9999,
         justifyContent: "center",
         alignItems: "center",
+        pointerEvents: "none",
       }}
-      pointerEvents="none"
     >
       <Animated.View
-        style={[{ marginHorizontal: 24 }, animatedStyle]}
-        pointerEvents="none"
+        style={{ marginHorizontal: 24, opacity, pointerEvents: "none" }}
       >
         <View
           className={`flex-row items-center gap-2.5 border rounded-xl px-4 py-3 ${v.bg}`}

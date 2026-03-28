@@ -31,6 +31,7 @@ import type { ModelDetail } from "../../../../../src/shared/ModelDetailModal";
 import { ModelDetailModal } from "../../../../../src/shared/ModelDetailModal";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
+import { Toast } from "../../../../../src/shared/Toast";
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
@@ -64,6 +65,7 @@ function TypedModelList({
   refetchDetails,
   refetchParent,
   refetchModels,
+  onError,
 }: {
   providerId: string;
   modelMode: ModelMode;
@@ -76,12 +78,12 @@ function TypedModelList({
   refetchDetails: () => void;
   refetchParent: () => void;
   refetchModels: () => void;
+  onError: (msg: string) => void;
 }) {
   const colors = useNavigationTheme();
   const [enablingModel, setEnablingModel] = useState<string | null>(null);
   const [disablingModel, setDisablingModel] = useState<string | null>(null);
   const [settingModel, setSettingModel] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedModel, setSelectedModel] = useState<ModelDetail | null>(null);
@@ -108,13 +110,12 @@ function TypedModelList({
 
   async function handleEnable(modelId: string, modelName?: string) {
     setEnablingModel(modelId);
-    setError(null);
     try {
       await gql(EnableModelMutation, { providerId, modelId, modelName });
       refetchEnabled();
       refetchDetails();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to enable model");
+      onError(err instanceof Error ? err.message : "Failed to enable model");
     } finally {
       setEnablingModel(null);
     }
@@ -122,13 +123,12 @@ function TypedModelList({
 
   async function handleDisable(modelId: string) {
     setDisablingModel(modelId);
-    setError(null);
     try {
       await gql(DisableModelMutation, { providerId, modelId });
       refetchEnabled();
       refetchParent();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to disable model");
+      onError(err instanceof Error ? err.message : "Failed to disable model");
     } finally {
       setDisablingModel(null);
     }
@@ -136,12 +136,11 @@ function TypedModelList({
 
   async function handleSetDefault(modelId: string) {
     setSettingModel(modelId);
-    setError(null);
     try {
       await setDefaultForType(modelMode, providerId, modelId);
       refetchParent();
     } catch (err) {
-      setError(
+      onError(
         err instanceof Error ? err.message : "Failed to set default model",
       );
     } finally {
@@ -154,12 +153,6 @@ function TypedModelList({
       <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
         {label}
       </Text>
-
-      {error ? (
-        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
-          <Text className="text-sm text-red-300">{error}</Text>
-        </View>
-      ) : null}
 
       {enabledModels.length > 0 && (
         <View className="gap-1">
@@ -323,11 +316,13 @@ function ApiKeyModelLists({
   defaultModel,
   defaultImageModel,
   refetchParent,
+  onError,
 }: {
   providerId: string;
   defaultModel: DefaultModel;
   defaultImageModel: DefaultModel;
   refetchParent: () => void;
+  onError: (msg: string) => void;
 }) {
   const colors = useNavigationTheme();
   const {
@@ -382,6 +377,7 @@ function ApiKeyModelLists({
           refetchDetails={refetchDetails}
           refetchParent={refetchParent}
           refetchModels={refetchModels}
+          onError={onError}
         />
       ))}
     </>
@@ -393,11 +389,13 @@ function BedrockDetailView({
   defaultModel,
   defaultImageModel,
   refetch,
+  onError,
 }: {
   provider: { id: string; service: string };
   defaultModel: DefaultModel;
   defaultImageModel: DefaultModel;
   refetch: () => void;
+  onError: (msg: string) => void;
 }) {
   const colors = useNavigationTheme();
   const {
@@ -469,6 +467,7 @@ function BedrockDetailView({
           refetchDetails={refetchDetails}
           refetchParent={refetch}
           refetchModels={refetchModels}
+          onError={onError}
         />
       ))}
     </>
@@ -480,6 +479,7 @@ function ApiKeyDetailView({
   defaultModel,
   defaultImageModel,
   refetch,
+  onError,
 }: {
   provider: {
     id: string;
@@ -490,6 +490,7 @@ function ApiKeyDetailView({
   defaultModel: DefaultModel;
   defaultImageModel: DefaultModel;
   refetch: () => void;
+  onError: (msg: string) => void;
 }) {
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
@@ -559,6 +560,7 @@ function ApiKeyDetailView({
           defaultModel={defaultModel}
           defaultImageModel={defaultImageModel}
           refetchParent={refetch}
+          onError={onError}
         />
       )}
     </>
@@ -571,6 +573,13 @@ export default function ModelProviderDetailScreen() {
   const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
   const defaultModel = data?.defaultModel ?? null;
   const defaultImageModel = data?.defaultImageModel ?? null;
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const handleError = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setToastVisible(true);
+  }, []);
 
   useFocusEffect(
     // biome-ignore lint/correctness/useExhaustiveDependencies: refetch on screen focus only
@@ -588,38 +597,49 @@ export default function ModelProviderDetailScreen() {
   }
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-5"
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="flex-row items-center gap-4">
-        <IntegrationLogo id={provider.id} size={48} />
-        <View className="flex-1">
-          <Text className="text-xl font-semibold text-text-primary">
-            {provider.service}
-          </Text>
-          <Text className="text-sm text-text-muted mt-0.5">
-            {provider.description}
-          </Text>
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 py-6 gap-5"
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="flex-row items-center gap-4">
+          <IntegrationLogo id={provider.id} size={48} />
+          <View className="flex-1">
+            <Text className="text-xl font-semibold text-text-primary">
+              {provider.service}
+            </Text>
+            <Text className="text-sm text-text-muted mt-0.5">
+              {provider.description}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      {provider.connectionType === "bedrock" ? (
-        <BedrockDetailView
-          provider={provider}
-          defaultModel={defaultModel}
-          defaultImageModel={defaultImageModel}
-          refetch={refetch}
-        />
-      ) : (
-        <ApiKeyDetailView
-          provider={provider}
-          defaultModel={defaultModel}
-          defaultImageModel={defaultImageModel}
-          refetch={refetch}
-        />
-      )}
-    </ScrollView>
+        {provider.connectionType === "bedrock" ? (
+          <BedrockDetailView
+            provider={provider}
+            defaultModel={defaultModel}
+            defaultImageModel={defaultImageModel}
+            refetch={refetch}
+            onError={handleError}
+          />
+        ) : (
+          <ApiKeyDetailView
+            provider={provider}
+            defaultModel={defaultModel}
+            defaultImageModel={defaultImageModel}
+            refetch={refetch}
+            onError={handleError}
+          />
+        )}
+      </ScrollView>
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        variant="error"
+        onDismiss={() => setToastVisible(false)}
+      />
+    </View>
   );
 }

@@ -1,4 +1,5 @@
 import type { SafeIntegrationConnection } from "@gremlin/lib/services/integrations/getConnections.js";
+import { GraphQLError } from "graphql";
 import type { GremlinContext } from "../../context.js";
 import type {
   IntegrationConnectionResolvers,
@@ -213,7 +214,20 @@ const disableModelMutation: MutationResolvers["disableModel"] = async (
   _parent,
   { providerId, modelId },
   ctx,
-) => ctx.services.integrations.disableModel(ctx.resources, providerId, modelId);
+) => {
+  try {
+    return await ctx.services.integrations.disableModel(
+      ctx.resources,
+      providerId,
+      modelId,
+    );
+  } catch (err) {
+    throw new GraphQLError(
+      err instanceof Error ? err.message : "Failed to disable model",
+      { extensions: { code: "BAD_USER_INPUT" } },
+    );
+  }
+};
 
 const enableBedrockModel: MutationResolvers["enableBedrockModel"] = async (
   _parent,
