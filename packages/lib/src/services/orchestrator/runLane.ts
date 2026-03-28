@@ -118,7 +118,19 @@ export async function runLane(
         { err: recoveryErr, agentId, taskId },
         "Recovery turn also failed, returning gracefully",
       );
-      response = "";
+      // Write a fallback AGENT log so the conversation history has a proper
+      // assistant turn after the SYSTEM error. Without this, consecutive
+      // user-role messages (SYSTEM maps to user) can break models that
+      // require strict user/assistant alternation.
+      const fallback =
+        "I'm sorry, I encountered an error I couldn't recover from. Please try again or rephrase your request.";
+      await writeAgentLog(ctx, {
+        agentId,
+        taskId,
+        role: "AGENT",
+        content: fallback,
+      });
+      response = fallback;
     }
   }
 

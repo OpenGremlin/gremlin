@@ -114,18 +114,24 @@ describe("runLane", () => {
     expect(recoveryCall[1].messages).toBe(recoveryMessages);
   });
 
-  it("returns empty string when recovery turn also fails", async () => {
+  it("writes fallback AGENT log when recovery also fails", async () => {
     (runAgentTurn as Mock)
       .mockRejectedValueOnce(new Error("bad image"))
       .mockRejectedValueOnce(new Error("bad image again"));
 
     const result = await runLane(ctx, defaultConfig());
 
-    expect(result).toBe("");
+    expect(result).toContain("encountered an error");
     // Only two attempts total — no retry loop
     expect(runAgentTurn).toHaveBeenCalledTimes(2);
-    // One error log written (for the first failure; recovery failure just returns)
-    expect(writeAgentLog).toHaveBeenCalledTimes(1);
+    // Two log writes: SYSTEM error + fallback AGENT response
+    expect(writeAgentLog).toHaveBeenCalledTimes(2);
+    const agentLog = (writeAgentLog as Mock).mock.calls[1];
+    expect(agentLog[1]).toMatchObject({
+      role: "AGENT",
+      agentId: "agent-1",
+      taskId: "task-1",
+    });
   });
 
   it("does not throw when recovery fails — drain loop stays alive", async () => {
@@ -134,7 +140,9 @@ describe("runLane", () => {
       .mockRejectedValueOnce(new Error("still poisoned"));
 
     // This must not throw — previously it would kill the consumer drain loop
-    await expect(runLane(ctx, defaultConfig())).resolves.toBe("");
+    await expect(runLane(ctx, defaultConfig())).resolves.toContain(
+      "encountered an error",
+    );
   });
 
   it("only attempts recovery once, not a retry loop", async () => {
