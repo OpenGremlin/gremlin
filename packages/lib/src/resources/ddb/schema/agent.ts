@@ -46,6 +46,9 @@ export const AgentEntity = new Entity({
       viewImage: map({
         enabled: boolean(),
       }).optional(),
+      imageGeneration: map({
+        enabled: boolean(),
+      }).optional(),
     }).optional(),
   }),
   computeKey: ({ id }) => ({

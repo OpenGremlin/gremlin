@@ -34,6 +34,9 @@ export const AgentDetailFragment = graphql(`
       viewImage {
         enabled
       }
+      imageGeneration {
+        enabled
+      }
     }
   }
 `);

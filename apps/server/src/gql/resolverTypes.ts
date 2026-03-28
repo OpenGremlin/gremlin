@@ -55,6 +55,7 @@ export type AgentImageUrlArgs = {
 
 export type AgentConfig = {
   __typename?: 'AgentConfig';
+  imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
   model?: Maybe<AgentModelConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
@@ -63,11 +64,21 @@ export type AgentConfig = {
 };
 
 export type AgentConfigInput = {
+  imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
+};
+
+export type AgentImageGenerationConfig = {
+  __typename?: 'AgentImageGenerationConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentImageGenerationConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentJob = {
@@ -1146,6 +1157,8 @@ export type ResolversTypes = {
   Agent: ResolverTypeWrapper<AgentItem>;
   AgentConfig: ResolverTypeWrapper<AgentConfig>;
   AgentConfigInput: AgentConfigInput;
+  AgentImageGenerationConfig: ResolverTypeWrapper<AgentImageGenerationConfig>;
+  AgentImageGenerationConfigInput: AgentImageGenerationConfigInput;
   AgentJob: ResolverTypeWrapper<AgentJobItem>;
   AgentLog: ResolverTypeWrapper<AgentLogItem>;
   AgentLogConnection: ResolverTypeWrapper<AgentLogConnectionModel>;
@@ -1231,6 +1244,8 @@ export type ResolversParentTypes = {
   Agent: AgentItem;
   AgentConfig: AgentConfig;
   AgentConfigInput: AgentConfigInput;
+  AgentImageGenerationConfig: AgentImageGenerationConfig;
+  AgentImageGenerationConfigInput: AgentImageGenerationConfigInput;
   AgentJob: AgentJobItem;
   AgentLog: AgentLogItem;
   AgentLogConnection: AgentLogConnectionModel;
@@ -1319,11 +1334,16 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
 };
 
 export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
+  imageGeneration?: Resolver<Maybe<ResolversTypes['AgentImageGenerationConfig']>, ParentType, ContextType>;
   imageModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
   webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
+};
+
+export type AgentImageGenerationConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentImageGenerationConfig'] = ResolversParentTypes['AgentImageGenerationConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type AgentJobResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentJob'] = ResolversParentTypes['AgentJob']> = {
@@ -1822,6 +1842,7 @@ export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType ext
 export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
   AgentConfig?: AgentConfigResolvers<ContextType>;
+  AgentImageGenerationConfig?: AgentImageGenerationConfigResolvers<ContextType>;
   AgentJob?: AgentJobResolvers<ContextType>;
   AgentLog?: AgentLogResolvers<ContextType>;
   AgentLogConnection?: AgentLogConnectionResolvers<ContextType>;

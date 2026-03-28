@@ -21,12 +21,17 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
   }
 
+  type AgentImageGenerationConfig {
+    enabled: Boolean!
+  }
+
   type AgentConfig {
     model: AgentModelConfig
     imageModel: AgentModelConfig
     sandbox: AgentSandboxConfig
     webSearch: AgentWebSearchConfig
     viewImage: AgentViewImageConfig
+    imageGeneration: AgentImageGenerationConfig
   }
 
   type Agent {
@@ -68,12 +73,17 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input AgentImageGenerationConfigInput {
+    enabled: Boolean!
+  }
+
   input AgentConfigInput {
     model: AgentModelConfigInput
     imageModel: AgentModelConfigInput
     sandbox: AgentSandboxConfigInput
     webSearch: AgentWebSearchConfigInput
     viewImage: AgentViewImageConfigInput
+    imageGeneration: AgentImageGenerationConfigInput
   }
 
   input UpdateAgentInput {

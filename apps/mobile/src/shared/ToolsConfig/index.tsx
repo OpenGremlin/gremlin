@@ -33,6 +33,7 @@ interface PlainConfig {
   };
   webSearch?: { enabled: boolean; provider?: string };
   viewImage?: { enabled: boolean };
+  imageGeneration?: { enabled: boolean };
 }
 
 function toPlainConfig(config: Agent["config"]): PlainConfig {
@@ -67,6 +68,9 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
       : undefined,
     viewImage: config?.viewImage
       ? { enabled: config.viewImage.enabled }
+      : undefined,
+    imageGeneration: config?.imageGeneration
+      ? { enabled: config.imageGeneration.enabled }
       : undefined,
   };
 }
@@ -162,7 +166,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   // Whether using defaults
   const usingDefaultChatModel = !config.model;
   const usingDefaultImageModel = !config.imageModel;
-  const generateImagesEnabled = !!config.imageModel || !!defaultImageModel;
+  const generateImagesEnabled = config.imageGeneration?.enabled ?? false;
 
   const updateConfig = useCallback(
     async (patch: Partial<PlainConfig>) => {
@@ -341,9 +345,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             <View className="flex-row items-center gap-2">
               <Pressable
                 onPress={() => setModelPickerOpen(true)}
-                className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+                className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultChatModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
               >
-                <Text className="text-sm text-text-secondary">
+                <Text
+                  className={`text-sm ${!usingDefaultChatModel ? "text-text-primary" : "text-text-secondary"}`}
+                >
                   {usingDefaultChatModel
                     ? defaultChatModelLabel
                       ? `Use default (${defaultChatModelLabel})`
@@ -393,17 +399,17 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
             {/* Enable Image Generation Model */}
             <View className="flex-row items-center justify-between mt-1 gap-3">
-              <Text className="text-sm text-text-secondary">
-                Enable Image Generation Model
-              </Text>
+              <View className="flex-1">
+                <Text className="text-sm text-text-secondary">
+                  Enable Image Generation Model
+                </Text>
+              </View>
               <Toggle
                 enabled={generateImagesEnabled}
                 onChange={() => {
-                  if (generateImagesEnabled) {
-                    updateConfig({ imageModel: undefined });
-                  } else if (!defaultImageModel) {
-                    setImageModelPickerOpen(true);
-                  }
+                  updateConfig({
+                    imageGeneration: { enabled: !generateImagesEnabled },
+                  });
                 }}
               />
             </View>
@@ -424,9 +430,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 <View className="flex-row items-center gap-2">
                   <Pressable
                     onPress={() => setImageModelPickerOpen(true)}
-                    className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+                    className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultImageModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                   >
-                    <Text className="text-sm text-text-secondary">
+                    <Text
+                      className={`text-sm ${!usingDefaultImageModel ? "text-text-primary" : "text-text-secondary"}`}
+                    >
                       {usingDefaultImageModel
                         ? defaultImageModelLabel
                           ? `Use default (${defaultImageModelLabel})`

@@ -19,6 +19,7 @@ interface UpdateAgentInput {
     sandbox?: { enabled: boolean } | null;
     webSearch?: { enabled: boolean; provider?: string } | null;
     browser?: { enabled: boolean } | null;
+    imageGeneration?: { enabled: boolean } | null;
   } | null;
 }
 
