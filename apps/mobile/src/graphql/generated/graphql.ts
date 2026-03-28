@@ -160,6 +160,15 @@ export type AgentSkill = {
   template?: Maybe<SkillTemplate>;
 };
 
+export type AgentStreamDelta = {
+  __typename?: 'AgentStreamDelta';
+  agentId: Scalars['ID']['output'];
+  delta: Scalars['String']['output'];
+  done: Scalars['Boolean']['output'];
+  logId: Scalars['ID']['output'];
+  taskId?: Maybe<Scalars['String']['output']>;
+};
+
 export type AgentViewImageConfig = {
   __typename?: 'AgentViewImageConfig';
   enabled: Scalars['Boolean']['output'];
@@ -873,6 +882,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
   agentLogCreated: AgentLog;
+  agentStream: AgentStreamDelta;
   agentUpdated: Agent;
   agentsUpdated: Agent;
   jobCreated: AgentJob;
@@ -886,6 +896,11 @@ export type Subscription = {
 
 
 export type SubscriptionAgentLogCreatedArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionAgentStreamArgs = {
   agentId: Scalars['ID']['input'];
 };
 
@@ -1134,6 +1149,13 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
         | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
         | { __typename: 'VideoRender', url?: string | null, thumbnailUrl?: string | null, durationSeconds?: number | null }
        }> } };
+
+export type AgentStreamSubscriptionVariables = Exact<{
+  agentId: Scalars['ID']['input'];
+}>;
+
+
+export type AgentStreamSubscription = { __typename?: 'Subscription', agentStream: { __typename?: 'AgentStreamDelta', logId: string, agentId: string, taskId?: string | null, delta: string, done: boolean } };
 
 export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null };
 
@@ -1909,6 +1931,17 @@ export const AgentLogCreatedDocument = new TypedDocumentString(`
     }
   }
 }`) as unknown as TypedDocumentString<AgentLogCreatedSubscription, AgentLogCreatedSubscriptionVariables>;
+export const AgentStreamDocument = new TypedDocumentString(`
+    subscription AgentStream($agentId: ID!) {
+  agentStream(agentId: $agentId) {
+    logId
+    agentId
+    taskId
+    delta
+    done
+  }
+}
+    `) as unknown as TypedDocumentString<AgentStreamSubscription, AgentStreamSubscriptionVariables>;
 export const AgentsDocument = new TypedDocumentString(`
     query Agents {
   agents {

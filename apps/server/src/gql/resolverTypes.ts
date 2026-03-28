@@ -179,6 +179,15 @@ export type AgentSkill = {
   template?: Maybe<SkillTemplate>;
 };
 
+export type AgentStreamDelta = {
+  __typename?: 'AgentStreamDelta';
+  agentId: Scalars['ID']['output'];
+  delta: Scalars['String']['output'];
+  done: Scalars['Boolean']['output'];
+  logId: Scalars['ID']['output'];
+  taskId?: Maybe<Scalars['String']['output']>;
+};
+
 export type AgentViewImageConfig = {
   __typename?: 'AgentViewImageConfig';
   enabled: Scalars['Boolean']['output'];
@@ -892,6 +901,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
   agentLogCreated: AgentLog;
+  agentStream: AgentStreamDelta;
   agentUpdated: Agent;
   agentsUpdated: Agent;
   jobCreated: AgentJob;
@@ -905,6 +915,11 @@ export type Subscription = {
 
 
 export type SubscriptionAgentLogCreatedArgs = {
+  agentId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionAgentStreamArgs = {
   agentId: Scalars['ID']['input'];
 };
 
@@ -1170,6 +1185,7 @@ export type ResolversTypes = {
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: ResolverTypeWrapper<AgentSkillItem>;
+  AgentStreamDelta: ResolverTypeWrapper<AgentStreamDelta>;
   AgentViewImageConfig: ResolverTypeWrapper<AgentViewImageConfig>;
   AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: ResolverTypeWrapper<AgentWebSearchConfig>;
@@ -1256,6 +1272,7 @@ export type ResolversParentTypes = {
   AgentSandboxConfig: AgentSandboxConfig;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: AgentSkillItem;
+  AgentStreamDelta: AgentStreamDelta;
   AgentViewImageConfig: AgentViewImageConfig;
   AgentViewImageConfigInput: AgentViewImageConfigInput;
   AgentWebSearchConfig: AgentWebSearchConfig;
@@ -1412,6 +1429,14 @@ export type AgentSkillResolvers<ContextType = GremlinContext, ParentType extends
   connectionStatuses?: Resolver<Array<ResolversTypes['SkillConnectionStatus']>, ParentType, ContextType>;
   skillId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   template?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
+};
+
+export type AgentStreamDeltaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentStreamDelta'] = ResolversParentTypes['AgentStreamDelta']> = {
+  agentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  delta?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  done?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  logId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AgentViewImageConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentViewImageConfig'] = ResolversParentTypes['AgentViewImageConfig']> = {
@@ -1753,6 +1778,7 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
 export type SubscriptionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
   agentLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "agentLogCreated", ParentType, ContextType, RequireFields<SubscriptionAgentLogCreatedArgs, 'agentId'>>;
+  agentStream?: SubscriptionResolver<ResolversTypes['AgentStreamDelta'], "agentStream", ParentType, ContextType, RequireFields<SubscriptionAgentStreamArgs, 'agentId'>>;
   agentUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentUpdatedArgs, 'agentId'>>;
   agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
   jobCreated?: SubscriptionResolver<ResolversTypes['AgentJob'], "jobCreated", ParentType, ContextType>;
@@ -1851,6 +1877,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
   AgentSkill?: AgentSkillResolvers<ContextType>;
+  AgentStreamDelta?: AgentStreamDeltaResolvers<ContextType>;
   AgentViewImageConfig?: AgentViewImageConfigResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
   AllowlistEntry?: AllowlistEntryResolvers<ContextType>;

@@ -1,5 +1,6 @@
 import { filter, pipe } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@gremlin/lib/resources/ddb/schema/agentLog.js";
+import type { AgentStreamEvent } from "@gremlin/lib/resources/pubsub.js";
 import { readFile } from "@gremlin/lib/services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -120,10 +121,19 @@ const agentLogCreated = {
   resolve: (payload: AgentLogItem) => payload,
 };
 
+const agentStream = {
+  subscribe: (
+    _parent: unknown,
+    { agentId }: { agentId: string },
+    ctx: GremlinContext,
+  ) => ctx.resources.pubsub.subscribe(`agentStream:${agentId}`),
+  resolve: (payload: AgentStreamEvent) => payload,
+};
+
 export const agentLogResolvers = {
   Query: { agentLogs, taskLogs, pendingInboxMessages },
   Mutation: { sendMessage },
-  Subscription: { agentLogCreated },
+  Subscription: { agentLogCreated, agentStream },
   AgentLog: { agent, attachments, documents, files },
   AgentLogEdge: { node },
 };

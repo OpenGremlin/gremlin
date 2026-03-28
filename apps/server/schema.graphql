@@ -135,6 +135,15 @@ type Subscription {
   jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
+  agentStream(agentId: ID!): AgentStreamDelta!
+}
+
+type AgentStreamDelta {
+  logId: ID!
+  agentId: ID!
+  taskId: String
+  delta: String!
+  done: Boolean!
 }
 
 type AllowlistEntry {

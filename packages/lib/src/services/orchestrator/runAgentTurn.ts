@@ -1,5 +1,5 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { generateText, hasToolCall, type ModelMessage, type Tool } from "ai";
+import { hasToolCall, type ModelMessage, streamText, type Tool } from "ai";
 import type { ToolName } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 import { requestUserInputTool } from "../tools/index.js";
@@ -190,24 +190,52 @@ export async function runAgentTurn(
     ...(opts.memoryContext ? [opts.memoryContext] : []),
   ];
 
-  const result = await generateText({
+  // Pre-generate ID so the client can correlate stream deltas → final log entry
+  const streamLogId = crypto.randomUUID();
+
+  const publishDelta = (delta: string, done: boolean) => {
+    ctx.resources.pubsub.publish(`agentStream:${opts.agentId}`, {
+      logId: streamLogId,
+      agentId: opts.agentId,
+      taskId: opts.taskId,
+      delta,
+      done,
+    });
+  };
+
+  // Signal that inference has started (typing indicator)
+  publishDelta("", false);
+
+  const result = streamText({
     model,
     system: systemParts.join("\n\n"),
     messages: opts.messages,
     tools: allTools,
     stopWhen: [hasToolCall("requestUserInput"), () => pendingCommandApproval],
     onStepFinish,
+    onChunk: ({ chunk }) => {
+      if (chunk.type === "text-delta" && chunk.text) {
+        publishDelta(chunk.text, false);
+      }
+    },
   });
 
+  // Wait for completion
+  const finalText = await result.text;
+
+  // Signal stream complete
+  publishDelta("", true);
+
   // Log the final text response
-  if (result.text) {
+  if (finalText) {
     await writeAgentLog(ctx, {
+      id: streamLogId,
       agentId: opts.agentId,
       taskId: opts.taskId,
       role: "AGENT",
-      content: result.text,
+      content: finalText,
     });
   }
 
-  return result.text;
+  return finalText;
 }

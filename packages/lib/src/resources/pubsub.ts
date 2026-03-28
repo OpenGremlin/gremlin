@@ -13,6 +13,14 @@ export interface SandboxOutputEvent {
   exitCode?: number;
 }
 
+export interface AgentStreamEvent {
+  logId: string;
+  agentId: string;
+  taskId: string | null;
+  delta: string;
+  done: boolean;
+}
+
 export type PubSubEvents = {
   [key: `agentLogCreated:${string}`]: [AgentLogItem];
   [key: `agentLogCreated:task:${string}`]: [AgentLogItem];
@@ -22,6 +30,7 @@ export type PubSubEvents = {
   jobCreated: [AgentJobItem];
   [key: `inboxItemCreated:${string}`]: [InboxItemItem];
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
+  [key: `agentStream:${string}`]: [AgentStreamEvent];
   pendingItemsUpdated: [];
 };
 

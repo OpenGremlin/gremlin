@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import type {
   AgentLogCreatedSubscription,
   AgentLogsQuery,
@@ -34,6 +34,7 @@ export function shouldShowTimestamp(
 
 export function useLogMessages(
   scope: { agentId: string } | { taskId: string },
+  opts?: { onLogCreated?: (logId: string) => void },
 ) {
   const isTask = "taskId" in scope;
 
@@ -62,6 +63,9 @@ export function useLogMessages(
     ? { taskId: (scope as { taskId: string }).taskId }
     : { agentId: (scope as { agentId: string }).agentId };
 
+  const onLogCreatedRef = useRef(opts?.onLogCreated);
+  onLogCreatedRef.current = opts?.onLogCreated;
+
   useSubscription(
     // biome-ignore lint/suspicious/noExplicitAny: union of subscription types requires cast
     subscription as TypedDocumentString<SubResult, any>,
@@ -70,6 +74,9 @@ export function useLogMessages(
       (data: SubResult) => {
         const msg: ChatMessage =
           "taskLogCreated" in data ? data.taskLogCreated : data.agentLogCreated;
+
+        // Dismiss any streaming bubble for this log entry
+        onLogCreatedRef.current?.(msg.id);
 
         if (msg.role === "TOOL" && msg.toolResult) {
           replaceOrAppend(

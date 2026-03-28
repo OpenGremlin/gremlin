@@ -5,6 +5,7 @@ import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
 
 type TextLogEntry = {
+  id?: string;
   agentId: string;
   taskId: string | null;
   role: "AGENT" | "USER" | "SYSTEM";
@@ -13,6 +14,7 @@ type TextLogEntry = {
 };
 
 type ToolLogEntry = {
+  id?: string;
   agentId: string;
   taskId: string | null;
   role: "TOOL";
@@ -41,7 +43,7 @@ function publishLog(
 
 export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   const now = new Date().toISOString();
-  const id = crypto.randomUUID();
+  const id = entry.id ?? crypto.randomUUID();
 
   const isToolEntry = entry.role === "TOOL";
 

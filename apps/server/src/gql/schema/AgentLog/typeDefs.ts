@@ -68,7 +68,16 @@ export const agentLogTypeDefs = /* GraphQL */ `
     sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   }
 
+  type AgentStreamDelta {
+    logId: ID!
+    agentId: ID!
+    taskId: String
+    delta: String!
+    done: Boolean!
+  }
+
   extend type Subscription {
     agentLogCreated(agentId: ID!): AgentLog!
+    agentStream(agentId: ID!): AgentStreamDelta!
   }
 `;

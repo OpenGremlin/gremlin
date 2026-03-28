@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAgentStream } from "../../hooks/useAgentStream";
 import { useChatSend } from "../../hooks/useChatSend";
 import { useFileUpload } from "../../hooks/useFileUpload";
 import {
@@ -29,6 +30,7 @@ import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { hexToTransparent } from "../../lib/color";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { LogEntryView } from "../LogEntryView";
+import { StreamingBubble } from "../LogEntryView/StreamingBubble";
 import { NotFound, QueryResult } from "../QueryResult";
 import { ChatHeaderTitle } from "./ChatHeaderTitle";
 import { ChatInputBar } from "./ChatInputBar";
@@ -89,6 +91,9 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
 
+  const { streaming: streamingMessage, dismiss: dismissStream } =
+    useAgentStream(agentId, taskId ?? null);
+
   const scope = taskId ? { taskId } : { agentId };
   const {
     messages,
@@ -98,7 +103,7 @@ export function ChatScreen({
     loadMore,
     loadingMore,
     fetchNewer,
-  } = useLogMessages(scope);
+  } = useLogMessages(scope, { onLogCreated: dismissStream });
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
@@ -300,11 +305,14 @@ export function ChatScreen({
           ) : null
         }
         ListHeaderComponent={
-          pendingMessages.length > 0 ? (
+          pendingMessages.length > 0 || streamingMessage ? (
             <View>
               {pendingMessages.map((content) => (
                 <PendingMessageBubble key={content} content={content} />
               ))}
+              {streamingMessage && (
+                <StreamingBubble message={streamingMessage} />
+              )}
             </View>
           ) : null
         }

@@ -88,3 +88,15 @@ export const AgentLogSubscription = graphql(`
     }
   }
 `);
+
+export const AgentStreamSubscription = graphql(`
+  subscription AgentStream($agentId: ID!) {
+    agentStream(agentId: $agentId) {
+      logId
+      agentId
+      taskId
+      delta
+      done
+    }
+  }
+`);
