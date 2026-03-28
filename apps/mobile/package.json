@@ -13,6 +13,7 @@
     "build:web": "expo export --platform web",
     "build:ios": "NODE_ENV=production eas build --platform ios --profile production",
     "build:ios:preview": "NODE_ENV=production eas build --platform ios --profile preview",
+    "submit:ios": "eas submit --platform ios --latest",
     "test": "vitest run"
   },
   "dependencies": {
