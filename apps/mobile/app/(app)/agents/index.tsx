@@ -33,10 +33,13 @@ function AgentCard({ agent }: { agent: Agent }) {
       }
       trailing={
         <Pressable
-          onPress={() => router.push(`/agents/${agent.id}/config`)}
-          className="shrink-0 w-8 h-8 items-center justify-center rounded-lg active:bg-surface-alt"
+          onPress={(e) => {
+            e.stopPropagation();
+            router.push(`/agents/${agent.id}/config`);
+          }}
+          className="shrink-0 w-10 h-10 items-center justify-center rounded-lg active:bg-surface-alt"
         >
-          <Settings size={16} color={colors.iconMuted} />
+          <Settings size={20} color={colors.iconMuted} />
         </Pressable>
       }
     />

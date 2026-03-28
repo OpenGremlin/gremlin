@@ -2,13 +2,7 @@ import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
 import { useRef, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
 import {
   AgentJobsQuery,
   JobCreatedSubscription,
@@ -33,7 +27,8 @@ function RunNowButton({ jobId }: { jobId: string }) {
   return (
     <Pressable
       disabled={triggering}
-      onPress={async () => {
+      onPress={async (e) => {
+        e.stopPropagation();
         setTriggering(true);
         try {
           await gql(TriggerJobMutation, { id: jobId });
@@ -43,12 +38,12 @@ function RunNowButton({ jobId }: { jobId: string }) {
           setTriggering(false);
         }
       }}
-      className={`shrink-0 p-1.5 rounded-lg ${triggering ? "opacity-50" : ""}`}
+      className={`shrink-0 w-10 h-10 items-center justify-center rounded-lg ${triggering ? "opacity-50" : ""}`}
     >
       {triggered ? (
         <Text className="text-xs text-success">Queued</Text>
       ) : (
-        <Play size={14} color={colors.iconMuted} />
+        <Play size={18} color={colors.iconMuted} />
       )}
     </Pressable>
   );
@@ -99,14 +94,11 @@ export default function JobsScreen() {
           onPress={() => router.push(`/jobs/${job.id}`)}
           dimmed={job.paused}
           badge={
-            <View className="flex-row items-center gap-2">
-              {job.paused ? (
-                <Text className="text-xs text-warning">Paused</Text>
-              ) : (
-                <RunNowButton jobId={job.id} />
-              )}
-            </View>
+            job.paused ? (
+              <Text className="text-xs text-warning">Paused</Text>
+            ) : null
           }
+          trailing={!job.paused ? <RunNowButton jobId={job.id} /> : undefined}
           subtitle={
             <>
               <Text className="text-xs text-text-muted">

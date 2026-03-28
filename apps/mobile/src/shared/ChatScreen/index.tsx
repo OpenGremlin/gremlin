@@ -41,7 +41,7 @@ type FileNode = ChatMessage["files"][number];
 const flatListContentStyle = {
   paddingHorizontal: 16,
   paddingTop: 8,
-  paddingBottom: 140,
+  paddingBottom: 200,
   // react-native-web bug: `inverted` applies scaleY(-1) three times (outer
   // scroll, inner scroll, and each cell wrapper) instead of the expected two.
   // Adding a fourth flip on the content container makes the total even, so
