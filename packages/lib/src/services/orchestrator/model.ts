@@ -16,6 +16,7 @@ import type { LanguageModel } from "ai";
 import { createMinimax } from "vercel-minimax-ai-provider";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
+import { lookupModelMetadata } from "../integrations/modelMetadataStore.js";
 
 const log = createLogger("model");
 
@@ -26,11 +27,11 @@ const bedrock = createAmazonBedrock({
 const BEDROCK_FALLBACK_MODEL = "us.anthropic.claude-sonnet-4-6";
 
 // ── 30s TTL cache ────────────────────────────────────────
-let cachedModel: LanguageModel | null = null;
+let cachedResult: ModelResult | null = null;
 let cacheExpiresAt = 0;
 
 export function invalidateModelCache(): void {
-  cachedModel = null;
+  cachedResult = null;
   cacheExpiresAt = 0;
 }
 
@@ -99,6 +100,7 @@ function createProviderModel(
 
 export interface ModelResult {
   model: LanguageModel;
+  maxInputTokens?: number;
   warning?: string;
 }
 
@@ -116,7 +118,11 @@ export async function getModelForAgent(
   if (agentModel) {
     try {
       if (agentModel.type === "bedrock" && agentModel.modelId) {
-        return { model: bedrock(agentModel.modelId) };
+        const meta = lookupModelMetadata("bedrock", agentModel.modelId);
+        return {
+          model: bedrock(agentModel.modelId),
+          maxInputTokens: meta?.maxInputTokens,
+        };
       }
       if (agentModel.type === "connection" && agentModel.connectionId) {
         const [providerId, modelId] = agentModel.connectionId.split(":", 2);
@@ -126,8 +132,10 @@ export async function getModelForAgent(
             providerId,
           );
           if (apiKey) {
+            const meta = lookupModelMetadata(providerId, modelId);
             return {
               model: createProviderModel(providerId, modelId, apiKey),
+              maxInputTokens: meta?.maxInputTokens,
             };
           }
           log.warn(
@@ -144,10 +152,10 @@ export async function getModelForAgent(
     }
 
     // Agent has a model configured but it's not available — fall back
-    const fallback = await getModel(ctx);
+    const fallback = await getModelResult(ctx);
     if (fallback) {
       return {
-        model: fallback,
+        ...fallback,
         warning: "Selected model unavailable, using default.",
       };
     }
@@ -157,25 +165,28 @@ export async function getModelForAgent(
   }
 
   // No agent-specific model — use the system default
-  return { model: await getModel(ctx) };
+  return getModelResult(ctx);
 }
 
-export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
+async function getModelResult(ctx: ServiceContext): Promise<ModelResult> {
   const now = Date.now();
-  if (cachedModel && now < cacheExpiresAt) {
-    return cachedModel;
+  if (cachedResult && now < cacheExpiresAt) {
+    return cachedResult;
   }
 
   // Read default model setting
   const defaultModel = await ctx.services.integrations.getDefaultModel(ctx);
 
   if (!defaultModel) {
-    // No default model configured — fall back to Bedrock
     log.info(
       { modelId: BEDROCK_FALLBACK_MODEL, reason: "no_default" },
       "Using Bedrock fallback model",
     );
-    return bedrock(BEDROCK_FALLBACK_MODEL);
+    const meta = lookupModelMetadata("bedrock", BEDROCK_FALLBACK_MODEL);
+    return {
+      model: bedrock(BEDROCK_FALLBACK_MODEL),
+      maxInputTokens: meta?.maxInputTokens,
+    };
   }
 
   log.info(
@@ -183,37 +194,54 @@ export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
     "Resolved default model",
   );
 
-  // Bedrock provider uses server-side credentials — no API key needed
+  const meta = lookupModelMetadata(
+    defaultModel.providerId,
+    defaultModel.modelId,
+  );
+
   if (defaultModel.providerId === "bedrock") {
-    const model = bedrock(defaultModel.modelId);
-    cachedModel = model;
-    cacheExpiresAt = now + 30_000;
-    return model;
+    const result: ModelResult = {
+      model: bedrock(defaultModel.modelId),
+      maxInputTokens: meta?.maxInputTokens,
+    };
+    cachedResult = result;
+    cacheExpiresAt = Date.now() + 30_000;
+    return result;
   }
 
-  // Fetch the API key for the default provider
   const apiKey = await ctx.services.integrations.getProviderApiKey(
     ctx.resources,
     defaultModel.providerId,
   );
 
   if (!apiKey) {
-    // API key was removed but setting not cleaned up — fall back to Bedrock
     log.warn(
       { providerId: defaultModel.providerId, modelId: BEDROCK_FALLBACK_MODEL },
       "API key missing, falling back to Bedrock",
     );
-    return bedrock(BEDROCK_FALLBACK_MODEL);
+    const fallbackMeta = lookupModelMetadata("bedrock", BEDROCK_FALLBACK_MODEL);
+    return {
+      model: bedrock(BEDROCK_FALLBACK_MODEL),
+      maxInputTokens: fallbackMeta?.maxInputTokens,
+    };
   }
 
-  const model = createProviderModel(
-    defaultModel.providerId,
-    defaultModel.modelId,
-    apiKey,
-  );
+  const result: ModelResult = {
+    model: createProviderModel(
+      defaultModel.providerId,
+      defaultModel.modelId,
+      apiKey,
+    ),
+    maxInputTokens: meta?.maxInputTokens,
+  };
 
-  cachedModel = model;
-  cacheExpiresAt = now + 30_000; // 30s TTL
+  cachedResult = result;
+  cacheExpiresAt = Date.now() + 30_000;
 
-  return model;
+  return result;
+}
+
+export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
+  const result = await getModelResult(ctx);
+  return result.model;
 }

@@ -1,10 +1,13 @@
 import { generateText, type ModelMessage } from "ai";
+import { estimateTokenCount } from "tokenx";
 import type { ServiceContext } from "../context.js";
 import { renderPrompt } from "../prompts/index.js";
 import { getModel } from "./model.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
-const COMPACTION_THRESHOLD = 40;
+const COMPACTION_RATIO = 0.7;
+/** Fallback when model metadata has no maxInputTokens. */
+const DEFAULT_MAX_TOKENS = 200_000;
 
 interface CompactionEntry {
   type: "compaction";
@@ -30,7 +33,7 @@ function isCompactionEntry(content: string): CompactionEntry | null {
 export async function buildContextMessages(
   ctx: ServiceContext,
   opts: { agentId: string; taskId: string | null },
-): Promise<{ messages: ModelMessage[]; postCompactionCount: number }> {
+): Promise<{ messages: ModelMessage[] }> {
   const connection = opts.taskId
     ? await ctx.services.agentLogs.getTaskLogs(ctx, opts.taskId, { first: 200 })
     : await ctx.services.agentLogs.getAgentLogs(ctx, opts.agentId, {
@@ -71,13 +74,7 @@ export async function buildContextMessages(
     }
   }
 
-  // Count entries after last compaction (for deciding when to compact next)
-  const postCompactionCount =
-    compactionIndex >= 0
-      ? entries.length - compactionIndex - 1
-      : entries.length;
-
-  return { messages, postCompactionCount };
+  return { messages };
 }
 
 /** @internal Exported for testing. */
@@ -149,8 +146,24 @@ export function mapEntry(node: {
 }
 
 /**
- * If enough messages have accumulated, summarize older ones into a
- * compaction entry. Designed to be called fire-and-forget.
+ * Estimate the token count of a message array plus an optional system prompt.
+ */
+export function estimateContextTokens(
+  messages: ModelMessage[],
+  systemPrompt?: string,
+): number {
+  let total = systemPrompt ? estimateTokenCount(systemPrompt) : 0;
+  for (const m of messages) {
+    const text =
+      typeof m.content === "string" ? m.content : JSON.stringify(m.content);
+    total += estimateTokenCount(text);
+  }
+  return total;
+}
+
+/**
+ * If the context is approaching the model's token limit, summarize older
+ * messages into a compaction entry. Designed to be called fire-and-forget.
  */
 export async function maybeCompact(
   ctx: ServiceContext,
@@ -158,10 +171,12 @@ export async function maybeCompact(
     agentId: string;
     taskId: string | null;
     messages: ModelMessage[];
-    postCompactionCount: number;
+    contextTokens: number;
+    maxInputTokens?: number;
   },
 ): Promise<void> {
-  if (opts.postCompactionCount < COMPACTION_THRESHOLD) return;
+  const limit = opts.maxInputTokens ?? DEFAULT_MAX_TOKENS;
+  if (opts.contextTokens < limit * COMPACTION_RATIO) return;
 
   const toSummarize = opts.messages;
 

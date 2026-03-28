@@ -1,7 +1,12 @@
 import type { Tool } from "ai";
 import type { ServiceContext } from "../context.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
-import { buildContextMessages, maybeCompact } from "./compaction.js";
+import {
+  buildContextMessages,
+  estimateContextTokens,
+  maybeCompact,
+} from "./compaction.js";
+import { getModelForAgent } from "./model.js";
 import { runAgentTurn } from "./runAgentTurn.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -35,10 +40,13 @@ export async function runLane(
   } = config;
 
   // Build conversation history with compaction support
-  const { messages, postCompactionCount } = await buildContextMessages(ctx, {
+  const { messages } = await buildContextMessages(ctx, {
     agentId,
     taskId,
   });
+
+  // Resolve model metadata for token-based compaction
+  const { maxInputTokens } = await getModelForAgent(ctx, agentId);
 
   // If an initial prompt was provided and the log came back empty (DynamoDB
   // eventual consistency), inject it so the conversation always starts with
@@ -65,6 +73,12 @@ export async function runLane(
     ...memories,
     core: coreMemories,
   });
+
+  // Estimate token usage before the agent turn for compaction decision
+  const fullSystemPrompt = [systemPrompt, memoryContext]
+    .filter(Boolean)
+    .join("\n\n");
+  const contextTokens = estimateContextTokens(messages, fullSystemPrompt);
 
   // Run agent turn. On failure, append the error to the conversation and
   // run one recovery turn so the model can see what went wrong and respond
@@ -134,12 +148,13 @@ export async function runLane(
     }
   }
 
-  // Fire-and-forget compaction
+  // Fire-and-forget compaction (triggered when context exceeds 70% of model limit)
   maybeCompact(ctx, {
     agentId,
     taskId,
     messages,
-    postCompactionCount,
+    contextTokens,
+    maxInputTokens,
   }).catch((err) =>
     ctx.log.error({ err, component: "compaction" }, "Compaction failed"),
   );

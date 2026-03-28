@@ -4,7 +4,15 @@ import { runLane } from "./runLane.js";
 
 vi.mock("./compaction.js", () => ({
   buildContextMessages: vi.fn(),
+  estimateContextTokens: vi.fn().mockReturnValue(1000),
   maybeCompact: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("./model.js", () => ({
+  getModelForAgent: vi.fn().mockResolvedValue({
+    model: {},
+    maxInputTokens: 200_000,
+  }),
 }));
 
 vi.mock("./runAgentTurn.js", () => ({
@@ -49,7 +57,6 @@ describe("runLane", () => {
 
     (buildContextMessages as Mock).mockResolvedValue({
       messages: [{ role: "user", content: "hello" }],
-      postCompactionCount: 1,
     });
   });
 
@@ -95,11 +102,9 @@ describe("runLane", () => {
     (buildContextMessages as Mock)
       .mockResolvedValueOnce({
         messages: [{ role: "user", content: "hello" }],
-        postCompactionCount: 1,
       })
       .mockResolvedValueOnce({
         messages: recoveryMessages,
-        postCompactionCount: 2,
       });
 
     (runAgentTurn as Mock)
