@@ -315,373 +315,376 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
       {/* Models */}
       <Card className="overflow-hidden">
-        <View className="flex-row items-center gap-3 px-4 py-3">
-          <Bot size={18} color={colors.iconDefault} />
-          <View className="flex-1">
-            <Text className="text-sm font-medium text-text-secondary">
+        <View className="flex-row px-4 py-3 gap-3">
+          <View className="w-[18px] pt-0.5">
+            <Bot size={18} color={colors.iconDefault} />
+          </View>
+          <View className="flex-1 gap-2">
+            <Text className="text-base font-bold text-text-secondary">
               Models
             </Text>
-          </View>
-        </View>
 
-        {/* Chat Model */}
-        <View className="px-4 pb-3 ml-7 gap-2">
-          <Text className="text-sm text-text-secondary">Chat Model</Text>
-          {!defaultModel && usingDefaultChatModel && (
-            <View className="gap-1">
-              <Text className="text-xs text-error">
-                No default model configured.
-              </Text>
-              <Pressable onPress={() => router.push("/settings/models")}>
-                <Text className="text-xs text-accent-primary">
-                  Go to Models settings
+            {/* Chat Model */}
+            <Text className="text-sm text-text-secondary">Chat Model</Text>
+            {!defaultModel && usingDefaultChatModel && (
+              <View className="gap-1">
+                <Text className="text-xs text-error">
+                  No default model configured.
                 </Text>
-              </Pressable>
-            </View>
-          )}
-          <View className="flex-row items-center gap-2">
-            <Pressable
-              onPress={() => setModelPickerOpen(true)}
-              className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
-            >
-              <Text className="text-sm text-text-secondary">
-                {usingDefaultChatModel
-                  ? defaultChatModelLabel
-                    ? `Use default (${defaultChatModelLabel})`
-                    : "Use default"
-                  : chatModelLabel}
-              </Text>
-            </Pressable>
-            {!usingDefaultChatModel && (
-              <Pressable
-                onPress={async () => {
-                  const ids = resolveModelIds(config.model);
-                  if (!ids) return;
-                  const result = await gql(EnabledModelDetailsQuery, {
-                    providerId: ids.providerId,
-                  });
-                  const detail = result.enabledModelDetails.find(
-                    (d) => d.id === ids.modelId,
-                  );
-                  if (detail) setModelDetail(detail);
-                }}
-                className="p-2"
-              >
-                <Info size={18} color={colors.iconDefault} />
-              </Pressable>
-            )}
-          </View>
-
-          {/* View Images */}
-          <View className="flex-row items-center justify-between mt-1">
-            <View className="flex-1">
-              <Text className="text-sm text-text-secondary">View Images</Text>
-              <Text className="text-xs text-text-muted">
-                {!config.sandbox?.enabled
-                  ? "Requires Sandbox to be enabled"
-                  : !supportsImages
-                    ? "Selected model does not support images"
-                    : "Let the agent see image files"}
-              </Text>
-            </View>
-            <Toggle
-              enabled={
-                supportsImages &&
-                !!config.sandbox?.enabled &&
-                (config.viewImage?.enabled ?? false)
-              }
-              disabled={!config.sandbox?.enabled || !supportsImages}
-              onChange={() => {
-                const wasEnabled = config.viewImage?.enabled ?? false;
-                updateConfig({ viewImage: { enabled: !wasEnabled } });
-              }}
-            />
-          </View>
-
-          {/* Enable Image Generation Model */}
-          <View className="flex-row items-center justify-between mt-1">
-            <Text className="text-sm text-text-secondary">
-              Enable Image Generation Model
-            </Text>
-            <Toggle
-              enabled={generateImagesEnabled}
-              onChange={() => {
-                if (generateImagesEnabled) {
-                  updateConfig({ imageModel: undefined });
-                } else if (!defaultImageModel) {
-                  setImageModelPickerOpen(true);
-                }
-              }}
-            />
-          </View>
-          {generateImagesEnabled && (
-            <>
-              {!defaultImageModel && usingDefaultImageModel && (
-                <View className="gap-1">
-                  <Text className="text-xs text-error">
-                    No default image model configured.
-                  </Text>
-                  <Pressable onPress={() => router.push("/settings/models")}>
-                    <Text className="text-xs text-accent-primary">
-                      Go to Models settings
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
-              <View className="flex-row items-center gap-2">
-                <Pressable
-                  onPress={() => setImageModelPickerOpen(true)}
-                  className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
-                >
-                  <Text className="text-sm text-text-secondary">
-                    {usingDefaultImageModel
-                      ? defaultImageModelLabel
-                        ? `Use default (${defaultImageModelLabel})`
-                        : "Use default"
-                      : imageModelLabel}
+                <Pressable onPress={() => router.push("/settings/models")}>
+                  <Text className="text-xs text-accent-primary">
+                    Go to Models settings
                   </Text>
                 </Pressable>
-                {!usingDefaultImageModel && (
-                  <Pressable
-                    onPress={async () => {
-                      const ids = resolveModelIds(config.imageModel);
-                      if (!ids) return;
-                      const result = await gql(EnabledModelDetailsQuery, {
-                        providerId: ids.providerId,
-                      });
-                      const detail = result.enabledModelDetails.find(
-                        (d) => d.id === ids.modelId,
-                      );
-                      if (detail) setModelDetail(detail);
-                    }}
-                    className="p-2"
-                  >
-                    <Info size={18} color={colors.iconDefault} />
-                  </Pressable>
-                )}
               </View>
-            </>
-          )}
+            )}
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                onPress={() => setModelPickerOpen(true)}
+                className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+              >
+                <Text className="text-sm text-text-secondary">
+                  {usingDefaultChatModel
+                    ? defaultChatModelLabel
+                      ? `Use default (${defaultChatModelLabel})`
+                      : "Use default"
+                    : chatModelLabel}
+                </Text>
+              </Pressable>
+              {!usingDefaultChatModel && (
+                <Pressable
+                  onPress={async () => {
+                    const ids = resolveModelIds(config.model);
+                    if (!ids) return;
+                    const result = await gql(EnabledModelDetailsQuery, {
+                      providerId: ids.providerId,
+                    });
+                    const detail = result.enabledModelDetails.find(
+                      (d) => d.id === ids.modelId,
+                    );
+                    if (detail) setModelDetail(detail);
+                  }}
+                  className="p-2"
+                >
+                  <Info size={18} color={colors.iconDefault} />
+                </Pressable>
+              )}
+            </View>
+
+            {/* View Images */}
+            <View className="flex-row items-center justify-between mt-1 gap-3">
+              <View className="flex-1">
+                <Text className="text-sm text-text-secondary">View Images</Text>
+                <Text className="text-xs text-text-muted">
+                  {!supportsImages
+                    ? "Selected model does not support images"
+                    : "Let the agent see image files"}
+                </Text>
+              </View>
+              <Toggle
+                enabled={supportsImages && (config.viewImage?.enabled ?? false)}
+                disabled={!supportsImages}
+                onChange={() => {
+                  const wasEnabled = config.viewImage?.enabled ?? false;
+                  updateConfig({ viewImage: { enabled: !wasEnabled } });
+                }}
+              />
+            </View>
+
+            {/* Enable Image Generation Model */}
+            <View className="flex-row items-center justify-between mt-1 gap-3">
+              <Text className="text-sm text-text-secondary">
+                Enable Image Generation Model
+              </Text>
+              <Toggle
+                enabled={generateImagesEnabled}
+                onChange={() => {
+                  if (generateImagesEnabled) {
+                    updateConfig({ imageModel: undefined });
+                  } else if (!defaultImageModel) {
+                    setImageModelPickerOpen(true);
+                  }
+                }}
+              />
+            </View>
+            {generateImagesEnabled && (
+              <>
+                {!defaultImageModel && usingDefaultImageModel && (
+                  <View className="gap-1">
+                    <Text className="text-xs text-error">
+                      No default image model configured.
+                    </Text>
+                    <Pressable onPress={() => router.push("/settings/models")}>
+                      <Text className="text-xs text-accent-primary">
+                        Go to Models settings
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={() => setImageModelPickerOpen(true)}
+                    className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+                  >
+                    <Text className="text-sm text-text-secondary">
+                      {usingDefaultImageModel
+                        ? defaultImageModelLabel
+                          ? `Use default (${defaultImageModelLabel})`
+                          : "Use default"
+                        : imageModelLabel}
+                    </Text>
+                  </Pressable>
+                  {!usingDefaultImageModel && (
+                    <Pressable
+                      onPress={async () => {
+                        const ids = resolveModelIds(config.imageModel);
+                        if (!ids) return;
+                        const result = await gql(EnabledModelDetailsQuery, {
+                          providerId: ids.providerId,
+                        });
+                        const detail = result.enabledModelDetails.find(
+                          (d) => d.id === ids.modelId,
+                        );
+                        if (detail) setModelDetail(detail);
+                      }}
+                      className="p-2"
+                    >
+                      <Info size={18} color={colors.iconDefault} />
+                    </Pressable>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
         </View>
       </Card>
 
       {/* Sandbox */}
       <Card className="overflow-hidden">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <View className="flex-row items-center gap-3 flex-1">
+        <View className="flex-row px-4 py-3 gap-3">
+          <View className="w-[18px] pt-0.5">
             <Terminal size={18} color={colors.iconDefault} />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-text-secondary">
-                Sandbox
-              </Text>
-              <Text className="text-xs text-text-muted">
-                Bash shell for running commands
-              </Text>
-            </View>
           </View>
-          <Toggle
-            enabled={config.sandbox?.enabled ?? false}
-            onChange={() => {
-              const wasEnabled = config.sandbox?.enabled ?? false;
-              updateConfig({
-                sandbox: wasEnabled
-                  ? { enabled: false, commandApproval: "ask" }
-                  : {
-                      enabled: true,
-                      idleTimeoutMinutes:
-                        config.sandbox?.idleTimeoutMinutes ?? 20,
-                      alwaysOn: config.sandbox?.alwaysOn ?? false,
-                      commandApproval: config.sandbox?.commandApproval ?? "ask",
-                    },
-              });
-            }}
-          />
-        </View>
-        {config.sandbox?.enabled && (
-          <View className="mx-4 mb-3 ml-11 gap-3">
-            <View className="flex-row items-center justify-between">
-              <View>
-                <Text className="text-sm text-text-secondary">
-                  Sandbox Always On
+          <View className="flex-1 gap-3">
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-1">
+                <Text className="text-base font-bold text-text-secondary">
+                  Sandbox
                 </Text>
                 <Text className="text-xs text-text-muted">
-                  Don't shut down sandbox after idle time. Sandbox takes about 2
-                  minutes to restart.
+                  Bash shell for running commands
                 </Text>
               </View>
               <Toggle
-                enabled={config.sandbox.alwaysOn ?? false}
+                enabled={config.sandbox?.enabled ?? false}
                 onChange={() => {
-                  const sandbox = config.sandbox ?? {
-                    enabled: true,
-                    commandApproval: "ask",
-                  };
+                  const wasEnabled = config.sandbox?.enabled ?? false;
                   updateConfig({
-                    sandbox: {
-                      ...sandbox,
-                      alwaysOn: !(sandbox.alwaysOn ?? false),
+                    sandbox: wasEnabled
+                      ? { enabled: false, commandApproval: "ask" }
+                      : {
+                          enabled: true,
+                          idleTimeoutMinutes:
+                            config.sandbox?.idleTimeoutMinutes ?? 20,
+                          alwaysOn: config.sandbox?.alwaysOn ?? false,
+                          commandApproval:
+                            config.sandbox?.commandApproval ?? "ask",
+                        },
+                  });
+                }}
+              />
+            </View>
+            {config.sandbox?.enabled && (
+              <View className="gap-3">
+                <View className="flex-row items-center justify-between gap-3">
+                  <View className="flex-1">
+                    <Text className="text-sm text-text-secondary">
+                      Sandbox Always On
+                    </Text>
+                    <Text className="text-xs text-text-muted">
+                      Don't shut down sandbox after idle time. Sandbox takes
+                      about 2 minutes to restart.
+                    </Text>
+                  </View>
+                  <Toggle
+                    enabled={config.sandbox.alwaysOn ?? false}
+                    onChange={() => {
+                      const sandbox = config.sandbox ?? {
+                        enabled: true,
+                        commandApproval: "ask",
+                      };
+                      updateConfig({
+                        sandbox: {
+                          ...sandbox,
+                          alwaysOn: !(sandbox.alwaysOn ?? false),
+                        },
+                      });
+                    }}
+                  />
+                </View>
+                {!config.sandbox.alwaysOn && (
+                  <View>
+                    <View className="flex-row items-center justify-between mb-1">
+                      <Text className="text-sm text-text-secondary">
+                        Idle Shutdown
+                      </Text>
+                      <Text className="text-sm text-text-muted">
+                        {config.sandbox.idleTimeoutMinutes ?? 20} min
+                      </Text>
+                    </View>
+                    <View className="flex-row flex-wrap gap-1.5">
+                      {[10, 20, 30, 60, 120].map((mins) => {
+                        const sandbox = config.sandbox ?? {
+                          enabled: true,
+                          commandApproval: "ask",
+                        };
+                        const selected =
+                          (sandbox.idleTimeoutMinutes ?? 20) === mins;
+                        return (
+                          <Pressable
+                            key={mins}
+                            onPress={() =>
+                              updateConfig({
+                                sandbox: {
+                                  ...sandbox,
+                                  idleTimeoutMinutes: mins,
+                                },
+                              })
+                            }
+                            className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                          >
+                            <Text
+                              className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
+                            >
+                              {mins} min
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+                <View>
+                  <View className="flex-row items-center justify-between mb-1">
+                    <Text className="text-sm text-text-secondary">
+                      Command Approval
+                    </Text>
+                  </View>
+                  <View className="flex-row flex-wrap gap-1.5">
+                    {(["ask", "skip"] as const).map((mode) => {
+                      const sandbox = config.sandbox ?? {
+                        enabled: true,
+                        commandApproval: "ask",
+                      };
+                      const current = sandbox.commandApproval ?? "ask";
+                      const selected = current === mode;
+                      const label =
+                        mode === "ask"
+                          ? "Ask user"
+                          : "Dangerously skip approval";
+                      return (
+                        <Pressable
+                          key={mode}
+                          onPress={() =>
+                            updateConfig({
+                              sandbox: { ...sandbox, commandApproval: mode },
+                            })
+                          }
+                          className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                        >
+                          <Text
+                            className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
+                          >
+                            {label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+                {config.sandbox?.commandApproval === "ask" && (
+                  <AllowlistConfig agentId={agent.id} />
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Card>
+
+      {/* Web Search */}
+      <Card className="overflow-hidden">
+        <View className="flex-row px-4 py-3 gap-3">
+          <View className="w-[18px] pt-0.5">
+            <Globe size={18} color={colors.iconDefault} />
+          </View>
+          <View className="flex-1 gap-3">
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-1">
+                <Text className="text-base font-bold text-text-secondary">
+                  Web Search
+                </Text>
+                <Text className="text-xs text-text-muted">
+                  {hasWebSearch
+                    ? "Search the web for information"
+                    : "Connect Brave Search or Tavily to enable"}
+                </Text>
+              </View>
+              <Toggle
+                enabled={config.webSearch?.enabled ?? false}
+                disabled={!hasWebSearch}
+                onChange={() => {
+                  if (!hasWebSearch) return;
+                  const wasEnabled = config.webSearch?.enabled ?? false;
+                  updateConfig({
+                    webSearch: {
+                      enabled: !wasEnabled,
+                      provider:
+                        config.webSearch?.provider ??
+                        webSearchProviders[0]?.id ??
+                        "brave",
                     },
                   });
                 }}
               />
             </View>
-            {!config.sandbox.alwaysOn && (
-              <View>
-                <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-sm text-text-secondary">
-                    Idle Shutdown
-                  </Text>
-                  <Text className="text-sm text-text-muted">
-                    {config.sandbox.idleTimeoutMinutes ?? 20} min
-                  </Text>
-                </View>
-                <View className="flex-row flex-wrap gap-1.5">
-                  {[10, 20, 30, 60, 120].map((mins) => {
-                    const sandbox = config.sandbox ?? {
-                      enabled: true,
-                      commandApproval: "ask",
-                    };
-                    const selected =
-                      (sandbox.idleTimeoutMinutes ?? 20) === mins;
-                    return (
-                      <Pressable
-                        key={mins}
-                        onPress={() =>
-                          updateConfig({
-                            sandbox: {
-                              ...sandbox,
-                              idleTimeoutMinutes: mins,
-                            },
-                          })
-                        }
-                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                      >
-                        <Text
-                          className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
-                        >
-                          {mins} min
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-            <View>
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-sm text-text-secondary">
-                  Command Approval
-                </Text>
-              </View>
-              <View className="flex-row flex-wrap gap-1.5">
-                {(["ask", "skip"] as const).map((mode) => {
-                  const sandbox = config.sandbox ?? {
-                    enabled: true,
-                    commandApproval: "ask",
-                  };
-                  const current = sandbox.commandApproval ?? "ask";
-                  const selected = current === mode;
-                  const label =
-                    mode === "ask" ? "Ask user" : "Dangerously skip approval";
+            {config.webSearch?.enabled && hasWebSearch && (
+              <View className="gap-1.5">
+                {webSearchProviders.map((p) => {
+                  const selected =
+                    (config.webSearch?.provider ??
+                      webSearchProviders[0]?.id) === p.id;
                   return (
                     <Pressable
-                      key={mode}
+                      key={p.id}
                       onPress={() =>
                         updateConfig({
-                          sandbox: { ...sandbox, commandApproval: mode },
+                          webSearch: { enabled: true, provider: p.id },
                         })
                       }
-                      className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                      className={`px-3 py-2.5 rounded-lg border ${
+                        selected
+                          ? "bg-accent-surface border-accent-border"
+                          : "bg-surface-alt border-app-border"
+                      }`}
                     >
                       <Text
-                        className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
+                        className={`text-sm ${selected ? "text-text-primary" : "text-text-muted"}`}
                       >
-                        {label}
+                        {p.service}
                       </Text>
                     </Pressable>
                   );
                 })}
               </View>
-            </View>
-            {config.sandbox?.commandApproval === "ask" && (
-              <AllowlistConfig agentId={agent.id} />
+            )}
+            {config.webSearch?.enabled && !hasWebSearch && (
+              <Text className="text-xs text-warning">
+                No search provider connected. Add a Brave Search or Tavily API
+                key in Connections.
+              </Text>
             )}
           </View>
-        )}
-      </Card>
-
-      {/* Web Search */}
-      <Card className="overflow-hidden">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <View className="flex-row items-center gap-3 flex-1">
-            <Globe size={18} color={colors.iconDefault} />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-text-secondary">
-                Web Search
-              </Text>
-              <Text className="text-xs text-text-muted">
-                {hasWebSearch
-                  ? "Search the web for information"
-                  : "Connect Brave Search or Tavily to enable"}
-              </Text>
-            </View>
-          </View>
-          <Toggle
-            enabled={config.webSearch?.enabled ?? false}
-            disabled={!hasWebSearch}
-            onChange={() => {
-              if (!hasWebSearch) return;
-              const wasEnabled = config.webSearch?.enabled ?? false;
-              updateConfig({
-                webSearch: {
-                  enabled: !wasEnabled,
-                  provider:
-                    config.webSearch?.provider ??
-                    webSearchProviders[0]?.id ??
-                    "brave",
-                },
-              });
-            }}
-          />
         </View>
-        {config.webSearch?.enabled && hasWebSearch && (
-          <View className="mx-4 mb-3 ml-11 gap-1.5">
-            {webSearchProviders.map((p) => {
-              const selected =
-                (config.webSearch?.provider ?? webSearchProviders[0]?.id) ===
-                p.id;
-              return (
-                <Pressable
-                  key={p.id}
-                  onPress={() =>
-                    updateConfig({
-                      webSearch: { enabled: true, provider: p.id },
-                    })
-                  }
-                  className={`px-3 py-2.5 rounded-lg border ${
-                    selected
-                      ? "bg-accent-surface border-accent-border"
-                      : "bg-surface-alt border-app-border"
-                  }`}
-                >
-                  <Text
-                    className={`text-sm ${selected ? "text-text-primary" : "text-text-muted"}`}
-                  >
-                    {p.service}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-        {config.webSearch?.enabled && !hasWebSearch && (
-          <View className="mx-4 mb-3 ml-11">
-            <Text className="text-xs text-warning">
-              No search provider connected. Add a Brave Search or Tavily API key
-              in Connections.
-            </Text>
-          </View>
-        )}
       </Card>
 
       {modelPickerOpen && (
