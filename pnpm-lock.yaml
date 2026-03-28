@@ -394,8 +394,8 @@ importers:
         specifier: ^3.1000.0
         version: 3.1000.0(@aws-sdk/client-dynamodb@3.1000.0)
       '@gremlin/models':
-        specifier: github:OpenGremlin/gremlin-models
-        version: git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8
+        specifier: https://github.com/OpenGremlin/gremlin-models
+        version: https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/cc5cb7a1da2c3774e0e998b359be06c399acffd4
       '@gremlin/providers':
         specifier: workspace:*
         version: link:../providers
@@ -2613,8 +2613,8 @@ packages:
     resolution: {integrity: sha512-ZpJxMqB+Qfe3rp6uszCQoag4nSw42icURnBRfFYSOmTgEeOe4rD0vYlbA8spvCu2TlCesNTlEN9BLWtQqLxabA==}
     engines: {node: '>=18.0.0'}
 
-  '@gremlin/models@git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8':
-    resolution: {commit: 936adf447bb426616f8905b9f3f72903a93061a8, repo: git@github.com:OpenGremlin/gremlin-models.git, type: git}
+  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/cc5cb7a1da2c3774e0e998b359be06c399acffd4':
+    resolution: {tarball: https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/cc5cb7a1da2c3774e0e998b359be06c399acffd4}
     version: 0.1.0
 
   '@img/sharp-darwin-arm64@0.33.5':
@@ -11434,7 +11434,7 @@ snapshots:
       '@repeaterjs/repeater': 3.0.6
       tslib: 2.8.1
 
-  '@gremlin/models@git+https://git@github.com:OpenGremlin/gremlin-models.git#936adf447bb426616f8905b9f3f72903a93061a8': {}
+  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/cc5cb7a1da2c3774e0e998b359be06c399acffd4': {}
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
