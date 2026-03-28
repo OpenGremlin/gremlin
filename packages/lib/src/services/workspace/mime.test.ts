@@ -41,6 +41,11 @@ describe("detectRenderKind", () => {
     expect(detectRenderKind("image/jpeg", ".jpg")).toBe("image");
   });
 
+  it("excludes HEIC/HEIF from image rendering", () => {
+    expect(detectRenderKind("image/heic", ".heic")).toBe("unknown");
+    expect(detectRenderKind("image/heif", ".heif")).toBe("unknown");
+  });
+
   it("detects audio types by MIME", () => {
     expect(detectRenderKind("audio/mpeg", ".mp3")).toBe("audio");
   });

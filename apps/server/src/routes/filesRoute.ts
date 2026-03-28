@@ -20,8 +20,6 @@ const IMAGE_MIME_PREFIXES = [
   "image/gif",
   "image/bmp",
   "image/tiff",
-  "image/heic",
-  "image/heif",
   "image/svg+xml",
   "image/x-icon",
 ];

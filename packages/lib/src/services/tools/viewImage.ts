@@ -112,6 +112,29 @@ export function viewImageTool(_ctx: ServiceContext) {
         };
       }
       const raw = await fs.readFile(output.path);
+
+      // HEIC/HEIF can't be decoded by sharp (no libheif in prebuilt binaries).
+      // Send as-is and let the model handle the raw bytes.
+      const isHeic =
+        output.mediaType === "image/heic" || output.mediaType === "image/heif";
+
+      if (isHeic) {
+        return {
+          type: "content" as const,
+          value: [
+            {
+              type: "image-data" as const,
+              data: raw.toString("base64"),
+              mediaType: output.mediaType,
+            },
+            {
+              type: "text" as const,
+              text: `Image viewed (${Math.round(raw.length / 1024)} KB, HEIC format). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.`,
+            },
+          ],
+        };
+      }
+
       const data = await sharp(raw)
         .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside" })
         .webp({ quality: 90 })

@@ -179,6 +179,10 @@ const CODE_EXTENSIONS = new Set([
 
 const DOCUMENT_EXTENSIONS = new Set([".md", ".markdown", ".txt"]);
 
+// HEIC/HEIF can't be decoded by sharp (no libheif in prebuilt binaries),
+// so we exclude them from image preview rendering.
+const UNSUPPORTED_IMAGE_MIMES = new Set(["image/heic", "image/heif"]);
+
 export function detectRenderKind(mime: string | null, ext: string): RenderKind {
   const lower = ext.toLowerCase();
 
@@ -186,7 +190,8 @@ export function detectRenderKind(mime: string | null, ext: string): RenderKind {
   if (CODE_EXTENSIONS.has(lower)) return "code";
 
   if (mime) {
-    if (mime.startsWith("image/")) return "image";
+    if (mime.startsWith("image/") && !UNSUPPORTED_IMAGE_MIMES.has(mime))
+      return "image";
     if (mime.startsWith("audio/")) return "audio";
     if (mime.startsWith("video/")) return "video";
   }
