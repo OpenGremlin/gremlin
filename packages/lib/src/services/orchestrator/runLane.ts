@@ -66,55 +66,59 @@ export async function runLane(
     core: coreMemories,
   });
 
-  // Run agent turn — on LLM API errors, log the error and retry so the
-  // model can see what went wrong and adapt (e.g. avoid an oversized image).
-  const MAX_ERROR_RETRIES = 2;
+  // Run agent turn. On failure, append the error to the conversation and
+  // run one recovery turn so the model can see what went wrong and respond
+  // to the user (e.g. "that image format isn't supported"). If the recovery
+  // turn also fails (e.g. a poison-pill message in the conversation that
+  // breaks the SDK), return gracefully so the consumer drain loop stays alive.
   let response: string;
-  let errorRetries = 0;
 
-  while (true) {
+  try {
+    response = await runAgentTurn(ctx, {
+      agentId,
+      taskId,
+      systemPrompt,
+      timezone,
+      memoryContext,
+      messages,
+      tools,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    ctx.log.error({ err, agentId, taskId }, "Agent turn failed");
+    await writeAgentLog(ctx, {
+      agentId,
+      taskId,
+      role: "SYSTEM",
+      content: JSON.stringify({
+        type: "error",
+        message: `An error occurred while processing your last action: ${message}`,
+      }),
+    });
+
+    // Recovery turn: rebuild context (now includes the error) and let
+    // the model respond. If this also fails, return gracefully.
     try {
+      const recoveryMessages = await buildContextMessages(ctx, {
+        agentId,
+        taskId,
+      }).then((r) => r.messages);
+
       response = await runAgentTurn(ctx, {
         agentId,
         taskId,
         systemPrompt,
         timezone,
         memoryContext,
-        messages:
-          errorRetries > 0
-            ? await buildContextMessages(ctx, { agentId, taskId }).then(
-                (r) => r.messages,
-              )
-            : messages,
+        messages: recoveryMessages,
         tools,
       });
-      break;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      ctx.log.error({ err, agentId, taskId }, "Agent turn failed");
-      await writeAgentLog(ctx, {
-        agentId,
-        taskId,
-        role: "SYSTEM",
-        content: JSON.stringify({
-          type: "error",
-          message: `An error occurred while processing your last action: ${message}`,
-        }),
-      });
-
-      errorRetries++;
-      if (errorRetries >= MAX_ERROR_RETRIES) {
-        ctx.log.error(
-          { agentId, taskId, errorRetries },
-          "Max error retries reached, giving up",
-        );
-        throw err;
-      }
-
-      ctx.log.info(
-        { agentId, taskId, errorRetries },
-        "Retrying agent turn after error",
+    } catch (recoveryErr) {
+      ctx.log.error(
+        { err: recoveryErr, agentId, taskId },
+        "Recovery turn also failed, returning gracefully",
       );
+      response = "";
     }
   }
 

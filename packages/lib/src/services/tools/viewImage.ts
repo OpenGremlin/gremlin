@@ -14,8 +14,6 @@ const IMAGE_EXTENSIONS = new Set([
   ".gif",
   ".webp",
   ".bmp",
-  ".heic",
-  ".heif",
   ".tiff",
   ".tif",
   ".avif",
@@ -30,8 +28,6 @@ const MIME_TYPES: Record<string, string> = {
   ".gif": "image/gif",
   ".webp": "image/webp",
   ".bmp": "image/bmp",
-  ".heic": "image/heic",
-  ".heif": "image/heif",
   ".tiff": "image/tiff",
   ".tif": "image/tiff",
   ".avif": "image/avif",
@@ -57,7 +53,7 @@ type ViewImageResult =
 export function viewImageTool(_ctx: ServiceContext) {
   return tool({
     description:
-      "View an image file from the workspace. Returns the image so you can see its visual contents. Use full workspace paths (e.g. /workspace/uploads/2026-01-01/photo.png). Supports PNG, JPEG, GIF, WebP, BMP, HEIC, TIFF, AVIF, SVG, and ICO.",
+      "View an image file from the workspace. Returns the image so you can see its visual contents. Use full workspace paths (e.g. /workspace/uploads/2026-01-01/photo.png). Supports PNG, JPEG, GIF, WebP, BMP, TIFF, AVIF, SVG, and ICO.",
     inputSchema: z.object({
       path: z
         .string()
@@ -112,29 +108,6 @@ export function viewImageTool(_ctx: ServiceContext) {
         };
       }
       const raw = await fs.readFile(output.path);
-
-      // HEIC/HEIF can't be decoded by sharp (no libheif in prebuilt binaries).
-      // Send as-is and let the model handle the raw bytes.
-      const isHeic =
-        output.mediaType === "image/heic" || output.mediaType === "image/heif";
-
-      if (isHeic) {
-        return {
-          type: "content" as const,
-          value: [
-            {
-              type: "image-data" as const,
-              data: raw.toString("base64"),
-              mediaType: output.mediaType,
-            },
-            {
-              type: "text" as const,
-              text: `Image viewed (${Math.round(raw.length / 1024)} KB, HEIC format). Note: image content is not retained in conversation history — call viewImage again if you need to re-examine it.`,
-            },
-          ],
-        };
-      }
-
       const data = await sharp(raw)
         .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside" })
         .webp({ quality: 90 })
