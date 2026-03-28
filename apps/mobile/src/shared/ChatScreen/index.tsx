@@ -120,15 +120,16 @@ export function ChatScreen({
 
   // On web, the scaleY(-1) workaround reverses scroll semantics, so the
   // FlatList won't auto-show new items at the bottom like native inverted does.
-  // Scroll to the bottom on initial load (no animation) and whenever new
-  // messages arrive (animated).
+  // Scroll to the bottom on initial load, new messages, and streaming updates.
   const prevMessageCount = useRef(0);
+  const streamingLength = streamingMessage?.content.length ?? 0;
   useEffect(() => {
-    if (Platform.OS !== "web" || messages.length === 0) return;
+    if (Platform.OS !== "web") return;
+    if (messages.length === 0 && !streamingLength) return;
     const isInitial = prevMessageCount.current === 0;
     const hasNew = messages.length > prevMessageCount.current;
     prevMessageCount.current = messages.length;
-    if (isInitial || hasNew) {
+    if (isInitial || hasNew || streamingLength > 0) {
       requestAnimationFrame(() => {
         listRef.current?.scrollToOffset({
           offset: 999999,
@@ -136,7 +137,7 @@ export function ChatScreen({
         });
       });
     }
-  }, [messages.length, listRef]);
+  }, [messages.length, streamingLength, listRef]);
 
   const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(
     agentId,
