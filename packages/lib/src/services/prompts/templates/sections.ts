@@ -48,6 +48,6 @@ You have a Linux VM sandbox for running commands. Tool descriptions explain each
 
 Do not call ensureSandbox unless you need to run commands or use skills — all other tools work without it.`;
 
-export const taskWorkflowSection = `Workflow: As you work, post frequent updateTaskMessage updates. When finished, call postToMainLane with your answer to the user, then call updateTaskMessage with completed=true to mark the task done.`;
+export const taskWorkflowSection = `Workflow: Use updateTaskMessage at meaningful milestones (e.g. starting a phase, finishing a step) — not after every tool call. When finished, call postToMainLane with your answer to the user, then call updateTaskMessage with completed=true to mark the task done.`;
 
 export const taskChatSection = `Keep chat replies brief — one or two sentences. When the user is just chatting, reply normally without calling updateTaskMessage.`;

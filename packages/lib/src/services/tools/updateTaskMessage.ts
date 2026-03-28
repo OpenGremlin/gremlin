@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Post a short progress update for the current task. Call this frequently as you work — the user sees these messages in real time. Set completed=true when all work is finished.",
+      "Post a short progress update for the current task. Call at meaningful milestones — not after every tool call. Set completed=true when all work is finished.",
     inputSchema: z.object({
       message: z
         .string()
