@@ -1,3 +1,4 @@
+import * as ImageManipulator from "expo-image-manipulator";
 import { useCallback, useState } from "react";
 import {
   CompleteFileUploadMutation,
@@ -8,6 +9,31 @@ import { clientLogger } from "../lib/logger";
 import { formatFileSize } from "../shared/formatFileSize";
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const HEIC_TYPES = new Set(["image/heic", "image/heif"]);
+
+/** Convert HEIC/HEIF images to WebP using the platform's native codecs. */
+async function maybeConvertHeic(file: UploadableFile): Promise<UploadableFile> {
+  if (!HEIC_TYPES.has(file.type.toLowerCase())) return file;
+
+  const result = await ImageManipulator.manipulateAsync(file.uri, [], {
+    format: ImageManipulator.SaveFormat.WEBP,
+    compress: 0.9,
+  });
+
+  // Get actual file size — the presigned URL requires a matching ContentLength
+  const res = await fetch(result.uri);
+  const blob = await res.blob();
+
+  const ext = file.name.lastIndexOf(".");
+  const baseName = ext >= 0 ? file.name.slice(0, ext) : file.name;
+
+  return {
+    name: `${baseName}.webp`,
+    size: blob.size,
+    type: "image/webp",
+    uri: result.uri,
+  };
+}
 
 export interface FileUploadState {
   name: string;
@@ -50,6 +76,9 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
   const uploadFiles = useCallback(
     async (files: UploadableFile[]) => {
+      // Convert HEIC images to WebP before uploading
+      files = await Promise.all(files.map(maybeConvertHeic));
+
       const oversized = files.filter((f) => f.size > MAX_FILE_SIZE);
       if (oversized.length > 0) {
         const errorStates: FileUploadState[] = oversized.map((file) => ({
