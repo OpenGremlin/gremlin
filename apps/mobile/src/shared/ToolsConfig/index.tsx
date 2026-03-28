@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { Bot, Globe, Info, Terminal } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
@@ -184,41 +184,47 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   );
 
   // Resolve model for display — use explicit or fall back to default
-  const effectiveChatModel =
-    config.model ??
-    (defaultModel
-      ? {
-          type:
-            defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
-          modelId:
-            defaultModel.providerId === "bedrock"
-              ? defaultModel.modelId
-              : undefined,
-          connectionId:
-            defaultModel.providerId !== "bedrock"
-              ? `${defaultModel.providerId}:${defaultModel.modelId}`
-              : undefined,
-        }
-      : undefined);
+  const effectiveChatModel = useMemo(
+    () =>
+      config.model ??
+      (defaultModel
+        ? {
+            type:
+              defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
+            modelId:
+              defaultModel.providerId === "bedrock"
+                ? defaultModel.modelId
+                : undefined,
+            connectionId:
+              defaultModel.providerId !== "bedrock"
+                ? `${defaultModel.providerId}:${defaultModel.modelId}`
+                : undefined,
+          }
+        : undefined),
+    [config.model, defaultModel],
+  );
 
-  const effectiveImageModel =
-    config.imageModel ??
-    (defaultImageModel
-      ? {
-          type:
-            defaultImageModel.providerId === "bedrock"
-              ? "bedrock"
-              : "connection",
-          modelId:
-            defaultImageModel.providerId === "bedrock"
-              ? defaultImageModel.modelId
-              : undefined,
-          connectionId:
-            defaultImageModel.providerId !== "bedrock"
-              ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
-              : undefined,
-        }
-      : undefined);
+  const effectiveImageModel = useMemo(
+    () =>
+      config.imageModel ??
+      (defaultImageModel
+        ? {
+            type:
+              defaultImageModel.providerId === "bedrock"
+                ? "bedrock"
+                : "connection",
+            modelId:
+              defaultImageModel.providerId === "bedrock"
+                ? defaultImageModel.modelId
+                : undefined,
+            connectionId:
+              defaultImageModel.providerId !== "bedrock"
+                ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
+                : undefined,
+          }
+        : undefined),
+    [config.imageModel, defaultImageModel],
+  );
 
   // Fetch modalities for the selected model
   const configModel = effectiveChatModel;
