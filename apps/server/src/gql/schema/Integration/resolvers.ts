@@ -33,11 +33,21 @@ const integrationProviders: QueryResolvers["integrationProviders"] = (
   ctx,
 ) => ctx.services.integrations.getIntegrations();
 
-const integrationConnections: QueryResolvers["integrationConnections"] = (
+const integrationConnections: QueryResolvers["integrationConnections"] = async (
   _parent,
-  _args,
+  { excludeCategory },
   ctx,
-) => ctx.services.integrations.getConnections(ctx.resources);
+) => {
+  const connections = await ctx.services.integrations.getConnections(
+    ctx.resources,
+  );
+  if (!excludeCategory) return connections;
+  const providers = ctx.services.integrations.getIntegrations();
+  const excludedIds = new Set(
+    providers.filter((p) => p.category === excludeCategory).map((p) => p.id),
+  );
+  return connections.filter((c) => !excludedIds.has(c.providerId));
+};
 
 const defaultModel: QueryResolvers["defaultModel"] = (_parent, _args, ctx) =>
   ctx.services.integrations.getDefaultModel(ctx);

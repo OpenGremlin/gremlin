@@ -797,6 +797,11 @@ export type QueryFileArgs = {
 };
 
 
+export type QueryIntegrationConnectionsArgs = {
+  excludeCategory?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryPendingInboxMessagesArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
@@ -1711,7 +1716,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
-  integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType>;
+  integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType, Partial<QueryIntegrationConnectionsArgs>>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
   pendingCommandApprovals?: Resolver<Array<ResolversTypes['CommandApproval']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;

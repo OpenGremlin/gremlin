@@ -24,7 +24,7 @@ type Query {
   avatars: [Avatar!]!
   pendingCommandApprovals: [CommandApproval!]!
   integrationProviders: [IntegrationProvider!]!
-  integrationConnections: [IntegrationConnection!]!
+  integrationConnections(excludeCategory: String): [IntegrationConnection!]!
   defaultModel: DefaultModel
   defaultImageModel: DefaultModel
   enabledModels(providerId: String!): [String!]!

@@ -50,7 +50,7 @@ export const IntegrationProvidersQuery = graphql(`
 
 export const IntegrationConnectionsQuery = graphql(`
   query IntegrationConnections {
-    integrationConnections {
+    integrationConnections(excludeCategory: "ai") {
       id
       providerId
       provider {

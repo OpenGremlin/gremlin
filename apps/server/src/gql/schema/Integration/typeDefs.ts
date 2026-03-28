@@ -93,7 +93,7 @@ export const integrationTypeDefs = /* GraphQL */ `
 
   extend type Query {
     integrationProviders: [IntegrationProvider!]!
-    integrationConnections: [IntegrationConnection!]!
+    integrationConnections(excludeCategory: String): [IntegrationConnection!]!
     defaultModel: DefaultModel
     defaultImageModel: DefaultModel
     enabledModels(providerId: String!): [String!]!

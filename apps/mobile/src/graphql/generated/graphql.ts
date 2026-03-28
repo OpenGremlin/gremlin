@@ -778,6 +778,11 @@ export type QueryFileArgs = {
 };
 
 
+export type QueryIntegrationConnectionsArgs = {
+  excludeCategory?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryPendingInboxMessagesArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
@@ -2205,7 +2210,7 @@ export const IntegrationProvidersDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<IntegrationProvidersQuery, IntegrationProvidersQueryVariables>;
 export const IntegrationConnectionsDocument = new TypedDocumentString(`
     query IntegrationConnections {
-  integrationConnections {
+  integrationConnections(excludeCategory: "ai") {
     id
     providerId
     provider {
