@@ -171,11 +171,12 @@ export default function ModelsScreen() {
                                   model.modelMode as keyof typeof MODE_ICON
                                 ];
                               return ModeIcon ? (
-                                <ModeIcon
-                                  size={12}
-                                  color={colors.iconMuted}
-                                  className="mr-2"
-                                />
+                                <View style={{ marginRight: 8 }}>
+                                  <ModeIcon
+                                    size={12}
+                                    color={colors.iconMuted}
+                                  />
+                                </View>
                               ) : null;
                             })()}
                             <Text className="text-sm text-text-primary">
