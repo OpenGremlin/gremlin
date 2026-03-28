@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import {
-  BedrockAvailableModelsQuery,
   ConnectApiKeyMutation,
   DisableModelMutation,
   EnabledModelDetailsQuery,
@@ -25,6 +24,7 @@ import { gql } from "../../../../../src/lib/auth";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
+import { Chip } from "../../../../../src/shared/Chip";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import type { ModelDetail } from "../../../../../src/shared/ModelDetailModal";
@@ -188,10 +188,7 @@ function TypedModelList({
                     />
                   ) : isDefault ? (
                     <View className="flex-row items-center gap-3">
-                      <View className="flex-row items-center gap-1.5">
-                        <View className="w-2 h-2 rounded-full bg-accent" />
-                        <Text className="text-xs text-accent">Default</Text>
-                      </View>
+                      <Chip label="Default" />
                       <Pressable
                         hitSlop={8}
                         onPress={(e) => {
@@ -311,7 +308,100 @@ function TypedModelList({
   );
 }
 
-function ApiKeyModelLists({
+function ConnectionCard({
+  provider,
+  refetch,
+}: {
+  provider: {
+    id: string;
+    service: string;
+    connectionType: string;
+    hasConnection: boolean;
+  };
+  refetch: () => void;
+}) {
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (provider.connectionType === "bedrock") {
+    return (
+      <Card className="p-4 flex-row items-center justify-between">
+        <View>
+          <Text className="text-sm text-text-primary">AWS Credentials</Text>
+          <Text className="text-xs text-text-muted mt-0.5">
+            Managed server-side
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-2 h-2 rounded-full bg-green-400" />
+          <Text className="text-xs text-text-muted">Connected</Text>
+        </View>
+      </Card>
+    );
+  }
+
+  if (provider.hasConnection) {
+    return (
+      <Card className="p-4 flex-row items-center justify-between">
+        <View>
+          <Text className="text-sm text-text-primary">API Key</Text>
+          <Text className="text-xs text-text-muted mt-0.5">Configured</Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-2 h-2 rounded-full bg-green-400" />
+          <Text className="text-xs text-text-muted">Active</Text>
+        </View>
+      </Card>
+    );
+  }
+
+  async function handleSaveApiKey() {
+    if (!apiKeyInput.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await gql(ConnectApiKeyMutation, {
+        providerId: provider.id,
+        apiKey: apiKeyInput.trim(),
+      });
+      setApiKeyInput("");
+      refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to connect");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <View className="gap-3">
+      <Text className="text-sm font-medium text-text-primary">API Key</Text>
+      <Input
+        value={apiKeyInput}
+        onChangeText={setApiKeyInput}
+        placeholder={`Enter your ${provider.service} API key`}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+      <Button
+        onPress={handleSaveApiKey}
+        disabled={!apiKeyInput.trim()}
+        loading={saving}
+        fullWidth
+      >
+        Test & Connect
+      </Button>
+      {error ? (
+        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
+          <Text className="text-sm text-red-300">{error}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function ModelLists({
   providerId,
   defaultModel,
   defaultImageModel,
@@ -384,189 +474,6 @@ function ApiKeyModelLists({
   );
 }
 
-function BedrockDetailView({
-  provider,
-  defaultModel,
-  defaultImageModel,
-  refetch,
-  onError,
-}: {
-  provider: { id: string; service: string };
-  defaultModel: DefaultModel;
-  defaultImageModel: DefaultModel;
-  refetch: () => void;
-  onError: (msg: string) => void;
-}) {
-  const colors = useNavigationTheme();
-  const {
-    data: availableData,
-    loading: modelsLoading,
-    refetch: refetchModels,
-  } = useQuery(BedrockAvailableModelsQuery);
-  const { data: enabledData, refetch: refetchEnabled } = useQuery(
-    EnabledModelsQuery,
-    { providerId: provider.id },
-  );
-  const { data: detailsData, refetch: refetchDetails } = useQuery(
-    EnabledModelDetailsQuery,
-    { providerId: provider.id },
-  );
-
-  const allModels = (availableData?.bedrockAvailableModels ?? []).map((m) => ({
-    id: m.id,
-    name: m.name,
-    mode: m.mode,
-  }));
-  const enabledModelIds = enabledData?.enabledModels ?? [];
-  const modelDetails = detailsData?.enabledModelDetails ?? [];
-
-  const defaultsByMode: Record<ModelMode, DefaultModel> = {
-    chat: defaultModel,
-    image_generation: defaultImageModel,
-  };
-
-  const modes = (["chat", "image_generation"] as const).filter((m) =>
-    allModels.some((model) => model.mode === m),
-  );
-
-  return (
-    <>
-      <Card className="p-4 flex-row items-center justify-between">
-        <View>
-          <Text className="text-sm text-text-primary">AWS Credentials</Text>
-          <Text className="text-xs text-text-muted mt-0.5">
-            Managed server-side
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <View className="w-2 h-2 rounded-full bg-green-400" />
-          <Text className="text-xs text-text-muted">Connected</Text>
-        </View>
-      </Card>
-
-      {modelsLoading && (
-        <View className="py-4 items-center">
-          <ActivityIndicator color={colors.accentIndicator} size="small" />
-          <Text className="text-xs text-text-muted mt-2">
-            Fetching models...
-          </Text>
-        </View>
-      )}
-
-      {modes.map((m) => (
-        <TypedModelList
-          key={m}
-          providerId={provider.id}
-          modelMode={m}
-          label={MODEL_MODE_LABELS[m]}
-          allModels={allModels}
-          enabledModelIds={enabledModelIds}
-          modelDetails={modelDetails}
-          defaultModel={defaultsByMode[m]}
-          refetchEnabled={refetchEnabled}
-          refetchDetails={refetchDetails}
-          refetchParent={refetch}
-          refetchModels={refetchModels}
-          onError={onError}
-        />
-      ))}
-    </>
-  );
-}
-
-function ApiKeyDetailView({
-  provider,
-  defaultModel,
-  defaultImageModel,
-  refetch,
-  onError,
-}: {
-  provider: {
-    id: string;
-    service: string;
-    description: string;
-    hasConnection: boolean;
-  };
-  defaultModel: DefaultModel;
-  defaultImageModel: DefaultModel;
-  refetch: () => void;
-  onError: (msg: string) => void;
-}) {
-  const [apiKeyInput, setApiKeyInput] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSaveApiKey() {
-    if (!apiKeyInput.trim()) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await gql(ConnectApiKeyMutation, {
-        providerId: provider.id,
-        apiKey: apiKeyInput.trim(),
-      });
-      setApiKeyInput("");
-      refetch();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to connect");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <>
-      {!provider.hasConnection ? (
-        <View className="gap-3">
-          <Text className="text-sm font-medium text-text-primary">API Key</Text>
-          <Input
-            value={apiKeyInput}
-            onChangeText={setApiKeyInput}
-            placeholder={`Enter your ${provider.service} API key`}
-            secureTextEntry
-            autoCapitalize="none"
-          />
-          <Button
-            onPress={handleSaveApiKey}
-            disabled={!apiKeyInput.trim()}
-            loading={saving}
-            fullWidth
-          >
-            Test & Connect
-          </Button>
-        </View>
-      ) : (
-        <Card className="p-4 flex-row items-center justify-between">
-          <View>
-            <Text className="text-sm text-text-primary">API Key</Text>
-            <Text className="text-xs text-text-muted mt-0.5">Configured</Text>
-          </View>
-          <View className="flex-row items-center gap-1.5">
-            <View className="w-2 h-2 rounded-full bg-green-400" />
-            <Text className="text-xs text-text-muted">Active</Text>
-          </View>
-        </Card>
-      )}
-
-      {error ? (
-        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
-          <Text className="text-sm text-red-300">{error}</Text>
-        </View>
-      ) : null}
-
-      {provider.hasConnection && (
-        <ApiKeyModelLists
-          providerId={provider.id}
-          defaultModel={defaultModel}
-          defaultImageModel={defaultImageModel}
-          refetchParent={refetch}
-          onError={onError}
-        />
-      )}
-    </>
-  );
-}
-
 export default function ModelProviderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error, refetch } = useQuery(IntegrationProvidersQuery);
@@ -615,20 +522,14 @@ export default function ModelProviderDetailScreen() {
           </View>
         </View>
 
-        {provider.connectionType === "bedrock" ? (
-          <BedrockDetailView
-            provider={provider}
+        <ConnectionCard provider={provider} refetch={refetch} />
+
+        {(provider.connectionType === "bedrock" || provider.hasConnection) && (
+          <ModelLists
+            providerId={provider.id}
             defaultModel={defaultModel}
             defaultImageModel={defaultImageModel}
-            refetch={refetch}
-            onError={handleError}
-          />
-        ) : (
-          <ApiKeyDetailView
-            provider={provider}
-            defaultModel={defaultModel}
-            defaultImageModel={defaultImageModel}
-            refetch={refetch}
+            refetchParent={refetch}
             onError={handleError}
           />
         )}

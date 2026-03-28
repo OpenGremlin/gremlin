@@ -100,6 +100,10 @@ const providerModels: QueryResolvers["providerModels"] = async (
   { providerId },
   ctx,
 ) => {
+  // Bedrock uses server-side AWS credentials, no API key needed
+  if (providerId === "bedrock") {
+    return ctx.services.integrations.listBedrockModels();
+  }
   const apiKey = await ctx.services.integrations.getProviderApiKey(
     ctx.resources,
     providerId,

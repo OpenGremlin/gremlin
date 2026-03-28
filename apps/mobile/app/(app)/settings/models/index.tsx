@@ -14,6 +14,7 @@ import { gql } from "../../../../src/lib/auth";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
+import { Chip } from "../../../../src/shared/Chip";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import type { ModelDetail } from "../../../../src/shared/ModelDetailModal";
 import { ModelDetailModal } from "../../../../src/shared/ModelDetailModal";
@@ -52,7 +53,14 @@ export default function ModelsScreen() {
   );
 
   const aiProviders = useMemo(
-    () => providerList.filter((p) => p.category === "ai"),
+    () =>
+      providerList
+        .filter((p) => p.category === "ai")
+        .sort((a, b) => {
+          if (a.id === "bedrock") return -1;
+          if (b.id === "bedrock") return 1;
+          return 0;
+        }),
     [providerList],
   );
 
@@ -174,11 +182,7 @@ export default function ModelsScreen() {
                               {model.modelName ?? model.modelId}
                             </Text>
                             {(isDefaultLLM || isDefaultImage) && (
-                              <View className="rounded-full bg-accent-surface border border-accent-border px-2 py-0.5 ml-2">
-                                <Text className="text-[10px] font-semibold text-accent">
-                                  Default
-                                </Text>
-                              </View>
+                              <Chip label="Default" className="ml-2" />
                             )}
                           </Pressable>
                         );
