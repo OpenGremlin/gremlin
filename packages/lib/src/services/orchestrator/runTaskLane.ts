@@ -1,5 +1,8 @@
 import type { ServiceContext } from "../context.js";
-import { renderPrompt } from "../prompts/index.js";
+import {
+  renderTaskSystemPrompt,
+  resolvePromptFlags,
+} from "../prompts/index.js";
 import type { Attachment } from "../tasks/attachment.js";
 import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
 import { runLane } from "./runLane.js";
@@ -31,14 +34,22 @@ export async function runTaskLane(
     attachments: opts?.attachments,
   });
 
-  let systemPrompt = renderPrompt("taskSystem", {
-    name: agent.name,
-    soul: agent.soul,
-    userDisplayName: displayName,
-    userAbout: profile?.about,
-    taskTitle: task.title,
-    taskId,
+  const flags = resolvePromptFlags(agent.config, {
+    modelSupportsImages: agentLaneCtx.modelSupportsImages,
+    hasSkills: !!agentLaneCtx.skillSummary.promptSection,
   });
+
+  let systemPrompt = renderTaskSystemPrompt(
+    {
+      name: agent.name,
+      soul: agent.soul,
+      userDisplayName: displayName,
+      userAbout: profile?.about,
+      taskTitle: task.title,
+      taskId,
+    },
+    flags,
+  );
 
   if (skillSummary.promptSection) {
     systemPrompt += `\n\n${skillSummary.promptSection}`;

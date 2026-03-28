@@ -22,7 +22,10 @@ import {
   buildTaskTools,
 } from "../../services/orchestrator/agentLaneContext.js";
 import { buildMemoryContext } from "../../services/orchestrator/buildMemoryContext.js";
-import { renderPrompt } from "../../services/prompts/index.js";
+import {
+  renderTaskSystemPrompt,
+  resolvePromptFlags,
+} from "../../services/prompts/index.js";
 
 export interface InvokeContext extends AgentLaneContext {
   ctx: ServiceContext;
@@ -78,14 +81,22 @@ const [agentCtx, memories, coreMemories] = await Promise.all([
   }),
 ]);
 
-let systemPrompt = renderPrompt("taskSystem", {
-  name: agentCtx.agent.name,
-  soul: agentCtx.agent.soul,
-  userDisplayName: agentCtx.displayName,
-  userAbout: agentCtx.profile?.about,
-  taskTitle: "(test task)",
-  taskId,
+const agent = agentCtx.agent;
+const flags = resolvePromptFlags(agent.config, {
+  modelSupportsImages: true,
+  hasSkills: !!agentCtx.skillSummary.promptSection,
 });
+let systemPrompt = renderTaskSystemPrompt(
+  {
+    name: agent.name,
+    soul: agent.soul,
+    userDisplayName: agentCtx.displayName,
+    userAbout: agentCtx.profile?.about,
+    taskTitle: "(test task)",
+    taskId,
+  },
+  flags,
+);
 
 if (agentCtx.skillSummary.promptSection) {
   systemPrompt += "\n\n" + agentCtx.skillSummary.promptSection;

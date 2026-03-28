@@ -1,5 +1,5 @@
 import type { ServiceContext } from "../context.js";
-import { renderPrompt } from "../prompts/index.js";
+import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
   delegateTaskTool,
   listJobsTool,
@@ -26,15 +26,23 @@ export async function runMainLane(
 ): Promise<string> {
   const { agent, profile, displayName, timezone } = agentLaneCtx;
 
+  const flags = resolvePromptFlags(agent.config, {
+    modelSupportsImages: agentLaneCtx.modelSupportsImages,
+    hasSkills: !!agentLaneCtx.skillSummary.promptSection,
+  });
+
   return runLane(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderPrompt("system", {
-      name: agent.name,
-      soul: agent.soul,
-      userDisplayName: displayName,
-      userAbout: profile?.about,
-    }),
+    systemPrompt: renderSystemPrompt(
+      {
+        name: agent.name,
+        soul: agent.soul,
+        userDisplayName: displayName,
+        userAbout: profile?.about,
+      },
+      flags,
+    ),
     tools: {
       delegateTask: delegateTaskTool(ctx, agentId),
       readDocument: readDocumentTool(),
@@ -43,9 +51,7 @@ export async function runMainLane(
       listJobs: listJobsTool(ctx, agentId),
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
-      ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
-        ? { viewImage: viewImageTool(ctx) }
-        : {}),
+      ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
     },
     recallHint,
     timezone,

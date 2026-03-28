@@ -57,7 +57,7 @@ type ViewImageResult =
 export function viewImageTool(_ctx: ServiceContext) {
   return tool({
     description:
-      "View an image file from the workspace. Returns the image so you can see its visual contents. Supports PNG, JPEG, GIF, WebP, BMP, HEIC, TIFF, AVIF, SVG, and ICO.",
+      "View an image file from the workspace. Returns the image so you can see its visual contents. Use full workspace paths (e.g. /workspace/uploads/2026-01-01/photo.png). Supports PNG, JPEG, GIF, WebP, BMP, HEIC, TIFF, AVIF, SVG, and ICO.",
     inputSchema: z.object({
       path: z
         .string()

@@ -1,6 +1,9 @@
 // biome-ignore-all lint: Debug-only code
 
-import { renderPrompt } from "../../../services/prompts/index.js";
+import {
+  renderSystemPrompt,
+  resolvePromptFlags,
+} from "../../../services/prompts/index.js";
 import {
   delegateTaskTool,
   listJobsTool,
@@ -17,12 +20,20 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
   const { ctx, agentId, memoryContext } = invokeCtx;
   const { agent, displayName, profile } = invokeCtx;
 
-  const systemPrompt = renderPrompt("system", {
-    name: agent.name,
-    soul: agent.soul,
-    userDisplayName: displayName,
-    userAbout: profile?.about,
+  const flags = resolvePromptFlags(agent.config, {
+    modelSupportsImages: true,
+    hasSkills: false,
   });
+
+  const systemPrompt = renderSystemPrompt(
+    {
+      name: agent.name,
+      soul: agent.soul,
+      userDisplayName: displayName,
+      userAbout: profile?.about,
+    },
+    flags,
+  );
 
   const tools: Record<string, any> = {
     delegateTask: delegateTaskTool(ctx, agentId),
@@ -32,9 +43,7 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
     listJobs: listJobsTool(ctx, agentId),
     scheduleJob: scheduleJobTool(ctx, agentId),
     updateJob: updateJobTool(ctx, agentId),
-    ...(agent.config?.viewImage?.enabled
-      ? { viewImage: viewImageTool(ctx) }
-      : {}),
+    ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
   };
 
   const tz = "UTC";
