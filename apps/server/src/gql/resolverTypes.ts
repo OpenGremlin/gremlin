@@ -55,6 +55,7 @@ export type AgentImageUrlArgs = {
 
 export type AgentConfig = {
   __typename?: 'AgentConfig';
+  imageModel?: Maybe<AgentModelConfig>;
   model?: Maybe<AgentModelConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
@@ -62,6 +63,7 @@ export type AgentConfig = {
 };
 
 export type AgentConfigInput = {
+  imageModel?: InputMaybe<AgentModelConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
@@ -1317,6 +1319,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
 };
 
 export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
+  imageModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;

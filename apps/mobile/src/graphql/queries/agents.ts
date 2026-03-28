@@ -16,6 +16,11 @@ export const AgentDetailFragment = graphql(`
         modelId
         connectionId
       }
+      imageModel {
+        type
+        modelId
+        connectionId
+      }
       sandbox {
         enabled
         idleTimeoutMinutes

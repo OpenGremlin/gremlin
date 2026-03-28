@@ -22,7 +22,11 @@ export function ModelPicker({
   model,
   providers,
   onSelect,
+  onSelectDefault,
   onClose,
+  mode,
+  defaultLabel,
+  isUsingDefault,
 }: {
   model?: {
     type: string;
@@ -35,7 +39,14 @@ export function ModelPicker({
     modelId?: string;
     connectionId?: string;
   }) => void;
+  /** Called when the user picks "Use default". If provided, a default option is shown. */
+  onSelectDefault?: () => void;
   onClose: () => void;
+  mode?: "chat" | "image_generation";
+  /** Label shown for the default option, e.g. "Use default (Bedrock / Claude Sonnet)" */
+  defaultLabel?: string;
+  /** Whether the default option is currently selected */
+  isUsingDefault?: boolean;
 }) {
   const colors = useNavigationTheme();
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
@@ -47,7 +58,9 @@ export function ModelPicker({
   const options: ModelOption[] = [];
 
   // Bedrock enabled models — resolve names from available models list
-  const bedrockEnabled = allEnabled.filter((e) => e.providerId === "bedrock");
+  const bedrockEnabled = allEnabled.filter(
+    (e) => e.providerId === "bedrock" && (!mode || e.modelMode === mode),
+  );
   for (const entry of bedrockEnabled) {
     const info = bedrockAvailableModels.find((m) => m.id === entry.modelId);
     options.push({
@@ -64,7 +77,7 @@ export function ModelPicker({
   );
   for (const provider of apiProviders) {
     const providerEnabled = allEnabled.filter(
-      (e) => e.providerId === provider.id,
+      (e) => e.providerId === provider.id && (!mode || e.modelMode === mode),
     );
     for (const entry of providerEnabled) {
       options.push({
@@ -103,7 +116,7 @@ export function ModelPicker({
 
   return (
     <SheetModal visible title="Choose Model" onClose={onClose}>
-      {options.length === 0 ? (
+      {options.length === 0 && !onSelectDefault ? (
         <View className="py-12 items-center">
           <Text className="text-sm text-text-muted">No models available</Text>
         </View>
@@ -112,9 +125,29 @@ export function ModelPicker({
           data={options}
           keyExtractor={(item) => item.key}
           contentContainerClassName="pb-6"
+          ListHeaderComponent={
+            onSelectDefault ? (
+              <Pressable
+                onPress={() => {
+                  onSelectDefault();
+                  onClose();
+                }}
+                className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
+              >
+                <Text
+                  className={`text-sm ${isUsingDefault ? "text-indigo-300" : "text-text-secondary"}`}
+                >
+                  {defaultLabel ?? "Use default"}
+                </Text>
+                {isUsingDefault && (
+                  <Check size={14} color={colors.accentIndicator} />
+                )}
+              </Pressable>
+            ) : undefined
+          }
           renderItem={({ item }) => {
             const showHeader = sectionStarts.has(item.key);
-            const selected = isSelected(item);
+            const selected = !isUsingDefault && isSelected(item);
             return (
               <>
                 {showHeader && (

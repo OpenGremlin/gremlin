@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { Bot, Globe, Info, Terminal } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -23,6 +24,7 @@ type Agent = NonNullable<AgentQueryType["agent"]>;
 
 interface PlainConfig {
   model?: { type: string; modelId?: string; connectionId?: string };
+  imageModel?: { type: string; modelId?: string; connectionId?: string };
   sandbox?: {
     enabled: boolean;
     idleTimeoutMinutes?: number;
@@ -40,6 +42,13 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           type: config.model.type,
           modelId: config.model.modelId ?? undefined,
           connectionId: config.model.connectionId ?? undefined,
+        }
+      : undefined,
+    imageModel: config?.imageModel
+      ? {
+          type: config.imageModel.type,
+          modelId: config.imageModel.modelId ?? undefined,
+          connectionId: config.imageModel.connectionId ?? undefined,
         }
       : undefined,
     sandbox: config?.sandbox
@@ -117,12 +126,15 @@ function resolveModelIds(
 
 export function ToolsConfig({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
+  const router = useRouter();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
   const { data: bedrockAvailableData } = useQuery(BedrockAvailableModelsQuery);
   const providers = providersData?.integrationProviders ?? [];
   const allEnabled = enabledData?.allEnabledModels ?? [];
   const bedrockModels = bedrockAvailableData?.bedrockAvailableModels ?? [];
+  const defaultModel = providersData?.defaultModel ?? null;
+  const defaultImageModel = providersData?.defaultImageModel ?? null;
   const webSearchProviders = providers.filter(
     (p) => p.category === "web" && p.hasConnection,
   );
@@ -133,6 +145,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   );
   const [saving, setSaving] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
 
@@ -145,6 +158,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   }
 
   const config = localConfig;
+
+  // Whether using defaults
+  const usingDefaultChatModel = !config.model;
+  const usingDefaultImageModel = !config.imageModel;
+  const generateImagesEnabled = !!config.imageModel || !!defaultImageModel;
 
   const updateConfig = useCallback(
     async (patch: Partial<PlainConfig>) => {
@@ -161,8 +179,45 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     [agent.id],
   );
 
+  // Resolve model for display — use explicit or fall back to default
+  const effectiveChatModel =
+    config.model ??
+    (defaultModel
+      ? {
+          type:
+            defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
+          modelId:
+            defaultModel.providerId === "bedrock"
+              ? defaultModel.modelId
+              : undefined,
+          connectionId:
+            defaultModel.providerId !== "bedrock"
+              ? `${defaultModel.providerId}:${defaultModel.modelId}`
+              : undefined,
+        }
+      : undefined);
+
+  const effectiveImageModel =
+    config.imageModel ??
+    (defaultImageModel
+      ? {
+          type:
+            defaultImageModel.providerId === "bedrock"
+              ? "bedrock"
+              : "connection",
+          modelId:
+            defaultImageModel.providerId === "bedrock"
+              ? defaultImageModel.modelId
+              : undefined,
+          connectionId:
+            defaultImageModel.providerId !== "bedrock"
+              ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
+              : undefined,
+        }
+      : undefined);
+
   // Fetch modalities for the selected model
-  const configModel = config.model;
+  const configModel = effectiveChatModel;
   useEffect(() => {
     const ids = resolveModelIds(configModel);
     if (!ids) {
@@ -193,12 +248,61 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     }
   }, [supportsImages, config.viewImage?.enabled, updateConfig]);
 
-  const modelLabel = getModelLabel(
-    config.model,
+  const chatModelLabel = getModelLabel(
+    effectiveChatModel,
     providersData,
     allEnabled,
     bedrockModels,
   );
+
+  const imageModelLabel = getModelLabel(
+    effectiveImageModel,
+    providersData,
+    allEnabled,
+    bedrockModels,
+  );
+
+  const defaultChatModelLabel = defaultModel
+    ? getModelLabel(
+        {
+          type:
+            defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
+          modelId:
+            defaultModel.providerId === "bedrock"
+              ? defaultModel.modelId
+              : undefined,
+          connectionId:
+            defaultModel.providerId !== "bedrock"
+              ? `${defaultModel.providerId}:${defaultModel.modelId}`
+              : undefined,
+        },
+        providersData,
+        allEnabled,
+        bedrockModels,
+      )
+    : null;
+
+  const defaultImageModelLabel = defaultImageModel
+    ? getModelLabel(
+        {
+          type:
+            defaultImageModel.providerId === "bedrock"
+              ? "bedrock"
+              : "connection",
+          modelId:
+            defaultImageModel.providerId === "bedrock"
+              ? defaultImageModel.modelId
+              : undefined,
+          connectionId:
+            defaultImageModel.providerId !== "bedrock"
+              ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
+              : undefined,
+        },
+        providersData,
+        allEnabled,
+        bedrockModels,
+      )
+    : null;
 
   return (
     <View className="gap-3">
@@ -209,88 +313,156 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         {saving && <Text className="text-xs text-text-faint">saving...</Text>}
       </View>
 
-      {/* Model */}
+      {/* Models */}
       <Card className="overflow-hidden">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <View className="flex-row items-center gap-3 flex-1">
-            <Bot size={18} color={colors.iconDefault} />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-text-secondary">
-                Model
-              </Text>
-              <Text className="text-xs text-text-muted">
-                LLM provider for inference
-              </Text>
-            </View>
+        <View className="flex-row items-center gap-3 px-4 py-3">
+          <Bot size={18} color={colors.iconDefault} />
+          <View className="flex-1">
+            <Text className="text-sm font-medium text-text-secondary">
+              Models
+            </Text>
           </View>
-          <Toggle
-            enabled={!!config.model}
-            onChange={() =>
-              updateConfig({
-                model: config.model
-                  ? undefined
-                  : {
-                      type: "bedrock",
-                      modelId: "us.anthropic.claude-sonnet-4-6",
-                    },
-              })
-            }
-          />
         </View>
-        {config.model && (
-          <View className="mx-4 mb-3 ml-11 flex-row items-center gap-2">
+
+        {/* Chat Model */}
+        <View className="px-4 pb-3 ml-7 gap-2">
+          <Text className="text-sm text-text-secondary">Chat Model</Text>
+          {!defaultModel && usingDefaultChatModel && (
+            <View className="gap-1">
+              <Text className="text-xs text-error">
+                No default model configured.
+              </Text>
+              <Pressable onPress={() => router.push("/settings/models")}>
+                <Text className="text-xs text-accent-primary">
+                  Go to Models settings
+                </Text>
+              </Pressable>
+            </View>
+          )}
+          <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => setModelPickerOpen(true)}
               className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
             >
-              <Text className="text-sm text-text-secondary">{modelLabel}</Text>
+              <Text className="text-sm text-text-secondary">
+                {usingDefaultChatModel
+                  ? defaultChatModelLabel
+                    ? `Use default (${defaultChatModelLabel})`
+                    : "Use default"
+                  : chatModelLabel}
+              </Text>
             </Pressable>
-            <Pressable
-              onPress={async () => {
-                const ids = resolveModelIds(config.model);
-                if (!ids) return;
-                const result = await gql(EnabledModelDetailsQuery, {
-                  providerId: ids.providerId,
-                });
-                const detail = result.enabledModelDetails.find(
-                  (d) => d.id === ids.modelId,
-                );
-                if (detail) setModelDetail(detail);
-              }}
-              className="p-2"
-            >
-              <Info size={18} color={colors.iconDefault} />
-            </Pressable>
-          </View>
-        )}
-        {config.model && (
-          <View className="px-4 pb-3 ml-7">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1">
-                <Text className="text-sm text-text-secondary">View Images</Text>
-                <Text className="text-xs text-text-muted">
-                  {!config.sandbox?.enabled
-                    ? "Requires Sandbox to be enabled"
-                    : !supportsImages
-                      ? "Selected model does not support images"
-                      : "Let the agent see image files"}
-                </Text>
-              </View>
-              <Toggle
-                enabled={
-                  supportsImages &&
-                  !!config.sandbox?.enabled &&
-                  (config.viewImage?.enabled ?? false)
-                }
-                disabled={!config.sandbox?.enabled || !supportsImages}
-                onChange={() => {
-                  const wasEnabled = config.viewImage?.enabled ?? false;
-                  updateConfig({ viewImage: { enabled: !wasEnabled } });
+            {!usingDefaultChatModel && (
+              <Pressable
+                onPress={async () => {
+                  const ids = resolveModelIds(config.model);
+                  if (!ids) return;
+                  const result = await gql(EnabledModelDetailsQuery, {
+                    providerId: ids.providerId,
+                  });
+                  const detail = result.enabledModelDetails.find(
+                    (d) => d.id === ids.modelId,
+                  );
+                  if (detail) setModelDetail(detail);
                 }}
-              />
-            </View>
+                className="p-2"
+              >
+                <Info size={18} color={colors.iconDefault} />
+              </Pressable>
+            )}
           </View>
-        )}
+
+          {/* View Images */}
+          <View className="flex-row items-center justify-between mt-1">
+            <View className="flex-1">
+              <Text className="text-sm text-text-secondary">View Images</Text>
+              <Text className="text-xs text-text-muted">
+                {!config.sandbox?.enabled
+                  ? "Requires Sandbox to be enabled"
+                  : !supportsImages
+                    ? "Selected model does not support images"
+                    : "Let the agent see image files"}
+              </Text>
+            </View>
+            <Toggle
+              enabled={
+                supportsImages &&
+                !!config.sandbox?.enabled &&
+                (config.viewImage?.enabled ?? false)
+              }
+              disabled={!config.sandbox?.enabled || !supportsImages}
+              onChange={() => {
+                const wasEnabled = config.viewImage?.enabled ?? false;
+                updateConfig({ viewImage: { enabled: !wasEnabled } });
+              }}
+            />
+          </View>
+
+          {/* Enable Image Generation Model */}
+          <View className="flex-row items-center justify-between mt-1">
+            <Text className="text-sm text-text-secondary">
+              Enable Image Generation Model
+            </Text>
+            <Toggle
+              enabled={generateImagesEnabled}
+              onChange={() => {
+                if (generateImagesEnabled) {
+                  updateConfig({ imageModel: undefined });
+                } else if (!defaultImageModel) {
+                  setImageModelPickerOpen(true);
+                }
+              }}
+            />
+          </View>
+          {generateImagesEnabled && (
+            <>
+              {!defaultImageModel && usingDefaultImageModel && (
+                <View className="gap-1">
+                  <Text className="text-xs text-error">
+                    No default image model configured.
+                  </Text>
+                  <Pressable onPress={() => router.push("/settings/models")}>
+                    <Text className="text-xs text-accent-primary">
+                      Go to Models settings
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+              <View className="flex-row items-center gap-2">
+                <Pressable
+                  onPress={() => setImageModelPickerOpen(true)}
+                  className="flex-1 px-3 py-2.5 bg-surface-alt border border-app-border rounded-lg"
+                >
+                  <Text className="text-sm text-text-secondary">
+                    {usingDefaultImageModel
+                      ? defaultImageModelLabel
+                        ? `Use default (${defaultImageModelLabel})`
+                        : "Use default"
+                      : imageModelLabel}
+                  </Text>
+                </Pressable>
+                {!usingDefaultImageModel && (
+                  <Pressable
+                    onPress={async () => {
+                      const ids = resolveModelIds(config.imageModel);
+                      if (!ids) return;
+                      const result = await gql(EnabledModelDetailsQuery, {
+                        providerId: ids.providerId,
+                      });
+                      const detail = result.enabledModelDetails.find(
+                        (d) => d.id === ids.modelId,
+                      );
+                      if (detail) setModelDetail(detail);
+                    }}
+                    className="p-2"
+                  >
+                    <Info size={18} color={colors.iconDefault} />
+                  </Pressable>
+                )}
+              </View>
+            </>
+          )}
+        </View>
       </Card>
 
       {/* Sandbox */}
@@ -327,49 +499,14 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         </View>
         {config.sandbox?.enabled && (
           <View className="mx-4 mb-3 ml-11 gap-3">
-            <View>
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-sm text-text-secondary">
-                  Command approval
-                </Text>
-              </View>
-              <View className="flex-row flex-wrap gap-1.5">
-                {(["ask", "skip"] as const).map((mode) => {
-                  const sandbox = config.sandbox ?? {
-                    enabled: true,
-                    commandApproval: "ask",
-                  };
-                  const current = sandbox.commandApproval ?? "ask";
-                  const selected = current === mode;
-                  const label =
-                    mode === "ask" ? "Ask user" : "Dangerously skip approval";
-                  return (
-                    <Pressable
-                      key={mode}
-                      onPress={() =>
-                        updateConfig({
-                          sandbox: { ...sandbox, commandApproval: mode },
-                        })
-                      }
-                      className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                    >
-                      <Text
-                        className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
             <View className="flex-row items-center justify-between">
               <View>
                 <Text className="text-sm text-text-secondary">
-                  Keep running
+                  Sandbox Always On
                 </Text>
                 <Text className="text-xs text-text-muted">
-                  Don't shut down after idle timeout
+                  Don't shut down sandbox after idle time. Sandbox takes about 2
+                  minutes to restart.
                 </Text>
               </View>
               <Toggle
@@ -392,7 +529,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               <View>
                 <View className="flex-row items-center justify-between mb-1">
                   <Text className="text-sm text-text-secondary">
-                    Idle shutdown
+                    Idle Shutdown
                   </Text>
                   <Text className="text-sm text-text-muted">
                     {config.sandbox.idleTimeoutMinutes ?? 20} min
@@ -430,6 +567,42 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 </View>
               </View>
             )}
+            <View>
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-sm text-text-secondary">
+                  Command Approval
+                </Text>
+              </View>
+              <View className="flex-row flex-wrap gap-1.5">
+                {(["ask", "skip"] as const).map((mode) => {
+                  const sandbox = config.sandbox ?? {
+                    enabled: true,
+                    commandApproval: "ask",
+                  };
+                  const current = sandbox.commandApproval ?? "ask";
+                  const selected = current === mode;
+                  const label =
+                    mode === "ask" ? "Ask user" : "Dangerously skip approval";
+                  return (
+                    <Pressable
+                      key={mode}
+                      onPress={() =>
+                        updateConfig({
+                          sandbox: { ...sandbox, commandApproval: mode },
+                        })
+                      }
+                      className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                    >
+                      <Text
+                        className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
             {config.sandbox?.commandApproval === "ask" && (
               <AllowlistConfig agentId={agent.id} />
             )}
@@ -515,8 +688,33 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         <ModelPicker
           model={config.model}
           providers={providers}
+          mode="chat"
           onSelect={(value) => updateConfig({ model: value })}
+          onSelectDefault={() => updateConfig({ model: undefined })}
+          defaultLabel={
+            defaultChatModelLabel
+              ? `Use default (${defaultChatModelLabel})`
+              : "Use default"
+          }
+          isUsingDefault={usingDefaultChatModel}
           onClose={() => setModelPickerOpen(false)}
+        />
+      )}
+
+      {imageModelPickerOpen && (
+        <ModelPicker
+          model={config.imageModel}
+          providers={providers}
+          mode="image_generation"
+          onSelect={(value) => updateConfig({ imageModel: value })}
+          onSelectDefault={() => updateConfig({ imageModel: undefined })}
+          defaultLabel={
+            defaultImageModelLabel
+              ? `Use default (${defaultImageModelLabel})`
+              : "Use default"
+          }
+          isUsingDefault={usingDefaultImageModel}
+          onClose={() => setImageModelPickerOpen(false)}
         />
       )}
 

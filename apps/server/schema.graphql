@@ -368,6 +368,7 @@ type AgentViewImageConfig {
 
 type AgentConfig {
   model: AgentModelConfig
+  imageModel: AgentModelConfig
   sandbox: AgentSandboxConfig
   webSearch: AgentWebSearchConfig
   viewImage: AgentViewImageConfig
@@ -409,6 +410,7 @@ input AgentViewImageConfigInput {
 
 input AgentConfigInput {
   model: AgentModelConfigInput
+  imageModel: AgentModelConfigInput
   sandbox: AgentSandboxConfigInput
   webSearch: AgentWebSearchConfigInput
   viewImage: AgentViewImageConfigInput

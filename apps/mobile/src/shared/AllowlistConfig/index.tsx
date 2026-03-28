@@ -53,7 +53,7 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
   return (
     <View>
       <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-sm text-text-secondary">Allowed commands</Text>
+        <Text className="text-sm text-text-secondary">Allowed Commands</Text>
         <Pressable
           onPress={() => setAdding(true)}
           className="flex-row items-center gap-1 px-2 py-1"

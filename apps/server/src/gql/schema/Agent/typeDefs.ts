@@ -23,6 +23,7 @@ export const agentTypeDefs = /* GraphQL */ `
 
   type AgentConfig {
     model: AgentModelConfig
+    imageModel: AgentModelConfig
     sandbox: AgentSandboxConfig
     webSearch: AgentWebSearchConfig
     viewImage: AgentViewImageConfig
@@ -69,6 +70,7 @@ export const agentTypeDefs = /* GraphQL */ `
 
   input AgentConfigInput {
     model: AgentModelConfigInput
+    imageModel: AgentModelConfigInput
     sandbox: AgentSandboxConfigInput
     webSearch: AgentWebSearchConfigInput
     viewImage: AgentViewImageConfigInput

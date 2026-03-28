@@ -25,6 +25,11 @@ export const AgentEntity = new Entity({
         modelId: string().optional(), // for bedrock
         connectionId: string().optional(), // for connection
       }).optional(),
+      imageModel: map({
+        type: string(),
+        modelId: string().optional(),
+        connectionId: string().optional(),
+      }).optional(),
       sandbox: map({
         enabled: boolean(),
         idleTimeoutMinutes: number().optional(),

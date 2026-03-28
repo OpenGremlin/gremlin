@@ -11,6 +11,11 @@ interface UpdateAgentInput {
   ttsVoice?: string | null;
   config?: {
     model?: { type: string; modelId?: string; connectionId?: string } | null;
+    imageModel?: {
+      type: string;
+      modelId?: string;
+      connectionId?: string;
+    } | null;
     sandbox?: { enabled: boolean } | null;
     webSearch?: { enabled: boolean; provider?: string } | null;
     browser?: { enabled: boolean } | null;
