@@ -8,18 +8,17 @@ RUN turbo prune @gremlin/server --out-dir /pruned
 # Stage 2: install dependencies + build
 FROM node:20-slim AS build
 WORKDIR /workspace
-RUN apt-get update && apt-get install -y --no-install-recommends git openssh-client \
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY --from=prune /pruned/ .
 COPY tsconfig.base.json .
-RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN --mount=type=ssh pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm turbo build --filter=@gremlin/server
 
 # Stage 3: bundle with pnpm deploy
 FROM build AS deploy
-RUN --mount=type=ssh pnpm --filter @gremlin/server deploy --prod --ignore-scripts /deploy
+RUN pnpm --filter @gremlin/server deploy --prod --ignore-scripts /deploy
 
 # Stage 4: runtime
 FROM node:20-slim AS runtime
