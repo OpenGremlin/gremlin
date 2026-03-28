@@ -1,7 +1,14 @@
 import { useEffect, useRef } from "react";
-import { Animated, Easing, View } from "react-native";
+import { Animated, Easing, Platform, View } from "react-native";
 import type { StreamingMessage } from "../../hooks/useAgentStream";
 import { Markdown } from "./Markdown";
+
+const dotStyle = {
+  width: 8,
+  height: 8,
+  borderRadius: 4,
+  backgroundColor: "#888",
+};
 
 function TypingDots() {
   const dot1 = useRef(new Animated.Value(0.3)).current;
@@ -9,6 +16,7 @@ function TypingDots() {
   const dot3 = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
+    const useNativeDriver = Platform.OS !== "web";
     const animate = (dot: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
@@ -17,13 +25,13 @@ function TypingDots() {
             toValue: 1,
             duration: 300,
             easing: Easing.ease,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(dot, {
             toValue: 0.3,
             duration: 300,
             easing: Easing.ease,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ]),
       );
@@ -43,18 +51,9 @@ function TypingDots() {
 
   return (
     <View className="flex-row items-center gap-1 py-1 px-1">
-      <Animated.View
-        style={{ opacity: dot1 }}
-        className="w-2 h-2 rounded-full bg-text-muted"
-      />
-      <Animated.View
-        style={{ opacity: dot2 }}
-        className="w-2 h-2 rounded-full bg-text-muted"
-      />
-      <Animated.View
-        style={{ opacity: dot3 }}
-        className="w-2 h-2 rounded-full bg-text-muted"
-      />
+      <Animated.View style={[dotStyle, { opacity: dot1 }]} />
+      <Animated.View style={[dotStyle, { opacity: dot2 }]} />
+      <Animated.View style={[dotStyle, { opacity: dot3 }]} />
     </View>
   );
 }
