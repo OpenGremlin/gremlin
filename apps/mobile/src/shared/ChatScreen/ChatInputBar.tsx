@@ -2,6 +2,7 @@ import { ArrowUp, Paperclip } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   Text,
   TextInput,
@@ -82,15 +83,11 @@ export function ChatInputBar({
 }: ChatInputBarProps) {
   const colors = useNavigationTheme();
   const inputRef = useRef<TextInput>(null);
-  const baseHeight = useRef(0);
-  const [inputHeight, setInputHeight] = useState(0);
+  const isWeb = Platform.OS === "web";
+  const [webHeight, setWebHeight] = useState(0);
   const hasText = input.trim().length > 0;
   const canSend = hasText && !sending;
   const hasUploads = uploads.length > 0;
-
-  useEffect(() => {
-    if (input === "") setInputHeight(baseHeight.current);
-  }, [input]);
 
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 300);
@@ -117,49 +114,52 @@ export function ChatInputBar({
         </View>
       )}
 
-      <View className="flex-row gap-1.5 bg-surface border border-app-border rounded-3xl pl-1.5 pr-1.5 py-1">
-        <View style={{ justifyContent: "flex-end", paddingBottom: 2 }}>
+      <View className="flex-row items-end gap-1.5 bg-surface border border-app-border rounded-3xl pl-1.5 pr-1.5 py-1">
+        <View style={{ paddingBottom: 2 }}>
           <Pressable
             onPress={onPickFiles}
             disabled={isUploading}
             className={`rounded-full items-center justify-center ${isUploading ? "opacity-50" : "active:bg-surface-alt"}`}
-            style={{ width: 34, height: 34 }}
+            style={{ width: 30, height: 30 }}
           >
             {isUploading ? (
               <ActivityIndicator size="small" color={colors.iconMuted} />
             ) : (
-              <Paperclip size={17} color={colors.iconMuted} />
+              <Paperclip size={16} color={colors.iconMuted} />
             )}
           </Pressable>
         </View>
 
         <TextInput
           ref={inputRef}
-          className="flex-1 text-text-primary text-base leading-[20px] px-1 py-1.5 outline-none"
-          style={
-            inputHeight > 0 ? { height: Math.min(140, inputHeight) } : undefined
-          }
+          className="flex-1 text-text-primary text-base leading-[20px] px-1 outline-none"
+          style={{
+            ...(!isWeb && { minHeight: 34 }),
+            ...(isWeb && webHeight > 0 && { height: Math.min(140, webHeight) }),
+            maxHeight: 140,
+            paddingVertical: 7,
+          }}
           value={input}
           onChangeText={setInput}
-          onContentSizeChange={(e) => {
-            const h = e.nativeEvent.contentSize.height;
-            if (baseHeight.current === 0) baseHeight.current = h;
-            setInputHeight(h);
-          }}
+          onContentSizeChange={
+            isWeb
+              ? (e) => setWebHeight(e.nativeEvent.contentSize.height)
+              : undefined
+          }
           placeholder="Message..."
           placeholderTextColor={colors.placeholderText}
           multiline
-          numberOfLines={1}
+          {...(isWeb ? { rows: 1 } : {})}
           blurOnSubmit={false}
         />
 
         {(canSend || sending) && (
-          <View style={{ justifyContent: "flex-end", paddingBottom: 2 }}>
+          <View style={{ paddingBottom: 2 }}>
             <Pressable
               onPress={onSend}
               disabled={!canSend}
               className={`rounded-full items-center justify-center bg-accent ${canSend ? "active:bg-accent-light" : "opacity-50"}`}
-              style={{ width: 34, height: 34 }}
+              style={{ width: 30, height: 30 }}
             >
               {sending ? (
                 <ActivityIndicator size="small" color="#fff" />
