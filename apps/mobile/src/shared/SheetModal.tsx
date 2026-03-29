@@ -161,7 +161,7 @@ export function SheetModal({
                 </View>
               </Pressable>
             </View>
-            {children}
+            <View className="flex-1 overflow-hidden">{children}</View>
           </View>
         </Animated.View>
       </View>

@@ -1,6 +1,10 @@
 import { Image } from "expo-image";
 import { useCallback, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
+import {
+  type LayoutChangeEvent,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -9,27 +13,27 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const HIRES_ZOOM_THRESHOLD = 1.5;
+const FULL_RES_ZOOM_THRESHOLD = 1.5;
 const TIMING_CONFIG = { duration: 250 };
 const MAX_SCALE = 5;
 
 interface ZoomableImageProps {
   url: string;
-  hiresUrl?: string | null;
+  fullUrl?: string | null;
   aspectRatio: number;
 }
 
 export function ZoomableImage({
   url,
-  hiresUrl,
+  fullUrl,
   aspectRatio,
 }: ZoomableImageProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const containerWidth = screenWidth - 32;
-  const containerHeight = Math.min(
-    containerWidth / aspectRatio,
-    screenHeight * 0.65,
-  );
+  const imageWidth = screenWidth - 32;
+  const imageHeight = Math.min(imageWidth / aspectRatio, screenHeight * 0.65);
+
+  const bodyW = useSharedValue(screenWidth);
+  const bodyH = useSharedValue(screenHeight * 0.8);
 
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -40,11 +44,19 @@ export function ZoomableImage({
   const pinchFocalX = useSharedValue(0);
   const pinchFocalY = useSharedValue(0);
 
-  const [useHires, setUseHires] = useState(false);
+  const [useFullRes, setUseFullRes] = useState(false);
 
-  const activateHires = useCallback(() => {
-    if (hiresUrl) setUseHires(true);
-  }, [hiresUrl]);
+  const activateFullRes = useCallback(() => {
+    if (fullUrl) setUseFullRes(true);
+  }, [fullUrl]);
+
+  const onBodyLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      bodyW.value = e.nativeEvent.layout.width;
+      bodyH.value = e.nativeEvent.layout.height;
+    },
+    [bodyW, bodyH],
+  );
 
   const resetTransform = () => {
     "worklet";
@@ -58,8 +70,10 @@ export function ZoomableImage({
 
   const clampTranslation = () => {
     "worklet";
-    const maxX = (containerWidth * (savedScale.value - 1)) / 2;
-    const maxY = (containerHeight * (savedScale.value - 1)) / 2;
+    const scaledW = imageWidth * savedScale.value;
+    const scaledH = imageHeight * savedScale.value;
+    const maxX = Math.max(0, (scaledW - bodyW.value) / 2);
+    const maxY = Math.max(0, (scaledH - bodyH.value) / 2);
     const clampedX = Math.max(-maxX, Math.min(maxX, translateX.value));
     const clampedY = Math.max(-maxY, Math.min(maxY, translateY.value));
     if (clampedX !== translateX.value || clampedY !== translateY.value) {
@@ -72,28 +86,30 @@ export function ZoomableImage({
 
   const pinch = Gesture.Pinch()
     .onStart((e) => {
-      pinchFocalX.value = e.focalX - containerWidth / 2;
-      pinchFocalY.value = e.focalY - containerHeight / 2;
+      pinchFocalX.value = e.focalX - imageWidth / 2;
+      pinchFocalY.value = e.focalY - imageHeight / 2;
     })
     .onUpdate((e) => {
-      const newScale = Math.min(savedScale.value * e.scale, MAX_SCALE);
+      const newScale = Math.max(
+        1,
+        Math.min(savedScale.value * e.scale, MAX_SCALE),
+      );
       scale.value = newScale;
+      const effectiveScale = newScale / savedScale.value;
       translateX.value =
-        pinchFocalX.value * (1 - e.scale) + savedTranslateX.value * e.scale;
+        pinchFocalX.value * (1 - effectiveScale) +
+        savedTranslateX.value * effectiveScale;
       translateY.value =
-        pinchFocalY.value * (1 - e.scale) + savedTranslateY.value * e.scale;
+        pinchFocalY.value * (1 - effectiveScale) +
+        savedTranslateY.value * effectiveScale;
     })
     .onEnd(() => {
-      if (scale.value < 1) {
-        resetTransform();
-      } else {
-        savedScale.value = scale.value;
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
-        clampTranslation();
-        if (scale.value >= HIRES_ZOOM_THRESHOLD) {
-          runOnJS(activateHires)();
-        }
+      savedScale.value = scale.value;
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+      clampTranslation();
+      if (scale.value >= FULL_RES_ZOOM_THRESHOLD) {
+        runOnJS(activateFullRes)();
       }
     });
 
@@ -123,7 +139,7 @@ export function ZoomableImage({
       } else {
         scale.value = withTiming(2, TIMING_CONFIG);
         savedScale.value = 2;
-        runOnJS(activateHires)();
+        runOnJS(activateFullRes)();
       }
     });
 
@@ -137,28 +153,27 @@ export function ZoomableImage({
     ],
   }));
 
-  const source = useHires && hiresUrl ? hiresUrl : url;
+  const source = useFullRes && fullUrl ? fullUrl : url;
 
   return (
     <View
+      onLayout={onBodyLayout}
       style={{
-        width: containerWidth,
-        height: containerHeight,
+        flex: 1,
         overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <GestureDetector gesture={composed}>
         <Animated.View
-          style={[
-            { width: containerWidth, height: containerHeight },
-            animatedStyle,
-          ]}
+          style={[{ width: imageWidth, height: imageHeight }, animatedStyle]}
         >
           <Image
             source={{ uri: source }}
             style={{ width: "100%", height: "100%" }}
             contentFit="contain"
-            transition={useHires ? 200 : 0}
+            transition={useFullRes ? 200 : 0}
           />
         </Animated.View>
       </GestureDetector>

@@ -52,17 +52,12 @@ export function FilePreview({
   if (render.__typename === "ImageRender") {
     if (render.url) {
       return (
-        <View className="flex-1 bg-bg items-center p-4 pb-16">
+        <View className="flex-1 bg-bg">
           <ZoomableImage
             url={render.url}
-            hiresUrl={render.hiresUrl}
+            fullUrl={render.fullUrl}
             aspectRatio={render.aspectRatio ?? 1}
           />
-          {render.width != null && render.height != null && (
-            <Text className="text-text-muted text-xs mt-2">
-              {render.width} x {render.height}
-            </Text>
-          )}
         </View>
       );
     }
