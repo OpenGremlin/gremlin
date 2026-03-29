@@ -5,8 +5,6 @@ import sharp from "sharp";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
 
-const MAX_DIMENSION = 1024;
-
 const IMAGE_EXTENSIONS = new Set([
   ".png",
   ".jpg",
@@ -47,7 +45,13 @@ function getWorkspacePath(): string {
 }
 
 type ViewImageResult =
-  | { type: "image"; path: string; mediaType: string; sizeKB: number }
+  | {
+      type: "image";
+      path: string;
+      mediaType: string;
+      sizeKB: number;
+      resizeTo?: number;
+    }
   | { type: "error"; message: string };
 
 export function viewImageTool(_ctx: ServiceContext) {
@@ -60,8 +64,19 @@ export function viewImageTool(_ctx: ServiceContext) {
         .describe(
           "Path to the image file, e.g. /workspace/uploads/2026-01-01/photo.png",
         ),
+      resizeTo: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe(
+          "Optional. Constrain the longest side to this many pixels (preserving aspect ratio). Images smaller than this are not upscaled. Use this if the full-resolution image is too large for the model context.",
+        ),
     }),
-    execute: async ({ path: filePath }): Promise<ViewImageResult> => {
+    execute: async ({
+      path: filePath,
+      resizeTo,
+    }): Promise<ViewImageResult> => {
       const ext = getExtension(filePath);
       if (!IMAGE_EXTENSIONS.has(ext)) {
         return {
@@ -98,6 +113,7 @@ export function viewImageTool(_ctx: ServiceContext) {
         path: resolved,
         mediaType: MIME_TYPES[ext] ?? "image/png",
         sizeKB: Math.round(stat.size / 1024),
+        resizeTo,
       };
     },
     async toModelOutput({ output }) {
@@ -108,10 +124,14 @@ export function viewImageTool(_ctx: ServiceContext) {
         };
       }
       const raw = await fs.readFile(output.path);
-      const data = await sharp(raw)
-        .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside" })
-        .webp({ quality: 90 })
-        .toBuffer();
+      let pipeline = sharp(raw);
+      if (output.resizeTo) {
+        pipeline = pipeline.resize(output.resizeTo, output.resizeTo, {
+          fit: "inside",
+          withoutEnlargement: true,
+        });
+      }
+      const data = await pipeline.webp({ quality: 90 }).toBuffer();
       return {
         type: "content" as const,
         value: [
