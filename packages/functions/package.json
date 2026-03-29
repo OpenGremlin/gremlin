@@ -12,9 +12,12 @@
   "dependencies": {
     "@gremlin/lib": "workspace:*",
     "@aws-sdk/client-ec2": "^3.1003.0",
-    "dynamodb-toolbox": "^2.8.0"
+    "dynamodb-toolbox": "^2.8.0",
+    "jose": "^6.0.11"
   },
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.1003.0",
+    "@types/aws-lambda": "^8.10.149",
     "@types/node": "^22",
     "typescript": "^5",
     "vitest": "^4.0.18"

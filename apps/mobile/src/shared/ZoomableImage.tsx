@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import { useCallback, useState } from "react";
 import {
   type LayoutChangeEvent,
@@ -12,6 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { AuthImage } from "./AuthImage";
 
 const FULL_RES_ZOOM_THRESHOLD = 1.5;
 const TIMING_CONFIG = { duration: 250 };
@@ -169,8 +169,8 @@ export function ZoomableImage({
         <Animated.View
           style={[{ width: imageWidth, height: imageHeight }, animatedStyle]}
         >
-          <Image
-            source={{ uri: source }}
+          <AuthImage
+            uri={source}
             style={{ width: "100%", height: "100%" }}
             contentFit="contain"
             transition={useFullRes ? 200 : 0}

@@ -133,7 +133,7 @@ describe("viewImageTool", () => {
       });
     });
 
-    it("reads file, resizes to fit 1024x1024, and returns WebP", async () => {
+    it("reads file and returns full-resolution WebP", async () => {
       const imgPath = path.join(tmpDir, "real.png");
       // Create a 2048x1024 PNG so sharp has a valid image to process
       const pngBuffer = await sharp({
@@ -164,16 +164,13 @@ describe("viewImageTool", () => {
       expect(value[0].type).toBe("image-data");
       expect(value[0].mediaType).toBe("image/webp");
 
-      // Verify the output is valid WebP constrained to 1024x1024
+      // Verify the output is valid WebP at original resolution
       const decoded = await sharp(
         Buffer.from(value[0].data, "base64"),
       ).metadata();
       expect(decoded.format).toBe("webp");
-      expect(decoded.width).toBeLessThanOrEqual(1024);
-      expect(decoded.height).toBeLessThanOrEqual(1024);
-      // Original was 2048x1024, so resized should be 1024x512
-      expect(decoded.width).toBe(1024);
-      expect(decoded.height).toBe(512);
+      expect(decoded.width).toBe(2048);
+      expect(decoded.height).toBe(1024);
 
       expect(value[1].type).toBe("text");
       expect(value[1].text).toContain("converted to WebP");

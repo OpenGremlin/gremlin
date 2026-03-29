@@ -227,7 +227,7 @@ if (process.env.MEDIA_BUCKET) {
   app.use("/media", express.static(mediaAssets));
 }
 
-// Workspace file serving (signed URLs)
+// Workspace file serving (auth at CloudFront edge + origin verification)
 app.get("/api/files/*", filesRoute);
 
 // Client-side log ingestion

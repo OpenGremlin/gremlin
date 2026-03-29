@@ -2,10 +2,7 @@ import { getFileInfo } from "./getFileInfo.js";
 import { listEntries } from "./listEntries.js";
 import { readFile } from "./readFile.js";
 
-export {
-  buildWorkspaceFileUrl,
-  verifyFileSignature,
-} from "./buildFileUrl.js";
+export { buildWorkspaceFileUrl } from "./buildFileUrl.js";
 export type { FileInfo } from "./getFileInfo.js";
 export type { WorkspaceEntry } from "./listEntries.js";
 export type { RenderKind } from "./mime.js";

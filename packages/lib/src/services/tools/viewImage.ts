@@ -73,10 +73,7 @@ export function viewImageTool(_ctx: ServiceContext) {
           "Optional. Constrain the longest side to this many pixels (preserving aspect ratio). Images smaller than this are not upscaled. Use this if the full-resolution image is too large for the model context.",
         ),
     }),
-    execute: async ({
-      path: filePath,
-      resizeTo,
-    }): Promise<ViewImageResult> => {
+    execute: async ({ path: filePath, resizeTo }): Promise<ViewImageResult> => {
       const ext = getExtension(filePath);
       if (!IMAGE_EXTENSIONS.has(ext)) {
         return {

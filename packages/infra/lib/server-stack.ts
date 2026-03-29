@@ -158,8 +158,15 @@ export class ServerStack extends cdk.Stack {
       description: "Gremlin server EC2 instance",
     });
 
+    // Only allow CloudFront origin-facing IPs to reach the server.
+    // See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html
+    const cfPrefixList = ec2.Peer.prefixList(
+      ec2.PrefixList.fromLookup(this, "CloudFrontPrefixList", {
+        prefixListName: "com.amazonaws.global.cloudfront.origin-facing",
+      }).prefixListId,
+    );
     serverSg.addIngressRule(
-      ec2.Peer.anyIpv4(),
+      cfPrefixList,
       ec2.Port.tcp(3001),
       "CloudFront to server",
     );

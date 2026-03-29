@@ -1,12 +1,29 @@
 import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
+import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { createLogger } from "@gremlin/lib/logger.js";
-import { verifyFileSignature } from "@gremlin/lib/services/workspace/buildFileUrl.js";
+import { getSsmClient } from "@gremlin/lib/services/sandbox/ssmClient.js";
 import { mimeByExtension } from "@gremlin/lib/services/workspace/mime.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
 
 const log = createLogger("files");
+const SKIP_AUTH = process.env.SKIP_AUTH === "true";
+
+let cachedOriginSecret: string | undefined;
+async function getOriginSecret(): Promise<string | undefined> {
+  if (cachedOriginSecret) return cachedOriginSecret;
+  try {
+    const ssm = await getSsmClient();
+    const res = await ssm.send(
+      new GetParameterCommand({ Name: "/gremlin/origin-verify-secret" }),
+    );
+    cachedOriginSecret = res.Parameter?.Value ?? undefined;
+  } catch {
+    // SSM not available (local dev) — no secret to verify
+  }
+  return cachedOriginSecret;
+}
 
 function getWorkspacePath() {
   return nodePath.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
@@ -25,33 +42,28 @@ const IMAGE_MIME_PREFIXES = [
 ];
 
 /**
- * GET /api/files/:path — serves workspace files with HMAC signature verification.
+ * GET /api/files/:path — serves workspace files.
+ * Auth is handled at the CloudFront edge (Lambda@Edge validates the bearer token).
  * Supports image resizing via ?width=N query param.
  */
 export async function filesRoute(req: Request, res: Response): Promise<void> {
+  // Verify the request came through CloudFront (defense-in-depth).
+  // In dev (SKIP_AUTH=true), skip since there is no CloudFront.
+  if (!SKIP_AUTH) {
+    const secret = await getOriginSecret();
+    if (secret && req.headers["x-origin-verify"] !== secret) {
+      res.status(403).send("Forbidden");
+      return;
+    }
+  }
+
   const filePath = decodeURIComponent(req.params[0]);
   if (!filePath) {
     res.status(400).send("Missing path");
     return;
   }
 
-  const { expires, sig, width } = req.query as Record<
-    string,
-    string | undefined
-  >;
-
-  // In dev (SKIP_AUTH=true), allow unsigned requests
-  const skipAuth = process.env.SKIP_AUTH === "true";
-  if (!skipAuth) {
-    if (!expires || !sig) {
-      res.status(403).send("Missing signature");
-      return;
-    }
-    if (!verifyFileSignature(filePath, expires, sig)) {
-      res.status(403).send("Invalid or expired signature");
-      return;
-    }
-  }
+  const { width } = req.query as Record<string, string | undefined>;
 
   // Path traversal guard
   const workspacePath = getWorkspacePath();

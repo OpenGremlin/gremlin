@@ -4,8 +4,11 @@ import * as cdk from "aws-cdk-lib";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambda_nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cr from "aws-cdk-lib/custom-resources";
 import type { Construct } from "constructs";
@@ -32,11 +35,83 @@ export class AdminStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
 
+    // Shared secret so the origin can reject requests that bypass CloudFront.
+    // Generated once by Secrets Manager; stored in SSM for the server to read.
+    // To rotate: update the secret in Secrets Manager and redeploy.
+    const originVerifySecret = new secretsmanager.Secret(
+      this,
+      "OriginVerifySecret",
+      {
+        description: "Shared secret between CloudFront and origin server",
+        generateSecretString: {
+          excludePunctuation: true,
+          passwordLength: 48,
+        },
+      },
+    );
+
+    new ssm.StringParameter(this, "OriginVerifyParam", {
+      parameterName: "/gremlin/origin-verify-secret",
+      stringValue: originVerifySecret.secretValue.unsafeUnwrap(),
+      description: "CloudFront → origin shared secret for X-Origin-Verify",
+    });
+
     // ALB origin for API/auth/GraphQL traffic
     const serverOrigin = new origins.HttpOrigin(props.serverDns, {
       protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
       httpPort: 3001,
     });
+
+    // Origin for file serving — includes the shared verification header
+    const filesOrigin = new origins.HttpOrigin(props.serverDns, {
+      protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+      httpPort: 3001,
+      customHeaders: {
+        "x-origin-verify": originVerifySecret.secretValue.unsafeUnwrap(),
+      },
+    });
+
+    // Lambda@Edge: validate Cognito JWT on workspace file requests.
+    // Config is stored in SSM because Lambda@Edge doesn't support env vars,
+    // and CDK cross-stack tokens can't be baked in via esbuild define.
+    const cognitoIssuer = `https://cognito-idp.${cdk.Stack.of(this).region}.amazonaws.com/${props.userPoolId}`;
+
+    new ssm.StringParameter(this, "CognitoIssuerParam", {
+      parameterName: "/gremlin/cognito-issuer",
+      stringValue: cognitoIssuer,
+    });
+
+    new ssm.StringParameter(this, "CognitoClientIdParam", {
+      parameterName: "/gremlin/cognito-client-id",
+      stringValue: props.userPoolClientId,
+    });
+
+    const filesAuthFn = new lambda_nodejs.NodejsFunction(
+      this,
+      "FilesAuthEdgeFn",
+      {
+        entry: path.join(
+          REPO_ROOT,
+          "packages/functions/src/files-auth/index.ts",
+        ),
+        handler: "handler",
+        runtime: lambda.Runtime.NODEJS_20_X,
+        timeout: cdk.Duration.seconds(5),
+        bundling: {
+          format: lambda_nodejs.OutputFormat.ESM,
+          mainFields: ["module", "main"],
+        },
+      },
+    );
+
+    filesAuthFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:GetParameter"],
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/gremlin/cognito-*`,
+        ],
+      }),
+    );
 
     const apiBehavior: cloudfront.BehaviorOptions = {
       origin: serverOrigin,
@@ -56,20 +131,23 @@ export class AdminStack extends cdk.Stack {
         "/graphql": apiBehavior,
         "/api/*": apiBehavior,
         "/api/files/*": {
-          origin: serverOrigin,
+          origin: filesOrigin,
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
           cachePolicy: new cloudfront.CachePolicy(this, "FilesCachePolicy", {
             cachePolicyName: `GremlinFilesCache-${this.stackName}`,
-            queryStringBehavior: cloudfront.CacheQueryStringBehavior.allowList(
-              "expires",
-              "sig",
-              "width",
-            ),
-            defaultTtl: cdk.Duration.hours(1),
-            maxTtl: cdk.Duration.hours(1),
+            queryStringBehavior:
+              cloudfront.CacheQueryStringBehavior.allowList("width"),
+            defaultTtl: cdk.Duration.days(365),
+            maxTtl: cdk.Duration.days(365),
           }),
+          edgeLambdas: [
+            {
+              eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+              functionVersion: filesAuthFn.currentVersion,
+            },
+          ],
         },
         "/media/*": {
           origin: serverOrigin,
