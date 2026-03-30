@@ -57,6 +57,7 @@ export function FilePreview({
             url={render.url}
             fullUrl={render.fullUrl}
             aspectRatio={render.aspectRatio ?? 1}
+            nativeWidth={render.width}
           />
         </View>
       );

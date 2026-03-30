@@ -15,22 +15,28 @@ import { AuthImage } from "./AuthImage";
 
 const FULL_RES_ZOOM_THRESHOLD = 1.5;
 const TIMING_CONFIG = { duration: 250 };
-const MAX_SCALE = 5;
+const MIN_MAX_SCALE = 10;
 
 interface ZoomableImageProps {
   url: string;
   fullUrl?: string | null;
   aspectRatio: number;
+  nativeWidth?: number | null;
 }
 
 export function ZoomableImage({
   url,
   fullUrl,
   aspectRatio,
+  nativeWidth,
 }: ZoomableImageProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const imageWidth = screenWidth - 32;
   const imageHeight = Math.min(imageWidth / aspectRatio, screenHeight * 0.65);
+
+  // Allow zooming to 2× past native pixel density (accept mild pixelation).
+  const nativeScale = nativeWidth ? nativeWidth / imageWidth : 1;
+  const maxScale = Math.max(nativeScale * 2, MIN_MAX_SCALE);
 
   const bodyW = useSharedValue(screenWidth);
   const bodyH = useSharedValue(screenHeight * 0.8);
@@ -92,7 +98,7 @@ export function ZoomableImage({
     .onUpdate((e) => {
       const newScale = Math.max(
         1,
-        Math.min(savedScale.value * e.scale, MAX_SCALE),
+        Math.min(savedScale.value * e.scale, maxScale),
       );
       scale.value = newScale;
       const effectiveScale = newScale / savedScale.value;
