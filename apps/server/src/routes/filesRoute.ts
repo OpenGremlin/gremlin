@@ -41,12 +41,40 @@ const IMAGE_MIME_PREFIXES = [
   "image/x-icon",
 ];
 
+const ALLOWED_ORIGINS = new Set(
+  [
+    process.env.ADMIN_ORIGIN,
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:8081",
+  ].filter(Boolean),
+);
+
+function setCorsHeaders(req: Request, res: Response) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.set("Access-Control-Allow-Origin", origin);
+    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  }
+}
+
+/**
+ * OPTIONS /api/files/:path — CORS preflight.
+ */
+export function filesCorsPreflight(req: Request, res: Response): void {
+  setCorsHeaders(req, res);
+  res.status(204).end();
+}
+
 /**
  * GET /api/files/:path — serves workspace files.
  * Auth is handled at the CloudFront edge (Lambda@Edge validates the bearer token).
  * Supports image resizing via ?width=N query param.
  */
 export async function filesRoute(req: Request, res: Response): Promise<void> {
+  setCorsHeaders(req, res);
+
   // Verify the request came through CloudFront (defense-in-depth).
   // In dev (SKIP_AUTH=true), skip since there is no CloudFront.
   if (!SKIP_AUTH) {

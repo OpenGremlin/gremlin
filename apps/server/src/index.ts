@@ -18,7 +18,7 @@ import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 
 import { pubsub } from "./pubsub.js";
-import { filesRoute } from "./routes/filesRoute.js";
+import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
 
 const PORT = Number(process.env.PORT || 3001);
@@ -228,6 +228,7 @@ if (process.env.MEDIA_BUCKET) {
 }
 
 // Workspace file serving (auth at CloudFront edge + origin verification)
+app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
 
 // Client-side log ingestion
