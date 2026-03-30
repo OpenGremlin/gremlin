@@ -100,7 +100,8 @@ export default function ConnectionDetailScreen() {
             <Text className="text-sm text-text-primary">
               {connection.connectionType === "oauth"
                 ? "OAuth"
-                : connection.connectionType === "apikey"
+                : connection.connectionType === "apikey" ||
+                    connection.connectionType === "model_provider"
                   ? "API Key"
                   : connection.connectionType}
             </Text>

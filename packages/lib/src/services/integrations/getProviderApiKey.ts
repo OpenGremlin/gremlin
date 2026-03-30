@@ -15,7 +15,8 @@ export async function getProviderApiKey(
   const conn = (Items as IntegrationConnectionItem[]).find(
     (item) =>
       item.providerId === providerId &&
-      item.connectionType === "apikey" &&
+      (item.connectionType === "apikey" ||
+        item.connectionType === "model_provider") &&
       !item.isRevoked,
   );
 

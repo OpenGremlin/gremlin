@@ -19,14 +19,21 @@ export async function connectApiKey(
 ): Promise<ConnectApiKeyResult> {
   const def = providers.find((p) => p.id === providerId);
   if (!def) throw new Error(`Unknown provider: ${providerId}`);
-  if (def.connectionType !== "apikey") {
+  if (
+    def.connectionType !== "apikey" &&
+    def.connectionType !== "model_provider"
+  ) {
     throw new Error(
       `Provider "${providerId}" does not support API key connections`,
     );
   }
 
-  // Validate the key by fetching models — throws on invalid key
-  const models = await listProviderModels(providerId, apiKey);
+  // Model providers validate the key by fetching available models.
+  // Plain API key providers (e.g. Brave, Tavily) just store the key.
+  const models =
+    def.connectionType === "model_provider"
+      ? await listProviderModels(providerId, apiKey)
+      : [];
 
   const id = randomUUID();
 
@@ -34,7 +41,7 @@ export async function connectApiKey(
     .item({
       id,
       providerId,
-      connectionType: "apikey",
+      connectionType: def.connectionType,
       connectedAt: new Date().toISOString(),
       isRevoked: false,
       connectionMeta: {

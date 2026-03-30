@@ -1,8 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
-import { IntegrationProvidersQuery } from "../../../../../src/graphql/queries";
+import {
+  ConnectApiKeyMutation,
+  IntegrationProvidersQuery,
+} from "../../../../../src/graphql/queries";
 import { useQuery } from "../../../../../src/hooks/useQuery";
+import { gql } from "../../../../../src/lib/auth";
 import {
   connectOAuthProvider,
   isOAuthAvailable,
@@ -11,6 +15,7 @@ import {
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
+import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 
@@ -147,6 +152,85 @@ function OAuthDetailView({
   );
 }
 
+function ApiKeyDetailView({
+  provider,
+}: {
+  provider: { id: string; service: string; hasConnection: boolean };
+}) {
+  const [apiKey, setApiKey] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleConnect() {
+    if (!apiKey.trim()) {
+      setError("API key is required.");
+      return;
+    }
+    setConnecting(true);
+    setError(null);
+    try {
+      await gql(ConnectApiKeyMutation, {
+        providerId: provider.id,
+        apiKey: apiKey.trim(),
+      });
+      router.navigate(
+        `/settings/connections?connected=${encodeURIComponent(provider.id)}`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Connection failed");
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  return (
+    <>
+      {provider.hasConnection && (
+        <Card className="p-4 flex-row items-center justify-between">
+          <View>
+            <Text className="text-sm text-text-primary">
+              {provider.service}
+            </Text>
+            <Text className="text-xs text-text-muted mt-0.5">Connected</Text>
+          </View>
+          <View className="flex-row items-center gap-1.5">
+            <View className="w-2 h-2 rounded-full bg-green-400" />
+            <Text className="text-xs text-text-muted">Active</Text>
+          </View>
+        </Card>
+      )}
+
+      <View className="gap-2">
+        <Text className="text-sm font-medium text-text-primary">API Key</Text>
+        <Input
+          placeholder="Enter your API key"
+          value={apiKey}
+          onChangeText={setApiKey}
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+          onSubmitEditing={handleConnect}
+        />
+      </View>
+
+      {error ? (
+        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
+          <Text className="text-sm text-red-300">{error}</Text>
+        </View>
+      ) : null}
+
+      <Button
+        onPress={handleConnect}
+        disabled={connecting}
+        loading={connecting}
+        fullWidth
+      >
+        {provider.hasConnection ? "Update API Key" : "Connect"}
+      </Button>
+    </>
+  );
+}
+
 export default function ConnectionProviderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(IntegrationProvidersQuery);
@@ -186,6 +270,8 @@ export default function ConnectionProviderDetailScreen() {
 
       {provider.connectionType === "oauth" ? (
         <OAuthDetailView provider={provider} />
+      ) : provider.connectionType === "apikey" ? (
+        <ApiKeyDetailView provider={provider} />
       ) : provider.connectionType === "custom" ? (
         <Card className="p-5">
           <Text className="text-sm text-text-muted">
