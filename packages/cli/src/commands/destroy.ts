@@ -96,6 +96,22 @@ export async function destroyCommand(): Promise<void> {
   }
 
   ui.blank();
+  ui.warn(
+    "Lambda@Edge functions (used for file auth) can take 30-60 minutes to",
+  );
+  ui.info(
+    "fully replicate-delete after CloudFront is removed. If the AdminStack",
+  );
+  ui.info(
+    "fails to delete, wait and retry, or delete it from the CloudFormation",
+  );
+  ui.info('console with "Retain" selected for the Lambda function.');
+  ui.link(
+    "More info",
+    "https://opengremlin.com/docs/troubleshooting/lambda-edge-delete",
+  );
+  ui.blank();
+
   ui.log("Destroying AWS infrastructure...");
   ui.blank();
 
@@ -103,8 +119,27 @@ export async function destroyCommand(): Promise<void> {
     cdkDestroy({ profile, region });
   } catch {
     ui.blank();
-    ui.fail("CDK destroy failed — some resources may remain");
-    ui.info("Check the AWS console for leftover resources.");
+    ui.fail("CDK destroy failed — some stacks may not have been deleted");
+    ui.blank();
+
+    // Check what's left
+    const remaining = await findGremlinStacks(tempConfig);
+    if (remaining.length > 0) {
+      ui.info("Remaining stacks:");
+      for (const s of remaining) {
+        ui.info(`  - ${s}`);
+      }
+      ui.blank();
+      ui.info("You can retry with: pnpm gremlin -- destroy");
+      ui.info("Or delete from the AWS CloudFormation console.");
+      ui.blank();
+      ui.info("If GremlinAdminStack is stuck due to Lambda@Edge:");
+      ui.info("  1. Wait 30-60 minutes for edge replicas to clean up");
+      ui.info('  2. Delete the stack with "Retain" for the Lambda function');
+      ui.info("  3. Re-run destroy to clean up remaining stacks");
+    }
+
+    ui.blank();
     process.exit(1);
   }
 
