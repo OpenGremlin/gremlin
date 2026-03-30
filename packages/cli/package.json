@@ -9,8 +9,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx src/cli.ts",
-    "clean": "rm -rf dist"
+    "gremlin": "tsx src/cli.ts",
+    "clean": "rm -rf dist",
+    "link": "pnpm build && npm link"
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.1000.0",

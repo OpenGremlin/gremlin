@@ -10,6 +10,38 @@ function getInfraDir(): string {
   return path.resolve(__dirname, "../../infra");
 }
 
+/** Run `cdk bootstrap` to prepare the account/region for CDK deploys. */
+export function cdkBootstrap(opts: {
+  profile?: string;
+  region?: string;
+  accountId?: string;
+}): void {
+  const infraDir = getInfraDir();
+  const args = ["cdk", "bootstrap"];
+
+  if (opts.accountId && opts.region) {
+    args.push(`aws://${opts.accountId}/${opts.region}`);
+  }
+
+  if (opts.profile) {
+    args.push(`--profile=${opts.profile}`);
+  }
+
+  const env: Record<string, string> = { ...process.env } as Record<
+    string,
+    string
+  >;
+  if (opts.region) {
+    env.CDK_DEFAULT_REGION = opts.region;
+  }
+
+  execSync(args.join(" "), {
+    cwd: infraDir,
+    stdio: "inherit",
+    env,
+  });
+}
+
 export interface CdkDeployOptions {
   profile?: string;
   region?: string;

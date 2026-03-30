@@ -7,7 +7,7 @@ import {
   getCallerIdentity,
   getStackOutputs,
 } from "../aws.js";
-import { cdkDeploy } from "../cdk.js";
+import { cdkBootstrap, cdkDeploy } from "../cdk.js";
 import { type GremlinConfig, loadConfig, saveConfig } from "../config.js";
 import * as ui from "../ui.js";
 
@@ -174,6 +174,24 @@ export async function initCommand(): Promise<void> {
 
   if (!adminEmail || !adminPassword) {
     ui.fail("Email and password are required");
+    process.exit(1);
+  }
+
+  // ── Bootstrap CDK ─────────────────────────────────────────
+  ui.blank();
+  ui.log("Bootstrapping CDK...");
+  ui.blank();
+
+  try {
+    cdkBootstrap({ profile, region, accountId: identity.accountId });
+    ui.success("CDK bootstrapped");
+  } catch {
+    ui.blank();
+    ui.fail("CDK bootstrap failed");
+    ui.link(
+      "Troubleshooting",
+      "https://opengremlin.com/docs/troubleshooting/deploy",
+    );
     process.exit(1);
   }
 

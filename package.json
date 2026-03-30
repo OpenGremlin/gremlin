@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo dev --filter='!@opengremlin/mobile'",
     "mobile": "pnpm --filter @opengremlin/mobile dev",
+    "gremlin": "pnpm --filter @opengremlin/cli gremlin",
     "build": "turbo build",
     "clean": "turbo clean",
     "lint": "biome check .",
