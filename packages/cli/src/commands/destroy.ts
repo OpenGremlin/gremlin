@@ -115,7 +115,7 @@ export async function destroyCommand(): Promise<void> {
   ui.log("Destroying stacks in dependency order...");
   ui.blank();
 
-  const { destroyed, failed } = cdkDestroy({ profile, region });
+  const { destroyed, failed } = cdkDestroy({ profile, region, stacks });
 
   ui.blank();
   if (destroyed.length > 0) {

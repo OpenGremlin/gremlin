@@ -76,29 +76,29 @@ export function cdkDeploy(opts: CdkDeployOptions = {}): void {
   });
 }
 
-// Destroy order: reverse dependency order so dependents go first.
-// Each group is destroyed sequentially; stacks within a group are independent.
-const DESTROY_ORDER = [
-  // 5. Web app — depends on Auth, Server
-  ["GremlinAdminStack"],
-  // 4. Sandbox — depends on VPC, Server, Database
-  ["GremlinSandboxEc2Stack"],
-  // 3. Messaging — depends on Server
-  ["GremlinMessagingStack"],
-  // 2. Server — depends on VPC, Database, Auth, Media
-  ["GremlinServerStack"],
-  // 1. Foundation — independent of each other
-  ["GremlinDatabaseStack", "GremlinAuthStack", "GremlinMediaStack"],
-  // 0. Network — no dependents left
-  ["GremlinVpcStack"],
-];
+// Foundation stacks that should be deleted last (everything else depends on them).
+const FOUNDATION_STACKS = new Set([
+  "GremlinVpcStack",
+  "GremlinDatabaseStack",
+  "GremlinAuthStack",
+  "GremlinMediaStack",
+]);
+
+// The very last stack to delete — everything depends on VPC.
+const LAST_STACK = "GremlinVpcStack";
 
 /**
- * Destroy stacks in reverse dependency order.
- * Skips stacks that don't exist. Continues to next group on failure
- * so downstream stacks still get cleaned up where possible.
+ * Destroy stacks iteratively: delete leaf stacks first (those with no
+ * dependents), then work inward. Retries up to `maxPasses` times to
+ * handle dependency chains of any depth.
+ *
+ * This is more robust than a hardcoded order because it handles unknown
+ * stacks (e.g., legacy stacks from older deployments) and adapts to
+ * whatever stack graph exists in the account.
  */
-export function cdkDestroy(opts: CdkDeployOptions = {}): {
+export function cdkDestroy(
+  opts: CdkDeployOptions & { stacks?: string[] } = {},
+): {
   destroyed: string[];
   failed: string[];
 } {
@@ -112,14 +112,42 @@ export function cdkDestroy(opts: CdkDeployOptions = {}): {
   }
 
   const destroyed: string[] = [];
-  const failed: string[] = [];
+  const remaining = new Set(opts.stacks ?? []);
 
-  for (const group of DESTROY_ORDER) {
-    for (const stack of group) {
+  // If no stacks provided, try --all as a single pass
+  if (remaining.size === 0) {
+    const args = ["cdk", "destroy", "--all", "--force"];
+    if (opts.profile) args.push(`--profile=${opts.profile}`);
+    try {
+      execSync(args.join(" "), {
+        cwd: infraDir,
+        stdio: "inherit",
+        env: baseEnv,
+      });
+      return { destroyed: ["all"], failed: [] };
+    } catch {
+      return {
+        destroyed: [],
+        failed: ["--all (use gremlin destroy to retry)"],
+      };
+    }
+  }
+
+  const maxPasses = remaining.size + 1;
+  for (let pass = 0; pass < maxPasses && remaining.size > 0; pass++) {
+    // Try non-foundation stacks first, then foundation, VPC last
+    const sorted = [...remaining].sort((a, b) => {
+      if (a === LAST_STACK) return 1;
+      if (b === LAST_STACK) return -1;
+      const aFoundation = FOUNDATION_STACKS.has(a) ? 1 : 0;
+      const bFoundation = FOUNDATION_STACKS.has(b) ? 1 : 0;
+      return aFoundation - bFoundation;
+    });
+
+    let deletedThisPass = false;
+    for (const stack of sorted) {
       const args = ["cdk", "destroy", stack, "--force"];
-      if (opts.profile) {
-        args.push(`--profile=${opts.profile}`);
-      }
+      if (opts.profile) args.push(`--profile=${opts.profile}`);
 
       try {
         execSync(args.join(" "), {
@@ -128,11 +156,16 @@ export function cdkDestroy(opts: CdkDeployOptions = {}): {
           env: baseEnv,
         });
         destroyed.push(stack);
+        remaining.delete(stack);
+        deletedThisPass = true;
       } catch {
-        failed.push(stack);
+        // Will retry on next pass — dependency may be gone by then
       }
     }
+
+    // If nothing was deleted this pass, remaining stacks are stuck
+    if (!deletedThisPass) break;
   }
 
-  return { destroyed, failed };
+  return { destroyed, failed: [...remaining] };
 }
