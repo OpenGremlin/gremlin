@@ -1,9 +1,9 @@
-# Stage 1: prune monorepo to only what @gremlin/server needs
+# Stage 1: prune monorepo to only what @opengremlin/server needs
 FROM node:20-slim AS prune
 WORKDIR /workspace
 RUN corepack enable && npm install -g turbo
 COPY . .
-RUN turbo prune @gremlin/server --out-dir /pruned
+RUN turbo prune @opengremlin/server --out-dir /pruned
 
 # Stage 2: install dependencies + build
 FROM node:20-slim AS build
@@ -14,11 +14,11 @@ RUN corepack enable
 COPY --from=prune /pruned/ .
 COPY tsconfig.base.json .
 RUN pnpm install --frozen-lockfile --ignore-scripts
-RUN pnpm turbo build --filter=@gremlin/server
+RUN pnpm turbo build --filter=@opengremlin/server
 
 # Stage 3: bundle with pnpm deploy
 FROM build AS deploy
-RUN pnpm --filter @gremlin/server deploy --prod --ignore-scripts /deploy
+RUN pnpm --filter @opengremlin/server deploy --prod --ignore-scripts /deploy
 
 # Stage 4: runtime
 FROM node:20-slim AS runtime

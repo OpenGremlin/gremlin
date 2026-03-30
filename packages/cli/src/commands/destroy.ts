@@ -1,6 +1,6 @@
 import { input } from "@inquirer/prompts";
 import chalk from "chalk";
-import { findGremlinStacks, getCallerIdentity } from "../aws.js";
+import { getCallerIdentity } from "../aws.js";
 import { cdkDestroy } from "../cdk.js";
 import { loadConfig } from "../config.js";
 import * as ui from "../ui.js";
@@ -31,20 +31,9 @@ export async function destroyCommand(): Promise<void> {
     }
   }
 
-  // Verify there are actually Gremlin stacks to destroy
-  const tempConfig = config ?? {
-    version: "0.0.1",
-    aws: { region, accountId, stackPrefix: "Gremlin" },
-  };
-  const stacks = await findGremlinStacks(tempConfig);
-  if (stacks.length === 0) {
-    ui.info("No Gremlin stacks found in this account/region.");
-    return;
-  }
-
   // Refresh identity
   try {
-    const identity = await getCallerIdentity(tempConfig);
+    const identity = await getCallerIdentity(config);
     accountId = identity.accountId;
   } catch {
     // Use what we have
@@ -62,12 +51,9 @@ export async function destroyCommand(): Promise<void> {
   ui.log("Resources to be deleted:");
   ui.blank();
   ui.log(`  AWS Infrastructure (${region}, account ${accountId}):`);
-  ui.info(`  Stacks: ${stacks.join(", ")}`);
-  ui.info("  - DynamoDB tables (all agent data, tasks, conversations)");
-  ui.info("  - SQS queues");
-  ui.info("  - EC2 sandbox instances");
-  ui.info("  - CloudFront distribution");
-  ui.info("  - IAM roles");
+  ui.info(
+    "  All Gremlin CDK stacks (DynamoDB, SQS, EC2, CloudFront, IAM, etc.)",
+  );
 
   if (config?.eventSources?.gmail) {
     ui.blank();
@@ -112,40 +98,26 @@ export async function destroyCommand(): Promise<void> {
   );
   ui.blank();
 
-  ui.log("Destroying stacks in dependency order...");
+  ui.log("Destroying all Gremlin stacks...");
   ui.blank();
 
-  const { destroyed, failed } = cdkDestroy({ profile, region, stacks });
-
-  ui.blank();
-  if (destroyed.length > 0) {
-    for (const s of destroyed) {
-      ui.success(s);
-    }
-  }
-  if (failed.length > 0) {
-    for (const s of failed) {
-      ui.fail(s);
-    }
-  }
-  ui.blank();
-
-  if (failed.length > 0) {
-    ui.warn(`${failed.length} stack(s) failed to delete`);
+  try {
+    await cdkDestroy({ profile, region });
+    ui.blank();
+    ui.success("Gremlin destroyed");
+    ui.blank();
+  } catch {
+    ui.blank();
+    ui.warn("Some stacks failed to delete");
     ui.blank();
     ui.info("You can retry with: pnpm gremlin -- destroy");
     ui.info("Or delete from the AWS CloudFormation console.");
     ui.blank();
-    if (failed.includes("GremlinAdminStack")) {
-      ui.info("GremlinAdminStack is likely stuck due to Lambda@Edge:");
-      ui.info("  1. Wait 30-60 minutes for edge replicas to clean up");
-      ui.info('  2. Delete the stack with "Retain" for the Lambda function');
-      ui.info("  3. Re-run destroy to clean up remaining stacks");
-      ui.blank();
-    }
+    ui.info("If GremlinAdminStack is stuck due to Lambda@Edge:");
+    ui.info("  1. Wait 30-60 minutes for edge replicas to clean up");
+    ui.info('  2. Delete the stack with "Retain" for the Lambda function');
+    ui.info("  3. Re-run destroy to clean up remaining stacks");
+    ui.blank();
     process.exit(1);
   }
-
-  ui.success("Gremlin destroyed");
-  ui.blank();
 }

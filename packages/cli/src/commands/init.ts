@@ -3,9 +3,11 @@ import { confirm, input, password, select } from "@inquirer/prompts";
 import chalk from "chalk";
 import {
   checkPermissions,
+  createAdminUser,
   findGremlinStacks,
   getCallerIdentity,
   getStackOutputs,
+  putSsmParam,
 } from "../aws.js";
 import { cdkBootstrap, cdkDeploy } from "../cdk.js";
 import { type GremlinConfig, loadConfig, saveConfig } from "../config.js";
@@ -151,6 +153,16 @@ export async function initCommand(): Promise<void> {
     process.exit(1);
   }
 
+  // ── Docker check ─────────────────────────────────────────
+  try {
+    execSync("docker info", { stdio: "pipe" });
+  } catch {
+    ui.blank();
+    ui.fail("Docker is not running. Start Docker Desktop and try again.");
+    ui.blank();
+    process.exit(1);
+  }
+
   // ── Optional domain ──────────────────────────────────────
   ui.blank();
   const domain = await input({
@@ -170,10 +182,20 @@ export async function initCommand(): Promise<void> {
   ui.blank();
   ui.log("Create your admin account:");
   const adminEmail = await input({ message: "Email:" });
-  const adminPassword = await password({ message: "Password:" });
+  const adminPassword = await password({ message: "Password:", mask: "*" });
 
   if (!adminEmail || !adminPassword) {
     ui.fail("Email and password are required");
+    process.exit(1);
+  }
+
+  const confirmPassword = await password({
+    message: "Confirm password:",
+    mask: "*",
+  });
+
+  if (adminPassword !== confirmPassword) {
+    ui.fail("Passwords do not match");
     process.exit(1);
   }
 
@@ -195,6 +217,9 @@ export async function initCommand(): Promise<void> {
     process.exit(1);
   }
 
+  // ── Write SSM params before deploy (CDK reads them at synth time) ──
+  await putSsmParam(config, "/gremlin/custom-domain", domain || "NOT_SET");
+
   // ── Deploy ───────────────────────────────────────────────
   ui.blank();
   ui.log("Setting up AWS infrastructure...");
@@ -208,7 +233,7 @@ export async function initCommand(): Promise<void> {
     context.adminEmail = adminEmail;
     context.adminPassword = adminPassword;
 
-    cdkDeploy({ profile, region, context });
+    await cdkDeploy({ profile, region, context });
   } catch {
     ui.blank();
     ui.fail("CDK deploy failed");
@@ -217,6 +242,26 @@ export async function initCommand(): Promise<void> {
       "https://opengremlin.com/docs/troubleshooting/deploy",
     );
     process.exit(1);
+  }
+
+  // ── Create admin user ────────────────────────────────────
+  const authOutputs = await getStackOutputs(config, "GremlinAuthStack");
+  const userPoolId = authOutputs?.UserPoolId;
+
+  if (userPoolId) {
+    try {
+      await createAdminUser(config, userPoolId, adminEmail, adminPassword);
+      ui.success("Admin user created");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("UsernameExistsException")) {
+        ui.info("Admin user already exists");
+      } else {
+        ui.warn(`Could not create admin user: ${msg}`);
+      }
+    }
+  } else {
+    ui.warn("Could not read UserPoolId — create your admin user manually");
   }
 
   // ── Read outputs and save config ─────────────────────────

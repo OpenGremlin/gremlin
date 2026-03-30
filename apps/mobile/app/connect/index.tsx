@@ -14,11 +14,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { decodeQrPayload, fetchServerConfig } from "../src/lib/connectUtils";
-import { useServerConfig } from "../src/lib/ServerConfigContext";
-import { Input } from "../src/shared/Input";
+import { decodeQrPayload, fetchServerConfig } from "../../src/lib/connectUtils";
+import { useServerConfig } from "../../src/lib/ServerConfigContext";
+import { Input } from "../../src/shared/Input";
 
-const gremlinLogo = require("../assets/gremlin_logo_wings.svg");
+const gremlinLogo = require("../../assets/gremlin_logo_wings.svg");
 
 type Step = "scan" | "confirm" | "manual";
 

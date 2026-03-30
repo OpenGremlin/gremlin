@@ -4,8 +4,11 @@ A single CLI that sets up Gremlin from scratch and lets users add optional featu
 
 ## Install
 
-```
-npm install -g @gremlin/cli
+```bash
+git clone https://github.com/OpenGremlin/gremlin.git
+cd gremlin
+pnpm install
+pnpm gremlin init
 ```
 
 ## Commands

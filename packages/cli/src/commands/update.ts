@@ -16,7 +16,7 @@ export async function updateCommand(): Promise<void> {
   ui.blank();
 
   try {
-    cdkDeploy({
+    await cdkDeploy({
       profile: config.aws.profile,
       region: config.aws.region,
     });

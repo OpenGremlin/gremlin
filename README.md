@@ -14,7 +14,7 @@
 </p>
 
 
-> 🚧 **Work in progress** — OpenGremlin is under active development and is not yet ready for use. Key features are still being implemented and you should expect breaking changes. Feedback and contributions are welcome!
+> 🚧 **Work in progress** — OpenGremlin is under active development.Feedback and contributions are welcome!
 
 OpenGremlin deploys to your AWS account. Your keys, your data, your infrastructure. Agents persist across sessions, have long-term memory, and run in isolated EC2 sandboxes.
 
@@ -48,12 +48,13 @@ Agents only get short-lived access tokens for the current task. They can't mint 
 
 - **Node.js** (v20+)
 - **pnpm 9** — install with `corepack enable && corepack prepare pnpm@9 --activate`
+- **Docker** — [install Docker Desktop](https://docs.docker.com/get-docker/)
 - **AWS CLI** — [install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - **AWS account** with credentials configured (see below)
 
 #### AWS credentials
 
-CDK needs AWS credentials to deploy. Configure them using one of:
+The installer needs AWS credentials to deploy. Configure them using one of:
 
 ```bash
 # Option 1: SSO (recommended)
@@ -72,38 +73,18 @@ Verify your credentials are working:
 aws sts get-caller-identity
 ```
 
-If this is the first time using CDK in your AWS account/region, bootstrap it:
+#### Deploy
 
 ```bash
-cd packages/infra
-npx cdk bootstrap
-```
-
-#### 1. Deploy the server
-
-```
+git clone https://github.com/OpenGremlin/gremlin.git
+cd gremlin
 pnpm install
-
-cd packages/infra
-pnpm run deploy
+pnpm gremlin init
 ```
 
-This deploys the server, database, admin dashboard, auth, and sandboxes. The deploy outputs your admin URL and server IP.
+The installer walks you through AWS setup, creates your admin account, and deploys all infrastructure (server, database, admin dashboard, auth, and sandboxes). At the end it outputs your admin URL.
 
-#### 2. Create your account
-
-1. Open the admin URL from the deploy output
-2. Sign up on the Cognito login page
-3. Add yourself to the `admins` group:
-   ```
-   aws cognito-idp admin-add-user-to-group \
-     --user-pool-id <your-pool-id> \
-     --username <your-email> \
-     --group-name admins
-   ```
-4. Log in again
-
-#### 3. Connect services
+#### Connect services
 
 1. Open the **mobile app** (`apps/mobile`) on your device or in a browser
 2. Enter your server URL and log in

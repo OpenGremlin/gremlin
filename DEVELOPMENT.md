@@ -27,7 +27,7 @@ npx expo export --platform web  # production web build
 After changing GraphQL queries or the server schema, regenerate types:
 
 ```
-pnpm --filter @gremlin/mobile codegen
+pnpm --filter @opengremlin/mobile codegen
 ```
 
 ### Typecheck
@@ -52,7 +52,7 @@ The sandbox container includes Go, Rust, Python, and standard dev tools. It runs
 ## Testing
 
 ```
-pnpm --filter @gremlin/server test
+pnpm --filter @opengremlin/server test
 ```
 
 ## Linting & Formatting
@@ -70,12 +70,13 @@ cd apps/server && pnpm exec tsc --noEmit
 
 ## Deploying
 
-Infrastructure is managed with AWS CDK:
+Infrastructure is managed with AWS CDK via the CLI:
 
 ```
-cd packages/infra
-pnpm run diff      # preview changes
-pnpm run deploy    # deploy all stacks
+pnpm gremlin init      # first-time setup
+pnpm gremlin update    # deploy changes after pulling new code
+pnpm gremlin status    # check what's configured
+pnpm gremlin destroy   # tear down everything
 ```
 
 ## Project Structure

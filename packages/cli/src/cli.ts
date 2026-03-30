@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { addUserCommand } from "./commands/add-user.js";
 import { destroyCommand } from "./commands/destroy.js";
 import { initCommand } from "./commands/init.js";
 import { removeDomainCommand } from "./commands/remove-domain.js";
@@ -34,6 +35,11 @@ program
   .description("Tear down everything (requires confirmation)")
   .action(destroyCommand);
 
+program
+  .command("add-user")
+  .description("Create an admin user in Cognito")
+  .action(addUserCommand);
+
 // ── setup subcommands ──────────────────────────────────────
 
 const setup = program.command("setup").description("Add optional features");
@@ -53,5 +59,9 @@ remove
   .command("domain")
   .description("Remove custom domain")
   .action(removeDomainCommand);
+
+program.action(() => {
+  program.help();
+});
 
 program.parse();

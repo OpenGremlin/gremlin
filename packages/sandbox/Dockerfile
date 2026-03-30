@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile \
 FROM deps AS build
 COPY packages/sandbox/ packages/sandbox/
 COPY tsconfig.base.json ./
-RUN pnpm --filter @gremlin/sandbox build
+RUN pnpm --filter @opengremlin/sandbox build
 
 # Stage 3: runtime
 FROM node:20-slim AS runtime

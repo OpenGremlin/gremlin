@@ -2,6 +2,12 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation";
+import {
+  AdminAddUserToGroupCommand,
+  AdminCreateUserCommand,
+  AdminSetUserPasswordCommand,
+  CognitoIdentityProviderClient,
+} from "@aws-sdk/client-cognito-identity-provider";
 import { IAMClient, SimulatePrincipalPolicyCommand } from "@aws-sdk/client-iam";
 import {
   DeleteParameterCommand,
@@ -159,4 +165,43 @@ export async function deleteSsmParam(
   } catch {
     // Ignore if already deleted
   }
+}
+
+/** Create a Cognito user and add them to the admins group. */
+export async function createAdminUser(
+  config: GremlinConfig | null,
+  userPoolId: string,
+  email: string,
+  password: string,
+): Promise<void> {
+  const cognito = new CognitoIdentityProviderClient(clientConfig(config));
+
+  await cognito.send(
+    new AdminCreateUserCommand({
+      UserPoolId: userPoolId,
+      Username: email,
+      UserAttributes: [
+        { Name: "email", Value: email },
+        { Name: "email_verified", Value: "true" },
+      ],
+      MessageAction: "SUPPRESS",
+    }),
+  );
+
+  await cognito.send(
+    new AdminSetUserPasswordCommand({
+      UserPoolId: userPoolId,
+      Username: email,
+      Password: password,
+      Permanent: true,
+    }),
+  );
+
+  await cognito.send(
+    new AdminAddUserToGroupCommand({
+      UserPoolId: userPoolId,
+      Username: email,
+      GroupName: "admins",
+    }),
+  );
 }

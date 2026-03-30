@@ -36,6 +36,31 @@ export function blank() {
   print();
 }
 
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+export function spinner(initialMsg: string) {
+  let i = 0;
+  let msg = initialMsg;
+  const id = setInterval(() => {
+    process.stderr.write(
+      `\r\x1b[K${chalk.cyan(SPINNER_FRAMES[i++ % SPINNER_FRAMES.length])} ${msg}`,
+    );
+  }, 80);
+
+  return {
+    get message() {
+      return msg;
+    },
+    update(newMsg: string) {
+      msg = newMsg;
+    },
+    stop() {
+      clearInterval(id);
+      process.stderr.write("\r\x1b[K");
+    },
+  };
+}
+
 export function table(rows: [string, string, string?][]) {
   const maxLabel = Math.max(...rows.map(([label]) => label.length));
   for (const [label, status, detail] of rows) {

@@ -13,13 +13,13 @@ corepack enable
 cd "$REPO_ROOT"
 
 # turbo prune creates a minimal monorepo subset for the target package
-npx --yes turbo prune @gremlin/mobile --out-dir /tmp/pruned
+npx --yes turbo prune @opengremlin/mobile --out-dir /tmp/pruned
 
 cd /tmp/pruned
 # Copy files turbo prune doesn't track
 cp "$REPO_ROOT"/tsconfig.base.json .
 
 pnpm install --frozen-lockfile --ignore-scripts
-pnpm --filter @gremlin/mobile run build:web
+pnpm --filter @opengremlin/mobile run build:web
 
 cp -r apps/mobile/dist/. "$OUTPUT_DIR/"
