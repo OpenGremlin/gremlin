@@ -1,23 +1,53 @@
 import { input } from "@inquirer/prompts";
 import chalk from "chalk";
-import { getCallerIdentity } from "../aws.js";
+import { findGremlinStacks, getCallerIdentity } from "../aws.js";
 import { cdkDestroy } from "../cdk.js";
 import { loadConfig } from "../config.js";
 import * as ui from "../ui.js";
 
 export async function destroyCommand(): Promise<void> {
   const config = loadConfig();
-  if (!config?.aws) {
-    ui.fail("Not initialized. Nothing to destroy.");
+
+  // Try to get identity from current AWS credentials, even without local config
+  let accountId: string;
+  let region: string;
+  let profile: string | undefined;
+
+  if (config?.aws) {
+    accountId = config.aws.accountId;
+    region = config.aws.region;
+    profile = config.aws.profile;
+    if (profile) process.env.AWS_PROFILE = profile;
+  } else {
+    // No local config — try current AWS credentials directly
+    try {
+      const identity = await getCallerIdentity(null);
+      accountId = identity.accountId;
+      region = process.env.AWS_DEFAULT_REGION ?? "us-east-1";
+    } catch {
+      ui.fail("No local config and no AWS credentials found.");
+      ui.info("Configure AWS credentials and try again.");
+      return;
+    }
+  }
+
+  // Verify there are actually Gremlin stacks to destroy
+  const tempConfig = config ?? {
+    version: "0.0.1",
+    aws: { region, accountId, stackPrefix: "Gremlin" },
+  };
+  const stacks = await findGremlinStacks(tempConfig);
+  if (stacks.length === 0) {
+    ui.info("No Gremlin stacks found in this account/region.");
     return;
   }
 
-  let accountId = config.aws.accountId;
+  // Refresh identity
   try {
-    const identity = await getCallerIdentity(config);
+    const identity = await getCallerIdentity(tempConfig);
     accountId = identity.accountId;
   } catch {
-    // Use cached account ID
+    // Use what we have
   }
 
   ui.blank();
@@ -31,14 +61,15 @@ export async function destroyCommand(): Promise<void> {
   ui.blank();
   ui.log("Resources to be deleted:");
   ui.blank();
-  ui.log(`  AWS Infrastructure (${config.aws.region}, account ${accountId}):`);
+  ui.log(`  AWS Infrastructure (${region}, account ${accountId}):`);
+  ui.info(`  Stacks: ${stacks.join(", ")}`);
   ui.info("  - DynamoDB tables (all agent data, tasks, conversations)");
   ui.info("  - SQS queues");
   ui.info("  - EC2 sandbox instances");
   ui.info("  - CloudFront distribution");
   ui.info("  - IAM roles");
 
-  if (config.eventSources?.gmail) {
+  if (config?.eventSources?.gmail) {
     ui.blank();
     ui.log(`  GCP Infrastructure (${config.eventSources.gmail.gcpProject}):`);
     ui.info(
@@ -69,10 +100,7 @@ export async function destroyCommand(): Promise<void> {
   ui.blank();
 
   try {
-    cdkDestroy({
-      profile: config.aws.profile,
-      region: config.aws.region,
-    });
+    cdkDestroy({ profile, region });
   } catch {
     ui.blank();
     ui.fail("CDK destroy failed — some resources may remain");
