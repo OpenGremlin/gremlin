@@ -80,14 +80,14 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
   if (!SKIP_AUTH) {
     const secret = await getOriginSecret();
     if (secret && req.headers["x-origin-verify"] !== secret) {
-      res.status(403).send("Forbidden");
+      res.status(403).set("Cache-Control", "no-store").send("Forbidden");
       return;
     }
   }
 
   const filePath = decodeURIComponent(req.params[0]);
   if (!filePath) {
-    res.status(400).send("Missing path");
+    res.status(400).set("Cache-Control", "no-store").send("Missing path");
     return;
   }
 
@@ -97,14 +97,17 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
   const workspacePath = getWorkspacePath();
   const resolved = nodePath.resolve(workspacePath, filePath);
   if (!resolved.startsWith(workspacePath)) {
-    res.status(403).send("Path traversal not allowed");
+    res
+      .status(403)
+      .set("Cache-Control", "no-store")
+      .send("Path traversal not allowed");
     return;
   }
 
   try {
     const stat = await fs.stat(resolved);
     if (!stat.isFile()) {
-      res.status(404).send("Not found");
+      res.status(404).set("Cache-Control", "no-store").send("Not found");
       return;
     }
 
@@ -140,15 +143,15 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
       const readStream = stream.createReadStream();
       readStream.pipe(res);
       readStream.on("error", () => {
-        res.status(500).end();
+        res.status(500).set("Cache-Control", "no-store").end();
       });
     }
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-      res.status(404).send("Not found");
+      res.status(404).set("Cache-Control", "no-store").send("Not found");
       return;
     }
     log.error({ err, filePath }, "Failed to serve workspace file");
-    res.status(500).send("Internal error");
+    res.status(500).set("Cache-Control", "no-store").send("Internal error");
   }
 }
