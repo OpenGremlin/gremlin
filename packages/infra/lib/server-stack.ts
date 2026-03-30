@@ -79,6 +79,12 @@ export class ServerStack extends cdk.Stack {
         ],
       }),
     );
+    serverRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:ListInferenceProfiles"],
+        resources: ["*"],
+      }),
+    );
 
     props.mediaBucket.grantRead(serverRole);
     props.uploadsBucket.grantReadWrite(serverRole);
