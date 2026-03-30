@@ -1,10 +1,10 @@
-import { providers } from "@gremlin/lib/services/integrations/providers.js";
-import { getSkillsBucket } from "@gremlin/lib/services/skills/getSkillsBucket.js";
-import { parseConnectionBindings } from "@gremlin/lib/services/skills/parseConnectionBindings.js";
+import { providers } from "@opengremlin/lib/services/integrations/providers.js";
+import { getSkillsBucket } from "@opengremlin/lib/services/skills/getSkillsBucket.js";
+import { parseConnectionBindings } from "@opengremlin/lib/services/skills/parseConnectionBindings.js";
 import {
   getSkillTemplateFromS3,
   scanSkillCatalog,
-} from "@gremlin/lib/services/skills/skillScanner/index.js";
+} from "@opengremlin/lib/services/skills/skillScanner/index.js";
 import type {
   AgentSkillResolvers,
   MutationResolvers,

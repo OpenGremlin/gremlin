@@ -1,5 +1,5 @@
 {
-  "name": "@gremlin/lib",
+  "name": "@opengremlin/lib",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -40,8 +40,8 @@
     "@aws-sdk/client-ssm": "^3.1000.0",
     "@aws-sdk/credential-providers": "^3.1000.0",
     "@aws-sdk/lib-dynamodb": "^3.1000.0",
-    "@gremlin/models": "https://github.com/OpenGremlin/gremlin-models",
-    "@gremlin/providers": "workspace:*",
+    "@opengremlin/models": "https://github.com/OpenGremlin/gremlin-models",
+    "@opengremlin/providers": "workspace:*",
     "@mozilla/readability": "^0.6.0",
     "@repeaterjs/repeater": "^3.0.6",
     "ai": "^6.0.105",

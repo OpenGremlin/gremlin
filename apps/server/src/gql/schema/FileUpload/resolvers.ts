@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { createLogger } from "@gremlin/lib/logger.js";
-import { getWorkspacePath } from "@gremlin/lib/services/tools/documents.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
+import { getWorkspacePath } from "@opengremlin/lib/services/tools/documents.js";
 import type { GremlinContext } from "../../context.js";
 import { getS3Client, getUploadsBucketName } from "./s3.js";
 

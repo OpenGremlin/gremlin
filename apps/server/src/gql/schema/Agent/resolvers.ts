@@ -1,5 +1,5 @@
 import { Repeater } from "@graphql-yoga/subscription";
-import type { AgentItem } from "@gremlin/lib/resources/ddb/schema/agent.js";
+import type { AgentItem } from "@opengremlin/lib/resources/ddb/schema/agent.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentResolvers,

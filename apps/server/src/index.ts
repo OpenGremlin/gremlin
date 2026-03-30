@@ -3,11 +3,11 @@ import { createServer } from "node:http";
 import path from "node:path";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { createLogger, logger } from "@gremlin/lib/logger.js";
-import { createResources } from "@gremlin/lib/resources/index.js";
-import type { PubSub } from "@gremlin/lib/resources/pubsub.js";
-import { createServices } from "@gremlin/lib/services/index.js";
-import { getSsmClient } from "@gremlin/lib/services/sandbox/ssmClient.js";
+import { createLogger, logger } from "@opengremlin/lib/logger.js";
+import { createResources } from "@opengremlin/lib/resources/index.js";
+import type { PubSub } from "@opengremlin/lib/resources/pubsub.js";
+import { createServices } from "@opengremlin/lib/services/index.js";
+import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
 import express from "express";
 import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
@@ -293,7 +293,7 @@ let stopSqsWorker: (() => void) | undefined;
 loadSchedulerConfig().then(async () => {
   // Start SQS worker if queue URL is available (deployed environment)
   const { startSqsWorker } = await import(
-    "@gremlin/lib/services/inbox/sqsWorker.js"
+    "@opengremlin/lib/services/inbox/sqsWorker.js"
   );
   const serverBase = await getServerBaseUrl();
   const svcCtx = {

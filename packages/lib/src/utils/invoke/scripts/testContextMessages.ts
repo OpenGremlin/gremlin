@@ -9,7 +9,7 @@
  * 3. Enqueues a resume_task inbox item and rings the doorbell
  * 4. Watches the agent log to see what the retry produces
  *
- * Usage: pnpm --filter @gremlin/lib invoke testContextMessages [agentId]
+ * Usage: pnpm --filter @opengremlin/lib invoke testContextMessages [agentId]
  */
 import { ringDoorbell } from "../../../services/inbox/consumer.js";
 import { writeAgentLog } from "../../../services/orchestrator/writeAgentLog.js";

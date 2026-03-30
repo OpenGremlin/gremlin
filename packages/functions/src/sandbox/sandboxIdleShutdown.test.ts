@@ -25,13 +25,13 @@ vi.mock("dynamodb-toolbox/entity/actions/get", () => ({
   },
 }));
 
-vi.mock("@gremlin/lib/resources/ddb/schema/agent.js", () => ({
+vi.mock("@opengremlin/lib/resources/ddb/schema/agent.js", () => ({
   AgentEntity: {
     build: (Cmd: new (entity: unknown) => unknown) => new Cmd("AgentEntity"),
   },
 }));
 
-vi.mock("@gremlin/lib/logger.js", () => ({
+vi.mock("@opengremlin/lib/logger.js", () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),

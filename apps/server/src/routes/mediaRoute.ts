@@ -1,5 +1,5 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { createLogger } from "@gremlin/lib/logger.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
 import { getS3Client } from "../gql/schema/FileUpload/s3.js";

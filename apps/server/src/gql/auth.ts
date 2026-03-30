@@ -1,4 +1,4 @@
-import type { AuthUser } from "@gremlin/lib/services/context.js";
+import type { AuthUser } from "@opengremlin/lib/services/context.js";
 import * as jose from "jose";
 export type { AuthUser };
 

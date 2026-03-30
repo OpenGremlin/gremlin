@@ -5,7 +5,7 @@
  * Loads .env from monorepo root, builds ctx + agent context, then
  * dynamically imports a script from ./scripts/ and passes the context in.
  *
- * Usage: pnpm --filter @gremlin/lib invoke <scriptName> [agentId]
+ * Usage: pnpm --filter @opengremlin/lib invoke <scriptName> [agentId]
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,7 @@ const agentId = process.argv[3] || "testbot";
 
 if (!scriptName) {
   console.error(
-    "Usage: pnpm --filter @gremlin/lib invoke <scriptName> [agentId]",
+    "Usage: pnpm --filter @opengremlin/lib invoke <scriptName> [agentId]",
   );
   process.exit(1);
 }

@@ -1,4 +1,4 @@
-import type { ModelMode } from "@gremlin/providers";
+import type { ModelMode } from "@opengremlin/providers";
 import { classifyModelFromStore } from "./modelMetadataStore.js";
 
 export interface ProviderModel {

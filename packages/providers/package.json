@@ -1,5 +1,5 @@
 {
-  "name": "@gremlin/providers",
+  "name": "@opengremlin/providers",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -15,7 +15,7 @@
     "test": "echo 'No tests'"
   },
   "dependencies": {
-    "@gremlin/logos": "workspace:*"
+    "@opengremlin/logos": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5"

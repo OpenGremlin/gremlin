@@ -1,4 +1,4 @@
-import { ToolName } from "@gremlin/lib/enums.js";
+import { ToolName } from "@opengremlin/lib/enums.js";
 
 const toolNameEnum = `enum ToolName {\n${Object.values(ToolName)
   .map((v) => `    ${v}`)

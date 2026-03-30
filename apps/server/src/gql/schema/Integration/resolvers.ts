@@ -1,4 +1,4 @@
-import type { SafeIntegrationConnection } from "@gremlin/lib/services/integrations/getConnections.js";
+import type { SafeIntegrationConnection } from "@opengremlin/lib/services/integrations/getConnections.js";
 import { GraphQLError } from "graphql";
 import type { GremlinContext } from "../../context.js";
 import type {

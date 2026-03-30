@@ -1,4 +1,4 @@
 import { createPubSub } from "@graphql-yoga/subscription";
-import type { PubSubEvents } from "@gremlin/lib/resources/pubsub.js";
+import type { PubSubEvents } from "@opengremlin/lib/resources/pubsub.js";
 
 export const pubsub = createPubSub<PubSubEvents>();

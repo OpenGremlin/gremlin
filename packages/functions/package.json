@@ -1,5 +1,5 @@
 {
-  "name": "@gremlin/functions",
+  "name": "@opengremlin/functions",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@gremlin/lib": "workspace:*",
+    "@opengremlin/lib": "workspace:*",
     "@aws-sdk/client-ec2": "^3.1003.0",
     "dynamodb-toolbox": "^2.8.0",
     "jose": "^6.0.11"

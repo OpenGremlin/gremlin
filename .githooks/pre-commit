@@ -7,13 +7,13 @@ echo "→ Lint"
 pnpm lint
 
 echo "→ Build & Typecheck"
-pnpm turbo build --filter @gremlin/server --filter @gremlin/mobile
-pnpm --filter @gremlin/server exec tsc --noEmit
-pnpm --filter @gremlin/mobile exec tsc --noEmit
+pnpm turbo build --filter @opengremlin/server --filter @opengremlin/mobile
+pnpm --filter @opengremlin/server exec tsc --noEmit
+pnpm --filter @opengremlin/mobile exec tsc --noEmit
 
 echo "→ Codegen"
-pnpm --filter @gremlin/server codegen
-pnpm --filter @gremlin/mobile codegen
+pnpm --filter @opengremlin/server codegen
+pnpm --filter @opengremlin/mobile codegen
 if ! git diff --quiet; then
   echo "ERROR: Codegen produced uncommitted changes. Please commit them before pushing."
   git diff --stat
@@ -21,6 +21,6 @@ if ! git diff --quiet; then
 fi
 
 echo "→ Tests"
-pnpm --filter @gremlin/server test
+pnpm --filter @opengremlin/server test
 
 echo "All checks passed."

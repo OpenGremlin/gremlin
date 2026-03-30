@@ -1,9 +1,9 @@
 import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
-import { createLogger } from "@gremlin/lib/logger.js";
-import { getSsmClient } from "@gremlin/lib/services/sandbox/ssmClient.js";
-import { mimeByExtension } from "@gremlin/lib/services/workspace/mime.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
+import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
+import { mimeByExtension } from "@opengremlin/lib/services/workspace/mime.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
 

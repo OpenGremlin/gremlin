@@ -1,7 +1,7 @@
-import type { Logger } from "@gremlin/lib/logger.js";
-import type { Resources } from "@gremlin/lib/resources/index.js";
-import type { AuthUser } from "@gremlin/lib/services/context.js";
-import type { Services } from "@gremlin/lib/services/index.js";
+import type { Logger } from "@opengremlin/lib/logger.js";
+import type { Resources } from "@opengremlin/lib/resources/index.js";
+import type { AuthUser } from "@opengremlin/lib/services/context.js";
+import type { Services } from "@opengremlin/lib/services/index.js";
 import type { Loaders } from "./loaders.js";
 
 export interface GremlinContext {

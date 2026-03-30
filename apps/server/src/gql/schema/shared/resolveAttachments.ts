@@ -1,4 +1,4 @@
-import type { Attachment } from "@gremlin/lib/services/tasks/attachment.js";
+import type { Attachment } from "@opengremlin/lib/services/tasks/attachment.js";
 
 /**
  * Extract file paths from an attachments array (for the deprecated `files` resolver).

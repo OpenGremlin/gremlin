@@ -1,11 +1,11 @@
 import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
-import { buildWorkspaceFileUrl } from "@gremlin/lib/services/workspace/buildFileUrl.js";
+import { buildWorkspaceFileUrl } from "@opengremlin/lib/services/workspace/buildFileUrl.js";
 import {
   detectRenderKind,
   languageByExtension,
-} from "@gremlin/lib/services/workspace/mime.js";
-import { readFile } from "@gremlin/lib/services/workspace/readFile.js";
+} from "@opengremlin/lib/services/workspace/mime.js";
+import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import imageSize from "image-size";
 import type { GremlinContext } from "../../context.js";
 import { parseFrontmatter } from "../shared/parseFrontmatter.js";

@@ -1,5 +1,5 @@
 import { TerminateInstancesCommand } from "@aws-sdk/client-ec2";
-import { createLogger } from "@gremlin/lib/logger.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
 import { describeSandboxInstances, ec2 } from "./sandboxHelpers.js";
 
 const log = createLogger("sandbox-deploy-terminator");

@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import type { WorkspaceEntry } from "@gremlin/lib/services/workspace/listEntries.js";
+import type { WorkspaceEntry } from "@opengremlin/lib/services/workspace/listEntries.js";
 import type { GremlinContext } from "../../context.js";
 
 const MIME_BY_EXT: Record<string, string> = {

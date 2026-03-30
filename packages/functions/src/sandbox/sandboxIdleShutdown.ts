@@ -1,6 +1,6 @@
 import { StopInstancesCommand } from "@aws-sdk/client-ec2";
-import { createLogger } from "@gremlin/lib/logger.js";
-import { AgentEntity } from "@gremlin/lib/resources/ddb/schema/agent.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
+import { AgentEntity } from "@opengremlin/lib/resources/ddb/schema/agent.js";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { describeSandboxInstances, ec2, getTag } from "./sandboxHelpers.js";
 

@@ -1,4 +1,4 @@
-import { createAllowlistStore } from "@gremlin/lib/services/shellGuard/allowlistStore.js";
+import { createAllowlistStore } from "@opengremlin/lib/services/shellGuard/allowlistStore.js";
 import type { GremlinContext } from "../../context.js";
 
 // biome-ignore lint/suspicious/noExplicitAny: allowlist types not in generated resolvers yet

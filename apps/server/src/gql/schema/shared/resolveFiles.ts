@@ -1,4 +1,4 @@
-import { getFileInfo } from "@gremlin/lib/services/workspace/getFileInfo.js";
+import { getFileInfo } from "@opengremlin/lib/services/workspace/getFileInfo.js";
 
 /**
  * Shared helper for AgentLog and Task `files` resolvers.

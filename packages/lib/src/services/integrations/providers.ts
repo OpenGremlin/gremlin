@@ -6,4 +6,4 @@ export {
   type ModelMode,
   type ModelType,
   providers,
-} from "@gremlin/providers";
+} from "@opengremlin/providers";

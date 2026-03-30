@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { createLogger } from "@gremlin/lib/logger.js";
+import { createLogger } from "@opengremlin/lib/logger.js";
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
 import sharp from "sharp";
 

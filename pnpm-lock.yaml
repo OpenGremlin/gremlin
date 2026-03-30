@@ -17,7 +17,7 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@gremlin/logos':
+      '@opengremlin/logos':
         specifier: workspace:*
         version: link:../../packages/logos
       babel-preset-expo:
@@ -192,7 +192,7 @@ importers:
       '@graphql-yoga/subscription':
         specifier: ^5.0.5
         version: 5.0.5
-      '@gremlin/lib':
+      '@opengremlin/lib':
         specifier: workspace:*
         version: link:../../packages/lib
       cron-parser:
@@ -311,7 +311,7 @@ importers:
       '@aws-sdk/client-ec2':
         specifier: ^3.1003.0
         version: 3.1003.0
-      '@gremlin/lib':
+      '@opengremlin/lib':
         specifier: workspace:*
         version: link:../lib
       dynamodb-toolbox:
@@ -439,15 +439,15 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.1000.0
         version: 3.1000.0(@aws-sdk/client-dynamodb@3.1000.0)
-      '@gremlin/models':
-        specifier: https://github.com/OpenGremlin/gremlin-models
-        version: https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a
-      '@gremlin/providers':
-        specifier: workspace:*
-        version: link:../providers
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
+      '@opengremlin/models':
+        specifier: https://github.com/OpenGremlin/gremlin-models
+        version: '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a'
+      '@opengremlin/providers':
+        specifier: workspace:*
+        version: link:../providers
       '@repeaterjs/repeater':
         specifier: ^3.0.6
         version: 3.0.6
@@ -523,7 +523,7 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3
         version: 3.1000.0
-      '@gremlin/lib':
+      '@opengremlin/lib':
         specifier: workspace:*
         version: link:../lib
       sharp:
@@ -542,7 +542,7 @@ importers:
 
   packages/providers:
     dependencies:
-      '@gremlin/logos':
+      '@opengremlin/logos':
         specifier: workspace:*
         version: link:../logos
     devDependencies:

@@ -1,4 +1,4 @@
-import type { ModelMode } from "@gremlin/providers";
+import type { ModelMode } from "@opengremlin/providers";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";

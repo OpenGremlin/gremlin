@@ -1,12 +1,12 @@
 import { createRequire } from "node:module";
-import type { ModelEntry } from "@gremlin/models";
-import type { ModelMode } from "@gremlin/providers";
+import type { ModelEntry } from "@opengremlin/models";
+import type { ModelMode } from "@opengremlin/providers";
 
 const require = createRequire(import.meta.url);
 const models: Record<
   string,
   ModelEntry
-> = require("@gremlin/models/models.json");
+> = require("@opengremlin/models/models.json");
 
 /** Modes we surface */
 const SURFACED_MODES = new Set<string>(["chat", "image_generation"]);

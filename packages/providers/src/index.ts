@@ -60,7 +60,7 @@ export interface IntegrationProviderDef {
   models?: ModelDef[];
   /** Hide from the UI — provider exists but is not ready for users yet */
   hidden?: boolean;
-  /** Logo filename from @gremlin/logos (e.g. "Google.svg") */
+  /** Logo filename from @opengremlin/logos (e.g. "Google.svg") */
   logo: string;
   /** Light-mode logo variant filename, if available */
   logoLight?: string;

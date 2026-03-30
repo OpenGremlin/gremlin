@@ -1,6 +1,6 @@
-import type { AgentItem } from "@gremlin/lib/resources/ddb/schema/agent.js";
-import type { TaskItem } from "@gremlin/lib/resources/ddb/schema/task.js";
-import type { Resources } from "@gremlin/lib/resources/index.js";
+import type { AgentItem } from "@opengremlin/lib/resources/ddb/schema/agent.js";
+import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
+import type { Resources } from "@opengremlin/lib/resources/index.js";
 import DataLoader from "dataloader";
 import type { Entity, FormattedItem } from "dynamodb-toolbox/entity";
 import { BatchGetRequest } from "dynamodb-toolbox/entity/actions/batchGet";

@@ -3,7 +3,7 @@
  * Run after create-local-tables.ts.
  *
  * Usage: LOCALSTACK_ENDPOINT=http://localhost:4566 tsx scripts/seed-local.ts
- *   or:  pnpm --filter @gremlin/server run db:seed
+ *   or:  pnpm --filter @opengremlin/server run db:seed
  */
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
