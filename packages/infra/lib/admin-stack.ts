@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as cdk from "aws-cdk-lib";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as iam from "aws-cdk-lib/aws-iam";
@@ -113,6 +114,30 @@ export class AdminStack extends cdk.Stack {
       }),
     );
 
+    // ── Optional custom domain ──────────────────────────────
+    // The CLI writes /gremlin/custom-domain to SSM before deploying.
+    // If set, we add the domain as a CloudFront alias with an ACM cert.
+    // ACM certs for CloudFront must be in us-east-1 — CDK handles
+    // cross-region references automatically.
+    const customDomain = ssm.StringParameter.valueFromLookup(
+      this,
+      "/gremlin/custom-domain",
+    );
+    // valueFromLookup returns a dummy token during first synth if the
+    // param doesn't exist. Check for real values only.
+    const hasCustomDomain =
+      customDomain &&
+      !customDomain.startsWith("dummy-value") &&
+      customDomain !== "NOT_SET";
+
+    let certificate: acm.ICertificate | undefined;
+    if (hasCustomDomain) {
+      certificate = new acm.Certificate(this, "CustomDomainCert", {
+        domainName: customDomain,
+        validation: acm.CertificateValidation.fromDns(),
+      });
+    }
+
     const apiBehavior: cloudfront.BehaviorOptions = {
       origin: serverOrigin,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -122,6 +147,8 @@ export class AdminStack extends cdk.Stack {
     };
 
     const distribution = new cloudfront.Distribution(this, "AdminCdn", {
+      domainNames: hasCustomDomain ? [customDomain] : undefined,
+      certificate,
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(adminBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -197,6 +224,7 @@ export class AdminStack extends cdk.Stack {
           ClientId: props.userPoolClientId,
           CallbackURLs: [
             cfUrl,
+            ...(hasCustomDomain ? [`https://${customDomain}`] : []),
             "http://localhost:5173",
             "http://localhost:19284/cognito-callback",
           ],
@@ -265,10 +293,24 @@ export class AdminStack extends cdk.Stack {
       description: "Web app URL (CloudFront HTTPS)",
     });
 
-    // Store CloudFront URL in SSM so the server can read it at runtime
+    // Store the canonical URL in SSM — custom domain if set, else CloudFront
+    const canonicalUrl = hasCustomDomain ? `https://${customDomain}` : cfUrl;
+
     new ssm.StringParameter(this, "AdminUrlParam", {
       parameterName: "/gremlin/admin-url",
-      stringValue: cfUrl,
+      stringValue: canonicalUrl,
     });
+
+    if (hasCustomDomain) {
+      new cdk.CfnOutput(this, "CustomDomain", {
+        value: customDomain,
+        description: "Custom domain name",
+      });
+
+      new cdk.CfnOutput(this, "CloudFrontDomain", {
+        value: distribution.distributionDomainName,
+        description: "CloudFront domain — point your CNAME here",
+      });
+    }
   }
 }
