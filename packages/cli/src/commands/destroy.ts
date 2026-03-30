@@ -112,38 +112,40 @@ export async function destroyCommand(): Promise<void> {
   );
   ui.blank();
 
-  ui.log("Destroying AWS infrastructure...");
+  ui.log("Destroying stacks in dependency order...");
   ui.blank();
 
-  try {
-    cdkDestroy({ profile, region });
-  } catch {
-    ui.blank();
-    ui.fail("CDK destroy failed — some stacks may not have been deleted");
-    ui.blank();
+  const { destroyed, failed } = cdkDestroy({ profile, region });
 
-    // Check what's left
-    const remaining = await findGremlinStacks(tempConfig);
-    if (remaining.length > 0) {
-      ui.info("Remaining stacks:");
-      for (const s of remaining) {
-        ui.info(`  - ${s}`);
-      }
-      ui.blank();
-      ui.info("You can retry with: pnpm gremlin -- destroy");
-      ui.info("Or delete from the AWS CloudFormation console.");
-      ui.blank();
-      ui.info("If GremlinAdminStack is stuck due to Lambda@Edge:");
+  ui.blank();
+  if (destroyed.length > 0) {
+    for (const s of destroyed) {
+      ui.success(s);
+    }
+  }
+  if (failed.length > 0) {
+    for (const s of failed) {
+      ui.fail(s);
+    }
+  }
+  ui.blank();
+
+  if (failed.length > 0) {
+    ui.warn(`${failed.length} stack(s) failed to delete`);
+    ui.blank();
+    ui.info("You can retry with: pnpm gremlin -- destroy");
+    ui.info("Or delete from the AWS CloudFormation console.");
+    ui.blank();
+    if (failed.includes("GremlinAdminStack")) {
+      ui.info("GremlinAdminStack is likely stuck due to Lambda@Edge:");
       ui.info("  1. Wait 30-60 minutes for edge replicas to clean up");
       ui.info('  2. Delete the stack with "Retain" for the Lambda function');
       ui.info("  3. Re-run destroy to clean up remaining stacks");
+      ui.blank();
     }
-
-    ui.blank();
     process.exit(1);
   }
 
-  ui.blank();
   ui.success("Gremlin destroyed");
   ui.blank();
 }
