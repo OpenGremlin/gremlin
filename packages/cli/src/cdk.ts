@@ -133,8 +133,10 @@ export function cdkDestroy(
     }
   }
 
-  const maxPasses = remaining.size + 1;
-  for (let pass = 0; pass < maxPasses && remaining.size > 0; pass++) {
+  const MAX_PASSES = 5;
+  for (let pass = 0; pass < MAX_PASSES && remaining.size > 0; pass++) {
+    const sizeBefore = remaining.size;
+
     // Try non-foundation stacks first, then foundation, VPC last
     const sorted = [...remaining].sort((a, b) => {
       if (a === LAST_STACK) return 1;
@@ -144,9 +146,8 @@ export function cdkDestroy(
       return aFoundation - bFoundation;
     });
 
-    let deletedThisPass = false;
     for (const stack of sorted) {
-      const args = ["cdk", "destroy", stack, "--force"];
+      const args = ["cdk", "destroy", stack, "--force", "--exclusively"];
       if (opts.profile) args.push(`--profile=${opts.profile}`);
 
       try {
@@ -157,14 +158,13 @@ export function cdkDestroy(
         });
         destroyed.push(stack);
         remaining.delete(stack);
-        deletedThisPass = true;
       } catch {
         // Will retry on next pass — dependency may be gone by then
       }
     }
 
-    // If nothing was deleted this pass, remaining stacks are stuck
-    if (!deletedThisPass) break;
+    // If no stacks were actually removed, remaining stacks are stuck
+    if (remaining.size === sizeBefore) break;
   }
 
   return { destroyed, failed: [...remaining] };
