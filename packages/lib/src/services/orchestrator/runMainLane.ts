@@ -55,5 +55,8 @@ export async function runMainLane(
     },
     recallHint,
     timezone,
+    reasoningEnabled:
+      (agent.config?.reasoning?.enabled ?? false) &&
+      agentLaneCtx.modelSupportsReasoning,
   });
 }

@@ -167,6 +167,7 @@ export const EnabledModelDetailsQuery = graphql(`
       inputCostPerImageToken
       outputCostPerImage
       outputCostPerImageToken
+      supportsReasoning
     }
   }
 `);

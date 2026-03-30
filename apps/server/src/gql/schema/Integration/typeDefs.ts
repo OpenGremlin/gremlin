@@ -17,6 +17,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     inputCostPerImageToken: Float
     outputCostPerImage: Float
     outputCostPerImageToken: Float
+    supportsReasoning: Boolean
   }
 
   type DefaultModel {

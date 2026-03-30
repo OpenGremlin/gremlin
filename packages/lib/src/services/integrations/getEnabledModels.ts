@@ -25,6 +25,7 @@ export interface EnabledModel {
   inputCostPerImageToken?: number;
   outputCostPerImage?: number;
   outputCostPerImageToken?: number;
+  supportsReasoning?: boolean;
 }
 
 /** Map legacy `type` values to `mode` */
@@ -75,6 +76,7 @@ function enrichFromStore(
     inputCostPerImageToken: meta.inputCostPerImageToken,
     outputCostPerImage: meta.outputCostPerImage,
     outputCostPerImageToken: meta.outputCostPerImageToken,
+    supportsReasoning: meta.supportsReasoning,
   };
 }
 

@@ -17,6 +17,10 @@ export const agentTypeDefs = /* GraphQL */ `
     provider: String
   }
 
+  type AgentReasoningConfig {
+    enabled: Boolean!
+  }
+
   type AgentViewImageConfig {
     enabled: Boolean!
   }
@@ -30,6 +34,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageModel: AgentModelConfig
     sandbox: AgentSandboxConfig
     webSearch: AgentWebSearchConfig
+    reasoning: AgentReasoningConfig
     viewImage: AgentViewImageConfig
     imageGeneration: AgentImageGenerationConfig
   }
@@ -69,6 +74,10 @@ export const agentTypeDefs = /* GraphQL */ `
     provider: String
   }
 
+  input AgentReasoningConfigInput {
+    enabled: Boolean!
+  }
+
   input AgentViewImageConfigInput {
     enabled: Boolean!
   }
@@ -82,6 +91,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageModel: AgentModelConfigInput
     sandbox: AgentSandboxConfigInput
     webSearch: AgentWebSearchConfigInput
+    reasoning: AgentReasoningConfigInput
     viewImage: AgentViewImageConfigInput
     imageGeneration: AgentImageGenerationConfigInput
   }

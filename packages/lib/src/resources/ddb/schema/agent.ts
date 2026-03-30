@@ -40,6 +40,9 @@ export const AgentEntity = new Entity({
         enabled: boolean(),
         provider: string().optional(),
       }).optional(),
+      reasoning: map({
+        enabled: boolean(),
+      }).optional(),
       viewImage: map({
         enabled: boolean(),
       }).optional(),

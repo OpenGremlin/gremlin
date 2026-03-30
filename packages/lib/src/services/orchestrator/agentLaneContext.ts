@@ -35,19 +35,21 @@ export interface AgentLaneContext {
   skillSummary: { promptSection: string };
   skillTools: SkillToolsResult;
   modelSupportsImages: boolean;
+  modelSupportsReasoning: boolean;
 }
 
 /**
- * Resolve the selected model's metadata and check whether it supports images.
+ * Resolve the selected model's metadata to check capability flags.
  */
-async function resolveModelSupportsImages(
+async function resolveModelCapabilities(
   ctx: ServiceContext,
   agentModel:
     | { type: string; modelId?: string; connectionId?: string }
     | undefined
     | null,
-): Promise<boolean> {
-  if (!agentModel) return true; // no override → assume default supports images
+): Promise<{ supportsImages: boolean; supportsReasoning: boolean }> {
+  const defaults = { supportsImages: true, supportsReasoning: false };
+  if (!agentModel) return defaults;
   let providerId: string;
   let modelId: string;
   if (agentModel.type === "bedrock" && agentModel.modelId) {
@@ -56,7 +58,7 @@ async function resolveModelSupportsImages(
   } else if (agentModel.type === "connection" && agentModel.connectionId) {
     [providerId, modelId] = agentModel.connectionId.split(":", 2);
   } else {
-    return true;
+    return defaults;
   }
   let models: EnabledModel[];
   try {
@@ -65,11 +67,15 @@ async function resolveModelSupportsImages(
       providerId,
     );
   } catch {
-    return true; // on error, don't block the tool
+    return defaults;
   }
   const match = models.find((m) => m.id === modelId);
-  if (!match?.supportedModalities) return true;
-  return match.supportedModalities.includes("image");
+  return {
+    supportsImages: match?.supportedModalities
+      ? match.supportedModalities.includes("image")
+      : true,
+    supportsReasoning: match?.supportsReasoning ?? false,
+  };
 }
 
 /**
@@ -85,7 +91,7 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
-  const [skillSummary, skillTools, modelSupportsImages] = await Promise.all([
+  const [skillSummary, skillTools, modelCapabilities] = await Promise.all([
     buildSkillSummary(ctx, agentId).catch((err) => {
       ctx.log.error(
         { err, component: "skills" },
@@ -100,7 +106,7 @@ export async function buildAgentLaneContext(
       );
       return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
     }),
-    resolveModelSupportsImages(ctx, agent.config?.model),
+    resolveModelCapabilities(ctx, agent.config?.model),
   ]);
 
   return {
@@ -110,7 +116,8 @@ export async function buildAgentLaneContext(
     timezone,
     skillSummary,
     skillTools,
-    modelSupportsImages,
+    modelSupportsImages: modelCapabilities.supportsImages,
+    modelSupportsReasoning: modelCapabilities.supportsReasoning,
   };
 }
 

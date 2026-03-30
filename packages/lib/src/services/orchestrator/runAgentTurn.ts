@@ -54,6 +54,19 @@ function withEagerLogging(
   return { tools: wrapped, callLogIds };
 }
 
+function buildReasoningProviderOptions(
+  modelProvider: string,
+): Record<string, Record<string, unknown>> | undefined {
+  // Anthropic: opt-in via thinking config
+  if (modelProvider.startsWith("anthropic")) {
+    return { anthropic: { thinking: { type: "adaptive" } } };
+  }
+  // OpenAI reasoning models (o1/o3) reason by default — no extra options needed
+  // DeepSeek reasoning is automatic
+  // For other providers, no standard reasoning option
+  return undefined;
+}
+
 export async function runAgentTurn(
   ctx: ServiceContext,
   opts: {
@@ -64,6 +77,7 @@ export async function runAgentTurn(
     memoryContext?: string;
     messages: ModelMessage[];
     tools?: Record<string, Tool>;
+    reasoningEnabled?: boolean;
   },
 ): Promise<string> {
   const lane = opts.taskId ? `task:${opts.taskId}` : "main";
@@ -206,12 +220,19 @@ export async function runAgentTurn(
   // Signal that inference has started (typing indicator)
   publishDelta("", false);
 
+  const modelProvider = typeof model === "string" ? model : model.provider;
+  const providerOptions = opts.reasoningEnabled
+    ? buildReasoningProviderOptions(modelProvider)
+    : undefined;
+
   const result = streamText({
     model,
     system: systemParts.join("\n\n"),
     messages: opts.messages,
     tools: allTools,
     stopWhen: [hasToolCall("requestUserInput"), () => pendingCommandApproval],
+    // biome-ignore lint/suspicious/noExplicitAny: provider options type is too strict for dynamic construction
+    providerOptions: providerOptions as any,
     onStepFinish,
     onChunk: ({ chunk }) => {
       if (chunk.type === "text-delta" && chunk.text) {

@@ -39,6 +39,7 @@ export type AgentConfig = {
   imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
   model?: Maybe<AgentModelConfig>;
+  reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
@@ -48,6 +49,7 @@ export type AgentConfigInput = {
   imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
+  reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
@@ -134,6 +136,15 @@ export type AgentModelConfigInput = {
   connectionId?: InputMaybe<Scalars['String']['input']>;
   modelId?: InputMaybe<Scalars['String']['input']>;
   type: Scalars['String']['input'];
+};
+
+export type AgentReasoningConfig = {
+  __typename?: 'AgentReasoningConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentReasoningConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentSandboxConfig = {
@@ -424,6 +435,7 @@ export type ModelInfo = {
   outputCostPerToken?: Maybe<Scalars['Float']['output']>;
   supportedModalities?: Maybe<Array<Scalars['String']['output']>>;
   supportedOutputModalities?: Maybe<Array<Scalars['String']['output']>>;
+  supportsReasoning?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type Mutation = {
@@ -1162,7 +1174,7 @@ export type AgentStreamSubscriptionVariables = Exact<{
 
 export type AgentStreamSubscription = { __typename?: 'Subscription', agentStream: { __typename?: 'AgentStreamDelta', logId: string, agentId: string, taskId?: string | null, delta: string, done: boolean } };
 
-export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null };
+export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null };
 
 export type AgentsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1174,7 +1186,7 @@ export type AgentQueryVariables = Exact<{
 }>;
 
 
-export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } | null };
+export type AgentQuery = { __typename?: 'Query', agent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } | null };
 
 export type UpdateAgentMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1182,7 +1194,7 @@ export type UpdateAgentMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } | null };
+export type UpdateAgentMutation = { __typename?: 'Mutation', updateAgent?: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } | null };
 
 export type CreateAgentMutationVariables = Exact<{
   input: CreateAgentInput;
@@ -1210,7 +1222,7 @@ export type AgentUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } };
+export type AgentUpdatedSubscription = { __typename?: 'Subscription', agentUpdated: { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, soul: string, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null } | null } };
 
 export type CommandAllowlistQueryVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1347,7 +1359,7 @@ export type EnabledModelDetailsQueryVariables = Exact<{
 }>;
 
 
-export type EnabledModelDetailsQuery = { __typename?: 'Query', enabledModelDetails: Array<{ __typename?: 'ModelInfo', id: string, name: string, mode: string, maxInputTokens?: number | null, inputCostPerToken?: number | null, outputCostPerToken?: number | null, supportedModalities?: Array<string> | null, supportedOutputModalities?: Array<string> | null, inputCostPerImage?: number | null, inputCostPerImageToken?: number | null, outputCostPerImage?: number | null, outputCostPerImageToken?: number | null }> };
+export type EnabledModelDetailsQuery = { __typename?: 'Query', enabledModelDetails: Array<{ __typename?: 'ModelInfo', id: string, name: string, mode: string, maxInputTokens?: number | null, inputCostPerToken?: number | null, outputCostPerToken?: number | null, supportedModalities?: Array<string> | null, supportedOutputModalities?: Array<string> | null, inputCostPerImage?: number | null, inputCostPerImageToken?: number | null, outputCostPerImage?: number | null, outputCostPerImageToken?: number | null, supportsReasoning?: boolean | null }> };
 
 export type BedrockAvailableModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1724,6 +1736,9 @@ export const AgentDetailFragmentDoc = new TypedDocumentString(`
       enabled
       provider
     }
+    reasoning {
+      enabled
+    }
     viewImage {
       enabled
     }
@@ -1993,6 +2008,9 @@ export const AgentDocument = new TypedDocumentString(`
       enabled
       provider
     }
+    reasoning {
+      enabled
+    }
     viewImage {
       enabled
     }
@@ -2036,6 +2054,9 @@ export const UpdateAgentDocument = new TypedDocumentString(`
     webSearch {
       enabled
       provider
+    }
+    reasoning {
+      enabled
     }
     viewImage {
       enabled
@@ -2105,6 +2126,9 @@ export const AgentUpdatedDocument = new TypedDocumentString(`
     webSearch {
       enabled
       provider
+    }
+    reasoning {
+      enabled
     }
     viewImage {
       enabled
@@ -2316,6 +2340,7 @@ export const EnabledModelDetailsDocument = new TypedDocumentString(`
     inputCostPerImageToken
     outputCostPerImage
     outputCostPerImageToken
+    supportsReasoning
   }
 }
     `) as unknown as TypedDocumentString<EnabledModelDetailsQuery, EnabledModelDetailsQueryVariables>;

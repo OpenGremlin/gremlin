@@ -32,6 +32,7 @@ interface PlainConfig {
     commandApproval: string;
   };
   webSearch?: { enabled: boolean; provider?: string };
+  reasoning?: { enabled: boolean };
   viewImage?: { enabled: boolean };
   imageGeneration?: { enabled: boolean };
 }
@@ -65,6 +66,9 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           enabled: config.webSearch.enabled,
           provider: config.webSearch.provider ?? undefined,
         }
+      : undefined,
+    reasoning: config?.reasoning
+      ? { enabled: config.reasoning.enabled }
       : undefined,
     viewImage: config?.viewImage
       ? { enabled: config.viewImage.enabled }
@@ -152,6 +156,9 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
+  const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
+    boolean | null
+  >(null);
 
   // Sync from server when agent prop updates
   const serverConfig = agent.config;
@@ -232,6 +239,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     const ids = resolveModelIds(configModel);
     if (!ids) {
       setModelModalities(null);
+      setModelSupportsReasoning(null);
       return;
     }
     let cancelled = false;
@@ -242,6 +250,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           (d) => d.id === ids.modelId,
         );
         setModelModalities(detail?.supportedModalities ?? null);
+        setModelSupportsReasoning(detail?.supportsReasoning ?? null);
       },
     );
     return () => {
@@ -249,14 +258,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     };
   }, [configModel]);
 
+  const supportsReasoning = modelSupportsReasoning ?? false;
   const supportsImages = modelModalities?.includes("image") ?? true;
-
-  // Auto-disable viewImage when the model does not support images
-  useEffect(() => {
-    if (!supportsImages && config.viewImage?.enabled) {
-      updateConfig({ viewImage: { enabled: false } });
-    }
-  }, [supportsImages, config.viewImage?.enabled, updateConfig]);
 
   const chatModelLabel = getModelLabel(
     effectiveChatModel,
@@ -381,6 +384,28 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   <Info size={18} color={colors.iconDefault} />
                 </Pressable>
               )}
+            </View>
+
+            {/* Reasoning */}
+            <View className="flex-row items-center justify-between mt-1 gap-3">
+              <View className="flex-1">
+                <Text className="text-sm text-text-secondary">Reasoning</Text>
+                <Text className="text-xs text-text-muted">
+                  {!supportsReasoning
+                    ? "Selected model does not support reasoning"
+                    : "Enable extended thinking for complex tasks"}
+                </Text>
+              </View>
+              <Toggle
+                enabled={
+                  supportsReasoning && (config.reasoning?.enabled ?? false)
+                }
+                disabled={!supportsReasoning}
+                onChange={() => {
+                  const wasEnabled = config.reasoning?.enabled ?? false;
+                  updateConfig({ reasoning: { enabled: !wasEnabled } });
+                }}
+              />
             </View>
 
             {/* View Images */}

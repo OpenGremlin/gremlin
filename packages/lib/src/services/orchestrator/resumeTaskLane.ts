@@ -49,5 +49,8 @@ export async function resumeTaskLane(
     systemPrompt,
     tools: buildTaskTools(ctx, agentLaneCtx, task.agentId, taskId),
     timezone,
+    reasoningEnabled:
+      (agent.config?.reasoning?.enabled ?? false) &&
+      agentLaneCtx.modelSupportsReasoning,
   });
 }

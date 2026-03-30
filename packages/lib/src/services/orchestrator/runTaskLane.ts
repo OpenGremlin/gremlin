@@ -68,6 +68,9 @@ export async function runTaskLane(
     tools: buildTaskTools(ctx, agentLaneCtx, task.agentId, taskId),
     recallHint: prompt,
     timezone,
+    reasoningEnabled:
+      (agent.config?.reasoning?.enabled ?? false) &&
+      agentLaneCtx.modelSupportsReasoning,
     initialPrompt: prompt,
   });
 }

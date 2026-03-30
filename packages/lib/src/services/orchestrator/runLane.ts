@@ -17,6 +17,8 @@ export interface LaneConfig {
   tools: Record<string, Tool>;
   recallHint?: string;
   timezone?: string;
+  /** Enable extended thinking / reasoning for this lane. */
+  reasoningEnabled?: boolean;
   /** Initial user-role prompt to prepend if not yet in the log (avoids read-after-write race). */
   initialPrompt?: string;
 }
@@ -36,6 +38,7 @@ export async function runLane(
     tools,
     recallHint,
     timezone,
+    reasoningEnabled,
     initialPrompt,
   } = config;
 
@@ -96,6 +99,7 @@ export async function runLane(
       memoryContext,
       messages,
       tools,
+      reasoningEnabled,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -126,6 +130,7 @@ export async function runLane(
         memoryContext,
         messages: recoveryMessages,
         tools,
+        reasoningEnabled,
       });
     } catch (recoveryErr) {
       ctx.log.error(

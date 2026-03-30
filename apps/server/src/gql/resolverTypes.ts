@@ -58,6 +58,7 @@ export type AgentConfig = {
   imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
   model?: Maybe<AgentModelConfig>;
+  reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
@@ -67,6 +68,7 @@ export type AgentConfigInput = {
   imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
+  reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
@@ -153,6 +155,15 @@ export type AgentModelConfigInput = {
   connectionId?: InputMaybe<Scalars['String']['input']>;
   modelId?: InputMaybe<Scalars['String']['input']>;
   type: Scalars['String']['input'];
+};
+
+export type AgentReasoningConfig = {
+  __typename?: 'AgentReasoningConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentReasoningConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentSandboxConfig = {
@@ -443,6 +454,7 @@ export type ModelInfo = {
   outputCostPerToken?: Maybe<Scalars['Float']['output']>;
   supportedModalities?: Maybe<Array<Scalars['String']['output']>>;
   supportedOutputModalities?: Maybe<Array<Scalars['String']['output']>>;
+  supportsReasoning?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type Mutation = {
@@ -1187,6 +1199,8 @@ export type ResolversTypes = {
   AgentLogRole: AgentLogRole;
   AgentModelConfig: ResolverTypeWrapper<AgentModelConfig>;
   AgentModelConfigInput: AgentModelConfigInput;
+  AgentReasoningConfig: ResolverTypeWrapper<AgentReasoningConfig>;
+  AgentReasoningConfigInput: AgentReasoningConfigInput;
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: ResolverTypeWrapper<AgentSkillItem>;
@@ -1274,6 +1288,8 @@ export type ResolversParentTypes = {
   AgentLogPageInfo: PageInfoModel;
   AgentModelConfig: AgentModelConfig;
   AgentModelConfigInput: AgentModelConfigInput;
+  AgentReasoningConfig: AgentReasoningConfig;
+  AgentReasoningConfigInput: AgentReasoningConfigInput;
   AgentSandboxConfig: AgentSandboxConfig;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: AgentSkillItem;
@@ -1359,6 +1375,7 @@ export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extend
   imageGeneration?: Resolver<Maybe<ResolversTypes['AgentImageGenerationConfig']>, ParentType, ContextType>;
   imageModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
+  reasoning?: Resolver<Maybe<ResolversTypes['AgentReasoningConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
   webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
@@ -1419,6 +1436,10 @@ export type AgentModelConfigResolvers<ContextType = GremlinContext, ParentType e
   connectionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modelId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AgentReasoningConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentReasoningConfig'] = ResolversParentTypes['AgentReasoningConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type AgentSandboxConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentSandboxConfig'] = ResolversParentTypes['AgentSandboxConfig']> = {
@@ -1629,6 +1650,7 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
   outputCostPerToken?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   supportedModalities?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   supportedOutputModalities?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  supportsReasoning?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -1880,6 +1902,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
+  AgentReasoningConfig?: AgentReasoningConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
   AgentSkill?: AgentSkillResolvers<ContextType>;
   AgentStreamDelta?: AgentStreamDeltaResolvers<ContextType>;

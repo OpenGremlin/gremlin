@@ -31,6 +31,9 @@ export const AgentDetailFragment = graphql(`
         enabled
         provider
       }
+      reasoning {
+        enabled
+      }
       viewImage {
         enabled
       }

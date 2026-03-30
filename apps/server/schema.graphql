@@ -127,6 +127,7 @@ type Subscription {
   _empty: String
   jobCreated: AgentJob!
   agentLogCreated(agentId: ID!): AgentLog!
+  agentStream(agentId: ID!): AgentStreamDelta!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
   pendingItemsUpdated: Boolean!
@@ -135,15 +136,6 @@ type Subscription {
   jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
-  agentStream(agentId: ID!): AgentStreamDelta!
-}
-
-type AgentStreamDelta {
-  logId: ID!
-  agentId: ID!
-  taskId: String
-  delta: String!
-  done: Boolean!
 }
 
 type AllowlistEntry {
@@ -353,6 +345,14 @@ type SendMessageResult {
   content: String!
 }
 
+type AgentStreamDelta {
+  logId: ID!
+  agentId: ID!
+  taskId: String
+  delta: String!
+  done: Boolean!
+}
+
 type AgentModelConfig {
   type: String!
   modelId: String
@@ -371,6 +371,10 @@ type AgentWebSearchConfig {
   provider: String
 }
 
+type AgentReasoningConfig {
+  enabled: Boolean!
+}
+
 type AgentViewImageConfig {
   enabled: Boolean!
 }
@@ -384,6 +388,7 @@ type AgentConfig {
   imageModel: AgentModelConfig
   sandbox: AgentSandboxConfig
   webSearch: AgentWebSearchConfig
+  reasoning: AgentReasoningConfig
   viewImage: AgentViewImageConfig
   imageGeneration: AgentImageGenerationConfig
 }
@@ -418,6 +423,10 @@ input AgentWebSearchConfigInput {
   provider: String
 }
 
+input AgentReasoningConfigInput {
+  enabled: Boolean!
+}
+
 input AgentViewImageConfigInput {
   enabled: Boolean!
 }
@@ -431,6 +440,7 @@ input AgentConfigInput {
   imageModel: AgentModelConfigInput
   sandbox: AgentSandboxConfigInput
   webSearch: AgentWebSearchConfigInput
+  reasoning: AgentReasoningConfigInput
   viewImage: AgentViewImageConfigInput
   imageGeneration: AgentImageGenerationConfigInput
 }
@@ -496,6 +506,7 @@ type ModelInfo {
   inputCostPerImageToken: Float
   outputCostPerImage: Float
   outputCostPerImageToken: Float
+  supportsReasoning: Boolean
 }
 
 type DefaultModel {

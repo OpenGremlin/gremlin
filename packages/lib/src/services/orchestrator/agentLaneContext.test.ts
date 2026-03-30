@@ -66,6 +66,7 @@ function makeAgentLaneCtx(
     skillSummary: { promptSection: "" },
     skillTools: { tools: {}, getEnv: () => ({}) },
     modelSupportsImages: true,
+    modelSupportsReasoning: false,
     ...overrides,
   };
 }

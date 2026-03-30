@@ -129,7 +129,6 @@ export class AdminStack extends cdk.Stack {
       },
       additionalBehaviors: {
         "/graphql": apiBehavior,
-        "/api/*": apiBehavior,
         "/api/files/*": {
           origin: filesOrigin,
           viewerProtocolPolicy:
@@ -149,6 +148,7 @@ export class AdminStack extends cdk.Stack {
             },
           ],
         },
+        "/api/*": apiBehavior,
         "/media/*": {
           origin: serverOrigin,
           viewerProtocolPolicy:
