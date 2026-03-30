@@ -3,7 +3,7 @@ import MarkdownDisplay from "react-native-markdown-display";
 import { useTheme } from "../../lib/ThemeContext";
 
 const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
-  body: { color: "#b0b0b0", fontSize: 14, lineHeight: 20 },
+  body: { color: "#c2c2c2", fontSize: 14, lineHeight: 20 },
   paragraph: { marginTop: 0, marginBottom: 6 },
   heading1: {
     color: "#f5f5f5",
@@ -31,13 +31,15 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   link: { color: "#818cf8", textDecorationLine: "underline" },
   blockquote: {
     borderLeftWidth: 3,
-    borderLeftColor: "#525252",
+    borderLeftColor: "#636363",
     paddingLeft: 10,
     marginLeft: 0,
     marginVertical: 6,
+    backgroundColor: "transparent",
+    color: "#c2c2c2",
   },
   code_inline: {
-    backgroundColor: "#262626",
+    backgroundColor: "#2a2a2a",
     color: "#a3e635",
     paddingHorizontal: 4,
     paddingVertical: 1,
@@ -46,7 +48,7 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
     fontSize: 13,
   },
   fence: {
-    backgroundColor: "#171717",
+    backgroundColor: "#1a1a1a",
     borderColor: "#404040",
     borderWidth: 1,
     borderRadius: 6,
@@ -57,7 +59,7 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
     marginVertical: 6,
   },
   code_block: {
-    backgroundColor: "#171717",
+    backgroundColor: "#1a1a1a",
     borderColor: "#404040",
     borderWidth: 1,
     borderRadius: 6,
@@ -70,8 +72,8 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   list_item: { marginVertical: 2 },
   bullet_list: { marginVertical: 4 },
   ordered_list: { marginVertical: 4 },
-  bullet_list_icon: { color: "#737373", marginRight: 6 },
-  ordered_list_icon: { color: "#737373", marginRight: 6 },
+  bullet_list_icon: { color: "#8a8a8a", marginRight: 6 },
+  ordered_list_icon: { color: "#8a8a8a", marginRight: 6 },
   hr: {
     backgroundColor: "#404040",
     height: 1,

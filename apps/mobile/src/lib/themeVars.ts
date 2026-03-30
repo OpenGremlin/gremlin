@@ -31,9 +31,9 @@ export const lightVars = {
 };
 
 export const darkVars = {
-  "--color-bg": "#0a0a0a",
-  "--color-surface": "#171717",
-  "--color-surface-alt": "#262626",
+  "--color-bg": "#141414",
+  "--color-surface": "#1e1e1e",
+  "--color-surface-alt": "#2a2a2a",
   "--color-border": "#404040",
   "--color-border-subtle": "#262626",
   "--color-text": "#f5f5f5",
@@ -42,10 +42,10 @@ export const darkVars = {
   "--color-text-faint": "#525252",
   "--color-input-bg": "#262626",
   "--color-input-border": "#404040",
-  "--color-card": "#171717",
+  "--color-card": "#1e1e1e",
   "--color-overlay": "rgba(0, 0, 0, 0.6)",
   "--color-active": "rgba(0, 0, 0, 0.05)",
-  "--color-code-bg": "#171717",
+  "--color-code-bg": "#1a1a1a",
   "--color-code-border": "#404040",
   "--color-accent": "#818cf8",
   "--color-accent-light": "#a5b4fc",

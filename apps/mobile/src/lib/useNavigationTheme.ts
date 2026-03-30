@@ -23,11 +23,11 @@ const lightColors = {
 };
 
 const darkColors = {
-  background: "#0a0a0a",
-  headerBackground: "#0a0a0a",
+  background: "#141414",
+  headerBackground: "#141414",
   headerText: "#e5e5e5",
-  tabBarBackground: "#0a0a0a",
-  tabBarBorder: "#262626",
+  tabBarBackground: "#141414",
+  tabBarBorder: "#2a2a2a",
   tabBarActive: "#818cf8",
   tabBarInactive: "#737373",
   border: "#404040",
