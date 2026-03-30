@@ -5,6 +5,7 @@ import {
 } from "../prompts/index.js";
 import type { Attachment } from "../tasks/attachment.js";
 import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
+import { formatPlan, generatePlan } from "./generatePlan.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -24,6 +25,7 @@ export async function runTaskLane(
   if (!task) throw new Error(`Task ${taskId} not found`);
 
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
+  const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
 
   // Log the prompt — SYSTEM for delegated tasks, USER for follow-up messages
   await writeAgentLog(ctx, {
@@ -34,9 +36,32 @@ export async function runTaskLane(
     attachments: opts?.attachments,
   });
 
+  // Generate an execution plan for new task delegations
+  let planText: string | undefined;
+  if (isInitialDelegation) {
+    try {
+      const plan = await generatePlan(ctx, task.agentId, task.title, prompt);
+      planText = formatPlan(plan);
+
+      // Log the plan so it's visible in the task timeline and conversation history
+      await writeAgentLog(ctx, {
+        agentId: task.agentId,
+        taskId,
+        role: "SYSTEM",
+        content: `[Execution plan]\n\n${planText}`,
+      });
+    } catch (err) {
+      ctx.log.warn(
+        { err, agentId: task.agentId, taskId },
+        "Plan generation failed, proceeding without plan",
+      );
+    }
+  }
+
   const flags = resolvePromptFlags(agent.config, {
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
+    hasPlan: !!planText,
   });
 
   let systemPrompt = renderTaskSystemPrompt(

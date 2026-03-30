@@ -61,13 +61,18 @@ interface AgentConfig {
  */
 export function resolvePromptFlags(
   config: AgentConfig | undefined | null,
-  opts: { modelSupportsImages: boolean; hasSkills: boolean },
+  opts: {
+    modelSupportsImages: boolean;
+    hasSkills: boolean;
+    hasPlan?: boolean;
+  },
 ) {
   return {
     viewImage: !!(config?.viewImage?.enabled && opts.modelSupportsImages),
     sandbox: !!config?.sandbox?.enabled,
     webSearch: !!config?.webSearch?.enabled,
     hasSkills: opts.hasSkills,
+    hasPlan: opts.hasPlan ?? false,
   };
 }
 

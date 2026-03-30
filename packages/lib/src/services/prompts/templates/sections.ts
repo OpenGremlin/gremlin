@@ -50,4 +50,10 @@ Do not call ensureSandbox unless you need to run commands or use skills — all 
 
 export const taskWorkflowSection = `Workflow: Use updateTaskMessage at meaningful milestones (e.g. starting a phase, finishing a step) — not after every tool call. When finished, call postToMainLane with your answer to the user, then call updateTaskMessage with completed=true to mark the task done.`;
 
+export const taskPlanSection = `### Execution Plan
+
+You have a structured plan for this task. Follow it step by step — do not skip ahead or reorder unless a step is clearly unnecessary given what you've already accomplished. After completing each step, move on to the next.
+
+If you encounter an unexpected result that makes the plan invalid, adapt — skip irrelevant steps or adjust your approach, but still work toward the original objective.`;
+
 export const taskChatSection = `Keep chat replies brief — one or two sentences. When the user is just chatting, reply normally without calling updateTaskMessage.`;

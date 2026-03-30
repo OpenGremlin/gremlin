@@ -3,6 +3,7 @@ import {
   jobsSection,
   memorySection,
   taskChatSection,
+  taskPlanSection,
   taskPreambleSection,
   taskSandboxSection,
   taskToolGuidanceSection,
@@ -12,6 +13,7 @@ import {
 export interface TaskSystemPromptFlags {
   viewImage: boolean;
   sandbox: boolean;
+  hasPlan: boolean;
 }
 
 /**
@@ -28,6 +30,7 @@ export function assembleTaskSystemTemplate(
   ];
 
   if (flags.sandbox) sections.push(taskSandboxSection);
+  if (flags.hasPlan) sections.push(taskPlanSection);
   sections.push(taskWorkflowSection);
   sections.push(jobsSection);
   sections.push(memorySection);

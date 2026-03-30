@@ -16,6 +16,7 @@ describe("resolvePromptFlags", () => {
       sandbox: false,
       webSearch: false,
       hasSkills: false,
+      hasPlan: false,
     });
   });
 
