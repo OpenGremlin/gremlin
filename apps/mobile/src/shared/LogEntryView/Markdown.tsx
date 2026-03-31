@@ -1,6 +1,9 @@
+import MarkdownIt from "markdown-it";
 import type { StyleSheet as RNStyleSheet } from "react-native";
 import MarkdownDisplay from "react-native-markdown-display";
 import { useTheme } from "../../lib/ThemeContext";
+
+const md = MarkdownIt({ typographer: true, linkify: true });
 
 const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   body: { color: "#c2c2c2", fontSize: 14, lineHeight: 20 },
@@ -204,5 +207,9 @@ export function Markdown({
         ? darkStyles
         : lightStyles;
 
-  return <MarkdownDisplay style={style}>{children}</MarkdownDisplay>;
+  return (
+    <MarkdownDisplay style={style} markdownit={md}>
+      {children}
+    </MarkdownDisplay>
+  );
 }

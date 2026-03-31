@@ -8,8 +8,8 @@ import {
   Eye,
   File,
   FileText,
-  Hammer,
-  Key,
+  Flag,
+  KeyRound,
   Link,
   List,
   Monitor,
@@ -115,7 +115,7 @@ function renderToolCall(
   switch (toolName) {
     case ToolName.UpdateTaskMessage: {
       const msg = tool.input?.message as string | undefined;
-      return <ToolStatus icon={Hammer} text={msg || "Progress update"} />;
+      return <ToolStatus icon={Flag} text={msg || "Progress update"} />;
     }
 
     case ToolName.EnsureSandbox: {
@@ -200,7 +200,7 @@ function renderToolCall(
       if (!tool.result) {
         return (
           <ToolStatus
-            icon={Key}
+            icon={KeyRound}
             text={`Authenticating ${skillId ?? "skill"}...`}
           />
         );
@@ -209,7 +209,7 @@ function renderToolCall(
       const label = connLabel ? ` (${connLabel})` : "";
       return (
         <ToolStatus
-          icon={Key}
+          icon={KeyRound}
           text={`Authenticated ${skillId ?? "skill"}${label}`}
         />
       );
