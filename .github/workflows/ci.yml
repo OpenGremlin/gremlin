@@ -31,9 +31,9 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo build --filter=@gremlin/lib
-      - run: pnpm --filter @gremlin/server exec tsc --noEmit
-      - run: pnpm --filter @gremlin/mobile exec tsc --noEmit
+      - run: pnpm turbo build --filter=@opengremlin/lib
+      - run: pnpm --filter @opengremlin/server exec tsc --noEmit
+      - run: pnpm --filter @opengremlin/mobile exec tsc --noEmit
 
   test:
     name: Test
