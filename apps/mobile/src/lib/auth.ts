@@ -11,11 +11,17 @@ let _cachedToken: string | null = null;
 let _cachedRefreshToken: string | null = null;
 let _cachedAccessToken: string | null = null;
 let _onUnauthorized: (() => void) | null = null;
+let _onTokenChange: ((token: string) => void) | null = null;
 let _refreshPromise: Promise<boolean> | null = null;
 
 /** Called by AuthProvider to register a callback for 401 handling. */
 export function setOnUnauthorized(cb: () => void) {
   _onUnauthorized = cb;
+}
+
+/** Called by AuthProvider to sync React state when token is refreshed. */
+export function setOnTokenChange(cb: (token: string) => void) {
+  _onTokenChange = cb;
 }
 
 export function getCognitoDomain(): string {
@@ -37,6 +43,7 @@ export async function getToken(): Promise<string | null> {
   if (_cachedToken) return _cachedToken;
   const token = await storage.getItem(TOKEN_KEY);
   _cachedToken = token;
+  if (token) scheduleRefresh(token);
   return token;
 }
 
@@ -44,9 +51,29 @@ export function getTokenSync(): string | null {
   return _cachedToken;
 }
 
+let _refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Schedule a proactive token refresh ~5 minutes before expiry. */
+function scheduleRefresh(token: string) {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const expiresAt = (payload.exp as number) * 1000;
+    const delay = expiresAt - Date.now() - 5 * 60 * 1000; // 5 min before expiry
+    if (delay > 0) {
+      _refreshTimer = setTimeout(() => {
+        refreshSession();
+      }, delay);
+    }
+  } catch {
+    // malformed token — skip scheduling
+  }
+}
+
 export async function setToken(t: string): Promise<void> {
   _cachedToken = t;
   await storage.setItem(TOKEN_KEY, t);
+  scheduleRefresh(t);
 }
 
 async function getRefreshToken(): Promise<string | null> {
@@ -77,6 +104,10 @@ export async function clearToken(): Promise<void> {
   _cachedToken = null;
   _cachedRefreshToken = null;
   _cachedAccessToken = null;
+  if (_refreshTimer) {
+    clearTimeout(_refreshTimer);
+    _refreshTimer = null;
+  }
   await Promise.all([
     storage.deleteItem(TOKEN_KEY),
     storage.deleteItem(REFRESH_TOKEN_KEY),
@@ -172,6 +203,7 @@ async function _doRefresh(): Promise<boolean> {
     if (data.AuthenticationResult.AccessToken) {
       await setAccessToken(data.AuthenticationResult.AccessToken);
     }
+    _onTokenChange?.(data.AuthenticationResult.IdToken);
     clientLogger.info("Token refreshed successfully");
     return true;
   } catch (err) {

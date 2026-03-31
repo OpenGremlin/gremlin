@@ -9,6 +9,7 @@ import {
   clearToken,
   getToken,
   isAuthEnabled,
+  setOnTokenChange,
   setOnUnauthorized,
   setToken,
 } from "./auth";
@@ -48,6 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Register the 401 handler so gql() can trigger a redirect to login
     setOnUnauthorized(() => {
       setTokenState(null);
+    });
+    // Sync React state when token is refreshed (e.g. for AuthImage headers)
+    setOnTokenChange((t) => {
+      setTokenState(t);
     });
   }, []);
 
