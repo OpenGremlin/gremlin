@@ -46,6 +46,7 @@ export const agentTypeDefs = /* GraphQL */ `
     portraitId: String!
     imageUrl(width: Int): String!
     soul: String!
+    identity: String
     retired: Boolean!
     ttsVoice: String
     config: AgentConfig
@@ -99,6 +100,7 @@ export const agentTypeDefs = /* GraphQL */ `
   input UpdateAgentInput {
     name: String
     soul: String
+    identity: String
     avatar: String
     ttsVoice: String
     config: AgentConfigInput
@@ -108,6 +110,7 @@ export const agentTypeDefs = /* GraphQL */ `
     id: String!
     name: String!
     soul: String
+    identity: String
   }
 
   extend type Mutation {

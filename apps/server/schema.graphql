@@ -400,6 +400,7 @@ type Agent {
   portraitId: String!
   imageUrl(width: Int): String!
   soul: String!
+  identity: String
   retired: Boolean!
   ttsVoice: String
   config: AgentConfig
@@ -448,6 +449,7 @@ input AgentConfigInput {
 input UpdateAgentInput {
   name: String
   soul: String
+  identity: String
   avatar: String
   ttsVoice: String
   config: AgentConfigInput
@@ -457,6 +459,7 @@ input CreateAgentInput {
   id: String!
   name: String!
   soul: String
+  identity: String
 }
 
 type Avatar {

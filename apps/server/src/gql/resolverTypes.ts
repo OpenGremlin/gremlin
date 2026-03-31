@@ -40,6 +40,7 @@ export type Agent = {
   avatar: Scalars['String']['output'];
   config?: Maybe<AgentConfig>;
   id: Scalars['ID']['output'];
+  identity?: Maybe<Scalars['String']['output']>;
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
   portraitId: Scalars['String']['output'];
@@ -312,6 +313,7 @@ export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
   id: Scalars['String']['input'];
+  identity?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   soul?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1038,6 +1040,7 @@ export type UnknownRender = {
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
+  identity?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   soul?: InputMaybe<Scalars['String']['input']>;
   ttsVoice?: InputMaybe<Scalars['String']['input']>;
@@ -1363,6 +1366,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   config?: Resolver<Maybe<ResolversTypes['AgentConfig']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  identity?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

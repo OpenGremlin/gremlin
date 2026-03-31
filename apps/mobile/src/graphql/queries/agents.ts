@@ -8,6 +8,7 @@ export const AgentDetailFragment = graphql(`
     portraitId
     imageUrl(width: 200)
     soul
+    identity
     retired
     ttsVoice
     config {

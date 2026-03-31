@@ -68,6 +68,7 @@ export async function runTaskLane(
     {
       name: agent.name,
       soul: agent.soul,
+      identity: agent.identity,
       userDisplayName: displayName,
       userAbout: profile?.about,
       taskTitle: task.title,

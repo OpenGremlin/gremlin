@@ -16,6 +16,7 @@ export const AgentEntity = new Entity({
     avatar: string(),
     portraitId: string(),
     soul: string(),
+    identity: string().optional(),
     retired: boolean().optional().default(false),
     sandboxInstanceId: string().optional(),
     ttsVoice: string().optional(),

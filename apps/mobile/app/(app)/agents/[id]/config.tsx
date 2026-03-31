@@ -37,6 +37,7 @@ export default function AgentConfigScreen() {
 
   const [name, setName] = useState("");
   const [soul, setSoul] = useState("");
+  const [identity, setIdentity] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
@@ -47,6 +48,7 @@ export default function AgentConfigScreen() {
     if (!agent) return;
     setName(agent.name);
     setSoul(agent.soul ?? "");
+    setIdentity(agent.identity ?? "");
   }, [agent]);
 
   const handleSave = useCallback(async () => {
@@ -59,6 +61,7 @@ export default function AgentConfigScreen() {
         input: {
           name: name.trim(),
           soul: soul.trim(),
+          identity: identity.trim() || null,
         },
       });
       setData({ agent: result.updateAgent });
@@ -69,7 +72,7 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, soul, setData]);
+  }, [id, agent, name, soul, identity, setData]);
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 
@@ -113,7 +116,9 @@ export default function AgentConfigScreen() {
   }
 
   const hasChanges =
-    name.trim() !== agent.name || soul.trim() !== (agent.soul ?? "");
+    name.trim() !== agent.name ||
+    soul.trim() !== (agent.soul ?? "") ||
+    identity.trim() !== (agent.identity ?? "");
 
   return (
     <ScrollView
@@ -182,6 +187,25 @@ export default function AgentConfigScreen() {
           numberOfLines={6}
           textAlignVertical="top"
           style={{ minHeight: 120 }}
+          editable={!agent.retired}
+        />
+      </View>
+
+      <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
+        <Text className="text-sm font-medium text-text-secondary">
+          Identity
+        </Text>
+        <Text className="text-xs text-text-muted">
+          Role, expertise, or behavioral posture for this agent
+        </Text>
+        <Input
+          value={identity}
+          onChangeText={setIdentity}
+          placeholder="e.g. You are a senior backend engineer who favors simple, pragmatic solutions."
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+          style={{ minHeight: 80 }}
           editable={!agent.retired}
         />
       </View>

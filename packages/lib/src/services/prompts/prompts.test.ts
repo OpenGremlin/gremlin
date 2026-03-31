@@ -83,20 +83,35 @@ describe("renderSystemPrompt", () => {
 
   it("includes identity section with interpolated values", () => {
     const result = renderSystemPrompt(baseData, allOff);
+    expect(result).toContain("<identity>");
     expect(result).toContain("You are TestAgent");
     expect(result).toContain("You are helpful.");
     expect(result).toContain("Alice");
+    expect(result).toContain("</identity>");
+  });
+
+  it("includes identity field when provided", () => {
+    const result = renderSystemPrompt(
+      { ...baseData, identity: "You are a senior engineer." },
+      allOff,
+    );
+    expect(result).toContain("You are a senior engineer.");
+  });
+
+  it("omits identity field when not provided", () => {
+    const result = renderSystemPrompt(baseData, allOff);
+    expect(result).not.toContain("senior engineer");
   });
 
   it("omits viewImage section when disabled", () => {
     const result = renderSystemPrompt(baseData, allOff);
     expect(result).not.toContain("viewImage");
-    expect(result).not.toContain("### Images");
+    expect(result).not.toContain("<images>");
   });
 
   it("includes viewImage section when enabled", () => {
     const result = renderSystemPrompt(baseData, { ...allOff, viewImage: true });
-    expect(result).toContain("### Images");
+    expect(result).toContain("<images>");
     expect(result).toContain("viewImage");
   });
 
@@ -168,7 +183,7 @@ describe("renderTaskSystemPrompt", () => {
 
   it("omits sandbox section when disabled", () => {
     const result = renderTaskSystemPrompt(taskData, allOff);
-    expect(result).not.toContain("### Sandbox");
+    expect(result).not.toContain("<sandbox_instructions>");
     expect(result).not.toContain("ensureSandbox");
   });
 
@@ -177,7 +192,7 @@ describe("renderTaskSystemPrompt", () => {
       ...allOff,
       sandbox: true,
     });
-    expect(result).toContain("### Sandbox");
+    expect(result).toContain("<sandbox_instructions>");
     expect(result).toContain("ensureSandbox");
     expect(result).toContain("runCommand");
   });
@@ -187,6 +202,6 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("postToMainLane");
     expect(result).toContain("updateTaskMessage");
     expect(result).toContain("saveMemory");
-    expect(result).toContain("### Jobs");
+    expect(result).toContain("<jobs>");
   });
 });

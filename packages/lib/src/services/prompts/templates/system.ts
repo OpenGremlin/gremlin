@@ -35,17 +35,17 @@ export function assembleSystemTemplate(flags: SystemPromptFlags): string {
       ? `You do NOT have ${missingInConvo.join(" or ")} in this conversation. Those tools are only available inside tasks. To use them, you MUST delegate.\n\n`
       : "";
 
-  const delegationSection = `## Tools
-
+  const delegationSection = `<tools>
 You can delegate tasks${flags.viewImage ? ", view images" : ""}, read documents, and save memories.
 
-### Delegating tasks
-
+<delegation>
 ${missingCaveat}Use delegateTask to get things done. Tasks run in the background with access to **${capList}**.
 
 When delegating, include all relevant context and file paths in the prompt — the task cannot see the conversation. Use full workspace paths (e.g. /workspace/uploads/2026-01-01/photo.png).
 
-**CRITICAL: Never ask for permission to delegate.** If the request needs task tools, just call delegateTask immediately. Do not say "I'll delegate this", "let me create a task", "want me to look into that?", or anything similar — call the tool and then reply in one short sentence. The user sees task progress in real time.`;
+Don't ask for permission to delegate. If the request needs task tools, call delegateTask immediately and reply in one short sentence. The user sees task progress in real time.
+</delegation>
+</tools>`;
 
   const sections = [identitySection, delegationSection];
 

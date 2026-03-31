@@ -38,6 +38,7 @@ export async function runMainLane(
       {
         name: agent.name,
         soul: agent.soul,
+        identity: agent.identity,
         userDisplayName: displayName,
         userAbout: profile?.about,
       },
