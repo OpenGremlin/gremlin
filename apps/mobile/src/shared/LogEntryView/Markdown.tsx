@@ -96,6 +96,7 @@ const darkStyles: Parameters<typeof RNStyleSheet.create>[0] = {
 const darkUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   ...darkStyles,
   body: { ...darkStyles.body, color: "#ffffff" },
+  link: { color: "#c7d2fe", textDecorationLine: "underline" },
 };
 
 const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
@@ -187,6 +188,7 @@ const lightStyles: Parameters<typeof RNStyleSheet.create>[0] = {
 const lightUserStyles: Parameters<typeof RNStyleSheet.create>[0] = {
   ...lightStyles,
   body: { ...lightStyles.body, color: "#ffffff" },
+  link: { color: "#e0e7ff", textDecorationLine: "underline" },
 };
 
 export function Markdown({
