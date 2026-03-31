@@ -40,6 +40,9 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --no-modify-path
 ENV PATH="/usr/local/cargo/bin:${PATH}"
 
+# MCPorter – CLI bridge for MCP servers (used by MCP-based skills)
+RUN npm install -g mcporter
+
 WORKDIR /app
 COPY --from=build /build/packages/sandbox/dist/ packages/sandbox/dist/
 COPY --from=build /build/packages/sandbox/package.json packages/sandbox/
