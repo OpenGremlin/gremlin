@@ -6,7 +6,7 @@ export default async function showPrompt(invokeCtx: InvokeContext) {
   const { systemPrompt, memoryContext, tools } = invokeCtx;
 
   const tz = "UTC";
-  const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
+  const currentTime = new Date().toLocaleDateString("en-US", { timeZone: tz });
 
   const systemMessages = [
     { role: "system", content: systemPrompt },

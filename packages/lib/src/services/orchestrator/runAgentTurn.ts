@@ -95,7 +95,7 @@ export async function runAgentTurn(
   );
 
   const tz = opts.timezone ?? "UTC";
-  const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
+  const currentTime = new Date().toLocaleDateString("en-US", { timeZone: tz });
 
   const { model, warning: modelWarning } = await getModelForAgent(
     ctx,

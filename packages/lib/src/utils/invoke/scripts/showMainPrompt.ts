@@ -47,7 +47,7 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
   };
 
   const tz = "UTC";
-  const currentTime = new Date().toLocaleString("en-US", { timeZone: tz });
+  const currentTime = new Date().toLocaleDateString("en-US", { timeZone: tz });
 
   const systemMessages = [
     { role: "system", content: systemPrompt },
