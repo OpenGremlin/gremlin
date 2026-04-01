@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { CreateAgentMutation } from "../../../src/graphql/queries";
-import { gql } from "../../../src/lib/auth";
+import { mutate } from "../../../src/lib/apolloClient";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
 
@@ -18,7 +18,7 @@ export default function NewAgentScreen() {
     setCreating(true);
     setError("");
     try {
-      const result = await gql(CreateAgentMutation, {
+      const result = await mutate(CreateAgentMutation, {
         input: { id: id.trim(), name: name.trim(), soul: soul.trim() },
       });
       router.replace(`/agents/${result.createAgent.id}/config`);

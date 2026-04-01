@@ -5,7 +5,7 @@ import {
   DismissUserInputRequestMutation,
   ResolveUserInputRequestMutation,
 } from "../../graphql/queries";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { usePendingCount } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
@@ -36,7 +36,7 @@ export function InputRequestCard({
     if (resolving) return;
     setResolving(action);
     try {
-      await gql(ResolveUserInputRequestMutation, {
+      await mutate(ResolveUserInputRequestMutation, {
         id: inputRequestId,
         action,
       });
@@ -51,7 +51,7 @@ export function InputRequestCard({
     if (resolving) return;
     setResolving("__dismiss__");
     try {
-      await gql(DismissUserInputRequestMutation, { id: inputRequestId });
+      await mutate(DismissUserInputRequestMutation, { id: inputRequestId });
       setResolved("__dismiss__");
       refetchInputRequests();
     } catch {

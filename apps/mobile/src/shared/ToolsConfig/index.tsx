@@ -11,7 +11,7 @@ import {
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
@@ -180,7 +180,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       setLocalConfig((prev) => {
         const merged = { ...prev, ...patch };
         setSaving(true);
-        gql(UpdateAgentDoc, {
+        mutate(UpdateAgentDoc, {
           id: agent.id,
           input: { config: merged },
         }).finally(() => setSaving(false));
@@ -243,7 +243,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       return;
     }
     let cancelled = false;
-    gql(EnabledModelDetailsQuery, { providerId: ids.providerId }).then(
+    mutate(EnabledModelDetailsQuery, { providerId: ids.providerId }).then(
       (result) => {
         if (cancelled) return;
         const detail = result.enabledModelDetails.find(
@@ -371,7 +371,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   onPress={async () => {
                     const ids = resolveModelIds(config.model);
                     if (!ids) return;
-                    const result = await gql(EnabledModelDetailsQuery, {
+                    const result = await mutate(EnabledModelDetailsQuery, {
                       providerId: ids.providerId,
                     });
                     const detail = result.enabledModelDetails.find(
@@ -478,7 +478,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                       onPress={async () => {
                         const ids = resolveModelIds(config.imageModel);
                         if (!ids) return;
-                        const result = await gql(EnabledModelDetailsQuery, {
+                        const result = await mutate(EnabledModelDetailsQuery, {
                           providerId: ids.providerId,
                         });
                         const detail = result.enabledModelDetails.find(

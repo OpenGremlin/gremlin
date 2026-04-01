@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { TaskQuery, TaskUpdatedSubscription } from "../graphql/queries";
-import { gql } from "../lib/auth";
+import { mutate } from "../lib/apolloClient";
 import { useSubscription } from "./useSubscription";
 
 interface TaskInfo {
@@ -17,7 +17,7 @@ export function useTaskInfo(taskId: string | null) {
   useEffect(() => {
     if (!taskId) return;
     let cancelled = false;
-    gql(TaskQuery, { id: taskId })
+    mutate(TaskQuery, { id: taskId })
       .then((data) => {
         if (!cancelled && data.task) {
           setState({

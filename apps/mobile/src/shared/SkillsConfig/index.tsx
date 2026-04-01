@@ -17,7 +17,7 @@ import {
   UnbindAgentSkillConnectionMutation,
 } from "../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
 import { groupSkillsByCategory } from "../categories";
@@ -40,7 +40,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
 
   const handleRemove = useCallback(
     async (skillId: string) => {
-      await gql(RemoveSkillMutation, { agentId, skillId });
+      await mutate(RemoveSkillMutation, { agentId, skillId });
       refetch();
     },
     [agentId, refetch],
@@ -193,7 +193,7 @@ function AgentSkillCard({
   );
 
   async function handleBindConnection(provider: string, connectionId: string) {
-    await gql(BindAgentSkillConnectionMutation, {
+    await mutate(BindAgentSkillConnectionMutation, {
       agentId,
       skillId: skill.skillId,
       provider,
@@ -206,7 +206,7 @@ function AgentSkillCard({
     provider: string,
     connectionId: string,
   ) {
-    await gql(UnbindAgentSkillConnectionMutation, {
+    await mutate(UnbindAgentSkillConnectionMutation, {
       agentId,
       skillId: skill.skillId,
       provider,
@@ -308,7 +308,7 @@ function AddSkillModal({
   async function handleAssign(skillId: string) {
     setAssigning(skillId);
     try {
-      await gql(AssignSkillMutation, { agentId, skillId });
+      await mutate(AssignSkillMutation, { agentId, skillId });
       onDone();
     } finally {
       setAssigning(null);

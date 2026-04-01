@@ -226,6 +226,27 @@ export const apolloClient = new ApolloClient({
   },
 });
 
+// ── Mutation helper (drop-in replacement for gql()) ─────────────────
+
+/**
+ * Execute a GraphQL mutation through Apollo's link chain and cache.
+ * Same return type as the old `gql()` function for easy migration.
+ */
+export async function mutate<
+  TResult,
+  TVariables extends Record<string, unknown>,
+>(
+  mutation: import("@graphql-typed-document-node/core").TypedDocumentNode<
+    TResult,
+    TVariables
+  >,
+  variables: TVariables,
+): Promise<TResult> {
+  const { data } = await apolloClient.mutate({ mutation, variables });
+  if (!data) throw new Error("Mutation returned no data");
+  return data;
+}
+
 // ── Initialization (cache hydration from disk) ──────────────────────
 
 let _initPromise: Promise<void> | null = null;

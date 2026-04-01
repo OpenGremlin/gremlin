@@ -20,7 +20,7 @@ import {
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../../src/graphql/queries";
-import { gql } from "../../../../../src/lib/auth";
+import { mutate } from "../../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
@@ -49,8 +49,8 @@ async function setDefaultForType(
 ) {
   const vars = { providerId, modelId };
   if (modelMode === "image_generation")
-    return gql(SetDefaultImageModelMutation, vars);
-  return gql(SetDefaultModelMutation, vars);
+    return mutate(SetDefaultImageModelMutation, vars);
+  return mutate(SetDefaultModelMutation, vars);
 }
 
 function TypedModelList({
@@ -111,7 +111,7 @@ function TypedModelList({
   async function handleEnable(modelId: string, modelName?: string) {
     setEnablingModel(modelId);
     try {
-      await gql(EnableModelMutation, { providerId, modelId, modelName });
+      await mutate(EnableModelMutation, { providerId, modelId, modelName });
       refetchEnabled();
       refetchDetails();
     } catch (err) {
@@ -124,7 +124,7 @@ function TypedModelList({
   async function handleDisable(modelId: string) {
     setDisablingModel(modelId);
     try {
-      await gql(DisableModelMutation, { providerId, modelId });
+      await mutate(DisableModelMutation, { providerId, modelId });
       refetchEnabled();
       refetchParent();
     } catch (err) {
@@ -361,7 +361,7 @@ function ConnectionCard({
     setSaving(true);
     setError(null);
     try {
-      await gql(ConnectApiKeyMutation, {
+      await mutate(ConnectApiKeyMutation, {
         providerId: provider.id,
         apiKey: apiKeyInput.trim(),
       });

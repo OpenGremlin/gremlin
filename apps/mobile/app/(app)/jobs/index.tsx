@@ -11,7 +11,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useSubscription } from "../../../src/hooks/useSubscription";
-import { gql } from "../../../src/lib/auth";
+import { mutate } from "../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
@@ -31,7 +31,7 @@ function RunNowButton({ jobId }: { jobId: string }) {
         e.stopPropagation();
         setTriggering(true);
         try {
-          await gql(TriggerJobMutation, { id: jobId });
+          await mutate(TriggerJobMutation, { id: jobId });
           setTriggered(true);
           setTimeout(() => setTriggered(false), 3000);
         } finally {

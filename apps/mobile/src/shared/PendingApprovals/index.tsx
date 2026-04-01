@@ -7,7 +7,7 @@ import {
   type PendingCommandApprovalsQuery as PendingCommandApprovalsQueryType,
 } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AgentAvatar } from "../AgentAvatar";
@@ -31,7 +31,7 @@ function ApprovalCard({
     if (resolving) return;
     setResolving(decision);
     try {
-      await gql(ResolveCommandApprovalMutation, {
+      await mutate(ResolveCommandApprovalMutation, {
         id: approval.id,
         decision,
       });

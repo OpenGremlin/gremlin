@@ -4,7 +4,7 @@ import {
   CompleteFileUploadMutation,
   RequestFileUploadsMutation,
 } from "../graphql/queries";
-import { gql } from "../lib/auth";
+import { mutate } from "../lib/apolloClient";
 import { clientLogger } from "../lib/logger";
 import { formatFileSize } from "../shared/formatFileSize";
 
@@ -118,7 +118,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
       let presigned: PresignedUpload[];
       try {
-        const result = await gql(RequestFileUploadsMutation, {
+        const result = await mutate(RequestFileUploadsMutation, {
           agentId,
           taskId: taskId ?? null,
           files: files.map((f) => ({
@@ -182,7 +182,7 @@ export function useFileUpload(agentId: string, taskId?: string) {
 
         updateUpload(idx, { status: "completing", progress: 100 });
         try {
-          const result = await gql(CompleteFileUploadMutation, {
+          const result = await mutate(CompleteFileUploadMutation, {
             input: {
               agentId,
               taskId: taskId ?? null,

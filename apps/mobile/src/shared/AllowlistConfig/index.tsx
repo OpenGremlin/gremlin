@@ -7,7 +7,7 @@ import {
   CommandAllowlistQuery,
   RemoveCommandAllowlistEntryMutation,
 } from "../../graphql/queries";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 
 export function AllowlistConfig({ agentId }: { agentId: string }) {
@@ -26,7 +26,7 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
     if (!trimmed || busy) return;
     setBusy(true);
     try {
-      await gql(AddCommandAllowlistEntryMutation, {
+      await mutate(AddCommandAllowlistEntryMutation, {
         agentId,
         pattern: trimmed,
       });
@@ -42,7 +42,7 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
     if (busy) return;
     setBusy(true);
     try {
-      await gql(RemoveCommandAllowlistEntryMutation, {
+      await mutate(RemoveCommandAllowlistEntryMutation, {
         agentId,
         pattern,
       });

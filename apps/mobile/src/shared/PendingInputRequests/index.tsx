@@ -6,7 +6,7 @@ import {
   DismissUserInputRequestMutation,
   ResolveUserInputRequestMutation,
 } from "../../graphql/queries";
-import { gql } from "../../lib/auth";
+import { mutate } from "../../lib/apolloClient";
 import { AgentAvatar } from "../AgentAvatar";
 import { timeAgo } from "../formatDate";
 
@@ -20,12 +20,12 @@ function InputRequestCard({
   onResolved: () => void;
 }) {
   const handleAction = async (action: string) => {
-    await gql(ResolveUserInputRequestMutation, { id: request.id, action });
+    await mutate(ResolveUserInputRequestMutation, { id: request.id, action });
     onResolved();
   };
 
   const handleDismiss = async () => {
-    await gql(DismissUserInputRequestMutation, { id: request.id });
+    await mutate(DismissUserInputRequestMutation, { id: request.id });
     onResolved();
   };
 
