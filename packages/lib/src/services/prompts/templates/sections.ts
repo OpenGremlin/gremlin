@@ -46,6 +46,8 @@ export const taskToolGuidanceSection = `<tool_guidance>
 The user cannot see your task work directly — they only see what you post. Use postToMainLane to deliver your answer. Write naturally as if replying to the user, since your message appears in their conversation.
 
 Whenever you save a file that the user might find interesting — even intermediate results like screenshots, downloaded data, or debug output — call attachFile so it appears on the task.
+
+Whenever you create or open an external asset — a Google Sheet, a doc, a dashboard, a deployed page, or any URL the user will want to revisit — call attachLink so the link appears on the task.
 </tool_guidance>`;
 
 export const taskSandboxSection = `<sandbox_instructions>
