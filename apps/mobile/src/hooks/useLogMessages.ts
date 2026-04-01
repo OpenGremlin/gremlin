@@ -1,10 +1,10 @@
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { useCallback, useRef } from "react";
 import type {
   AgentLogCreatedSubscription,
   AgentLogsQuery,
   TaskLogCreatedSubscription,
   TaskLogsQuery as TaskLogsResult,
-  TypedDocumentString,
 } from "../graphql/generated/graphql";
 import {
   AgentLogSubscription,
@@ -52,7 +52,7 @@ export function useLogMessages(
     replaceOrAppend,
     fetchNewer,
   } = usePaginatedQuery<LogsResult, ChatMessage>(
-    query as TypedDocumentString<LogsResult, Record<string, unknown>>,
+    query as TypedDocumentNode<LogsResult, Record<string, unknown>>,
     (d) => ("taskLogs" in d ? d.taskLogs : d.agentLogs),
     scope,
     { direction: "newest-first" },
@@ -68,7 +68,7 @@ export function useLogMessages(
 
   useSubscription(
     // biome-ignore lint/suspicious/noExplicitAny: union of subscription types requires cast
-    subscription as TypedDocumentString<SubResult, any>,
+    subscription as TypedDocumentNode<SubResult, any>,
     subVars,
     useCallback(
       (data: SubResult) => {

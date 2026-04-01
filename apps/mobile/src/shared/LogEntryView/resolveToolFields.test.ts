@@ -34,6 +34,7 @@ describe("resolveToolFields", () => {
       toolName: ToolName.RunCommand,
       toolInput: '{"command":"ls"}',
       toolResult: '{"output":"file.txt"}',
+      attachments: [],
       files: [],
     };
     const result = resolveToolFields(entry);
@@ -51,6 +52,7 @@ describe("resolveToolFields", () => {
       toolName: ToolName.SaveMemory,
       toolInput: null,
       toolResult: null,
+      attachments: [],
       files: [],
     };
     const result = resolveToolFields(entry);
@@ -69,6 +71,7 @@ describe("resolveToolFields", () => {
         result: { ok: true },
       }),
       createdAt: "",
+      attachments: [],
       files: [],
     };
     const result = resolveToolFields(entry);
@@ -83,6 +86,7 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: '{"type":"something_else"}',
       createdAt: "",
+      attachments: [],
       files: [],
     };
     const result = resolveToolFields(entry);
@@ -97,6 +101,7 @@ describe("resolveToolFields", () => {
       role: AgentLogRole.Tool,
       content: "plain text",
       createdAt: "",
+      attachments: [],
       files: [],
     };
     const result = resolveToolFields(entry);

@@ -1,5 +1,5 @@
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
 import { onConnectivityChange } from "../lib/networkState";
@@ -22,7 +22,7 @@ interface PaginatedQueryOptions {
 
 export function usePaginatedQuery<TResult, TNode extends { id: string }>(
   // biome-ignore lint/suspicious/noExplicitAny: pagination helper merges cursor params into variables
-  query: TypedDocumentString<TResult, any>,
+  query: TypedDocumentNode<TResult, any>,
   connectionSelector: (data: TResult) => Connection<TNode>,
   variables?: Record<string, unknown>,
   options?: PaginatedQueryOptions,

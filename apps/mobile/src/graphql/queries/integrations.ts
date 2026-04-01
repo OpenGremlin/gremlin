@@ -51,27 +51,7 @@ export const IntegrationProvidersQuery = graphql(`
 export const IntegrationConnectionsQuery = graphql(`
   query IntegrationConnections {
     integrationConnections(excludeCategory: "ai") {
-      id
-      providerId
-      provider {
-        id
-        service
-        description
-      }
-      connectionType
-      connectedAt
-      isRevoked
-      meta {
-        __typename
-        ... on OAuthConnectionMeta {
-          accountId
-          scopes
-          expiresAt
-        }
-        ... on ApiKeyConnectionMeta {
-          accountId
-        }
-      }
+      ...IntegrationConnectionFields
     }
   }
 `);
@@ -102,11 +82,7 @@ export const ProviderModelsQuery = graphql(`
 export const RevokeConnectionMutation = graphql(`
   mutation RevokeConnection($id: ID!) {
     revokeIntegrationConnection(id: $id) {
-      id
-      providerId
-      connectionType
-      connectedAt
-      isRevoked
+      ...IntegrationConnectionFields
     }
   }
 `);
@@ -237,11 +213,7 @@ export const SubmitOAuthConnectionMutation = graphql(`
       accountId: $accountId
       clientId: $clientId
     ) {
-      id
-      providerId
-      connectionType
-      connectedAt
-      isRevoked
+      ...IntegrationConnectionFields
     }
   }
 `);

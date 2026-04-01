@@ -1,17 +1,18 @@
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import { print } from "graphql";
 import { useEffect, useMemo, useRef } from "react";
-import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { clientLogger } from "../lib/logger";
 import { tryGetWsClient } from "../lib/wsClient";
 
 export function useSubscription<TResult, TVariables>(
-  query: TypedDocumentString<TResult, TVariables>,
+  query: TypedDocumentNode<TResult, TVariables>,
   variables: TVariables,
   onData: (data: TResult) => void,
 ) {
   const onDataRef = useRef(onData);
   onDataRef.current = onData;
 
-  const queryStr = String(query);
+  const queryStr = print(query);
   const serializedVars = JSON.stringify(variables);
   const stableVars = useMemo(
     () => JSON.parse(serializedVars) as Record<string, unknown>,

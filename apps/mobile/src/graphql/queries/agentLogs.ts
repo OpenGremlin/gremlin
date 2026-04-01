@@ -6,18 +6,7 @@ export const AgentLogsQuery = graphql(`
       edges {
         cursor
         node {
-          id
-          role
-          content
-          toolName
-          toolInput
-          toolResult
-          commandApprovalId
-          files {
-            ...FileFields
-          }
-          taskId
-          createdAt
+          ...AgentLogFields
         }
       }
       pageInfo {
@@ -73,18 +62,7 @@ export const PendingInboxMessagesQuery = graphql(`
 export const AgentLogSubscription = graphql(`
   subscription AgentLogCreated($agentId: ID!) {
     agentLogCreated(agentId: $agentId) {
-      id
-      role
-      content
-      toolName
-      toolInput
-      toolResult
-      commandApprovalId
-      files {
-        ...FileFields
-      }
-      taskId
-      createdAt
+      ...AgentLogFields
     }
   }
 `);

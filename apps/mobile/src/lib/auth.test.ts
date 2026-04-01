@@ -27,10 +27,10 @@ vi.mock("./logger", () => ({
   },
 }));
 
+import { parse } from "graphql";
 import {
   clearToken,
   getCognitoRegion,
-  getToken,
   gql,
   isAuthEnabled,
   setOnTokenChange,
@@ -61,9 +61,7 @@ describe("gql", () => {
     vi.unstubAllGlobals();
   });
 
-  const fakeQuery = {
-    toString: () => "query { test }",
-  } as Parameters<typeof gql>[0];
+  const fakeQuery = parse("query { test }") as Parameters<typeof gql>[0];
 
   it("returns data on success", async () => {
     mockFetch.mockResolvedValue({
@@ -221,10 +219,8 @@ describe("onTokenChange callback", () => {
         json: () => Promise.resolve({ data: { ok: true } }),
       });
 
-    const fakeQuery = { toString: () => "query { test }" } as Parameters<
-      typeof gql
-    >[0];
-    await gql(fakeQuery);
+    const fakeQuery2 = parse("query { test }") as Parameters<typeof gql>[0];
+    await gql(fakeQuery2);
 
     expect(onChange).toHaveBeenCalledWith("new-id-token");
     setOnTokenChange(() => {});

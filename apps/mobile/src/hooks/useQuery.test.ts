@@ -57,10 +57,10 @@ vi.mock("react", () => {
   };
 });
 
-import type { TypedDocumentString } from "../graphql/generated/graphql";
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { useQuery } from "./useQuery";
 
-const fakeQuery = "query { test }" as unknown as TypedDocumentString<
+const fakeQuery = "query { test }" as unknown as TypedDocumentNode<
   { data: string },
   Record<string, never>
 >;

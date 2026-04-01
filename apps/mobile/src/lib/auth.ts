@@ -1,3 +1,4 @@
+import { print } from "graphql";
 import { config, getApiUrl } from "./config";
 import { clientLogger } from "./logger";
 import { reportConnectivity } from "./networkState";
@@ -293,7 +294,7 @@ export async function cognitoChangePassword(
 }
 
 export async function gql<TResult, TVariables>(
-  query: import("../graphql/generated/graphql").TypedDocumentString<
+  query: import("@graphql-typed-document-node/core").TypedDocumentNode<
     TResult,
     TVariables
   >,
@@ -302,7 +303,7 @@ export async function gql<TResult, TVariables>(
     : [variables: TVariables]
 ): Promise<TResult>;
 export async function gql(
-  query: { toString(): string },
+  query: import("graphql").DocumentNode,
   variables?: unknown,
 ): Promise<unknown> {
   const result = await _gqlRequest(query, variables);
@@ -310,7 +311,7 @@ export async function gql(
 }
 
 async function _gqlRequest(
-  query: { toString(): string },
+  query: import("graphql").DocumentNode,
   variables?: unknown,
 ): Promise<unknown> {
   try {
@@ -326,7 +327,7 @@ async function _gqlRequest(
 }
 
 async function _gqlFetch(
-  query: { toString(): string },
+  query: import("graphql").DocumentNode,
   variables?: unknown,
 ): Promise<unknown> {
   const API_URL = getApiUrl();
@@ -337,7 +338,7 @@ async function _gqlFetch(
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
-  const body = JSON.stringify({ query: String(query), variables });
+  const body = JSON.stringify({ query: print(query), variables });
   const res = await fetch(`${API_URL}/graphql`, {
     method: "POST",
     headers,

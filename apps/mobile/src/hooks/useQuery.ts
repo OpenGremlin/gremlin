@@ -1,11 +1,11 @@
+import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { TypedDocumentString } from "../graphql/generated/graphql";
 import { gql } from "../lib/auth";
 import { clientLogger } from "../lib/logger";
 import { onConnectivityChange } from "../lib/networkState";
 
 export function useQuery<TResult, TVariables>(
-  query: TypedDocumentString<TResult, TVariables>,
+  query: TypedDocumentNode<TResult, TVariables>,
   ...args: Record<string, never> extends TVariables
     ? [variables?: TVariables]
     : [variables: TVariables]

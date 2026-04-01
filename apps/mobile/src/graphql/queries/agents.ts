@@ -1,57 +1,9 @@
 import { graphql } from "../generated/gql";
 
-export const AgentDetailFragment = graphql(`
-  fragment AgentDetail on Agent {
-    id
-    name
-    avatar
-    portraitId
-    imageUrl(width: 200)
-    soul
-    identity
-    retired
-    ttsVoice
-    config {
-      model {
-        type
-        modelId
-        connectionId
-      }
-      imageModel {
-        type
-        modelId
-        connectionId
-      }
-      sandbox {
-        enabled
-        idleTimeoutMinutes
-        alwaysOn
-        commandApproval
-      }
-      webSearch {
-        enabled
-        provider
-      }
-      reasoning {
-        enabled
-      }
-      viewImage {
-        enabled
-      }
-      imageGeneration {
-        enabled
-      }
-    }
-  }
-`);
-
 export const AgentsQuery = graphql(`
   query Agents {
     agents {
-      id
-      name
-      soul
-      retired
+      ...AgentSummary
     }
   }
 `);
@@ -75,9 +27,7 @@ export const UpdateAgentMutation = graphql(`
 export const CreateAgentMutation = graphql(`
   mutation CreateAgent($input: CreateAgentInput!) {
     createAgent(input: $input) {
-      id
-      name
-      soul
+      ...AgentSummary
     }
   }
 `);
@@ -85,8 +35,7 @@ export const CreateAgentMutation = graphql(`
 export const RetireAgentMutation = graphql(`
   mutation RetireAgent($id: ID!) {
     retireAgent(id: $id) {
-      id
-      retired
+      ...AgentSummary
     }
   }
 `);
@@ -94,8 +43,7 @@ export const RetireAgentMutation = graphql(`
 export const UnretireAgentMutation = graphql(`
   mutation UnretireAgent($id: ID!) {
     unretireAgent(id: $id) {
-      id
-      retired
+      ...AgentSummary
     }
   }
 `);

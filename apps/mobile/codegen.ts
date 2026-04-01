@@ -10,7 +10,6 @@ const config: CodegenConfig = {
         fragmentMasking: false,
       },
       config: {
-        documentMode: "string",
         scalars: {
           ID: { input: "string", output: "string" },
         },

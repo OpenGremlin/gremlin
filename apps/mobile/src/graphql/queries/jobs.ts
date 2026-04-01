@@ -3,18 +3,7 @@ import { graphql } from "../generated/gql";
 export const AgentJobsQuery = graphql(`
   query AgentJobs {
     agentJobs {
-      id
-      name
-      description
-      recurrence
-      cronExpression
-      timezone
-      agent {
-        id
-      }
-      paused
-      lastRun
-      nextRun
+      ...AgentJobSummary
     }
   }
 `);
@@ -22,52 +11,23 @@ export const AgentJobsQuery = graphql(`
 export const AgentJobQuery = graphql(`
   query AgentJob($id: ID!) {
     agentJob(id: $id) {
-      id
-      name
-      description
-      recurrence
-      cronExpression
-      timezone
-      agent {
-        id
-        name
-      }
-      paused
-      lastRun
-      nextRun
-      tasks {
-        id
-        agent {
-          id
-        }
-        title
-        createdAt
-      }
+      ...AgentJobDetail
     }
   }
 `);
 
 export const DeleteAgentJobMutation = graphql(`
   mutation DeleteAgentJob($id: ID!) {
-    deleteAgentJob(id: $id) { id }
+    deleteAgentJob(id: $id) {
+      ...AgentJobSummary
+    }
   }
 `);
 
 export const UpdateAgentJobMutation = graphql(`
   mutation UpdateAgentJob($id: ID!, $input: UpdateAgentJobInput!) {
     updateAgentJob(id: $id, input: $input) {
-      id
-      name
-      description
-      recurrence
-      cronExpression
-      timezone
-      agent {
-        id
-      }
-      paused
-      lastRun
-      nextRun
+      ...AgentJobSummary
     }
   }
 `);
@@ -88,10 +48,7 @@ export const JobTaskCreatedSubscription = graphql(`
 export const TriggerJobMutation = graphql(`
   mutation TriggerJob($id: ID!) {
     triggerJob(id: $id) {
-      id
-      name
-      lastRun
-      nextRun
+      ...AgentJobSummary
     }
   }
 `);
@@ -99,7 +56,7 @@ export const TriggerJobMutation = graphql(`
 export const JobCreatedSubscription = graphql(`
   subscription JobCreated {
     jobCreated {
-      id
+      ...AgentJobSummary
     }
   }
 `);
@@ -107,7 +64,7 @@ export const JobCreatedSubscription = graphql(`
 export const CreateAgentJobMutation = graphql(`
   mutation CreateAgentJob($input: CreateAgentJobInput!) {
     createAgentJob(input: $input) {
-      id
+      ...AgentJobSummary
     }
   }
 `);

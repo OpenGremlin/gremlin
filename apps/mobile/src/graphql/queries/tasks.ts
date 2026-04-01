@@ -6,18 +6,7 @@ export const TasksQuery = graphql(`
       edges {
         cursor
         node {
-          id
-          agent {
-            id
-            name
-          }
-          title
-          message
-          createdAt
-          imageUrl(width: 200)
-          files {
-            ...FileFields
-          }
+          ...TaskSummary
         }
       }
       pageInfo {
@@ -33,31 +22,7 @@ export const TasksQuery = graphql(`
 export const TaskQuery = graphql(`
   query Task($id: ID!) {
     task(id: $id) {
-      id
-      agent {
-        id
-      }
-      title
-      message
-      createdAt
-      updatedAt
-      completedAt
-      imageUrl(width: 200)
-      attachments {
-        ... on FileAttachment {
-          file {
-            ...FileFields
-          }
-        }
-        ... on LinkAttachment {
-          url
-          title
-          description
-        }
-      }
-      files {
-        ...FileFields
-      }
+      ...TaskDetail
     }
   }
 `);
@@ -68,18 +33,7 @@ export const TaskLogsQuery = graphql(`
       edges {
         cursor
         node {
-          id
-          role
-          content
-          toolName
-          toolInput
-          toolResult
-          commandApprovalId
-          files {
-            ...FileFields
-          }
-          taskId
-          createdAt
+          ...AgentLogFields
         }
       }
       pageInfo {
@@ -95,17 +49,7 @@ export const TaskLogsQuery = graphql(`
 export const TaskLogSubscription = graphql(`
   subscription TaskLogCreated($taskId: ID!) {
     taskLogCreated(taskId: $taskId) {
-      id
-      role
-      content
-      toolName
-      toolInput
-      toolResult
-      files {
-        ...FileFields
-      }
-      taskId
-      createdAt
+      ...AgentLogFields
     }
   }
 `);
@@ -113,27 +57,7 @@ export const TaskLogSubscription = graphql(`
 export const TaskUpdatedSubscription = graphql(`
   subscription TaskUpdated($taskId: ID!) {
     taskUpdated(taskId: $taskId) {
-      id
-      title
-      message
-      updatedAt
-      completedAt
-      imageUrl(width: 200)
-      attachments {
-        ... on FileAttachment {
-          file {
-            ...FileFields
-          }
-        }
-        ... on LinkAttachment {
-          url
-          title
-          description
-        }
-      }
-      files {
-        ...FileFields
-      }
+      ...TaskDetail
     }
   }
 `);
