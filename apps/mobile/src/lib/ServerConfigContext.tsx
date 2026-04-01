@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { Platform } from "react-native";
+import { clearToken } from "./auth";
 import {
   applyServerConfig,
   loadServerConfig,
@@ -84,6 +85,9 @@ export function ServerConfigProvider({
   }, []);
 
   const setConfig = useCallback(async (cfg: ServerConfig) => {
+    // Clear tokens from the previous server so stale credentials
+    // aren't sent to a different Cognito user pool.
+    await clearToken();
     await saveServerConfig(cfg);
     initWsClient();
     setState({ config: cfg, loaded: true });

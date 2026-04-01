@@ -176,6 +176,14 @@ export default function LoginScreen() {
             </Pressable>
           )}
 
+          {mode === "login" && (
+            <Pressable onPress={() => router.push("/connect")} className="py-2">
+              <Text className="text-text-muted text-sm text-center">
+                Use a different server
+              </Text>
+            </Pressable>
+          )}
+
           {mode === "signup" && (
             <Pressable onPress={() => setMode("login")} className="py-2">
               <Text className="text-accent text-sm text-center">
