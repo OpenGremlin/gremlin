@@ -22,7 +22,7 @@ RUN pnpm --filter @opengremlin/sandbox build
 # Stage 3: runtime
 FROM node:20-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      jq curl wget git python3 python3-pip python3-venv \
+      jq curl wget git unzip python3 python3-pip python3-venv \
       build-essential pkg-config libssl-dev \
       iputils-ping dnsutils procps \
     && rm -rf /var/lib/apt/lists/*
@@ -41,8 +41,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 ENV PATH="/usr/local/cargo/bin:${PATH}"
 
 # AWS CLI
-RUN ARCH=$(dpkg --print-architecture) && \
-    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip && \
+RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip && \
     unzip -qo /tmp/awscliv2.zip -d /tmp && \
     /tmp/aws/install && \
     rm -rf /tmp/aws /tmp/awscliv2.zip
