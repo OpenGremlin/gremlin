@@ -257,11 +257,23 @@ let _initPromise: Promise<void> | null = null;
 export function initApollo(): Promise<void> {
   if (_initPromise) return _initPromise;
 
-  _initPromise = persistCache({
-    cache,
-    storage: AsyncStorage,
-    maxSize: 5 * 1024 * 1024, // 5 MB
-  }).catch((err) => {
+  _initPromise = (async () => {
+    // AsyncStorage requires native modules — skip persistence on web
+    // and in environments where the native module isn't available.
+    try {
+      // Quick probe: if the module is null this will throw immediately
+      await AsyncStorage.getItem("__apollo_cache_probe__");
+    } catch {
+      clientLogger.warn("AsyncStorage unavailable, skipping cache persistence");
+      return;
+    }
+
+    await persistCache({
+      cache,
+      storage: AsyncStorage,
+      maxSize: 5 * 1024 * 1024, // 5 MB
+    });
+  })().catch((err) => {
     clientLogger.error("Cache persistence init failed", {
       error: err instanceof Error ? err.message : String(err),
     });
