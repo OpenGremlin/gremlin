@@ -1,7 +1,6 @@
+import { useSubscription } from "@apollo/client";
 import { useCallback, useRef, useState } from "react";
-import type { AgentStreamSubscription } from "../graphql/generated/graphql";
 import { AgentStreamSubscription as AgentStreamDoc } from "../graphql/queries";
-import { useSubscription } from "./useSubscription";
 
 export interface StreamingMessage {
   logId: string;
@@ -26,36 +25,35 @@ export function useAgentStream(
 } {
   const [streaming, setStreaming] = useState<StreamingMessage | null>(null);
   const bufferRef = useRef("");
+  const taskIdRef = useRef(taskId);
+  taskIdRef.current = taskId;
 
-  useSubscription(
-    AgentStreamDoc,
-    { agentId },
-    useCallback(
-      (data: AgentStreamSubscription) => {
-        const event = data.agentStream;
+  useSubscription(AgentStreamDoc, {
+    variables: { agentId },
+    onData: ({ data: { data } }) => {
+      if (!data) return;
+      const event = data.agentStream;
 
-        // Filter by taskId if provided
-        if (taskId !== undefined) {
-          if (event.taskId !== taskId) return;
-        }
+      // Filter by taskId if provided
+      if (taskIdRef.current !== undefined) {
+        if (event.taskId !== taskIdRef.current) return;
+      }
 
-        if (event.done) {
-          // Mark the content as final but keep the bubble visible.
-          // It will be dismissed when the log entry arrives.
-          return;
-        }
+      if (event.done) {
+        // Mark the content as final but keep the bubble visible.
+        // It will be dismissed when the log entry arrives.
+        return;
+      }
 
-        // Accumulate text
-        bufferRef.current += event.delta;
-        setStreaming({
-          logId: event.logId,
-          taskId: event.taskId ?? null,
-          content: bufferRef.current,
-        });
-      },
-      [taskId],
-    ),
-  );
+      // Accumulate text
+      bufferRef.current += event.delta;
+      setStreaming({
+        logId: event.logId,
+        taskId: event.taskId ?? null,
+        content: bufferRef.current,
+      });
+    },
+  });
 
   const dismiss = useCallback((logId: string) => {
     setStreaming((prev) => {

@@ -1,7 +1,7 @@
-import { useCallback, useReducer, useRef } from "react";
+import { useSubscription } from "@apollo/client";
+import { useReducer, useRef } from "react";
 import { SandboxOutputSubscription } from "../graphql/queries/tasks";
 import { clientLogger } from "../lib/logger";
-import { useSubscription } from "./useSubscription";
 
 export interface CommandStream {
   output: string;
@@ -13,10 +13,10 @@ export function useSandboxOutput(taskId: string) {
   const streamsRef = useRef(new Map<string, CommandStream>());
   const [, forceRender] = useReducer((x: number) => x + 1, 0);
 
-  useSubscription(
-    SandboxOutputSubscription,
-    { taskId },
-    useCallback((data) => {
+  useSubscription(SandboxOutputSubscription, {
+    variables: { taskId },
+    onData: ({ data: { data } }) => {
+      if (!data) return;
       const chunk = data.sandboxOutput;
       const existing = streamsRef.current.get(chunk.commandId) ?? {
         output: "",
@@ -36,8 +36,8 @@ export function useSandboxOutput(taskId: string) {
 
       streamsRef.current.set(chunk.commandId, existing);
       forceRender();
-    }, []),
-  );
+    },
+  });
 
   return streamsRef.current;
 }

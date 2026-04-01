@@ -27,11 +27,9 @@ vi.mock("./logger", () => ({
   },
 }));
 
-import { parse } from "graphql";
 import {
   clearToken,
   getCognitoRegion,
-  gql,
   isAuthEnabled,
   setOnTokenChange,
   setToken,
@@ -46,59 +44,6 @@ describe("getCognitoRegion", () => {
 describe("isAuthEnabled", () => {
   it("returns true when cognitoDomain is set", () => {
     expect(isAuthEnabled()).toBe(true);
-  });
-});
-
-describe("gql", () => {
-  const mockFetch = vi.fn();
-
-  beforeEach(() => {
-    vi.stubGlobal("fetch", mockFetch);
-    mockFetch.mockReset();
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  const fakeQuery = parse("query { test }") as Parameters<typeof gql>[0];
-
-  it("returns data on success", async () => {
-    mockFetch.mockResolvedValue({
-      status: 200,
-      json: () => Promise.resolve({ data: { test: "value" } }),
-    });
-    const result = await gql(fakeQuery);
-    expect(result).toEqual({ test: "value" });
-  });
-
-  it("includes auth header when token is set", async () => {
-    await setToken("my-token");
-    mockFetch.mockResolvedValue({
-      status: 200,
-      json: () => Promise.resolve({ data: { ok: true } }),
-    });
-    await gql(fakeQuery);
-    const headers = mockFetch.mock.calls[0][1].headers;
-    expect(headers.Authorization).toBe("Bearer my-token");
-    await clearToken();
-  });
-
-  it("throws on GraphQL errors", async () => {
-    mockFetch.mockResolvedValue({
-      status: 200,
-      json: () => Promise.resolve({ errors: [{ message: "Something broke" }] }),
-    });
-    await expect(gql(fakeQuery)).rejects.toThrow("Something broke");
-  });
-
-  it("clears token and throws on 401", async () => {
-    await setToken("expired-token");
-    mockFetch.mockResolvedValue({
-      status: 401,
-      json: () => Promise.resolve({}),
-    });
-    await expect(gql(fakeQuery)).rejects.toThrow("Unauthorized");
   });
 });
 
@@ -166,63 +111,5 @@ describe("proactive token refresh", () => {
 
     await setToken(fakeJwt(now + 7200));
     expect(vi.getTimerCount()).toBe(1); // replaced, not added
-  });
-});
-
-describe("onTokenChange callback", () => {
-  const mockFetch = vi.fn();
-
-  beforeEach(async () => {
-    vi.stubGlobal("fetch", mockFetch);
-    mockFetch.mockReset();
-    await clearToken();
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it("fires onTokenChange when token is refreshed via 401 retry", async () => {
-    const onChange = vi.fn();
-    setOnTokenChange(onChange);
-
-    // Set initial token + refresh token
-    await setToken("old-id-token");
-    const { storage } = await import("./storage");
-    (storage.getItem as ReturnType<typeof vi.fn>).mockImplementation(
-      (key: string) => {
-        if (key === "gremlin_refresh_token") return "refresh-tok";
-        if (key === "gremlin_admin_token") return "old-id-token";
-        return null;
-      },
-    );
-
-    // First call returns 401, refresh succeeds, retry succeeds
-    mockFetch
-      .mockResolvedValueOnce({
-        status: 401,
-        json: () => Promise.resolve({}),
-      })
-      .mockResolvedValueOnce({
-        // Cognito refresh response
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            AuthenticationResult: {
-              IdToken: "new-id-token",
-              AccessToken: "new-access-token",
-            },
-          }),
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        json: () => Promise.resolve({ data: { ok: true } }),
-      });
-
-    const fakeQuery2 = parse("query { test }") as Parameters<typeof gql>[0];
-    await gql(fakeQuery2);
-
-    expect(onChange).toHaveBeenCalledWith("new-id-token");
-    setOnTokenChange(() => {});
   });
 });

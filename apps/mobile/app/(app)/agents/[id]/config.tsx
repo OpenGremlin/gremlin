@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { Pencil, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
@@ -9,7 +10,6 @@ import {
   UnretireAgentMutation,
   UpdateAgentMutation,
 } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
@@ -29,8 +29,8 @@ export default function AgentConfigScreen() {
   const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data, loading, error, setData, refetch } = useQuery(AgentQuery, {
-    id: id ?? "",
+  const { data, loading, error, refetch } = useQuery(AgentQuery, {
+    variables: { id: id ?? "" },
   });
   const agent = data?.agent;
   const avatarsResult = useQuery(AvatarsQuery);
@@ -56,7 +56,7 @@ export default function AgentConfigScreen() {
     setSaving(true);
     setSaveError("");
     try {
-      const result = await execute(UpdateAgentMutation, {
+      await execute(UpdateAgentMutation, {
         id: id ?? "",
         input: {
           name: name.trim(),
@@ -64,7 +64,6 @@ export default function AgentConfigScreen() {
           identity: identity.trim() || null,
         },
       });
-      setData({ agent: result.updateAgent });
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to save changes",
@@ -72,7 +71,7 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, soul, identity, setData]);
+  }, [id, agent, name, soul, identity]);
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 

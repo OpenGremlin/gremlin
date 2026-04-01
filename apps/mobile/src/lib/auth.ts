@@ -1,7 +1,5 @@
-import { print } from "graphql";
 import { config, getApiUrl } from "./config";
 import { clientLogger } from "./logger";
-import { reportConnectivity } from "./networkState";
 import { storage } from "./storage";
 
 const TOKEN_KEY = "gremlin_admin_token";
@@ -291,97 +289,4 @@ export async function cognitoChangePassword(
       data.message ?? data.__type.split("#").pop() ?? "Password change failed";
     throw new Error(message);
   }
-}
-
-export async function gql<TResult, TVariables>(
-  query: import("@graphql-typed-document-node/core").TypedDocumentNode<
-    TResult,
-    TVariables
-  >,
-  ...args: Record<string, never> extends TVariables
-    ? [variables?: TVariables]
-    : [variables: TVariables]
-): Promise<TResult>;
-export async function gql(
-  query: import("graphql").DocumentNode,
-  variables?: unknown,
-): Promise<unknown> {
-  const result = await _gqlRequest(query, variables);
-  return result;
-}
-
-async function _gqlRequest(
-  query: import("graphql").DocumentNode,
-  variables?: unknown,
-): Promise<unknown> {
-  try {
-    const result = await _gqlFetch(query, variables);
-    reportConnectivity(true);
-    return result;
-  } catch (err) {
-    if (err instanceof TypeError && /fetch|network/i.test(err.message)) {
-      reportConnectivity(false);
-    }
-    throw err;
-  }
-}
-
-async function _gqlFetch(
-  query: import("graphql").DocumentNode,
-  variables?: unknown,
-): Promise<unknown> {
-  const API_URL = getApiUrl();
-  const token = await getToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  const body = JSON.stringify({ query: print(query), variables });
-  const res = await fetch(`${API_URL}/graphql`, {
-    method: "POST",
-    headers,
-    body,
-  });
-  if (res.status === 401) {
-    clientLogger.warn("GraphQL request returned 401, attempting refresh");
-    const refreshed = await refreshSession();
-    if (refreshed) {
-      // Retry with the new token
-      const newToken = await getToken();
-      const retryRes = await fetch(`${API_URL}/graphql`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${newToken}`,
-        },
-        body,
-      });
-      if (retryRes.status === 401) {
-        clientLogger.warn("Retry after refresh still 401, logging out");
-        await clearToken();
-        _onUnauthorized?.();
-        throw new Error("Unauthorized");
-      }
-      const retryJson = await retryRes.json();
-      if (retryJson.errors) {
-        throw new Error(retryJson.errors[0].message);
-      }
-      return retryJson.data;
-    }
-    // Refresh failed — clear and redirect to login
-    clientLogger.warn("Token refresh failed, logging out");
-    await clearToken();
-    _onUnauthorized?.();
-    throw new Error("Unauthorized");
-  }
-  const json = await res.json();
-  if (json.errors) {
-    clientLogger.error("GraphQL error", {
-      error: json.errors[0].message,
-    });
-    throw new Error(json.errors[0].message);
-  }
-  return json.data;
 }

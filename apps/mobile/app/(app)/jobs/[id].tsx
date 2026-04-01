@@ -2,7 +2,7 @@ import { useQuery, useSubscription } from "@apollo/client";
 import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import type { AgentJobQuery as AgentJobQueryType } from "../../../src/graphql/generated/graphql";
 import {
