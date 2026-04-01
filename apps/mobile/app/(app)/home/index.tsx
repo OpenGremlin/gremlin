@@ -1,6 +1,7 @@
+import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { Home } from "lucide-react-native";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,7 +16,6 @@ import {
   TaskUpdatedSubscription,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
-import { usePaginatedQuery } from "../../../src/hooks/usePaginatedQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
@@ -105,12 +105,37 @@ const renderTaskItem = ({ item }: { item: TaskItem }) => (
 );
 const keyExtractor = (item: TaskItem) => item.id;
 
+const PAGE_SIZE = 20;
+
 export default function HomeScreen() {
   const colors = useNavigationTheme();
-  const { nodes, loading, loadingMore, error, hasMore, loadMore, refetch } =
-    usePaginatedQuery(TasksQuery, (d) => d.tasks, undefined, {
-      direction: "newest-first",
-    });
+  const { data, loading, error, refetch, fetchMore } = useQuery(TasksQuery, {
+    variables: { last: PAGE_SIZE },
+  });
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const connection = data?.tasks;
+  const nodes: TaskItem[] = useMemo(
+    () =>
+      (connection?.edges ?? [])
+        .map((e) => e.node)
+        .slice()
+        .reverse(),
+    [connection?.edges],
+  );
+  const hasMore = connection?.pageInfo?.hasPreviousPage ?? false;
+
+  const loadMore = useCallback(async () => {
+    if (!connection?.pageInfo?.startCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      await fetchMore({
+        variables: { last: PAGE_SIZE, before: connection.pageInfo.startCursor },
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [connection?.pageInfo?.startCursor, loadingMore, fetchMore]);
   const {
     approvals,
     inputRequests: pendingInputRequests,

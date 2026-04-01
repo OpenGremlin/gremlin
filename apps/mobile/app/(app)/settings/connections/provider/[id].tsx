@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
@@ -5,7 +6,6 @@ import {
   ConnectApiKeyMutation,
   IntegrationProvidersQuery,
 } from "../../../../../src/graphql/queries";
-import { useQuery } from "../../../../../src/hooks/useQuery";
 import { gql } from "../../../../../src/lib/auth";
 import {
   connectOAuthProvider,

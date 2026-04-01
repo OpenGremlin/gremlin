@@ -1,3 +1,4 @@
+import type { ApolloError } from "@apollo/client";
 import { Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
@@ -9,7 +10,7 @@ export function QueryResult({
   onRetry,
 }: {
   loading: boolean;
-  error: string | null;
+  error?: ApolloError | string | null;
   onRetry?: () => void;
 }) {
   const colors = useNavigationTheme();
@@ -28,12 +29,16 @@ export function QueryResult({
   }
 
   if (error) {
+    const message =
+      typeof error === "string"
+        ? error
+        : (error.message ?? "An error occurred");
     return (
       <View
         className="flex-1 justify-center"
         style={{ backgroundColor: colors.background }}
       >
-        <ErrorState message={error} onRetry={onRetry} />
+        <ErrorState message={message} onRetry={onRetry} />
       </View>
     );
   }

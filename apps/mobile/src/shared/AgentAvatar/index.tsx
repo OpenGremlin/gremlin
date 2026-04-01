@@ -1,10 +1,10 @@
+import { useQuery } from "@apollo/client";
 import { useState } from "react";
 import { Image, Text, View } from "react-native";
 import { AgentQuery } from "../../graphql/queries";
-import { useQuery } from "../../hooks/useQuery";
 
 export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
-  const { data } = useQuery(AgentQuery, { id });
+  const { data } = useQuery(AgentQuery, { variables: { id } });
   const agent = data?.agent;
   const name = agent?.name ?? "";
   const isRetired = agent?.retired ?? false;

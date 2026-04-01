@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import type {
   PendingCommandApprovalsQuery as ApprovalsQueryType,
@@ -8,7 +9,6 @@ import {
   PendingItemsUpdatedSubscription,
   UserInputRequestsQuery,
 } from "../graphql/queries";
-import { useQuery } from "../hooks/useQuery";
 import { useSubscription } from "../hooks/useSubscription";
 
 type Approval = ApprovalsQueryType["pendingCommandApprovals"][number];

@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
 import { Bot, Globe, Info, Terminal } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -10,7 +11,6 @@ import {
   IntegrationProvidersQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
-import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
@@ -95,7 +95,7 @@ type BedrockModel = { id: string; name: string };
 
 function getModelLabel(
   model: PlainConfig["model"],
-  providers: ProvidersData,
+  providers: ProvidersData | undefined,
   allEnabled: EnabledEntry[],
   bedrockModels: BedrockModel[],
 ): string {

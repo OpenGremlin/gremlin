@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router, useFocusEffect } from "expo-router";
 import { CircleCheck, MessageSquare, Paintbrush } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
@@ -9,7 +10,6 @@ import {
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { gql } from "../../../../src/lib/auth";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../src/shared/Button";

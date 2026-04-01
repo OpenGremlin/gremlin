@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { ChevronRight, CircleCheck, Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
@@ -16,7 +17,6 @@ import {
   UnbindAgentSkillConnectionMutation,
 } from "../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations";
-import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
@@ -32,7 +32,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
     data: skillsData,
     loading,
     refetch,
-  } = useQuery(AgentSkillsQuery, { agentId });
+  } = useQuery(AgentSkillsQuery, { variables: { agentId } });
   const agentSkills = skillsData?.agentSkills ?? [];
 
   const [addModalOpen, setAddModalOpen] = useState(false);

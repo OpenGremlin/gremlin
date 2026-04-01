@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { Check } from "lucide-react-native";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { IntegrationProvidersQuery } from "../../graphql/generated/graphql";
@@ -5,7 +6,6 @@ import {
   AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
 } from "../../graphql/queries";
-import { useQuery } from "../../hooks/useQuery";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { SheetModal } from "../SheetModal";
 

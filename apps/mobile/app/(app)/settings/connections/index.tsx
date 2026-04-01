@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -13,7 +14,6 @@ import {
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";

@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
 import { useState } from "react";
@@ -5,7 +6,6 @@ import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";

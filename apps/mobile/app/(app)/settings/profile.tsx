@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, Text, View } from "react-native";
@@ -5,7 +6,6 @@ import {
   ProfileQuery,
   UpdateProfileMutation,
 } from "../../../src/graphql/queries";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";

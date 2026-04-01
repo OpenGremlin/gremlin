@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -5,7 +6,6 @@ import {
   FileQuery,
   WorkspaceEntriesQuery,
 } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { FilePreview } from "../../../../src/shared/FilePreview";
 import { QueryResult } from "../../../../src/shared/QueryResult";
@@ -50,7 +50,9 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
 }
 
 function FileView({ filePath }: { filePath: string }) {
-  const { data, loading, error } = useQuery(FileQuery, { path: filePath });
+  const { data, loading, error } = useQuery(FileQuery, {
+    variables: { path: filePath },
+  });
   const file = data?.file;
 
   if (loading || error) {
@@ -71,7 +73,7 @@ function FileView({ filePath }: { filePath: string }) {
 function DirectoryView({ dirPath }: { dirPath: string }) {
   const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(WorkspaceEntriesQuery, {
-    path: dirPath,
+    variables: { path: dirPath },
   });
   const entries = data?.workspaceEntries ?? [];
 

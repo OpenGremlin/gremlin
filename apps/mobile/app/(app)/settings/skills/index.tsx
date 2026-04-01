@@ -1,9 +1,9 @@
+import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { groupSkillsByCategory } from "../../../../src/shared/categories";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";

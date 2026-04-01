@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
@@ -12,7 +13,6 @@ import {
   TriggerJobMutation,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../src/graphql/queries";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { useSubscription } from "../../../src/hooks/useSubscription";
 import { gql } from "../../../src/lib/auth";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -32,7 +32,7 @@ type JobTask = Job["tasks"][number];
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(AgentJobQuery, {
-    id: id ?? "",
+    variables: { id: id ?? "" },
   });
   const { data: agentsData } = useQuery(AgentsQuery);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);

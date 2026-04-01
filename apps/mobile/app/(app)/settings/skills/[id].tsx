@@ -1,7 +1,7 @@
+import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import { SkillTemplateQuery } from "../../../../src/graphql/queries";
-import { useQuery } from "../../../../src/hooks/useQuery";
 import { Card } from "../../../../src/shared/Card";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
@@ -35,7 +35,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 export default function SkillDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, loading, error } = useQuery(SkillTemplateQuery, {
-    id: id ?? "",
+    variables: { id: id ?? "" },
   });
 
   const template = data?.skillTemplate ?? null;

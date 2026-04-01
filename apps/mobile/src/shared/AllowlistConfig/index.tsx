@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { Plus, X } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -6,13 +7,14 @@ import {
   CommandAllowlistQuery,
   RemoveCommandAllowlistEntryMutation,
 } from "../../graphql/queries";
-import { useQuery } from "../../hooks/useQuery";
 import { gql } from "../../lib/auth";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 
 export function AllowlistConfig({ agentId }: { agentId: string }) {
   const colors = useNavigationTheme();
-  const { data, setData } = useQuery(CommandAllowlistQuery, { agentId });
+  const { data, refetch } = useQuery(CommandAllowlistQuery, {
+    variables: { agentId },
+  });
   const [adding, setAdding] = useState(false);
   const [newPattern, setNewPattern] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,11 +26,11 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
     if (!trimmed || busy) return;
     setBusy(true);
     try {
-      const result = await gql(AddCommandAllowlistEntryMutation, {
+      await gql(AddCommandAllowlistEntryMutation, {
         agentId,
         pattern: trimmed,
       });
-      setData({ commandAllowlist: result.addCommandAllowlistEntry });
+      refetch();
       setNewPattern("");
       setAdding(false);
     } finally {
@@ -40,11 +42,11 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
     if (busy) return;
     setBusy(true);
     try {
-      const result = await gql(RemoveCommandAllowlistEntryMutation, {
+      await gql(RemoveCommandAllowlistEntryMutation, {
         agentId,
         pattern,
       });
-      setData({ commandAllowlist: result.removeCommandAllowlistEntry });
+      refetch();
     } finally {
       setBusy(false);
     }

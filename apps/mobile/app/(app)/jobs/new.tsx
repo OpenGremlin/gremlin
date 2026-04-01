@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -5,7 +6,6 @@ import {
   AgentsQuery,
   CreateAgentJobMutation,
 } from "../../../src/graphql/queries";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";

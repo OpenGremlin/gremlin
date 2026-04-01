@@ -1,6 +1,6 @@
+import { useQuery } from "@apollo/client";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { TaskQuery } from "../../../../../src/graphql/queries";
-import { useQuery } from "../../../../../src/hooks/useQuery";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
 import { ChatScreen } from "../../../../../src/shared/ChatScreen";
 
@@ -15,7 +15,7 @@ export default function TaskThreadScreen() {
     loading,
     error,
     refetch,
-  } = useQuery(TaskQuery, { id: taskId });
+  } = useQuery(TaskQuery, { variables: { id: taskId } });
 
   const task = taskData?.task;
   const sandboxStreams = useSandboxOutput(taskId);

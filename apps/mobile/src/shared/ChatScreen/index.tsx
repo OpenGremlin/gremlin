@@ -1,3 +1,4 @@
+import type { ApolloError } from "@apollo/client";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -64,7 +65,7 @@ interface ChatScreenProps {
   headerTitlePress: () => void;
   headerRight?: ReactNode;
   loading: boolean;
-  error: string | null;
+  error?: ApolloError | string | null;
   onRetry?: () => void;
   notFound: boolean;
   notFoundLabel?: string;

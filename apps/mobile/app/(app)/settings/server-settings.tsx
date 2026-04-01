@@ -1,10 +1,10 @@
+import { useQuery } from "@apollo/client";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import {
   GlobalSettingsQuery,
   UpdateGlobalSettingsMutation,
 } from "../../../src/graphql/queries";
-import { useQuery } from "../../../src/hooks/useQuery";
 import { gql } from "../../../src/lib/auth";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";

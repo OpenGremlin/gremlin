@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
@@ -19,7 +20,6 @@ import {
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../../src/graphql/queries";
-import { useQuery } from "../../../../../src/hooks/useQuery";
 import { gql } from "../../../../../src/lib/auth";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
@@ -419,14 +419,14 @@ function ModelLists({
     data: modelsData,
     loading: modelsLoading,
     refetch: refetchModels,
-  } = useQuery(ProviderModelsQuery, { providerId });
+  } = useQuery(ProviderModelsQuery, { variables: { providerId } });
   const { data: enabledData, refetch: refetchEnabled } = useQuery(
     EnabledModelsQuery,
-    { providerId },
+    { variables: { providerId } },
   );
   const { data: detailsData, refetch: refetchDetails } = useQuery(
     EnabledModelDetailsQuery,
-    { providerId },
+    { variables: { providerId } },
   );
 
   const allModels = modelsData?.providerModels ?? [];
