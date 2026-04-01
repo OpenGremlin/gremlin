@@ -64,7 +64,7 @@ type Mutation {
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
-  triggerJob(id: ID!): Boolean!
+  triggerJob(id: ID!): AgentJob!
   sendMessage(
     agentId: ID!
     content: String!
@@ -79,17 +79,17 @@ type Mutation {
     decision: CommandApprovalDecision!
   ): CommandApproval
   connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
-  revokeIntegrationConnection(id: ID!): Boolean!
-  setDefaultModel(providerId: String!, modelId: String!): Boolean!
-  setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
+  revokeIntegrationConnection(id: ID!): IntegrationConnection!
+  setDefaultModel(providerId: String!, modelId: String!): DefaultModel!
+  setDefaultImageModel(providerId: String!, modelId: String!): DefaultModel!
   enableModel(
     providerId: String!
     modelId: String!
     modelName: String
-  ): Boolean!
-  disableModel(providerId: String!, modelId: String!): Boolean!
-  enableBedrockModel(modelId: String!, modelName: String): Boolean!
-  disableBedrockModel(modelId: String!): Boolean!
+  ): [EnabledModelEntry!]!
+  disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
+  enableBedrockModel(modelId: String!, modelName: String): [String!]!
+  disableBedrockModel(modelId: String!): [String!]!
   submitOAuthConnection(
     providerId: String!
     accessToken: String!
@@ -98,7 +98,7 @@ type Mutation {
     scopes: [String!]!
     accountId: String
     clientId: String
-  ): ID!
+  ): IntegrationConnection!
   resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
   dismissUserInputRequest(id: ID!): UserInputRequest
   updateProfile(input: ProfileInput!): Profile!
@@ -106,7 +106,7 @@ type Mutation {
   "Assign a skill to an agent"
   assignSkill(agentId: ID!, skillId: ID!): AgentSkill!
   "Remove a skill from an agent"
-  removeSkill(agentId: ID!, skillId: ID!): Boolean!
+  removeSkill(agentId: ID!, skillId: ID!): AgentSkill!
   "Bind a connection to an agent's skill"
   bindAgentSkillConnection(
     agentId: ID!

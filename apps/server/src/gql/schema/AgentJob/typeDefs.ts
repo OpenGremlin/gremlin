@@ -39,7 +39,7 @@ export const agentJobTypeDefs = /* GraphQL */ `
     updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
     createAgentJob(input: CreateAgentJobInput!): AgentJob!
     deleteAgentJob(id: ID!): AgentJob
-    triggerJob(id: ID!): Boolean!
+    triggerJob(id: ID!): AgentJob!
   }
 
   extend type Subscription {

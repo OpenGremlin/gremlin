@@ -101,19 +101,33 @@ export const ProviderModelsQuery = graphql(`
 
 export const RevokeConnectionMutation = graphql(`
   mutation RevokeConnection($id: ID!) {
-    revokeIntegrationConnection(id: $id)
+    revokeIntegrationConnection(id: $id) {
+      id
+      providerId
+      connectionType
+      connectedAt
+      isRevoked
+    }
   }
 `);
 
 export const SetDefaultModelMutation = graphql(`
   mutation SetDefaultModel($providerId: String!, $modelId: String!) {
-    setDefaultModel(providerId: $providerId, modelId: $modelId)
+    setDefaultModel(providerId: $providerId, modelId: $modelId) {
+      providerId
+      modelId
+      modelName
+    }
   }
 `);
 
 export const SetDefaultImageModelMutation = graphql(`
   mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {
-    setDefaultImageModel(providerId: $providerId, modelId: $modelId)
+    setDefaultImageModel(providerId: $providerId, modelId: $modelId) {
+      providerId
+      modelId
+      modelName
+    }
   }
 `);
 
@@ -136,13 +150,23 @@ export const AllEnabledModelsQuery = graphql(`
 
 export const EnableModelMutation = graphql(`
   mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {
-    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)
+    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName) {
+      providerId
+      modelId
+      modelName
+      modelMode
+    }
   }
 `);
 
 export const DisableModelMutation = graphql(`
   mutation DisableModel($providerId: String!, $modelId: String!) {
-    disableModel(providerId: $providerId, modelId: $modelId)
+    disableModel(providerId: $providerId, modelId: $modelId) {
+      providerId
+      modelId
+      modelName
+      modelMode
+    }
   }
 `);
 
@@ -212,6 +236,12 @@ export const SubmitOAuthConnectionMutation = graphql(`
       scopes: $scopes
       accountId: $accountId
       clientId: $clientId
-    )
+    ) {
+      id
+      providerId
+      connectionType
+      connectedAt
+      isRevoked
+    }
   }
 `);

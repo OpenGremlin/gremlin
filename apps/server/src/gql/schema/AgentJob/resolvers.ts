@@ -42,7 +42,7 @@ const triggerJob: MutationResolvers["triggerJob"] = async (
     type: "scheduled_job",
     payload: { jobId: id, triggerTimeMs: Date.now() },
   });
-  return true;
+  return job;
 };
 
 const agent: AgentJobResolvers["agent"] = async (parent, _args, ctx) => {

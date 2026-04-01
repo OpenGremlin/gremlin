@@ -55,7 +55,7 @@ export const skillTypeDefs = /* GraphQL */ `
     "Assign a skill to an agent"
     assignSkill(agentId: ID!, skillId: ID!): AgentSkill!
     "Remove a skill from an agent"
-    removeSkill(agentId: ID!, skillId: ID!): Boolean!
+    removeSkill(agentId: ID!, skillId: ID!): AgentSkill!
     "Bind a connection to an agent's skill"
     bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
     "Unbind a connection from an agent's skill"

@@ -453,24 +453,24 @@ export type Mutation = {
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
-  disableBedrockModel: Scalars['Boolean']['output'];
-  disableModel: Scalars['Boolean']['output'];
+  disableBedrockModel: Array<Scalars['String']['output']>;
+  disableModel: Array<EnabledModelEntry>;
   dismissUserInputRequest?: Maybe<UserInputRequest>;
-  enableBedrockModel: Scalars['Boolean']['output'];
-  enableModel: Scalars['Boolean']['output'];
+  enableBedrockModel: Array<Scalars['String']['output']>;
+  enableModel: Array<EnabledModelEntry>;
   removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
-  removeSkill: Scalars['Boolean']['output'];
+  removeSkill: AgentSkill;
   requestFileUploads: Array<FileUploadUrl>;
   resolveCommandApproval?: Maybe<CommandApproval>;
   resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
-  revokeIntegrationConnection: Scalars['Boolean']['output'];
+  revokeIntegrationConnection: IntegrationConnection;
   sendMessage: SendMessageResult;
-  setDefaultImageModel: Scalars['Boolean']['output'];
-  setDefaultModel: Scalars['Boolean']['output'];
-  submitOAuthConnection: Scalars['ID']['output'];
-  triggerJob: Scalars['Boolean']['output'];
+  setDefaultImageModel: DefaultModel;
+  setDefaultModel: DefaultModel;
+  submitOAuthConnection: IntegrationConnection;
+  triggerJob: AgentJob;
   /** Unbind a connection from an agent's skill */
   unbindAgentSkillConnection: AgentSkill;
   unretireAgent: Agent;
@@ -1305,7 +1305,7 @@ export type RevokeConnectionMutationVariables = Exact<{
 }>;
 
 
-export type RevokeConnectionMutation = { __typename?: 'Mutation', revokeIntegrationConnection: boolean };
+export type RevokeConnectionMutation = { __typename?: 'Mutation', revokeIntegrationConnection: { __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, connectedAt: string, isRevoked: boolean } };
 
 export type SetDefaultModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1313,7 +1313,7 @@ export type SetDefaultModelMutationVariables = Exact<{
 }>;
 
 
-export type SetDefaultModelMutation = { __typename?: 'Mutation', setDefaultModel: boolean };
+export type SetDefaultModelMutation = { __typename?: 'Mutation', setDefaultModel: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } };
 
 export type SetDefaultImageModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1321,7 +1321,7 @@ export type SetDefaultImageModelMutationVariables = Exact<{
 }>;
 
 
-export type SetDefaultImageModelMutation = { __typename?: 'Mutation', setDefaultImageModel: boolean };
+export type SetDefaultImageModelMutation = { __typename?: 'Mutation', setDefaultImageModel: { __typename?: 'DefaultModel', providerId: string, modelId: string, modelName?: string | null } };
 
 export type EnabledModelsQueryVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1342,7 +1342,7 @@ export type EnableModelMutationVariables = Exact<{
 }>;
 
 
-export type EnableModelMutation = { __typename?: 'Mutation', enableModel: boolean };
+export type EnableModelMutation = { __typename?: 'Mutation', enableModel: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null, modelMode: string }> };
 
 export type DisableModelMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1350,7 +1350,7 @@ export type DisableModelMutationVariables = Exact<{
 }>;
 
 
-export type DisableModelMutation = { __typename?: 'Mutation', disableModel: boolean };
+export type DisableModelMutation = { __typename?: 'Mutation', disableModel: Array<{ __typename?: 'EnabledModelEntry', providerId: string, modelId: string, modelName?: string | null, modelMode: string }> };
 
 export type BedrockEnabledModelsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1374,14 +1374,14 @@ export type EnableBedrockModelMutationVariables = Exact<{
 }>;
 
 
-export type EnableBedrockModelMutation = { __typename?: 'Mutation', enableBedrockModel: boolean };
+export type EnableBedrockModelMutation = { __typename?: 'Mutation', enableBedrockModel: Array<string> };
 
 export type DisableBedrockModelMutationVariables = Exact<{
   modelId: Scalars['String']['input'];
 }>;
 
 
-export type DisableBedrockModelMutation = { __typename?: 'Mutation', disableBedrockModel: boolean };
+export type DisableBedrockModelMutation = { __typename?: 'Mutation', disableBedrockModel: Array<string> };
 
 export type SubmitOAuthConnectionMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -1394,7 +1394,7 @@ export type SubmitOAuthConnectionMutationVariables = Exact<{
 }>;
 
 
-export type SubmitOAuthConnectionMutation = { __typename?: 'Mutation', submitOAuthConnection: string };
+export type SubmitOAuthConnectionMutation = { __typename?: 'Mutation', submitOAuthConnection: { __typename?: 'IntegrationConnection', id: string, providerId: string, connectionType: string, connectedAt: string, isRevoked: boolean } };
 
 export type AgentJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1435,7 +1435,7 @@ export type TriggerJobMutationVariables = Exact<{
 }>;
 
 
-export type TriggerJobMutation = { __typename?: 'Mutation', triggerJob: boolean };
+export type TriggerJobMutation = { __typename?: 'Mutation', triggerJob: { __typename?: 'AgentJob', id: string, name: string, lastRun?: string | null, nextRun?: string | null } };
 
 export type JobCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -1511,7 +1511,7 @@ export type RemoveSkillMutationVariables = Exact<{
 }>;
 
 
-export type RemoveSkillMutation = { __typename?: 'Mutation', removeSkill: boolean };
+export type RemoveSkillMutation = { __typename?: 'Mutation', removeSkill: { __typename?: 'AgentSkill', skillId: string, agentId: string } };
 
 export type BindAgentSkillConnectionMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -2289,17 +2289,31 @@ export const ProviderModelsDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<ProviderModelsQuery, ProviderModelsQueryVariables>;
 export const RevokeConnectionDocument = new TypedDocumentString(`
     mutation RevokeConnection($id: ID!) {
-  revokeIntegrationConnection(id: $id)
+  revokeIntegrationConnection(id: $id) {
+    id
+    providerId
+    connectionType
+    connectedAt
+    isRevoked
+  }
 }
     `) as unknown as TypedDocumentString<RevokeConnectionMutation, RevokeConnectionMutationVariables>;
 export const SetDefaultModelDocument = new TypedDocumentString(`
     mutation SetDefaultModel($providerId: String!, $modelId: String!) {
-  setDefaultModel(providerId: $providerId, modelId: $modelId)
+  setDefaultModel(providerId: $providerId, modelId: $modelId) {
+    providerId
+    modelId
+    modelName
+  }
 }
     `) as unknown as TypedDocumentString<SetDefaultModelMutation, SetDefaultModelMutationVariables>;
 export const SetDefaultImageModelDocument = new TypedDocumentString(`
     mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {
-  setDefaultImageModel(providerId: $providerId, modelId: $modelId)
+  setDefaultImageModel(providerId: $providerId, modelId: $modelId) {
+    providerId
+    modelId
+    modelName
+  }
 }
     `) as unknown as TypedDocumentString<SetDefaultImageModelMutation, SetDefaultImageModelMutationVariables>;
 export const EnabledModelsDocument = new TypedDocumentString(`
@@ -2319,12 +2333,22 @@ export const AllEnabledModelsDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<AllEnabledModelsQuery, AllEnabledModelsQueryVariables>;
 export const EnableModelDocument = new TypedDocumentString(`
     mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {
-  enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName)
+  enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName) {
+    providerId
+    modelId
+    modelName
+    modelMode
+  }
 }
     `) as unknown as TypedDocumentString<EnableModelMutation, EnableModelMutationVariables>;
 export const DisableModelDocument = new TypedDocumentString(`
     mutation DisableModel($providerId: String!, $modelId: String!) {
-  disableModel(providerId: $providerId, modelId: $modelId)
+  disableModel(providerId: $providerId, modelId: $modelId) {
+    providerId
+    modelId
+    modelName
+    modelMode
+  }
 }
     `) as unknown as TypedDocumentString<DisableModelMutation, DisableModelMutationVariables>;
 export const BedrockEnabledModelsDocument = new TypedDocumentString(`
@@ -2380,7 +2404,13 @@ export const SubmitOAuthConnectionDocument = new TypedDocumentString(`
     scopes: $scopes
     accountId: $accountId
     clientId: $clientId
-  )
+  ) {
+    id
+    providerId
+    connectionType
+    connectedAt
+    isRevoked
+  }
 }
     `) as unknown as TypedDocumentString<SubmitOAuthConnectionMutation, SubmitOAuthConnectionMutationVariables>;
 export const AgentJobsDocument = new TypedDocumentString(`
@@ -2467,7 +2497,12 @@ export const JobTaskCreatedDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<JobTaskCreatedSubscription, JobTaskCreatedSubscriptionVariables>;
 export const TriggerJobDocument = new TypedDocumentString(`
     mutation TriggerJob($id: ID!) {
-  triggerJob(id: $id)
+  triggerJob(id: $id) {
+    id
+    name
+    lastRun
+    nextRun
+  }
 }
     `) as unknown as TypedDocumentString<TriggerJobMutation, TriggerJobMutationVariables>;
 export const JobCreatedDocument = new TypedDocumentString(`
@@ -2638,7 +2673,10 @@ export const AssignSkillDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<AssignSkillMutation, AssignSkillMutationVariables>;
 export const RemoveSkillDocument = new TypedDocumentString(`
     mutation RemoveSkill($agentId: ID!, $skillId: ID!) {
-  removeSkill(agentId: $agentId, skillId: $skillId)
+  removeSkill(agentId: $agentId, skillId: $skillId) {
+    skillId
+    agentId
+  }
 }
     `) as unknown as TypedDocumentString<RemoveSkillMutation, RemoveSkillMutationVariables>;
 export const BindAgentSkillConnectionDocument = new TypedDocumentString(`

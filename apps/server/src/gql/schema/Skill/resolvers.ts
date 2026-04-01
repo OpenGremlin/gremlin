@@ -48,8 +48,13 @@ const removeSkill: MutationResolvers["removeSkill"] = async (
   { agentId, skillId },
   ctx,
 ) => {
+  // Fetch the skill assignment before removing so we can return it
+  const skills = await ctx.services.skills.getAgentSkills(ctx, agentId);
+  const skill = skills.find((s) => s.skillId === skillId);
+  if (!skill)
+    throw new Error(`Skill ${skillId} not assigned to agent ${agentId}`);
   await ctx.services.skills.removeSkill(ctx, agentId, skillId);
-  return true;
+  return skill;
 };
 
 const bindAgentSkillConnection: MutationResolvers["bindAgentSkillConnection"] =

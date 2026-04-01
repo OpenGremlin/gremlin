@@ -107,13 +107,13 @@ export const integrationTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
-    revokeIntegrationConnection(id: ID!): Boolean!
-    setDefaultModel(providerId: String!, modelId: String!): Boolean!
-    setDefaultImageModel(providerId: String!, modelId: String!): Boolean!
-    enableModel(providerId: String!, modelId: String!, modelName: String): Boolean!
-    disableModel(providerId: String!, modelId: String!): Boolean!
-    enableBedrockModel(modelId: String!, modelName: String): Boolean!
-    disableBedrockModel(modelId: String!): Boolean!
-    submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): ID!
+    revokeIntegrationConnection(id: ID!): IntegrationConnection!
+    setDefaultModel(providerId: String!, modelId: String!): DefaultModel!
+    setDefaultImageModel(providerId: String!, modelId: String!): DefaultModel!
+    enableModel(providerId: String!, modelId: String!, modelName: String): [EnabledModelEntry!]!
+    disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
+    enableBedrockModel(modelId: String!, modelName: String): [String!]!
+    disableBedrockModel(modelId: String!): [String!]!
+    submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): IntegrationConnection!
   }
 `;

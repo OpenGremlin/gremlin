@@ -115,7 +115,10 @@ export const AssignSkillMutation = graphql(`
 
 export const RemoveSkillMutation = graphql(`
   mutation RemoveSkill($agentId: ID!, $skillId: ID!) {
-    removeSkill(agentId: $agentId, skillId: $skillId)
+    removeSkill(agentId: $agentId, skillId: $skillId) {
+      skillId
+      agentId
+    }
   }
 `);
 

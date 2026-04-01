@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { apolloClient } from "./apolloClient";
 import {
   clearToken,
   getToken,
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await clearToken();
+    await apolloClient.clearStore();
     setTokenState(null);
   }, []);
 
