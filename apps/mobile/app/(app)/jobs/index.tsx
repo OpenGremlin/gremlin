@@ -10,7 +10,7 @@ import {
   TriggerJobMutation,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
-import { mutate } from "../../../src/lib/apolloClient";
+import { execute } from "../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
@@ -30,7 +30,7 @@ function RunNowButton({ jobId }: { jobId: string }) {
         e.stopPropagation();
         setTriggering(true);
         try {
-          await mutate(TriggerJobMutation, { id: jobId });
+          await execute(TriggerJobMutation, { id: jobId });
           setTriggered(true);
           setTimeout(() => setTriggered(false), 3000);
         } finally {

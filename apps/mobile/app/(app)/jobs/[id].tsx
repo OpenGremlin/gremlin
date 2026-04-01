@@ -13,7 +13,7 @@ import {
   TriggerJobMutation,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../src/graphql/queries";
-import { mutate } from "../../../src/lib/apolloClient";
+import { execute } from "../../../src/lib/apolloClient";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Card } from "../../../src/shared/Card";
 import { DestructiveButton } from "../../../src/shared/DestructiveButton";
@@ -115,7 +115,7 @@ export default function JobDetailScreen() {
       if (timezone !== null) input.timezone = timezone;
       if (agentId !== null) input.agentId = agentId;
 
-      const result = await mutate(UpdateAgentJobDoc, {
+      const result = await execute(UpdateAgentJobDoc, {
         id: id ?? "",
         input,
       });
@@ -142,7 +142,7 @@ export default function JobDetailScreen() {
     if (!job) return;
     setTogglingPause(true);
     try {
-      const result = await mutate(UpdateAgentJobDoc, {
+      const result = await execute(UpdateAgentJobDoc, {
         id: id ?? "",
         input: { paused: !job.paused },
       });
@@ -163,7 +163,7 @@ export default function JobDetailScreen() {
   async function handleTrigger() {
     setTriggering(true);
     try {
-      await mutate(TriggerJobMutation, { id: id ?? "" });
+      await execute(TriggerJobMutation, { id: id ?? "" });
       setTriggered(true);
       setTimeout(() => setTriggered(false), 3000);
     } catch (err) {
@@ -182,7 +182,7 @@ export default function JobDetailScreen() {
         onPress: async () => {
           setDeleting(true);
           try {
-            await mutate(DeleteAgentJobDoc, { id: id ?? "" });
+            await execute(DeleteAgentJobDoc, { id: id ?? "" });
             router.back();
           } catch {
             setDeleting(false);

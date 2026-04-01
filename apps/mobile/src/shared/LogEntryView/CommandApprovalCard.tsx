@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { CommandApprovalDecision } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
-import { mutate } from "../../lib/apolloClient";
+import { execute } from "../../lib/apolloClient";
 import { usePendingCount } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
@@ -35,7 +35,7 @@ export function CommandApprovalCard({
     if (resolving) return;
     setResolving(decision);
     try {
-      await mutate(ResolveCommandApprovalMutation, {
+      await execute(ResolveCommandApprovalMutation, {
         id: commandApprovalId,
         decision,
       });

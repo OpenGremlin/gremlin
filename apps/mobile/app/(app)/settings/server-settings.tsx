@@ -5,7 +5,7 @@ import {
   GlobalSettingsQuery,
   UpdateGlobalSettingsMutation,
 } from "../../../src/graphql/queries";
-import { mutate } from "../../../src/lib/apolloClient";
+import { execute } from "../../../src/lib/apolloClient";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
 import { Toggle } from "../../../src/shared/Toggle";
@@ -24,7 +24,7 @@ export default function GlobalSettingsScreen() {
   async function toggleSignupDisabled() {
     setSaving(true);
     try {
-      await mutate(UpdateGlobalSettingsMutation, {
+      await execute(UpdateGlobalSettingsMutation, {
         signupDisabled: !settings?.signupDisabled,
       });
       refetch();

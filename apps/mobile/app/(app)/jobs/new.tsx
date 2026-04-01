@@ -6,7 +6,7 @@ import {
   AgentsQuery,
   CreateAgentJobMutation,
 } from "../../../src/graphql/queries";
-import { mutate } from "../../../src/lib/apolloClient";
+import { execute } from "../../../src/lib/apolloClient";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
@@ -47,7 +47,7 @@ export default function NewJobScreen() {
     setSaving(true);
     setError("");
     try {
-      const result = await mutate(CreateAgentJobMutation, {
+      const result = await execute(CreateAgentJobMutation, {
         input: {
           name: name.trim(),
           description: description.trim(),

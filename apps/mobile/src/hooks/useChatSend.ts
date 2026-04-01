@@ -4,7 +4,7 @@ import {
   PendingInboxMessagesQuery,
   SendMessageMutation,
 } from "../graphql/queries";
-import { mutate } from "../lib/apolloClient";
+import { execute } from "../lib/apolloClient";
 import { clientLogger } from "../lib/logger";
 import type { ChatMessage } from "./useLogMessages";
 
@@ -30,7 +30,7 @@ export function useChatSend({
   // Load pending inbox messages on mount (survives page reload)
   useEffect(() => {
     if (!agentId) return;
-    mutate(PendingInboxMessagesQuery, { agentId, taskId })
+    execute(PendingInboxMessagesQuery, { agentId, taskId })
       .then((result) => {
         const contents = result.pendingInboxMessages.map((m) => m.content);
         if (contents.length > 0) {
@@ -77,7 +77,7 @@ export function useChatSend({
         setTimeout(() => reject(new Error("Request timed out")), 15_000),
       );
       await Promise.race([
-        mutate(SendMessageMutation, {
+        execute(SendMessageMutation, {
           agentId,
           content,
           ...(taskId ? { taskId } : {}),

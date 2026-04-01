@@ -6,7 +6,7 @@ import {
   ConnectApiKeyMutation,
   IntegrationProvidersQuery,
 } from "../../../../../src/graphql/queries";
-import { mutate } from "../../../../../src/lib/apolloClient";
+import { execute } from "../../../../../src/lib/apolloClient";
 import {
   connectOAuthProvider,
   isOAuthAvailable,
@@ -169,7 +169,7 @@ function ApiKeyDetailView({
     setConnecting(true);
     setError(null);
     try {
-      await mutate(ConnectApiKeyMutation, {
+      await execute(ConnectApiKeyMutation, {
         providerId: provider.id,
         apiKey: apiKey.trim(),
       });

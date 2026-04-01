@@ -2,7 +2,7 @@ import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
-import { mutate } from "./apolloClient";
+import { execute } from "./apolloClient";
 import { clientLogger } from "./logger";
 
 // ---------------------------------------------------------------------------
@@ -393,7 +393,7 @@ export async function connectOAuthProvider(
   const { clientId } = resolvePlatformOAuth(provider);
   const result = await startOAuthFlow(provider, scopes);
 
-  await mutate(SubmitOAuthConnectionMutation, {
+  await execute(SubmitOAuthConnectionMutation, {
     providerId: provider.id,
     accessToken: result.accessToken,
     refreshToken: result.refreshToken ?? null,

@@ -10,7 +10,7 @@ import {
   UpdateAgentMutation,
 } from "../../../../src/graphql/queries";
 import { useQuery } from "../../../../src/hooks/useQuery";
-import { mutate } from "../../../../src/lib/apolloClient";
+import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
@@ -56,7 +56,7 @@ export default function AgentConfigScreen() {
     setSaving(true);
     setSaveError("");
     try {
-      const result = await mutate(UpdateAgentMutation, {
+      const result = await execute(UpdateAgentMutation, {
         id: id ?? "",
         input: {
           name: name.trim(),
@@ -80,7 +80,7 @@ export default function AgentConfigScreen() {
     setShowRetireConfirm(false);
     setRetiring(true);
     try {
-      await mutate(RetireAgentMutation, { id: id ?? "" });
+      await execute(RetireAgentMutation, { id: id ?? "" });
       refetch();
     } catch (err) {
       setSaveError(
@@ -94,7 +94,7 @@ export default function AgentConfigScreen() {
   const doUnretire = useCallback(async () => {
     setRetiring(true);
     try {
-      await mutate(UnretireAgentMutation, { id: id ?? "" });
+      await execute(UnretireAgentMutation, { id: id ?? "" });
       refetch();
     } catch (err) {
       setSaveError(
@@ -255,7 +255,7 @@ export default function AgentConfigScreen() {
           onSelect={async (voice) => {
             setVoicePickerOpen(false);
             try {
-              await mutate(UpdateAgentMutation, {
+              await execute(UpdateAgentMutation, {
                 id: id ?? "",
                 input: { ttsVoice: voice },
               });
@@ -277,7 +277,7 @@ export default function AgentConfigScreen() {
           onSelect={async (avatar) => {
             setPickerOpen(false);
             try {
-              await mutate(UpdateAgentMutation, {
+              await execute(UpdateAgentMutation, {
                 id: id ?? "",
                 input: { avatar: avatar.id },
               });

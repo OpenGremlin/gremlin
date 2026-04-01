@@ -156,7 +156,7 @@ const httpLink = new HttpLink({
 
 let _wsClient: ReturnType<typeof createClient> | null = null;
 
-function getOrCreateWsClient() {
+export function getWsClient() {
   if (_wsClient) return _wsClient;
 
   const wsUrl = `${getApiUrl().replace(/^http/, "ws")}/graphql`;
@@ -198,7 +198,7 @@ function getOrCreateWsClient() {
   return _wsClient;
 }
 
-const wsLink = new GraphQLWsLink(getOrCreateWsClient());
+const wsLink = new GraphQLWsLink(getWsClient());
 
 // ── Split link (subscriptions → WS, everything else → HTTP) ────────
 
@@ -226,13 +226,13 @@ export const apolloClient = new ApolloClient({
   },
 });
 
-// ── Mutation helper (drop-in replacement for gql()) ─────────────────
+// ── Query/mutation helper (drop-in replacement for gql()) ───────────
 
 /**
- * Execute a GraphQL mutation through Apollo's link chain and cache.
+ * Execute a GraphQL operation through Apollo's link chain and cache.
  * Same return type as the old `gql()` function for easy migration.
  */
-export async function mutate<
+export async function execute<
   TResult,
   TVariables extends Record<string, unknown>,
 >(
@@ -242,7 +242,10 @@ export async function mutate<
   >,
   variables: TVariables,
 ): Promise<TResult> {
-  const { data } = await apolloClient.mutate({ mutation, variables });
+  const { data } = await apolloClient.mutate({
+    mutation,
+    variables,
+  });
   if (!data) throw new Error("Mutation returned no data");
   return data;
 }

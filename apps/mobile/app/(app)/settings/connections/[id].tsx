@@ -6,7 +6,7 @@ import {
   IntegrationConnectionsQuery,
   RevokeConnectionMutation,
 } from "../../../../src/graphql/queries";
-import { mutate } from "../../../../src/lib/apolloClient";
+import { execute } from "../../../../src/lib/apolloClient";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
@@ -40,7 +40,7 @@ export default function ConnectionDetailScreen() {
     setRevoking(true);
     setRevokeError(null);
     try {
-      await mutate(RevokeConnectionMutation, { id: id ?? "" });
+      await execute(RevokeConnectionMutation, { id: id ?? "" });
       router.back();
     } catch (err) {
       setRevokeError(

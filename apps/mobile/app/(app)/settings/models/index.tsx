@@ -10,7 +10,7 @@ import {
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../src/graphql/queries";
-import { mutate } from "../../../../src/lib/apolloClient";
+import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
@@ -91,7 +91,7 @@ export default function ModelsScreen() {
 
   async function handleModelPress(providerId: string, modelId: string) {
     try {
-      const result = await mutate(EnabledModelDetailsQuery, { providerId });
+      const result = await execute(EnabledModelDetailsQuery, { providerId });
       const detail = result.enabledModelDetails.find((m) => m.id === modelId);
       if (detail) setSelectedModel({ detail, providerId });
     } catch {
@@ -110,9 +110,9 @@ export default function ModelsScreen() {
     try {
       const vars = { providerId, modelId };
       if (mode === "image_generation") {
-        await mutate(SetDefaultImageModelMutation, vars);
+        await execute(SetDefaultImageModelMutation, vars);
       } else {
-        await mutate(SetDefaultModelMutation, vars);
+        await execute(SetDefaultModelMutation, vars);
       }
       providers.refetch();
       setSelectedModel(null);

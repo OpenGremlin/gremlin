@@ -20,7 +20,7 @@ import {
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
 } from "../../../../../src/graphql/queries";
-import { mutate } from "../../../../../src/lib/apolloClient";
+import { execute } from "../../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
@@ -49,8 +49,8 @@ async function setDefaultForType(
 ) {
   const vars = { providerId, modelId };
   if (modelMode === "image_generation")
-    return mutate(SetDefaultImageModelMutation, vars);
-  return mutate(SetDefaultModelMutation, vars);
+    return execute(SetDefaultImageModelMutation, vars);
+  return execute(SetDefaultModelMutation, vars);
 }
 
 function TypedModelList({
@@ -111,7 +111,7 @@ function TypedModelList({
   async function handleEnable(modelId: string, modelName?: string) {
     setEnablingModel(modelId);
     try {
-      await mutate(EnableModelMutation, { providerId, modelId, modelName });
+      await execute(EnableModelMutation, { providerId, modelId, modelName });
       refetchEnabled();
       refetchDetails();
     } catch (err) {
@@ -124,7 +124,7 @@ function TypedModelList({
   async function handleDisable(modelId: string) {
     setDisablingModel(modelId);
     try {
-      await mutate(DisableModelMutation, { providerId, modelId });
+      await execute(DisableModelMutation, { providerId, modelId });
       refetchEnabled();
       refetchParent();
     } catch (err) {
@@ -361,7 +361,7 @@ function ConnectionCard({
     setSaving(true);
     setError(null);
     try {
-      await mutate(ConnectApiKeyMutation, {
+      await execute(ConnectApiKeyMutation, {
         providerId: provider.id,
         apiKey: apiKeyInput.trim(),
       });

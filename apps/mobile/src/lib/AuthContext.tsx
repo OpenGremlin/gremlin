@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { apolloClient } from "./apolloClient";
+import { apolloClient, setApolloOnUnauthorized } from "./apolloClient";
 import {
   clearToken,
   getToken,
@@ -48,10 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Register the 401 handler so gql() can trigger a redirect to login
-    setOnUnauthorized(() => {
-      setTokenState(null);
-    });
+    // Register the 401 handler so gql() and Apollo can trigger a redirect to login
+    const handleUnauthorized = () => setTokenState(null);
+    setOnUnauthorized(handleUnauthorized);
+    setApolloOnUnauthorized(handleUnauthorized);
     // Sync React state when token is refreshed (e.g. for AuthImage headers)
     setOnTokenChange((t) => {
       setTokenState(t);

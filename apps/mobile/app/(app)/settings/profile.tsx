@@ -6,7 +6,7 @@ import {
   ProfileQuery,
   UpdateProfileMutation,
 } from "../../../src/graphql/queries";
-import { mutate } from "../../../src/lib/apolloClient";
+import { execute } from "../../../src/lib/apolloClient";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
 import { QueryResult } from "../../../src/shared/QueryResult";
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   }, [profile, reset]);
 
   async function onSubmit(values: ProfileFormValues) {
-    await mutate(UpdateProfileMutation, {
+    await execute(UpdateProfileMutation, {
       input: {
         displayName: values.displayName,
         about: values.about,
