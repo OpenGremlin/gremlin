@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
@@ -10,7 +10,6 @@ import {
   TriggerJobMutation,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
-import { useSubscription } from "../../../src/hooks/useSubscription";
 import { mutate } from "../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
@@ -56,8 +55,10 @@ export default function JobsScreen() {
   const refetchRef = useRef(refetch);
   refetchRef.current = refetch;
 
-  useSubscription(JobCreatedSubscription, {}, () => {
-    refetchRef.current();
+  useSubscription(JobCreatedSubscription, {
+    onData: () => {
+      refetchRef.current();
+    },
   });
 
   const jobs = data?.agentJobs ?? [];

@@ -1,7 +1,7 @@
+import { useSubscription } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { TaskQuery, TaskUpdatedSubscription } from "../graphql/queries";
 import { mutate } from "../lib/apolloClient";
-import { useSubscription } from "./useSubscription";
 
 interface TaskInfo {
   imageUrl: string | null;
@@ -32,12 +32,16 @@ export function useTaskInfo(taskId: string | null) {
     };
   }, [taskId]);
 
-  useSubscription(TaskUpdatedSubscription, { taskId: taskId ?? "" }, (data) => {
-    const u = data.taskUpdated;
-    setState((prev) => ({
-      imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
-      lastMessage: u.message ?? prev?.lastMessage ?? null,
-    }));
+  useSubscription(TaskUpdatedSubscription, {
+    variables: { taskId: taskId ?? "" },
+    onData: ({ data: { data } }) => {
+      if (!data) return;
+      const u = data.taskUpdated;
+      setState((prev) => ({
+        imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
+        lastMessage: u.message ?? prev?.lastMessage ?? null,
+      }));
+    },
   });
 
   return state;

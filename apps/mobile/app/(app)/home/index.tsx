@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import { router } from "expo-router";
 import { Home } from "lucide-react-native";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -16,7 +16,6 @@ import {
   TaskUpdatedSubscription,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
-import { useSubscription } from "../../../src/hooks/useSubscription";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -49,15 +48,16 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const task = { ...item, ...override };
   const { agent } = task;
 
-  useSubscription(
-    TaskUpdatedSubscription,
-    { taskId: item.id },
-    useCallback((data) => {
-      setOverride(
-        (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
-      );
-    }, []),
-  );
+  useSubscription(TaskUpdatedSubscription, {
+    variables: { taskId: item.id },
+    onData: ({ data: { data } }) => {
+      if (data) {
+        setOverride(
+          (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
+        );
+      }
+    },
+  });
 
   return (
     <Pressable

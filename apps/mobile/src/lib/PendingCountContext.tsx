@@ -1,5 +1,5 @@
-import { useQuery } from "@apollo/client";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import { useQuery, useSubscription } from "@apollo/client";
+import { createContext, useContext, useMemo } from "react";
 import type {
   PendingCommandApprovalsQuery as ApprovalsQueryType,
   UserInputRequestsQuery as InputRequestsQueryType,
@@ -9,7 +9,6 @@ import {
   PendingItemsUpdatedSubscription,
   UserInputRequestsQuery,
 } from "../graphql/queries";
-import { useSubscription } from "../hooks/useSubscription";
 
 type Approval = ApprovalsQueryType["pendingCommandApprovals"][number];
 type InputRequest = InputRequestsQueryType["userInputRequests"][number];
@@ -47,14 +46,12 @@ export function PendingCountProvider({
   );
 
   // Refetch both lists whenever the server signals a change
-  useSubscription(
-    PendingItemsUpdatedSubscription,
-    {},
-    useCallback(() => {
+  useSubscription(PendingItemsUpdatedSubscription, {
+    onData: () => {
       refetchApprovals();
       refetchInputRequests();
-    }, [refetchApprovals, refetchInputRequests]),
-  );
+    },
+  });
 
   const allApprovals = approvalsData?.pendingCommandApprovals ?? [];
   const approvals = allApprovals.filter((a) => a.status === "PENDING");

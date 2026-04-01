@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
@@ -13,7 +13,6 @@ import {
   TriggerJobMutation,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../src/graphql/queries";
-import { useSubscription } from "../../../src/hooks/useSubscription";
 import { mutate } from "../../../src/lib/apolloClient";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Card } from "../../../src/shared/Card";
@@ -63,16 +62,16 @@ export default function JobDetailScreen() {
   const [savedJob, setSavedJob] = useState<Job | null>(null);
 
   const [liveTasks, setLiveTasks] = useState<JobTask[]>([]);
-  useSubscription(
-    JobTaskCreatedSubscription,
-    { jobId: id ?? "" },
-    useCallback((update) => {
+  useSubscription(JobTaskCreatedSubscription, {
+    variables: { jobId: id ?? "" },
+    onData: ({ data: { data } }) => {
+      if (!data) return;
       setLiveTasks((prev) => {
-        if (prev.some((t) => t.id === update.jobTaskCreated.id)) return prev;
-        return [update.jobTaskCreated, ...prev];
+        if (prev.some((t) => t.id === data.jobTaskCreated.id)) return prev;
+        return [data.jobTaskCreated, ...prev];
       });
-    }, []),
-  );
+    },
+  });
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} />;
