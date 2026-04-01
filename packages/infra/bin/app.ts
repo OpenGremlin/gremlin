@@ -5,6 +5,7 @@ import { AuthStack } from "../lib/auth-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
 import { MessagingStack } from "../lib/messaging-stack.js";
+import { PresetIamRolesStack } from "../lib/preset-iam-roles-stack.js";
 import { SandboxEc2Stack } from "../lib/sandbox-ec2-stack.js";
 import { ServerStack } from "../lib/server-stack.js";
 import { VpcStack } from "../lib/vpc-stack.js";
@@ -65,7 +66,13 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   tableName: db.tableName,
 });
 
-// 5. Web app — depends on Auth, Media, Server (for ALB)
+// 5. Preset IAM roles — depends on Server (for trust policy)
+new PresetIamRolesStack(app, "GremlinPresetIamRolesStack", {
+  env,
+  serverRole: server.serverRole,
+});
+
+// 6. Web app — depends on Auth, Media, Server (for ALB)
 new AdminStack(app, "GremlinAdminStack", {
   env,
   userPoolId: auth.userPoolId,

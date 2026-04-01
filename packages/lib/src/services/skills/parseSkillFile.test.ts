@@ -72,11 +72,11 @@ describe("SKILL.md validation", () => {
       expect(template?.instructions).toBeTruthy();
     });
 
-    it("has install instructions", () => {
+    it("has install instructions or uses a pre-installed CLI", () => {
       const template = parseSkillFile(id, content);
       expect(
-        template?.install,
-        `${id} is missing metadata.install`,
+        template?.install || template?.allowedCommands?.length,
+        `${id} has neither metadata.install nor metadata.allowedCommands`,
       ).toBeTruthy();
     });
 

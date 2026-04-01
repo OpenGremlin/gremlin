@@ -39,6 +39,7 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   mistral: require("@opengremlin/logos/Mistral.svg"),
   deepseek: require("@opengremlin/logos/DeepSeek.svg"),
   xai: require("@opengremlin/logos/xAI.svg"),
+  aws: require("@opengremlin/logos/AWS.svg"),
   bedrock: require("@opengremlin/logos/Bedrock.svg"),
   brave: require("@opengremlin/logos/Brave.svg"),
   tavily: require("@opengremlin/logos/Tavily.svg"),
@@ -64,6 +65,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 /** Light-mode overrides — only for logos that have a `_light` variant. */
 const lightLogoOverrides: Record<string, ReturnType<typeof require>> = {
+  aws: require("@opengremlin/logos/AWS_light.svg"),
   anthropic: require("@opengremlin/logos/Anthropic_light.svg"),
   github: require("@opengremlin/logos/GitHub_light.svg"),
   linear: require("@opengremlin/logos/Linear_light.svg"),

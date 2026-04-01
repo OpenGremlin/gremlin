@@ -6,6 +6,9 @@ export interface SafeConnectionMeta {
   accountId?: string;
   scopes?: string;
   expiresAt?: string;
+  roleArn?: string;
+  roleRegion?: string;
+  displayName?: string;
 }
 
 export interface SafeIntegrationConnection {
@@ -28,6 +31,12 @@ function stripSecrets(
   if (base.connectionType === "oauth") {
     safeMeta.scopes = connectionMeta?.scopes;
     safeMeta.expiresAt = connectionMeta?.expiresAt;
+  }
+
+  if (base.connectionType === "aws_iam_role") {
+    safeMeta.roleArn = connectionMeta?.roleArn;
+    safeMeta.roleRegion = connectionMeta?.roleRegion;
+    safeMeta.displayName = connectionMeta?.displayName;
   }
 
   return { ...base, connectionMeta: safeMeta };

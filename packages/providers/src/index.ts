@@ -5,6 +5,7 @@ export type IntegrationCategory =
   | "communication"
   | "developer"
   | "entertainment"
+  | "cloud"
   | "smart_home";
 
 export interface AvailableScope {
@@ -55,7 +56,13 @@ export interface IntegrationProviderDef {
   service: string;
   category: IntegrationCategory;
   description: string;
-  connectionType: "oauth" | "apikey" | "model_provider" | "bedrock" | "custom";
+  connectionType:
+    | "oauth"
+    | "apikey"
+    | "model_provider"
+    | "bedrock"
+    | "aws_iam_role"
+    | "custom";
   availableScopes: AvailableScope[];
   models?: ModelDef[];
   /** Hide from the UI — provider exists but is not ready for users yet */
@@ -527,6 +534,17 @@ export const providers: IntegrationProviderDef[] = [
       { scope: "user-library-read", label: "Read Saved Library" },
       { scope: "user-library-modify", label: "Edit Saved Library" },
     ],
+  },
+  // Cloud
+  {
+    id: "aws",
+    service: "AWS",
+    category: "cloud",
+    description: "Connect to an AWS account via IAM Role",
+    connectionType: "aws_iam_role",
+    logo: "AWS.svg",
+    logoLight: "AWS_light.svg",
+    availableScopes: [],
   },
   // Smart Home
   {

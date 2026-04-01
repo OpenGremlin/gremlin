@@ -124,6 +124,14 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // STS AssumeRole for user-provided AWS IAM role connections
+    serverRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+      }),
+    );
+
     // PassRole for both ECS tasks and EC2 sandbox instances
     serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -215,6 +223,7 @@ export class ServerStack extends cdk.Stack {
         `-e VECTORS_BUCKET=gremlin-vectors`,
         `-e UPLOADS_BUCKET=${props.uploadsBucketName}`,
         `-e SKILLS_BUCKET=${props.skillsBucketName}`,
+        `-e SERVER_ROLE_ARN=${serverRole.roleArn}`,
         `-e WORKSPACE_PATH=/workspace`,
         `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
         `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,

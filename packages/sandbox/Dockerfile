@@ -40,6 +40,13 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --no-modify-path
 ENV PATH="/usr/local/cargo/bin:${PATH}"
 
+# AWS CLI
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip && \
+    unzip -qo /tmp/awscliv2.zip -d /tmp && \
+    /tmp/aws/install && \
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+
 # MCPorter – CLI bridge for MCP servers (used by MCP-based skills)
 RUN npm install -g mcporter
 

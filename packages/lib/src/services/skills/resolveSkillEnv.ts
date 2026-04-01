@@ -1,3 +1,4 @@
+import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import { createLogger } from "../../logger.js";
 import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
@@ -59,6 +60,38 @@ export async function resolveConnectionEnv(
       }
     } catch {
       // token unavailable
+    }
+    return env;
+  }
+
+  if (connection.connectionType === "aws_iam_role") {
+    const roleArn = connection.connectionMeta.roleArn;
+    if (!roleArn) return env;
+
+    try {
+      const sts = new STSClient({});
+      const response = await sts.send(
+        new AssumeRoleCommand({
+          RoleArn: roleArn,
+          RoleSessionName: `gremlin-${Date.now()}`,
+          DurationSeconds: 3600,
+        }),
+      );
+
+      const creds = response.Credentials;
+      if (creds?.AccessKeyId && creds?.SecretAccessKey && creds?.SessionToken) {
+        env.AWS_ACCESS_KEY_ID = creds.AccessKeyId;
+        env.AWS_SECRET_ACCESS_KEY = creds.SecretAccessKey;
+        env.AWS_SESSION_TOKEN = creds.SessionToken;
+        if (connection.connectionMeta.roleRegion) {
+          env.AWS_DEFAULT_REGION = connection.connectionMeta.roleRegion;
+        }
+      }
+    } catch (err) {
+      log.error(
+        { roleArn, error: (err as Error).message },
+        "AssumeRole failed during env resolution",
+      );
     }
     return env;
   }

@@ -308,6 +308,12 @@ export const IntegrationConnectionFields = graphql(`
       ... on ApiKeyConnectionMeta {
         accountId
       }
+      ... on AwsIamRoleConnectionMeta {
+        accountId
+        roleArn
+        region
+        displayName
+      }
     }
   }
 `);

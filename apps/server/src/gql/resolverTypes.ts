@@ -256,6 +256,27 @@ export type AvatarUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type AwsIamRoleConnectionMeta = {
+  __typename?: 'AwsIamRoleConnectionMeta';
+  accountId?: Maybe<Scalars['String']['output']>;
+  displayName?: Maybe<Scalars['String']['output']>;
+  region?: Maybe<Scalars['String']['output']>;
+  roleArn: Scalars['String']['output'];
+};
+
+export type AwsPresetRole = {
+  __typename?: 'AwsPresetRole';
+  description: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  roleArn: Scalars['String']['output'];
+};
+
+export type AwsSetupInfo = {
+  __typename?: 'AwsSetupInfo';
+  trustPolicy: Scalars['String']['output'];
+};
+
 export type CodeRender = {
   __typename?: 'CodeRender';
   content: Scalars['String']['output'];
@@ -309,7 +330,7 @@ export type ConnectApiKeyResult = {
   models: Array<ProviderModelInfo>;
 };
 
-export type ConnectionMeta = ApiKeyConnectionMeta | OAuthConnectionMeta;
+export type ConnectionMeta = ApiKeyConnectionMeta | AwsIamRoleConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
   id: Scalars['String']['input'];
@@ -469,6 +490,7 @@ export type Mutation = {
   bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
+  connectAwsIamRole: IntegrationConnection;
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
@@ -528,6 +550,13 @@ export type MutationCompleteFileUploadArgs = {
 export type MutationConnectApiKeyArgs = {
   apiKey: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationConnectAwsIamRoleArgs = {
+  displayName?: InputMaybe<Scalars['String']['input']>;
+  region?: InputMaybe<Scalars['String']['input']>;
+  roleArn: Scalars['String']['input'];
 };
 
 
@@ -739,6 +768,8 @@ export type Query = {
   agents: Array<Agent>;
   allEnabledModels: Array<EnabledModelEntry>;
   avatars: Array<Avatar>;
+  awsPresetRoles: Array<AwsPresetRole>;
+  awsSetupInfo: AwsSetupInfo;
   bedrockAvailableModels: Array<ModelInfo>;
   bedrockEnabledModels: Array<Scalars['String']['output']>;
   commandAllowlist: Array<AllowlistEntry>;
@@ -1182,6 +1213,7 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
   ;
   ConnectionMeta:
     | ( ApiKeyConnectionMeta )
+    | ( AwsIamRoleConnectionMeta )
     | ( OAuthConnectionMeta )
   ;
   FileRender:
@@ -1226,6 +1258,9 @@ export type ResolversTypes = {
   AudioRender: ResolverTypeWrapper<AudioRender>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
   Avatar: ResolverTypeWrapper<AvatarModel>;
+  AwsIamRoleConnectionMeta: ResolverTypeWrapper<AwsIamRoleConnectionMeta>;
+  AwsPresetRole: ResolverTypeWrapper<AwsPresetRole>;
+  AwsSetupInfo: ResolverTypeWrapper<AwsSetupInfo>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CodeRender: ResolverTypeWrapper<CodeRender>;
   CommandApproval: ResolverTypeWrapper<Omit<CommandApproval, 'agent'> & { agent: ResolversTypes['Agent'] }>;
@@ -1315,6 +1350,9 @@ export type ResolversParentTypes = {
   AudioRender: AudioRender;
   AvailableScope: AvailableScope;
   Avatar: AvatarModel;
+  AwsIamRoleConnectionMeta: AwsIamRoleConnectionMeta;
+  AwsPresetRole: AwsPresetRole;
+  AwsSetupInfo: AwsSetupInfo;
   Boolean: Scalars['Boolean']['output'];
   CodeRender: CodeRender;
   CommandApproval: Omit<CommandApproval, 'agent'> & { agent: ResolversParentTypes['Agent'] };
@@ -1516,6 +1554,25 @@ export type AvatarResolvers<ContextType = GremlinContext, ParentType extends Res
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AvatarUrlArgs>>;
 };
 
+export type AwsIamRoleConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AwsIamRoleConnectionMeta'] = ResolversParentTypes['AwsIamRoleConnectionMeta']> = {
+  accountId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  displayName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  region?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  roleArn?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type AwsPresetRoleResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AwsPresetRole'] = ResolversParentTypes['AwsPresetRole']> = {
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roleArn?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AwsSetupInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AwsSetupInfo'] = ResolversParentTypes['AwsSetupInfo']> = {
+  trustPolicy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type CodeRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CodeRender'] = ResolversParentTypes['CodeRender']> = {
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1547,7 +1604,7 @@ export type ConnectApiKeyResultResolvers<ContextType = GremlinContext, ParentTyp
 };
 
 export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ConnectionMeta'] = ResolversParentTypes['ConnectionMeta']> = {
-  __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'AwsIamRoleConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
 };
 
 export type DefaultModelResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DefaultModel'] = ResolversParentTypes['DefaultModel']> = {
@@ -1672,6 +1729,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
+  connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
@@ -1741,6 +1799,8 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   agents?: Resolver<Array<ResolversTypes['Agent']>, ParentType, ContextType>;
   allEnabledModels?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType>;
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
+  awsPresetRoles?: Resolver<Array<ResolversTypes['AwsPresetRole']>, ParentType, ContextType>;
+  awsSetupInfo?: Resolver<ResolversTypes['AwsSetupInfo'], ParentType, ContextType>;
   bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
   bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
@@ -1927,6 +1987,9 @@ export type Resolvers<ContextType = GremlinContext> = {
   AudioRender?: AudioRenderResolvers<ContextType>;
   AvailableScope?: AvailableScopeResolvers<ContextType>;
   Avatar?: AvatarResolvers<ContextType>;
+  AwsIamRoleConnectionMeta?: AwsIamRoleConnectionMetaResolvers<ContextType>;
+  AwsPresetRole?: AwsPresetRoleResolvers<ContextType>;
+  AwsSetupInfo?: AwsSetupInfoResolvers<ContextType>;
   CodeRender?: CodeRenderResolvers<ContextType>;
   CommandApproval?: CommandApprovalResolvers<ContextType>;
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;

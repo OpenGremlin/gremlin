@@ -26,6 +26,9 @@ export const IntegrationConnectionEntity = new Entity({
       clientSecret: string().optional(),
       tokenUrl: string().optional(),
       tokenAuthMethod: string().optional(),
+      roleArn: string().optional(),
+      roleRegion: string().optional(),
+      displayName: string().optional(),
     }),
   }),
   computeKey: ({ id }) => ({

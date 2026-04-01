@@ -103,9 +103,38 @@ export default function ConnectionDetailScreen() {
                 : connection.connectionType === "apikey" ||
                     connection.connectionType === "model_provider"
                   ? "API Key"
-                  : connection.connectionType}
+                  : connection.connectionType === "aws_iam_role"
+                    ? "IAM Role"
+                    : connection.connectionType}
             </Text>
           </View>
+          {meta.__typename === "AwsIamRoleConnectionMeta" && (
+            <>
+              <View className="flex-row justify-between">
+                <Text className="text-sm text-text-muted">Account ID</Text>
+                <Text className="text-sm text-text-primary font-mono">
+                  {meta.accountId}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-sm text-text-muted">Role</Text>
+                <Text
+                  className="text-sm text-text-primary font-mono"
+                  numberOfLines={1}
+                >
+                  {meta.roleArn.split("/").pop()}
+                </Text>
+              </View>
+              {meta.displayName && (
+                <View className="flex-row justify-between">
+                  <Text className="text-sm text-text-muted">Label</Text>
+                  <Text className="text-sm text-text-primary">
+                    {meta.displayName}
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
         </Card>
       </View>
 

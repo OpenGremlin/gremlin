@@ -56,6 +56,28 @@ export const IntegrationConnectionsQuery = graphql(`
   }
 `);
 
+export const AwsSetupQuery = graphql(`
+  query AwsSetup {
+    awsPresetRoles {
+      id
+      name
+      description
+      roleArn
+    }
+    awsSetupInfo {
+      trustPolicy
+    }
+  }
+`);
+
+export const ConnectAwsIamRoleMutation = graphql(`
+  mutation ConnectAwsIamRole($roleArn: String!, $displayName: String, $region: String) {
+    connectAwsIamRole(roleArn: $roleArn, displayName: $displayName, region: $region) {
+      ...IntegrationConnectionFields
+    }
+  }
+`);
+
 export const ConnectApiKeyMutation = graphql(`
   mutation ConnectApiKey($providerId: String!, $apiKey: String!) {
     connectApiKey(providerId: $providerId, apiKey: $apiKey) {

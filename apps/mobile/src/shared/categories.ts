@@ -5,6 +5,7 @@ export const connectionCategoryLabels: Record<string, string> = {
   productivity: "Productivity",
   communication: "Communication",
   entertainment: "Entertainment",
+  cloud: "Cloud",
   smart_home: "Smart Home",
 };
 
@@ -14,6 +15,7 @@ export const connectionCategoryOrder = [
   "productivity",
   "communication",
   "entertainment",
+  "cloud",
   "smart_home",
   "developer",
 ];

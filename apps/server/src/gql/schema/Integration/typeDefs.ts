@@ -80,7 +80,25 @@ export const integrationTypeDefs = /* GraphQL */ `
     accountId: String
   }
 
-  union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta
+  type AwsIamRoleConnectionMeta {
+    accountId: String
+    roleArn: String!
+    region: String
+    displayName: String
+  }
+
+  type AwsPresetRole {
+    id: String!
+    name: String!
+    description: String!
+    roleArn: String!
+  }
+
+  type AwsSetupInfo {
+    trustPolicy: String!
+  }
+
+  union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta | AwsIamRoleConnectionMeta
 
   type IntegrationConnection {
     id: ID!
@@ -100,6 +118,8 @@ export const integrationTypeDefs = /* GraphQL */ `
     enabledModels(providerId: String!): [String!]!
     allEnabledModels: [EnabledModelEntry!]!
     bedrockEnabledModels: [String!]!
+    awsPresetRoles: [AwsPresetRole!]!
+    awsSetupInfo: AwsSetupInfo!
     bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
     enabledModelDetails(providerId: String!): [ModelInfo!]!
@@ -114,6 +134,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
     enableBedrockModel(modelId: String!, modelName: String): [String!]!
     disableBedrockModel(modelId: String!): [String!]!
+    connectAwsIamRole(roleArn: String!, displayName: String, region: String): IntegrationConnection!
     submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): IntegrationConnection!
   }
 `;

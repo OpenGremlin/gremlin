@@ -166,10 +166,49 @@ const meta: IntegrationConnectionResolvers["meta"] = (parent) => {
       expiresAt: conn.connectionMeta.expiresAt ?? null,
     };
   }
+  if (conn.connectionType === "aws_iam_role") {
+    return {
+      __typename: "AwsIamRoleConnectionMeta" as const,
+      accountId: conn.connectionMeta.accountId ?? null,
+      roleArn: conn.connectionMeta.roleArn ?? "",
+      region: conn.connectionMeta.roleRegion ?? null,
+      displayName: conn.connectionMeta.displayName ?? null,
+    };
+  }
   return {
     __typename: "ApiKeyConnectionMeta" as const,
     accountId: conn.connectionMeta.accountId ?? null,
   };
+};
+
+const awsPresetRoles: QueryResolvers["awsPresetRoles"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.getAwsPresetRoles();
+
+const awsSetupInfo: QueryResolvers["awsSetupInfo"] = (_parent, _args, ctx) => ({
+  trustPolicy: ctx.services.integrations.getAwsTrustPolicy(),
+});
+
+const connectAwsIamRole: MutationResolvers["connectAwsIamRole"] = async (
+  _parent,
+  { roleArn, displayName, region },
+  ctx,
+) => {
+  const connectionId = await ctx.services.integrations.connectAwsIamRole(
+    ctx.resources,
+    roleArn,
+    displayName ?? undefined,
+    region ?? undefined,
+  );
+  const connections = await ctx.services.integrations.getConnections(
+    ctx.resources,
+  );
+  const connection = connections.find((c) => c.id === connectionId);
+  if (!connection)
+    throw new Error("Failed to retrieve connection after creation");
+  return connection;
 };
 
 const connectApiKey: MutationResolvers["connectApiKey"] = async (
@@ -348,6 +387,8 @@ export const integrationResolvers = {
   Query: {
     integrationProviders,
     integrationConnections,
+    awsPresetRoles,
+    awsSetupInfo,
     defaultModel,
     defaultImageModel,
     allEnabledModels,
@@ -359,6 +400,7 @@ export const integrationResolvers = {
   },
   Mutation: {
     connectApiKey,
+    connectAwsIamRole,
     revokeIntegrationConnection,
     setDefaultModel,
     setDefaultImageModel,
