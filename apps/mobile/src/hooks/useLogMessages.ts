@@ -2,9 +2,8 @@ import { useQuery, useSubscription } from "@apollo/client";
 import { useCallback, useMemo, useRef } from "react";
 import type { AgentLogsQuery } from "../graphql/generated/graphql";
 import {
-  AgentLogSubscription,
   AgentLogsQuery as AgentLogsDoc,
-  TaskLogSubscription,
+  LogCreatedSubscription,
   TaskLogsQuery,
 } from "../graphql/queries";
 import { useWsReconnect } from "../lib/wsClient";
@@ -31,7 +30,7 @@ export function useLogMessages(
   const isTask = "taskId" in scope;
 
   // ── Paginated query ───────────────────────────────────────────────
-  // biome-ignore lint/suspicious/noExplicitAny: union of agent/task query types
+  // biome-ignore lint/suspicious/noExplicitAny: agent/task query union
   const query = (isTask ? TaskLogsQuery : AgentLogsDoc) as any;
   const { data, loading, error, fetchMore, refetch, updateQuery } = useQuery(
     query,
@@ -88,26 +87,15 @@ export function useLogMessages(
     });
   }, [connection?.pageInfo?.endCursor, fetchMore, scope]);
 
-  // ── Subscription ──────────────────────────────────────────────────
+  // ── Subscription (unified — works for both agent and task logs) ───
   const onLogCreatedRef = useRef(opts?.onLogCreated);
   onLogCreatedRef.current = opts?.onLogCreated;
 
-  const subVars = isTask
-    ? { taskId: (scope as { taskId: string }).taskId }
-    : { agentId: (scope as { agentId: string }).agentId };
-
-  const subscription =
-    // biome-ignore lint/suspicious/noExplicitAny: union of subscription types
-    (isTask ? TaskLogSubscription : AgentLogSubscription) as any;
-
-  useSubscription(subscription, {
-    variables: subVars,
+  useSubscription(LogCreatedSubscription, {
+    variables: scope,
     onData: ({ data: { data: subData } }) => {
       if (!subData) return;
-      const msg: ChatMessage =
-        "taskLogCreated" in subData
-          ? subData.taskLogCreated
-          : subData.agentLogCreated;
+      const msg = subData.logCreated;
 
       onLogCreatedRef.current?.(msg.id);
 
@@ -119,7 +107,7 @@ export function useLogMessages(
         const conn = prev[key];
         if (!conn) return prev;
 
-        // Check for duplicates — update in place if same id exists
+        // Duplicate — update in place
         const existingIdx = conn.edges.findIndex(
           (e: { node: { id: string } }) => e.node.id === msg.id,
         );
@@ -129,7 +117,7 @@ export function useLogMessages(
           return { ...prev, [key]: { ...conn, edges: newEdges } };
         }
 
-        // For TOOL results, replace pending tool entry (same toolName, no result yet)
+        // TOOL result — replace pending tool entry (same toolName, no result)
         if (msg.role === "TOOL" && msg.toolResult) {
           const pendingIdx = conn.edges.findIndex(
             (e: { node: ChatMessage }) =>
@@ -148,7 +136,7 @@ export function useLogMessages(
           }
         }
 
-        // Append the new edge
+        // Append new edge
         return {
           ...prev,
           [key]: {

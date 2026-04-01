@@ -925,6 +925,8 @@ export type Subscription = {
   agentsUpdated: Agent;
   jobCreated: AgentJob;
   jobTaskCreated: Task;
+  /** Subscribe to log entries by agentId or taskId */
+  logCreated: AgentLog;
   pendingItemsUpdated: Scalars['Boolean']['output'];
   sandboxOutput: SandboxOutput;
   taskLogCreated: AgentLog;
@@ -955,6 +957,12 @@ export type SubscriptionAgentsUpdatedArgs = {
 
 export type SubscriptionJobTaskCreatedArgs = {
   jobId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionLogCreatedArgs = {
+  agentId?: InputMaybe<Scalars['ID']['input']>;
+  taskId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1814,6 +1822,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
   jobCreated?: SubscriptionResolver<ResolversTypes['AgentJob'], "jobCreated", ParentType, ContextType>;
   jobTaskCreated?: SubscriptionResolver<ResolversTypes['Task'], "jobTaskCreated", ParentType, ContextType, RequireFields<SubscriptionJobTaskCreatedArgs, 'jobId'>>;
+  logCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "logCreated", ParentType, ContextType, Partial<SubscriptionLogCreatedArgs>>;
   pendingItemsUpdated?: SubscriptionResolver<ResolversTypes['Boolean'], "pendingItemsUpdated", ParentType, ContextType>;
   sandboxOutput?: SubscriptionResolver<ResolversTypes['SandboxOutput'], "sandboxOutput", ParentType, ContextType, RequireFields<SubscriptionSandboxOutputArgs, 'taskId'>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;

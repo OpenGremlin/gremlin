@@ -67,6 +67,14 @@ export const AgentLogSubscription = graphql(`
   }
 `);
 
+export const LogCreatedSubscription = graphql(`
+  subscription LogCreated($agentId: ID, $taskId: ID) {
+    logCreated(agentId: $agentId, taskId: $taskId) {
+      ...AgentLogFields
+    }
+  }
+`);
+
 export const AgentStreamSubscription = graphql(`
   subscription AgentStream($agentId: ID!) {
     agentStream(agentId: $agentId) {

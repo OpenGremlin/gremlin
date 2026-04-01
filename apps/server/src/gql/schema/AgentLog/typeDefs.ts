@@ -78,6 +78,8 @@ export const agentLogTypeDefs = /* GraphQL */ `
 
   extend type Subscription {
     agentLogCreated(agentId: ID!): AgentLog!
+    "Subscribe to log entries by agentId or taskId"
+    logCreated(agentId: ID, taskId: ID): AgentLog!
     agentStream(agentId: ID!): AgentStreamDelta!
   }
 `;

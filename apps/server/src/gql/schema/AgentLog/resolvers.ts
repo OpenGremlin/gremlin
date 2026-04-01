@@ -121,6 +121,26 @@ const agentLogCreated = {
   resolve: (payload: AgentLogItem) => payload,
 };
 
+const logCreated = {
+  subscribe: (
+    _parent: unknown,
+    { agentId, taskId }: { agentId?: string; taskId?: string },
+    ctx: GremlinContext,
+  ) => {
+    if (!agentId && !taskId) {
+      throw new Error("logCreated requires either agentId or taskId");
+    }
+    const topic = taskId
+      ? (`agentLogCreated:task:${taskId}` as const)
+      : (`agentLogCreated:${agentId}` as const);
+    return pipe(
+      ctx.resources.pubsub.subscribe(topic),
+      filter((payload: AgentLogItem) => !payload.internal),
+    );
+  },
+  resolve: (payload: AgentLogItem) => payload,
+};
+
 const agentStream = {
   subscribe: (
     _parent: unknown,
@@ -133,7 +153,7 @@ const agentStream = {
 export const agentLogResolvers = {
   Query: { agentLogs, taskLogs, pendingInboxMessages },
   Mutation: { sendMessage },
-  Subscription: { agentLogCreated, agentStream },
+  Subscription: { agentLogCreated, logCreated, agentStream },
   AgentLog: { agent, attachments, documents, files },
   AgentLogEdge: { node },
 };

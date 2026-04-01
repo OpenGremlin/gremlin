@@ -127,6 +127,8 @@ type Subscription {
   _empty: String
   jobCreated: AgentJob!
   agentLogCreated(agentId: ID!): AgentLog!
+  "Subscribe to log entries by agentId or taskId"
+  logCreated(agentId: ID, taskId: ID): AgentLog!
   agentStream(agentId: ID!): AgentStreamDelta!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
