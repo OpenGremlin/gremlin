@@ -159,11 +159,16 @@ let _wsClient: ReturnType<typeof createClient> | null = null;
 export function getWsClient() {
   if (_wsClient) return _wsClient;
 
-  const wsUrl = `${getApiUrl().replace(/^http/, "ws")}/graphql`;
-  clientLogger.info("Initializing Apollo WebSocket client", { url: wsUrl });
+  clientLogger.info("Initializing Apollo WebSocket client", {
+    url: "/graphql",
+  });
 
   _wsClient = createClient({
-    url: wsUrl,
+    url: () => {
+      const wsUrl = `${getApiUrl().replace(/^http/, "ws")}/graphql`;
+      clientLogger.info("WebSocket connecting", { url: wsUrl });
+      return wsUrl;
+    },
     connectionParams: () => {
       const token = getTokenSync();
       return token ? { token } : {};
