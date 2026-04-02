@@ -381,17 +381,20 @@ function AwsIamRoleDetailView({
             </Card>
           ) : (
             presetRoles.map((role) => (
-              <Card key={role.id} className="p-4 gap-2">
-                <Text className="text-sm font-medium text-text-primary">
-                  {role.name}
-                </Text>
-                <Text className="text-xs text-text-muted">
-                  {role.description}
-                </Text>
+              <Card key={role.id} className="p-4 flex-row items-center gap-3">
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-text-primary">
+                    {role.name}
+                  </Text>
+                  <Text className="text-xs text-text-muted mt-0.5">
+                    {role.description}
+                  </Text>
+                </View>
                 <Button
                   onPress={() => handleConnect(role.roleArn, role.name)}
                   disabled={connecting}
                   loading={connecting}
+                  size="sm"
                 >
                   Connect
                 </Button>

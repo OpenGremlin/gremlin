@@ -176,15 +176,25 @@ export default function IntegrationsScreen() {
                     >
                       {conn.provider.service}
                     </Text>
-                    {conn.meta.accountId &&
-                      conn.meta.accountId !== "unknown" && (
-                        <Text
-                          className="text-xs text-text-secondary"
-                          numberOfLines={1}
-                        >
-                          {conn.meta.accountId}
-                        </Text>
-                      )}
+                    {conn.meta.__typename === "AwsIamRoleConnectionMeta" ? (
+                      <Text
+                        className="text-xs text-text-secondary"
+                        numberOfLines={1}
+                      >
+                        {[conn.meta.displayName, conn.meta.accountId]
+                          .filter(Boolean)
+                          .join(" (")}
+                        {conn.meta.accountId ? ")" : ""}
+                      </Text>
+                    ) : conn.meta.accountId &&
+                      conn.meta.accountId !== "unknown" ? (
+                      <Text
+                        className="text-xs text-text-secondary"
+                        numberOfLines={1}
+                      >
+                        {conn.meta.accountId}
+                      </Text>
+                    ) : null}
                   </View>
                   <Text className="text-xs text-text-muted" numberOfLines={1}>
                     {formatDate(conn.connectedAt)}
