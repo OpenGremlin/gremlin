@@ -44,6 +44,8 @@ const presetRoles: PresetRoleDef[] = [
           "ec2:Describe*",
           "ecs:Describe*",
           "ecs:List*",
+          "rds:Describe*",
+          "rds:List*",
           "lambda:GetFunction",
           "lambda:ListFunctions",
           "lambda:GetFunctionConfiguration",
@@ -94,7 +96,7 @@ const presetRoles: PresetRoleDef[] = [
     id: "app-builder",
     name: "GremlinPresetAppBuilder",
     description:
-      "Create and manage DynamoDB, S3, Lambda, and API Gateway resources",
+      "Create and manage DynamoDB, RDS/Aurora, S3, Lambda, and API Gateway resources",
     statements: [
       {
         actions: ["dynamodb:*"],
@@ -110,6 +112,10 @@ const presetRoles: PresetRoleDef[] = [
       },
       {
         actions: ["apigateway:*"],
+        resources: ["*"],
+      },
+      {
+        actions: ["rds:*"],
         resources: ["*"],
       },
       {
