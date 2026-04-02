@@ -419,7 +419,7 @@ function AwsIamRoleDetailView({
             </Text>
             <Pressable
               onPress={copyTrustPolicy}
-              className="bg-background rounded-lg p-3 active:bg-surface-alt"
+              className="bg-code-bg rounded-lg p-3 active:bg-surface-alt"
             >
               <View className="absolute top-2 right-2 z-10">
                 <Copy size={14} color="#888" />
@@ -516,7 +516,7 @@ function AwsIamRoleDetailView({
       ) : null}
 
       <Toast
-        message="Trust policy copied to clipboard"
+        message="Copied"
         visible={toastVisible}
         onDismiss={() => setToastVisible(false)}
       />
