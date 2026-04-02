@@ -14,9 +14,9 @@ pnpm --filter @opengremlin/mobile exec tsc --noEmit
 echo "→ Codegen"
 pnpm --filter @opengremlin/server codegen
 pnpm --filter @opengremlin/mobile codegen
-if ! git diff --quiet; then
+if ! git diff --quiet -- apps/server/src/gql/ apps/mobile/src/graphql/generated/; then
   echo "ERROR: Codegen produced uncommitted changes. Please commit them before pushing."
-  git diff --stat
+  git diff --stat -- apps/server/src/gql/ apps/mobile/src/graphql/generated/
   exit 1
 fi
 
