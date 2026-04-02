@@ -1,6 +1,8 @@
 import { useQuery } from "@apollo/client";
+import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { Copy } from "lucide-react-native";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import {
   AwsSetupQuery,
@@ -24,6 +26,7 @@ import {
   type PickerOption,
 } from "../../../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
+import { Toast } from "../../../../../src/shared/Toast";
 
 function OAuthDetailView({
   provider,
@@ -274,6 +277,7 @@ function AwsIamRoleDetailView({
   const [regionPickerVisible, setRegionPickerVisible] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const { data: setupData, loading: presetsLoading } = useQuery(AwsSetupQuery);
   const presetRoles = setupData?.awsPresetRoles ?? [];
@@ -297,6 +301,12 @@ function AwsIamRoleDetailView({
       setConnecting(false);
     }
   }
+
+  const copyTrustPolicy = useCallback(async () => {
+    if (!trustPolicy) return;
+    await Clipboard.setStringAsync(trustPolicy);
+    setToastVisible(true);
+  }, [trustPolicy]);
 
   return (
     <>
@@ -407,11 +417,20 @@ function AwsIamRoleDetailView({
             <Text className="text-xs text-text-muted">
               2. Select "Custom trust policy" and paste this trust policy:
             </Text>
-            <View className="bg-background rounded-lg p-3">
-              <Text className="text-xs text-text-primary font-mono" selectable>
+            <Pressable
+              onPress={copyTrustPolicy}
+              className="bg-background rounded-lg p-3 active:bg-surface-alt"
+            >
+              <View className="absolute top-2 right-2 z-10">
+                <Copy size={14} color="#888" />
+              </View>
+              <Text
+                className="text-xs text-text-primary font-mono pr-5"
+                selectable
+              >
                 {trustPolicy}
               </Text>
-            </View>
+            </Pressable>
             <Text className="text-xs text-text-muted">
               3. Attach a permissions policy for what the agent should access
             </Text>
@@ -495,6 +514,12 @@ function AwsIamRoleDetailView({
           <Text className="text-sm text-red-300">{error}</Text>
         </View>
       ) : null}
+
+      <Toast
+        message="Trust policy copied to clipboard"
+        visible={toastVisible}
+        onDismiss={() => setToastVisible(false)}
+      />
     </>
   );
 }
