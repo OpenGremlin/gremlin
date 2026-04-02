@@ -7,7 +7,11 @@ interface ConnectionOption {
   id: string;
   providerId: string;
   isRevoked: boolean;
-  meta: { accountId?: string | null };
+  meta: {
+    __typename?: string;
+    accountId?: string | null;
+    displayName?: string | null;
+  };
 }
 
 interface ConnectionRequirement {
@@ -81,10 +85,14 @@ export function ConnectionPicker({
                           className="text-sm text-text-secondary"
                           numberOfLines={1}
                         >
-                          {conn.meta.accountId &&
-                          conn.meta.accountId !== "unknown"
-                            ? conn.meta.accountId
-                            : conn.id}
+                          {conn.meta.displayName && conn.meta.accountId
+                            ? `${conn.meta.displayName} (${conn.meta.accountId})`
+                            : conn.meta.displayName
+                              ? conn.meta.displayName
+                              : conn.meta.accountId &&
+                                  conn.meta.accountId !== "unknown"
+                                ? conn.meta.accountId
+                                : conn.id}
                         </Text>
                       </View>
                       {isMulti && isSelected ? (
