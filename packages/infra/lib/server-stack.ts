@@ -94,7 +94,7 @@ export class ServerStack extends cdk.Stack {
 
     serverRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
+        actions: ["ssm:GetParameter", "ssm:GetParametersByPath"],
         resources: [
           `arn:aws:ssm:${this.region}:${this.account}:parameter/gremlin/*`,
         ],
