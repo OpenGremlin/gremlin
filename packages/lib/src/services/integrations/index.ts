@@ -17,6 +17,7 @@ import { getIntegrations } from "./getIntegrations.js";
 import { getProviderApiKey } from "./getProviderApiKey.js";
 import { listBedrockModels } from "./listBedrockModels.js";
 import { listProviderModels } from "./listProviderModels.js";
+import { listProviderVoices } from "./listProviderVoices.js";
 import { revokeConnection } from "./revokeConnection.js";
 import { setDefaultModel } from "./setDefaultModel.js";
 import { submitOAuthConnection } from "./submitOAuthConnection.js";
@@ -41,6 +42,7 @@ export const integrationService = {
   getProviderApiKey,
   listBedrockModels,
   listProviderModels,
+  listProviderVoices,
   revokeConnection,
   setDefaultModel,
   submitOAuthConnection,

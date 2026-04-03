@@ -95,6 +95,10 @@ export const AgentDetailFragment = graphql(`
       imageGeneration {
         enabled
       }
+      speech {
+        enabled
+        voice
+      }
       programs {
         enabled
       }

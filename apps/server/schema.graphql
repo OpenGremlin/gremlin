@@ -36,6 +36,7 @@ type Query {
   bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
   enabledModelDetails(providerId: String!): [ModelInfo!]!
+  speechVoices(providerId: String!): [SpeechVoice!]!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!
@@ -398,6 +399,11 @@ type AgentProgramsConfig {
   enabled: Boolean!
 }
 
+type AgentSpeechConfig {
+  enabled: Boolean!
+  voice: String
+}
+
 type AgentConfig {
   model: AgentModelConfig
   imageModel: AgentModelConfig
@@ -407,6 +413,7 @@ type AgentConfig {
   reasoning: AgentReasoningConfig
   viewImage: AgentViewImageConfig
   imageGeneration: AgentImageGenerationConfig
+  speech: AgentSpeechConfig
   programs: AgentProgramsConfig
 }
 
@@ -457,6 +464,11 @@ input AgentProgramsConfigInput {
   enabled: Boolean!
 }
 
+input AgentSpeechConfigInput {
+  enabled: Boolean!
+  voice: String
+}
+
 input AgentConfigInput {
   model: AgentModelConfigInput
   imageModel: AgentModelConfigInput
@@ -466,6 +478,7 @@ input AgentConfigInput {
   reasoning: AgentReasoningConfigInput
   viewImage: AgentViewImageConfigInput
   imageGeneration: AgentImageGenerationConfigInput
+  speech: AgentSpeechConfigInput
   programs: AgentProgramsConfigInput
 }
 
@@ -533,6 +546,13 @@ type ModelInfo {
   outputCostPerImage: Float
   outputCostPerImageToken: Float
   supportsReasoning: Boolean
+}
+
+type SpeechVoice {
+  id: String!
+  name: String!
+  description: String
+  previewUrl: String
 }
 
 type DefaultModel {

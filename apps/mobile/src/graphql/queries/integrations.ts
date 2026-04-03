@@ -144,6 +144,17 @@ export const SetDefaultSpeechModelMutation = graphql(`
   }
 `);
 
+export const SpeechVoicesQuery = graphql(`
+  query SpeechVoices($providerId: String!) {
+    speechVoices(providerId: $providerId) {
+      id
+      name
+      description
+      previewUrl
+    }
+  }
+`);
+
 export const EnabledModelsQuery = graphql(`
   query EnabledModels($providerId: String!) {
     enabledModels(providerId: $providerId)

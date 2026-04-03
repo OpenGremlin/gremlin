@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
-import { Pencil, Volume2 } from "lucide-react-native";
+import { Pencil } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
@@ -14,7 +14,6 @@ import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
-import { VoicePicker } from "../../../../src/shared/AgentAvatar/VoicePicker";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
@@ -42,7 +41,6 @@ export default function AgentConfigScreen() {
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
 
   useEffect(() => {
     if (!agent) return;
@@ -155,17 +153,6 @@ export default function AgentConfigScreen() {
         </Pressable>
       </View>
 
-      <Pressable
-        onPress={agent.retired ? undefined : () => setVoicePickerOpen(true)}
-        disabled={!!agent.retired}
-        className={`self-center flex-row items-center gap-2 px-3 py-2 rounded-lg bg-surface-alt ${agent.retired ? "opacity-50" : "active:bg-surface-alt"}`}
-      >
-        <Volume2 size={16} color={colors.iconDefault} />
-        <Text className="text-sm text-text-secondary">
-          {agent.ttsVoice ?? "No voice"}
-        </Text>
-      </Pressable>
-
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <Input
@@ -247,27 +234,6 @@ export default function AgentConfigScreen() {
         onConfirm={doRetire}
         onCancel={() => setShowRetireConfirm(false)}
       />
-
-      {voicePickerOpen && (
-        <VoicePicker
-          currentVoice={agent.ttsVoice}
-          onSelect={async (voice) => {
-            setVoicePickerOpen(false);
-            try {
-              await execute(UpdateAgentMutation, {
-                id: id ?? "",
-                input: { ttsVoice: voice },
-              });
-              refetch();
-            } catch (err) {
-              setSaveError(
-                err instanceof Error ? err.message : "Failed to update voice",
-              );
-            }
-          }}
-          onClose={() => setVoicePickerOpen(false)}
-        />
-      )}
 
       {pickerOpen && (
         <AvatarPicker

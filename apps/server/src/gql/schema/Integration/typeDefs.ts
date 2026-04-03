@@ -20,6 +20,13 @@ export const integrationTypeDefs = /* GraphQL */ `
     supportsReasoning: Boolean
   }
 
+  type SpeechVoice {
+    id: String!
+    name: String!
+    description: String
+    previewUrl: String
+  }
+
   type DefaultModel {
     providerId: String!
     modelId: String!
@@ -124,6 +131,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
     enabledModelDetails(providerId: String!): [ModelInfo!]!
+    speechVoices(providerId: String!): [SpeechVoice!]!
   }
 
   extend type Mutation {

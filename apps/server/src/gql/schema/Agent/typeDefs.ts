@@ -33,6 +33,11 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
   }
 
+  type AgentSpeechConfig {
+    enabled: Boolean!
+    voice: String
+  }
+
   type AgentConfig {
     model: AgentModelConfig
     imageModel: AgentModelConfig
@@ -42,6 +47,7 @@ export const agentTypeDefs = /* GraphQL */ `
     reasoning: AgentReasoningConfig
     viewImage: AgentViewImageConfig
     imageGeneration: AgentImageGenerationConfig
+    speech: AgentSpeechConfig
     programs: AgentProgramsConfig
   }
 
@@ -97,6 +103,11 @@ export const agentTypeDefs = /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input AgentSpeechConfigInput {
+    enabled: Boolean!
+    voice: String
+  }
+
   input AgentConfigInput {
     model: AgentModelConfigInput
     imageModel: AgentModelConfigInput
@@ -106,6 +117,7 @@ export const agentTypeDefs = /* GraphQL */ `
     reasoning: AgentReasoningConfigInput
     viewImage: AgentViewImageConfigInput
     imageGeneration: AgentImageGenerationConfigInput
+    speech: AgentSpeechConfigInput
     programs: AgentProgramsConfigInput
   }
 

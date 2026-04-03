@@ -62,6 +62,7 @@ export type AgentConfig = {
   programs?: Maybe<AgentProgramsConfig>;
   reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
+  speech?: Maybe<AgentSpeechConfig>;
   speechModel?: Maybe<AgentModelConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
@@ -74,6 +75,7 @@ export type AgentConfigInput = {
   programs?: InputMaybe<AgentProgramsConfigInput>;
   reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  speech?: InputMaybe<AgentSpeechConfigInput>;
   speechModel?: InputMaybe<AgentModelConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
@@ -202,6 +204,17 @@ export type AgentSkill = {
   connectionStatuses: Array<SkillConnectionStatus>;
   skillId: Scalars['ID']['output'];
   template?: Maybe<SkillTemplate>;
+};
+
+export type AgentSpeechConfig = {
+  __typename?: 'AgentSpeechConfig';
+  enabled: Scalars['Boolean']['output'];
+  voice?: Maybe<Scalars['String']['output']>;
+};
+
+export type AgentSpeechConfigInput = {
+  enabled: Scalars['Boolean']['input'];
+  voice?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type AgentStreamDelta = {
@@ -810,6 +823,7 @@ export type Query = {
   skillTemplate?: Maybe<SkillTemplate>;
   /** All skill templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
+  speechVoices: Array<SpeechVoice>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
@@ -881,6 +895,11 @@ export type QueryProviderModelsArgs = {
 
 export type QuerySkillTemplateArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QuerySpeechVoicesArgs = {
+  providerId: Scalars['String']['input'];
 };
 
 
@@ -966,6 +985,14 @@ export type SkillTemplate = {
   name: Scalars['String']['output'];
   tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
+};
+
+export type SpeechVoice = {
+  __typename?: 'SpeechVoice';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  previewUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type Subscription = {
@@ -1270,6 +1297,8 @@ export type ResolversTypes = {
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: ResolverTypeWrapper<AgentSkillItem>;
+  AgentSpeechConfig: ResolverTypeWrapper<AgentSpeechConfig>;
+  AgentSpeechConfigInput: AgentSpeechConfigInput;
   AgentStreamDelta: ResolverTypeWrapper<AgentStreamDelta>;
   AgentViewImageConfig: ResolverTypeWrapper<AgentViewImageConfig>;
   AgentViewImageConfigInput: AgentViewImageConfigInput;
@@ -1326,6 +1355,7 @@ export type ResolversTypes = {
   SkillConnectionRequirement: ResolverTypeWrapper<SkillConnectionRequirement>;
   SkillConnectionStatus: ResolverTypeWrapper<SkillConnectionStatus>;
   SkillTemplate: ResolverTypeWrapper<SkillTemplateModel>;
+  SpeechVoice: ResolverTypeWrapper<SpeechVoice>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Task: ResolverTypeWrapper<TaskItem>;
@@ -1364,6 +1394,8 @@ export type ResolversParentTypes = {
   AgentSandboxConfig: AgentSandboxConfig;
   AgentSandboxConfigInput: AgentSandboxConfigInput;
   AgentSkill: AgentSkillItem;
+  AgentSpeechConfig: AgentSpeechConfig;
+  AgentSpeechConfigInput: AgentSpeechConfigInput;
   AgentStreamDelta: AgentStreamDelta;
   AgentViewImageConfig: AgentViewImageConfig;
   AgentViewImageConfigInput: AgentViewImageConfigInput;
@@ -1418,6 +1450,7 @@ export type ResolversParentTypes = {
   SkillConnectionRequirement: SkillConnectionRequirement;
   SkillConnectionStatus: SkillConnectionStatus;
   SkillTemplate: SkillTemplateModel;
+  SpeechVoice: SpeechVoice;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   Task: TaskItem;
@@ -1453,6 +1486,7 @@ export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extend
   programs?: Resolver<Maybe<ResolversTypes['AgentProgramsConfig']>, ParentType, ContextType>;
   reasoning?: Resolver<Maybe<ResolversTypes['AgentReasoningConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
+  speech?: Resolver<Maybe<ResolversTypes['AgentSpeechConfig']>, ParentType, ContextType>;
   speechModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
   webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
@@ -1536,6 +1570,11 @@ export type AgentSkillResolvers<ContextType = GremlinContext, ParentType extends
   connectionStatuses?: Resolver<Array<ResolversTypes['SkillConnectionStatus']>, ParentType, ContextType>;
   skillId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   template?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
+};
+
+export type AgentSpeechConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentSpeechConfig'] = ResolversParentTypes['AgentSpeechConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  voice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AgentStreamDeltaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentStreamDelta'] = ResolversParentTypes['AgentStreamDelta']> = {
@@ -1851,6 +1890,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
   skillTemplates?: Resolver<Array<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
+  speechVoices?: Resolver<Array<ResolversTypes['SpeechVoice']>, ParentType, ContextType, RequireFields<QuerySpeechVoicesArgs, 'providerId'>>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
@@ -1905,6 +1945,13 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type SpeechVoiceResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SpeechVoice'] = ResolversParentTypes['SpeechVoice']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  previewUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -2012,6 +2059,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentReasoningConfig?: AgentReasoningConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
   AgentSkill?: AgentSkillResolvers<ContextType>;
+  AgentSpeechConfig?: AgentSpeechConfigResolvers<ContextType>;
   AgentStreamDelta?: AgentStreamDeltaResolvers<ContextType>;
   AgentViewImageConfig?: AgentViewImageConfigResolvers<ContextType>;
   AgentWebSearchConfig?: AgentWebSearchConfigResolvers<ContextType>;
@@ -2055,6 +2103,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   SkillConnectionRequirement?: SkillConnectionRequirementResolvers<ContextType>;
   SkillConnectionStatus?: SkillConnectionStatusResolvers<ContextType>;
   SkillTemplate?: SkillTemplateResolvers<ContextType>;
+  SpeechVoice?: SpeechVoiceResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Task?: TaskResolvers<ContextType>;
   TaskConnection?: TaskConnectionResolvers<ContextType>;

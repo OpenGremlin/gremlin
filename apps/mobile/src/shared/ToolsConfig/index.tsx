@@ -1,14 +1,22 @@
 import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
-import { Bot, Globe, Info, Terminal } from "lucide-react-native";
+import {
+  Bot,
+  Check,
+  Globe,
+  Info,
+  Terminal,
+  Volume2,
+} from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
   EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
+  SpeechVoicesQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
@@ -17,6 +25,7 @@ import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
 import type { ModelDetail } from "../ModelDetailModal";
 import { ModelDetailModal } from "../ModelDetailModal";
+import { SheetModal } from "../SheetModal";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
 
@@ -36,6 +45,7 @@ interface PlainConfig {
   reasoning?: { enabled: boolean };
   viewImage?: { enabled: boolean };
   imageGeneration?: { enabled: boolean };
+  speech?: { enabled: boolean; voice?: string };
   programs?: { enabled: boolean };
 }
 
@@ -84,6 +94,12 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
       : undefined,
     imageGeneration: config?.imageGeneration
       ? { enabled: config.imageGeneration.enabled }
+      : undefined,
+    speech: config?.speech
+      ? {
+          enabled: config.speech.enabled,
+          voice: config.speech.voice ?? undefined,
+        }
       : undefined,
     programs: config?.programs
       ? { enabled: config.programs.enabled }
@@ -168,6 +184,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
   const [speechModelPickerOpen, setSpeechModelPickerOpen] = useState(false);
+  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
@@ -189,6 +206,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const usingDefaultImageModel = !config.imageModel;
   const usingDefaultSpeechModel = !config.speechModel;
   const generateImagesEnabled = config.imageGeneration?.enabled ?? false;
+  const speechEnabled = config.speech?.enabled ?? false;
 
   const updateConfig = useCallback(
     async (patch: Partial<PlainConfig>) => {
@@ -561,51 +579,88 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               </>
             )}
 
-            {/* Speech Model */}
+            {/* Enable Speech Model */}
             <View className="flex-row items-center justify-between mt-1 gap-3">
               <View className="flex-1">
                 <Text className="text-sm text-text-secondary">
-                  Speech Model
-                </Text>
-                <Text className="text-xs text-text-muted">
-                  Text-to-speech for voice responses
+                  Enable Speech Model
                 </Text>
               </View>
+              <Toggle
+                enabled={speechEnabled}
+                onChange={() => {
+                  updateConfig({ speech: { enabled: !speechEnabled } });
+                }}
+              />
             </View>
-            <View className="flex-row items-center gap-2">
-              <Pressable
-                onPress={() => setSpeechModelPickerOpen(true)}
-                className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-              >
-                <Text
-                  className={`text-sm ${!usingDefaultSpeechModel ? "text-text-primary" : "text-text-secondary"}`}
-                >
-                  {usingDefaultSpeechModel
-                    ? defaultSpeechModelLabel
-                      ? `Use default (${defaultSpeechModelLabel})`
-                      : "Use default"
-                    : speechModelLabel}
-                </Text>
-              </Pressable>
-              {!usingDefaultSpeechModel && (
+            {speechEnabled && (
+              <>
+                {!defaultSpeechModel && usingDefaultSpeechModel && (
+                  <View className="gap-1">
+                    <Text className="text-xs text-error">
+                      No default speech model configured.
+                    </Text>
+                    <Pressable onPress={() => router.push("/settings/models")}>
+                      <Text className="text-xs text-accent-primary">
+                        Go to Models settings
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={() => setSpeechModelPickerOpen(true)}
+                    className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                  >
+                    <Text
+                      className={`text-sm ${!usingDefaultSpeechModel ? "text-text-primary" : "text-text-secondary"}`}
+                    >
+                      {usingDefaultSpeechModel
+                        ? defaultSpeechModelLabel
+                          ? `Use default (${defaultSpeechModelLabel})`
+                          : "Use default"
+                        : speechModelLabel}
+                    </Text>
+                  </Pressable>
+                  {!usingDefaultSpeechModel && (
+                    <Pressable
+                      onPress={async () => {
+                        const ids = resolveModelIds(config.speechModel);
+                        if (!ids) return;
+                        const result = await execute(EnabledModelDetailsQuery, {
+                          providerId: ids.providerId,
+                        });
+                        const detail = result.enabledModelDetails.find(
+                          (d) => d.id === ids.modelId,
+                        );
+                        if (detail) setModelDetail(detail);
+                      }}
+                      className="p-2"
+                    >
+                      <Info size={18} color={colors.iconDefault} />
+                    </Pressable>
+                  )}
+                </View>
+
+                {/* Voice */}
                 <Pressable
-                  onPress={async () => {
-                    const ids = resolveModelIds(config.speechModel);
-                    if (!ids) return;
-                    const result = await execute(EnabledModelDetailsQuery, {
-                      providerId: ids.providerId,
-                    });
-                    const detail = result.enabledModelDetails.find(
-                      (d) => d.id === ids.modelId,
-                    );
-                    if (detail) setModelDetail(detail);
-                  }}
-                  className="p-2"
+                  onPress={() => setVoicePickerOpen(true)}
+                  className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg border ${config.speech?.voice ? "bg-surface-alt border-app-border" : "bg-surface-alt border-warning"}`}
                 >
-                  <Info size={18} color={colors.iconDefault} />
+                  <Volume2
+                    size={14}
+                    color={
+                      config.speech?.voice ? colors.iconDefault : colors.warning
+                    }
+                  />
+                  <Text
+                    className={`text-sm flex-1 ${config.speech?.voice ? "text-text-secondary" : "text-warning"}`}
+                  >
+                    {config.speech?.voice ?? "Select a voice"}
+                  </Text>
                 </Pressable>
-              )}
-            </View>
+              </>
+            )}
           </View>
         </View>
       </Card>
@@ -909,10 +964,105 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         />
       )}
 
+      {voicePickerOpen && (
+        <VoicePickerModal
+          providerId={resolveModelIds(effectiveSpeechModel)?.providerId}
+          currentVoice={config.speech?.voice}
+          onSelect={(voice) => {
+            setVoicePickerOpen(false);
+            updateConfig({ speech: { enabled: true, voice } });
+          }}
+          onClose={() => setVoicePickerOpen(false)}
+        />
+      )}
+
       <ModelDetailModal
         model={modelDetail}
         onClose={() => setModelDetail(null)}
       />
     </View>
+  );
+}
+
+// ── Voice Picker ─────────────────────────────────────────────────────
+
+function VoicePickerModal({
+  providerId,
+  currentVoice,
+  onSelect,
+  onClose,
+}: {
+  providerId: string | undefined;
+  currentVoice: string | null | undefined;
+  onSelect: (voice: string) => void;
+  onClose: () => void;
+}) {
+  const colors = useNavigationTheme();
+  const [voices, setVoices] = useState<
+    { id: string; name: string; description?: string | null }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!providerId) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    execute(SpeechVoicesQuery, { providerId }).then((result) => {
+      if (cancelled) return;
+      setVoices(result.speechVoices);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerId]);
+
+  const data = voices;
+
+  return (
+    <SheetModal visible title="Choose Voice" onClose={onClose}>
+      {loading ? (
+        <View className="py-8 items-center">
+          <Text className="text-sm text-text-muted">Loading voices...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          contentContainerClassName="p-3"
+          renderItem={({ item }) => {
+            const selected = currentVoice === item.id;
+            return (
+              <Pressable
+                onPress={() => onSelect(item.id)}
+                className={`flex-row items-center gap-3 px-3 py-3 rounded-lg ${
+                  selected ? "bg-surface-alt" : "active:bg-surface-alt"
+                }`}
+              >
+                <Volume2
+                  size={16}
+                  color={selected ? colors.headerText : colors.iconDefault}
+                />
+                <View className="flex-1">
+                  <Text
+                    className={`text-sm ${selected ? "text-text-primary font-medium" : "text-text-secondary"}`}
+                  >
+                    {item.name}
+                  </Text>
+                  {item.description && (
+                    <Text className="text-xs text-text-muted" numberOfLines={1}>
+                      {item.description}
+                    </Text>
+                  )}
+                </View>
+                {selected && <Check size={16} color={colors.headerText} />}
+              </Pressable>
+            );
+          }}
+        />
+      )}
+    </SheetModal>
   );
 }

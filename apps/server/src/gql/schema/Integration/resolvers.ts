@@ -130,6 +130,20 @@ const providerModels: QueryResolvers["providerModels"] = async (
   return ctx.services.integrations.listProviderModels(providerId, apiKey);
 };
 
+const speechVoices: QueryResolvers["speechVoices"] = async (
+  _parent,
+  { providerId },
+  ctx,
+) => {
+  const apiKey = await ctx.services.integrations
+    .getProviderApiKey(ctx.resources, providerId)
+    .catch(() => null);
+  return ctx.services.integrations.listProviderVoices(
+    providerId,
+    apiKey ?? undefined,
+  );
+};
+
 const connectionCount: IntegrationProviderResolvers["connectionCount"] = async (
   parent,
   _args,
@@ -421,6 +435,7 @@ export const integrationResolvers = {
     bedrockAvailableModels,
     providerModels,
     enabledModelDetails,
+    speechVoices,
   },
   Mutation: {
     connectApiKey,

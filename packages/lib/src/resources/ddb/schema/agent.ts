@@ -55,6 +55,10 @@ export const AgentEntity = new Entity({
       imageGeneration: map({
         enabled: boolean(),
       }).optional(),
+      speech: map({
+        enabled: boolean(),
+        voice: string().optional(),
+      }).optional(),
       programs: map({
         enabled: boolean(),
       }).optional(),
