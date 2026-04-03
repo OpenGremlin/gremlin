@@ -71,6 +71,11 @@ export const AgentDetailFragment = graphql(`
         modelId
         connectionId
       }
+      speechModel {
+        type
+        modelId
+        connectionId
+      }
       sandbox {
         enabled
         idleTimeoutMinutes

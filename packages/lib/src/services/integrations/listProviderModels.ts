@@ -137,6 +137,21 @@ const providerConfigs: Record<string, ProviderConfig> = {
     headers: (apiKey) => ({ Authorization: `Bearer ${apiKey}` }),
     parse: parseOpenAIModels,
   },
+  elevenlabs: {
+    url: "https://api.elevenlabs.io/v1/models",
+    headers: (apiKey) => ({ "xi-api-key": apiKey }),
+    parse: (body) => {
+      const models = Array.isArray(body) ? body : [];
+      return models
+        .map((m: { model_id: string; name: string }) => ({
+          id: m.model_id,
+          name: m.name,
+        }))
+        .sort((a: { id: string }, b: { id: string }) =>
+          a.id.localeCompare(b.id),
+        );
+    },
+  },
 };
 
 /**

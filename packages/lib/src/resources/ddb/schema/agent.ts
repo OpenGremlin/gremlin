@@ -31,6 +31,11 @@ export const AgentEntity = new Entity({
         modelId: string().optional(),
         connectionId: string().optional(),
       }).optional(),
+      speechModel: map({
+        type: string(),
+        modelId: string().optional(),
+        connectionId: string().optional(),
+      }).optional(),
       sandbox: map({
         enabled: boolean(),
         idleTimeoutMinutes: number().optional(),

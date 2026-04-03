@@ -58,6 +58,12 @@ const defaultImageModel: QueryResolvers["defaultImageModel"] = (
   ctx,
 ) => ctx.services.integrations.getDefaultModel(ctx, "defaultImageModel");
 
+const defaultSpeechModel: QueryResolvers["defaultSpeechModel"] = (
+  _parent,
+  _args,
+  ctx,
+) => ctx.services.integrations.getDefaultModel(ctx, "defaultSpeechModel");
+
 const allEnabledModels: QueryResolvers["allEnabledModels"] = (
   _parent,
   _args,
@@ -268,6 +274,23 @@ const setDefaultImageModel: MutationResolvers["setDefaultImageModel"] = async (
   return result;
 };
 
+const setDefaultSpeechModel: MutationResolvers["setDefaultSpeechModel"] =
+  async (_parent, { providerId, modelId }, ctx) => {
+    await ctx.services.integrations.setDefaultModel(
+      ctx,
+      providerId,
+      modelId,
+      "defaultSpeechModel",
+    );
+    const result = await ctx.services.integrations.getDefaultModel(
+      ctx,
+      "defaultSpeechModel",
+    );
+    if (!result)
+      throw new Error("Failed to retrieve default speech model after setting");
+    return result;
+  };
+
 const enableModelMutation: MutationResolvers["enableModel"] = async (
   _parent,
   { providerId, modelId, modelName },
@@ -391,6 +414,7 @@ export const integrationResolvers = {
     awsSetupInfo,
     defaultModel,
     defaultImageModel,
+    defaultSpeechModel,
     allEnabledModels,
     enabledModels,
     bedrockEnabledModels,
@@ -404,6 +428,7 @@ export const integrationResolvers = {
     revokeIntegrationConnection,
     setDefaultModel,
     setDefaultImageModel,
+    setDefaultSpeechModel,
     enableModel: enableModelMutation,
     disableModel: disableModelMutation,
     enableBedrockModel,

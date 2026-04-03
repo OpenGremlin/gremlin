@@ -50,6 +50,7 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
   cohere: require("@opengremlin/logos/Cohere.svg"),
   minimax: require("@opengremlin/logos/MiniMax.svg"),
   qwen: require("@opengremlin/logos/Qwen.svg"),
+  elevenlabs: require("@opengremlin/logos/ElevenLabs.svg"),
 };
 
 /** Lucide icon fallbacks for skill icons that don't have SVG logos. */
@@ -72,6 +73,7 @@ const lightLogoOverrides: Record<string, ReturnType<typeof require>> = {
   openai: require("@opengremlin/logos/OpenAI_light.svg"),
   xai: require("@opengremlin/logos/xAI_light.svg"),
   groq: require("@opengremlin/logos/Groq_light.svg"),
+  elevenlabs: require("@opengremlin/logos/ElevenLabs_light.svg"),
 };
 
 export function IntegrationLogo({

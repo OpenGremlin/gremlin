@@ -115,6 +115,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     integrationConnections(excludeCategory: String): [IntegrationConnection!]!
     defaultModel: DefaultModel
     defaultImageModel: DefaultModel
+    defaultSpeechModel: DefaultModel
     enabledModels(providerId: String!): [String!]!
     allEnabledModels: [EnabledModelEntry!]!
     bedrockEnabledModels: [String!]!
@@ -130,6 +131,7 @@ export const integrationTypeDefs = /* GraphQL */ `
     revokeIntegrationConnection(id: ID!): IntegrationConnection!
     setDefaultModel(providerId: String!, modelId: String!): DefaultModel!
     setDefaultImageModel(providerId: String!, modelId: String!): DefaultModel!
+    setDefaultSpeechModel(providerId: String!, modelId: String!): DefaultModel!
     enableModel(providerId: String!, modelId: String!, modelName: String): [EnabledModelEntry!]!
     disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
     enableBedrockModel(modelId: String!, modelName: String): [String!]!

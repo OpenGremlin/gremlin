@@ -9,7 +9,11 @@ const models: Record<
 > = require("@opengremlin/models/models.json");
 
 /** Modes we surface */
-const SURFACED_MODES = new Set<string>(["chat", "image_generation"]);
+const SURFACED_MODES = new Set<string>([
+  "chat",
+  "image_generation",
+  "audio_speech",
+]);
 
 /**
  * Map our provider IDs to the prefix LiteLLM uses in its keys.
@@ -18,7 +22,7 @@ const SURFACED_MODES = new Set<string>(["chat", "image_generation"]);
 const PROVIDER_PREFIX: Record<string, string | null> = {
   openai: null,
   anthropic: null,
-  google_ai: null,
+  google_ai: "gemini",
   bedrock: null,
   xai: "xai",
   deepseek: "deepseek",
@@ -31,6 +35,7 @@ const PROVIDER_PREFIX: Record<string, string | null> = {
   cohere_chat: "cohere_chat",
   minimax: "minimax",
   qwen: null,
+  elevenlabs: "elevenlabs",
 };
 
 const store = models;

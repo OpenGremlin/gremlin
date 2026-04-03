@@ -27,6 +27,7 @@ type Query {
   integrationConnections(excludeCategory: String): [IntegrationConnection!]!
   defaultModel: DefaultModel
   defaultImageModel: DefaultModel
+  defaultSpeechModel: DefaultModel
   enabledModels(providerId: String!): [String!]!
   allEnabledModels: [EnabledModelEntry!]!
   bedrockEnabledModels: [String!]!
@@ -84,6 +85,7 @@ type Mutation {
   revokeIntegrationConnection(id: ID!): IntegrationConnection!
   setDefaultModel(providerId: String!, modelId: String!): DefaultModel!
   setDefaultImageModel(providerId: String!, modelId: String!): DefaultModel!
+  setDefaultSpeechModel(providerId: String!, modelId: String!): DefaultModel!
   enableModel(
     providerId: String!
     modelId: String!
@@ -399,6 +401,7 @@ type AgentProgramsConfig {
 type AgentConfig {
   model: AgentModelConfig
   imageModel: AgentModelConfig
+  speechModel: AgentModelConfig
   sandbox: AgentSandboxConfig
   webSearch: AgentWebSearchConfig
   reasoning: AgentReasoningConfig
@@ -457,6 +460,7 @@ input AgentProgramsConfigInput {
 input AgentConfigInput {
   model: AgentModelConfigInput
   imageModel: AgentModelConfigInput
+  speechModel: AgentModelConfigInput
   sandbox: AgentSandboxConfigInput
   webSearch: AgentWebSearchConfigInput
   reasoning: AgentReasoningConfigInput

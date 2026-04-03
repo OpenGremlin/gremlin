@@ -62,6 +62,7 @@ export type AgentConfig = {
   programs?: Maybe<AgentProgramsConfig>;
   reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
+  speechModel?: Maybe<AgentModelConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
   webSearch?: Maybe<AgentWebSearchConfig>;
 };
@@ -73,6 +74,7 @@ export type AgentConfigInput = {
   programs?: InputMaybe<AgentProgramsConfigInput>;
   reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
+  speechModel?: InputMaybe<AgentModelConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
   webSearch?: InputMaybe<AgentWebSearchConfigInput>;
 };
@@ -521,6 +523,7 @@ export type Mutation = {
   sendMessage: SendMessageResult;
   setDefaultImageModel: DefaultModel;
   setDefaultModel: DefaultModel;
+  setDefaultSpeechModel: DefaultModel;
   submitOAuthConnection: IntegrationConnection;
   triggerJob: AgentJob;
   /** Unbind a connection from an agent's skill */
@@ -675,6 +678,12 @@ export type MutationSetDefaultModelArgs = {
 };
 
 
+export type MutationSetDefaultSpeechModelArgs = {
+  modelId: Scalars['String']['input'];
+  providerId: Scalars['String']['input'];
+};
+
+
 export type MutationSubmitOAuthConnectionArgs = {
   accessToken: Scalars['String']['input'];
   accountId?: InputMaybe<Scalars['String']['input']>;
@@ -786,6 +795,7 @@ export type Query = {
   commandAllowlist: Array<AllowlistEntry>;
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
+  defaultSpeechModel?: Maybe<DefaultModel>;
   enabledModelDetails: Array<ModelInfo>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -1443,6 +1453,7 @@ export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extend
   programs?: Resolver<Maybe<ResolversTypes['AgentProgramsConfig']>, ParentType, ContextType>;
   reasoning?: Resolver<Maybe<ResolversTypes['AgentReasoningConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
+  speechModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
   webSearch?: Resolver<Maybe<ResolversTypes['AgentWebSearchConfig']>, ParentType, ContextType>;
 };
@@ -1768,6 +1779,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultImageModel?: Resolver<ResolversTypes['DefaultModel'], ParentType, ContextType, RequireFields<MutationSetDefaultImageModelArgs, 'modelId' | 'providerId'>>;
   setDefaultModel?: Resolver<ResolversTypes['DefaultModel'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
+  setDefaultSpeechModel?: Resolver<ResolversTypes['DefaultModel'], ParentType, ContextType, RequireFields<MutationSetDefaultSpeechModelArgs, 'modelId' | 'providerId'>>;
   submitOAuthConnection?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationSubmitOAuthConnectionArgs, 'accessToken' | 'providerId' | 'scopes'>>;
   triggerJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationTriggerJobArgs, 'id'>>;
   unbindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationUnbindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
@@ -1826,6 +1838,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
   defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
+  defaultSpeechModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   enabledModelDetails?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType, RequireFields<QueryEnabledModelDetailsArgs, 'providerId'>>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;

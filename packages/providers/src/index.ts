@@ -13,7 +13,7 @@ export interface AvailableScope {
   label: string;
 }
 
-export type ModelMode = "chat" | "image_generation";
+export type ModelMode = "chat" | "image_generation" | "audio_speech";
 
 /** @deprecated Use ModelMode instead */
 export type ModelType = "llm" | "image";
@@ -221,6 +221,16 @@ export const providers: IntegrationProviderDef[] = [
     description: "Qwen models via DashScope",
     connectionType: "model_provider",
     logo: "Qwen.svg",
+    availableScopes: [],
+  },
+  {
+    id: "elevenlabs",
+    service: "ElevenLabs",
+    category: "ai",
+    description: "Speech synthesis models",
+    connectionType: "model_provider",
+    logo: "ElevenLabs.svg",
+    logoLight: "ElevenLabs_light.svg",
     availableScopes: [],
   },
   // Web

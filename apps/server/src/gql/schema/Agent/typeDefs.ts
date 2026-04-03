@@ -36,6 +36,7 @@ export const agentTypeDefs = /* GraphQL */ `
   type AgentConfig {
     model: AgentModelConfig
     imageModel: AgentModelConfig
+    speechModel: AgentModelConfig
     sandbox: AgentSandboxConfig
     webSearch: AgentWebSearchConfig
     reasoning: AgentReasoningConfig
@@ -99,6 +100,7 @@ export const agentTypeDefs = /* GraphQL */ `
   input AgentConfigInput {
     model: AgentModelConfigInput
     imageModel: AgentModelConfigInput
+    speechModel: AgentModelConfigInput
     sandbox: AgentSandboxConfigInput
     webSearch: AgentWebSearchConfigInput
     reasoning: AgentReasoningConfigInput

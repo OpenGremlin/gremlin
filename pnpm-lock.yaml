@@ -470,8 +470,8 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
       '@opengremlin/models':
-        specifier: https://github.com/OpenGremlin/gremlin-models
-        version: '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a'
+        specifier: github:OpenGremlin/gremlin-models
+        version: '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/ea51bf4a681a5c2d9a7373254e1436f26651c03a'
       '@opengremlin/providers':
         specifier: workspace:*
         version: link:../providers
@@ -2849,8 +2849,8 @@ packages:
     resolution: {integrity: sha512-ZpJxMqB+Qfe3rp6uszCQoag4nSw42icURnBRfFYSOmTgEeOe4rD0vYlbA8spvCu2TlCesNTlEN9BLWtQqLxabA==}
     engines: {node: '>=18.0.0'}
 
-  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a':
-    resolution: {tarball: https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a}
+  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/ea51bf4a681a5c2d9a7373254e1436f26651c03a':
+    resolution: {tarball: https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/ea51bf4a681a5c2d9a7373254e1436f26651c03a}
     version: 0.1.0
 
   '@img/sharp-darwin-arm64@0.33.5':
@@ -12540,7 +12540,7 @@ snapshots:
       '@repeaterjs/repeater': 3.0.6
       tslib: 2.8.1
 
-  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/9f24909a8bea9725ea079ccab34febe3c211fc4a': {}
+  '@gremlin/models@https://codeload.github.com/OpenGremlin/gremlin-models/tar.gz/ea51bf4a681a5c2d9a7373254e1436f26651c03a': {}
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
@@ -13356,7 +13356,9 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.74.89': {}

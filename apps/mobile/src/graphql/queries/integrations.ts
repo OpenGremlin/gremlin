@@ -45,6 +45,11 @@ export const IntegrationProvidersQuery = graphql(`
       modelId
       modelName
     }
+    defaultSpeechModel {
+      providerId
+      modelId
+      modelName
+    }
   }
 `);
 
@@ -122,6 +127,16 @@ export const SetDefaultModelMutation = graphql(`
 export const SetDefaultImageModelMutation = graphql(`
   mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {
     setDefaultImageModel(providerId: $providerId, modelId: $modelId) {
+      providerId
+      modelId
+      modelName
+    }
+  }
+`);
+
+export const SetDefaultSpeechModelMutation = graphql(`
+  mutation SetDefaultSpeechModel($providerId: String!, $modelId: String!) {
+    setDefaultSpeechModel(providerId: $providerId, modelId: $modelId) {
       providerId
       modelId
       modelName

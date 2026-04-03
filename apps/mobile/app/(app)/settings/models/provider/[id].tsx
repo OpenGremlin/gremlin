@@ -19,6 +19,7 @@ import {
   ProviderModelsQuery,
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
+  SetDefaultSpeechModelMutation,
 } from "../../../../../src/graphql/queries";
 import { execute } from "../../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
@@ -35,11 +36,12 @@ import { Toast } from "../../../../../src/shared/Toast";
 
 type DefaultModel = { providerId: string; modelId: string } | null;
 
-type ModelMode = "chat" | "image_generation";
+type ModelMode = "chat" | "image_generation" | "audio_speech";
 
 const MODEL_MODE_LABELS: Record<ModelMode, string> = {
   chat: "Language Models",
   image_generation: "Image Models",
+  audio_speech: "Speech Models",
 };
 
 async function setDefaultForType(
@@ -50,6 +52,8 @@ async function setDefaultForType(
   const vars = { providerId, modelId };
   if (modelMode === "image_generation")
     return execute(SetDefaultImageModelMutation, vars);
+  if (modelMode === "audio_speech")
+    return execute(SetDefaultSpeechModelMutation, vars);
   return execute(SetDefaultModelMutation, vars);
 }
 
@@ -405,12 +409,14 @@ function ModelLists({
   providerId,
   defaultModel,
   defaultImageModel,
+  defaultSpeechModel,
   refetchParent,
   onError,
 }: {
   providerId: string;
   defaultModel: DefaultModel;
   defaultImageModel: DefaultModel;
+  defaultSpeechModel: DefaultModel;
   refetchParent: () => void;
   onError: (msg: string) => void;
 }) {
@@ -436,6 +442,7 @@ function ModelLists({
   const defaultsByMode: Record<ModelMode, DefaultModel> = {
     chat: defaultModel,
     image_generation: defaultImageModel,
+    audio_speech: defaultSpeechModel,
   };
 
   if (modelsLoading) {
@@ -447,8 +454,8 @@ function ModelLists({
     );
   }
 
-  const modes = (["chat", "image_generation"] as const).filter((m) =>
-    allModels.some((model) => model.mode === m),
+  const modes = (["chat", "image_generation", "audio_speech"] as const).filter(
+    (m) => allModels.some((model) => model.mode === m),
   );
 
   return (
@@ -480,6 +487,7 @@ export default function ModelProviderDetailScreen() {
   const provider = data?.integrationProviders.find((p) => p.id === id) ?? null;
   const defaultModel = data?.defaultModel ?? null;
   const defaultImageModel = data?.defaultImageModel ?? null;
+  const defaultSpeechModel = data?.defaultSpeechModel ?? null;
   const [toastMessage, setToastMessage] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
 
@@ -529,6 +537,7 @@ export default function ModelProviderDetailScreen() {
             providerId={provider.id}
             defaultModel={defaultModel}
             defaultImageModel={defaultImageModel}
+            defaultSpeechModel={defaultSpeechModel}
             refetchParent={refetch}
             onError={handleError}
           />

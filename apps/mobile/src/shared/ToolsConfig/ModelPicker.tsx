@@ -42,7 +42,7 @@ export function ModelPicker({
   /** Called when the user picks "Use default". If provided, a default option is shown. */
   onSelectDefault?: () => void;
   onClose: () => void;
-  mode?: "chat" | "image_generation";
+  mode?: "chat" | "image_generation" | "audio_speech";
   /** Label shown for the default option, e.g. "Use default (Bedrock / Claude Sonnet)" */
   defaultLabel?: string;
   /** Whether the default option is currently selected */

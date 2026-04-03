@@ -4,11 +4,15 @@ import { invalidateModelCache } from "../orchestrator/model.js";
 import { getEnabledModels } from "./getEnabledModels.js";
 import { providers } from "./providers.js";
 
-type DefaultModelKey = "defaultModel" | "defaultImageModel";
+type DefaultModelKey =
+  | "defaultModel"
+  | "defaultImageModel"
+  | "defaultSpeechModel";
 
 const KEY_TO_MODEL_TYPE: Record<DefaultModelKey, string> = {
   defaultModel: "chat",
   defaultImageModel: "image",
+  defaultSpeechModel: "speech",
 };
 
 export async function setDefaultModel(

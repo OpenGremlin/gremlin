@@ -8,11 +8,15 @@ export interface DefaultModelResult {
   modelName?: string | null;
 }
 
-type DefaultModelKey = "defaultModel" | "defaultImageModel";
+type DefaultModelKey =
+  | "defaultModel"
+  | "defaultImageModel"
+  | "defaultSpeechModel";
 
 const KEY_TO_MODEL_TYPE: Record<DefaultModelKey, string> = {
   defaultModel: "chat",
   defaultImageModel: "image",
+  defaultSpeechModel: "speech",
 };
 
 export async function getDefaultModel(

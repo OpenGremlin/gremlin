@@ -1,6 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { router, useFocusEffect } from "expo-router";
-import { CircleCheck, MessageSquare, Paintbrush } from "lucide-react-native";
+import {
+  CircleCheck,
+  MessageSquare,
+  Mic,
+  Paintbrush,
+} from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
@@ -9,6 +14,7 @@ import {
   IntegrationProvidersQuery,
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
+  SetDefaultSpeechModelMutation,
 } from "../../../../src/graphql/queries";
 import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
@@ -24,6 +30,7 @@ import { SearchInput } from "../../../../src/shared/SearchInput";
 const MODE_ICON = {
   chat: MessageSquare,
   image_generation: Paintbrush,
+  audio_speech: Mic,
 } as const;
 
 export default function ModelsScreen() {
@@ -42,6 +49,7 @@ export default function ModelsScreen() {
   const providerList = providers.data?.integrationProviders ?? [];
   const defaultModel = providers.data?.defaultModel ?? null;
   const defaultImageModel = providers.data?.defaultImageModel ?? null;
+  const defaultSpeechModel = providers.data?.defaultSpeechModel ?? null;
   const enabledModels = allEnabled.data?.allEnabledModels ?? [];
 
   useFocusEffect(
@@ -111,6 +119,8 @@ export default function ModelsScreen() {
       const vars = { providerId, modelId };
       if (mode === "image_generation") {
         await execute(SetDefaultImageModelMutation, vars);
+      } else if (mode === "audio_speech") {
+        await execute(SetDefaultSpeechModelMutation, vars);
       } else {
         await execute(SetDefaultModelMutation, vars);
       }
@@ -157,6 +167,9 @@ export default function ModelsScreen() {
                         const isDefaultImage =
                           defaultImageModel?.providerId === model.providerId &&
                           defaultImageModel?.modelId === model.modelId;
+                        const isDefaultSpeech =
+                          defaultSpeechModel?.providerId === model.providerId &&
+                          defaultSpeechModel?.modelId === model.modelId;
                         return (
                           <Pressable
                             key={model.modelId}
@@ -182,7 +195,9 @@ export default function ModelsScreen() {
                             <Text className="text-sm text-text-primary">
                               {model.modelName ?? model.modelId}
                             </Text>
-                            {(isDefaultLLM || isDefaultImage) && (
+                            {(isDefaultLLM ||
+                              isDefaultImage ||
+                              isDefaultSpeech) && (
                               <Chip label="Default" className="ml-2" />
                             )}
                           </Pressable>
@@ -275,7 +290,10 @@ export default function ModelsScreen() {
           const isDefaultImage =
             defaultImageModel?.providerId === selectedModel.providerId &&
             defaultImageModel?.modelId === model.id;
-          const isDefault = isDefaultLLM || isDefaultImage;
+          const isDefaultSpeech =
+            defaultSpeechModel?.providerId === selectedModel.providerId &&
+            defaultSpeechModel?.modelId === model.id;
+          const isDefault = isDefaultLLM || isDefaultImage || isDefaultSpeech;
           if (isDefault) return null;
           return (
             <View className="gap-2">
@@ -296,7 +314,9 @@ export default function ModelsScreen() {
               >
                 {model.mode === "image_generation"
                   ? "Set as Default Image"
-                  : "Set as Default LLM"}
+                  : model.mode === "audio_speech"
+                    ? "Set as Default Speech"
+                    : "Set as Default LLM"}
               </Button>
             </View>
           );

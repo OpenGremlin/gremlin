@@ -25,6 +25,7 @@ type Agent = NonNullable<AgentQueryType["agent"]>;
 interface PlainConfig {
   model?: { type: string; modelId?: string; connectionId?: string };
   imageModel?: { type: string; modelId?: string; connectionId?: string };
+  speechModel?: { type: string; modelId?: string; connectionId?: string };
   sandbox?: {
     enabled: boolean;
     idleTimeoutMinutes?: number;
@@ -52,6 +53,13 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
           type: config.imageModel.type,
           modelId: config.imageModel.modelId ?? undefined,
           connectionId: config.imageModel.connectionId ?? undefined,
+        }
+      : undefined,
+    speechModel: config?.speechModel
+      ? {
+          type: config.speechModel.type,
+          modelId: config.speechModel.modelId ?? undefined,
+          connectionId: config.speechModel.connectionId ?? undefined,
         }
       : undefined,
     sandbox: config?.sandbox
@@ -147,6 +155,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const bedrockModels = bedrockAvailableData?.bedrockAvailableModels ?? [];
   const defaultModel = providersData?.defaultModel ?? null;
   const defaultImageModel = providersData?.defaultImageModel ?? null;
+  const defaultSpeechModel = providersData?.defaultSpeechModel ?? null;
   const webSearchProviders = providers.filter(
     (p) => p.category === "web" && p.hasConnection,
   );
@@ -158,6 +167,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [saving, setSaving] = useState(false);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
+  const [speechModelPickerOpen, setSpeechModelPickerOpen] = useState(false);
   const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
@@ -177,6 +187,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   // Whether using defaults
   const usingDefaultChatModel = !config.model;
   const usingDefaultImageModel = !config.imageModel;
+  const usingDefaultSpeechModel = !config.speechModel;
   const generateImagesEnabled = config.imageGeneration?.enabled ?? false;
 
   const updateConfig = useCallback(
@@ -237,6 +248,28 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     [config.imageModel, defaultImageModel],
   );
 
+  const effectiveSpeechModel = useMemo(
+    () =>
+      config.speechModel ??
+      (defaultSpeechModel
+        ? {
+            type:
+              defaultSpeechModel.providerId === "bedrock"
+                ? "bedrock"
+                : "connection",
+            modelId:
+              defaultSpeechModel.providerId === "bedrock"
+                ? defaultSpeechModel.modelId
+                : undefined,
+            connectionId:
+              defaultSpeechModel.providerId !== "bedrock"
+                ? `${defaultSpeechModel.providerId}:${defaultSpeechModel.modelId}`
+                : undefined,
+          }
+        : undefined),
+    [config.speechModel, defaultSpeechModel],
+  );
+
   // Fetch modalities for the selected model
   const configModel = effectiveChatModel;
   useEffect(() => {
@@ -279,6 +312,13 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     bedrockModels,
   );
 
+  const speechModelLabel = getModelLabel(
+    effectiveSpeechModel,
+    providersData,
+    allEnabled,
+    bedrockModels,
+  );
+
   const defaultChatModelLabel = defaultModel
     ? getModelLabel(
         {
@@ -313,6 +353,28 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           connectionId:
             defaultImageModel.providerId !== "bedrock"
               ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
+              : undefined,
+        },
+        providersData,
+        allEnabled,
+        bedrockModels,
+      )
+    : null;
+
+  const defaultSpeechModelLabel = defaultSpeechModel
+    ? getModelLabel(
+        {
+          type:
+            defaultSpeechModel.providerId === "bedrock"
+              ? "bedrock"
+              : "connection",
+          modelId:
+            defaultSpeechModel.providerId === "bedrock"
+              ? defaultSpeechModel.modelId
+              : undefined,
+          connectionId:
+            defaultSpeechModel.providerId !== "bedrock"
+              ? `${defaultSpeechModel.providerId}:${defaultSpeechModel.modelId}`
               : undefined,
         },
         providersData,
@@ -498,6 +560,52 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 </View>
               </>
             )}
+
+            {/* Speech Model */}
+            <View className="flex-row items-center justify-between mt-1 gap-3">
+              <View className="flex-1">
+                <Text className="text-sm text-text-secondary">
+                  Speech Model
+                </Text>
+                <Text className="text-xs text-text-muted">
+                  Text-to-speech for voice responses
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                onPress={() => setSpeechModelPickerOpen(true)}
+                className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+              >
+                <Text
+                  className={`text-sm ${!usingDefaultSpeechModel ? "text-text-primary" : "text-text-secondary"}`}
+                >
+                  {usingDefaultSpeechModel
+                    ? defaultSpeechModelLabel
+                      ? `Use default (${defaultSpeechModelLabel})`
+                      : "Use default"
+                    : speechModelLabel}
+                </Text>
+              </Pressable>
+              {!usingDefaultSpeechModel && (
+                <Pressable
+                  onPress={async () => {
+                    const ids = resolveModelIds(config.speechModel);
+                    if (!ids) return;
+                    const result = await execute(EnabledModelDetailsQuery, {
+                      providerId: ids.providerId,
+                    });
+                    const detail = result.enabledModelDetails.find(
+                      (d) => d.id === ids.modelId,
+                    );
+                    if (detail) setModelDetail(detail);
+                  }}
+                  className="p-2"
+                >
+                  <Info size={18} color={colors.iconDefault} />
+                </Pressable>
+              )}
+            </View>
           </View>
         </View>
       </Card>
@@ -781,6 +889,23 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           }
           isUsingDefault={usingDefaultImageModel}
           onClose={() => setImageModelPickerOpen(false)}
+        />
+      )}
+
+      {speechModelPickerOpen && (
+        <ModelPicker
+          model={config.speechModel}
+          providers={providers}
+          mode="audio_speech"
+          onSelect={(value) => updateConfig({ speechModel: value })}
+          onSelectDefault={() => updateConfig({ speechModel: undefined })}
+          defaultLabel={
+            defaultSpeechModelLabel
+              ? `Use default (${defaultSpeechModelLabel})`
+              : "Use default"
+          }
+          isUsingDefault={usingDefaultSpeechModel}
+          onClose={() => setSpeechModelPickerOpen(false)}
         />
       )}
 
