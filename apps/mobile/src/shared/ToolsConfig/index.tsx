@@ -35,6 +35,7 @@ interface PlainConfig {
   reasoning?: { enabled: boolean };
   viewImage?: { enabled: boolean };
   imageGeneration?: { enabled: boolean };
+  programs?: { enabled: boolean };
 }
 
 function toPlainConfig(config: Agent["config"]): PlainConfig {
@@ -75,6 +76,9 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
       : undefined,
     imageGeneration: config?.imageGeneration
       ? { enabled: config.imageGeneration.enabled }
+      : undefined,
+    programs: config?.programs
+      ? { enabled: config.programs.enabled }
       : undefined,
   };
 }
@@ -644,6 +648,26 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 {config.sandbox?.commandApproval === "ask" && (
                   <AllowlistConfig agentId={agent.id} />
                 )}
+
+                {/* Programs */}
+                <View className="flex-row items-center justify-between gap-3">
+                  <View className="flex-1">
+                    <Text className="text-sm text-text-secondary">
+                      Programs
+                    </Text>
+                    <Text className="text-xs text-text-muted">
+                      Build and run persistent scripts, databases, and
+                      automations
+                    </Text>
+                  </View>
+                  <Toggle
+                    enabled={config.programs?.enabled ?? true}
+                    onChange={() => {
+                      const wasEnabled = config.programs?.enabled ?? true;
+                      updateConfig({ programs: { enabled: !wasEnabled } });
+                    }}
+                  />
+                </View>
               </View>
             )}
           </View>

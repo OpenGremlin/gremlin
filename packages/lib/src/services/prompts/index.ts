@@ -53,6 +53,7 @@ interface AgentConfig {
   viewImage?: { enabled: boolean } | null;
   sandbox?: { enabled: boolean } | null;
   webSearch?: { enabled: boolean } | null;
+  programs?: { enabled: boolean } | null;
 }
 
 /**
@@ -71,6 +72,7 @@ export function resolvePromptFlags(
     viewImage: !!(config?.viewImage?.enabled && opts.modelSupportsImages),
     sandbox: !!config?.sandbox?.enabled,
     webSearch: !!config?.webSearch?.enabled,
+    programs: config?.programs?.enabled ?? !!config?.sandbox?.enabled,
     hasSkills: opts.hasSkills,
     hasPlan: opts.hasPlan ?? false,
   };

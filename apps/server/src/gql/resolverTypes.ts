@@ -59,6 +59,7 @@ export type AgentConfig = {
   imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
   model?: Maybe<AgentModelConfig>;
+  programs?: Maybe<AgentProgramsConfig>;
   reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
   viewImage?: Maybe<AgentViewImageConfig>;
@@ -69,6 +70,7 @@ export type AgentConfigInput = {
   imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
+  programs?: InputMaybe<AgentProgramsConfigInput>;
   reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
   viewImage?: InputMaybe<AgentViewImageConfigInput>;
@@ -156,6 +158,15 @@ export type AgentModelConfigInput = {
   connectionId?: InputMaybe<Scalars['String']['input']>;
   modelId?: InputMaybe<Scalars['String']['input']>;
   type: Scalars['String']['input'];
+};
+
+export type AgentProgramsConfig = {
+  __typename?: 'AgentProgramsConfig';
+  enabled: Scalars['Boolean']['output'];
+};
+
+export type AgentProgramsConfigInput = {
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type AgentReasoningConfig = {
@@ -1242,6 +1253,8 @@ export type ResolversTypes = {
   AgentLogRole: AgentLogRole;
   AgentModelConfig: ResolverTypeWrapper<AgentModelConfig>;
   AgentModelConfigInput: AgentModelConfigInput;
+  AgentProgramsConfig: ResolverTypeWrapper<AgentProgramsConfig>;
+  AgentProgramsConfigInput: AgentProgramsConfigInput;
   AgentReasoningConfig: ResolverTypeWrapper<AgentReasoningConfig>;
   AgentReasoningConfigInput: AgentReasoningConfigInput;
   AgentSandboxConfig: ResolverTypeWrapper<AgentSandboxConfig>;
@@ -1334,6 +1347,8 @@ export type ResolversParentTypes = {
   AgentLogPageInfo: PageInfoModel;
   AgentModelConfig: AgentModelConfig;
   AgentModelConfigInput: AgentModelConfigInput;
+  AgentProgramsConfig: AgentProgramsConfig;
+  AgentProgramsConfigInput: AgentProgramsConfigInput;
   AgentReasoningConfig: AgentReasoningConfig;
   AgentReasoningConfigInput: AgentReasoningConfigInput;
   AgentSandboxConfig: AgentSandboxConfig;
@@ -1425,6 +1440,7 @@ export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extend
   imageGeneration?: Resolver<Maybe<ResolversTypes['AgentImageGenerationConfig']>, ParentType, ContextType>;
   imageModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
+  programs?: Resolver<Maybe<ResolversTypes['AgentProgramsConfig']>, ParentType, ContextType>;
   reasoning?: Resolver<Maybe<ResolversTypes['AgentReasoningConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
   viewImage?: Resolver<Maybe<ResolversTypes['AgentViewImageConfig']>, ParentType, ContextType>;
@@ -1486,6 +1502,10 @@ export type AgentModelConfigResolvers<ContextType = GremlinContext, ParentType e
   connectionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modelId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AgentProgramsConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentProgramsConfig'] = ResolversParentTypes['AgentProgramsConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type AgentReasoningConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentReasoningConfig'] = ResolversParentTypes['AgentReasoningConfig']> = {
@@ -1975,6 +1995,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
+  AgentProgramsConfig?: AgentProgramsConfigResolvers<ContextType>;
   AgentReasoningConfig?: AgentReasoningConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;
   AgentSkill?: AgentSkillResolvers<ContextType>;

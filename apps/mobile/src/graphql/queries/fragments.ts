@@ -90,6 +90,9 @@ export const AgentDetailFragment = graphql(`
       imageGeneration {
         enabled
       }
+      programs {
+        enabled
+      }
     }
   }
 `);

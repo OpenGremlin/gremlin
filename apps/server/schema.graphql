@@ -392,6 +392,10 @@ type AgentImageGenerationConfig {
   enabled: Boolean!
 }
 
+type AgentProgramsConfig {
+  enabled: Boolean!
+}
+
 type AgentConfig {
   model: AgentModelConfig
   imageModel: AgentModelConfig
@@ -400,6 +404,7 @@ type AgentConfig {
   reasoning: AgentReasoningConfig
   viewImage: AgentViewImageConfig
   imageGeneration: AgentImageGenerationConfig
+  programs: AgentProgramsConfig
 }
 
 type Agent {
@@ -445,6 +450,10 @@ input AgentImageGenerationConfigInput {
   enabled: Boolean!
 }
 
+input AgentProgramsConfigInput {
+  enabled: Boolean!
+}
+
 input AgentConfigInput {
   model: AgentModelConfigInput
   imageModel: AgentModelConfigInput
@@ -453,6 +462,7 @@ input AgentConfigInput {
   reasoning: AgentReasoningConfigInput
   viewImage: AgentViewImageConfigInput
   imageGeneration: AgentImageGenerationConfigInput
+  programs: AgentProgramsConfigInput
 }
 
 input UpdateAgentInput {
