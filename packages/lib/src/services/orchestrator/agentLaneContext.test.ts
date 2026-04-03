@@ -219,6 +219,8 @@ describe("buildTaskTools", () => {
     expect(tools).toHaveProperty("writeFile");
     expect(tools).toHaveProperty("editFile");
     expect(tools).toHaveProperty("listFiles");
+    expect(tools).toHaveProperty("glob");
+    expect(tools).toHaveProperty("grep");
     expect(tools).toHaveProperty("saveMemory");
     expect(tools).toHaveProperty("recallMemory");
     expect(tools).toHaveProperty("listJobs");

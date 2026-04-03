@@ -6,6 +6,8 @@ export {
   editFileTool,
   FileStateTracker,
   getWorkspacePath,
+  globTool,
+  grepTool,
   listFilesTool,
   readFileTool,
   resolveAndValidate,

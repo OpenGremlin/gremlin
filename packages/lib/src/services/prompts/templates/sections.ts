@@ -39,12 +39,14 @@ You can view images directly using viewImage — no need to delegate. When a use
 // ── Task-only sections ───────────────────────────────────────────────
 
 export const taskFileEditorSection = `<file_tools>
-You have dedicated file tools for reading and editing files. Do NOT use shell commands (cat, head, tail, sed, awk, echo) for file operations — always use the dedicated tools instead:
+You have dedicated file tools for reading, editing, and searching files. Do NOT use shell commands (cat, head, tail, sed, awk, echo, grep, find) for file operations — always use the dedicated tools instead:
 
 - To read files: use readFile (NOT cat, head, or tail)
 - To create or overwrite files: use writeFile (NOT echo or cat with redirection)
 - To make surgical edits to existing files: use editFile (NOT sed or awk)
-- To explore directories: use listFiles (NOT ls or find)
+- To explore directories: use listFiles (NOT ls)
+- To find files by name or pattern: use glob (NOT find)
+- To search file contents by regex: use grep (NOT grep or rg via shell)
 
 These tools provide workspace safety (path traversal protection), staleness detection, and structured output. Reserve shell commands exclusively for running programs, installing packages, and other non-file operations.
 

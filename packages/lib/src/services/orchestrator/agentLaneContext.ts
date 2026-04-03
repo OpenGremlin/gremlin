@@ -10,6 +10,8 @@ import {
   createTavilySearchTool,
   editFileTool,
   FileStateTracker,
+  globTool,
+  grepTool,
   listFilesTool,
   listJobsTool,
   postToMainLaneTool,
@@ -180,8 +182,8 @@ export function buildTaskTools(
 }
 
 /**
- * Build the file editor tool set (read, write, edit, list) with a shared
- * FileStateTracker so that staleness detection works across tools.
+ * Build the file editor tool set (read, write, edit, list, glob, grep) with a
+ * shared FileStateTracker so that staleness detection works across tools.
  */
 function buildFileEditorTools(ctx: ServiceContext, taskId: string) {
   const tracker = new FileStateTracker();
@@ -190,5 +192,7 @@ function buildFileEditorTools(ctx: ServiceContext, taskId: string) {
     writeFile: writeFileTool(ctx, tracker, taskId),
     editFile: editFileTool(ctx, tracker),
     listFiles: listFilesTool(),
+    glob: globTool(),
+    grep: grepTool(),
   };
 }

@@ -212,7 +212,10 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("editFile");
     expect(result).toContain("writeFile");
     expect(result).toContain("listFiles");
+    expect(result).toContain("glob");
+    expect(result).toContain("grep");
     expect(result).toContain("NOT cat");
     expect(result).toContain("NOT sed");
+    expect(result).toContain("NOT find");
   });
 });
