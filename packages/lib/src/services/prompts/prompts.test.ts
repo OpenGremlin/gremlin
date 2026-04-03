@@ -148,13 +148,13 @@ describe("renderSystemPrompt", () => {
       hasSkills: true,
     });
     expect(result).toContain(
-      "document creation, web search, a sandbox (Linux VM), skills",
+      "file editing, web search, a sandbox (Linux VM), skills",
     );
   });
 
-  it("lists only document creation when nothing else enabled", () => {
+  it("lists only file editing when nothing else enabled", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("**document creation**");
+    expect(result).toContain("**file editing**");
   });
 
   it("includes userAbout when provided", () => {
@@ -203,5 +203,16 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("updateTaskMessage");
     expect(result).toContain("saveMemory");
     expect(result).toContain("<jobs>");
+  });
+
+  it("always includes file editor guidance", () => {
+    const result = renderTaskSystemPrompt(taskData, allOff);
+    expect(result).toContain("<file_tools>");
+    expect(result).toContain("readFile");
+    expect(result).toContain("editFile");
+    expect(result).toContain("writeFile");
+    expect(result).toContain("listFiles");
+    expect(result).toContain("NOT cat");
+    expect(result).toContain("NOT sed");
   });
 });

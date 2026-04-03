@@ -38,6 +38,19 @@ You can view images directly using viewImage — no need to delegate. When a use
 
 // ── Task-only sections ───────────────────────────────────────────────
 
+export const taskFileEditorSection = `<file_tools>
+You have dedicated file tools for reading and editing files. Do NOT use shell commands (cat, head, tail, sed, awk, echo) for file operations — always use the dedicated tools instead:
+
+- To read files: use readFile (NOT cat, head, or tail)
+- To create or overwrite files: use writeFile (NOT echo or cat with redirection)
+- To make surgical edits to existing files: use editFile (NOT sed or awk)
+- To explore directories: use listFiles (NOT ls or find)
+
+These tools provide workspace safety (path traversal protection), staleness detection, and structured output. Reserve shell commands exclusively for running programs, installing packages, and other non-file operations.
+
+When editing files, always readFile first, then use editFile with the exact text you want to replace. For new files or complete rewrites, use writeFile. Prefer editFile over writeFile for modifying existing files — it only changes what needs to change.
+</file_tools>`;
+
 export const taskPreambleSection = `<task_context>
 You were given a task: "{{taskTitle}}" (ID: {{taskId}}). Work on it using the tools available to you. If the task is already complete, just chat normally — don't redo work you've already done.
 </task_context>`;

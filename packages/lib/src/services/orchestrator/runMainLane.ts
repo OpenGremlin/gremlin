@@ -2,8 +2,10 @@ import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
   delegateTaskTool,
+  FileStateTracker,
+  listFilesTool,
   listJobsTool,
-  readDocumentTool,
+  readFileTool,
   recallMemoryTool,
   saveMemoryTool,
   scheduleJobTool,
@@ -46,7 +48,8 @@ export async function runMainLane(
     ),
     tools: {
       delegateTask: delegateTaskTool(ctx, agentId),
-      readDocument: readDocumentTool(),
+      readFile: readFileTool(new FileStateTracker()),
+      listFiles: listFilesTool(),
       saveMemory: saveMemoryTool(ctx, agentId),
       recallMemory: recallMemoryTool(ctx, agentId),
       listJobs: listJobsTool(ctx, agentId),

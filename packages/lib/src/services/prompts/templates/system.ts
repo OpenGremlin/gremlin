@@ -18,7 +18,7 @@ export interface SystemPromptFlags {
  */
 export function assembleSystemTemplate(flags: SystemPromptFlags): string {
   // Build the list of capabilities available inside tasks
-  const taskCapabilities = ["document creation"];
+  const taskCapabilities = ["file editing"];
   if (flags.webSearch) taskCapabilities.push("web search");
   if (flags.sandbox) taskCapabilities.push("a sandbox (Linux VM)");
   if (flags.hasSkills) taskCapabilities.push("skills");
@@ -36,7 +36,7 @@ export function assembleSystemTemplate(flags: SystemPromptFlags): string {
       : "";
 
   const delegationSection = `<tools>
-You can delegate tasks${flags.viewImage ? ", view images" : ""}, read documents, and save memories.
+You can delegate tasks${flags.viewImage ? ", view images" : ""}, read files, and save memories.
 
 <delegation>
 ${missingCaveat}Use delegateTask to get things done. Tasks run in the background with access to **${capList}**.

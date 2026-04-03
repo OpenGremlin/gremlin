@@ -3,15 +3,14 @@ export { attachLinkTool } from "./attachLink.js";
 export { createBraveSearchTool } from "./braveSearch.js";
 export { delegateTaskTool } from "./delegateTask.js";
 export {
-  createDocumentTool,
-  formatWithFrontmatter,
+  editFileTool,
+  FileStateTracker,
   getWorkspacePath,
-  parseFrontmatter,
-  readDocumentTool,
-  slugify,
-  uniqueFilePath,
-  updateDocumentTool,
-} from "./documents.js";
+  listFilesTool,
+  readFileTool,
+  resolveAndValidate,
+  writeFileTool,
+} from "./fileEditor/index.js";
 export {
   listJobsTool,
   scheduleJobTool,

@@ -6,8 +6,10 @@ import {
 } from "../../../services/prompts/index.js";
 import {
   delegateTaskTool,
+  FileStateTracker,
+  listFilesTool,
   listJobsTool,
-  readDocumentTool,
+  readFileTool,
   recallMemoryTool,
   saveMemoryTool,
   scheduleJobTool,
@@ -37,7 +39,8 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
 
   const tools: Record<string, any> = {
     delegateTask: delegateTaskTool(ctx, agentId),
-    readDocument: readDocumentTool(),
+    readFile: readFileTool(new FileStateTracker()),
+    listFiles: listFilesTool(),
     saveMemory: saveMemoryTool(ctx, agentId),
     recallMemory: recallMemoryTool(ctx, agentId),
     listJobs: listJobsTool(ctx, agentId),

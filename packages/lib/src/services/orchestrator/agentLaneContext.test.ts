@@ -215,8 +215,10 @@ describe("buildTaskTools", () => {
 
     expect(tools).toHaveProperty("updateTaskMessage");
     expect(tools).toHaveProperty("postToMainLane");
-    expect(tools).toHaveProperty("createDocument");
-    expect(tools).toHaveProperty("updateDocument");
+    expect(tools).toHaveProperty("readFile");
+    expect(tools).toHaveProperty("writeFile");
+    expect(tools).toHaveProperty("editFile");
+    expect(tools).toHaveProperty("listFiles");
     expect(tools).toHaveProperty("saveMemory");
     expect(tools).toHaveProperty("recallMemory");
     expect(tools).toHaveProperty("listJobs");

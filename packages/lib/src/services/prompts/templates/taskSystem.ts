@@ -3,6 +3,7 @@ import {
   jobsSection,
   memorySection,
   taskChatSection,
+  taskFileEditorSection,
   taskPlanSection,
   taskPreambleSection,
   taskSandboxSection,
@@ -26,6 +27,7 @@ export function assembleTaskSystemTemplate(
   const sections = [
     identitySection,
     taskPreambleSection,
+    taskFileEditorSection,
     taskToolGuidanceSection,
   ];
 

@@ -7,18 +7,21 @@ import {
   attachFileTool,
   attachLinkTool,
   createBraveSearchTool,
-  createDocumentTool,
   createTavilySearchTool,
+  editFileTool,
+  FileStateTracker,
+  listFilesTool,
   listJobsTool,
   postToMainLaneTool,
+  readFileTool,
   recallMemoryTool,
   saveMemoryTool,
   scheduleJobTool,
-  updateDocumentTool,
   updateJobTool,
   updateTaskMessageTool,
   viewImageTool,
   webFetch,
+  writeFileTool,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
@@ -147,8 +150,7 @@ export function buildTaskTools(
       : {}),
     updateTaskMessage: updateTaskMessageTool(ctx, taskId),
     postToMainLane: postToMainLaneTool(ctx, taskId),
-    createDocument: createDocumentTool(ctx, taskId),
-    updateDocument: updateDocumentTool(ctx),
+    ...buildFileEditorTools(ctx, taskId),
     attachFile: attachFileTool(ctx, taskId),
     attachLink: attachLinkTool(ctx, taskId),
     saveMemory: saveMemoryTool(ctx, agentId),
@@ -175,4 +177,18 @@ export function buildTaskTools(
   };
 
   return tools;
+}
+
+/**
+ * Build the file editor tool set (read, write, edit, list) with a shared
+ * FileStateTracker so that staleness detection works across tools.
+ */
+function buildFileEditorTools(ctx: ServiceContext, taskId: string) {
+  const tracker = new FileStateTracker();
+  return {
+    readFile: readFileTool(tracker),
+    writeFile: writeFileTool(ctx, tracker, taskId),
+    editFile: editFileTool(ctx, tracker),
+    listFiles: listFilesTool(),
+  };
 }

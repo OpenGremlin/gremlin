@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
-import { getWorkspacePath } from "./documents.js";
+import { getWorkspacePath } from "./fileEditor/index.js";
 
 export function attachFileTool(ctx: ServiceContext, taskId: string) {
   return tool({
