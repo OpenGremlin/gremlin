@@ -30,8 +30,12 @@ export async function loadServerConfig(): Promise<ServerConfig | null> {
     storage.getItem(COGNITO_DOMAIN_KEY),
     storage.getItem(COGNITO_CLIENT_ID_KEY),
   ]);
-  if (serverUrl && cognitoDomain && cognitoClientId) {
-    _serverConfig = { serverUrl, cognitoDomain, cognitoClientId };
+  if (serverUrl) {
+    _serverConfig = {
+      serverUrl,
+      cognitoDomain: cognitoDomain ?? "",
+      cognitoClientId: cognitoClientId ?? "",
+    };
     return _serverConfig;
   }
   return null;
