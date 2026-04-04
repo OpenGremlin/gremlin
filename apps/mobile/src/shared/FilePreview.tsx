@@ -1,6 +1,7 @@
 import { ScrollView, Text, View } from "react-native";
 import type { AgentLogsQuery, FileQuery } from "../graphql/generated/graphql";
 import { Markdown } from "./LogEntryView/Markdown";
+import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
 import { ZoomableImage } from "./ZoomableImage";
 
 export type FileNode =
@@ -71,21 +72,28 @@ export function FilePreview({
     );
   }
 
-  if (
-    render.__typename === "AudioRender" ||
-    render.__typename === "VideoRender"
-  ) {
+  if (render.__typename === "AudioRender") {
+    if (render.url) {
+      return <AudioPlayer url={render.url} />;
+    }
     return (
       <View className="flex-1 items-center justify-center bg-bg p-6">
         <Text className="text-text-muted text-sm">
-          {render.__typename === "AudioRender" ? "Audio" : "Video"} preview not
-          yet available
+          Audio preview not available
         </Text>
-        {render.durationSeconds != null && (
-          <Text className="text-text-muted text-xs mt-1">
-            {Math.round(render.durationSeconds)}s
-          </Text>
-        )}
+      </View>
+    );
+  }
+
+  if (render.__typename === "VideoRender") {
+    if (render.url) {
+      return <VideoPlayer url={render.url} />;
+    }
+    return (
+      <View className="flex-1 items-center justify-center bg-bg p-6">
+        <Text className="text-text-muted text-sm">
+          Video preview not available
+        </Text>
       </View>
     );
   }

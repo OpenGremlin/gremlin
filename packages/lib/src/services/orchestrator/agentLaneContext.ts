@@ -11,6 +11,7 @@ import {
   editFileTool,
   FileStateTracker,
   generateImageTool,
+  generateSpeechTool,
   globTool,
   grepTool,
   listFilesTool,
@@ -27,7 +28,7 @@ import {
   writeFileTool,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
-import { getImageModelFromConfig } from "./model.js";
+import { getImageModelFromConfig, getSpeechModelFromConfig } from "./model.js";
 import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
 
 /**
@@ -44,6 +45,8 @@ export interface AgentLaneContext {
   modelSupportsImages: boolean;
   modelSupportsReasoning: boolean;
   imageModel: import("ai").ImageModel | null;
+  speechModel: import("ai").SpeechModel | null;
+  speechVoice: string | undefined;
 }
 
 /**
@@ -99,7 +102,7 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
-  const [skillSummary, skillTools, modelCapabilities, imageModel] =
+  const [skillSummary, skillTools, modelCapabilities, imageModel, speechModel] =
     await Promise.all([
       buildSkillSummary(ctx, agentId).catch((err) => {
         ctx.log.error(
@@ -127,6 +130,17 @@ export async function buildAgentLaneContext(
             },
           )
         : Promise.resolve(null),
+      agent.config?.speech?.enabled
+        ? getSpeechModelFromConfig(ctx, agent.config?.speechModel).catch(
+            (err) => {
+              ctx.log.warn(
+                { err, component: "speechModel" },
+                "Failed to resolve speech model",
+              );
+              return null;
+            },
+          )
+        : Promise.resolve(null),
     ]);
 
   return {
@@ -139,6 +153,8 @@ export async function buildAgentLaneContext(
     modelSupportsImages: modelCapabilities.supportsImages,
     modelSupportsReasoning: modelCapabilities.supportsReasoning,
     imageModel,
+    speechModel,
+    speechVoice: agent.config?.speech?.voice ?? agent.ttsVoice,
   };
 }
 
@@ -184,6 +200,16 @@ export function buildTaskTools(
           generateImage: generateImageTool(
             ctx,
             agentLaneCtx.imageModel,
+            taskId,
+          ),
+        }
+      : {}),
+    ...(agentLaneCtx.speechModel
+      ? {
+          generateSpeech: generateSpeechTool(
+            ctx,
+            agentLaneCtx.speechModel,
+            agentLaneCtx.speechVoice,
             taskId,
           ),
         }

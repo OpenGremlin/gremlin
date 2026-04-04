@@ -135,16 +135,52 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
         .set("Cache-Control", "public, max-age=3600")
         .send(buffer);
     } else {
-      res
-        .status(200)
-        .set("Content-Type", mime)
-        .set("Cache-Control", "public, max-age=3600");
-      const stream = await fs.open(resolved, "r");
-      const readStream = stream.createReadStream();
-      readStream.pipe(res);
-      readStream.on("error", () => {
-        res.status(500).set("Cache-Control", "no-store").end();
-      });
+      const fileSize = stat.size;
+      const rangeHeader = req.headers.range;
+
+      res.set("Content-Type", mime);
+      res.set("Cache-Control", "public, max-age=3600");
+      res.set("Accept-Ranges", "bytes");
+
+      if (rangeHeader) {
+        const match = rangeHeader.match(/bytes=(\d*)-(\d*)/);
+        let start: number;
+        let end: number;
+        if (match?.[1]) {
+          start = Number.parseInt(match[1], 10);
+          end = match[2] ? Number.parseInt(match[2], 10) : fileSize - 1;
+        } else {
+          // Suffix range: bytes=-500 means last 500 bytes
+          const suffix = match?.[2] ? Number.parseInt(match[2], 10) : fileSize;
+          start = Math.max(0, fileSize - suffix);
+          end = fileSize - 1;
+        }
+
+        if (start >= fileSize || end >= fileSize || start > end) {
+          res.status(416).set("Content-Range", `bytes */${fileSize}`).end();
+          return;
+        }
+
+        res
+          .status(206)
+          .set("Content-Range", `bytes ${start}-${end}/${fileSize}`)
+          .set("Content-Length", String(end - start + 1));
+
+        const handle = await fs.open(resolved, "r");
+        const readStream = handle.createReadStream({ start, end });
+        readStream.pipe(res);
+        readStream.on("error", () => {
+          res.status(500).set("Cache-Control", "no-store").end();
+        });
+      } else {
+        res.status(200).set("Content-Length", String(fileSize));
+        const handle = await fs.open(resolved, "r");
+        const readStream = handle.createReadStream();
+        readStream.pipe(res);
+        readStream.on("error", () => {
+          res.status(500).set("Cache-Control", "no-store").end();
+        });
+      }
     }
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") {

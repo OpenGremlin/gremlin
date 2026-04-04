@@ -12,7 +12,7 @@ import { createPerplexity } from "@ai-sdk/perplexity";
 import { createTogetherAI } from "@ai-sdk/togetherai";
 import { createXai } from "@ai-sdk/xai";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
-import type { ImageModel, LanguageModel } from "ai";
+import type { ImageModel, LanguageModel, SpeechModel } from "ai";
 import { createMinimax } from "vercel-minimax-ai-provider";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
@@ -349,6 +349,92 @@ export async function getImageModelFromConfig(
     log.warn(
       { error: (err as Error).message },
       "Failed to resolve default image model",
+    );
+    return null;
+  }
+}
+
+// ── Speech model resolution ─────────────────────────────────────────
+
+function createProviderSpeechModel(
+  providerId: string,
+  modelId: string,
+  apiKey: string,
+): SpeechModel {
+  switch (providerId) {
+    case "openai": {
+      const openai = createOpenAI({ apiKey });
+      return openai.speech(modelId);
+    }
+    default:
+      throw new Error(
+        `Speech generation not supported for provider: ${providerId}`,
+      );
+  }
+}
+
+/**
+ * Resolve the speech model from an agent's config.
+ * Returns null if no speech model is configured or available.
+ */
+export async function getSpeechModelFromConfig(
+  ctx: ServiceContext,
+  speechModelConfig:
+    | { type: string; modelId?: string; connectionId?: string }
+    | undefined
+    | null,
+): Promise<SpeechModel | null> {
+  // Try agent-specific speech model
+  if (speechModelConfig) {
+    try {
+      if (
+        speechModelConfig.type === "connection" &&
+        speechModelConfig.connectionId
+      ) {
+        const [providerId, modelId] = speechModelConfig.connectionId.split(
+          ":",
+          2,
+        );
+        if (providerId && modelId) {
+          const apiKey = await ctx.services.integrations.getProviderApiKey(
+            ctx.resources,
+            providerId,
+          );
+          if (apiKey) {
+            return createProviderSpeechModel(providerId, modelId, apiKey);
+          }
+        }
+      }
+    } catch (err) {
+      log.warn(
+        { error: (err as Error).message },
+        "Failed to resolve agent speech model, trying default",
+      );
+    }
+  }
+
+  // Fall back to default speech model
+  const defaultSpeechModel = await ctx.services.integrations.getDefaultModel(
+    ctx,
+    "defaultSpeechModel",
+  );
+  if (!defaultSpeechModel) return null;
+
+  try {
+    const apiKey = await ctx.services.integrations.getProviderApiKey(
+      ctx.resources,
+      defaultSpeechModel.providerId,
+    );
+    if (!apiKey) return null;
+    return createProviderSpeechModel(
+      defaultSpeechModel.providerId,
+      defaultSpeechModel.modelId,
+      apiKey,
+    );
+  } catch (err) {
+    log.warn(
+      { error: (err as Error).message },
+      "Failed to resolve default speech model",
     );
     return null;
   }

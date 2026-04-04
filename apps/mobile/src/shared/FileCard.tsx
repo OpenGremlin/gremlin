@@ -52,7 +52,9 @@ export function FileCard({ file }: { file: FileNode }) {
   const canPreview =
     file.render.__typename === "DocumentRender" ||
     file.render.__typename === "CodeRender" ||
-    file.render.__typename === "ImageRender";
+    file.render.__typename === "ImageRender" ||
+    file.render.__typename === "AudioRender" ||
+    file.render.__typename === "VideoRender";
   const isDocument = file.render.__typename === "DocumentRender";
   const displayTitle =
     isDocument && "title" in file.render
