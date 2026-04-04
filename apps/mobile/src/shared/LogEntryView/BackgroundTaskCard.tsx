@@ -5,7 +5,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { useTheme } from "../../lib/ThemeContext";
 
-export function DelegateTaskCard({
+export function BackgroundTaskCard({
   agentId,
   taskId,
   taskTitle,

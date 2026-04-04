@@ -2005,7 +2005,7 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, createDocument?: any, delegateTask?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, postToMainLane?: any, readDocument?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateDocument?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
+export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, createDocument?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, postToMainLane?: any, readDocument?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateDocument?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
 
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

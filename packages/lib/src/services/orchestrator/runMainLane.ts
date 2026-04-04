@@ -1,7 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
-  delegateTaskTool,
+  backgroundTaskTool,
   FileStateTracker,
   listFilesTool,
   listJobsTool,
@@ -47,7 +47,7 @@ export async function runMainLane(
       flags,
     ),
     tools: {
-      delegateTask: delegateTaskTool(ctx, agentId),
+      backgroundTask: backgroundTaskTool(ctx, agentId),
       readFile: readFileTool(new FileStateTracker()),
       listFiles: listFilesTool(),
       saveMemory: saveMemoryTool(ctx, agentId),

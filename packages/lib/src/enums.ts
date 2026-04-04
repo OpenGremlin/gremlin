@@ -19,7 +19,7 @@ export enum ToolName {
   // Task & messaging
   UpdateTaskMessage = "updateTaskMessage",
   PostToMainLane = "postToMainLane",
-  DelegateTask = "delegateTask",
+  BackgroundTask = "backgroundTask",
   RequestUserInput = "requestUserInput",
 
   // File editor

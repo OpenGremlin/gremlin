@@ -27,9 +27,9 @@ import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { FileCard } from "../FileCard";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
+import { BackgroundTaskCard } from "./BackgroundTaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
 import { CreateDocumentCard } from "./CreateDocumentCard";
-import { DelegateTaskCard } from "./DelegateTaskCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
@@ -341,9 +341,9 @@ function renderToolCall(
       );
     }
 
-    case ToolName.DelegateTask:
+    case ToolName.BackgroundTask:
       return (
-        <DelegateTaskCard
+        <BackgroundTaskCard
           agentId={agentId}
           taskId={(tool.result?.taskId as string) ?? null}
           taskTitle={(tool.input?.title as string) ?? "Untitled task"}
@@ -497,6 +497,17 @@ function renderToolCall(
         />
       );
     }
+
+    // File editor tools — show as generic tool blocks
+    case ToolName.ReadFile:
+    case ToolName.WriteFile:
+    case ToolName.EditFile:
+    case ToolName.ListFiles:
+    case ToolName.Glob:
+    case ToolName.Grep:
+    case ToolName.GenerateImage:
+    case ToolName.GenerateSpeech:
+      return null;
 
     default:
       return assertNever(toolName);

@@ -142,29 +142,24 @@ describe("renderSystemPrompt", () => {
     expect(result).toContain("viewImage");
   });
 
-  it("omits missing-capabilities caveat when nothing is task-only", () => {
+  it("uses backgroundTask framing instead of delegateTask", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).not.toContain("You do NOT have");
+    expect(result).toContain("backgroundTask");
+    expect(result).not.toContain("delegateTask");
   });
 
-  it("includes web search caveat when webSearch enabled", () => {
-    const result = renderSystemPrompt(baseData, { ...allOff, webSearch: true });
-    expect(result).toContain("You do NOT have web search");
-    expect(result).toContain("web search");
-  });
-
-  it("includes shell access caveat when sandbox enabled", () => {
-    const result = renderSystemPrompt(baseData, { ...allOff, sandbox: true });
-    expect(result).toContain("shell access");
-  });
-
-  it("lists both caveats when both enabled", () => {
+  it("includes the clear backgrounding rule", () => {
     const result = renderSystemPrompt(baseData, {
       ...allOff,
-      webSearch: true,
       sandbox: true,
     });
-    expect(result).toContain("web search or shell access");
+    expect(result).toContain("answer directly");
+    expect(result).toContain("background it");
+  });
+
+  it("mentions conversation inheritance", () => {
+    const result = renderSystemPrompt(baseData, allOff);
+    expect(result).toContain("inherits the conversation");
   });
 
   it("builds dynamic task capabilities list", () => {

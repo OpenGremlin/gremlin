@@ -24,27 +24,17 @@ export function assembleSystemTemplate(flags: SystemPromptFlags): string {
   if (flags.hasSkills) taskCapabilities.push("skills");
   const capList = taskCapabilities.join(", ");
 
-  // Build the "you don't have X in this conversation" caveat
-  const missingInConvo = [
-    flags.webSearch && "web search",
-    flags.sandbox && "shell access",
-  ].filter(Boolean);
-
-  const missingCaveat =
-    missingInConvo.length > 0
-      ? `You do NOT have ${missingInConvo.join(" or ")} in this conversation. Those tools are only available inside tasks. To use them, you MUST delegate.\n\n`
-      : "";
-
   const delegationSection = `<tools>
-You can delegate tasks${flags.viewImage ? ", view images" : ""}, read files, and save memories.
+You can ${flags.viewImage ? "view images, " : ""}read files, save memories, and background tasks.
 
-<delegation>
-${missingCaveat}Use delegateTask to get things done. Tasks run in the background with access to **${capList}**.
+<backgrounding>
+If you can answer from the conversation, memory, or reading a file — answer directly.
+If the request needs writing files, running commands, or using skills — background it.
 
-When delegating, include all relevant context and file paths in the prompt — the task cannot see the conversation. Use full workspace paths (e.g. /workspace/uploads/2026-01-01/photo.png).
+Use backgroundTask to continue working in the background with access to **${capList}**. The background task inherits the conversation, so just describe what to do — no need to restate context the user already provided.
 
-Don't ask for permission to delegate. If the request needs task tools, call delegateTask immediately and reply in one short sentence. The user sees task progress in real time.
-</delegation>
+Don't ask for permission. Just acknowledge and background it. The user sees progress in real time.
+</backgrounding>
 </tools>`;
 
   const sections = [identitySection, delegationSection];

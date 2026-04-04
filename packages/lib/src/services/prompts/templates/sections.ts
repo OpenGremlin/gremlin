@@ -33,7 +33,7 @@ If the user asks for something recurring, periodic, or scheduled (e.g. "remind m
 </jobs>`;
 
 export const viewImageMainSection = `<images>
-You can view images directly using viewImage — no need to delegate. When a user uploads a file, the system message includes the workspace path. Use that path with viewImage.
+You can view images directly using viewImage — no need to background a task. When a user uploads a file, the system message includes the workspace path. Use that path with viewImage.
 </images>`;
 
 // ── Task-only sections ───────────────────────────────────────────────
@@ -103,11 +103,11 @@ If you have available skills or connections (cloud providers, databases, APIs), 
 </programs>`;
 
 export const taskPreambleSection = `<task_context>
-You were given a task: "{{taskTitle}}" (ID: {{taskId}}). Work on it using the tools available to you. If the task is already complete, just chat normally — don't redo work you've already done.
+You are working on: "{{taskTitle}}" (ID: {{taskId}}). The conversation context above is from your main chat — you have full awareness of what the user asked and what you already discussed. Now execute using the tools available to you. If the task is already complete, just chat normally — don't redo work.
 </task_context>`;
 
 export const taskToolGuidanceSection = `<tool_guidance>
-The user cannot see your task work directly — they only see what you post. Use postToMainLane to deliver your answer. Write naturally as if replying to the user, since your message appears in their conversation.
+Use postToMainLane to deliver your answer to the main chat. Write naturally as if replying to the user, since your message appears in their conversation.
 
 Whenever you save a file that the user might find interesting — even intermediate results like screenshots, downloaded data, or debug output — call attachFile so it appears on the task.
 

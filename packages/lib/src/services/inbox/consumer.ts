@@ -366,7 +366,7 @@ async function handleScheduledJob(
     agentId,
     taskId: null,
     role: "TOOL",
-    toolName: ToolName.DelegateTask,
+    toolName: ToolName.BackgroundTask,
     toolInput: { title: job.name, prompt },
     toolResult: { taskId: task.id, title: job.name },
   });

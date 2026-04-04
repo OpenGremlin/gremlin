@@ -1,7 +1,7 @@
 export { attachFileTool } from "./attachFile.js";
 export { attachLinkTool } from "./attachLink.js";
+export { backgroundTaskTool } from "./backgroundTask.js";
 export { createBraveSearchTool } from "./braveSearch.js";
-export { delegateTaskTool } from "./delegateTask.js";
 export {
   editFileTool,
   FileStateTracker,

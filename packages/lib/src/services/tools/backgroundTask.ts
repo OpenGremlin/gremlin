@@ -2,20 +2,25 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
 
-export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
+export function backgroundTaskTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
-      "Delegate work to a background task. The task runs asynchronously with access to a sandbox shell, MCP skills, and document tools. Use for: sandbox/shell work, bulk file processing, multi-step workflows, or anything requiring skills. Include all relevant context and file paths in the prompt — the task cannot see the conversation history.",
+      "Continue working on a request in the background with access to tools " +
+      "(file editing, sandbox, web search, skills). The task inherits the " +
+      "conversation context automatically — just describe what to do.",
     inputSchema: z.object({
       title: z
         .string()
         .describe(
-          'Short title for the task. Start with a verb and only uppercase the beginning, like a commit message (e.g. "Write a space cat story", "Research competitor pricing").',
+          'Short title for the task. Start with a verb, like a commit message (e.g. "Create space podcast", "Research competitor pricing").',
         ),
       prompt: z
         .string()
+        .optional()
         .describe(
-          "Detailed instructions for the task. Include all necessary context, file paths, and requirements — the task runs independently and cannot see the main conversation.",
+          "Optional additional instructions beyond what's already in the conversation. " +
+            "Only needed if you want to add specific constraints or details " +
+            "that weren't discussed. The task can see the full conversation.",
         ),
       attachments: z
         .array(
@@ -29,7 +34,7 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
         )
         .optional()
         .describe(
-          "Files or links to pass to the task. Use this to forward uploaded images, documents, or URLs that the task needs to access. File paths are relative to the workspace.",
+          "Files or links to pass to the task. Use this to forward uploaded images, documents, or URLs.",
         ),
     }),
     execute: async ({ title, prompt, attachments }) => {
@@ -46,7 +51,7 @@ export function delegateTaskTool(ctx: ServiceContext, agentId: string) {
         type: "run_task",
         payload: {
           taskId: task.id,
-          prompt,
+          prompt: prompt ?? "",
           ...(attachments?.length ? { attachments } : {}),
         },
       });

@@ -291,6 +291,14 @@ enum AgentLogRole {
 enum ToolName {
   updateTaskMessage
   postToMainLane
+  backgroundTask
+  requestUserInput
+  readFile
+  writeFile
+  editFile
+  listFiles
+  glob
+  grep
   createDocument
   updateDocument
   readDocument
@@ -299,6 +307,8 @@ enum ToolName {
   ensureSandbox
   runCommand
   viewImage
+  generateImage
+  generateSpeech
   webSearch
   webFetch
   readSkill
@@ -309,8 +319,6 @@ enum ToolName {
   listJobs
   scheduleJob
   updateJob
-  delegateTask
-  requestUserInput
 }
 
 type AgentLog {
@@ -326,6 +334,7 @@ type AgentLog {
   attachments: [Attachment!]!
   documents: [Document!]! @deprecated(reason: "Use attachments instead")
   files: [File!]! @deprecated(reason: "Use attachments instead")
+  speechUrl: String
   createdAt: String!
 }
 

@@ -99,6 +99,7 @@ export type AgentLog = {
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
+  speechUrl?: Maybe<Scalars['String']['output']>;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
   toolName?: Maybe<ToolName>;
@@ -1101,12 +1102,19 @@ export enum ToolName {
   AttachFile = 'attachFile',
   AttachLink = 'attachLink',
   Authenticate = 'authenticate',
+  BackgroundTask = 'backgroundTask',
   CreateDocument = 'createDocument',
-  DelegateTask = 'delegateTask',
+  EditFile = 'editFile',
   EnsureSandbox = 'ensureSandbox',
+  GenerateImage = 'generateImage',
+  GenerateSpeech = 'generateSpeech',
+  Glob = 'glob',
+  Grep = 'grep',
+  ListFiles = 'listFiles',
   ListJobs = 'listJobs',
   PostToMainLane = 'postToMainLane',
   ReadDocument = 'readDocument',
+  ReadFile = 'readFile',
   ReadSkill = 'readSkill',
   ReadSkillReference = 'readSkillReference',
   RecallMemory = 'recallMemory',
@@ -1119,7 +1127,8 @@ export enum ToolName {
   UpdateTaskMessage = 'updateTaskMessage',
   ViewImage = 'viewImage',
   WebFetch = 'webFetch',
-  WebSearch = 'webSearch'
+  WebSearch = 'webSearch',
+  WriteFile = 'writeFile'
 }
 
 export type UnknownRender = {

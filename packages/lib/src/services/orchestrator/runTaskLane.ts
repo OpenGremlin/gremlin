@@ -5,6 +5,7 @@ import {
 } from "../prompts/index.js";
 import type { Attachment } from "../tasks/attachment.js";
 import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
+import { buildMainLaneContext } from "./compaction.js";
 import { formatPlan, generatePlan } from "./generatePlan.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -27,14 +28,38 @@ export async function runTaskLane(
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
   const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
 
-  // Log the prompt — SYSTEM for delegated tasks, USER for follow-up messages
-  await writeAgentLog(ctx, {
-    agentId: task.agentId,
-    taskId,
-    role: opts?.role ?? "SYSTEM",
-    content: prompt,
-    attachments: opts?.attachments,
-  });
+  // For initial task creation, inherit the main lane conversation
+  // so the task has full context without needing it re-described.
+  if (isInitialDelegation) {
+    const mainLaneMessages = await buildMainLaneContext(ctx, task.agentId);
+    if (mainLaneMessages.length > 0) {
+      // Log the conversation context as a system message
+      const contextLines = mainLaneMessages
+        .map(
+          (m) =>
+            `[${m.role === "user" ? "User" : "You"}]: ${typeof m.content === "string" ? m.content : ""}`,
+        )
+        .join("\n\n");
+
+      await writeAgentLog(ctx, {
+        agentId: task.agentId,
+        taskId,
+        role: "SYSTEM",
+        content: `[Conversation context]\n\n${contextLines}`,
+      });
+    }
+  }
+
+  // Log the prompt — SYSTEM for backgrounded tasks, USER for follow-up messages
+  if (prompt) {
+    await writeAgentLog(ctx, {
+      agentId: task.agentId,
+      taskId,
+      role: opts?.role ?? "SYSTEM",
+      content: prompt,
+      attachments: opts?.attachments,
+    });
+  }
 
   // Generate an execution plan for new task delegations
   let planText: string | undefined;
