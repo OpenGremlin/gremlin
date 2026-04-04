@@ -25,7 +25,10 @@ export function shouldShowTimestamp(
 
 export function useLogMessages(
   scope: { agentId: string } | { taskId: string },
-  opts?: { onLogCreated?: (logId: string) => void },
+  opts?: {
+    onLogCreated?: (logId: string) => void;
+    onAgentLogCreated?: (logId: string) => void;
+  },
 ) {
   const isTask = "taskId" in scope;
 
@@ -90,6 +93,8 @@ export function useLogMessages(
   // ── Subscription (unified — works for both agent and task logs) ───
   const onLogCreatedRef = useRef(opts?.onLogCreated);
   onLogCreatedRef.current = opts?.onLogCreated;
+  const onAgentLogCreatedRef = useRef(opts?.onAgentLogCreated);
+  onAgentLogCreatedRef.current = opts?.onAgentLogCreated;
 
   useSubscription(LogCreatedSubscription, {
     variables: scope,
@@ -98,6 +103,9 @@ export function useLogMessages(
       const msg = subData.logCreated;
 
       onLogCreatedRef.current?.(msg.id);
+      if (msg.role === "AGENT" && msg.content) {
+        onAgentLogCreatedRef.current?.(msg.id);
+      }
 
       // Update the query cache with the new log entry
       // biome-ignore lint/suspicious/noExplicitAny: dynamic key access

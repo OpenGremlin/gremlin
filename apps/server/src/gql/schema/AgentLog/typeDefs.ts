@@ -27,6 +27,7 @@ export const agentLogTypeDefs = /* GraphQL */ `
     attachments: [Attachment!]!
     documents: [Document!]! @deprecated(reason: "Use attachments instead")
     files: [File!]! @deprecated(reason: "Use attachments instead")
+    speechUrl: String
     createdAt: String!
   }
 

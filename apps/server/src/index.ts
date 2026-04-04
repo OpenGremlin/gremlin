@@ -20,6 +20,7 @@ import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 import { pubsub } from "./pubsub.js";
 import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
+import { createSpeechRoute } from "./routes/speechRoute.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -230,6 +231,9 @@ if (process.env.MEDIA_BUCKET) {
 // Workspace file serving (auth at CloudFront edge + origin verification)
 app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
+
+// On-demand TTS for agent log entries
+app.get("/api/speech/:logId", createSpeechRoute(resources, services));
 
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");

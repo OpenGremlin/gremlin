@@ -72,6 +72,7 @@ interface ChatScreenProps {
   disabled?: boolean;
   taskFiles?: FileNode[];
   sandboxStreams?: Map<string, CommandStream>;
+  onAgentLogCreated?: (logId: string) => void;
 }
 
 export function ChatScreen({
@@ -88,6 +89,7 @@ export function ChatScreen({
   disabled,
   taskFiles,
   sandboxStreams,
+  onAgentLogCreated,
 }: ChatScreenProps) {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
@@ -104,7 +106,10 @@ export function ChatScreen({
     loadMore,
     loadingMore,
     fetchNewer,
-  } = useLogMessages(scope, { onLogCreated: dismissStream });
+  } = useLogMessages(scope, {
+    onLogCreated: dismissStream,
+    onAgentLogCreated,
+  });
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {

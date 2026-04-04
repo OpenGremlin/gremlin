@@ -154,6 +154,16 @@ export const agentLogResolvers = {
   Query: { agentLogs, taskLogs, pendingInboxMessages },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated, logCreated, agentStream },
-  AgentLog: { agent, attachments, documents, files },
+  AgentLog: {
+    agent,
+    attachments,
+    documents,
+    files,
+    speechUrl: (parent: AgentLogItem, _args: unknown, ctx: GremlinContext) => {
+      if (parent.role !== "AGENT" || !parent.content) return null;
+      const base = ctx.serverBaseUrl.replace(/\/$/, "");
+      return `${base}/api/speech/${encodeURIComponent(parent.id)}`;
+    },
+  },
   AgentLogEdge: { node },
 };

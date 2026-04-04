@@ -16,26 +16,49 @@ export enum CommandApprovalDecision {
 }
 
 export enum ToolName {
+  // Task & messaging
   UpdateTaskMessage = "updateTaskMessage",
   PostToMainLane = "postToMainLane",
+  DelegateTask = "delegateTask",
+  RequestUserInput = "requestUserInput",
+
+  // File editor
+  ReadFile = "readFile",
+  WriteFile = "writeFile",
+  EditFile = "editFile",
+  ListFiles = "listFiles",
+  Glob = "glob",
+  Grep = "grep",
+
+  // Documents & attachments
   CreateDocument = "createDocument",
   UpdateDocument = "updateDocument",
   ReadDocument = "readDocument",
   AttachFile = "attachFile",
   AttachLink = "attachLink",
+
+  // Sandbox
   EnsureSandbox = "ensureSandbox",
   RunCommand = "runCommand",
+
+  // Media
   ViewImage = "viewImage",
+  GenerateImage = "generateImage",
+  GenerateSpeech = "generateSpeech",
+
+  // Web
   WebSearch = "webSearch",
   WebFetch = "webFetch",
+
+  // Skills
   ReadSkill = "readSkill",
   ReadSkillReference = "readSkillReference",
   Authenticate = "authenticate",
+
+  // Memory & jobs
   SaveMemory = "saveMemory",
   RecallMemory = "recallMemory",
   ListJobs = "listJobs",
   ScheduleJob = "scheduleJob",
   UpdateJob = "updateJob",
-  DelegateTask = "delegateTask",
-  RequestUserInput = "requestUserInput",
 }

@@ -1,3 +1,4 @@
+import { ToolName } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 import type { EnabledModel } from "../integrations/getEnabledModels.js";
 import { buildSkillSummary } from "../skills/buildSkillSummary.js";
@@ -172,32 +173,32 @@ export function buildTaskTools(
   const { agent, skillTools } = agentLaneCtx;
 
   // biome-ignore lint/suspicious/noExplicitAny: tool types vary
-  const tools: Record<string, any> = {
+  const tools: Partial<Record<ToolName, any>> & Record<string, any> = {
     ...(agent.config?.webSearch?.enabled
       ? {
-          webSearch:
+          [ToolName.WebSearch]:
             (agent.config.webSearch.provider ?? "brave") === "tavily"
               ? createTavilySearchTool(ctx)
               : createBraveSearchTool(ctx),
-          webFetch,
+          [ToolName.WebFetch]: webFetch,
         }
       : {}),
-    updateTaskMessage: updateTaskMessageTool(ctx, taskId),
-    postToMainLane: postToMainLaneTool(ctx, taskId),
+    [ToolName.UpdateTaskMessage]: updateTaskMessageTool(ctx, taskId),
+    [ToolName.PostToMainLane]: postToMainLaneTool(ctx, taskId),
     ...buildFileEditorTools(ctx, taskId),
-    attachFile: attachFileTool(ctx, taskId),
-    attachLink: attachLinkTool(ctx, taskId),
-    saveMemory: saveMemoryTool(ctx, agentId),
-    recallMemory: recallMemoryTool(ctx, agentId),
-    listJobs: listJobsTool(ctx, agentId),
-    scheduleJob: scheduleJobTool(ctx, agentId),
-    updateJob: updateJobTool(ctx, agentId),
+    [ToolName.AttachFile]: attachFileTool(ctx, taskId),
+    [ToolName.AttachLink]: attachLinkTool(ctx, taskId),
+    [ToolName.SaveMemory]: saveMemoryTool(ctx, agentId),
+    [ToolName.RecallMemory]: recallMemoryTool(ctx, agentId),
+    [ToolName.ListJobs]: listJobsTool(ctx, agentId),
+    [ToolName.ScheduleJob]: scheduleJobTool(ctx, agentId),
+    [ToolName.UpdateJob]: updateJobTool(ctx, agentId),
     ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
-      ? { viewImage: viewImageTool(ctx) }
+      ? { [ToolName.ViewImage]: viewImageTool(ctx) }
       : {}),
     ...(agentLaneCtx.imageModel
       ? {
-          generateImage: generateImageTool(
+          [ToolName.GenerateImage]: generateImageTool(
             ctx,
             agentLaneCtx.imageModel,
             taskId,
@@ -206,7 +207,7 @@ export function buildTaskTools(
       : {}),
     ...(agentLaneCtx.speechModel
       ? {
-          generateSpeech: generateSpeechTool(
+          [ToolName.GenerateSpeech]: generateSpeechTool(
             ctx,
             agentLaneCtx.speechModel,
             agentLaneCtx.speechVoice,
@@ -216,8 +217,8 @@ export function buildTaskTools(
       : {}),
     ...(agent.config?.sandbox?.enabled
       ? {
-          ensureSandbox: ensureSandboxTool(ctx, agentId, taskId),
-          runCommand: runCommandTool(
+          [ToolName.EnsureSandbox]: ensureSandboxTool(ctx, agentId, taskId),
+          [ToolName.RunCommand]: runCommandTool(
             ctx,
             agentId,
             taskId,
@@ -239,11 +240,11 @@ export function buildTaskTools(
 function buildFileEditorTools(ctx: ServiceContext, taskId: string) {
   const tracker = new FileStateTracker();
   return {
-    readFile: readFileTool(tracker),
-    writeFile: writeFileTool(ctx, tracker, taskId),
-    editFile: editFileTool(ctx, tracker),
-    listFiles: listFilesTool(),
-    glob: globTool(),
-    grep: grepTool(),
+    [ToolName.ReadFile]: readFileTool(tracker),
+    [ToolName.WriteFile]: writeFileTool(ctx, tracker, taskId),
+    [ToolName.EditFile]: editFileTool(ctx, tracker),
+    [ToolName.ListFiles]: listFilesTool(),
+    [ToolName.Glob]: globTool(),
+    [ToolName.Grep]: grepTool(),
   };
 }
