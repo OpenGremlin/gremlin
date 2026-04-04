@@ -67,7 +67,9 @@ setInterval(async () => {
 }, 60_000);
 
 const BOOT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-const POLL_INTERVAL_MS = 3_000;
+const POLL_FAST_MS = 1_000; // 1s for first 15s (catches hibernate resumes)
+const POLL_SLOW_MS = 3_000; // 3s after that (cold boot)
+const POLL_FAST_WINDOW_MS = 15_000;
 
 /**
  * Ensure a connected sandbox session exists for the agent.
@@ -123,10 +125,16 @@ async function ensureSandbox(
 
   log.info({ agentId, instanceId }, "Waiting for sandbox to become healthy");
 
-  // Poll until the sandbox is healthy and we can connect
-  const deadline = Date.now() + BOOT_TIMEOUT_MS;
+  // Poll until the sandbox is healthy and we can connect.
+  // Uses fast polling initially (catches hibernate resumes quickly),
+  // then backs off for cold boots to reduce API calls.
+  const startedAt = Date.now();
+  const deadline = startedAt + BOOT_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    const elapsed = Date.now() - startedAt;
+    const interval =
+      elapsed < POLL_FAST_WINDOW_MS ? POLL_FAST_MS : POLL_SLOW_MS;
+    await new Promise((r) => setTimeout(r, interval));
 
     const session = await ctx.services.sandbox.tryQuickConnect(
       agentId,

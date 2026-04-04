@@ -24,20 +24,40 @@ export async function terminateSandbox(session: SandboxSession): Promise<void> {
     return;
   }
 
-  // Stop EC2 instance (not terminate — preserves EBS for next start)
+  // Hibernate EC2 instance — preserves memory state so container resumes
+  // instantly on next start (no boot, no user data, no docker pull).
+  // Falls back to regular stop if hibernation fails (e.g. instance doesn't
+  // support it or has been running too long).
   log.info(
     { agentId: session.agentId, instanceId: session.instanceId },
-    "Stopping EC2 instance",
+    "Hibernating EC2 instance",
   );
   const ec2 = await getEc2Client();
-  await ec2.send(
-    new StopInstancesCommand({
-      InstanceIds: [session.instanceId],
-    }),
-  );
+  try {
+    await ec2.send(
+      new StopInstancesCommand({
+        InstanceIds: [session.instanceId],
+        Hibernate: true,
+      }),
+    );
+  } catch (err) {
+    log.warn(
+      {
+        agentId: session.agentId,
+        instanceId: session.instanceId,
+        error: (err as Error).message,
+      },
+      "Hibernate failed, falling back to regular stop",
+    );
+    await ec2.send(
+      new StopInstancesCommand({
+        InstanceIds: [session.instanceId],
+      }),
+    );
+  }
 
   log.info(
     { agentId: session.agentId, instanceId: session.instanceId },
-    "Sandbox stopped",
+    "Sandbox hibernated",
   );
 }

@@ -60,8 +60,30 @@ export async function handler() {
   }
 
   if (stale.length > 0) {
-    log.info({ count: stale.length }, "Stopping idle sandbox instances");
-    await ec2.send(new StopInstancesCommand({ InstanceIds: stale }));
+    log.info({ count: stale.length }, "Hibernating idle sandbox instances");
+    // Hibernate each instance individually so one failure doesn't block others.
+    // Falls back to regular stop per instance if hibernation fails.
+    await Promise.all(
+      stale.map(async (instanceId) => {
+        try {
+          await ec2.send(
+            new StopInstancesCommand({
+              InstanceIds: [instanceId],
+              Hibernate: true,
+            }),
+          );
+          log.info({ instanceId }, "Instance hibernated");
+        } catch (err) {
+          log.warn(
+            { instanceId, error: (err as Error).message },
+            "Hibernate failed, falling back to regular stop",
+          );
+          await ec2.send(
+            new StopInstancesCommand({ InstanceIds: [instanceId] }),
+          );
+        }
+      }),
+    );
   } else {
     log.info("No idle sandbox instances");
   }

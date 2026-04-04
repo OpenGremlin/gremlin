@@ -114,16 +114,19 @@ export class SandboxEc2Stack extends cdk.Stack {
     });
 
     // ── Launch template ────────────────────────────────────
+    // User data is minimal — Docker and amazon-efs-utils are pre-installed
+    // in the custom AMI (built via scripts/build-sandbox-ami.sh).
+    // The AMI also has the sandbox image layers pre-cached for fast pulls.
     const userData = ec2.UserData.forLinux();
     userData.addCommands(
       "set -euo pipefail",
       "exec > /var/log/sandbox-userdata.log 2>&1",
 
-      // Install Docker (Amazon Linux 2023)
-      "dnf install -y docker amazon-efs-utils",
+      // Docker is pre-installed in the custom AMI — install only if missing (stock AL2023 fallback)
+      "command -v docker &>/dev/null || dnf install -y docker amazon-efs-utils",
       "systemctl enable docker && systemctl start docker",
 
-      // Authenticate to ECR and pull sandbox image
+      // Pull latest sandbox image (fast — most layers cached in AMI)
       `aws ecr get-login-password --region ${this.region} | docker login --username AWS --password-stdin ${imageAsset.repository.repositoryUri}`,
       `docker pull ${imageAsset.imageUri}`,
 
@@ -158,6 +161,18 @@ export class SandboxEc2Stack extends cdk.Stack {
     // Use a private subnet (VPC-only, no public IP needed)
     const subnet = props.vpc.privateSubnets[0] ?? props.vpc.publicSubnets[0];
 
+    // Custom AMI ID built via scripts/build-sandbox-ami.sh.
+    // Pass via CDK context: `cdk deploy -c sandboxAmiId=ami-xxx`
+    // Falls back to latest AL2023 ARM64 if not provided.
+    const sandboxAmiId = this.node.tryGetContext("sandboxAmiId") as
+      | string
+      | undefined;
+    const machineImage = sandboxAmiId
+      ? ec2.MachineImage.genericLinux({ [this.region]: sandboxAmiId })
+      : ec2.MachineImage.latestAmazonLinux2023({
+          cpuType: ec2.AmazonLinuxCpuType.ARM_64,
+        });
+
     const launchTemplate = new ec2.LaunchTemplate(
       this,
       "SandboxLaunchTemplate",
@@ -166,9 +181,7 @@ export class SandboxEc2Stack extends cdk.Stack {
           ec2.InstanceClass.T4G,
           ec2.InstanceSize.MEDIUM,
         ),
-        machineImage: ec2.MachineImage.latestAmazonLinux2023({
-          cpuType: ec2.AmazonLinuxCpuType.ARM_64,
-        }),
+        machineImage,
         securityGroup: sandboxSg,
         role: sandboxRole,
         userData,
@@ -182,6 +195,14 @@ export class SandboxEc2Stack extends cdk.Stack {
           },
         ],
       },
+    );
+
+    // Enable hibernation (requires encrypted EBS root volume — already set above)
+    const cfnLaunchTemplate = launchTemplate.node
+      .defaultChild as ec2.CfnLaunchTemplate;
+    cfnLaunchTemplate.addPropertyOverride(
+      "LaunchTemplateData.HibernationOptions.Configured",
+      true,
     );
 
     // ── SSM parameters ─────────────────────────────────────
@@ -260,7 +281,11 @@ export class SandboxEc2Stack extends cdk.Stack {
     );
     idleShutdownFn.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ec2:DescribeInstances", "ec2:StopInstances"],
+        actions: [
+          "ec2:DescribeInstances",
+          "ec2:StopInstances",
+          "ec2:DescribeInstanceAttribute",
+        ],
         resources: ["*"],
       }),
     );
@@ -283,6 +308,10 @@ export class SandboxEc2Stack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "SandboxInstanceProfileArn", {
       value: instanceProfile.attrArn,
+    });
+    new ssm.StringParameter(this, "InstanceProfileArnParam", {
+      parameterName: "/gremlin/sandbox-instance-profile-arn",
+      stringValue: instanceProfile.attrArn,
     });
   }
 }
