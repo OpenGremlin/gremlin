@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 import { FilePreview } from "./FilePreview";
 import { formatFileSize } from "./formatFileSize";
@@ -60,6 +61,36 @@ export function FileCard({ file }: { file: FileNode }) {
     isDocument && "title" in file.render
       ? file.render.title || file.name
       : file.name;
+
+  if (file.render.__typename === "ImageRender" && file.render.url) {
+    const { url, aspectRatio } = file.render;
+    return (
+      <>
+        <Pressable
+          onPress={() => setOpen(true)}
+          className="rounded-lg overflow-hidden"
+        >
+          <AuthImage
+            uri={url}
+            style={{
+              width: "100%",
+              aspectRatio: aspectRatio ?? 1,
+              borderRadius: 8,
+            }}
+            contentFit="cover"
+          />
+        </Pressable>
+
+        <SheetModal
+          visible={open}
+          title={file.name}
+          onClose={() => setOpen(false)}
+        >
+          <FilePreview render={file.render} />
+        </SheetModal>
+      </>
+    );
+  }
 
   return (
     <>
