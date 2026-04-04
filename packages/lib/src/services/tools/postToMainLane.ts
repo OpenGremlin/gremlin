@@ -24,7 +24,11 @@ export function postToMainLaneTool(ctx: ServiceContext, taskId: string) {
       message: z
         .string()
         .describe(
-          "The message to post. Write naturally as if replying to the user. Include key facts, answers, links, or a summary of what you created.",
+          "A short, conversational message to the user. Keep it brief (1-2 sentences). " +
+            "Do NOT repeat or summarize content that is already in the attachments — " +
+            "the user can see attached files and documents directly. " +
+            'Just say what you did, e.g. "Here\'s the report you asked for." or ' +
+            '"Done — I updated the design doc with the new sections."',
         ),
       attachments: z
         .array(attachmentSchema)
