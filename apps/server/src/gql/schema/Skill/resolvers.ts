@@ -1,10 +1,5 @@
 import { providers } from "@opengremlin/lib/services/integrations/providers.js";
-import { getSkillsBucket } from "@opengremlin/lib/services/skills/getSkillsBucket.js";
 import { parseConnectionBindings } from "@opengremlin/lib/services/skills/parseConnectionBindings.js";
-import {
-  getSkillTemplateFromS3,
-  scanSkillCatalog,
-} from "@opengremlin/lib/services/skills/skillScanner/index.js";
 import type {
   AgentSkillResolvers,
   MutationResolvers,
@@ -16,17 +11,22 @@ const providerMap = new Map(providers.map((p) => [p.id, p]));
 
 // --- Queries ---
 
-const skillTemplates: QueryResolvers["skillTemplates"] = async () => {
-  const bucketName = getSkillsBucket();
-  return scanSkillCatalog(bucketName);
+const skillTemplates: QueryResolvers["skillTemplates"] = async (
+  _parent,
+  _args,
+  ctx,
+) => {
+  const bucketName = ctx.services.skills.getSkillsBucket();
+  return ctx.services.skills.scanSkillCatalog(bucketName);
 };
 
 const skillTemplate: QueryResolvers["skillTemplate"] = async (
   _parent,
   { id },
+  ctx,
 ) => {
-  const bucketName = getSkillsBucket();
-  return getSkillTemplateFromS3(bucketName, id);
+  const bucketName = ctx.services.skills.getSkillsBucket();
+  return ctx.services.skills.getSkillTemplateFromS3(bucketName, id);
 };
 
 const agentSkills: QueryResolvers["agentSkills"] = (
@@ -96,14 +96,20 @@ const SkillTemplate: SkillTemplateResolvers = {
 };
 
 const AgentSkill: AgentSkillResolvers = {
-  template: async (parent) => {
-    const bucketName = getSkillsBucket();
-    return getSkillTemplateFromS3(bucketName, parent.skillId);
+  template: async (parent, _args, ctx) => {
+    const bucketName = ctx.services.skills.getSkillsBucket();
+    return ctx.services.skills.getSkillTemplateFromS3(
+      bucketName,
+      parent.skillId,
+    );
   },
 
   connectionStatuses: async (parent, _args, ctx) => {
-    const bucketName = getSkillsBucket();
-    const template = await getSkillTemplateFromS3(bucketName, parent.skillId);
+    const bucketName = ctx.services.skills.getSkillsBucket();
+    const template = await ctx.services.skills.getSkillTemplateFromS3(
+      bucketName,
+      parent.skillId,
+    );
     if (!template?.connections?.length) return [];
 
     const bindings = parseConnectionBindings(parent.connectionBindings);
