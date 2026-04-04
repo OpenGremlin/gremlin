@@ -127,18 +127,18 @@ export default function SettingsScreen() {
 
       <View>
         <Text className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
-          Server
+          Settings
         </Text>
         <Card className="overflow-hidden">
           <Pressable
-            onPress={() => router.push("/settings/server-settings")}
+            onPress={() => router.push("/settings/general")}
             className="flex-row items-center gap-3 px-4 py-3.5 active:bg-surface-alt"
           >
             <View className="w-8 h-8 rounded-lg bg-accent-surface items-center justify-center">
               <Globe size={18} color={colors.accent} />
             </View>
             <Text className="text-base font-medium text-text-primary flex-1">
-              Settings
+              General
             </Text>
             <Text className="text-text-faint text-lg">{"\u203A"}</Text>
           </Pressable>

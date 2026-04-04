@@ -13,7 +13,7 @@ export default function SettingsLayout() {
         name="change-password"
         options={{ title: "Change Password" }}
       />
-      <Stack.Screen name="server-settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="general" options={{ title: "General" }} />
       <Stack.Screen
         name="connect-mobile"
         options={{ title: "Connect Mobile App" }}
