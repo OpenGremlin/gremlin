@@ -4,7 +4,10 @@ import type { SpeechModel } from "ai";
 import { experimental_generateSpeech as generateSpeech, tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
-import { getWorkspacePath } from "./fileEditor/pathUtils.js";
+import {
+  getWorkspacePath,
+  resolveAndValidate,
+} from "./fileEditor/pathUtils.js";
 
 /**
  * Tool that generates speech audio using the agent's configured speech model.
@@ -24,8 +27,15 @@ export function generateSpeechTool(
       "Use this to create voiceovers, narration, or read text aloud.",
     inputSchema: z.object({
       text: z.string().describe("The text to convert to speech"),
+      outputPath: z
+        .string()
+        .optional()
+        .describe(
+          'Workspace path to save the audio to (e.g. "audio/intro.mp3"). ' +
+            "Parent directories are created automatically. Defaults to generated-speech/.",
+        ),
     }),
-    execute: async ({ text }) => {
+    execute: async ({ text, outputPath }) => {
       const result = await generateSpeech({
         model: speechModel,
         text,
@@ -38,12 +48,15 @@ export function generateSpeechTool(
 
       // Save to workspace
       const workspace = getWorkspacePath();
-      const audioDir = path.join(workspace, "generated-speech");
-      await fs.mkdir(audioDir, { recursive: true });
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `speech-${timestamp}.mp3`;
-      const filePath = path.join(audioDir, filename);
+      let filePath: string;
+      if (outputPath) {
+        filePath = resolveAndValidate(outputPath);
+      } else {
+        const audioDir = path.join(workspace, "generated-speech");
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        filePath = path.join(audioDir, `speech-${timestamp}.mp3`);
+      }
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
       const relativePath = path.relative(workspace, filePath);
 
       await fs.writeFile(filePath, result.audio.uint8Array);

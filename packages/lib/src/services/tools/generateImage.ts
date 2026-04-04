@@ -55,8 +55,15 @@ export function generateImageTool(
         .describe(
           'Aspect ratio, e.g. "16:9", "1:1". Alternative to size. Defaults to model default.',
         ),
+      outputPath: z
+        .string()
+        .optional()
+        .describe(
+          'Workspace path to save the image to (e.g. "assets/hero.png"). ' +
+            "Parent directories are created automatically. Defaults to generated-images/.",
+        ),
     }),
-    execute: async ({ prompt, sourceImage, size, aspectRatio }) => {
+    execute: async ({ prompt, sourceImage, size, aspectRatio, outputPath }) => {
       // Build the prompt — either a string or an object with source images
       let imagePrompt: Parameters<typeof generateImage>[0]["prompt"];
       if (sourceImage) {
@@ -83,12 +90,15 @@ export function generateImageTool(
 
       // Save to workspace
       const workspace = getWorkspacePath();
-      const imagesDir = path.join(workspace, "generated-images");
-      await fs.mkdir(imagesDir, { recursive: true });
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `image-${timestamp}.png`;
-      const filePath = path.join(imagesDir, filename);
+      let filePath: string;
+      if (outputPath) {
+        filePath = resolveAndValidate(outputPath);
+      } else {
+        const imagesDir = path.join(workspace, "generated-images");
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        filePath = path.join(imagesDir, `image-${timestamp}.png`);
+      }
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
       const relativePath = path.relative(workspace, filePath);
 
       await fs.writeFile(filePath, image.uint8Array);
