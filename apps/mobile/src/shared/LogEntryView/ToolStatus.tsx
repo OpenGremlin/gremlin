@@ -24,9 +24,9 @@ export function ToolStatus({
   const iconColor = color ?? (variant ? colors[variant] : colors.iconDefault);
   return (
     <View className="flex-row items-center gap-1.5 py-1.5 px-1">
-      <Icon size={13} color={iconColor} />
+      <Icon size={14} color={iconColor} />
       <Text
-        className="text-xs text-text-muted italic"
+        className="text-sm text-text-muted italic"
         numberOfLines={variant === "error" ? undefined : 2}
       >
         {text}

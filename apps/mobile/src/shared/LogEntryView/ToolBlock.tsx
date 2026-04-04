@@ -37,7 +37,7 @@ function CollapsedContent({
     >
       <View style={{ maxHeight: COLLAPSED_MAX_HEIGHT, overflow: "hidden" }}>
         <Text
-          className="text-xs font-mono px-3 py-2 leading-5"
+          className="text-sm font-mono px-3 py-2 leading-5"
           style={{ color: isDark ? darkCodeText : lightCodeText }}
         >
           {content}
@@ -81,7 +81,7 @@ function ExpandedContent({
       style={{ backgroundColor: isDark ? darkCodeBg : lightCodeBg }}
     >
       <Text
-        className="text-xs font-mono px-3 py-2 leading-5"
+        className="text-sm font-mono px-3 py-2 leading-5"
         style={{ color: isDark ? darkCodeText : lightCodeText }}
       >
         {content}
@@ -147,11 +147,11 @@ export function ToolBlock({
             transform: [{ rotate: open ? "90deg" : "0deg" }],
           }}
         >
-          <ChevronRight size={12} color={colors.headerText} />
+          <ChevronRight size={14} color={colors.headerText} />
         </View>
         {typeof label === "string" ? (
           <Text
-            className="text-[11px] text-text-secondary font-bold font-mono flex-shrink"
+            className="text-sm text-text-secondary font-bold font-mono flex-shrink"
             numberOfLines={1}
           >
             {label}
