@@ -19,16 +19,17 @@ const attachmentSchema = z.discriminatedUnion("type", [
 export function postToMainLaneTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Post a message to the main conversation on behalf of the agent. This is the only way to deliver your results to the user — they cannot see your task work directly. The message appears as a normal reply from you. Attach any documents, files, or links you want the user to see inline.",
+      "Post a message to the main conversation on behalf of the agent. " +
+      "The message appears as a reply from you in the main chat. " +
+      "Attach files by path rather than pasting their contents into the message.",
     inputSchema: z.object({
       message: z
         .string()
         .describe(
-          "A short, conversational message to the user. Keep it brief (1-2 sentences). " +
-            "Do NOT repeat or summarize content that is already in the attachments — " +
-            "the user can see attached files and documents directly. " +
-            'Just say what you did, e.g. "Here\'s the report you asked for." or ' +
-            '"Done — I updated the design doc with the new sections."',
+          "A short, conversational message. " +
+            "Attached files are rendered inline for the user, so just reference " +
+            "what you did rather than repeating the content. " +
+            'e.g. "Here\'s the podcast episode." or "Done — report attached."',
         ),
       attachments: z
         .array(attachmentSchema)
