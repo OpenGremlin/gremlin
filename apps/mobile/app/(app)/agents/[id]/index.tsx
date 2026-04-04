@@ -1,17 +1,14 @@
 import { useQuery } from "@apollo/client";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Volume2, VolumeOff } from "lucide-react-native";
-import { useState } from "react";
-import { Pressable } from "react-native";
 import { AgentQuery } from "../../../../src/graphql/queries";
 import { useVoiceMode } from "../../../../src/hooks/useVoiceMode";
-import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
+import { useVoiceModeContext } from "../../../../src/lib/VoiceModeContext";
 import { ChatScreen } from "../../../../src/shared/ChatScreen";
+import { VoiceModeButton } from "../../../../src/shared/VoiceModeButton";
 
 export default function AgentChatScreen() {
-  const colors = useNavigationTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const { voiceEnabled } = useVoiceModeContext();
   const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
 
   const {
@@ -22,7 +19,6 @@ export default function AgentChatScreen() {
   } = useQuery(AgentQuery, { variables: { id: id ?? "" } });
 
   const agent = agentData?.agent;
-  const speechAvailable = !!agent?.config?.speech?.enabled;
 
   return (
     <>
@@ -31,17 +27,7 @@ export default function AgentChatScreen() {
         agentId={id}
         title={agent?.name ?? ""}
         headerTitlePress={() => router.push(`/agents/${id}/config`)}
-        headerRight={
-          speechAvailable ? (
-            <Pressable onPress={() => setVoiceEnabled((v) => !v)}>
-              {voiceEnabled ? (
-                <Volume2 size={22} color={colors.accentIndicator} />
-              ) : (
-                <VolumeOff size={22} color={colors.headerText} />
-              )}
-            </Pressable>
-          ) : undefined
-        }
+        headerRight={<VoiceModeButton agentId={id} />}
         loading={loading}
         error={error}
         onRetry={refetch}

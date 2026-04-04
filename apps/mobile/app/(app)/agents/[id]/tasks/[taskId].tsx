@@ -2,13 +2,18 @@ import { useQuery } from "@apollo/client";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { TaskQuery } from "../../../../../src/graphql/queries";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
+import { useVoiceMode } from "../../../../../src/hooks/useVoiceMode";
+import { useVoiceModeContext } from "../../../../../src/lib/VoiceModeContext";
 import { ChatScreen } from "../../../../../src/shared/ChatScreen";
+import { VoiceModeButton } from "../../../../../src/shared/VoiceModeButton";
 
 export default function TaskThreadScreen() {
   const { id, taskId } = useLocalSearchParams<{
     id: string;
     taskId: string;
   }>();
+  const { voiceEnabled } = useVoiceModeContext();
+  const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
 
   const {
     data: taskData,
@@ -28,6 +33,7 @@ export default function TaskThreadScreen() {
         taskId={taskId}
         title={task ? `Task: ${task.title ?? task.message ?? "Untitled"}` : ""}
         headerTitlePress={() => router.navigate(`/agents/${id}`)}
+        headerRight={<VoiceModeButton agentId={id} />}
         loading={loading}
         error={error}
         onRetry={refetch}
@@ -35,6 +41,7 @@ export default function TaskThreadScreen() {
         notFoundLabel="Task not found"
         taskFiles={task?.files}
         sandboxStreams={sandboxStreams}
+        onAgentLogCreated={voiceEnabled ? enqueueSpeech : undefined}
       />
     </>
   );

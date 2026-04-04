@@ -103,7 +103,7 @@ export function useLogMessages(
       const msg = subData.logCreated;
 
       onLogCreatedRef.current?.(msg.id);
-      if (msg.role === "AGENT" && msg.content) {
+      if (msg.role === "AGENT" && msg.content && !msg.toolName) {
         onAgentLogCreatedRef.current?.(msg.id);
       }
 
