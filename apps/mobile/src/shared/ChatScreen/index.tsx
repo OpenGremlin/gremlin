@@ -30,8 +30,8 @@ import {
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useVoiceMode } from "../../hooks/useVoiceMode";
 import { hexToTransparent } from "../../lib/color";
+import { useLocalSettings } from "../../lib/LocalSettingsContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
-import { useVoiceModeContext } from "../../lib/VoiceModeContext";
 import { LogEntryView } from "../LogEntryView";
 import { StreamingBubble } from "../LogEntryView/StreamingBubble";
 import { NotFound, QueryResult } from "../QueryResult";
@@ -94,7 +94,7 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
 
-  const { voiceEnabled } = useVoiceModeContext();
+  const { voiceEnabled } = useLocalSettings();
   const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
 
   const { streaming: streamingMessage, dismiss: dismissStream } =

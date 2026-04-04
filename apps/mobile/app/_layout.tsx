@@ -7,9 +7,9 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "../src/lib/AuthContext";
 import { apolloClient, initApollo } from "../src/lib/apolloClient";
+import { LocalSettingsProvider } from "../src/lib/LocalSettingsContext";
 import { ServerConfigProvider } from "../src/lib/ServerConfigContext";
 import { ThemeProvider, useTheme } from "../src/lib/ThemeContext";
-import { VoiceModeProvider } from "../src/lib/VoiceModeContext";
 import { NetworkBanner } from "../src/shared/NetworkBanner";
 
 function StatusBarThemed() {
@@ -33,13 +33,13 @@ export default function RootLayout() {
         <ServerConfigProvider>
           <ApolloGate>
             <AuthProvider>
-              <VoiceModeProvider>
+              <LocalSettingsProvider>
                 <StatusBarThemed />
                 <View style={{ flex: 1 }}>
                   <Slot />
                   <NetworkBanner />
                 </View>
-              </VoiceModeProvider>
+              </LocalSettingsProvider>
             </AuthProvider>
           </ApolloGate>
         </ServerConfigProvider>
