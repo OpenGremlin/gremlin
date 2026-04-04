@@ -506,8 +506,29 @@ function renderToolCall(
     case ToolName.Glob:
     case ToolName.Grep:
     case ToolName.GenerateImage:
-    case ToolName.GenerateSpeech:
-      return null;
+    case ToolName.GenerateSpeech: {
+      const genPath = tool.result?.path as string | undefined;
+      const genFile = genPath
+        ? taskFiles?.find((f) => f.path === genPath)
+        : undefined;
+      if (genFile) {
+        return (
+          <View className="py-2">
+            <FileCard file={genFile} />
+          </View>
+        );
+      }
+      const label =
+        toolName === ToolName.GenerateImage
+          ? "Generated image"
+          : "Generated audio";
+      return (
+        <ToolStatus
+          icon={File}
+          text={genPath ? `${label}: ${genPath}` : label}
+        />
+      );
+    }
 
     default:
       return assertNever(toolName);
