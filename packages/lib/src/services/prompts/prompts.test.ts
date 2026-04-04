@@ -16,6 +16,8 @@ describe("resolvePromptFlags", () => {
       sandbox: false,
       webSearch: false,
       programs: false,
+      imageGeneration: false,
+      speech: false,
       hasSkills: false,
       hasPlan: false,
     });
@@ -142,9 +144,10 @@ describe("renderSystemPrompt", () => {
     expect(result).toContain("viewImage");
   });
 
-  it("uses backgroundTask framing instead of delegateTask", () => {
+  it("uses backgrounding framing instead of delegation", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("backgroundTask");
+    expect(result).toContain("background tasks");
+    expect(result).toContain("<backgrounding>");
     expect(result).not.toContain("delegateTask");
   });
 
@@ -159,7 +162,7 @@ describe("renderSystemPrompt", () => {
 
   it("mentions conversation inheritance", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("inherits the conversation");
+    expect(result).toContain("inherits the full conversation");
   });
 
   it("builds dynamic task capabilities list", () => {
@@ -170,7 +173,7 @@ describe("renderSystemPrompt", () => {
       hasSkills: true,
     });
     expect(result).toContain(
-      "file editing, web search, a sandbox (Linux VM), skills",
+      "file editing, web search, a Linux sandbox, skills",
     );
   });
 

@@ -54,6 +54,8 @@ interface AgentConfig {
   sandbox?: { enabled: boolean } | null;
   webSearch?: { enabled: boolean } | null;
   programs?: { enabled: boolean } | null;
+  imageGeneration?: { enabled: boolean } | null;
+  speech?: { enabled: boolean } | null;
 }
 
 /**
@@ -73,6 +75,8 @@ export function resolvePromptFlags(
     sandbox: !!config?.sandbox?.enabled,
     webSearch: !!config?.webSearch?.enabled,
     programs: config?.programs?.enabled ?? !!config?.sandbox?.enabled,
+    imageGeneration: !!config?.imageGeneration?.enabled,
+    speech: !!config?.speech?.enabled,
     hasSkills: opts.hasSkills,
     hasPlan: opts.hasPlan ?? false,
   };

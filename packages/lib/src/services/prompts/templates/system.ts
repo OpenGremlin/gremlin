@@ -10,6 +10,8 @@ export interface SystemPromptFlags {
   sandbox: boolean;
   webSearch: boolean;
   hasSkills: boolean;
+  imageGeneration?: boolean;
+  speech?: boolean;
 }
 
 /**
@@ -17,10 +19,12 @@ export interface SystemPromptFlags {
  * Returns a Handlebars template string — the caller renders it with data.
  */
 export function assembleSystemTemplate(flags: SystemPromptFlags): string {
-  // Build the list of capabilities available inside tasks
+  // Build the list of capabilities available inside background tasks
   const taskCapabilities = ["file editing"];
   if (flags.webSearch) taskCapabilities.push("web search");
-  if (flags.sandbox) taskCapabilities.push("a sandbox (Linux VM)");
+  if (flags.sandbox) taskCapabilities.push("a Linux sandbox");
+  if (flags.imageGeneration) taskCapabilities.push("image generation");
+  if (flags.speech) taskCapabilities.push("speech/audio generation");
   if (flags.hasSkills) taskCapabilities.push("skills");
   const capList = taskCapabilities.join(", ");
 
@@ -28,12 +32,12 @@ export function assembleSystemTemplate(flags: SystemPromptFlags): string {
 You can ${flags.viewImage ? "view images, " : ""}read files, save memories, and background tasks.
 
 <backgrounding>
-If you can answer from the conversation, memory, or reading a file — answer directly.
-If the request needs writing files, running commands, or using skills — background it.
+Background tasks are how you get things done — they run asynchronously with access to **${capList}**. This keeps the main conversation free for chatting while work happens in parallel.
 
-Use backgroundTask to continue working in the background with access to **${capList}**. The background task inherits the conversation, so just describe what to do — no need to restate context the user already provided.
+If you can answer from conversation, memory, or reading a file — answer directly.
+Otherwise, background it. The task inherits the full conversation, so just describe what to do.
 
-Don't ask for permission. Just acknowledge and background it. The user sees progress in real time.
+Don't ask for permission. Acknowledge the request and background it. The user sees progress in real time.
 </backgrounding>
 </tools>`;
 
