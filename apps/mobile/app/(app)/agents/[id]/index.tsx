@@ -1,15 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { AgentQuery } from "../../../../src/graphql/queries";
-import { useVoiceMode } from "../../../../src/hooks/useVoiceMode";
-import { useVoiceModeContext } from "../../../../src/lib/VoiceModeContext";
 import { ChatScreen } from "../../../../src/shared/ChatScreen";
 import { VoiceModeButton } from "../../../../src/shared/VoiceModeButton";
 
 export default function AgentChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { voiceEnabled } = useVoiceModeContext();
-  const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
 
   const {
     data: agentData,
@@ -34,7 +30,6 @@ export default function AgentChatScreen() {
         notFound={!loading && !error && !agent}
         notFoundLabel="Agent not found"
         disabled={!!agent?.retired}
-        onAgentLogCreated={voiceEnabled ? enqueueSpeech : undefined}
       />
     </>
   );

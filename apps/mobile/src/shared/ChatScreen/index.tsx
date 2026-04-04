@@ -28,8 +28,10 @@ import {
   useLogMessages,
 } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
+import { useVoiceMode } from "../../hooks/useVoiceMode";
 import { hexToTransparent } from "../../lib/color";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { useVoiceModeContext } from "../../lib/VoiceModeContext";
 import { LogEntryView } from "../LogEntryView";
 import { StreamingBubble } from "../LogEntryView/StreamingBubble";
 import { NotFound, QueryResult } from "../QueryResult";
@@ -72,7 +74,6 @@ interface ChatScreenProps {
   disabled?: boolean;
   taskFiles?: FileNode[];
   sandboxStreams?: Map<string, CommandStream>;
-  onAgentLogCreated?: (logId: string) => void;
 }
 
 export function ChatScreen({
@@ -89,13 +90,29 @@ export function ChatScreen({
   disabled,
   taskFiles,
   sandboxStreams,
-  onAgentLogCreated,
 }: ChatScreenProps) {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
 
+  const { voiceEnabled } = useVoiceModeContext();
+  const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
+
   const { streaming: streamingMessage, dismiss: dismissStream } =
     useAgentStream(agentId, taskId ?? null);
+
+  // When a streamed agent message finishes, enqueue it for TTS.
+  // dismissStream is called when the final log entry arrives and replaces
+  // the streaming bubble — so the content is complete at that point.
+  const onLogCreated = useCallback(
+    (logId: string) => {
+      // Check if this log replaces an active streaming message
+      if (voiceEnabled && streamingMessage?.logId === logId) {
+        enqueueSpeech(logId);
+      }
+      dismissStream(logId);
+    },
+    [voiceEnabled, streamingMessage?.logId, enqueueSpeech, dismissStream],
+  );
 
   const scope = taskId ? { taskId } : { agentId };
   const {
@@ -107,8 +124,7 @@ export function ChatScreen({
     loadingMore,
     fetchNewer,
   } = useLogMessages(scope, {
-    onLogCreated: dismissStream,
-    onAgentLogCreated,
+    onLogCreated,
   });
 
   const [refreshing, setRefreshing] = useState(false);
