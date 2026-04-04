@@ -10,6 +10,7 @@ import {
   createTavilySearchTool,
   editFileTool,
   FileStateTracker,
+  generateImageTool,
   globTool,
   grepTool,
   listFilesTool,
@@ -26,6 +27,7 @@ import {
   writeFileTool,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
+import { getImageModelFromConfig } from "./model.js";
 import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
 
 /**
@@ -41,6 +43,7 @@ export interface AgentLaneContext {
   skillTools: SkillToolsResult;
   modelSupportsImages: boolean;
   modelSupportsReasoning: boolean;
+  imageModel: import("ai").ImageModel | null;
 }
 
 /**
@@ -96,23 +99,35 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
-  const [skillSummary, skillTools, modelCapabilities] = await Promise.all([
-    buildSkillSummary(ctx, agentId).catch((err) => {
-      ctx.log.error(
-        { err, component: "skills" },
-        "Failed to build skill summary",
-      );
-      return { promptSection: "" };
-    }),
-    buildSkillTools(ctx, agentId).catch((err) => {
-      ctx.log.error(
-        { err, component: "skills" },
-        "Failed to build skill tools",
-      );
-      return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
-    }),
-    resolveModelCapabilities(ctx, agent.config?.model),
-  ]);
+  const [skillSummary, skillTools, modelCapabilities, imageModel] =
+    await Promise.all([
+      buildSkillSummary(ctx, agentId).catch((err) => {
+        ctx.log.error(
+          { err, component: "skills" },
+          "Failed to build skill summary",
+        );
+        return { promptSection: "" };
+      }),
+      buildSkillTools(ctx, agentId).catch((err) => {
+        ctx.log.error(
+          { err, component: "skills" },
+          "Failed to build skill tools",
+        );
+        return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
+      }),
+      resolveModelCapabilities(ctx, agent.config?.model),
+      agent.config?.imageGeneration?.enabled
+        ? getImageModelFromConfig(ctx, agent.config?.imageModel).catch(
+            (err) => {
+              ctx.log.warn(
+                { err, component: "imageModel" },
+                "Failed to resolve image model",
+              );
+              return null;
+            },
+          )
+        : Promise.resolve(null),
+    ]);
 
   return {
     agent,
@@ -123,6 +138,7 @@ export async function buildAgentLaneContext(
     skillTools,
     modelSupportsImages: modelCapabilities.supportsImages,
     modelSupportsReasoning: modelCapabilities.supportsReasoning,
+    imageModel,
   };
 }
 
@@ -162,6 +178,15 @@ export function buildTaskTools(
     updateJob: updateJobTool(ctx, agentId),
     ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
       ? { viewImage: viewImageTool(ctx) }
+      : {}),
+    ...(agentLaneCtx.imageModel
+      ? {
+          generateImage: generateImageTool(
+            ctx,
+            agentLaneCtx.imageModel,
+            taskId,
+          ),
+        }
       : {}),
     ...(agent.config?.sandbox?.enabled
       ? {

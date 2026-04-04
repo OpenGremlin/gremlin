@@ -27,13 +27,7 @@ vi.mock("./logger", () => ({
   },
 }));
 
-import {
-  clearToken,
-  getCognitoRegion,
-  isAuthEnabled,
-  setOnTokenChange,
-  setToken,
-} from "./auth";
+import { clearToken, getCognitoRegion, isAuthEnabled, setToken } from "./auth";
 
 describe("getCognitoRegion", () => {
   it("extracts region from cognito domain", () => {

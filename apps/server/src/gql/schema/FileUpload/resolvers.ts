@@ -1,11 +1,11 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { createLogger } from "@opengremlin/lib/logger.js";
-import { getWorkspacePath } from "@opengremlin/lib/services/tools/documents.js";
 import type { GremlinContext } from "../../context.js";
 import { getS3Client, getUploadsBucketName } from "./s3.js";
 
-const log = createLogger("fileUpload");
+function getWorkspacePath() {
+  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
+}
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -82,7 +82,7 @@ const requestFileUploads = async (
     results.push({ uploadId, presignedUrl, key });
   }
 
-  log.info(
+  ctx.log.info(
     { agentId: args.agentId, fileCount: args.files.length },
     "Generated presigned upload URLs",
   );
@@ -140,7 +140,10 @@ const completeFileUpload = async (
   await s3
     .send(new DeleteObjectCommand({ Bucket: bucket, Key: input.key }))
     .catch((err: unknown) =>
-      log.warn({ err, key: input.key }, "Failed to delete S3 upload object"),
+      ctx.log.warn(
+        { err, key: input.key },
+        "Failed to delete S3 upload object",
+      ),
     );
 
   // Write agent log entry directly so the subscription fires immediately
@@ -161,7 +164,7 @@ const completeFileUpload = async (
     attachments: [{ type: "file", path: relativePath }],
   });
 
-  log.info(
+  ctx.log.info(
     {
       agentId: input.agentId,
       filename: finalFilename,

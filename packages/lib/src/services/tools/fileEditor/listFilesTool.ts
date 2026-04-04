@@ -1,5 +1,4 @@
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";

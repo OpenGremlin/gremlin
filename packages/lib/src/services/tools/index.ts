@@ -13,6 +13,7 @@ export {
   resolveAndValidate,
   writeFileTool,
 } from "./fileEditor/index.js";
+export { generateImageTool } from "./generateImage.js";
 export {
   listJobsTool,
   scheduleJobTool,

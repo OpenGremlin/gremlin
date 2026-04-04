@@ -1,4 +1,4 @@
-import { config, getApiUrl } from "./config";
+import { config } from "./config";
 import { clientLogger } from "./logger";
 import { storage } from "./storage";
 

@@ -12,7 +12,7 @@ import { createPerplexity } from "@ai-sdk/perplexity";
 import { createTogetherAI } from "@ai-sdk/togetherai";
 import { createXai } from "@ai-sdk/xai";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
-import type { LanguageModel } from "ai";
+import type { ImageModel, LanguageModel } from "ai";
 import { createMinimax } from "vercel-minimax-ai-provider";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
@@ -146,7 +146,7 @@ export async function getModelForAgent(
       }
     } catch (err) {
       log.warn(
-        { agentId, error: (err as Error).message },
+        { error: (err as Error).message },
         "Failed to resolve agent model, falling back to default",
       );
     }
@@ -244,4 +244,112 @@ async function getModelResult(ctx: ServiceContext): Promise<ModelResult> {
 export async function getModel(ctx: ServiceContext): Promise<LanguageModel> {
   const result = await getModelResult(ctx);
   return result.model;
+}
+
+// ── Image model resolution ───────────────────────────────────────────
+
+function createProviderImageModel(
+  providerId: string,
+  modelId: string,
+  apiKey: string,
+): ImageModel {
+  switch (providerId) {
+    case "openai": {
+      const openai = createOpenAI({ apiKey });
+      return openai.image(modelId);
+    }
+    case "google_ai": {
+      const google = createGoogleGenerativeAI({ apiKey });
+      return google.image(modelId);
+    }
+    case "xai": {
+      const xai = createXai({ apiKey });
+      return xai.image(modelId);
+    }
+    case "together": {
+      const together = createTogetherAI({ apiKey });
+      return together.image(modelId);
+    }
+    case "fireworks": {
+      const fireworks = createFireworks({ apiKey });
+      return fireworks.image(modelId);
+    }
+    default:
+      throw new Error(
+        `Image generation not supported for provider: ${providerId}`,
+      );
+  }
+}
+
+/**
+ * Resolve the image model from an agent's config.
+ * Returns null if no image model is configured or available.
+ */
+export async function getImageModelFromConfig(
+  ctx: ServiceContext,
+  imageModelConfig:
+    | { type: string; modelId?: string; connectionId?: string }
+    | undefined
+    | null,
+): Promise<ImageModel | null> {
+  // Try agent-specific image model
+  if (imageModelConfig) {
+    try {
+      if (imageModelConfig.type === "bedrock" && imageModelConfig.modelId) {
+        return bedrock.image(imageModelConfig.modelId);
+      }
+      if (
+        imageModelConfig.type === "connection" &&
+        imageModelConfig.connectionId
+      ) {
+        const [providerId, modelId] = imageModelConfig.connectionId.split(
+          ":",
+          2,
+        );
+        if (providerId && modelId) {
+          const apiKey = await ctx.services.integrations.getProviderApiKey(
+            ctx.resources,
+            providerId,
+          );
+          if (apiKey) {
+            return createProviderImageModel(providerId, modelId, apiKey);
+          }
+        }
+      }
+    } catch (err) {
+      log.warn(
+        { error: (err as Error).message },
+        "Failed to resolve agent image model, trying default",
+      );
+    }
+  }
+
+  // Fall back to default image model
+  const defaultImageModel = await ctx.services.integrations.getDefaultModel(
+    ctx,
+    "defaultImageModel",
+  );
+  if (!defaultImageModel) return null;
+
+  try {
+    if (defaultImageModel.providerId === "bedrock") {
+      return bedrock.image(defaultImageModel.modelId);
+    }
+    const apiKey = await ctx.services.integrations.getProviderApiKey(
+      ctx.resources,
+      defaultImageModel.providerId,
+    );
+    if (!apiKey) return null;
+    return createProviderImageModel(
+      defaultImageModel.providerId,
+      defaultImageModel.modelId,
+      apiKey,
+    );
+  } catch (err) {
+    log.warn(
+      { error: (err as Error).message },
+      "Failed to resolve default image model",
+    );
+    return null;
+  }
 }

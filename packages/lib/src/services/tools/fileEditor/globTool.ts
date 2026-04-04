@@ -52,7 +52,7 @@ export function globTool() {
 
       // Filter to workspace boundary (safety net).
       files = files.filter(
-        (f) => f.startsWith(workspace + "/") || f === workspace,
+        (f) => f.startsWith(`${workspace}/`) || f === workspace,
       );
 
       // Sort by modification time, newest first.
@@ -75,7 +75,7 @@ export function globTool() {
 
       // Return paths relative to workspace.
       const relative = results.map((r) =>
-        r.file.startsWith(workspace + "/")
+        r.file.startsWith(`${workspace}/`)
           ? r.file.slice(workspace.length + 1)
           : r.file,
       );
