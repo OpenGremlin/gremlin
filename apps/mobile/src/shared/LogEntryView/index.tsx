@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react-native";
+import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
@@ -367,7 +368,7 @@ function renderToolCall(
   );
 }
 
-export function LogEntryView({
+export const LogEntryView = React.memo(function LogEntryView({
   message,
   agentId,
   showTimestamp,
@@ -532,4 +533,4 @@ export function LogEntryView({
   }
 
   return null;
-}
+});

@@ -251,9 +251,12 @@ export function ChatScreen({
     }
   }, [pickDocuments, pickImages, takePhoto]);
 
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
-      const next = index > 0 ? messages[index - 1] : undefined;
+      const next = index > 0 ? messagesRef.current[index - 1] : undefined;
       const show = shouldShowTimestamp(item, next);
       return (
         <LogEntryView
@@ -264,7 +267,7 @@ export function ChatScreen({
         />
       );
     },
-    [messages, agentId, sandboxStreams],
+    [agentId, sandboxStreams],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
