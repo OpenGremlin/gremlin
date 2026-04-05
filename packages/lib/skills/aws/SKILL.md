@@ -28,16 +28,17 @@ You have access to an AWS account via the `aws` CLI.
 
 ## First steps
 
-Before doing anything else, verify your access and discover what you can do:
+Before doing anything else, verify your access:
 
 ```bash
-# Confirm credentials are working
 aws sts get-caller-identity
+```
 
-# Get the role ARN from the output, then check what policies are attached
-ROLE_NAME=$(aws sts get-caller-identity --query 'Arn' --output text | sed 's|.*assumed-role/\([^/]*\).*|\1|')
-aws iam list-attached-role-policies --role-name "$ROLE_NAME" --output table
-aws iam list-role-policies --role-name "$ROLE_NAME" --output table
+Check the `Arn` in the output — it looks like `arn:aws:sts::123456:assumed-role/MyRoleName/session`. Extract the role name (the segment after `assumed-role/`), then check what policies are attached using that role name:
+
+```bash
+aws iam list-attached-role-policies --role-name "MyRoleName" --output table
+aws iam list-role-policies --role-name "MyRoleName" --output table
 ```
 
 Always do this at the start of a session so you know your permissions before attempting operations. If a call fails with AccessDenied, check your policies rather than retrying.

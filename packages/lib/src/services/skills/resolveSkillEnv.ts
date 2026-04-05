@@ -12,6 +12,7 @@ const log = createLogger("skills:env");
 export interface ResolvedSkillEnv {
   env: Record<string, string>;
   missing: string[];
+  errors: string[];
 }
 
 /**
@@ -66,7 +67,12 @@ export async function resolveConnectionEnv(
 
   if (connection.connectionType === "aws_iam_role") {
     const roleArn = connection.connectionMeta.roleArn;
-    if (!roleArn) return env;
+    if (!roleArn) {
+      log.warn({ connectionId }, "aws_iam_role connection has no roleArn");
+      return env;
+    }
+
+    log.info({ connectionId, roleArn }, "Attempting STS AssumeRole");
 
     try {
       const sts = new STSClient({});
@@ -86,12 +92,40 @@ export async function resolveConnectionEnv(
         if (connection.connectionMeta.roleRegion) {
           env.AWS_DEFAULT_REGION = connection.connectionMeta.roleRegion;
         }
+        log.info(
+          {
+            connectionId,
+            roleArn,
+            region: env.AWS_DEFAULT_REGION ?? "default",
+          },
+          "AssumeRole succeeded, credentials set",
+        );
+      } else {
+        log.error(
+          {
+            connectionId,
+            roleArn,
+            hasAccessKey: !!creds?.AccessKeyId,
+            hasSecret: !!creds?.SecretAccessKey,
+            hasToken: !!creds?.SessionToken,
+          },
+          "AssumeRole returned incomplete credentials",
+        );
+        throw new Error(
+          `AssumeRole for ${roleArn} returned incomplete credentials`,
+        );
       }
     } catch (err) {
       log.error(
-        { roleArn, error: (err as Error).message },
-        "AssumeRole failed during env resolution",
+        {
+          connectionId,
+          roleArn,
+          error: (err as Error).message,
+          errorName: (err as Error).name,
+        },
+        "AssumeRole failed",
       );
+      throw err;
     }
     return env;
   }
@@ -120,9 +154,10 @@ export async function resolveSkillEnv(
 ): Promise<ResolvedSkillEnv> {
   const env: Record<string, string> = {};
   const missing: string[] = [];
+  const errors: string[] = [];
 
   if (!skillDef.connections?.length) {
-    return { env, missing };
+    return { env, missing, errors };
   }
 
   const bindings = parseConnectionBindings(connectionBindingsRaw);
@@ -137,14 +172,21 @@ export async function resolveSkillEnv(
       continue;
     }
 
-    // Use the first bound connection as the default
-    const resolved = await resolveConnectionEnv(resources, req, boundIds[0]);
-    if (Object.keys(resolved).length === 0 && !req.optional) {
-      missing.push(req.provider);
-    } else {
-      Object.assign(env, resolved);
+    try {
+      const resolved = await resolveConnectionEnv(resources, req, boundIds[0]);
+      if (Object.keys(resolved).length === 0 && !req.optional) {
+        missing.push(req.provider);
+      } else {
+        Object.assign(env, resolved);
+      }
+    } catch (err) {
+      const message = (err as Error).message ?? String(err);
+      if (!req.optional) {
+        missing.push(req.provider);
+      }
+      errors.push(`${req.provider}: ${message}`);
     }
   }
 
-  return { env, missing };
+  return { env, missing, errors };
 }

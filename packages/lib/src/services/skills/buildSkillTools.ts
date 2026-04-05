@@ -187,18 +187,33 @@ export async function buildSkillTools(
           };
         }
 
-        const resolved = await resolveConnectionEnv(
-          ctx.resources,
-          connReq,
-          connectionId,
-        );
-        Object.assign(currentEnv, resolved);
+        let resolved: Record<string, string>;
+        try {
+          resolved = await resolveConnectionEnv(
+            ctx.resources,
+            connReq,
+            connectionId,
+          );
+        } catch (err) {
+          const message = (err as Error).message ?? String(err);
+          return {
+            error: `Authentication failed for connection "${connectionId}": ${message}`,
+          };
+        }
 
         const accounts = await loadActiveConnectionLabels(ctx.resources, [
           connectionId,
         ]);
         const label = accounts[0]?.label ?? connectionId;
         connectionLabel = label;
+
+        if (Object.keys(resolved).length === 0) {
+          return {
+            error: `No credentials were returned for connection "${label}". The connection may be misconfigured.`,
+          };
+        }
+
+        Object.assign(currentEnv, resolved);
 
         for (const envVar of Object.keys(resolved)) {
           envDescriptions.push(`${envVar} set for ${label}`);
@@ -216,12 +231,18 @@ export async function buildSkillTools(
       } else {
         // Resolve env using first available connection per provider
         const filteredBindingsRaw = JSON.stringify(bindings);
-        const { env, missing } = await resolveSkillEnv(
+        const { env, missing, errors } = await resolveSkillEnv(
           ctx.resources,
           template,
           filteredBindingsRaw,
         );
         Object.assign(currentEnv, env);
+
+        if (errors.length > 0) {
+          return {
+            error: `Authentication failed for skill "${skillId}":\n${errors.join("\n")}`,
+          };
+        }
 
         // Build env descriptions
         for (const connReq of template.connections) {
@@ -240,12 +261,17 @@ export async function buildSkillTools(
           }
         }
 
+        if (missing.length > 0) {
+          return {
+            error: `Failed to resolve credentials for: ${missing.join(", ")}. No environment variables were set. Check that the connection is properly configured.`,
+          };
+        }
+
         log.info(
           {
             agentId,
             skillId,
             resolvedEnvKeys: Object.keys(env),
-            missingProviders: missing,
           },
           "authenticate: resolved default connections",
         );
