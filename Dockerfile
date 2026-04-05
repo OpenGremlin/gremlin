@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
     && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 COPY --from=prune /pruned/ .
-COPY tsconfig.base.json .
+COPY --from=prune /workspace/tsconfig.base.json .
 RUN pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm turbo build --filter=@opengremlin/server
 
