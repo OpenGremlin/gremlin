@@ -33,7 +33,7 @@ describe("writeFileTool", () => {
       { file_path: "new.txt", content: "hello world" },
       {} as any,
     );
-    expect(result).toMatchObject({ type: "create", file_path: "new.txt" });
+    expect(result).toMatchObject({ type: "create", path: "new.txt" });
     const content = await fsp.readFile(path.join(tmpDir, "new.txt"), "utf-8");
     expect(content).toBe("hello world");
   });

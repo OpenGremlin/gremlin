@@ -39,8 +39,6 @@ import { ChatHeaderTitle } from "./ChatHeaderTitle";
 import { ChatInputBar } from "./ChatInputBar";
 import { PendingMessageBubble } from "./PendingMessageBubble";
 
-type FileNode = ChatMessage["files"][number];
-
 const flatListContentStyle = {
   paddingHorizontal: 16,
   paddingTop: 8,
@@ -72,7 +70,6 @@ interface ChatScreenProps {
   notFound: boolean;
   notFoundLabel?: string;
   disabled?: boolean;
-  taskFiles?: FileNode[];
   sandboxStreams?: Map<string, CommandStream>;
 }
 
@@ -88,7 +85,6 @@ export function ChatScreen({
   notFound,
   notFoundLabel,
   disabled,
-  taskFiles,
   sandboxStreams,
 }: ChatScreenProps) {
   const colors = useNavigationTheme();
@@ -269,12 +265,11 @@ export function ChatScreen({
           message={item}
           agentId={agentId}
           showTimestamp={show}
-          taskFiles={taskFiles}
           sandboxStreams={sandboxStreams}
         />
       );
     },
-    [messages, agentId, taskFiles, sandboxStreams],
+    [messages, agentId, sandboxStreams],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);

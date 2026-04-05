@@ -1,9 +1,9 @@
+import type { LucideIcon } from "lucide-react-native";
 import {
   Bell,
   BookOpen,
   Brain,
   Calendar,
-  CheckCircle,
   CircleAlert,
   Eye,
   File,
@@ -13,13 +13,13 @@ import {
   Link,
   List,
   Monitor,
+  PencilLine,
   Save,
   Search,
   ShieldCheck,
-  XCircle,
+  Sparkles,
 } from "lucide-react-native";
 import { ActivityIndicator, Text, View } from "react-native";
-import type { AgentLogsQuery } from "../../graphql/generated/graphql";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
@@ -91,15 +91,45 @@ function FileUploadCard({
   );
 }
 
-type FileNode =
-  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
+/** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
+const TOOL_ICON: Record<ToolName, LucideIcon> = {
+  [ToolName.UpdateTaskMessage]: Flag,
+  [ToolName.PostToMainLane]: Bell,
+  [ToolName.BackgroundTask]: Flag,
+  [ToolName.RequestUserInput]: ShieldCheck,
+  [ToolName.ReadFile]: Eye,
+  [ToolName.WriteFile]: PencilLine,
+  [ToolName.EditFile]: PencilLine,
+  [ToolName.ListFiles]: List,
+  [ToolName.Glob]: Search,
+  [ToolName.Grep]: Search,
+  [ToolName.CreateDocument]: FileText,
+  [ToolName.UpdateDocument]: FileText,
+  [ToolName.ReadDocument]: FileText,
+  [ToolName.AttachFile]: File,
+  [ToolName.AttachLink]: Link,
+  [ToolName.EnsureSandbox]: Monitor,
+  [ToolName.RunCommand]: Monitor,
+  [ToolName.ViewImage]: Eye,
+  [ToolName.GenerateImage]: Sparkles,
+  [ToolName.GenerateSpeech]: Sparkles,
+  [ToolName.WebSearch]: Search,
+  [ToolName.WebFetch]: Search,
+  [ToolName.ReadSkill]: BookOpen,
+  [ToolName.ReadSkillReference]: Search,
+  [ToolName.Authenticate]: KeyRound,
+  [ToolName.SaveMemory]: Save,
+  [ToolName.RecallMemory]: Brain,
+  [ToolName.ListJobs]: List,
+  [ToolName.ScheduleJob]: Calendar,
+  [ToolName.UpdateJob]: Calendar,
+};
 
-/** Exhaustive-check helper — a `default` case calling this will error at compile time if a ToolName case is missing. */
-function assertNever(_value: never): null {
-  return null;
-}
-
-function renderToolCall(
+/**
+ * Render a tool call that needs a custom widget (not just a hint + file preview).
+ * Returns `undefined` if the tool should use the default hint-based rendering.
+ */
+function renderCustomWidget(
   toolName: ToolName,
   tool: {
     input: Record<string, unknown> | null;
@@ -109,237 +139,19 @@ function renderToolCall(
   agentId: string,
   showTimestamp: boolean,
   colors: ReturnType<typeof useNavigationTheme>,
-  taskFiles?: FileNode[],
   sandboxStreams?: Map<string, CommandStream>,
-): React.ReactNode {
+): React.ReactNode | undefined {
   switch (toolName) {
-    case ToolName.UpdateTaskMessage: {
-      const msg = tool.input?.message as string | undefined;
-      return <ToolStatus icon={Flag} text={msg || "Progress update"} />;
-    }
-
-    case ToolName.EnsureSandbox: {
-      const status = tool.result?.status as string | undefined;
-      if (status === "ready") {
-        return (
-          <ToolStatus
-            icon={CheckCircle}
-            text="Sandbox ready"
-            variant="success"
-          />
-        );
-      }
-      if (status === "error") {
-        return (
-          <ToolStatus
-            icon={CircleAlert}
-            text={`Sandbox error: ${tool.result?.error ?? "unknown"}`}
-            variant="error"
-          />
-        );
-      }
-      return (
-        <ToolStatus
-          icon={Monitor}
-          text="Connecting to sandbox… this may take a few minutes"
-          variant="warning"
-        />
-      );
-    }
-
-    case ToolName.ReadSkill: {
-      const skillId = tool.input?.skillId as string | undefined;
-      if (tool.result?.error) {
-        return (
-          <ToolStatus
-            icon={XCircle}
-            text={`Failed to read ${skillId ?? "skill"}: ${tool.result.error}`}
-            variant="error"
-          />
-        );
-      }
-      return (
-        <ToolStatus
-          icon={BookOpen}
-          text={`Reading skill: ${skillId ?? "skill"}`}
-        />
-      );
-    }
-
-    case ToolName.ReadSkillReference: {
-      const skillId = tool.input?.skillId as string | undefined;
-      const reference = tool.input?.reference as string | undefined;
-      if (tool.result?.error) {
-        return (
-          <ToolStatus
-            icon={XCircle}
-            text={`Failed to read reference: ${tool.result.error}`}
-            variant="error"
-          />
-        );
-      }
-      return (
-        <ToolStatus
-          icon={Search}
-          text={`Reading skill (${skillId ?? "skill"}) reference: ${reference ?? "unknown"}`}
-        />
-      );
-    }
-
-    case ToolName.Authenticate: {
-      const skillId = tool.input?.skillId as string | undefined;
-      if (tool.result?.error) {
-        return (
-          <ToolStatus
-            icon={XCircle}
-            text={`Auth failed for ${skillId ?? "skill"}: ${tool.result.error}`}
-            variant="error"
-          />
-        );
-      }
-      if (!tool.result) {
-        return (
-          <ToolStatus
-            icon={KeyRound}
-            text={`Authenticating ${skillId ?? "skill"}...`}
-          />
-        );
-      }
-      const connLabel = tool.result?.connectionLabel as string | undefined;
-      const label = connLabel ? ` (${connLabel})` : "";
-      return (
-        <ToolStatus
-          icon={KeyRound}
-          text={`Authenticated ${skillId ?? "skill"}${label}`}
-        />
-      );
-    }
-
-    case ToolName.SaveMemory: {
-      const key =
-        (tool.input?.key as string | undefined) ??
-        (tool.input?.topic as string | undefined);
-      return (
-        <ToolStatus
-          icon={Save}
-          text={key ? `Saved memory: ${key}` : "Saved memory"}
-        />
-      );
-    }
-
-    case ToolName.RecallMemory: {
-      const query = tool.input?.query as string | undefined;
-      return (
-        <ToolStatus
-          icon={Brain}
-          text={query ? `Recalled: ${query}` : "Recalled memories"}
-        />
-      );
-    }
-
-    case ToolName.ScheduleJob: {
-      const schedule = tool.input?.schedule as string | undefined;
-      return (
-        <ToolStatus
-          icon={Calendar}
-          text={schedule ? `Scheduled job: ${schedule}` : "Scheduled job"}
-        />
-      );
-    }
-
-    case ToolName.ListJobs:
-      return <ToolStatus icon={List} text="Listed jobs" />;
-
-    case ToolName.UpdateJob:
-      return <ToolStatus icon={Calendar} text="Updated job" />;
-
-    case ToolName.AttachFile: {
-      const filePath = tool.input?.path as string | undefined;
-      const file = filePath
-        ? taskFiles?.find((f) => f.path === filePath)
-        : undefined;
-      if (file) {
-        return (
-          <View className="py-2">
-            <FileCard file={file} />
-          </View>
-        );
-      }
-      return (
-        <ToolStatus
-          icon={File}
-          text={`Attached file: ${filePath ?? "unknown"}`}
-        />
-      );
-    }
-
-    case ToolName.AttachLink: {
-      const url = tool.input?.url as string | undefined;
-      const title = tool.input?.title as string | undefined;
-      return (
-        <ToolStatus
-          icon={Link}
-          text={`Attaching link: ${title ?? url ?? "unknown"}`}
-        />
-      );
-    }
-
-    case ToolName.PostToMainLane:
-      return <ToolStatus icon={Bell} text="Posted update to main chat" />;
-
     case ToolName.CreateDocument:
       return (
         <CreateDocumentCard
           toolInput={tool.input}
           toolResult={tool.result}
-          files={taskFiles}
+          files={message.files}
           createdAt={message.createdAt}
           showTimestamp={showTimestamp}
         />
       );
-
-    case ToolName.UpdateDocument: {
-      const docPath =
-        (tool.result?.path as string | undefined) ??
-        (tool.input?.path as string | undefined);
-      const file = docPath
-        ? taskFiles?.find((f) => f.path === docPath)
-        : undefined;
-      if (file) {
-        return (
-          <View className="py-2">
-            <FileCard file={file} />
-          </View>
-        );
-      }
-      return null;
-    }
-
-    case ToolName.ReadDocument: {
-      const docPath = tool.input?.path as string | undefined;
-      return (
-        <ToolStatus
-          icon={FileText}
-          text={`Read document: ${docPath ?? "unknown"}`}
-        />
-      );
-    }
-
-    case ToolName.ViewImage: {
-      const imgPath = tool.input?.path as string | undefined;
-      if (tool.result?.type === "error") {
-        return (
-          <ToolStatus
-            icon={XCircle}
-            text={`${tool.result.message}`}
-            variant="error"
-          />
-        );
-      }
-      return (
-        <ToolStatus icon={Eye} text={`Viewed image: ${imgPath ?? "unknown"}`} />
-      );
-    }
 
     case ToolName.BackgroundTask:
       return (
@@ -368,9 +180,7 @@ function renderToolCall(
           />
         );
       }
-
-      // Fallback for old log entries without inputRequestId
-      return <ToolStatus icon={ShieldCheck} text={question} />;
+      return undefined; // fall through to hint-based rendering
     }
 
     case ToolName.RunCommand: {
@@ -382,7 +192,6 @@ function renderToolCall(
         (tool.result?.commandApprovalId as string | undefined);
       const approvalStatus = tool.result?.status as string | undefined;
 
-      // Show approval card when pending
       if (approvalId && approvalStatus === "pending_approval") {
         return (
           <CommandApprovalCard
@@ -403,7 +212,6 @@ function renderToolCall(
 
       const fnLabel = <FnLabel fn="run" arg={command + exitSuffix} />;
 
-      // Match stream: by commandId if available, otherwise use the latest active stream
       let stream = commandId ? sandboxStreams?.get(commandId) : undefined;
       if (!hasResult && !stream && sandboxStreams) {
         for (const [, s] of sandboxStreams) {
@@ -498,54 +306,76 @@ function renderToolCall(
       );
     }
 
-    // File editor tools — show as generic tool blocks
-    case ToolName.ReadFile:
-    case ToolName.WriteFile:
-    case ToolName.EditFile:
-    case ToolName.ListFiles:
-    case ToolName.Glob:
-    case ToolName.Grep:
-    case ToolName.GenerateImage:
-    case ToolName.GenerateSpeech: {
-      const genPath = tool.result?.path as string | undefined;
-      const genFile = genPath
-        ? taskFiles?.find((f) => f.path === genPath)
-        : undefined;
-      if (genFile) {
-        return (
-          <View className="py-2">
-            <FileCard file={genFile} />
-          </View>
-        );
-      }
-      const label =
-        toolName === ToolName.GenerateImage
-          ? "Generated image"
-          : "Generated audio";
-      return (
-        <ToolStatus
-          icon={File}
-          text={genPath ? `${label}: ${genPath}` : label}
-        />
-      );
-    }
-
     default:
-      return assertNever(toolName);
+      return undefined;
   }
+}
+
+/**
+ * Render a tool call entry. Uses custom widgets for complex tools,
+ * otherwise renders `{icon} {displayHint}` + file previews from `message.files`.
+ */
+function renderToolCall(
+  toolName: ToolName,
+  tool: {
+    input: Record<string, unknown> | null;
+    result: Record<string, unknown> | null;
+  },
+  message: ChatMessage,
+  agentId: string,
+  showTimestamp: boolean,
+  colors: ReturnType<typeof useNavigationTheme>,
+  sandboxStreams?: Map<string, CommandStream>,
+): React.ReactNode {
+  // 1. Try custom widget first
+  const custom = renderCustomWidget(
+    toolName,
+    tool,
+    message,
+    agentId,
+    showTimestamp,
+    colors,
+    sandboxStreams,
+  );
+  if (custom !== undefined) return custom;
+
+  // 2. Use displayHint for everything else
+  const hint = message.displayHint;
+  if (!hint) return null;
+
+  const icon = TOOL_ICON[toolName];
+  const files = message.files ?? [];
+
+  return (
+    <View>
+      <ToolStatus
+        icon={icon}
+        text={hint}
+        variant={
+          (message.displayVariant as "success" | "warning" | "error") ??
+          undefined
+        }
+      />
+      {files.length > 0 && (
+        <View className="mt-1 gap-1">
+          {files.map((file) => (
+            <FileCard key={file.path} file={file} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
 }
 
 export function LogEntryView({
   message,
   agentId,
   showTimestamp,
-  taskFiles,
   sandboxStreams,
 }: {
   message: ChatMessage;
   agentId: string;
   showTimestamp: boolean;
-  taskFiles?: FileNode[];
   sandboxStreams?: Map<string, CommandStream>;
 }) {
   const colors = useNavigationTheme();
@@ -603,7 +433,6 @@ export function LogEntryView({
         agentId,
         showTimestamp,
         colors,
-        taskFiles,
         sandboxStreams,
       );
       if (rendered) return rendered;

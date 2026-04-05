@@ -242,7 +242,7 @@ function buildFileEditorTools(ctx: ServiceContext, taskId: string) {
   return {
     [ToolName.ReadFile]: readFileTool(tracker),
     [ToolName.WriteFile]: writeFileTool(ctx, tracker, taskId),
-    [ToolName.EditFile]: editFileTool(ctx, tracker),
+    [ToolName.EditFile]: editFileTool(ctx, tracker, taskId),
     [ToolName.ListFiles]: listFilesTool(),
     [ToolName.Glob]: globTool(),
     [ToolName.Grep]: grepTool(),

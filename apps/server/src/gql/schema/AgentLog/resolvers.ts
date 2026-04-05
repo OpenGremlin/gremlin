@@ -1,6 +1,7 @@
 import { filter, pipe } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLog.js";
 import type { AgentStreamEvent } from "@opengremlin/lib/resources/pubsub.js";
+import { computeDisplayHint } from "@opengremlin/lib/services/orchestrator/displayHint.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -156,6 +157,20 @@ export const agentLogResolvers = {
   Subscription: { agentLogCreated, logCreated, agentStream },
   AgentLog: {
     agent,
+    displayHint: (parent: AgentLogItem) => {
+      if (parent.role !== "TOOL" || !parent.toolName) return null;
+      const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
+      const result = parent.toolResult ? JSON.parse(parent.toolResult) : null;
+      return computeDisplayHint(parent.toolName, input, result)?.text ?? null;
+    },
+    displayVariant: (parent: AgentLogItem) => {
+      if (parent.role !== "TOOL" || !parent.toolName) return null;
+      const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
+      const result = parent.toolResult ? JSON.parse(parent.toolResult) : null;
+      return (
+        computeDisplayHint(parent.toolName, input, result)?.variant ?? null
+      );
+    },
     attachments,
     documents,
     files,

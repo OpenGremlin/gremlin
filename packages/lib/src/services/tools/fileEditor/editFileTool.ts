@@ -1,9 +1,10 @@
 import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
 import type { FileStateTracker } from "./fileState.js";
-import { resolveAndValidate } from "./pathUtils.js";
+import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";
 
 /**
  * Tool that performs exact string replacements in files, mirroring
@@ -14,7 +15,11 @@ import { resolveAndValidate } from "./pathUtils.js";
  * - Staleness detection
  * - Multi-match detection (rejects ambiguous single replacements)
  */
-export function editFileTool(_ctx: ServiceContext, tracker: FileStateTracker) {
+export function editFileTool(
+  _ctx: ServiceContext,
+  tracker: FileStateTracker,
+  _taskId: string | null,
+) {
   return tool({
     description:
       "Perform exact string replacements in a file. You MUST read the file first with " +
@@ -90,8 +95,11 @@ export function editFileTool(_ctx: ServiceContext, tracker: FileStateTracker) {
       // Clear staleness so a fresh read is needed before the next edit.
       tracker.clear(resolved);
 
+      const workspace = getWorkspacePath();
+      const relativePath = path.relative(workspace, resolved);
+
       return {
-        file_path,
+        path: relativePath,
         replacements: replace_all ? matchCount : 1,
       };
     },

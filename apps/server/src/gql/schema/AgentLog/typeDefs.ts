@@ -23,6 +23,8 @@ export const agentLogTypeDefs = /* GraphQL */ `
     toolName: ToolName
     toolInput: String
     toolResult: String
+    displayHint: String
+    displayVariant: String
     commandApprovalId: String
     attachments: [Attachment!]!
     documents: [Document!]! @deprecated(reason: "Use attachments instead")

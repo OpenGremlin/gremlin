@@ -35,7 +35,6 @@ export default function TaskThreadScreen() {
         onRetry={refetch}
         notFound={!loading && !error && !task}
         notFoundLabel="Task not found"
-        taskFiles={task?.files}
         sandboxStreams={sandboxStreams}
       />
     </>

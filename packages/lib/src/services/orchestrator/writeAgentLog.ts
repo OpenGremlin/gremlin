@@ -88,6 +88,24 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   return { id, createdAt: now };
 }
 
+/** Extract a file attachment from a tool result, if it contains a `path`. */
+function extractFileAttachment(toolResult: unknown): Attachment[] {
+  if (
+    toolResult &&
+    typeof toolResult === "object" &&
+    "path" in toolResult &&
+    typeof (toolResult as Record<string, unknown>).path === "string"
+  ) {
+    return [
+      {
+        type: "file",
+        path: (toolResult as Record<string, unknown>).path as string,
+      },
+    ];
+  }
+  return [];
+}
+
 /** Update an existing TOOL log entry with the result. */
 export async function updateAgentLogResult(
   ctx: ServiceContext,
@@ -103,12 +121,18 @@ export async function updateAgentLogResult(
   },
 ) {
   const table = ctx.resources.ddb.table;
+  const attachments = extractFileAttachment(entry.toolResult);
 
   const updateParts = ["toolResult = :result", "toolInput = :input"];
   const exprValues: Record<string, unknown> = {
     ":result": JSON.stringify(entry.toolResult),
     ":input": JSON.stringify(entry.toolInput),
   };
+
+  if (attachments.length > 0) {
+    updateParts.push("attachments = :att");
+    exprValues[":att"] = attachments;
+  }
 
   if (entry.commandApprovalId) {
     updateParts.push("commandApprovalId = :caid");
@@ -133,6 +157,7 @@ export async function updateAgentLogResult(
     toolName: entry.toolName,
     toolInput: JSON.stringify(entry.toolInput),
     toolResult: JSON.stringify(entry.toolResult),
+    ...(attachments.length > 0 ? { attachments } : {}),
     ...(entry.commandApprovalId
       ? { commandApprovalId: entry.commandApprovalId }
       : {}),

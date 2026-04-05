@@ -116,6 +116,8 @@ export const AgentLogFields = graphql(`
     toolName
     toolInput
     toolResult
+    displayHint
+    displayVariant
     commandApprovalId
     attachments {
       ...AttachmentFields
