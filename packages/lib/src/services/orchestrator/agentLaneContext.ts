@@ -29,7 +29,11 @@ import {
   writeFileTool,
 } from "../tools/index.js";
 import { loadAgentContext } from "./loadAgentContext.js";
-import { getImageModelFromConfig, getSpeechModelFromConfig } from "./model.js";
+import {
+  getImageModelFromConfig,
+  getSpeechConnectionId,
+  getSpeechModelFromConfig,
+} from "./model.js";
 import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
 
 /**
@@ -48,6 +52,8 @@ export interface AgentLaneContext {
   imageModel: import("ai").ImageModel | null;
   speechModel: import("ai").SpeechModel | null;
   speechVoice: string | undefined;
+  /** Connection ID string for the speech model (e.g. "openai:tts-1"). */
+  speechConnectionId: string | undefined;
 }
 
 /**
@@ -103,46 +109,53 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
-  const [skillSummary, skillTools, modelCapabilities, imageModel, speechModel] =
-    await Promise.all([
-      buildSkillSummary(ctx, agentId).catch((err) => {
-        ctx.log.error(
-          { err, component: "skills" },
-          "Failed to build skill summary",
-        );
-        return { promptSection: "" };
-      }),
-      buildSkillTools(ctx, agentId).catch((err) => {
-        ctx.log.error(
-          { err, component: "skills" },
-          "Failed to build skill tools",
-        );
-        return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
-      }),
-      resolveModelCapabilities(ctx, agent.config?.model),
-      agent.config?.imageGeneration?.enabled
-        ? getImageModelFromConfig(ctx, agent.config?.imageModel).catch(
-            (err) => {
-              ctx.log.warn(
-                { err, component: "imageModel" },
-                "Failed to resolve image model",
-              );
-              return null;
-            },
-          )
-        : Promise.resolve(null),
-      agent.config?.speech?.enabled
-        ? getSpeechModelFromConfig(ctx, agent.config?.speechModel).catch(
-            (err) => {
-              ctx.log.warn(
-                { err, component: "speechModel" },
-                "Failed to resolve speech model",
-              );
-              return null;
-            },
-          )
-        : Promise.resolve(null),
-    ]);
+  const [
+    skillSummary,
+    skillTools,
+    modelCapabilities,
+    imageModel,
+    speechModel,
+    speechConnectionId,
+  ] = await Promise.all([
+    buildSkillSummary(ctx, agentId).catch((err) => {
+      ctx.log.error(
+        { err, component: "skills" },
+        "Failed to build skill summary",
+      );
+      return { promptSection: "" };
+    }),
+    buildSkillTools(ctx, agentId).catch((err) => {
+      ctx.log.error(
+        { err, component: "skills" },
+        "Failed to build skill tools",
+      );
+      return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
+    }),
+    resolveModelCapabilities(ctx, agent.config?.model),
+    agent.config?.imageGeneration?.enabled
+      ? getImageModelFromConfig(ctx, agent.config?.imageModel).catch((err) => {
+          ctx.log.warn(
+            { err, component: "imageModel" },
+            "Failed to resolve image model",
+          );
+          return null;
+        })
+      : Promise.resolve(null),
+    agent.config?.speech?.enabled
+      ? getSpeechModelFromConfig(ctx, agent.config?.speechModel).catch(
+          (err) => {
+            ctx.log.warn(
+              { err, component: "speechModel" },
+              "Failed to resolve speech model",
+            );
+            return null;
+          },
+        )
+      : Promise.resolve(null),
+    agent.config?.speech?.enabled
+      ? getSpeechConnectionId(ctx, agent.config?.speechModel).catch(() => null)
+      : Promise.resolve(null),
+  ]);
 
   return {
     agent,
@@ -156,6 +169,7 @@ export async function buildAgentLaneContext(
     imageModel,
     speechModel,
     speechVoice: agent.config?.speech?.voice ?? agent.ttsVoice,
+    speechConnectionId: speechConnectionId ?? undefined,
   };
 }
 

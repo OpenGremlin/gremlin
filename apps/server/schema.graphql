@@ -140,6 +140,8 @@ type Subscription {
   "Subscribe to log entries by agentId or taskId"
   logCreated(agentId: ID, taskId: ID): AgentLog!
   agentStream(agentId: ID!): AgentStreamDelta!
+  "Subscribe to sentence-level TTS audio URLs by agentId or taskId"
+  speechStream(agentId: ID, taskId: ID): SpeechAudioChunk!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
   pendingItemsUpdated: Boolean!
@@ -336,7 +338,6 @@ type AgentLog {
   attachments: [Attachment!]!
   documents: [Document!]! @deprecated(reason: "Use attachments instead")
   files: [File!]! @deprecated(reason: "Use attachments instead")
-  speechUrl: String
   createdAt: String!
 }
 
@@ -373,6 +374,14 @@ type AgentStreamDelta {
   agentId: ID!
   taskId: String
   delta: String!
+  done: Boolean!
+}
+
+type SpeechAudioChunk {
+  logId: ID!
+  agentId: ID!
+  sentenceIndex: Int!
+  url: String!
   done: Boolean!
 }
 

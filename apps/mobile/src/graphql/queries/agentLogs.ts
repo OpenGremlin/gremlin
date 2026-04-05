@@ -86,3 +86,15 @@ export const AgentStreamSubscription = graphql(`
     }
   }
 `);
+
+export const SpeechStreamSubscription = graphql(`
+  subscription SpeechStream($agentId: ID, $taskId: ID) {
+    speechStream(agentId: $agentId, taskId: $taskId) {
+      logId
+      agentId
+      sentenceIndex
+      url
+      done
+    }
+  }
+`);

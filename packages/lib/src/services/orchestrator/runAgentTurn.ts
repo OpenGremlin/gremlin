@@ -1,7 +1,11 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { hasToolCall, type ModelMessage, streamText, type Tool } from "ai";
 import type { ToolName } from "../../enums.js";
+import type { SpeechAudioEvent } from "../../resources/pubsub.js";
 import type { ServiceContext } from "../context.js";
+import { SentenceAccumulator } from "../speech/SentenceAccumulator.js";
+import { buildSignedSpeechUrl } from "../speech/signedSpeechUrl.js";
+import { stripMarkdownForSpeech } from "../speech/stripMarkdownForSpeech.js";
 import { requestUserInputTool } from "../tools/index.js";
 import { getModelForAgent } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
@@ -67,6 +71,11 @@ function buildReasoningProviderOptions(
   return undefined;
 }
 
+export interface SpeechConfig {
+  voice: string | undefined;
+  connectionId: string;
+}
+
 export async function runAgentTurn(
   ctx: ServiceContext,
   opts: {
@@ -78,6 +87,8 @@ export async function runAgentTurn(
     messages: ModelMessage[];
     tools?: Record<string, Tool>;
     reasoningEnabled?: boolean;
+    /** When set, enables sentence-streaming TTS via signed URLs. */
+    speech?: SpeechConfig;
   },
 ): Promise<string> {
   const lane = opts.taskId ? `task:${opts.taskId}` : "main";
@@ -220,6 +231,50 @@ export async function runAgentTurn(
   // Signal that inference has started (typing indicator)
   publishDelta("", false);
 
+  // ── Sentence-streaming TTS ──────────────────────────────────────────
+  // Capture speech config up front so closures have narrowed types.
+  const speechCfg =
+    opts.speech && ctx.serverBaseUrl && ctx.speechSecret
+      ? {
+          voice: opts.speech.voice,
+          connectionId: opts.speech.connectionId,
+          baseUrl: ctx.serverBaseUrl,
+          secret: ctx.speechSecret,
+        }
+      : null;
+  const sentenceAccumulator = speechCfg ? new SentenceAccumulator() : null;
+  let sentenceIndex = 0;
+
+  const publishSpeech = (event: SpeechAudioEvent) => {
+    if (opts.taskId) {
+      ctx.resources.pubsub.publish(`speechAudio:task:${opts.taskId}`, event);
+    } else {
+      ctx.resources.pubsub.publish(`speechAudio:${opts.agentId}`, event);
+    }
+  };
+
+  const emitSentence = (sentence: string) => {
+    if (!speechCfg) return;
+    const cleaned = stripMarkdownForSpeech(sentence);
+    if (!cleaned) return;
+    const url = buildSignedSpeechUrl(
+      speechCfg.baseUrl,
+      {
+        text: cleaned,
+        voice: speechCfg.voice,
+        connectionId: speechCfg.connectionId,
+      },
+      speechCfg.secret,
+    );
+    publishSpeech({
+      logId: streamLogId,
+      agentId: opts.agentId,
+      sentenceIndex: sentenceIndex++,
+      url,
+      done: false,
+    });
+  };
+
   const modelProvider = typeof model === "string" ? model : model.provider;
   const providerOptions = opts.reasoningEnabled
     ? buildReasoningProviderOptions(modelProvider)
@@ -237,6 +292,12 @@ export async function runAgentTurn(
     onChunk: ({ chunk }) => {
       if (chunk.type === "text-delta" && chunk.text) {
         publishDelta(chunk.text, false);
+
+        if (sentenceAccumulator) {
+          for (const sentence of sentenceAccumulator.push(chunk.text)) {
+            emitSentence(sentence);
+          }
+        }
       }
     },
   });
@@ -246,6 +307,19 @@ export async function runAgentTurn(
 
   // Signal stream complete
   publishDelta("", true);
+
+  // Flush remaining sentence and signal TTS done
+  if (sentenceAccumulator) {
+    const remaining = sentenceAccumulator.flush();
+    if (remaining) emitSentence(remaining);
+    publishSpeech({
+      logId: streamLogId,
+      agentId: opts.agentId,
+      sentenceIndex: sentenceIndex,
+      url: "",
+      done: true,
+    });
+  }
 
   // Log the final text response
   if (finalText) {

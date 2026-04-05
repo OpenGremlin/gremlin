@@ -1,6 +1,9 @@
 import { filter, pipe } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLog.js";
-import type { AgentStreamEvent } from "@opengremlin/lib/resources/pubsub.js";
+import type {
+  AgentStreamEvent,
+  SpeechAudioEvent,
+} from "@opengremlin/lib/resources/pubsub.js";
 import { computeDisplayHint } from "@opengremlin/lib/services/orchestrator/displayHint.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
@@ -151,10 +154,27 @@ const agentStream = {
   resolve: (payload: AgentStreamEvent) => payload,
 };
 
+const speechStream = {
+  subscribe: (
+    _parent: unknown,
+    { agentId, taskId }: { agentId?: string; taskId?: string },
+    ctx: GremlinContext,
+  ) => {
+    if (!agentId && !taskId) {
+      throw new Error("speechStream requires either agentId or taskId");
+    }
+    const topic = taskId
+      ? (`speechAudio:task:${taskId}` as const)
+      : (`speechAudio:${agentId}` as const);
+    return ctx.resources.pubsub.subscribe(topic);
+  },
+  resolve: (payload: SpeechAudioEvent) => payload,
+};
+
 export const agentLogResolvers = {
   Query: { agentLogs, taskLogs, pendingInboxMessages },
   Mutation: { sendMessage },
-  Subscription: { agentLogCreated, logCreated, agentStream },
+  Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {
     agent,
     displayHint: (parent: AgentLogItem) => {
@@ -174,11 +194,6 @@ export const agentLogResolvers = {
     attachments,
     documents,
     files,
-    speechUrl: (parent: AgentLogItem, _args: unknown, ctx: GremlinContext) => {
-      if (parent.role !== "AGENT" || !parent.content) return null;
-      const base = ctx.serverBaseUrl.replace(/\/$/, "");
-      return `${base}/api/speech/${encodeURIComponent(parent.id)}`;
-    },
   },
   AgentLogEdge: { node },
 };

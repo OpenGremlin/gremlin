@@ -21,6 +21,15 @@ export interface AgentStreamEvent {
   done: boolean;
 }
 
+export interface SpeechAudioEvent {
+  logId: string;
+  agentId: string;
+  sentenceIndex: number;
+  /** Signed URL for on-demand TTS of this sentence. Empty string when done=true. */
+  url: string;
+  done: boolean;
+}
+
 export type PubSubEvents = {
   [key: `agentLogCreated:${string}`]: [AgentLogItem];
   [key: `agentLogCreated:task:${string}`]: [AgentLogItem];
@@ -31,6 +40,8 @@ export type PubSubEvents = {
   [key: `inboxItemCreated:${string}`]: [InboxItemItem];
   [key: `sandboxOutput:${string}`]: [SandboxOutputEvent];
   [key: `agentStream:${string}`]: [AgentStreamEvent];
+  [key: `speechAudio:${string}`]: [SpeechAudioEvent];
+  [key: `speechAudio:task:${string}`]: [SpeechAudioEvent];
   pendingItemsUpdated: [];
 };
 

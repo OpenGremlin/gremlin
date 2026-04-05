@@ -20,7 +20,7 @@ import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
 import { pubsub } from "./pubsub.js";
 import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
-import { createSpeechRoute } from "./routes/speechRoute.js";
+import { createSpeechSentenceRoute } from "./routes/speechSentenceRoute.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -85,6 +85,10 @@ app.use(express.json());
 // separately-defined conditional mapped types that TS can't unify generically.
 const resources = createResources(pubsub as unknown as PubSub);
 const services = createServices();
+
+// Per-instance HMAC secret for signing self-contained speech URLs.
+// Ephemeral — URLs are consumed immediately so they don't need to survive restarts.
+const speechSecret = crypto.randomUUID();
 
 const schema = makeExecutableSchema({
   typeDefs: mergedTypeDefs,
@@ -232,8 +236,11 @@ if (process.env.MEDIA_BUCKET) {
 app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
 
-// On-demand TTS for agent log entries
-app.get("/api/speech/:logId", createSpeechRoute(resources, services));
+// Stateless per-sentence TTS via signed URL
+app.get(
+  "/api/speech/sentence",
+  createSpeechSentenceRoute(resources, services, speechSecret),
+);
 
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");
@@ -304,6 +311,8 @@ loadSchedulerConfig().then(async () => {
     resources,
     services,
     mediaBaseUrl: `${serverBase}/media`,
+    serverBaseUrl: serverBase,
+    speechSecret,
     log: logger.child({ component: "inbox" }),
   };
   stopSqsWorker = startSqsWorker(svcCtx);

@@ -29,7 +29,6 @@ export const agentLogTypeDefs = /* GraphQL */ `
     attachments: [Attachment!]!
     documents: [Document!]! @deprecated(reason: "Use attachments instead")
     files: [File!]! @deprecated(reason: "Use attachments instead")
-    speechUrl: String
     createdAt: String!
   }
 
@@ -79,10 +78,20 @@ export const agentLogTypeDefs = /* GraphQL */ `
     done: Boolean!
   }
 
+  type SpeechAudioChunk {
+    logId: ID!
+    agentId: ID!
+    sentenceIndex: Int!
+    url: String!
+    done: Boolean!
+  }
+
   extend type Subscription {
     agentLogCreated(agentId: ID!): AgentLog!
     "Subscribe to log entries by agentId or taskId"
     logCreated(agentId: ID, taskId: ID): AgentLog!
     agentStream(agentId: ID!): AgentStreamDelta!
+    "Subscribe to sentence-level TTS audio URLs by agentId or taskId"
+    speechStream(agentId: ID, taskId: ID): SpeechAudioChunk!
   }
 `;

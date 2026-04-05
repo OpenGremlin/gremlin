@@ -123,5 +123,13 @@ export async function runTaskLane(
       (agent.config?.reasoning?.enabled ?? false) &&
       agentLaneCtx.modelSupportsReasoning,
     initialPrompt: prompt,
+    ...(agentLaneCtx.speechConnectionId
+      ? {
+          speech: {
+            voice: agentLaneCtx.speechVoice,
+            connectionId: agentLaneCtx.speechConnectionId,
+          },
+        }
+      : {}),
   });
 }

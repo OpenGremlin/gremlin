@@ -22,6 +22,7 @@ type Documents = {
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      ...AgentLogFields\n    }\n  }\n": typeof types.AgentLogCreatedDocument,
     "\n  subscription LogCreated($agentId: ID, $taskId: ID) {\n    logCreated(agentId: $agentId, taskId: $taskId) {\n      ...AgentLogFields\n    }\n  }\n": typeof types.LogCreatedDocument,
     "\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n": typeof types.AgentStreamDocument,
+    "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n": typeof types.SpeechStreamDocument,
     "\n  query Agents {\n    agents {\n      ...AgentSummary\n    }\n  }\n": typeof types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      ...AgentDetail\n    }\n  }\n": typeof types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      ...AgentDetail\n    }\n  }\n": typeof types.UpdateAgentDocument,
@@ -112,6 +113,7 @@ const documents: Documents = {
     "\n  subscription AgentLogCreated($agentId: ID!) {\n    agentLogCreated(agentId: $agentId) {\n      ...AgentLogFields\n    }\n  }\n": types.AgentLogCreatedDocument,
     "\n  subscription LogCreated($agentId: ID, $taskId: ID) {\n    logCreated(agentId: $agentId, taskId: $taskId) {\n      ...AgentLogFields\n    }\n  }\n": types.LogCreatedDocument,
     "\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n": types.AgentStreamDocument,
+    "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n": types.SpeechStreamDocument,
     "\n  query Agents {\n    agents {\n      ...AgentSummary\n    }\n  }\n": types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      ...AgentDetail\n    }\n  }\n": types.AgentDocument,
     "\n  mutation UpdateAgent($id: ID!, $input: UpdateAgentInput!) {\n    updateAgent(id: $id, input: $input) {\n      ...AgentDetail\n    }\n  }\n": types.UpdateAgentDocument,
@@ -240,6 +242,10 @@ export function graphql(source: "\n  subscription LogCreated($agentId: ID, $task
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n"): (typeof documents)["\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n"): (typeof documents)["\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

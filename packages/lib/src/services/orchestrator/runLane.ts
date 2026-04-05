@@ -7,7 +7,7 @@ import {
   maybeCompact,
 } from "./compaction.js";
 import { getModelForAgent } from "./model.js";
-import { runAgentTurn } from "./runAgentTurn.js";
+import { runAgentTurn, type SpeechConfig } from "./runAgentTurn.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export interface LaneConfig {
@@ -21,6 +21,8 @@ export interface LaneConfig {
   reasoningEnabled?: boolean;
   /** Initial user-role prompt to prepend if not yet in the log (avoids read-after-write race). */
   initialPrompt?: string;
+  /** When set, enables sentence-streaming TTS via signed URLs. */
+  speech?: SpeechConfig;
 }
 
 /**
@@ -100,6 +102,7 @@ export async function runLane(
       messages,
       tools,
       reasoningEnabled,
+      speech: config.speech,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -131,6 +134,7 @@ export async function runLane(
         messages: recoveryMessages,
         tools,
         reasoningEnabled,
+        speech: config.speech,
       });
     } catch (recoveryErr) {
       ctx.log.error(

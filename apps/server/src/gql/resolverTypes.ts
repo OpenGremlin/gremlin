@@ -120,7 +120,6 @@ export type AgentLog = {
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
-  speechUrl?: Maybe<Scalars['String']['output']>;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
   toolName?: Maybe<ToolName>;
@@ -990,6 +989,15 @@ export type SkillTemplate = {
   version: Scalars['String']['output'];
 };
 
+export type SpeechAudioChunk = {
+  __typename?: 'SpeechAudioChunk';
+  agentId: Scalars['ID']['output'];
+  done: Scalars['Boolean']['output'];
+  logId: Scalars['ID']['output'];
+  sentenceIndex: Scalars['Int']['output'];
+  url: Scalars['String']['output'];
+};
+
 export type SpeechVoice = {
   __typename?: 'SpeechVoice';
   description?: Maybe<Scalars['String']['output']>;
@@ -1011,6 +1019,8 @@ export type Subscription = {
   logCreated: AgentLog;
   pendingItemsUpdated: Scalars['Boolean']['output'];
   sandboxOutput: SandboxOutput;
+  /** Subscribe to sentence-level TTS audio URLs by agentId or taskId */
+  speechStream: SpeechAudioChunk;
   taskLogCreated: AgentLog;
   taskUpdated: Task;
   tasksUpdated: Task;
@@ -1050,6 +1060,12 @@ export type SubscriptionLogCreatedArgs = {
 
 export type SubscriptionSandboxOutputArgs = {
   taskId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionSpeechStreamArgs = {
+  agentId?: InputMaybe<Scalars['ID']['input']>;
+  taskId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1358,6 +1374,7 @@ export type ResolversTypes = {
   SkillConnectionRequirement: ResolverTypeWrapper<SkillConnectionRequirement>;
   SkillConnectionStatus: ResolverTypeWrapper<SkillConnectionStatus>;
   SkillTemplate: ResolverTypeWrapper<SkillTemplateModel>;
+  SpeechAudioChunk: ResolverTypeWrapper<SpeechAudioChunk>;
   SpeechVoice: ResolverTypeWrapper<SpeechVoice>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -1453,6 +1470,7 @@ export type ResolversParentTypes = {
   SkillConnectionRequirement: SkillConnectionRequirement;
   SkillConnectionStatus: SkillConnectionStatus;
   SkillTemplate: SkillTemplateModel;
+  SpeechAudioChunk: SpeechAudioChunk;
   SpeechVoice: SpeechVoice;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
@@ -1525,7 +1543,6 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
-  speechUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolName?: Resolver<Maybe<ResolversTypes['ToolName']>, ParentType, ContextType>;
@@ -1953,6 +1970,14 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type SpeechAudioChunkResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SpeechAudioChunk'] = ResolversParentTypes['SpeechAudioChunk']> = {
+  agentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  done?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  logId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  sentenceIndex?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type SpeechVoiceResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SpeechVoice'] = ResolversParentTypes['SpeechVoice']> = {
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1971,6 +1996,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   logCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "logCreated", ParentType, ContextType, Partial<SubscriptionLogCreatedArgs>>;
   pendingItemsUpdated?: SubscriptionResolver<ResolversTypes['Boolean'], "pendingItemsUpdated", ParentType, ContextType>;
   sandboxOutput?: SubscriptionResolver<ResolversTypes['SandboxOutput'], "sandboxOutput", ParentType, ContextType, RequireFields<SubscriptionSandboxOutputArgs, 'taskId'>>;
+  speechStream?: SubscriptionResolver<ResolversTypes['SpeechAudioChunk'], "speechStream", ParentType, ContextType, Partial<SubscriptionSpeechStreamArgs>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;
   taskUpdated?: SubscriptionResolver<ResolversTypes['Task'], "taskUpdated", ParentType, ContextType, RequireFields<SubscriptionTaskUpdatedArgs, 'taskId'>>;
   tasksUpdated?: SubscriptionResolver<ResolversTypes['Task'], "tasksUpdated", ParentType, ContextType, RequireFields<SubscriptionTasksUpdatedArgs, 'taskIds'>>;
@@ -2109,6 +2135,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   SkillConnectionRequirement?: SkillConnectionRequirementResolvers<ContextType>;
   SkillConnectionStatus?: SkillConnectionStatusResolvers<ContextType>;
   SkillTemplate?: SkillTemplateResolvers<ContextType>;
+  SpeechAudioChunk?: SpeechAudioChunkResolvers<ContextType>;
   SpeechVoice?: SpeechVoiceResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Task?: TaskResolvers<ContextType>;

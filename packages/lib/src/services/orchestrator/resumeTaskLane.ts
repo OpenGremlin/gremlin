@@ -53,5 +53,13 @@ export async function resumeTaskLane(
     reasoningEnabled:
       (agent.config?.reasoning?.enabled ?? false) &&
       agentLaneCtx.modelSupportsReasoning,
+    ...(agentLaneCtx.speechConnectionId
+      ? {
+          speech: {
+            voice: agentLaneCtx.speechVoice,
+            connectionId: agentLaneCtx.speechConnectionId,
+          },
+        }
+      : {}),
   });
 }

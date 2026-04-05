@@ -13,6 +13,10 @@ export interface ServiceContext {
   services: Services;
   user?: AuthUser;
   mediaBaseUrl: string;
+  /** Base URL of this server instance (e.g. "https://api.example.com"). */
+  serverBaseUrl?: string;
+  /** HMAC secret for signing self-contained speech URLs. */
+  speechSecret?: string;
   log: Logger;
 }
 

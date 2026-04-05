@@ -28,7 +28,7 @@ import {
   useLogMessages,
 } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
-import { useVoiceMode } from "../../hooks/useVoiceMode";
+import { useSpeechStream } from "../../hooks/useSpeechStream";
 import { hexToTransparent } from "../../lib/color";
 import { useLocalSettings } from "../../lib/LocalSettingsContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
@@ -91,26 +91,21 @@ export function ChatScreen({
   const insets = useSafeAreaInsets();
 
   const { voiceEnabled } = useLocalSettings();
-  const { enqueue: enqueueSpeech } = useVoiceMode(voiceEnabled);
 
   const { streaming: streamingMessage, dismiss: dismissStream } =
     useAgentStream(agentId, taskId ?? null);
 
-  // When a streamed agent message finishes, enqueue it for TTS.
-  // dismissStream is called when the final log entry arrives and replaces
-  // the streaming bubble — so the content is complete at that point.
+  const scope = taskId ? { taskId } : { agentId };
+
+  // Sentence-streaming TTS — subscribes to speech events for this lane
+  useSpeechStream(scope, voiceEnabled);
+
   const onLogCreated = useCallback(
     (logId: string) => {
-      // Check if this log replaces an active streaming message
-      if (voiceEnabled && streamingMessage?.logId === logId) {
-        enqueueSpeech(logId);
-      }
       dismissStream(logId);
     },
-    [voiceEnabled, streamingMessage?.logId, enqueueSpeech, dismissStream],
+    [dismissStream],
   );
-
-  const scope = taskId ? { taskId } : { agentId };
   const {
     messages,
     loading: messagesLoading,
