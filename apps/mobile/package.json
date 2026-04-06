@@ -11,10 +11,8 @@
     "web": "expo start --web",
     "codegen": "graphql-codegen --config codegen.ts",
     "build:web": "expo export --platform web",
-    "build:ios": "NODE_ENV=production eas build --platform ios --profile production",
-    "build:ios:preview": "NODE_ENV=production eas build --platform ios --profile preview",
-    "build:ios:preview:local": "NODE_ENV=production eas build --platform ios --profile preview --local",
-    "submit:ios": "eas submit --platform ios --latest",
+    "build:submit:ios": "NODE_ENV=production eas build --platform ios --profile preview --non-interactive && eas submit --platform ios --latest --non-interactive",
+    "build:submit:ios:local": "NODE_ENV=production eas build --platform ios --profile preview --local --non-interactive --output ./build.ipa && eas submit --platform ios --path ./build.ipa --non-interactive",
     "test": "vitest run"
   },
   "dependencies": {
