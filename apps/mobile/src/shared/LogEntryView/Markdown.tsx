@@ -1,18 +1,14 @@
-import MarkdownIt from "markdown-it";
 import { useMemo } from "react";
-import type { StyleSheet as RNStyleSheet } from "react-native";
-import MarkdownDisplay from "react-native-markdown-display";
+import type { TextStyle, ViewStyle } from "react-native";
+import type { MarkedStyles } from "react-native-marked";
+import Marked from "react-native-marked";
 import { useTheme } from "../../lib/ThemeContext";
-
-const md = MarkdownIt({ typographer: true, linkify: true });
-
-type Styles = Parameters<typeof RNStyleSheet.create>[0];
 
 function buildStyles(
   base: number,
   theme: "dark" | "light",
   variant: "agent" | "user",
-): Styles {
+): MarkedStyles {
   const isDark = theme === "dark";
   const lineHeight = Math.round(base * 1.45);
 
@@ -32,34 +28,57 @@ function buildStyles(
   const fenceBg = isDark ? "#1a1a1a" : "#fafafa";
   const fenceBorder = isDark ? "#404040" : "#e5e5e5";
   const quoteBorder = isDark ? "#636363" : "#d4d4d4";
-  const bulletColor = isDark ? "#8a8a8a" : "#a3a3a3";
   const hrColor = isDark ? "#404040" : "#e5e5e5";
-  const thColor = isDark ? "#f5f5f5" : "#374151";
   const tdColor = isDark ? "#e5e5e5" : "#4b5563";
 
-  return {
-    body: { color: bodyColor, fontSize: base, lineHeight },
-    paragraph: { marginTop: 0, marginBottom: 6 },
-    heading1: {
+  const styles: MarkedStyles = {
+    text: {
+      fontSize: base,
+      lineHeight,
+      color: bodyColor,
+    },
+    paragraph: { marginTop: 0, marginBottom: 6 } as ViewStyle,
+    h1: {
       color: headingColor,
       fontSize: base + 6,
       fontWeight: "700",
       marginBottom: 8,
       marginTop: 12,
     },
-    heading2: {
+    h2: {
       color: headingColor,
       fontSize: base + 4,
       fontWeight: "700",
       marginBottom: 6,
       marginTop: 10,
     },
-    heading3: {
+    h3: {
       color: headingColor,
       fontSize: base + 2,
       fontWeight: "600",
       marginBottom: 4,
       marginTop: 8,
+    },
+    h4: {
+      color: headingColor,
+      fontSize: base + 1,
+      fontWeight: "600",
+      marginBottom: 4,
+      marginTop: 6,
+    },
+    h5: {
+      color: headingColor,
+      fontSize: base,
+      fontWeight: "600",
+      marginBottom: 2,
+      marginTop: 4,
+    },
+    h6: {
+      color: headingColor,
+      fontSize: base - 1,
+      fontWeight: "600",
+      marginBottom: 2,
+      marginTop: 4,
     },
     strong: { fontWeight: "700", color: headingColor },
     em: { fontStyle: "italic" },
@@ -71,9 +90,8 @@ function buildStyles(
       marginLeft: 0,
       marginVertical: 6,
       backgroundColor: "transparent",
-      color: bodyColor,
-    },
-    code_inline: {
+    } as ViewStyle,
+    codespan: {
       backgroundColor: codeBg,
       color: codeColor,
       paddingHorizontal: 4,
@@ -82,7 +100,7 @@ function buildStyles(
       fontFamily: "monospace",
       fontSize: base - 1,
     },
-    fence: {
+    code: {
       backgroundColor: fenceBg,
       borderColor: fenceBorder,
       borderWidth: 1,
@@ -92,34 +110,28 @@ function buildStyles(
       fontSize: base - 2,
       color: codeColor,
       marginVertical: 6,
-    },
-    code_block: {
-      backgroundColor: fenceBg,
-      borderColor: fenceBorder,
-      borderWidth: 1,
-      borderRadius: 6,
-      padding: 10,
-      fontFamily: "monospace",
-      fontSize: base - 2,
-      color: codeColor,
-      marginVertical: 6,
-    },
-    list_item: { marginVertical: 2 },
-    bullet_list: { marginVertical: 4 },
-    ordered_list: { marginVertical: 4 },
-    bullet_list_icon: { color: bulletColor, marginRight: 6 },
-    ordered_list_icon: { color: bulletColor, marginRight: 6 },
-    hr: { backgroundColor: hrColor, height: 1, marginVertical: 10 },
+    } as ViewStyle,
+    li: { marginVertical: 2 } as TextStyle,
+    list: { marginVertical: 4 } as ViewStyle,
+    hr: {
+      backgroundColor: hrColor,
+      height: 1,
+      marginVertical: 10,
+    } as ViewStyle,
     table: {
       borderColor: hrColor,
       borderWidth: 1,
       borderRadius: 4,
       marginVertical: 6,
-    },
-    tr: { borderBottomWidth: 1, borderColor: hrColor },
-    th: { padding: 6, color: thColor, fontWeight: "600" },
-    td: { padding: 6, color: tdColor },
+    } as ViewStyle,
+    tableRow: {
+      borderBottomWidth: 1,
+      borderColor: hrColor,
+    } as ViewStyle,
+    tableCell: { padding: 6, color: tdColor } as ViewStyle,
   };
+
+  return styles;
 }
 
 export function Markdown({
@@ -131,14 +143,19 @@ export function Markdown({
 }) {
   const { isDark } = useTheme();
 
-  const style = useMemo(
+  const styles = useMemo(
     () => buildStyles(14, isDark ? "dark" : "light", variant),
     [isDark, variant],
   );
 
   return (
-    <MarkdownDisplay style={style} markdownit={md}>
-      {children}
-    </MarkdownDisplay>
+    <Marked
+      value={children}
+      styles={styles}
+      flatListProps={{
+        scrollEnabled: false,
+        style: { backgroundColor: "transparent" },
+      }}
+    />
   );
 }
