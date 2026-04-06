@@ -41,6 +41,14 @@ export function stripMarkdownForSpeech(sentence: string): string {
   // Remove horizontal rules
   text = text.replace(/^[-*_]{3,}\s*$/gm, "");
 
+  // Remove emojis and other symbol characters.
+  // Uses alternation (not a character class) because ZWJ sequences
+  // compose multiple code points into a single visual emoji.
+  text = text.replace(
+    /\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u200d|\ufe0f/gu,
+    "",
+  );
+
   // Collapse whitespace
   text = text.replace(/\s+/g, " ").trim();
 
