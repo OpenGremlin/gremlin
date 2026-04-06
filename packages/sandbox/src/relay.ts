@@ -7,7 +7,6 @@ import {
   openSync,
   readSync,
   statSync,
-  writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
