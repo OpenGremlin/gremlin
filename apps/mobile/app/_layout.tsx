@@ -10,6 +10,7 @@ import { apolloClient, initApollo } from "../src/lib/apolloClient";
 import { LocalSettingsProvider } from "../src/lib/LocalSettingsContext";
 import { ServerConfigProvider } from "../src/lib/ServerConfigContext";
 import { ThemeProvider, useTheme } from "../src/lib/ThemeContext";
+import { VoiceProvider } from "../src/lib/VoiceContext";
 import { NetworkBanner } from "../src/shared/NetworkBanner";
 
 function StatusBarThemed() {
@@ -34,11 +35,13 @@ export default function RootLayout() {
           <ApolloGate>
             <AuthProvider>
               <LocalSettingsProvider>
-                <StatusBarThemed />
-                <View style={{ flex: 1 }}>
-                  <Slot />
-                  <NetworkBanner />
-                </View>
+                <VoiceProvider>
+                  <StatusBarThemed />
+                  <View style={{ flex: 1 }}>
+                    <Slot />
+                    <NetworkBanner />
+                  </View>
+                </VoiceProvider>
               </LocalSettingsProvider>
             </AuthProvider>
           </ApolloGate>
