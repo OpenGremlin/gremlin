@@ -6,6 +6,7 @@ import type { SandboxSession } from "../sandbox/types.js";
 import {
   activeSessions,
   ensureSandboxTool,
+  readCommandOutputTool,
   runCommandTool,
 } from "./sandboxTools.js";
 
@@ -262,6 +263,91 @@ describe("sandboxTools", () => {
         "cmd",
         expect.objectContaining({ env: { API_KEY: "secret" } }),
       );
+    });
+  });
+
+  describe("readCommandOutputTool", () => {
+    it("returns error when no session exists", async () => {
+      const t = readCommandOutputTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ commandId: "cmd-1" }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        status: "error",
+        error: expect.stringContaining("not online"),
+      });
+    });
+
+    it("returns paginated output from sandbox", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.readOutput.mockResolvedValue({
+        data: "line 5\nline 6\n",
+        stream: "stdout",
+        offset: 500,
+        bytesRead: 14,
+        totalBytes: 10000,
+      });
+
+      const t = readCommandOutputTool(ctx, "agent-1", "task-1");
+      const result = await t.execute(
+        { commandId: "cmd-1", offset: 500, limit: 1000 },
+        { toolCallId: "tc1", messages: [] } as any,
+      );
+
+      expect(result).toMatchObject({
+        data: "line 5\nline 6\n",
+        offset: 500,
+        bytesRead: 14,
+        totalBytes: 10000,
+      });
+
+      expect(ctx.services.sandbox.readOutput).toHaveBeenCalledWith(
+        expect.anything(),
+        "cmd-1",
+        expect.objectContaining({ offset: 500, limit: 1000 }),
+      );
+    });
+
+    it("reads stderr when stream param is stderr", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.readOutput.mockResolvedValue({
+        data: "error msg",
+        stream: "stderr",
+        offset: 0,
+        bytesRead: 9,
+        totalBytes: 9,
+      });
+
+      const t = readCommandOutputTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ commandId: "cmd-1", stream: "stderr" }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({ data: "error msg", stream: "stderr" });
+    });
+
+    it("returns error when readOutput throws", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.readOutput.mockRejectedValue(
+        new Error("Output file not found"),
+      );
+
+      const t = readCommandOutputTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ commandId: "cmd-1" }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        status: "error",
+        error: "Output file not found",
+      });
     });
   });
 

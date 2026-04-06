@@ -1,5 +1,13 @@
 import { execSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
 import * as pty from "node-pty";
@@ -134,6 +142,11 @@ export function startRelay(port: number): void {
           typeof msg.command === "string"
         ) {
           handleExec(ws, connId, msg, shellEnv, execState);
+        } else if (
+          msg.type === "readOutput" &&
+          typeof msg.commandId === "string"
+        ) {
+          handleReadOutput(ws, connId, msg);
         }
       } catch (err) {
         log.warn(
@@ -277,8 +290,13 @@ function handleExec(
 
     const totalSize = stdout.length + stderr.length;
 
-    if (totalSize > MAX_INLINE_BYTES) {
-      const outputPath = `${homedir()}/.gremlin/output/${id}.txt`;
+    // Persist output to disk when it's large enough that the client will
+    // truncate it, so readOutput can page through the full version later.
+    // Threshold: 8_000 chars matches the client-side MAX_OUTPUT_CHARS.
+    const PERSIST_THRESHOLD = 8_000;
+    let outputPath: string | undefined;
+    if (totalSize > PERSIST_THRESHOLD) {
+      outputPath = `${homedir()}/.gremlin/output/${id}.txt`;
       try {
         mkdirSync(dirname(outputPath), { recursive: true });
         writeFileSync(outputPath, stdout);
@@ -286,9 +304,11 @@ function handleExec(
           writeFileSync(`${outputPath}.stderr`, stderr);
         }
       } catch (err) {
-        log.error({ connId, id, err }, "Failed to spill output to disk");
+        log.error({ connId, id, err }, "Failed to persist output to disk");
       }
+    }
 
+    if (totalSize > MAX_INLINE_BYTES) {
       ws.send(
         JSON.stringify({
           type: "exec:done",
@@ -300,7 +320,7 @@ function handleExec(
             stdout.slice(-4096),
           stderr: stderr.slice(0, 2048),
           fullOutputPath: outputPath,
-          fullOutputBytes: stdout.length,
+          fullOutputBytes: totalSize,
         }),
       );
     } else {
@@ -311,6 +331,9 @@ function handleExec(
           exitCode,
           stdout,
           stderr,
+          ...(outputPath
+            ? { fullOutputPath: outputPath, fullOutputBytes: totalSize }
+            : {}),
         }),
       );
     }
@@ -333,4 +356,88 @@ function handleExec(
       );
     }
   });
+}
+
+const DEFAULT_READ_LIMIT = 8192;
+const MAX_READ_LIMIT = 65_536;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function handleReadOutput(
+  ws: WebSocket,
+  connId: number,
+  msg: {
+    commandId: string;
+    stream?: "stdout" | "stderr";
+    offset?: number;
+    limit?: number;
+  },
+): void {
+  const { commandId, stream = "stdout", offset = 0 } = msg;
+
+  if (!UUID_RE.test(commandId)) {
+    ws.send(
+      JSON.stringify({
+        type: "readOutput:result",
+        commandId,
+        error: "Invalid commandId",
+      }),
+    );
+    return;
+  }
+
+  const limit = Math.min(msg.limit ?? DEFAULT_READ_LIMIT, MAX_READ_LIMIT);
+
+  const ext = stream === "stderr" ? ".txt.stderr" : ".txt";
+  const filePath = `${homedir()}/.gremlin/output/${commandId}${ext}`;
+
+  log.info(
+    { connId, commandId, stream, offset, limit, filePath },
+    "readOutput request",
+  );
+
+  try {
+    if (!existsSync(filePath)) {
+      ws.send(
+        JSON.stringify({
+          type: "readOutput:result",
+          commandId,
+          error: "Output file not found",
+        }),
+      );
+      return;
+    }
+
+    const buf = Buffer.alloc(limit);
+    const fd = openSync(filePath, "r");
+    let bytesRead: number;
+    try {
+      bytesRead = readSync(fd, buf, 0, limit, offset);
+    } finally {
+      closeSync(fd);
+    }
+
+    const { size: totalBytes } = statSync(filePath);
+
+    ws.send(
+      JSON.stringify({
+        type: "readOutput:result",
+        commandId,
+        stream,
+        data: buf.subarray(0, bytesRead).toString("utf-8"),
+        offset,
+        bytesRead,
+        totalBytes,
+      }),
+    );
+  } catch (err) {
+    log.error({ connId, commandId, err }, "readOutput failed");
+    ws.send(
+      JSON.stringify({
+        type: "readOutput:result",
+        commandId,
+        error: (err as Error).message,
+      }),
+    );
+  }
 }

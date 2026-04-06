@@ -2,7 +2,11 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import type { CommandResult, SandboxSession } from "../sandbox/types.js";
+import type {
+  CommandResult,
+  ReadOutputResult,
+  SandboxSession,
+} from "../sandbox/types.js";
 import { createAllowlistStore } from "../shellGuard/allowlistStore.js";
 
 const log = createLogger("sandbox:tools");
@@ -308,6 +312,87 @@ export function runCommandTool(
         output,
         exitCode: result.exitCode,
         timedOut: result.timedOut,
+        ...(result.outputTruncated
+          ? {
+              outputTruncated: true,
+              totalOutputBytes: result.totalOutputBytes,
+              hint: `Output was truncated. Use readCommandOutput with commandId "${result.commandId}" to page through the full output.`,
+            }
+          : {}),
+      };
+    },
+  });
+}
+
+export function readCommandOutputTool(
+  ctx: ServiceContext,
+  agentId: string,
+  taskId: string,
+) {
+  return tool({
+    description:
+      "Read a portion of a previous command's full output. Use this when runCommand indicates output was truncated and you need to see more. Supports reading specific byte ranges from stdout or stderr.",
+    inputSchema: z.object({
+      commandId: z
+        .string()
+        .describe("The commandId returned by the truncated runCommand call"),
+      stream: z
+        .enum(["stdout", "stderr"])
+        .optional()
+        .describe("Which stream to read (default: stdout)"),
+      offset: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe("Byte offset to start reading from (default: 0)"),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(65536)
+        .optional()
+        .describe("Maximum bytes to read (default: 8192, max: 65536)"),
+    }),
+    execute: async ({ commandId, stream, offset, limit }) => {
+      const resolvedStream = stream ?? "stdout";
+      const resolvedOffset = offset ?? 0;
+      const resolvedLimit = limit ?? 8192;
+      const session = activeSessions.get(taskId);
+      if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
+        return {
+          status: "error",
+          error:
+            "Sandbox is not online. Call ensureSandbox first to boot it up.",
+        };
+      }
+
+      session.lastActivityAt = Date.now();
+
+      let result: ReadOutputResult;
+      try {
+        result = await ctx.services.sandbox.readOutput(session, commandId, {
+          stream: resolvedStream,
+          offset: resolvedOffset,
+          limit: resolvedLimit,
+        });
+      } catch (err) {
+        log.error(
+          { agentId, taskId, commandId, error: (err as Error).message },
+          "readOutput failed",
+        );
+        return {
+          status: "error",
+          error: (err as Error).message,
+        };
+      }
+
+      return {
+        data: result.data,
+        stream: result.stream,
+        offset: result.offset,
+        bytesRead: result.bytesRead,
+        totalBytes: result.totalBytes,
       };
     },
   });

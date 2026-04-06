@@ -40,6 +40,7 @@ export enum ToolName {
   // Sandbox
   EnsureSandbox = "ensureSandbox",
   RunCommand = "runCommand",
+  ReadCommandOutput = "readCommandOutput",
 
   // Media
   ViewImage = "viewImage",

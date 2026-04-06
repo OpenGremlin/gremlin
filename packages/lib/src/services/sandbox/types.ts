@@ -16,4 +16,16 @@ export interface CommandResult {
   timedOut: boolean;
   commandId?: string;
   durationMs: number;
+  /** Total bytes of combined stdout+stderr before truncation. */
+  totalOutputBytes?: number;
+  /** True when output was truncated and more is available via readOutput. */
+  outputTruncated?: boolean;
+}
+
+export interface ReadOutputResult {
+  data: string;
+  stream: "stdout" | "stderr";
+  offset: number;
+  bytesRead: number;
+  totalBytes: number;
 }

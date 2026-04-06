@@ -34,7 +34,11 @@ import {
   getSpeechConnectionId,
   getSpeechModelFromConfig,
 } from "./model.js";
-import { ensureSandboxTool, runCommandTool } from "./sandboxTools.js";
+import {
+  ensureSandboxTool,
+  readCommandOutputTool,
+  runCommandTool,
+} from "./sandboxTools.js";
 
 /**
  * Per-agent context built once and shared across all lane invocations
@@ -238,6 +242,11 @@ export function buildTaskTools(
             taskId,
             skillTools.getEnv,
             agent.config?.sandbox?.commandApproval !== "skip",
+          ),
+          [ToolName.ReadCommandOutput]: readCommandOutputTool(
+            ctx,
+            agentId,
+            taskId,
           ),
         }
       : {}),

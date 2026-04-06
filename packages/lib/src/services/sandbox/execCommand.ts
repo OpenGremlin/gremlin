@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { createLogger } from "../../logger.js";
 import type { ExecOptions } from "./shared.js";
-import { COMMAND_TIMEOUT_MS, truncate } from "./shared.js";
+import { COMMAND_TIMEOUT_MS, MAX_OUTPUT_CHARS, truncate } from "./shared.js";
 import type { CommandResult, SandboxSession } from "./types.js";
 
 const log = createLogger("sandbox:exec");
@@ -57,6 +57,9 @@ export async function execCommand(
         timedOut: true,
         commandId: id,
         durationMs,
+        outputTruncated:
+          stdoutBuf.length > MAX_OUTPUT_CHARS ||
+          stderrBuf.length > MAX_OUTPUT_CHARS,
       });
     }, COMMAND_TIMEOUT_MS);
 
@@ -123,6 +126,13 @@ export async function execCommand(
             });
           }
 
+          const totalOutputBytes: number | undefined =
+            msg.fullOutputBytes ?? undefined;
+          const outputTruncated =
+            (totalOutputBytes != null && totalOutputBytes > MAX_OUTPUT_CHARS) ||
+            finalStdout.length > MAX_OUTPUT_CHARS ||
+            finalStderr.length > MAX_OUTPUT_CHARS;
+
           settled = true;
           resolve({
             output: truncate(finalStdout),
@@ -131,6 +141,8 @@ export async function execCommand(
             timedOut: false,
             commandId: id,
             durationMs,
+            totalOutputBytes,
+            outputTruncated,
           });
         }
       } catch {
