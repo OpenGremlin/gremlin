@@ -1,8 +1,13 @@
 import "../global.css";
 import { ApolloProvider } from "@apollo/client";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavThemeProvider,
+} from "@react-navigation/native";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "../src/lib/AuthContext";
@@ -10,12 +15,33 @@ import { apolloClient, initApollo } from "../src/lib/apolloClient";
 import { LocalSettingsProvider } from "../src/lib/LocalSettingsContext";
 import { ServerConfigProvider } from "../src/lib/ServerConfigContext";
 import { ThemeProvider, useTheme } from "../src/lib/ThemeContext";
+import { useNavigationTheme } from "../src/lib/useNavigationTheme";
 import { VoiceProvider } from "../src/lib/VoiceContext";
 import { NetworkBanner } from "../src/shared/NetworkBanner";
 
 function StatusBarThemed() {
   const { isDark } = useTheme();
   return <StatusBar style={isDark ? "light" : "dark"} />;
+}
+
+function NavigationThemed({ children }: { children: React.ReactNode }) {
+  const { isDark } = useTheme();
+  const colors = useNavigationTheme();
+  const navTheme = useMemo(
+    () => ({
+      ...(isDark ? DarkTheme : DefaultTheme),
+      colors: {
+        ...(isDark ? DarkTheme : DefaultTheme).colors,
+        background: colors.background,
+        card: colors.headerBackground,
+        border: colors.border,
+        text: colors.headerText,
+        primary: colors.accent,
+      },
+    }),
+    [isDark, colors],
+  );
+  return <NavThemeProvider value={navTheme}>{children}</NavThemeProvider>;
 }
 
 function ApolloGate({ children }: { children: React.ReactNode }) {
@@ -37,10 +63,12 @@ export default function RootLayout() {
               <LocalSettingsProvider>
                 <VoiceProvider>
                   <StatusBarThemed />
-                  <View style={{ flex: 1 }}>
-                    <Slot />
-                    <NetworkBanner />
-                  </View>
+                  <NavigationThemed>
+                    <View style={{ flex: 1 }}>
+                      <Slot />
+                      <NetworkBanner />
+                    </View>
+                  </NavigationThemed>
                 </VoiceProvider>
               </LocalSettingsProvider>
             </AuthProvider>

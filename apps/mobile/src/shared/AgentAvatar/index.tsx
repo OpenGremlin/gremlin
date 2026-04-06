@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Image, Text, View } from "react-native";
 import { AgentQuery } from "../../graphql/queries";
 

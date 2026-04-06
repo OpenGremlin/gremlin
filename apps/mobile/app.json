@@ -79,7 +79,8 @@
       "expo-web-browser",
       "expo-video",
       "expo-audio",
-      "expo-image"
+      "expo-image",
+      "expo-asset"
     ],
     "extra": {
       "router": {},
