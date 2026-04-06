@@ -239,7 +239,14 @@ app.get("/api/speech/sentence", createSpeechSentenceRoute(resources, services));
 
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");
+app.options("/api/client-logs", (_req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.status(204).end();
+});
 app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
   const { entries } = req.body ?? {};
   if (!Array.isArray(entries)) {
     res.status(400).json({ error: "entries must be an array" });
