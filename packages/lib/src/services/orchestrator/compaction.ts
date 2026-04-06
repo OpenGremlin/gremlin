@@ -7,7 +7,11 @@ import { writeAgentLog } from "./writeAgentLog.js";
 
 const COMPACTION_RATIO = 0.7;
 /** Fallback when model metadata has no maxInputTokens. */
-const DEFAULT_MAX_TOKENS = 200_000;
+export const DEFAULT_MAX_TOKENS = 200_000;
+/** Threshold above which we compact synchronously before sending a prompt. */
+export const PRE_PROMPT_COMPACTION_RATIO = 0.9;
+/** Hard cap on how long the summarizer call may run before we abort. */
+const COMPACTION_TIMEOUT_MS = 120_000;
 
 interface CompactionEntry {
   type: "compaction";
@@ -263,6 +267,7 @@ export async function maybeCompact(
     model: await getModel(ctx),
     system: renderPrompt("compaction"),
     messages: [{ role: "user", content: transcript }],
+    abortSignal: AbortSignal.timeout(COMPACTION_TIMEOUT_MS),
   });
 
   if (!result.text) return;

@@ -6,6 +6,8 @@ vi.mock("./compaction.js", () => ({
   buildContextMessages: vi.fn(),
   estimateContextTokens: vi.fn().mockReturnValue(1000),
   maybeCompact: vi.fn().mockResolvedValue(undefined),
+  DEFAULT_MAX_TOKENS: 200_000,
+  PRE_PROMPT_COMPACTION_RATIO: 0.9,
 }));
 
 vi.mock("./model.js", () => ({
@@ -29,7 +31,8 @@ vi.mock("./buildMemoryContext.js", () => ({
 }));
 
 // Import mocked modules so we can configure them per-test
-const { buildContextMessages } = await import("./compaction.js");
+const { buildContextMessages, estimateContextTokens, maybeCompact } =
+  await import("./compaction.js");
 const { runAgentTurn } = await import("./runAgentTurn.js");
 const { writeAgentLog } = await import("./writeAgentLog.js");
 
@@ -157,5 +160,100 @@ describe("runLane", () => {
 
     // Exactly 2 calls: initial + one recovery. No loop.
     expect(runAgentTurn).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("runLane pre-prompt compaction guard", () => {
+  let ctx: ReturnType<typeof createMockContext>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx = createMockContext();
+    ctx.services.memory.recallMemories.mockResolvedValue({
+      recent: [],
+      relevant: [],
+    });
+    ctx.services.memory.getCoreMemories.mockResolvedValue([]);
+    (runAgentTurn as Mock).mockResolvedValue("response");
+    // Default: estimate well below the 90% threshold (200_000 * 0.9 = 180_000).
+    (estimateContextTokens as Mock).mockReturnValue(1000);
+  });
+
+  it("compacts and rebuilds messages when context exceeds the pre-prompt threshold", async () => {
+    const originalMessages = [{ role: "user", content: "old message" }];
+    const rebuiltMessages = [
+      { role: "user", content: "[summary] ..." },
+      { role: "user", content: "recent" },
+    ];
+
+    (buildContextMessages as Mock)
+      .mockResolvedValueOnce({ messages: originalMessages })
+      .mockResolvedValueOnce({ messages: rebuiltMessages });
+
+    // First estimate: above threshold. Second (post-rebuild): below.
+    (estimateContextTokens as Mock)
+      .mockReturnValueOnce(190_000)
+      .mockReturnValueOnce(20_000);
+
+    await runLane(ctx, defaultConfig());
+
+    expect(maybeCompact).toHaveBeenCalled();
+    expect(buildContextMessages).toHaveBeenCalledTimes(2);
+
+    // runAgentTurn must receive the rebuilt messages, not the originals.
+    const turnArgs = (runAgentTurn as Mock).mock.calls[0][1];
+    expect(turnArgs.messages).toEqual(rebuiltMessages);
+  });
+
+  it("does not invoke pre-prompt compaction when context is below the threshold", async () => {
+    (buildContextMessages as Mock).mockResolvedValue({
+      messages: [{ role: "user", content: "hi" }],
+    });
+    (estimateContextTokens as Mock).mockReturnValue(10_000);
+
+    await runLane(ctx, defaultConfig());
+
+    // Only one buildContextMessages call (no rebuild after compaction).
+    expect(buildContextMessages).toHaveBeenCalledTimes(1);
+    // maybeCompact is still called once, but only as the post-turn fire-and-forget.
+    expect(maybeCompact).toHaveBeenCalledTimes(1);
+  });
+
+  it("proceeds with original context when pre-prompt compaction throws", async () => {
+    const originalMessages = [{ role: "user", content: "old" }];
+    (buildContextMessages as Mock).mockResolvedValue({
+      messages: originalMessages,
+    });
+    (estimateContextTokens as Mock).mockReturnValue(190_000);
+    (maybeCompact as Mock).mockRejectedValueOnce(new Error("summarizer down"));
+
+    await expect(runLane(ctx, defaultConfig())).resolves.toBe("response");
+
+    expect(ctx.log.error).toHaveBeenCalledWith(
+      expect.objectContaining({ component: "compaction" }),
+      expect.stringContaining("Pre-prompt compaction failed"),
+    );
+    // runAgentTurn still runs with the original (oversized) messages.
+    const turnArgs = (runAgentTurn as Mock).mock.calls[0][1];
+    expect(turnArgs.messages).toEqual(originalMessages);
+    // maybeCompact called twice: once in the guard (rejected), once post-turn.
+    expect(maybeCompact).toHaveBeenCalledTimes(2);
+  });
+
+  it("logs a warning when context remains above the threshold after compaction", async () => {
+    (buildContextMessages as Mock)
+      .mockResolvedValueOnce({ messages: [{ role: "user", content: "a" }] })
+      .mockResolvedValueOnce({ messages: [{ role: "user", content: "b" }] });
+    // Both estimates above 180_000 — compaction didn't help.
+    (estimateContextTokens as Mock)
+      .mockReturnValueOnce(190_000)
+      .mockReturnValueOnce(185_000);
+
+    await runLane(ctx, defaultConfig());
+
+    expect(ctx.log.warn).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.stringContaining("still over threshold"),
+    );
   });
 });

@@ -3,8 +3,10 @@ import type { ServiceContext } from "../context.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import {
   buildContextMessages,
+  DEFAULT_MAX_TOKENS,
   estimateContextTokens,
   maybeCompact,
+  PRE_PROMPT_COMPACTION_RATIO,
 } from "./compaction.js";
 import { getModelForAgent } from "./model.js";
 import { runAgentTurn, type SpeechConfig } from "./runAgentTurn.js";
@@ -83,7 +85,45 @@ export async function runLane(
   const fullSystemPrompt = [systemPrompt, memoryContext]
     .filter(Boolean)
     .join("\n\n");
-  const contextTokens = estimateContextTokens(messages, fullSystemPrompt);
+  let contextTokens = estimateContextTokens(messages, fullSystemPrompt);
+
+  // Pre-prompt overflow guard: if context is approaching the model's input
+  // limit, compact synchronously before sending to avoid a context overflow
+  // during the agent turn.
+  const inputLimit = maxInputTokens ?? DEFAULT_MAX_TOKENS;
+  if (contextTokens >= inputLimit * PRE_PROMPT_COMPACTION_RATIO) {
+    ctx.log.warn(
+      { contextTokens, inputLimit, agentId, taskId },
+      "Context approaching limit, compacting before prompt",
+    );
+    try {
+      await maybeCompact(ctx, {
+        agentId,
+        taskId,
+        messages,
+        contextTokens,
+        maxInputTokens,
+      });
+      const rebuilt = await buildContextMessages(ctx, { agentId, taskId });
+      messages.length = 0;
+      messages.push(...rebuilt.messages);
+      contextTokens = estimateContextTokens(messages, fullSystemPrompt);
+      // TODO: if contextTokens is still >= inputLimit * PRE_PROMPT_COMPACTION_RATIO
+      // here, the recent messages alone exceed the budget. We should truncate
+      // the oldest non-compaction messages as a last resort.
+      if (contextTokens >= inputLimit * PRE_PROMPT_COMPACTION_RATIO) {
+        ctx.log.warn(
+          { contextTokens, inputLimit, agentId, taskId },
+          "Context still over threshold after compaction; agent turn may overflow",
+        );
+      }
+    } catch (err) {
+      ctx.log.error(
+        { err, component: "compaction", agentId, taskId },
+        "Pre-prompt compaction failed, proceeding with oversized context (agent turn likely to fail)",
+      );
+    }
+  }
 
   // Run agent turn. On failure, append the error to the conversation and
   // run one recovery turn so the model can see what went wrong and respond
