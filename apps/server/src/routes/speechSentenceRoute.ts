@@ -3,38 +3,34 @@ import type { Resources } from "@opengremlin/lib/resources/index.js";
 import type { Services } from "@opengremlin/lib/services/index.js";
 import { getSpeechModelFromConfig } from "@opengremlin/lib/services/orchestrator/model.js";
 import { generateSpeechAudio } from "@opengremlin/lib/services/speech/generateSpeechAudio.js";
-import { verifyAndDecodeSpeechPayload } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import type { Request, Response } from "express";
 
 const log = createLogger("speech-sentence");
 
 /**
- * GET /api/speech/sentence?payload=<base64url>&sig=<hmac>
+ * GET /api/speech/sentence?text=<base64url>&voice=<voice>&connectionId=<id>
  *
- * Stateless TTS endpoint. The payload is a signed, self-contained request
- * containing the sentence text, voice, and model connection ID. The server
- * verifies the HMAC, resolves the speech model, calls TTS, and streams
- * the audio back.
+ * Stateless TTS endpoint. Accepts sentence text and voice config as query
+ * params, resolves the speech model, calls TTS, and returns the audio.
  */
 export function createSpeechSentenceRoute(
   resources: Resources,
   services: Services,
-  secret: string,
 ) {
   return async (req: Request, res: Response): Promise<void> => {
-    const { payload, sig } = req.query;
-    if (typeof payload !== "string" || typeof sig !== "string") {
-      res.status(400).send("Missing payload or sig");
+    const { text: encodedText, voice, connectionId } = req.query;
+    if (typeof encodedText !== "string" || typeof connectionId !== "string") {
+      res.status(400).send("Missing text or connectionId");
       return;
     }
 
-    const decoded = verifyAndDecodeSpeechPayload(payload, sig, secret);
-    if (!decoded) {
-      res.status(403).send("Invalid signature");
+    let text: string;
+    try {
+      text = Buffer.from(encodedText, "base64url").toString("utf-8");
+    } catch {
+      res.status(400).send("Invalid text encoding");
       return;
     }
-
-    const { text, voice, connectionId } = decoded;
 
     const ctx = { resources, services, log };
     const speechModel = await getSpeechModelFromConfig(
@@ -48,7 +44,11 @@ export function createSpeechSentenceRoute(
     }
 
     try {
-      const audio = await generateSpeechAudio(speechModel, text, voice);
+      const audio = await generateSpeechAudio(
+        speechModel,
+        text,
+        typeof voice === "string" ? voice : undefined,
+      );
       if (!audio) {
         res.status(500).send("No audio generated");
         return;

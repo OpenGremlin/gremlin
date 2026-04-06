@@ -4,7 +4,7 @@ import type { ToolName } from "../../enums.js";
 import type { SpeechAudioEvent } from "../../resources/pubsub.js";
 import type { ServiceContext } from "../context.js";
 import { SentenceAccumulator } from "../speech/SentenceAccumulator.js";
-import { buildSignedSpeechUrl } from "../speech/signedSpeechUrl.js";
+import { buildSpeechUrl } from "../speech/signedSpeechUrl.js";
 import { stripMarkdownForSpeech } from "../speech/stripMarkdownForSpeech.js";
 import { requestUserInputTool } from "../tools/index.js";
 import { getModelForAgent } from "./model.js";
@@ -234,12 +234,11 @@ export async function runAgentTurn(
   // ── Sentence-streaming TTS ──────────────────────────────────────────
   // Capture speech config up front so closures have narrowed types.
   const speechCfg =
-    opts.speech && ctx.serverBaseUrl && ctx.speechSecret
+    opts.speech && ctx.serverBaseUrl
       ? {
           voice: opts.speech.voice,
           connectionId: opts.speech.connectionId,
           baseUrl: ctx.serverBaseUrl,
-          secret: ctx.speechSecret,
         }
       : null;
   const sentenceAccumulator = speechCfg ? new SentenceAccumulator() : null;
@@ -257,15 +256,11 @@ export async function runAgentTurn(
     if (!speechCfg) return;
     const cleaned = stripMarkdownForSpeech(sentence);
     if (!cleaned) return;
-    const url = buildSignedSpeechUrl(
-      speechCfg.baseUrl,
-      {
-        text: cleaned,
-        voice: speechCfg.voice,
-        connectionId: speechCfg.connectionId,
-      },
-      speechCfg.secret,
-    );
+    const url = buildSpeechUrl(speechCfg.baseUrl, {
+      text: cleaned,
+      voice: speechCfg.voice,
+      connectionId: speechCfg.connectionId,
+    });
     publishSpeech({
       logId: streamLogId,
       agentId: opts.agentId,

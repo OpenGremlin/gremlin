@@ -1,6 +1,7 @@
 import { useSubscription } from "@apollo/client";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { Platform } from "react-native";
 import { SpeechStreamSubscription } from "../graphql/queries";
 import { useAuth } from "../lib/AuthContext";
 
@@ -17,24 +18,18 @@ export function useSpeechStream(
   enabled: boolean,
 ) {
   const { token } = useAuth();
+  const tokenRef = useRef(token);
+  tokenRef.current = token;
 
   // Ordered buffer: sentenceIndex → URL
   const buffer = useRef<Map<number, string>>(new Map());
   const nextToPlay = useRef(0);
-  const streamDone = useRef(false);
   const isPlaying = useRef(false);
   const currentLogId = useRef<string | null>(null);
 
-  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
-
-  const source = currentUrl
-    ? {
-        uri: currentUrl,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      }
-    : null;
-
-  const player = useAudioPlayer(source);
+  // Single persistent player — source is swapped via replace() so the
+  // player instance (and its event subscriptions) stays stable.
+  const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
 
   const playNext = useCallback(() => {
@@ -43,27 +38,48 @@ export function useSpeechStream(
       buffer.current.delete(nextToPlay.current);
       nextToPlay.current++;
       isPlaying.current = true;
-      setCurrentUrl(url);
+      player.replace({
+        uri: url,
+        headers: tokenRef.current
+          ? { Authorization: `Bearer ${tokenRef.current}` }
+          : undefined,
+      });
     } else {
-      // Nothing queued — if stream is done, we're finished
+      // Nothing queued yet — will resume when next chunk arrives
       isPlaying.current = false;
-      setCurrentUrl(null);
     }
-  }, []);
+  }, [player]);
 
-  // Auto-play when source changes and is loaded
+  // Auto-play when a replaced source finishes loading
   useEffect(() => {
-    if (currentUrl && status.isLoaded && !status.playing) {
+    if (isPlaying.current && status.isLoaded && !status.playing) {
       player.play();
     }
-  }, [currentUrl, status.isLoaded, status.playing, player]);
+  }, [status.isLoaded, status.playing, player]);
 
-  // Advance to next sentence when current finishes
+  // Advance to next sentence when current finishes (native path)
   useEffect(() => {
     if (status.didJustFinish) {
       playNext();
     }
   }, [status.didJustFinish, playNext]);
+
+  // Web fallback: expo-audio's web onended handler doesn't emit a status
+  // update, so didJustFinish never becomes true. Poll the player directly
+  // to detect when playback reaches the end of the track.
+  useEffect(() => {
+    if (Platform.OS !== "web" || !enabled) return;
+    const id = setInterval(() => {
+      if (
+        isPlaying.current &&
+        player.duration > 0 &&
+        player.currentTime >= player.duration - 0.15
+      ) {
+        playNext();
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, [player, playNext, enabled]);
 
   // Subscribe to speech stream
   const variables =
@@ -81,12 +97,10 @@ export function useSpeechStream(
         currentLogId.current = chunk.logId;
         buffer.current = new Map();
         nextToPlay.current = 0;
-        streamDone.current = false;
         isPlaying.current = false;
       }
 
       if (chunk.done) {
-        streamDone.current = true;
         return;
       }
 
@@ -105,9 +119,7 @@ export function useSpeechStream(
     if (!enabled) {
       buffer.current = new Map();
       nextToPlay.current = 0;
-      streamDone.current = false;
       isPlaying.current = false;
-      setCurrentUrl(null);
       if (status.playing) player.pause();
     }
   }, [enabled, player, status.playing]);

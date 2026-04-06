@@ -86,10 +86,6 @@ app.use(express.json());
 const resources = createResources(pubsub as unknown as PubSub);
 const services = createServices();
 
-// Per-instance HMAC secret for signing self-contained speech URLs.
-// Ephemeral — URLs are consumed immediately so they don't need to survive restarts.
-const speechSecret = crypto.randomUUID();
-
 const schema = makeExecutableSchema({
   typeDefs: mergedTypeDefs,
   resolvers: mergedResolvers,
@@ -156,6 +152,7 @@ const yoga = createYoga({
     return {
       user,
       serverBaseUrl,
+
       mediaBaseUrl: `${serverBaseUrl}/media`,
       resources,
       services,
@@ -196,6 +193,7 @@ useServer(
       return {
         user,
         serverBaseUrl,
+
         mediaBaseUrl: `${serverBaseUrl}/media`,
         resources,
         services,
@@ -237,10 +235,7 @@ app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
 
 // Stateless per-sentence TTS via signed URL
-app.get(
-  "/api/speech/sentence",
-  createSpeechSentenceRoute(resources, services, speechSecret),
-);
+app.get("/api/speech/sentence", createSpeechSentenceRoute(resources, services));
 
 // Client-side log ingestion
 const clientLog = createLogger("admin-client");
@@ -312,7 +307,6 @@ loadSchedulerConfig().then(async () => {
     services,
     mediaBaseUrl: `${serverBase}/media`,
     serverBaseUrl: serverBase,
-    speechSecret,
     log: logger.child({ component: "inbox" }),
   };
   stopSqsWorker = startSqsWorker(svcCtx);
