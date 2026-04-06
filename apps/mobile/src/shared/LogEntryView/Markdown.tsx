@@ -81,9 +81,24 @@ function buildStyles(
       marginBottom: 2,
       marginTop: 4,
     },
-    strong: { fontWeight: "700", color: headingColor },
-    em: { fontStyle: "italic" },
-    link: { color: linkColor, textDecorationLine: "underline" },
+    strong: {
+      fontWeight: "700",
+      color: headingColor,
+      fontSize: base,
+      lineHeight,
+    },
+    em: { fontStyle: "italic", fontSize: base, lineHeight },
+    strikethrough: {
+      textDecorationLine: "line-through",
+      fontSize: base,
+      lineHeight,
+    },
+    link: {
+      color: linkColor,
+      textDecorationLine: "underline",
+      fontSize: base,
+      lineHeight,
+    },
     blockquote: {
       borderLeftWidth: 3,
       borderLeftColor: quoteBorder,
@@ -100,6 +115,7 @@ function buildStyles(
       borderRadius: 3,
       fontFamily: "monospace",
       fontSize: base - 1,
+      lineHeight: Math.round((base - 1) * 1.45),
     },
     code: {
       backgroundColor: fenceBg,
@@ -109,7 +125,7 @@ function buildStyles(
       padding: 10,
       marginVertical: 6,
     } as ViewStyle,
-    li: { marginVertical: 2 } as TextStyle,
+    li: { marginVertical: 2, fontSize: base, lineHeight } as TextStyle,
     list: { marginVertical: 4 } as ViewStyle,
     hr: {
       backgroundColor: hrColor,
