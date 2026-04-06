@@ -1,5 +1,5 @@
 import { useApolloClient } from "@apollo/client";
-import { useAudioPlayer } from "expo-audio";
+import { type AudioPlayer, useAudioPlayer } from "expo-audio";
 import {
   createContext,
   useCallback,
@@ -25,13 +25,28 @@ const VoiceContext = createContext<VoiceContextValue>({
   unsubscribe: () => {},
 });
 
+// ── Double-buffer helpers ────────────────────────────────────────────
+// Two players alternate: while one plays, the other pre-loads the next
+// sentence. On finish, the buffered player starts instantly (no load
+// latency) and the roles swap.
+
+interface AudioSource {
+  uri: string;
+  headers?: Record<string, string>;
+}
+
+function preload(player: AudioPlayer, source: AudioSource) {
+  player.replace(source);
+}
+
 export function VoiceProvider({ children }: { children: React.ReactNode }) {
   const { voiceEnabled } = useLocalSettings();
   const { token } = useAuth();
   const client = useApolloClient();
 
-  // Single player for the entire app — never duplicated
-  const player = useAudioPlayer(null);
+  // Two players for double-buffering
+  const playerA = useAudioPlayer(null);
+  const playerB = useAudioPlayer(null);
 
   // All mutable state lives in a single ref object to avoid stale closures
   // and to survive React StrictMode remount cycles.
@@ -41,6 +56,10 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     isPlaying: false,
     currentLogId: null as string | null,
     maxSeenIndex: -1,
+    // Double-buffer: which player is active, which is on-deck
+    active: null as AudioPlayer | null,
+    onDeck: null as AudioPlayer | null,
+    onDeckLoaded: false,
   });
 
   // Keep reactive values in refs so callbacks stay stable
@@ -56,64 +75,123 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     null,
   );
 
+  const makeSource = useCallback((url: string): AudioSource => {
+    return {
+      uri: url,
+      headers: tokenRef.current
+        ? { Authorization: `Bearer ${tokenRef.current}` }
+        : undefined,
+    };
+  }, []);
+
   const resetState = useCallback(() => {
     state.current.buffer = new Map();
     state.current.nextToPlay = 0;
     state.current.isPlaying = false;
     state.current.currentLogId = null;
     state.current.maxSeenIndex = -1;
+    state.current.active = null;
+    state.current.onDeck = null;
+    state.current.onDeckLoaded = false;
   }, []);
 
-  const playNext = useCallback(() => {
+  /** Try to pre-load the next sentence into the on-deck player. */
+  const bufferNext = useCallback(() => {
+    const s = state.current;
+    if (s.onDeckLoaded || !s.onDeck) return;
+    const url = s.buffer.get(s.nextToPlay);
+    if (!url) return;
+    s.buffer.delete(s.nextToPlay);
+    s.nextToPlay++;
+    s.onDeckLoaded = true;
+    preload(s.onDeck, makeSource(url));
+  }, [makeSource]);
+
+  /** Swap active ↔ on-deck and start the on-deck player. */
+  const advance = useCallback(() => {
+    const s = state.current;
+    if (s.onDeckLoaded && s.onDeck) {
+      // Swap roles
+      const prev = s.active;
+      s.active = s.onDeck;
+      s.onDeck = prev;
+      s.onDeckLoaded = false;
+      s.active.play();
+      // Immediately try to pre-load the next sentence
+      bufferNext();
+    } else {
+      // Nothing buffered — try to load directly into the on-deck slot
+      // and play it immediately when ready.
+      const url = s.buffer.get(s.nextToPlay);
+      if (url) {
+        s.buffer.delete(s.nextToPlay);
+        s.nextToPlay++;
+        // Swap so on-deck becomes active
+        const prev = s.active;
+        s.active = s.onDeck;
+        s.onDeck = prev;
+        s.onDeckLoaded = false;
+        if (s.active) {
+          preload(s.active, makeSource(url));
+          s.active.play();
+        }
+      } else {
+        s.isPlaying = false;
+      }
+    }
+  }, [bufferNext, makeSource]);
+
+  /** Kick off playback from idle — load into player A and start. */
+  const playFirst = useCallback(() => {
     const s = state.current;
     const url = s.buffer.get(s.nextToPlay);
-    if (url) {
-      s.buffer.delete(s.nextToPlay);
-      s.nextToPlay++;
-      const wasPlaying = s.isPlaying;
-      s.isPlaying = true;
-      player.replace({
-        uri: url,
-        headers: tokenRef.current
-          ? { Authorization: `Bearer ${tokenRef.current}` }
-          : undefined,
-      });
-      // expo-audio's replace() internally calls play() when the player
-      // was already active (wasPlaying). Only call play() explicitly
-      // for the first sentence when the player is idle.
-      if (!wasPlaying) {
-        player.play();
-      }
-    } else {
-      s.isPlaying = false;
-    }
-  }, [player]);
+    if (!url) return;
+    s.buffer.delete(s.nextToPlay);
+    s.nextToPlay++;
+    s.isPlaying = true;
+    s.active = playerA;
+    s.onDeck = playerB;
+    s.onDeckLoaded = false;
+    preload(playerA, makeSource(url));
+    playerA.play();
+    // Pre-load next sentence into the on-deck player
+    bufferNext();
+  }, [playerA, playerB, makeSource, bufferNext]);
 
   // Native: advance on didJustFinish
   useEffect(() => {
-    const sub = player.addListener("playbackStatusUpdate", (status) => {
-      if (status.didJustFinish) {
-        playNext();
+    const subA = playerA.addListener("playbackStatusUpdate", (status) => {
+      if (status.didJustFinish && state.current.active === playerA) {
+        advance();
       }
     });
-    return () => sub.remove();
-  }, [player, playNext]);
+    const subB = playerB.addListener("playbackStatusUpdate", (status) => {
+      if (status.didJustFinish && state.current.active === playerB) {
+        advance();
+      }
+    });
+    return () => {
+      subA.remove();
+      subB.remove();
+    };
+  }, [playerA, playerB, advance]);
 
   // Web fallback: poll for track end since expo-audio's web implementation
   // doesn't emit didJustFinish status updates.
   useEffect(() => {
     if (Platform.OS !== "web") return;
     const id = setInterval(() => {
+      const s = state.current;
+      if (!s.isPlaying || !s.active) return;
       if (
-        state.current.isPlaying &&
-        player.duration > 0 &&
-        player.currentTime >= player.duration - 0.15
+        s.active.duration > 0 &&
+        s.active.currentTime >= s.active.duration - 0.15
       ) {
-        playNext();
+        advance();
       }
     }, 250);
     return () => clearInterval(id);
-  }, [player, playNext]);
+  }, [advance]);
 
   const handleChunk = useCallback(
     (chunk: {
@@ -131,7 +209,11 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         s.nextToPlay = 0;
         s.isPlaying = false;
         s.maxSeenIndex = -1;
-        player.pause();
+        s.active = null;
+        s.onDeck = null;
+        s.onDeckLoaded = false;
+        playerA.pause();
+        playerB.pause();
       }
 
       if (chunk.done) return;
@@ -143,10 +225,13 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       s.buffer.set(chunk.sentenceIndex, chunk.url);
 
       if (!s.isPlaying) {
-        playNext();
+        playFirst();
+      } else {
+        // Already playing — try to pre-load into the on-deck slot
+        bufferNext();
       }
     },
-    [player, playNext],
+    [playerA, playerB, playFirst, bufferNext],
   );
 
   const startSubscription = useCallback(
@@ -194,8 +279,9 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     subRef.current = null;
     scopeRef.current = null;
     resetState();
-    player.pause();
-  }, [player, resetState]);
+    playerA.pause();
+    playerB.pause();
+  }, [playerA, playerB, resetState]);
 
   // When voice is toggled, start or stop the subscription for the
   // current scope without re-running useSpeechStream's effect.
@@ -206,9 +292,10 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       subRef.current?.unsubscribe();
       subRef.current = null;
       resetState();
-      player.pause();
+      playerA.pause();
+      playerB.pause();
     }
-  }, [voiceEnabled, startSubscription, resetState, player]);
+  }, [voiceEnabled, startSubscription, resetState, playerA, playerB]);
 
   // Clean up on unmount
   useEffect(() => {
