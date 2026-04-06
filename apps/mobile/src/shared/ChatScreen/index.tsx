@@ -30,7 +30,6 @@ import {
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useSpeechStream } from "../../hooks/useSpeechStream";
 import { hexToTransparent } from "../../lib/color";
-import { useLocalSettings } from "../../lib/LocalSettingsContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { LogEntryView } from "../LogEntryView";
 import { StreamingBubble } from "../LogEntryView/StreamingBubble";
@@ -90,15 +89,14 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
 
-  const { voiceEnabled } = useLocalSettings();
-
   const { streaming: streamingMessage, dismiss: dismissStream } =
     useAgentStream(agentId, taskId ?? null);
 
   const scope = taskId ? { taskId } : { agentId };
 
-  // Sentence-streaming TTS — subscribes to speech events for this lane
-  useSpeechStream(scope, voiceEnabled);
+  // Sentence-streaming TTS — subscribes to speech events for this lane.
+  // Reads voiceEnabled internally to avoid re-rendering the chat tree on toggle.
+  useSpeechStream(scope);
 
   const onLogCreated = useCallback(
     (logId: string) => {

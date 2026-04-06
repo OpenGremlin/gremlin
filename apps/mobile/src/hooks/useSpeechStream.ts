@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import { SpeechStreamSubscription } from "../graphql/queries";
 import { useAuth } from "../lib/AuthContext";
+import { useLocalSettings } from "../lib/LocalSettingsContext";
 
 /**
  * Subscribe to sentence-level TTS audio from the server and play each
@@ -12,11 +13,15 @@ import { useAuth } from "../lib/AuthContext";
  * The server publishes signed URLs for each sentence as inference streams.
  * This hook receives those URLs, buffers them in order, and plays them
  * back-to-back — starting as soon as the first sentence is ready.
+ *
+ * Reads `voiceEnabled` from LocalSettingsContext internally so the parent
+ * component doesn't need to consume the context (avoids re-rendering the
+ * entire chat tree when voice mode is toggled).
  */
 export function useSpeechStream(
   scope: { agentId: string } | { taskId: string },
-  enabled: boolean,
 ) {
+  const { voiceEnabled: enabled } = useLocalSettings();
   const { token } = useAuth();
   const tokenRef = useRef(token);
   tokenRef.current = token;
