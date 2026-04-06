@@ -36,6 +36,7 @@ interface AudioSource {
 }
 
 function preload(player: AudioPlayer, source: AudioSource) {
+  player.pause();
   player.replace(source);
 }
 
@@ -134,6 +135,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         if (s.active) {
           preload(s.active, makeSource(url));
           s.active.play();
+          // Pre-load the next sentence into the on-deck player
+          bufferNext();
         }
       } else {
         s.isPlaying = false;

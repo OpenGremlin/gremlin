@@ -32,10 +32,18 @@ const TWO_LETTER_ABBREVS = new Set(["ie", "eg", "al"]);
  * - Fenced code blocks (```) → emits "Here's a code block."
  * - Tables (lines with | separators) → emits "Here's a table."
  */
+const MIN_WORDS = 5;
+
+function wordCount(text: string): number {
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
 export class SentenceAccumulator {
   private buffer = "";
   private inCodeBlock = false;
   private tableLineCount = 0;
+  /** Holds completed sentences that are too short to emit on their own. */
+  private pending = "";
 
   /**
    * Feed a token (one or more characters) from the stream.
@@ -43,7 +51,8 @@ export class SentenceAccumulator {
    */
   push(token: string): string[] {
     this.buffer += token;
-    return this.extract();
+    const raw = this.extract();
+    return this.applyMinWords(raw);
   }
 
   /**
@@ -55,19 +64,47 @@ export class SentenceAccumulator {
     if (this.inCodeBlock) {
       this.buffer = "";
       this.inCodeBlock = false;
-      return "Here's a code block.";
+      return this.flushPending("Here's a code block.");
     }
 
     // Handle unterminated table
     if (this.tableLineCount > 0) {
       this.buffer = "";
       this.tableLineCount = 0;
-      return "Here's a table.";
+      return this.flushPending("Here's a table.");
     }
 
     const text = this.buffer.trim();
     this.buffer = "";
-    return text || null;
+    return this.flushPending(text || null);
+  }
+
+  /**
+   * Merge any pending short sentences with `last` and return the combined
+   * text, or null if everything is empty.
+   */
+  private flushPending(last: string | null): string | null {
+    const combined = last
+      ? `${this.pending} ${last}`.trim()
+      : this.pending.trim();
+    this.pending = "";
+    return combined || null;
+  }
+
+  /**
+   * Buffer sentences until the combined pending text reaches MIN_WORDS,
+   * then emit them as a single chunk.
+   */
+  private applyMinWords(sentences: string[]): string[] {
+    const out: string[] = [];
+    for (const s of sentences) {
+      this.pending = this.pending ? `${this.pending} ${s}` : s;
+      if (wordCount(this.pending) >= MIN_WORDS) {
+        out.push(this.pending);
+        this.pending = "";
+      }
+    }
+    return out;
   }
 
   private extract(): string[] {
