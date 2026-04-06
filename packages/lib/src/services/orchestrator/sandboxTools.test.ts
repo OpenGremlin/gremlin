@@ -224,6 +224,78 @@ describe("sandboxTools", () => {
       expect(result).toMatchObject({ output: "out\n\n[stderr]\nwarn" });
     });
 
+    it("puts stderr first when exit code is non-zero", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.execCommand.mockResolvedValue({
+        output: "build output",
+        stderr: "error: not found",
+        exitCode: 1,
+        timedOut: false,
+        commandId: "cmd-1",
+        durationMs: 100,
+      });
+
+      const t = runCommandTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ command: "make" }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        output: "[stderr]\nerror: not found\n\n[stdout]\nbuild output",
+        exitCode: 1,
+      });
+    });
+
+    it("limits output to first N lines with maxLines", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.execCommand.mockResolvedValue({
+        output: "line1\nline2\nline3\nline4\nline5",
+        stderr: "",
+        exitCode: 0,
+        timedOut: false,
+        commandId: "cmd-1",
+        durationMs: 50,
+      });
+
+      const t = runCommandTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ command: "ls", maxLines: 2 }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        output: "line1\nline2\n... [3 more lines, 5 total]",
+        linesLimited: true,
+      });
+    });
+
+    it("limits output to last N lines with tail", async () => {
+      activeSessions.set("task-1", makeSession());
+
+      ctx.services.sandbox.execCommand.mockResolvedValue({
+        output: "line1\nline2\nline3\nline4\nline5",
+        stderr: "",
+        exitCode: 0,
+        timedOut: false,
+        commandId: "cmd-1",
+        durationMs: 50,
+      });
+
+      const t = runCommandTool(ctx, "agent-1", "task-1");
+      const result = await t.execute({ command: "tail log", tail: 2 }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        output: "... [3 lines hidden, showing last 2]\nline4\nline5",
+        linesLimited: true,
+      });
+    });
+
     it("removes session on connection error", async () => {
       activeSessions.set("task-1", makeSession());
       ctx.services.sandbox.execCommand.mockRejectedValue(

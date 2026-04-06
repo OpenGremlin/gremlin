@@ -14,3 +14,36 @@ export function truncate(s: string): string {
     s.slice(-MAX_OUTPUT_CHARS / 2)
   );
 }
+
+/**
+ * Limit output to a given number of lines from the head or tail.
+ * Returns `{ text, totalLines, limited }`.
+ */
+export function limitLines(
+  s: string,
+  opts: { maxLines?: number; tail?: number },
+): { text: string; totalLines: number; limited: boolean } {
+  if (!opts.maxLines && !opts.tail) {
+    return { text: s, totalLines: 0, limited: false };
+  }
+  const lines = s.split("\n");
+  const totalLines = lines.length;
+
+  if (opts.tail) {
+    const n = Math.min(opts.tail, totalLines);
+    if (n >= totalLines) return { text: s, totalLines, limited: false };
+    return {
+      text: `... [${totalLines - n} lines hidden, showing last ${n}]\n${lines.slice(-n).join("\n")}`,
+      totalLines,
+      limited: true,
+    };
+  }
+
+  const n = Math.min(opts.maxLines ?? totalLines, totalLines);
+  if (n >= totalLines) return { text: s, totalLines, limited: false };
+  return {
+    text: `${lines.slice(0, n).join("\n")}\n... [${totalLines - n} more lines, ${totalLines} total]`,
+    totalLines,
+    limited: true,
+  };
+}

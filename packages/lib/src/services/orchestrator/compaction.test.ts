@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatAttachments, mapEntry } from "./compaction.js";
+import {
+  formatAttachments,
+  mapEntry,
+  TOOL_RESULT_COMPACT_THRESHOLD,
+} from "./compaction.js";
 
 describe("formatAttachments", () => {
   it("returns empty string for undefined", () => {
@@ -133,5 +137,66 @@ describe("mapEntry", () => {
   it("returns null for unknown roles", () => {
     const result = mapEntry({ role: "UNKNOWN", content: "?" });
     expect(result).toBeNull();
+  });
+
+  it("compacts large runCommand results into a summary", () => {
+    const largeOutput = "x".repeat(TOOL_RESULT_COMPACT_THRESHOLD + 1);
+    const toolResult = JSON.stringify({
+      output: largeOutput,
+      exitCode: 0,
+      timedOut: false,
+      commandId: "cmd-abc",
+    });
+
+    const result = mapEntry({
+      role: "TOOL",
+      content: "Tool call: runCommand",
+      toolName: "runCommand",
+      toolInput: '{"command":"find . -name *.ts"}',
+      toolResult,
+    });
+
+    expect(result?.role).toBe("user");
+    const content = result?.content as string;
+    // Should NOT contain the full large output
+    expect(content.length).toBeLessThan(toolResult.length);
+    // Should contain compact metadata
+    expect(content).toContain("exitCode");
+    expect(content).toContain("readCommandOutput");
+    expect(content).toContain("cmd-abc");
+    // Should contain a preview
+    expect(content).toContain("Preview:");
+  });
+
+  it("does not compact small runCommand results", () => {
+    const toolResult = JSON.stringify({
+      output: "hello",
+      exitCode: 0,
+      timedOut: false,
+    });
+
+    const result = mapEntry({
+      role: "TOOL",
+      content: "Tool call: runCommand",
+      toolName: "runCommand",
+      toolInput: '{"command":"echo hello"}',
+      toolResult,
+    });
+
+    expect(result?.content).toContain(toolResult);
+  });
+
+  it("does not compact non-runCommand tools even if large", () => {
+    const largeResult = "y".repeat(TOOL_RESULT_COMPACT_THRESHOLD + 1);
+
+    const result = mapEntry({
+      role: "TOOL",
+      content: "Tool call: readFile",
+      toolName: "readFile",
+      toolInput: '{"path":"big.txt"}',
+      toolResult: largeResult,
+    });
+
+    expect(result?.content).toContain(largeResult);
   });
 });

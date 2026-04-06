@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
+import { limitLines } from "../sandbox/shared.js";
 import type {
   CommandResult,
   ReadOutputResult,
@@ -13,8 +14,17 @@ const log = createLogger("sandbox:tools");
 
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
-function formatOutput(stdout: string, stderr: string): string {
-  return stderr ? `${stdout}\n\n[stderr]\n${stderr}` : stdout;
+function formatOutput(
+  stdout: string,
+  stderr: string,
+  exitCode: number,
+): string {
+  if (!stderr) return stdout;
+  // On failure, show stderr first so the agent sees the error immediately
+  if (exitCode !== 0) {
+    return `[stderr]\n${stderr}\n\n[stdout]\n${stdout}`;
+  }
+  return `${stdout}\n\n[stderr]\n${stderr}`;
 }
 
 // In-memory map of active sandbox sessions keyed by taskId (exported for browser tools)
@@ -202,8 +212,24 @@ export function runCommandTool(
       "Execute a shell command in the sandbox. Returns stdout, stderr, and exit code. The sandbox must be online first — call ensureSandbox before your first command. Commands run non-interactively (no TTY). Working directory is /workspace (persistent across sessions). Commands may take up to 20 minutes.\n\nPre-installed: bash, git, python3, pip, jq, curl, wget, Go, Rust, build-essential, pkg-config, libssl-dev.\nInstall packages: `npm install -g`, `pip install --user`, `go install`, `cargo install` work without sudo. For system packages use `sudo apt-get install`.",
     inputSchema: z.object({
       command: z.string().describe("The shell command to execute"),
+      maxLines: z
+        .number()
+        .int()
+        .min(1)
+        .optional()
+        .describe(
+          "Only return the first N lines of stdout. Useful for commands that produce long output when you only need the beginning (e.g. ls, find, grep).",
+        ),
+      tail: z
+        .number()
+        .int()
+        .min(1)
+        .optional()
+        .describe(
+          "Only return the last N lines of stdout. Useful for log files or build output where the end matters most.",
+        ),
     }),
-    execute: async ({ command }) => {
+    execute: async ({ command, maxLines, tail }) => {
       // Check for an active session — don't implicitly boot
       const session = activeSessions.get(taskId);
       if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
@@ -306,12 +332,22 @@ export function runCommandTool(
         "Command result returned to agent",
       );
 
-      const output = formatOutput(result.output, result.stderr);
+      // Apply line limiting if requested
+      let stdout = result.output;
+      let linesLimited = false;
+      if (maxLines || tail) {
+        const limited = limitLines(stdout, { maxLines, tail });
+        stdout = limited.text;
+        linesLimited = limited.limited;
+      }
+
+      const output = formatOutput(stdout, result.stderr, result.exitCode);
 
       return {
         output,
         exitCode: result.exitCode,
         timedOut: result.timedOut,
+        ...(linesLimited ? { linesLimited: true } : {}),
         ...(result.outputTruncated
           ? {
               outputTruncated: true,

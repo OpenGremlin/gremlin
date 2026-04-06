@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { COMMAND_TIMEOUT_MS, MAX_OUTPUT_CHARS, truncate } from "./shared.js";
+import {
+  COMMAND_TIMEOUT_MS,
+  limitLines,
+  MAX_OUTPUT_CHARS,
+  truncate,
+} from "./shared.js";
 
 describe("constants", () => {
   it("has expected values", () => {
@@ -36,5 +41,43 @@ describe("truncate", () => {
 
     expect(result.startsWith(start)).toBe(true);
     expect(result.endsWith(end)).toBe(true);
+  });
+});
+
+describe("limitLines", () => {
+  const input = "line1\nline2\nline3\nline4\nline5";
+
+  it("returns input unchanged when no options set", () => {
+    const result = limitLines(input, {});
+    expect(result.text).toBe(input);
+    expect(result.limited).toBe(false);
+  });
+
+  it("limits to first N lines with maxLines", () => {
+    const result = limitLines(input, { maxLines: 2 });
+    expect(result.text).toBe("line1\nline2\n... [3 more lines, 5 total]");
+    expect(result.totalLines).toBe(5);
+    expect(result.limited).toBe(true);
+  });
+
+  it("limits to last N lines with tail", () => {
+    const result = limitLines(input, { tail: 2 });
+    expect(result.text).toBe(
+      "... [3 lines hidden, showing last 2]\nline4\nline5",
+    );
+    expect(result.totalLines).toBe(5);
+    expect(result.limited).toBe(true);
+  });
+
+  it("returns unchanged when maxLines >= total lines", () => {
+    const result = limitLines(input, { maxLines: 10 });
+    expect(result.text).toBe(input);
+    expect(result.limited).toBe(false);
+  });
+
+  it("returns unchanged when tail >= total lines", () => {
+    const result = limitLines(input, { tail: 10 });
+    expect(result.text).toBe(input);
+    expect(result.limited).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { execSync, spawn } from "node:child_process";
 import {
+  appendFileSync,
   closeSync,
   existsSync,
   mkdirSync,
@@ -174,9 +175,78 @@ export function startRelay(port: number): void {
   });
 }
 
-const MAX_BUFFER_BYTES = 5 * 1024 * 1024; // 5MB hard cap per stream
 const MAX_CHUNK_BYTES = 8192; // 8KB per streamed chunk
 const MAX_INLINE_BYTES = 50 * 1024; // 50KB — spill to disk above this
+
+import { HeadTailBuffer } from "./headTailBuffer.js";
+
+/** Half-size for each of head and tail in the HeadTailBuffer. */
+const HALF_BUFFER_BYTES = 512 * 1024; // 512KB each → 1MB total max per stream
+
+/**
+ * Threshold (chars) above which output is streamed to disk so that
+ * readCommandOutput can page through the full version later.
+ * Matches the client-side MAX_OUTPUT_CHARS.
+ */
+const PERSIST_THRESHOLD = 8_000;
+
+/**
+ * Lazily writes stream data to disk once total size exceeds PERSIST_THRESHOLD.
+ * Ensures the on-disk file always contains the full, untruncated output even
+ * when the in-memory HeadTailBuffer has dropped the middle.
+ */
+class DiskSpiller {
+  private fd: number | null = null;
+  private _totalBytes = 0;
+  private buffered = "";
+  readonly filePath: string;
+
+  constructor(filePath: string) {
+    this.filePath = filePath;
+  }
+
+  append(text: string): void {
+    this._totalBytes += text.length;
+
+    if (this.fd !== null) {
+      // Already spilling — write directly
+      appendFileSync(this.fd, text);
+      return;
+    }
+
+    // Buffer until threshold
+    this.buffered += text;
+    if (this._totalBytes > PERSIST_THRESHOLD) {
+      this.open();
+    }
+  }
+
+  get totalBytes(): number {
+    return this._totalBytes;
+  }
+
+  get active(): boolean {
+    return this.fd !== null;
+  }
+
+  close(): void {
+    if (this.fd !== null) {
+      closeSync(this.fd);
+      this.fd = null;
+    }
+    this.buffered = "";
+  }
+
+  private open(): void {
+    mkdirSync(dirname(this.filePath), { recursive: true });
+    this.fd = openSync(this.filePath, "w");
+    // Flush buffered content
+    if (this.buffered) {
+      appendFileSync(this.fd, this.buffered);
+      this.buffered = "";
+    }
+  }
+}
 
 const CWD_SENTINEL = "__GREMLIN_CWD__";
 
@@ -222,8 +292,11 @@ function handleExec(
     ...(sandboxIds && { uid: sandboxIds.uid, gid: sandboxIds.gid }),
   });
 
-  let stdout = "";
-  let stderr = "";
+  const stdoutBuf = new HeadTailBuffer(HALF_BUFFER_BYTES);
+  const stderrBuf = new HeadTailBuffer(HALF_BUFFER_BYTES);
+  const outputDir = `${homedir()}/.gremlin/output`;
+  const stdoutSpiller = new DiskSpiller(`${outputDir}/${id}.txt`);
+  const stderrSpiller = new DiskSpiller(`${outputDir}/${id}.txt.stderr`);
   let killed = false;
 
   const timer = setTimeout(() => {
@@ -233,9 +306,8 @@ function handleExec(
 
   proc.stdout.on("data", (chunk: Buffer) => {
     const text = chunk.toString();
-    if (stdout.length < MAX_BUFFER_BYTES) {
-      stdout += text;
-    }
+    stdoutBuf.append(text);
+    stdoutSpiller.append(text);
     if (ws.readyState === ws.OPEN) {
       ws.send(
         JSON.stringify({
@@ -250,9 +322,8 @@ function handleExec(
 
   proc.stderr.on("data", (chunk: Buffer) => {
     const text = chunk.toString();
-    if (stderr.length < MAX_BUFFER_BYTES) {
-      stderr += text;
-    }
+    stderrBuf.append(text);
+    stderrSpiller.append(text);
     if (ws.readyState === ws.OPEN) {
       ws.send(
         JSON.stringify({
@@ -268,6 +339,10 @@ function handleExec(
   proc.on("close", (code, signal) => {
     clearTimeout(timer);
     const exitCode = code ?? (signal ? 128 : -1);
+
+    // Materialize buffered output
+    const stdout = stdoutBuf.toString();
+    let stderr = stderrBuf.toString();
 
     // Extract cwd from stderr sentinel and update exec state
     const cwdIdx = stderr.lastIndexOf(CWD_SENTINEL);
@@ -286,27 +361,23 @@ function handleExec(
       "Exec command completed",
     );
 
-    if (ws.readyState !== ws.OPEN) return;
-
-    const totalSize = stdout.length + stderr.length;
-
-    // Persist output to disk when it's large enough that the client will
-    // truncate it, so readOutput can page through the full version later.
-    // Threshold: 8_000 chars matches the client-side MAX_OUTPUT_CHARS.
-    const PERSIST_THRESHOLD = 8_000;
-    let outputPath: string | undefined;
-    if (totalSize > PERSIST_THRESHOLD) {
-      outputPath = `${homedir()}/.gremlin/output/${id}.txt`;
-      try {
-        mkdirSync(dirname(outputPath), { recursive: true });
-        writeFileSync(outputPath, stdout);
-        if (stderr) {
-          writeFileSync(`${outputPath}.stderr`, stderr);
-        }
-      } catch (err) {
-        log.error({ connId, id, err }, "Failed to persist output to disk");
-      }
+    if (ws.readyState !== ws.OPEN) {
+      stdoutSpiller.close();
+      stderrSpiller.close();
+      return;
     }
+
+    const totalSize = stdoutBuf.totalBytes + stderrBuf.totalBytes;
+
+    // DiskSpiller handles persistence lazily — close file descriptors now.
+    // The files were written as chunks arrived, so they contain the full
+    // untruncated output even though the in-memory buffer may have dropped
+    // the middle.
+    const outputPath = stdoutSpiller.active
+      ? stdoutSpiller.filePath
+      : undefined;
+    stdoutSpiller.close();
+    stderrSpiller.close();
 
     if (totalSize > MAX_INLINE_BYTES) {
       ws.send(
@@ -341,6 +412,8 @@ function handleExec(
 
   proc.on("error", (err) => {
     clearTimeout(timer);
+    stdoutSpiller.close();
+    stderrSpiller.close();
     log.error({ connId, id, err }, "Exec command error");
 
     if (ws.readyState === ws.OPEN) {
@@ -349,8 +422,8 @@ function handleExec(
           type: "exec:done",
           id,
           exitCode: -1,
-          stdout,
-          stderr: `${stderr}\n${err.message}`,
+          stdout: stdoutBuf.toString(),
+          stderr: `${stderrBuf.toString()}\n${err.message}`,
           error: err.message,
         }),
       );
