@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { AgentQuery } from "../../graphql/queries";
 
@@ -8,7 +8,8 @@ export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
   const agent = data?.agent;
   const name = agent?.name ?? "";
   const isRetired = agent?.retired ?? false;
-  const [imgError, setImgError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const imgError = agent?.imageUrl != null && agent.imageUrl === failedUrl;
 
   return (
     <View
@@ -21,7 +22,7 @@ export function AgentAvatar({ id, size = 48 }: { id: string; size?: number }) {
             source={{ uri: agent.imageUrl }}
             style={{ width: size, height: size }}
             className="rounded-full"
-            onError={() => setImgError(true)}
+            onError={() => setFailedUrl(agent.imageUrl ?? null)}
           />
         ) : (
           <Text className="text-sm text-text-muted font-medium">{name[0]}</Text>
