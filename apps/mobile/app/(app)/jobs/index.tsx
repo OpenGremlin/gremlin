@@ -67,7 +67,7 @@ export default function JobsScreen() {
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="px-4 pb-6 gap-3"
+        contentContainerClassName="px-4 pb-6 gap-3 grow"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
