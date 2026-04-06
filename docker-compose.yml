@@ -20,6 +20,7 @@ services:
       - ./localstack/init:/etc/localstack/init/ready.d
       - localstack-data:/var/lib/localstack
     environment:
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - SERVICES=dynamodb,sqs,scheduler
       - PERSISTENCE=1
 

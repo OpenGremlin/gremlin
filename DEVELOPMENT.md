@@ -5,6 +5,7 @@
 ```
 pnpm install
 cp .env.example .env
+# Add your LocalStack auth token to .env (get one at https://app.localstack.cloud/settings/auth-tokens)
 docker compose up -d
 pnpm --filter server db:seed
 pnpm dev
