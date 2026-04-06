@@ -18,7 +18,7 @@ import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
-import { QueryResult } from "../../../../src/shared/QueryResult";
+import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 import { Toast } from "../../../../src/shared/Toast";
 
@@ -145,119 +145,123 @@ export default function IntegrationsScreen() {
   const grouped = groupByCategory(filteredProviders);
 
   return (
-    <View className="flex-1">
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        onDismiss={() => setToastVisible(false)}
-      />
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-4 py-4 gap-5"
-      >
-        <QueryResult loading={loading} error={error} />
-
-        {connectionList.length > 0 && (
-          <View className="gap-2">
-            <Card className="overflow-hidden">
-              {connectionList.map((conn, i) => (
-                <Pressable
-                  key={conn.id}
-                  onPress={() =>
-                    router.push(`/settings/connections/${conn.id}`)
-                  }
-                  className={`flex-row items-center gap-3 px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
-                >
-                  <IntegrationLogo id={conn.providerId} size={24} />
-                  <View className="flex-1 min-w-0">
-                    <Text
-                      className="text-sm font-medium text-text-primary"
-                      numberOfLines={1}
-                    >
-                      {conn.provider.service}
-                    </Text>
-                    {conn.meta.__typename === "AwsIamRoleConnectionMeta" ? (
-                      <Text
-                        className="text-xs text-text-secondary"
-                        numberOfLines={1}
-                      >
-                        {[conn.meta.displayName, conn.meta.accountId]
-                          .filter(Boolean)
-                          .join(" (")}
-                        {conn.meta.accountId ? ")" : ""}
-                      </Text>
-                    ) : conn.meta.accountId &&
-                      conn.meta.accountId !== "unknown" ? (
-                      <Text
-                        className="text-xs text-text-secondary"
-                        numberOfLines={1}
-                      >
-                        {conn.meta.accountId}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Text className="text-xs text-text-muted" numberOfLines={1}>
-                    {formatDate(conn.connectedAt)}
-                  </Text>
-                </Pressable>
-              ))}
-            </Card>
-          </View>
-        )}
-
-        {connectionList.length > 0 && grouped.length > 0 && (
-          <View className="border-b border-app-border" />
-        )}
-
-        {!loading && !error && grouped.length > 0 && (
-          <SearchInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search providers..."
-          />
-        )}
-
-        {grouped.map((group) => (
-          <View key={group.category} className="gap-2">
-            <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
-              {group.label}
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {group.items.map((provider) => {
-                const isConnected = provider.connectionCount > 0;
-                return (
-                  <HighlightableProviderTile
-                    key={provider.id}
-                    provider={provider}
-                    connected={isConnected}
-                    highlighted={highlightedProvider === provider.id}
+    <QueryGate
+      loading={loading}
+      error={error}
+      data={providers.data && connections.data}
+    >
+      <View className="flex-1">
+        <Toast
+          message={toastMessage}
+          visible={toastVisible}
+          onDismiss={() => setToastVisible(false)}
+        />
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="px-4 py-4 gap-5"
+        >
+          {connectionList.length > 0 && (
+            <View className="gap-2">
+              <Card className="overflow-hidden">
+                {connectionList.map((conn, i) => (
+                  <Pressable
+                    key={conn.id}
+                    onPress={() =>
+                      router.push(`/settings/connections/${conn.id}`)
+                    }
+                    className={`flex-row items-center gap-3 px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
                   >
-                    <IntegrationLogo id={provider.id} size={28} />
-                    <Text
-                      className="text-xs font-medium text-text-primary text-center"
-                      numberOfLines={1}
-                    >
-                      {provider.service}
+                    <IntegrationLogo id={conn.providerId} size={24} />
+                    <View className="flex-1 min-w-0">
+                      <Text
+                        className="text-sm font-medium text-text-primary"
+                        numberOfLines={1}
+                      >
+                        {conn.provider.service}
+                      </Text>
+                      {conn.meta.__typename === "AwsIamRoleConnectionMeta" ? (
+                        <Text
+                          className="text-xs text-text-secondary"
+                          numberOfLines={1}
+                        >
+                          {[conn.meta.displayName, conn.meta.accountId]
+                            .filter(Boolean)
+                            .join(" (")}
+                          {conn.meta.accountId ? ")" : ""}
+                        </Text>
+                      ) : conn.meta.accountId &&
+                        conn.meta.accountId !== "unknown" ? (
+                        <Text
+                          className="text-xs text-text-secondary"
+                          numberOfLines={1}
+                        >
+                          {conn.meta.accountId}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text className="text-xs text-text-muted" numberOfLines={1}>
+                      {formatDate(conn.connectedAt)}
                     </Text>
-                    <ConnectionCountBadge count={provider.connectionCount} />
-                  </HighlightableProviderTile>
-                );
-              })}
+                  </Pressable>
+                ))}
+              </Card>
             </View>
-          </View>
-        ))}
-
-        {!loading &&
-          !error &&
-          grouped.length === 0 &&
-          connectionList.length === 0 && (
-            <Card className="p-5">
-              <Text className="text-sm text-text-muted text-center">
-                No integration providers available.
-              </Text>
-            </Card>
           )}
-      </ScrollView>
-    </View>
+
+          {connectionList.length > 0 && grouped.length > 0 && (
+            <View className="border-b border-app-border" />
+          )}
+
+          {!loading && !error && grouped.length > 0 && (
+            <SearchInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search providers..."
+            />
+          )}
+
+          {grouped.map((group) => (
+            <View key={group.category} className="gap-2">
+              <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+                {group.label}
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {group.items.map((provider) => {
+                  const isConnected = provider.connectionCount > 0;
+                  return (
+                    <HighlightableProviderTile
+                      key={provider.id}
+                      provider={provider}
+                      connected={isConnected}
+                      highlighted={highlightedProvider === provider.id}
+                    >
+                      <IntegrationLogo id={provider.id} size={28} />
+                      <Text
+                        className="text-xs font-medium text-text-primary text-center"
+                        numberOfLines={1}
+                      >
+                        {provider.service}
+                      </Text>
+                      <ConnectionCountBadge count={provider.connectionCount} />
+                    </HighlightableProviderTile>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+
+          {!loading &&
+            !error &&
+            grouped.length === 0 &&
+            connectionList.length === 0 && (
+              <Card className="p-5">
+                <Text className="text-sm text-text-muted text-center">
+                  No integration providers available.
+                </Text>
+              </Card>
+            )}
+        </ScrollView>
+      </View>
+    </QueryGate>
   );
 }

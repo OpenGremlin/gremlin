@@ -1,4 +1,5 @@
 import type { ApolloError } from "@apollo/client";
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
@@ -44,6 +45,25 @@ export function QueryResult({
   }
 
   return null;
+}
+
+export function QueryGate({
+  loading,
+  error,
+  data,
+  onRetry,
+  children,
+}: {
+  loading: boolean;
+  error?: ApolloError | string | null;
+  data: unknown;
+  onRetry?: () => void;
+  children: ReactNode;
+}) {
+  if ((loading || error) && !data) {
+    return <QueryResult loading={loading} error={error} onRetry={onRetry} />;
+  }
+  return <>{children}</>;
 }
 
 export function NotFound({ label }: { label: string }) {

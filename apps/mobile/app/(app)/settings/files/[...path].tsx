@@ -8,7 +8,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { FilePreview } from "../../../../src/shared/FilePreview";
-import { QueryResult } from "../../../../src/shared/QueryResult";
+import { QueryGate, QueryResult } from "../../../../src/shared/QueryResult";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -78,40 +78,40 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
   const entries = data?.workspaceEntries ?? [];
 
   return (
-    <ScrollView className="flex-1" contentContainerClassName="pb-6">
-      <QueryResult loading={loading} error={error} />
-
-      {entries.map((entry) => (
-        <Pressable
-          key={entry.path}
-          onPress={() => router.replace(`/settings/files/${entry.path}`)}
-          className="flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface"
-        >
-          {entry.isDirectory ? (
-            <Folder size={18} color={colors.accentIndicator} />
-          ) : (
-            <File size={18} color={colors.iconMuted} />
-          )}
-          <Text
-            className="text-sm text-text-secondary flex-1"
-            numberOfLines={1}
+    <QueryGate loading={loading} error={error} data={data}>
+      <ScrollView className="flex-1" contentContainerClassName="pb-6">
+        {entries.map((entry) => (
+          <Pressable
+            key={entry.path}
+            onPress={() => router.replace(`/settings/files/${entry.path}`)}
+            className="flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface"
           >
-            {entry.name}
-          </Text>
-          {!entry.isDirectory && entry.size != null && (
-            <Text className="text-xs text-text-faint shrink-0">
-              {formatSize(entry.size)}
+            {entry.isDirectory ? (
+              <Folder size={18} color={colors.accentIndicator} />
+            ) : (
+              <File size={18} color={colors.iconMuted} />
+            )}
+            <Text
+              className="text-sm text-text-secondary flex-1"
+              numberOfLines={1}
+            >
+              {entry.name}
             </Text>
-          )}
-        </Pressable>
-      ))}
+            {!entry.isDirectory && entry.size != null && (
+              <Text className="text-xs text-text-faint shrink-0">
+                {formatSize(entry.size)}
+              </Text>
+            )}
+          </Pressable>
+        ))}
 
-      {!loading && entries.length === 0 && (
-        <Text className="px-4 py-8 text-sm text-text-muted text-center">
-          Empty directory
-        </Text>
-      )}
-    </ScrollView>
+        {!loading && entries.length === 0 && (
+          <Text className="px-4 py-8 text-sm text-text-muted text-center">
+            Empty directory
+          </Text>
+        )}
+      </ScrollView>
+    </QueryGate>
   );
 }
 

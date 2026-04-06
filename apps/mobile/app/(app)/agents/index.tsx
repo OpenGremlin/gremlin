@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
@@ -10,7 +10,7 @@ import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { ListCard } from "../../../src/shared/ListCard";
-import { QueryResult } from "../../../src/shared/QueryResult";
+import { QueryGate } from "../../../src/shared/QueryResult";
 
 type Agent = AgentsQueryType["agents"][number];
 
@@ -52,69 +52,75 @@ export default function AgentsScreen() {
   const [showRetired, setShowRetired] = useState(false);
   const { refreshing, onRefresh } = useListRefresh(refetch);
 
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
   const allAgents = data?.agents ?? [];
   const activeAgents = allAgents.filter((a) => !a.retired);
   const retiredAgents = allAgents.filter((a) => a.retired);
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="px-4 pb-6 gap-3"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.loadingIndicator}
-        />
-      }
-    >
-      <QueryResult loading={loading} error={error} onRetry={refetch} />
+    <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 pb-6 gap-3"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.loadingIndicator}
+          />
+        }
+      >
+        {activeAgents.length === 0 && (
+          <EmptyState
+            message="No agents yet"
+            description="Create your first agent to get started."
+            icon={<Bot size={32} color={colors.iconMuted} />}
+            actionLabel="Create Agent"
+            onAction={() => router.push("/agents/new")}
+          />
+        )}
 
-      {!loading && activeAgents.length === 0 && (
-        <EmptyState
-          message="No agents yet"
-          description="Create your first agent to get started."
-          icon={<Bot size={32} color={colors.iconMuted} />}
-          actionLabel="Create Agent"
-          onAction={() => router.push("/agents/new")}
-        />
-      )}
+        {activeAgents.map((agent) => (
+          <AgentCard key={agent.id} agent={agent} />
+        ))}
 
-      {activeAgents.map((agent) => (
-        <AgentCard key={agent.id} agent={agent} />
-      ))}
-
-      {activeAgents.length > 0 && (
-        <Button
-          onPress={() => router.push("/agents/new")}
-          variant="secondary"
-          size="lg"
-          icon={<Plus size={16} color={colors.accent} />}
-        >
-          New Agent
-        </Button>
-      )}
-
-      {retiredAgents.length > 0 ? (
-        <>
-          <Pressable
-            onPress={() => setShowRetired((v) => !v)}
-            className="self-start py-1"
+        {activeAgents.length > 0 && (
+          <Button
+            onPress={() => router.push("/agents/new")}
+            variant="secondary"
+            size="lg"
+            icon={<Plus size={16} color={colors.accent} />}
           >
-            <Text className="text-xs text-text-muted">
-              {showRetired
-                ? "Hide retired agents"
-                : `Show retired agents (${retiredAgents.length})`}
-            </Text>
-          </Pressable>
+            New Agent
+          </Button>
+        )}
 
-          {showRetired
-            ? retiredAgents.map((agent) => (
-                <AgentCard key={agent.id} agent={agent} />
-              ))
-            : null}
-        </>
-      ) : null}
-    </ScrollView>
+        {retiredAgents.length > 0 ? (
+          <>
+            <Pressable
+              onPress={() => setShowRetired((v) => !v)}
+              className="self-start py-1"
+            >
+              <Text className="text-xs text-text-muted">
+                {showRetired
+                  ? "Hide retired agents"
+                  : `Show retired agents (${retiredAgents.length})`}
+              </Text>
+            </Pressable>
+
+            {showRetired
+              ? retiredAgents.map((agent) => (
+                  <AgentCard key={agent.id} agent={agent} />
+                ))
+              : null}
+          </>
+        ) : null}
+      </ScrollView>
+    </QueryGate>
   );
 }

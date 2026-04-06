@@ -16,7 +16,7 @@ import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { formatDate } from "../../../src/shared/formatDate";
 import { ListCard } from "../../../src/shared/ListCard";
-import { QueryResult } from "../../../src/shared/QueryResult";
+import { QueryGate } from "../../../src/shared/QueryResult";
 
 function RunNowButton({ jobId }: { jobId: string }) {
   const [triggering, setTriggering] = useState(false);
@@ -64,69 +64,69 @@ export default function JobsScreen() {
   const jobs = data?.agentJobs ?? [];
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="px-4 pb-6 gap-3"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.loadingIndicator}
-        />
-      }
-    >
-      <QueryResult loading={loading} error={error} onRetry={refetch} />
+    <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 pb-6 gap-3"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.loadingIndicator}
+          />
+        }
+      >
+        {jobs.length === 0 && (
+          <EmptyState
+            message="No scheduled jobs"
+            description="Jobs run your agents on a schedule automatically."
+            icon={<Calendar size={32} color={colors.iconMuted} />}
+            actionLabel="Create Job"
+            onAction={() => router.push("/jobs/new")}
+          />
+        )}
 
-      {!loading && jobs.length === 0 && (
-        <EmptyState
-          message="No scheduled jobs"
-          description="Jobs run your agents on a schedule automatically."
-          icon={<Calendar size={32} color={colors.iconMuted} />}
-          actionLabel="Create Job"
-          onAction={() => router.push("/jobs/new")}
-        />
-      )}
-
-      {jobs.map((job) => (
-        <ListCard
-          key={job.id}
-          agentId={job.agent.id}
-          title={job.name}
-          onPress={() => router.push(`/jobs/${job.id}`)}
-          dimmed={job.paused}
-          badge={
-            job.paused ? (
-              <Text className="text-xs text-warning">Paused</Text>
-            ) : null
-          }
-          trailing={!job.paused ? <RunNowButton jobId={job.id} /> : undefined}
-          subtitle={
-            <>
-              <Text className="text-xs text-text-muted">
-                {job.cronExpression
-                  ? cronstrue.toString(job.cronExpression)
-                  : job.recurrence}
-              </Text>
-              {!job.paused && (
-                <Text className="text-xs text-text-muted mt-0.5">
-                  Next: {formatDate(job.nextRun, "Not scheduled")}
+        {jobs.map((job) => (
+          <ListCard
+            key={job.id}
+            agentId={job.agent.id}
+            title={job.name}
+            onPress={() => router.push(`/jobs/${job.id}`)}
+            dimmed={job.paused}
+            badge={
+              job.paused ? (
+                <Text className="text-xs text-warning">Paused</Text>
+              ) : null
+            }
+            trailing={!job.paused ? <RunNowButton jobId={job.id} /> : undefined}
+            subtitle={
+              <>
+                <Text className="text-xs text-text-muted">
+                  {job.cronExpression
+                    ? cronstrue.toString(job.cronExpression)
+                    : job.recurrence}
                 </Text>
-              )}
-            </>
-          }
-        />
-      ))}
+                {!job.paused && (
+                  <Text className="text-xs text-text-muted mt-0.5">
+                    Next: {formatDate(job.nextRun, "Not scheduled")}
+                  </Text>
+                )}
+              </>
+            }
+          />
+        ))}
 
-      {jobs.length > 0 && (
-        <Button
-          onPress={() => router.push("/jobs/new")}
-          variant="secondary"
-          size="lg"
-          icon={<Plus size={16} color={colors.accent} />}
-        >
-          New Job
-        </Button>
-      )}
-    </ScrollView>
+        {jobs.length > 0 && (
+          <Button
+            onPress={() => router.push("/jobs/new")}
+            variant="secondary"
+            size="lg"
+            icon={<Plus size={16} color={colors.accent} />}
+          >
+            New Job
+          </Button>
+        )}
+      </ScrollView>
+    </QueryGate>
   );
 }
