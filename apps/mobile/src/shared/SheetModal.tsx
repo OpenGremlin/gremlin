@@ -7,6 +7,7 @@ import {
   Dimensions,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   Text,
   View,
@@ -18,6 +19,7 @@ import { useNavigationTheme } from "../lib/useNavigationTheme";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const DISMISS_THRESHOLD = 120;
+const useNativeDriver = Platform.OS !== "web";
 
 export function SheetModal({
   visible,
@@ -62,12 +64,12 @@ export function SheetModal({
               toValue: 0,
               damping: 25,
               stiffness: 300,
-              useNativeDriver: true,
+              useNativeDriver,
             }),
             Animated.timing(fadeAnim, {
               toValue: 1,
               duration: 150,
-              useNativeDriver: true,
+              useNativeDriver,
             }),
           ]).start();
         }
@@ -82,13 +84,13 @@ export function SheetModal({
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
         Animated.spring(slideAnim, {
           toValue: 0,
           damping: 28,
           stiffness: 300,
-          useNativeDriver: true,
+          useNativeDriver,
         }),
       ]).start();
     } else {
@@ -103,12 +105,12 @@ export function SheetModal({
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.timing(slideAnim, {
         toValue: SCREEN_HEIGHT,
         duration: 250,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start(() => {
       dragOffset.setValue(0);

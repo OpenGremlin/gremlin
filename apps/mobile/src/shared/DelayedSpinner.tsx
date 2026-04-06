@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ActivityIndicator, Animated } from "react-native";
+import { ActivityIndicator, Animated, Platform } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 
 export function DelayedSpinner() {
@@ -11,7 +11,7 @@ export function DelayedSpinner() {
       Animated.timing(opacity, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }).start();
     }, 100);
     return () => clearTimeout(timer);

@@ -78,7 +78,7 @@ export function Button({
     Animated.timing(opacity, {
       toValue: isDisabled ? DISABLED_OPACITY : 1,
       duration: ANIMATION_MS,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== "web",
     }).start();
   }, [isDisabled, opacity]);
 
