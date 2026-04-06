@@ -25,6 +25,7 @@ import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { UserBubble } from "../ChatScreen/UserBubble";
 import { FileCard } from "../FileCard";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
@@ -384,11 +385,7 @@ export const LogEntryView = React.memo(function LogEntryView({
   if (message.role === AgentLogRole.User) {
     return (
       <View className="py-2">
-        <View className="flex-row justify-end">
-          <View className="max-w-[80%] bg-user-bubble rounded-2xl rounded-br-md px-3.5 pt-2 pb-0.5">
-            <Markdown variant="user">{message.content}</Markdown>
-          </View>
-        </View>
+        <UserBubble content={message.content} />
         {showTimestamp && (
           <Text className="text-[10px] text-text-muted text-right mt-1 mr-1">
             {formatTime(message.createdAt)}
