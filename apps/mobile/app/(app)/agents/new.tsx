@@ -9,7 +9,6 @@ import { Input } from "../../../src/shared/Input";
 export default function NewAgentScreen() {
   const [id, setId] = useState("");
   const [name, setName] = useState("");
-  const [soul, setSoul] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +18,7 @@ export default function NewAgentScreen() {
     setError("");
     try {
       const result = await execute(CreateAgentMutation, {
-        input: { id: id.trim(), name: name.trim(), soul: soul.trim() },
+        input: { id: id.trim(), name: name.trim() },
       });
       router.replace(`/agents/${result.createAgent.id}/config`);
     } catch (err) {
@@ -49,19 +48,6 @@ export default function NewAgentScreen() {
       <View className="gap-2">
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <Input value={name} onChangeText={setName} placeholder="Agent name" />
-      </View>
-
-      <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">Soul</Text>
-        <Input
-          value={soul}
-          onChangeText={setSoul}
-          placeholder="Who is this agent? What should they do?"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          style={{ minHeight: 100 }}
-        />
       </View>
 
       {error ? <Text className="text-error text-sm">{error}</Text> : null}

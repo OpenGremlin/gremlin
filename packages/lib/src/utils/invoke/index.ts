@@ -89,7 +89,7 @@ const flags = resolvePromptFlags(agent.config, {
 let systemPrompt = renderTaskSystemPrompt(
   {
     name: agent.name,
-    soul: agent.soul,
+    personality: agent.personality,
     userDisplayName: agentCtx.displayName,
     userAbout: agentCtx.profile?.about,
     taskTitle: "(test task)",

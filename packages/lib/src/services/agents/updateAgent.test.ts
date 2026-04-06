@@ -27,7 +27,7 @@ describe("updateAgent", () => {
     const updated = {
       id: "agent-1",
       name: "Updated Name",
-      soul: "",
+      personality: "",
       avatar: "default",
       portraitId: "default",
     };
@@ -42,7 +42,7 @@ describe("updateAgent", () => {
     const updated = {
       id: "agent-1",
       name: "Updated",
-      soul: "",
+      personality: "",
       avatar: "default",
       portraitId: "default",
     };
@@ -68,7 +68,7 @@ describe("updateAgent", () => {
     const updated = {
       id: "agent-1",
       name: "Test",
-      soul: "",
+      personality: "",
       avatar: "default",
       portraitId: "default",
     };
@@ -76,14 +76,14 @@ describe("updateAgent", () => {
 
     await updateAgent(ctx, "agent-1", {
       name: "Test",
-      soul: null,
+      personality: null,
       avatar: null,
     });
 
     expect(mockItem).toHaveBeenCalledWith({
       id: "agent-1",
       name: "Test",
-      soul: $remove(),
+      personality: $remove(),
       avatar: $remove(),
     });
   });

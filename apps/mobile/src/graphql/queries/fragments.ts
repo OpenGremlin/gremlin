@@ -44,7 +44,7 @@ export const AgentSummary = graphql(`
   fragment AgentSummary on Agent {
     id
     name
-    soul
+    personality
     retired
   }
 `);
@@ -56,8 +56,8 @@ export const AgentDetailFragment = graphql(`
     avatar
     portraitId
     imageUrl(width: 200)
-    soul
-    identity
+    personality
+    role
     retired
     ttsVoice
     config {

@@ -39,8 +39,8 @@ export async function runMainLane(
     systemPrompt: renderSystemPrompt(
       {
         name: agent.name,
-        soul: agent.soul,
-        identity: agent.identity,
+        personality: agent.personality,
+        role: agent.role,
         userDisplayName: displayName,
         userAbout: profile?.about,
       },

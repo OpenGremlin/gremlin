@@ -26,7 +26,7 @@ describe("retireAgent", () => {
     const retired = {
       id: "agent-1",
       name: "Agent",
-      soul: "",
+      personality: "",
       avatar: "default",
       portraitId: "default",
       retired: true,
@@ -42,7 +42,7 @@ describe("retireAgent", () => {
     const retired = {
       id: "agent-1",
       name: "Agent",
-      soul: "",
+      personality: "",
       avatar: "default",
       portraitId: "default",
       retired: true,

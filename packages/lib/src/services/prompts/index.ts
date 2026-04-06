@@ -86,8 +86,8 @@ export function resolvePromptFlags(
 
 interface PromptData {
   name: string;
-  soul: string;
-  identity?: string;
+  personality?: string;
+  role?: string;
   userDisplayName: string;
   userAbout?: string;
 }

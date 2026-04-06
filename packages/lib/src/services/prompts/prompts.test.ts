@@ -98,7 +98,7 @@ describe("resolvePromptFlags", () => {
 
 const baseData = {
   name: "TestAgent",
-  soul: "You are helpful.",
+  personality: "You are helpful.",
   userDisplayName: "Alice",
 };
 
@@ -119,15 +119,15 @@ describe("renderSystemPrompt", () => {
     expect(result).toContain("</identity>");
   });
 
-  it("includes identity field when provided", () => {
+  it("includes role field when provided", () => {
     const result = renderSystemPrompt(
-      { ...baseData, identity: "You are a senior engineer." },
+      { ...baseData, role: "You are a senior engineer." },
       allOff,
     );
     expect(result).toContain("You are a senior engineer.");
   });
 
-  it("omits identity field when not provided", () => {
+  it("omits role field when not provided", () => {
     const result = renderSystemPrompt(baseData, allOff);
     expect(result).not.toContain("senior engineer");
   });

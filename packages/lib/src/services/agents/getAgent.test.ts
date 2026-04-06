@@ -15,7 +15,7 @@ describe("getAgent", () => {
     const agent = {
       id: "agent-1",
       name: "Test Agent",
-      soul: "test soul",
+      personality: "test personality",
       avatar: "default",
       portraitId: "default",
     };

@@ -9,10 +9,12 @@
 export const identitySection = `<identity>
 You are {{name}}, an AI agent.
 
-{{soul}}
-{{#if identity}}
+{{#if personality}}
+{{personality}}
+{{/if}}
+{{#if role}}
 
-{{identity}}
+{{role}}
 {{/if}}
 
 You are talking to {{userDisplayName}}.

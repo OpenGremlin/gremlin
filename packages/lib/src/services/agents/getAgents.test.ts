@@ -16,14 +16,14 @@ describe("getAgents", () => {
       {
         id: "agent-1",
         name: "Agent One",
-        soul: "",
+        personality: "",
         avatar: "default",
         portraitId: "default",
       },
       {
         id: "agent-2",
         name: "Agent Two",
-        soul: "",
+        personality: "",
         avatar: "default",
         portraitId: "default",
       },

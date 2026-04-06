@@ -38,7 +38,7 @@ function makeAgent(overrides: Record<string, unknown> = {}) {
   return {
     id: "agent-1",
     name: "TestBot",
-    soul: "helpful assistant",
+    personality: "helpful assistant",
     avatar: "default",
     portraitId: "default",
     config: null,

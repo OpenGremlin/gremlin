@@ -31,7 +31,7 @@ export async function resumeTaskLane(
   let systemPrompt = renderTaskSystemPrompt(
     {
       name: agent.name,
-      soul: agent.soul,
+      personality: agent.personality,
       userDisplayName: displayName,
       userAbout: profile?.about,
       taskTitle: task.title,

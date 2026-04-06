@@ -28,7 +28,7 @@ function AgentCard({ agent }: { agent: Agent }) {
       }
       subtitle={
         <Text className="text-xs text-text-muted" numberOfLines={2}>
-          {agent.soul}
+          {agent.personality}
         </Text>
       }
       trailing={

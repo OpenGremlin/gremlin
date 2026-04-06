@@ -30,7 +30,7 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
   const systemPrompt = renderSystemPrompt(
     {
       name: agent.name,
-      soul: agent.soul,
+      personality: agent.personality,
       userDisplayName: displayName,
       userAbout: profile?.about,
     },

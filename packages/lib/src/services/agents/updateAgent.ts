@@ -5,8 +5,8 @@ import type { ServiceContext } from "../context.js";
 
 interface UpdateAgentInput {
   name?: string | null;
-  soul?: string | null;
-  identity?: string | null;
+  personality?: string | null;
+  role?: string | null;
   avatar?: string | null;
   sandboxInstanceId?: string | null;
   ttsVoice?: string | null;

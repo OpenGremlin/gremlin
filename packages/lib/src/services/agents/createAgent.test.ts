@@ -26,20 +26,20 @@ describe("createAgent", () => {
     expect(result.id).toBe("myagent");
   });
 
-  it("defaults soul to empty string when null", async () => {
+  it("defaults personality to empty string when null", async () => {
     const result = await createAgent(ctx, {
       id: "agent",
       name: "Test",
-      soul: null,
+      personality: null,
     });
 
-    expect(result.soul).toBe("");
+    expect(result.personality).toBe("");
   });
 
-  it("defaults soul to empty string when undefined", async () => {
+  it("defaults personality to empty string when undefined", async () => {
     const result = await createAgent(ctx, { id: "agent", name: "Test" });
 
-    expect(result.soul).toBe("");
+    expect(result.personality).toBe("");
   });
 
   it("defaults avatar to 'default'", async () => {
@@ -52,13 +52,13 @@ describe("createAgent", () => {
     const result = await createAgent(ctx, {
       id: "Agent1",
       name: "My Agent",
-      soul: "kind",
+      personality: "kind",
     });
 
     expect(result).toEqual({
       id: "agent1",
       name: "My Agent",
-      soul: "kind",
+      personality: "kind",
       avatar: "default",
       portraitId: "default",
     });

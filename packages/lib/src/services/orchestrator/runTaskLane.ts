@@ -92,8 +92,8 @@ export async function runTaskLane(
   let systemPrompt = renderTaskSystemPrompt(
     {
       name: agent.name,
-      soul: agent.soul,
-      identity: agent.identity,
+      personality: agent.personality,
+      role: agent.role,
       userDisplayName: displayName,
       userAbout: profile?.about,
       taskTitle: task.title,

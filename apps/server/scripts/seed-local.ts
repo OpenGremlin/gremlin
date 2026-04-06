@@ -23,7 +23,8 @@ const agents = [
     name: "Clawd",
     avatar: "clawd",
     portraitId: "clawd",
-    soul: "A helpful and creative assistant who loves writing and storytelling.",
+    personality:
+      "A helpful and creative assistant who loves writing and storytelling.",
   },
 ];
 
@@ -39,7 +40,7 @@ for (const agent of agents) {
         name: agent.name,
         avatar: agent.avatar,
         portraitId: agent.portraitId,
-        soul: agent.soul,
+        personality: agent.personality,
       },
     }),
   );

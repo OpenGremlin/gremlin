@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 interface CreateAgentInput {
   id: string;
   name: string;
-  soul?: string | null;
+  personality?: string | null;
 }
 
 export async function createAgent(
@@ -18,7 +18,7 @@ export async function createAgent(
     .item({
       id,
       name: input.name,
-      soul: input.soul ?? "",
+      personality: input.personality ?? "",
       avatar: "default",
       portraitId: "default",
     })
@@ -28,7 +28,7 @@ export async function createAgent(
   return {
     id,
     name: input.name,
-    soul: input.soul ?? "",
+    personality: input.personality ?? "",
     avatar: "default",
     portraitId: "default",
   };

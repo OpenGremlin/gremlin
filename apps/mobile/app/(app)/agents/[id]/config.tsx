@@ -35,8 +35,8 @@ export default function AgentConfigScreen() {
   const avatarsResult = useQuery(AvatarsQuery);
 
   const [name, setName] = useState("");
-  const [soul, setSoul] = useState("");
-  const [identity, setIdentity] = useState("");
+  const [personality, setPersonality] = useState("");
+  const [role, setRole] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
@@ -45,8 +45,8 @@ export default function AgentConfigScreen() {
   useEffect(() => {
     if (!agent) return;
     setName(agent.name);
-    setSoul(agent.soul ?? "");
-    setIdentity(agent.identity ?? "");
+    setPersonality(agent.personality ?? "");
+    setRole(agent.role ?? "");
   }, [agent]);
 
   const handleSave = useCallback(async () => {
@@ -58,8 +58,8 @@ export default function AgentConfigScreen() {
         id: id ?? "",
         input: {
           name: name.trim(),
-          soul: soul.trim(),
-          identity: identity.trim() || null,
+          personality: personality.trim(),
+          role: role.trim() || null,
         },
       });
     } catch (err) {
@@ -69,7 +69,7 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, soul, identity]);
+  }, [id, agent, name, personality, role]);
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 
@@ -114,8 +114,8 @@ export default function AgentConfigScreen() {
 
   const hasChanges =
     name.trim() !== agent.name ||
-    soul.trim() !== (agent.soul ?? "") ||
-    identity.trim() !== (agent.identity ?? "");
+    personality.trim() !== (agent.personality ?? "") ||
+    role.trim() !== (agent.role ?? "");
 
   return (
     <ScrollView
@@ -164,34 +164,37 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">Soul</Text>
+        <Text className="text-sm font-medium text-text-secondary">
+          Personality
+        </Text>
+        <Text className="text-xs text-text-muted">
+          The agent's personality, tone, and voice
+        </Text>
         <Input
-          value={soul}
-          onChangeText={setSoul}
-          placeholder="Who is this agent?"
+          value={personality}
+          onChangeText={setPersonality}
+          placeholder="e.g. Warm and curious, explains things with analogies, asks clarifying questions before diving in."
           multiline
-          numberOfLines={6}
+          numberOfLines={4}
           textAlignVertical="top"
-          style={{ minHeight: 120 }}
+          style={{ minHeight: 100 }}
           editable={!agent.retired}
         />
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">
-          Identity
-        </Text>
+        <Text className="text-sm font-medium text-text-secondary">Role</Text>
         <Text className="text-xs text-text-muted">
-          Role, expertise, or behavioral posture for this agent
+          The agent's role, expertise, and responsibilities
         </Text>
         <Input
-          value={identity}
-          onChangeText={setIdentity}
-          placeholder="e.g. You are a senior backend engineer who favors simple, pragmatic solutions."
+          value={role}
+          onChangeText={setRole}
+          placeholder="e.g. A senior backend engineer who reviews PRs and helps debug production issues."
           multiline
           numberOfLines={4}
           textAlignVertical="top"
-          style={{ minHeight: 80 }}
+          style={{ minHeight: 100 }}
           editable={!agent.retired}
         />
       </View>
