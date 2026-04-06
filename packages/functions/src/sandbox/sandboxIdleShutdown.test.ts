@@ -181,7 +181,10 @@ describe("sandboxIdleShutdown", () => {
     const result = await handler();
 
     expect(result).toEqual({ stopped: 2 });
-    const cmd = mockSend.mock.calls[0][0] as StopInstancesCommand;
-    expect(cmd.input.InstanceIds).toEqual(["i-1", "i-2"]);
+    expect(mockSend).toHaveBeenCalledTimes(2);
+    const ids = mockSend.mock.calls.map(
+      (c) => (c[0] as StopInstancesCommand).input.InstanceIds?.[0],
+    );
+    expect(ids.sort()).toEqual(["i-1", "i-2"]);
   });
 });
