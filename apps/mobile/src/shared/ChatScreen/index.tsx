@@ -6,7 +6,7 @@ import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -38,16 +38,13 @@ import { ChatHeaderTitle } from "./ChatHeaderTitle";
 import { ChatInputBar } from "./ChatInputBar";
 import { PendingMessageBubble } from "./PendingMessageBubble";
 
-const flatListContentStyle = {
-  paddingHorizontal: 16,
-  paddingTop: 8,
-  paddingBottom: 200,
-  // react-native-web bug: `inverted` applies scaleY(-1) three times (outer
-  // scroll, inner scroll, and each cell wrapper) instead of the expected two.
-  // Adding a fourth flip on the content container makes the total even, so
-  // cell content renders right-side up. No-op on native (inverted works there).
-  ...(Platform.OS === "web" && { transform: [{ scaleY: -1 }] }),
-} as const;
+const isWeb = Platform.OS === "web";
+
+// On native (inverted), paddingBottom is the visual top (space for header overlay).
+// On web (non-inverted), paddingTop is the visual top.
+const flatListContentStyle = isWeb
+  ? ({ paddingHorizontal: 16, paddingTop: 200, paddingBottom: 8 } as const)
+  : ({ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 200 } as const);
 
 const overlayContainerStyle = {
   position: "absolute" as const,
@@ -126,29 +123,54 @@ export function ChatScreen({
     }
   }, [fetchNewer]);
 
+  // On web, don't use inverted FlatList (react-native-web's scaleY(-1) hack is
+  // buggy and keeps regressing). Instead reverse the data so oldest is first and
+  // the newest message naturally sits at the bottom.
+  const displayMessages = useMemo(
+    () => (isWeb ? [...messages].reverse() : messages),
+    [messages],
+  );
+
   const { input, setInput, pendingMessages, listRef, handleSend, sending } =
     useChatSend({ agentId, taskId, messages });
 
-  // On web, the scaleY(-1) workaround reverses scroll semantics, so the
-  // FlatList won't auto-show new items at the bottom like native inverted does.
-  // Scroll to the bottom on initial load, new messages, and streaming updates.
-  const prevMessageCount = useRef(0);
+  // On web (non-inverted list), keep the scroll pinned to the bottom.
+  // We track whether the user is "at the bottom" and auto-scroll on every
+  // content size change and new message until they scroll away.
+  const atBottom = useRef(true);
+  // Timestamp of the last programmatic scroll so the scroll handler can
+  // distinguish our scrolls from user-initiated ones (no timers needed).
+  const lastAutoScrollAt = useRef(0);
   const streamingLength = streamingMessage?.content.length ?? 0;
+
+  // When new messages arrive or streaming updates, re-pin to bottom.
+  const prevMessageCount = useRef(0);
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (!isWeb) return;
     if (messages.length === 0 && !streamingLength) return;
-    const isInitial = prevMessageCount.current === 0;
     const hasNew = messages.length > prevMessageCount.current;
     prevMessageCount.current = messages.length;
-    if (isInitial || hasNew || streamingLength > 0) {
+    if (hasNew || streamingLength > 0) {
+      atBottom.current = true;
+      lastAutoScrollAt.current = Date.now();
       requestAnimationFrame(() => {
-        listRef.current?.scrollToOffset({
-          offset: 999999,
-          animated: !isInitial,
-        });
+        listRef.current?.scrollToEnd({ animated: hasNew });
       });
     }
   }, [messages.length, streamingLength, listRef]);
+
+  // Scroll to end on every content size change while pinned to bottom.
+  // This catches async markdown layout passes that grow content height after
+  // the initial scrollToEnd. We pass the raw height as offset — FlatList
+  // clamps it to (contentHeight - layoutHeight), which is the true end.
+  const onContentSizeChange = useCallback(
+    (_w: number, h: number) => {
+      if (!isWeb || !atBottom.current) return;
+      lastAutoScrollAt.current = Date.now();
+      listRef.current?.scrollToOffset({ offset: h, animated: false });
+    },
+    [listRef],
+  );
 
   const { uploads, uploadFiles, clearUploads, isUploading } = useFileUpload(
     agentId,
@@ -249,12 +271,17 @@ export function ChatScreen({
     }
   }, [pickDocuments, pickImages, takePhoto]);
 
-  const messagesRef = useRef(messages);
-  messagesRef.current = messages;
+  const displayRef = useRef(displayMessages);
+  displayRef.current = displayMessages;
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
-      const next = index > 0 ? messagesRef.current[index - 1] : undefined;
+      const data = displayRef.current;
+      // Inverted (iOS): index-1 is the newer adjacent message (lower index = newer).
+      // Non-inverted web: index+1 is the newer adjacent message (higher index = newer).
+      const nextIdx = isWeb ? index + 1 : index - 1;
+      const next =
+        nextIdx >= 0 && nextIdx < data.length ? data[nextIdx] : undefined;
       const show = shouldShowTimestamp(item, next);
       return (
         <LogEntryView
@@ -270,6 +297,33 @@ export function ChatScreen({
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
 
+  // On web (non-inverted), detect scroll position for two purposes:
+  // 1. Load older messages when near the top
+  // 2. Un-pin auto-scroll when user scrolls away from the bottom
+  const handleScroll = useCallback(
+    (e: {
+      nativeEvent: {
+        contentOffset: { y: number };
+        contentSize: { height: number };
+        layoutMeasurement: { height: number };
+      };
+    }) => {
+      if (!isWeb) return;
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+      if (hasMore && contentOffset.y < 200) {
+        loadMore();
+      }
+      // Only update pin state from user-initiated scrolls. Programmatic
+      // scrolls are identified by a recent timestamp.
+      if (Date.now() - lastAutoScrollAt.current > 200) {
+        const distFromBottom =
+          contentSize.height - contentOffset.y - layoutMeasurement.height;
+        atBottom.current = distFromBottom < 100;
+      }
+    },
+    [hasMore, loadMore],
+  );
+
   if (externalLoading || messagesLoading) {
     return <QueryResult loading error={null} />;
   }
@@ -284,6 +338,23 @@ export function ChatScreen({
     return <NotFound label={notFoundLabel ?? "Not found"} />;
   }
 
+  // Pending messages and streaming bubble — shown at the "newest" end of the list.
+  const pendingBubbles =
+    pendingMessages.length > 0 || streamingMessage ? (
+      <View>
+        {pendingMessages.map((content) => (
+          <PendingMessageBubble key={content} content={content} />
+        ))}
+        {streamingMessage && <StreamingBubble message={streamingMessage} />}
+      </View>
+    ) : null;
+
+  const loadingSpinner = loadingMore ? (
+    <View className="items-center py-3">
+      <ActivityIndicator size="small" color={colors.loadingIndicator} />
+    </View>
+  ) : null;
+
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-bg"
@@ -292,17 +363,20 @@ export function ChatScreen({
     >
       <FlatList
         ref={listRef}
-        data={messages}
+        style={isWeb ? { flex: 1 } : undefined}
+        data={displayMessages}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        inverted
-        onEndReached={hasMore ? loadMore : undefined}
+        inverted={!isWeb}
+        onEndReached={!isWeb && hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
+        onScroll={isWeb ? handleScroll : undefined}
+        onContentSizeChange={isWeb ? onContentSizeChange : undefined}
+        scrollEventThrottle={isWeb ? 100 : undefined}
         contentContainerStyle={flatListContentStyle}
-        // On web the scaleY(-1) inversion hack causes VirtualizedList spacers
-        // to appear as visible gaps. Disable windowing on web so all items
-        // stay mounted (the list is small enough that this is fine).
-        {...(Platform.OS === "web" && { windowSize: 100 })}
+        // On web, disable windowing so all items stay mounted (the list is
+        // small enough that this is fine).
+        {...(isWeb && { windowSize: 100 })}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -311,25 +385,10 @@ export function ChatScreen({
           />
         }
         keyboardShouldPersistTaps="handled"
-        ListFooterComponent={
-          loadingMore ? (
-            <View className="items-center py-3">
-              <ActivityIndicator size="small" color={colors.loadingIndicator} />
-            </View>
-          ) : null
-        }
-        ListHeaderComponent={
-          pendingMessages.length > 0 || streamingMessage ? (
-            <View>
-              {pendingMessages.map((content) => (
-                <PendingMessageBubble key={content} content={content} />
-              ))}
-              {streamingMessage && (
-                <StreamingBubble message={streamingMessage} />
-              )}
-            </View>
-          ) : null
-        }
+        // Inverted (iOS): header=bottom (newest), footer=top (oldest).
+        // Non-inverted (web): header=top (oldest), footer=bottom (newest).
+        ListHeaderComponent={isWeb ? loadingSpinner : pendingBubbles}
+        ListFooterComponent={isWeb ? pendingBubbles : loadingSpinner}
       />
 
       <View pointerEvents="box-none" style={overlayContainerStyle}>

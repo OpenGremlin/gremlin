@@ -21,10 +21,11 @@ export function useChatSend({
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const listRef = useRef<FlatList>(null);
   const scrollToBottom = useCallback(() => {
-    // On web, the inverted FlatList scaleY(-1) workaround reverses scroll
-    // semantics: offset 0 = visual top (oldest), large offset = visual bottom.
-    const offset = Platform.OS === "web" ? 999999 : 0;
-    listRef.current?.scrollToOffset({ offset, animated: true });
+    if (Platform.OS === "web") {
+      listRef.current?.scrollToEnd({ animated: true });
+    } else {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
   }, []);
 
   // Load pending inbox messages on mount (survives page reload)
