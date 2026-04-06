@@ -1,5 +1,5 @@
 export const COMMAND_TIMEOUT_MS = 20 * 60 * 1000; // 20 minutes
-export const MAX_OUTPUT_CHARS = 8_000;
+export const MAX_OUTPUT_CHARS = 20_000;
 
 export interface ExecOptions {
   pubsub?: import("../../resources/pubsub.js").PubSub;

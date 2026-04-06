@@ -188,7 +188,7 @@ const HALF_BUFFER_BYTES = 512 * 1024; // 512KB each → 1MB total max per stream
  * readCommandOutput can page through the full version later.
  * Matches the client-side MAX_OUTPUT_CHARS.
  */
-const PERSIST_THRESHOLD = 8_000;
+const PERSIST_THRESHOLD = 20_000;
 
 /**
  * Lazily writes stream data to disk once total size exceeds PERSIST_THRESHOLD.
@@ -386,10 +386,10 @@ function handleExec(
           id,
           exitCode,
           stdout:
-            stdout.slice(0, 4096) +
+            stdout.slice(0, 10_000) +
             "\n...[truncated]...\n" +
-            stdout.slice(-4096),
-          stderr: stderr.slice(0, 2048),
+            stdout.slice(-10_000),
+          stderr: stderr.slice(0, 4096),
           fullOutputPath: outputPath,
           fullOutputBytes: totalSize,
         }),

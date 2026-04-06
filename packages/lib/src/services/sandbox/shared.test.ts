@@ -9,7 +9,7 @@ import {
 describe("constants", () => {
   it("has expected values", () => {
     expect(COMMAND_TIMEOUT_MS).toBe(20 * 60 * 1000);
-    expect(MAX_OUTPUT_CHARS).toBe(8_000);
+    expect(MAX_OUTPUT_CHARS).toBe(20_000);
   });
 });
 
