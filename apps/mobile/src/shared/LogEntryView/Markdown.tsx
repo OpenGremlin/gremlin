@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import type { TextStyle, ViewStyle } from "react-native";
 import type { MarkedStyles } from "react-native-marked";
-import Marked from "react-native-marked";
+import Marked, { Renderer } from "react-native-marked";
 import { useTheme } from "../../lib/ThemeContext";
 
 function buildStyles(
@@ -24,7 +25,7 @@ function buildStyles(
         ? "#818cf8"
         : "#4f46e5";
   const codeBg = isDark ? "#2a2a2a" : "#f5f5f5";
-  const codeColor = isDark ? "#a3e635" : "#16a34a";
+  const codeColor = isDark ? "#a3e635" : "#15603a";
   const fenceBg = isDark ? "#1a1a1a" : "#fafafa";
   const fenceBorder = isDark ? "#404040" : "#e5e5e5";
   const quoteBorder = isDark ? "#636363" : "#d4d4d4";
@@ -106,9 +107,6 @@ function buildStyles(
       borderWidth: 1,
       borderRadius: 6,
       padding: 10,
-      fontFamily: "monospace",
-      fontSize: base - 2,
-      color: codeColor,
       marginVertical: 6,
     } as ViewStyle,
     li: { marginVertical: 2 } as TextStyle,
@@ -134,6 +132,24 @@ function buildStyles(
   return styles;
 }
 
+class CodeTextRenderer extends Renderer {
+  private codeTextStyle: TextStyle;
+
+  constructor(codeTextStyle: TextStyle) {
+    super();
+    this.codeTextStyle = codeTextStyle;
+  }
+
+  code(
+    text: string,
+    _language?: string,
+    containerStyle?: ViewStyle,
+    _textStyle?: TextStyle,
+  ): ReactNode {
+    return super.code(text, _language, containerStyle, this.codeTextStyle);
+  }
+}
+
 export function Markdown({
   children,
   variant = "agent",
@@ -148,10 +164,20 @@ export function Markdown({
     [isDark, variant],
   );
 
+  const renderer = useMemo(() => {
+    const codeColor = isDark ? "#a3e635" : "#15603a";
+    return new CodeTextRenderer({
+      fontFamily: "monospace",
+      fontSize: 12,
+      color: codeColor,
+    });
+  }, [isDark]);
+
   return (
     <Marked
       value={children}
       styles={styles}
+      renderer={renderer}
       flatListProps={{
         scrollEnabled: false,
         style: { backgroundColor: "transparent" },
