@@ -2,7 +2,7 @@ import { execSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
-import pty from "node-pty";
+import * as pty from "node-pty";
 import { type WebSocket, WebSocketServer } from "ws";
 import { createLogger } from "./log.js";
 

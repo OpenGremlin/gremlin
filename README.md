@@ -97,7 +97,7 @@ The installer walks you through AWS setup, creates your admin account, and deplo
 pnpm install
 cp .env.example .env
 # Add your LocalStack auth token to .env (get one at https://app.localstack.cloud/settings/auth-tokens)
-docker compose up -d          # LocalStack (DynamoDB, SQS)
+docker compose up -d          # LocalStack + sandbox
 pnpm --filter server db:seed  # seed sample data
 pnpm dev                      # server
 pnpm mobile                   # Expo app (Web, iOS, Android)

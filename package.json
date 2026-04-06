@@ -3,7 +3,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "turbo dev --filter='!@opengremlin/mobile'",
+    "dev": "pnpm --filter @opengremlin/server dev",
     "mobile": "pnpm --filter @opengremlin/mobile dev",
     "gremlin": "pnpm --filter @opengremlin/cli gremlin",
     "build": "turbo build",

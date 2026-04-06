@@ -27,10 +27,13 @@ services:
   sandbox:
     build:
       context: .
-      dockerfile: packages/sandbox/Dockerfile
+      dockerfile: packages/sandbox/Dockerfile.dev
     ports:
       - "8080:8080"
       - "8083:8083"
+    volumes:
+      - ./packages/sandbox/src:/app/packages/sandbox/src
+      - ./workspace:/workspace
     environment:
       - SANDBOX_LOCAL=true
 
