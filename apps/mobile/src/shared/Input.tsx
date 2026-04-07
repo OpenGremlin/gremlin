@@ -19,6 +19,7 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <TextInput
         ref={ref}
+        style={{ borderCurve: "continuous" }}
         className={`bg-input-bg border border-input-border text-text-primary ${SIZE_CLASSES[size]} ${className ?? ""}`}
         placeholderTextColor={colors.placeholderText}
         {...rest}

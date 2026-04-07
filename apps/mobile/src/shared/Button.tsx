@@ -110,6 +110,7 @@ export function Button({
       <Pressable
         onPress={onPress}
         disabled={isDisabled}
+        style={{ borderCurve: "continuous" }}
         className={containerClass}
       >
         {loading ? (
