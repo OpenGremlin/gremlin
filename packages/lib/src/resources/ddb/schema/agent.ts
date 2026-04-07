@@ -59,9 +59,6 @@ export const AgentEntity = new Entity({
         enabled: boolean(),
         voice: string().optional(),
       }).optional(),
-      programs: map({
-        enabled: boolean(),
-      }).optional(),
     }).optional(),
   }),
   computeKey: ({ id }) => ({

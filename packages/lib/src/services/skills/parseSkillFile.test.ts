@@ -72,20 +72,42 @@ describe("SKILL.md validation", () => {
       expect(template?.instructions).toBeTruthy();
     });
 
-    it("has install instructions or uses a pre-installed CLI", () => {
+    it("declares allowedCommands when install instructions are set", () => {
+      // CLI skills (those with install steps) must declare which commands the
+      // installed binaries expose so the agent's shell guard allows them.
+      // Guidance-only skills (no install, no allowedCommands) are also valid.
       const template = parseSkillFile(id, content);
-      expect(
-        template?.install || template?.allowedCommands?.length,
-        `${id} has neither metadata.install nor metadata.allowedCommands`,
-      ).toBeTruthy();
+      if (template?.install) {
+        expect(
+          template.allowedCommands?.length,
+          `${id} has metadata.install but no metadata.allowedCommands`,
+        ).toBeGreaterThan(0);
+      }
     });
+  });
+});
 
-    it("has at least one allowedCommands entry", () => {
-      const template = parseSkillFile(id, content);
-      expect(
-        template?.allowedCommands?.length,
-        `${id} is missing metadata.allowedCommands`,
-      ).toBeGreaterThan(0);
-    });
+describe("guidance-only skills", () => {
+  it("parses a SKILL.md with no install or allowedCommands", () => {
+    const content = `---
+name: example-guide
+description: Pure guidance, no CLI involved.
+metadata:
+  version: 1.0.0
+  displayName: Example Guide
+  category: workflow
+---
+
+# Example Guide
+
+Body content explaining the convention.`;
+
+    const template = parseSkillFile("example-guide", content);
+
+    expect(template).not.toBeNull();
+    expect(template?.name).toBe("example-guide");
+    expect(template?.install).toBeUndefined();
+    expect(template?.allowedCommands).toBeUndefined();
+    expect(template?.instructions).toContain("Body content");
   });
 });

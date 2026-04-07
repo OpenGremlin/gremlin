@@ -99,9 +99,6 @@ export const AgentDetailFragment = graphql(`
         enabled
         voice
       }
-      programs {
-        enabled
-      }
     }
   }
 `);

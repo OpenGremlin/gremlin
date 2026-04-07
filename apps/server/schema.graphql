@@ -415,10 +415,6 @@ type AgentImageGenerationConfig {
   enabled: Boolean!
 }
 
-type AgentProgramsConfig {
-  enabled: Boolean!
-}
-
 type AgentSpeechConfig {
   enabled: Boolean!
   voice: String
@@ -434,7 +430,6 @@ type AgentConfig {
   viewImage: AgentViewImageConfig
   imageGeneration: AgentImageGenerationConfig
   speech: AgentSpeechConfig
-  programs: AgentProgramsConfig
 }
 
 type Agent {
@@ -480,10 +475,6 @@ input AgentImageGenerationConfigInput {
   enabled: Boolean!
 }
 
-input AgentProgramsConfigInput {
-  enabled: Boolean!
-}
-
 input AgentSpeechConfigInput {
   enabled: Boolean!
   voice: String
@@ -499,7 +490,6 @@ input AgentConfigInput {
   viewImage: AgentViewImageConfigInput
   imageGeneration: AgentImageGenerationConfigInput
   speech: AgentSpeechConfigInput
-  programs: AgentProgramsConfigInput
 }
 
 input UpdateAgentInput {

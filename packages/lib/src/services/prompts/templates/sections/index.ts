@@ -11,7 +11,6 @@ export { taskChatSection } from "./taskChat.js";
 export { taskFileEditorSection } from "./taskFileEditor.js";
 export { taskPlanSection } from "./taskPlan.js";
 export { taskPreambleSection } from "./taskPreamble.js";
-export { taskProgramsSection } from "./taskPrograms.js";
 export { taskSandboxSection } from "./taskSandbox.js";
 export { taskToolGuidanceSection } from "./taskToolGuidance.js";
 export { taskWorkflowSection } from "./taskWorkflow.js";

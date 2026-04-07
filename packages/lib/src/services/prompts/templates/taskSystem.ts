@@ -6,7 +6,6 @@ import {
   taskFileEditorSection,
   taskPlanSection,
   taskPreambleSection,
-  taskProgramsSection,
   taskSandboxSection,
   taskToolGuidanceSection,
   taskWorkflowSection,
@@ -15,7 +14,6 @@ import {
 export interface TaskSystemPromptFlags {
   viewImage: boolean;
   sandbox: boolean;
-  programs: boolean;
   hasPlan: boolean;
 }
 
@@ -34,7 +32,6 @@ export function assembleTaskSystemTemplate(
   ];
 
   if (flags.sandbox) sections.push(taskSandboxSection);
-  if (flags.programs) sections.push(taskProgramsSection);
   if (flags.hasPlan) sections.push(taskPlanSection);
   sections.push(taskWorkflowSection);
   sections.push(jobsSection);

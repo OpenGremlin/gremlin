@@ -57,13 +57,16 @@ export const cache = new InMemoryCache({
     // Not normalized (no unique key or embedded objects)
     DefaultModel: { keyFields: false },
     AllowlistEntry: { keyFields: false },
-    AgentConfig: { keyFields: false },
-    AgentModelConfig: { keyFields: false },
-    AgentSandboxConfig: { keyFields: false },
-    AgentWebSearchConfig: { keyFields: false },
-    AgentReasoningConfig: { keyFields: false },
-    AgentViewImageConfig: { keyFields: false },
-    AgentImageGenerationConfig: { keyFields: false },
+    // Embedded config subtrees: always replace on write so stale fields
+    // (e.g. removed in a newer schema) don't linger in the persisted cache,
+    // and Apollo doesn't warn about ambiguous merges.
+    AgentConfig: { keyFields: false, merge: false },
+    AgentModelConfig: { keyFields: false, merge: false },
+    AgentSandboxConfig: { keyFields: false, merge: false },
+    AgentWebSearchConfig: { keyFields: false, merge: false },
+    AgentReasoningConfig: { keyFields: false, merge: false },
+    AgentViewImageConfig: { keyFields: false, merge: false },
+    AgentImageGenerationConfig: { keyFields: false, merge: false },
     SendMessageResult: { keyFields: false },
     FileUploadUrl: { keyFields: false },
     CompletedFileUpload: { keyFields: false },

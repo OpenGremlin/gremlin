@@ -15,7 +15,6 @@ describe("resolvePromptFlags", () => {
       viewImage: false,
       sandbox: false,
       webSearch: false,
-      programs: false,
       imageGeneration: false,
       speech: false,
       hasSkills: false,
@@ -56,43 +55,17 @@ describe("resolvePromptFlags", () => {
     ).toBe(false);
   });
 
-  it("resolves sandbox, webSearch, and programs from config", () => {
+  it("resolves sandbox and webSearch from config", () => {
     const flags = resolvePromptFlags(
       {
         sandbox: { enabled: true },
         webSearch: { enabled: true },
-        programs: { enabled: true },
       },
       { modelSupportsImages: false, hasSkills: true },
     );
     expect(flags.sandbox).toBe(true);
     expect(flags.webSearch).toBe(true);
-    expect(flags.programs).toBe(true);
     expect(flags.hasSkills).toBe(true);
-  });
-
-  it("defaults programs to true when sandbox is enabled", () => {
-    const flags = resolvePromptFlags(
-      { sandbox: { enabled: true } },
-      { modelSupportsImages: false, hasSkills: false },
-    );
-    expect(flags.programs).toBe(true);
-  });
-
-  it("defaults programs to false when sandbox is disabled", () => {
-    const flags = resolvePromptFlags(
-      { sandbox: { enabled: false } },
-      { modelSupportsImages: false, hasSkills: false },
-    );
-    expect(flags.programs).toBe(false);
-  });
-
-  it("respects explicit programs: false even with sandbox enabled", () => {
-    const flags = resolvePromptFlags(
-      { sandbox: { enabled: true }, programs: { enabled: false } },
-      { modelSupportsImages: false, hasSkills: false },
-    );
-    expect(flags.programs).toBe(false);
   });
 });
 
@@ -201,7 +174,6 @@ describe("renderTaskSystemPrompt", () => {
   const allOff = {
     viewImage: false,
     sandbox: false,
-    programs: false,
     hasPlan: false,
   };
 
@@ -233,22 +205,6 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("updateTaskMessage");
     expect(result).toContain("saveMemory");
     expect(result).toContain("<jobs>");
-  });
-
-  it("omits programs section when disabled", () => {
-    const result = renderTaskSystemPrompt(taskData, allOff);
-    expect(result).not.toContain("<programs>");
-  });
-
-  it("includes programs section when enabled", () => {
-    const result = renderTaskSystemPrompt(taskData, {
-      ...allOff,
-      programs: true,
-    });
-    expect(result).toContain("<programs>");
-    expect(result).toContain("/workspace/programs/");
-    expect(result).toContain("README.md");
-    expect(result).toContain("operation-logs/");
   });
 
   it("always includes file editor guidance", () => {
