@@ -25,8 +25,7 @@ const PRESET_DEFS: Array<{ id: string; name: string; description: string }> = [
   {
     id: "app-builder",
     name: "App Builder",
-    description:
-      "Create and manage DynamoDB, S3, Lambda, and API Gateway resources",
+    description: "Create and manage DynamoDB, S3, and RDS/Aurora resources",
   },
   {
     id: "read-only",

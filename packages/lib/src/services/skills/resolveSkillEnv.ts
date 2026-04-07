@@ -3,6 +3,7 @@ import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import { createLogger } from "../../logger.js";
 import type { IntegrationConnectionItem } from "../../resources/ddb/schema/integrationConnection.js";
 import type { Resources } from "../../resources/index.js";
+import { buildRegionLockSessionPolicy } from "../integrations/awsSessionPolicy.js";
 import { getAccessTokenForConnection } from "../oauth/getAccessToken.js";
 import { parseConnectionBindings } from "./parseConnectionBindings.js";
 import type { SkillConnectionRequirement, SkillTemplate } from "./registry.js";
@@ -72,7 +73,12 @@ export async function resolveConnectionEnv(
       return env;
     }
 
-    log.info({ connectionId, roleArn }, "Attempting STS AssumeRole");
+    const roleRegion = connection.connectionMeta.roleRegion;
+
+    log.info(
+      { connectionId, roleArn, regionLock: roleRegion ?? null },
+      "Attempting STS AssumeRole",
+    );
 
     try {
       const sts = new STSClient({});
@@ -81,6 +87,9 @@ export async function resolveConnectionEnv(
           RoleArn: roleArn,
           RoleSessionName: `gremlin-${Date.now()}`,
           DurationSeconds: 3600,
+          ...(roleRegion && {
+            Policy: buildRegionLockSessionPolicy(roleRegion),
+          }),
         }),
       );
 

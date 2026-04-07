@@ -3,6 +3,7 @@ import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import { createLogger } from "../../logger.js";
 import type { Resources } from "../../resources/index.js";
+import { buildRegionLockSessionPolicy } from "./awsSessionPolicy.js";
 import { providers } from "./providers.js";
 
 const log = createLogger("integrations:aws-iam-role");
@@ -26,7 +27,10 @@ export async function connectAwsIamRole(
   }
   const accountId = match[2];
 
-  // Validate by attempting to assume the role
+  // Validate by attempting to assume the role. Apply the same region-lock
+  // session policy that the runtime path uses, so validation exercises the
+  // exact credential pipeline the agent will get later — no "validates fine,
+  // fails at runtime" surprises.
   const sts = new STSClient({});
   try {
     await sts.send(
@@ -34,6 +38,7 @@ export async function connectAwsIamRole(
         RoleArn: roleArn,
         RoleSessionName: "gremlin-validation",
         DurationSeconds: 900,
+        ...(region && { Policy: buildRegionLockSessionPolicy(region) }),
       }),
     );
   } catch (err) {

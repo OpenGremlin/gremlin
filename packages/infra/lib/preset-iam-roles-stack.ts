@@ -1,10 +1,19 @@
 import * as cdk from "aws-cdk-lib";
+import type * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import type { Construct } from "constructs";
 
 export interface PresetIamRolesStackProps extends cdk.StackProps {
   serverRole: iam.IRole;
+  /**
+   * Gremlin-internal DynamoDB tables that preset roles must NOT be able to
+   * touch. An explicit Deny on these ARNs is added to every preset role so
+   * that broad allows (e.g. `dynamodb:*` on `*`, or the managed
+   * `ReadOnlyAccess` policy) can't be used to read or modify Gremlin's own
+   * data — most importantly the secrets table.
+   */
+  internalTables: dynamodb.ITable[];
 }
 
 interface PresetRoleDef {
@@ -92,11 +101,17 @@ const presetRoles: PresetRoleDef[] = [
       },
     ],
   },
+  // Note: Lambda, API Gateway, and the iam:CreateRole/AttachRolePolicy/
+  // PassRole-on-`gremlin-*` block are intentionally absent from `app-builder`.
+  // The Gremlin agent itself is the runtime — customers don't deploy Lambdas
+  // through this preset — and the IAM block existed only to support the
+  // (now-removed) Lambda capability. Together it had a textbook escalation
+  // path: create gremlin-* role, attach AdministratorAccess, pass to Lambda.
+  // Don't add any of these back without re-reading that paragraph.
   {
     id: "app-builder",
     name: "GremlinPresetAppBuilder",
-    description:
-      "Create and manage DynamoDB, RDS/Aurora, S3, Lambda, and API Gateway resources",
+    description: "Create and manage DynamoDB, RDS/Aurora, and S3 resources",
     statements: [
       {
         actions: ["dynamodb:*"],
@@ -107,25 +122,8 @@ const presetRoles: PresetRoleDef[] = [
         resources: ["*"],
       },
       {
-        actions: ["lambda:*"],
-        resources: ["*"],
-      },
-      {
-        actions: ["apigateway:*"],
-        resources: ["*"],
-      },
-      {
         actions: ["rds:*"],
         resources: ["*"],
-      },
-      {
-        actions: [
-          "iam:PassRole",
-          "iam:CreateRole",
-          "iam:AttachRolePolicy",
-          "iam:PutRolePolicy",
-        ],
-        resources: ["arn:aws:iam::*:role/gremlin-*"],
       },
       {
         actions: [
@@ -155,6 +153,16 @@ export class PresetIamRolesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PresetIamRolesStackProps) {
     super(scope, id, props);
 
+    const internalTableArns = props.internalTables.flatMap((t) => [
+      t.tableArn,
+      `${t.tableArn}/index/*`,
+      // Stream ARNs follow a different shape than index ARNs and aren't
+      // matched by the patterns above. Streams aren't enabled on either
+      // internal table today, but adding the pattern preemptively means
+      // enabling streams later won't silently bypass the deny.
+      `${t.tableArn}/stream/*`,
+    ]);
+
     for (const preset of presetRoles) {
       const role = new iam.Role(this, preset.name, {
         roleName: preset.name,
@@ -171,6 +179,40 @@ export class PresetIamRolesStack extends cdk.Stack {
           role.addToPolicy(new iam.PolicyStatement(stmt));
         }
       }
+
+      // Explicit deny on Gremlin-internal tables. Deny beats every Allow,
+      // including the managed ReadOnlyAccess policy attached to `read-only`
+      // and the `dynamodb:*` allows on `database-admin` / `app-builder`.
+      role.addToPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.DENY,
+          actions: ["dynamodb:*"],
+          resources: internalTableArns,
+        }),
+      );
+
+      // Tag-based catch-all: deny reads and writes against any resource
+      // tagged `gremlin:internal=true`. Caveats:
+      //   • Only applies to operations that target a specific resource the
+      //     IAM evaluator can read tags from (Get/Put/Update/Delete style).
+      //   • Does NOT constrain Create* (no resource yet) or most List*
+      //     operations (no specific ARN). A preset role can still List
+      //     internal resources in an account-wide listing — it just can't
+      //     read or modify them.
+      //   • Services without `aws:ResourceTag` support silently skip this,
+      //     matching today's behavior, so there is no regression risk.
+      // For future-proofing internal infra without touching this stack
+      // again, tag the new construct with `gremlin:internal=true`.
+      role.addToPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.DENY,
+          actions: ["*"],
+          resources: ["*"],
+          conditions: {
+            StringEquals: { "aws:ResourceTag/gremlin:internal": "true" },
+          },
+        }),
+      );
 
       new ssm.StringParameter(this, `${preset.name}ArnParam`, {
         parameterName: `/gremlin/preset-roles/${preset.id}`,

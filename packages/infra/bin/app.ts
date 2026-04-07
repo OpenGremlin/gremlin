@@ -66,10 +66,12 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
   tableName: db.tableName,
 });
 
-// 5. Preset IAM roles — depends on Server (for trust policy)
+// 5. Preset IAM roles — depends on Server (for trust policy) and Database
+//    (for the internal table ARNs that preset roles must be denied access to)
 new PresetIamRolesStack(app, "GremlinPresetIamRolesStack", {
   env,
   serverRole: server.serverRole,
+  internalTables: [db.table, db.secretsTable],
 });
 
 // 6. Web app — depends on Auth, Media, Server (for ALB)

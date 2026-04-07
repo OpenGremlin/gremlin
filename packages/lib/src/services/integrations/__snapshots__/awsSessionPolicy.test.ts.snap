@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildRegionLockSessionPolicy > matches snapshot (guards against silent regressions) 1`] = `"{"Version":"2012-10-17","Statement":[{"Effect":"Deny","NotAction":["iam:*","sts:*","support:*","cloudfront:*","route53:*","route53domains:*","waf:*","wafv2:*","waf-regional:*","shield:*","globalaccelerator:*","organizations:*","health:*","account:*","artifact:*","ce:*","cur:*","savingsplans:*","tax:*","chatbot:*"],"Resource":"*","Condition":{"StringNotEquals":{"aws:RequestedRegion":"us-east-1"}}}]}"`;
