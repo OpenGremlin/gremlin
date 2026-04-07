@@ -44,7 +44,7 @@ export function BackgroundTaskCard({
         >
           <View className="flex-row items-center">
             {emoji && (
-              <View className="w-9 ml-2 items-center justify-center">
+              <View className="ml-2 pr-1 items-center justify-center">
                 <Text style={{ fontSize: 30, lineHeight: 36 }}>{emoji}</Text>
               </View>
             )}
