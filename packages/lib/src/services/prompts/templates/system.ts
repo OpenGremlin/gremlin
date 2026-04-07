@@ -3,7 +3,7 @@ import {
   jobsSection,
   memorySection,
   viewImageMainSection,
-} from "./sections.js";
+} from "./sections/index.js";
 
 export interface SystemPromptFlags {
   viewImage: boolean;

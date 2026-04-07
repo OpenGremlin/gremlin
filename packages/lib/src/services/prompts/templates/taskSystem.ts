@@ -10,7 +10,7 @@ import {
   taskSandboxSection,
   taskToolGuidanceSection,
   taskWorkflowSection,
-} from "./sections.js";
+} from "./sections/index.js";
 
 export interface TaskSystemPromptFlags {
   viewImage: boolean;
