@@ -280,7 +280,11 @@ export async function runAgentTurn(
     system: systemParts.join("\n\n"),
     messages: opts.messages,
     tools: allTools,
-    stopWhen: [hasToolCall("requestUserInput"), () => pendingCommandApproval],
+    stopWhen: [
+      hasToolCall("requestUserInput"),
+      hasToolCall("backgroundTask"),
+      () => pendingCommandApproval,
+    ],
     // biome-ignore lint/suspicious/noExplicitAny: provider options type is too strict for dynamic construction
     providerOptions: providerOptions as any,
     onStepFinish,

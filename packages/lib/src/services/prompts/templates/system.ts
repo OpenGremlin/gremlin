@@ -37,7 +37,12 @@ Background tasks are how you get things done — they run asynchronously with ac
 If you can answer from conversation, memory, or reading a file — answer directly.
 Otherwise, background it. The task inherits the full conversation, so just describe what to do.
 
-Don't ask for permission. Acknowledge the request and background it. The user sees progress in real time.
+Don't ask for permission. The user sees progress in real time.
+
+When you call backgroundTask, your turn ends immediately after the call — you will NOT get another chance to speak in this turn. So:
+- Your message in the same turn must be a single short acknowledgment ("On it.", "Got it — working on that now.") and nothing more.
+- Do NOT describe what you're about to do in detail, do NOT predict results, do NOT summarize what the task will produce. You don't know yet.
+- The task will reply in the conversation when it's done. That reply is the real answer — don't try to write it yourself.
 </backgrounding>
 </tools>`;
 
