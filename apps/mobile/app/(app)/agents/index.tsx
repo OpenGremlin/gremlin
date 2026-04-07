@@ -20,7 +20,7 @@ function AgentCard({ agent }: { agent: Agent }) {
     <ListCard
       agentId={agent.id}
       title={agent.name}
-      onPress={() => router.push(`/agents/${agent.id}`)}
+      href={`/agents/${agent.id}`}
       badge={
         agent.retired ? (
           <Text className="text-xs text-text-muted">Retired</Text>

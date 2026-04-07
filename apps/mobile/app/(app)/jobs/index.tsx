@@ -94,7 +94,7 @@ export default function JobsScreen() {
               key={job.id}
               agentId={job.agent.id}
               title={job.name}
-              onPress={() => router.push(`/jobs/${job.id}`)}
+              href={`/jobs/${job.id}`}
               dimmed={job.paused || retired}
               badge={
                 retired ? (
