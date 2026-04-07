@@ -30,6 +30,7 @@ export default function NewAgentScreen() {
 
   return (
     <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
       className="flex-1"
       contentContainerClassName="px-4 py-6 gap-4"
       keyboardShouldPersistTaps="handled"

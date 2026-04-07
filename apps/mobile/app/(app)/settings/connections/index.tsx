@@ -157,6 +157,7 @@ export default function IntegrationsScreen() {
           onDismiss={() => setToastVisible(false)}
         />
         <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
           className="flex-1"
           contentContainerClassName="px-4 py-4 gap-5"
         >

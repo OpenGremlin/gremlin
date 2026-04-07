@@ -222,6 +222,7 @@ export default function HomeScreen() {
 
   return (
     <FlatList
+      contentInsetAdjustmentBehavior="automatic"
       data={nodes}
       keyExtractor={keyExtractor}
       renderItem={renderTaskItem}

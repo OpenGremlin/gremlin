@@ -514,6 +514,7 @@ export default function ModelProviderDetailScreen() {
   return (
     <View className="flex-1">
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
         contentContainerClassName="px-4 py-6 gap-5"
         keyboardShouldPersistTaps="handled"

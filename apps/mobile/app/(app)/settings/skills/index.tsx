@@ -30,6 +30,7 @@ export default function SkillsScreen() {
   return (
     <QueryGate loading={loading} error={error} data={data}>
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
         contentContainerClassName="px-4 py-4 gap-5"
         keyboardShouldPersistTaps="handled"

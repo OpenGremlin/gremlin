@@ -64,7 +64,11 @@ export default function SettingsScreen() {
   const { config: serverConfig } = useServerConfig();
 
   return (
-    <ScrollView className="flex-1" contentContainerClassName="px-4 py-4 gap-6">
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      className="flex-1"
+      contentContainerClassName="px-4 py-4 gap-6"
+    >
       <View className="flex-row gap-2">
         {themeOptions.map((option) => {
           const Icon = option.icon;

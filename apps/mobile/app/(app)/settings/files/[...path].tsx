@@ -79,7 +79,11 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
 
   return (
     <QueryGate loading={loading} error={error} data={data}>
-      <ScrollView className="flex-1" contentContainerClassName="pb-6">
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        className="flex-1"
+        contentContainerClassName="pb-6"
+      >
         {entries.map((entry) => (
           <Pressable
             key={entry.path}

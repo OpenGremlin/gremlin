@@ -200,6 +200,7 @@ export default function JobDetailScreen() {
 
   return (
     <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
       className="flex-1"
       contentContainerClassName="px-4 py-6 gap-6"
       keyboardShouldPersistTaps="handled"

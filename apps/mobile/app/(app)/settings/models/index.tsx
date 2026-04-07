@@ -141,6 +141,7 @@ export default function ModelsScreen() {
     >
       <View className="flex-1">
         <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
           className="flex-1"
           contentContainerClassName="px-4 py-4 gap-5"
         >

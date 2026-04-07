@@ -65,6 +65,7 @@ export default function AgentsScreen() {
   return (
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
         contentContainerClassName="px-4 pb-6 gap-3 grow"
         refreshControl={
