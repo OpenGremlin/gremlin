@@ -36,7 +36,11 @@ export default function GlobalSettingsScreen() {
   }
 
   return (
-    <ScrollView className="flex-1" contentContainerClassName="px-4 py-6 gap-6">
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      className="flex-1"
+      contentContainerClassName="px-4 py-6 gap-6"
+    >
       <View className="flex-row items-center justify-between rounded-xl border border-app-border bg-surface p-4">
         <View className="flex-1 mr-4">
           <Text className="text-sm font-medium text-text-primary">
