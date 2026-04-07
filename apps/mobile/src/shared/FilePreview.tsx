@@ -12,8 +12,11 @@ export type FileQueryNode = NonNullable<FileQuery["file"]>;
 
 export function FilePreview({
   render,
+  onZoomChange,
 }: {
   render: FileNode["render"] | FileQueryNode["render"];
+  /** Forwarded to ZoomableImage for image renders so a pager can disable swipes while zoomed. */
+  onZoomChange?: (zoomed: boolean) => void;
 }) {
   if (render.__typename === "DocumentRender") {
     return (
@@ -59,6 +62,7 @@ export function FilePreview({
             fullUrl={render.fullUrl}
             aspectRatio={render.aspectRatio ?? 1}
             nativeWidth={render.width}
+            onZoomChange={onZoomChange}
           />
         </View>
       );

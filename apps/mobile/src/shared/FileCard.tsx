@@ -49,7 +49,18 @@ function cardSubtitle(file: FileNode): string {
   return parts.join("  ·  ");
 }
 
-export function FileCard({ file }: { file: FileNode }) {
+export function FileCard({
+  file,
+  onPress,
+}: {
+  file: FileNode;
+  /**
+   * If provided, replaces the built-in preview-modal behavior. Use this when a
+   * parent owns a unified pager (e.g., the home feed) and wants taps routed
+   * back to it instead of opening a per-card SheetModal.
+   */
+  onPress?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const canPreview =
     file.render.__typename === "DocumentRender" ||
@@ -62,15 +73,14 @@ export function FileCard({ file }: { file: FileNode }) {
     isDocument && "title" in file.render
       ? file.render.title || file.name
       : file.name;
+  const useOwnModal = !onPress;
+  const handlePress = onPress ?? (() => setOpen(true));
 
   if (file.render.__typename === "ImageRender" && file.render.url) {
     const { url, aspectRatio } = file.render;
     return (
       <>
-        <Pressable
-          onPress={() => setOpen(true)}
-          className="rounded-lg overflow-hidden"
-        >
+        <Pressable onPress={handlePress} className="rounded-lg overflow-hidden">
           <AuthImage
             uri={url}
             style={{
@@ -82,14 +92,16 @@ export function FileCard({ file }: { file: FileNode }) {
           />
         </Pressable>
 
-        <SheetModal
-          visible={open}
-          title={file.name}
-          onClose={() => setOpen(false)}
-          headerActions={<FilePreviewActions file={file} />}
-        >
-          <FilePreview render={file.render} />
-        </SheetModal>
+        {useOwnModal && (
+          <SheetModal
+            visible={open}
+            title={file.name}
+            onClose={() => setOpen(false)}
+            headerActions={<FilePreviewActions file={file} />}
+          >
+            <FilePreview render={file.render} />
+          </SheetModal>
+        )}
       </>
     );
   }
@@ -97,7 +109,7 @@ export function FileCard({ file }: { file: FileNode }) {
   return (
     <>
       <Pressable
-        onPress={canPreview ? () => setOpen(true) : undefined}
+        onPress={canPreview ? handlePress : undefined}
         className="bg-surface border border-app-border rounded-lg overflow-hidden"
         style={!canPreview ? { opacity: 0.7 } : undefined}
       >
@@ -126,7 +138,7 @@ export function FileCard({ file }: { file: FileNode }) {
         </View>
       </Pressable>
 
-      {canPreview && (
+      {canPreview && useOwnModal && (
         <SheetModal
           visible={open}
           title={displayTitle}

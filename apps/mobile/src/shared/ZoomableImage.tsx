@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   type LayoutChangeEvent,
   useWindowDimensions,
@@ -22,6 +22,8 @@ interface ZoomableImageProps {
   fullUrl?: string | null;
   aspectRatio: number;
   nativeWidth?: number | null;
+  /** Fires when the image transitions between scale 1 and zoomed-in. */
+  onZoomChange?: (zoomed: boolean) => void;
 }
 
 export function ZoomableImage({
@@ -29,6 +31,7 @@ export function ZoomableImage({
   fullUrl,
   aspectRatio,
   nativeWidth,
+  onZoomChange,
 }: ZoomableImageProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const imageWidth = screenWidth - 32;
@@ -55,6 +58,16 @@ export function ZoomableImage({
   const activateFullRes = useCallback(() => {
     if (fullUrl) setUseFullRes(true);
   }, [fullUrl]);
+
+  const lastZoomedRef = useRef(false);
+  const reportZoom = useCallback(
+    (zoomed: boolean) => {
+      if (lastZoomedRef.current === zoomed) return;
+      lastZoomedRef.current = zoomed;
+      onZoomChange?.(zoomed);
+    },
+    [onZoomChange],
+  );
 
   const onBodyLayout = useCallback(
     (e: LayoutChangeEvent) => {
@@ -117,6 +130,7 @@ export function ZoomableImage({
       if (scale.value >= FULL_RES_ZOOM_THRESHOLD) {
         runOnJS(activateFullRes)();
       }
+      runOnJS(reportZoom)(scale.value > 1);
     });
 
   const pan = Gesture.Pan()
@@ -142,10 +156,12 @@ export function ZoomableImage({
     .onEnd(() => {
       if (savedScale.value > 1) {
         resetTransform();
+        runOnJS(reportZoom)(false);
       } else {
         scale.value = withTiming(2, TIMING_CONFIG);
         savedScale.value = 2;
         runOnJS(activateFullRes)();
+        runOnJS(reportZoom)(true);
       }
     });
 
