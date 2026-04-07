@@ -57,10 +57,10 @@ export function generateImageTool(
         ),
       outputPath: z
         .string()
-        .optional()
         .describe(
           'Workspace path to save the image to (e.g. "assets/hero.png"). ' +
-            "Parent directories are created automatically. Defaults to generated-images/.",
+            "Parent directories are created automatically. Choose a descriptive, " +
+            "intentional filename rather than a generic one.",
         ),
     }),
     execute: async ({ prompt, sourceImage, size, aspectRatio, outputPath }) => {
@@ -90,14 +90,7 @@ export function generateImageTool(
 
       // Save to workspace
       const workspace = getWorkspacePath();
-      let filePath: string;
-      if (outputPath) {
-        filePath = resolveAndValidate(outputPath);
-      } else {
-        const imagesDir = path.join(workspace, "generated-images");
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        filePath = path.join(imagesDir, `image-${timestamp}.png`);
-      }
+      const filePath = resolveAndValidate(outputPath);
       await fs.mkdir(path.dirname(filePath), { recursive: true });
       const relativePath = path.relative(workspace, filePath);
 

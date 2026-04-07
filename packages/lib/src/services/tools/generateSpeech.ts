@@ -29,10 +29,10 @@ export function generateSpeechTool(
       text: z.string().describe("The text to convert to speech"),
       outputPath: z
         .string()
-        .optional()
         .describe(
           'Workspace path to save the audio to (e.g. "audio/intro.mp3"). ' +
-            "Parent directories are created automatically. Defaults to generated-speech/.",
+            "Parent directories are created automatically. Choose a descriptive, " +
+            "intentional filename rather than a generic one.",
         ),
     }),
     execute: async ({ text, outputPath }) => {
@@ -48,14 +48,7 @@ export function generateSpeechTool(
 
       // Save to workspace
       const workspace = getWorkspacePath();
-      let filePath: string;
-      if (outputPath) {
-        filePath = resolveAndValidate(outputPath);
-      } else {
-        const audioDir = path.join(workspace, "generated-speech");
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        filePath = path.join(audioDir, `speech-${timestamp}.mp3`);
-      }
+      const filePath = resolveAndValidate(outputPath);
       await fs.mkdir(path.dirname(filePath), { recursive: true });
       const relativePath = path.relative(workspace, filePath);
 

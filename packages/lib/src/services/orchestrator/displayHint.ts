@@ -97,11 +97,11 @@ export function computeDisplayHint(
     }
     case ToolName.GenerateImage:
       return {
-        text: `Generated image: ${(result?.path as string) ?? "unknown"}`,
+        text: `Generating image: ${(result?.path as string) ?? (input?.outputPath as string) ?? "unknown"}`,
       };
     case ToolName.GenerateSpeech:
       return {
-        text: `Generated audio: ${(result?.path as string) ?? "unknown"}`,
+        text: `Generating audio: ${(result?.path as string) ?? (input?.outputPath as string) ?? "unknown"}`,
       };
 
     // ── Web ────────────────────────────────────────────────────────
