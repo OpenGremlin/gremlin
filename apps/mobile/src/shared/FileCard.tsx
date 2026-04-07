@@ -12,6 +12,7 @@ import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 import { FilePreview } from "./FilePreview";
+import { FilePreviewActions } from "./FilePreviewActions";
 import { formatFileSize } from "./formatFileSize";
 import { SheetModal } from "./SheetModal";
 
@@ -85,6 +86,7 @@ export function FileCard({ file }: { file: FileNode }) {
           visible={open}
           title={file.name}
           onClose={() => setOpen(false)}
+          headerActions={<FilePreviewActions file={file} />}
         >
           <FilePreview render={file.render} />
         </SheetModal>
@@ -129,6 +131,7 @@ export function FileCard({ file }: { file: FileNode }) {
           visible={open}
           title={displayTitle}
           onClose={() => setOpen(false)}
+          headerActions={<FilePreviewActions file={file} />}
         >
           <FilePreview render={file.render} />
         </SheetModal>

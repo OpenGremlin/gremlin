@@ -80,7 +80,8 @@
       "expo-video",
       "expo-audio",
       "expo-image",
-      "expo-asset"
+      "expo-asset",
+      "expo-sharing"
     ],
     "extra": {
       "router": {},

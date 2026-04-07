@@ -25,11 +25,14 @@ export function SheetModal({
   visible,
   title,
   onClose,
+  headerActions,
   children,
 }: {
   visible: boolean;
   title: string;
   onClose: () => void;
+  /** Rendered to the left of the close button in the sheet header. */
+  headerActions?: ReactNode;
   children: ReactNode;
 }) {
   const colors = useNavigationTheme();
@@ -157,11 +160,14 @@ export function SheetModal({
               >
                 {title}
               </Text>
-              <Pressable onPress={animateClose} hitSlop={8}>
-                <View className="w-8 h-8 rounded-full bg-surface-alt items-center justify-center">
-                  <X size={16} color={colors.iconDefault} />
-                </View>
-              </Pressable>
+              <View className="flex-row items-center gap-2">
+                {headerActions}
+                <Pressable onPress={animateClose} hitSlop={8}>
+                  <View className="w-8 h-8 rounded-full bg-surface-alt items-center justify-center">
+                    <X size={16} color={colors.iconDefault} />
+                  </View>
+                </Pressable>
+              </View>
             </View>
             <View className="flex-1 overflow-hidden">{children}</View>
           </View>
