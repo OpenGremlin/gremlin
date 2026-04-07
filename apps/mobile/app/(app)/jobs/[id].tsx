@@ -259,8 +259,8 @@ export default function JobDetailScreen() {
         {!job.paused && (
           <Pressable
             onPress={handleTrigger}
-            disabled={triggering}
-            className="flex-row items-center gap-2 px-4 py-2 bg-accent rounded-lg disabled:opacity-50"
+            disabled={triggering || job.agent.retired}
+            className={`flex-row items-center gap-2 px-4 py-2 bg-accent rounded-lg ${triggering || job.agent.retired ? "opacity-40" : ""}`}
           >
             <Play size={14} color="white" />
             <Text className="text-sm font-medium text-white">

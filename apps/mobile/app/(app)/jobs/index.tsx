@@ -86,35 +86,48 @@ export default function JobsScreen() {
           />
         )}
 
-        {jobs.map((job) => (
-          <ListCard
-            key={job.id}
-            agentId={job.agent.id}
-            title={job.name}
-            onPress={() => router.push(`/jobs/${job.id}`)}
-            dimmed={job.paused}
-            badge={
-              job.paused ? (
-                <Text className="text-xs text-warning">Paused</Text>
-              ) : null
-            }
-            trailing={!job.paused ? <RunNowButton jobId={job.id} /> : undefined}
-            subtitle={
-              <>
-                <Text className="text-xs text-text-muted">
-                  {job.cronExpression
-                    ? cronstrue.toString(job.cronExpression)
-                    : job.recurrence}
-                </Text>
-                {!job.paused && (
-                  <Text className="text-xs text-text-muted mt-0.5">
-                    Next: {formatDate(job.nextRun, "Not scheduled")}
+        {jobs.map((job) => {
+          const retired = job.agent.retired;
+          return (
+            <ListCard
+              key={job.id}
+              agentId={job.agent.id}
+              title={job.name}
+              onPress={() => router.push(`/jobs/${job.id}`)}
+              dimmed={job.paused || retired}
+              badge={
+                retired ? (
+                  <Text className="text-xs text-text-muted">Agent retired</Text>
+                ) : job.paused ? (
+                  <Text className="text-xs text-warning">Paused</Text>
+                ) : null
+              }
+              trailing={
+                !job.paused && !retired ? (
+                  <RunNowButton jobId={job.id} />
+                ) : undefined
+              }
+              subtitle={
+                <>
+                  <Text className="text-xs text-text-muted">
+                    {job.cronExpression
+                      ? cronstrue.toString(job.cronExpression)
+                      : job.recurrence}
                   </Text>
-                )}
-              </>
-            }
-          />
-        ))}
+                  {retired ? (
+                    <Text className="text-xs text-text-muted mt-0.5">
+                      Will not run
+                    </Text>
+                  ) : !job.paused ? (
+                    <Text className="text-xs text-text-muted mt-0.5">
+                      Next: {formatDate(job.nextRun, "Not scheduled")}
+                    </Text>
+                  ) : null}
+                </>
+              }
+            />
+          );
+        })}
 
         {jobs.length > 0 && (
           <Button

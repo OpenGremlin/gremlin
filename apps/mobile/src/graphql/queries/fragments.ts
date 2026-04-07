@@ -178,6 +178,8 @@ export const AgentJobSummary = graphql(`
     timezone
     agent {
       id
+      name
+      retired
     }
     paused
     lastRun
@@ -196,6 +198,7 @@ export const AgentJobDetail = graphql(`
     agent {
       id
       name
+      retired
     }
     paused
     lastRun
