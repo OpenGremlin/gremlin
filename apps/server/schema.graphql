@@ -301,9 +301,6 @@ enum ToolName {
   listFiles
   glob
   grep
-  createDocument
-  updateDocument
-  readDocument
   attachFile
   attachLink
   ensureSandbox

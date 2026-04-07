@@ -125,8 +125,8 @@ describe("mapEntry", () => {
   it("skips internal TOOL entries", () => {
     const result = mapEntry({
       role: "TOOL",
-      content: "Tool call: updateDocument",
-      toolName: "updateDocument",
+      content: "Tool call: writeFile",
+      toolName: "writeFile",
       toolInput: "{}",
       toolResult: "{}",
       internal: true,

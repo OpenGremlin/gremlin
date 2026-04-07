@@ -7,7 +7,6 @@ import {
   CircleAlert,
   Eye,
   File,
-  FileText,
   Flag,
   KeyRound,
   Link,
@@ -31,7 +30,6 @@ import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
 import { BackgroundTaskCard } from "./BackgroundTaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
-import { CreateDocumentCard } from "./CreateDocumentCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
@@ -105,9 +103,6 @@ const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.ListFiles]: List,
   [ToolName.Glob]: Search,
   [ToolName.Grep]: Search,
-  [ToolName.CreateDocument]: FileText,
-  [ToolName.UpdateDocument]: FileText,
-  [ToolName.ReadDocument]: FileText,
   [ToolName.AttachFile]: File,
   [ToolName.AttachLink]: Link,
   [ToolName.EnsureSandbox]: Monitor,
@@ -145,17 +140,6 @@ function renderCustomWidget(
   sandboxStreams?: Map<string, CommandStream>,
 ): React.ReactNode | undefined {
   switch (toolName) {
-    case ToolName.CreateDocument:
-      return (
-        <CreateDocumentCard
-          toolInput={tool.input}
-          toolResult={tool.result}
-          files={message.files}
-          createdAt={message.createdAt}
-          showTimestamp={showTimestamp}
-        />
-      );
-
     case ToolName.BackgroundTask:
       return (
         <BackgroundTaskCard

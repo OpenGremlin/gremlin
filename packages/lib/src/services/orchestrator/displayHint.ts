@@ -49,7 +49,7 @@ export function computeDisplayHint(
         text: `Searching for: ${(input?.pattern as string) ?? "unknown"}`,
       };
 
-    // ── Documents & attachments ────────────────────────────────��───
+    // ── Attachments ────────────────────────────────────────────────
     case ToolName.AttachFile:
       return {
         text: `Attached file: ${(input?.path as string) ?? "unknown"}`,
@@ -57,18 +57,6 @@ export function computeDisplayHint(
     case ToolName.AttachLink:
       return {
         text: `Attached link: ${(input?.title as string) ?? (input?.url as string) ?? "unknown"}`,
-      };
-    case ToolName.CreateDocument:
-      return {
-        text: `Creating document: ${(input?.title as string) ?? (input?.path as string) ?? "unknown"}`,
-      };
-    case ToolName.UpdateDocument:
-      return {
-        text: `Updating document: ${(result?.path as string) ?? (input?.path as string) ?? "unknown"}`,
-      };
-    case ToolName.ReadDocument:
-      return {
-        text: `Reading document: ${(input?.path as string) ?? "unknown"}`,
       };
 
     // ── Sandbox ────────────────────────────────────────────────────

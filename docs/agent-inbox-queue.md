@@ -222,7 +222,7 @@ async function routeBatch(ctx: ServiceContext, agentId: string, items: InboxItem
 }
 ```
 
-Main lane runs first so the agent can respond to the user before working through queued tasks. Task-lane items run sequentially after — each gets its own `runTaskLane()` call with task-specific conversation history, system prompt, and tools (`updateTaskStatus`, `createDocument`, etc.).
+Main lane runs first so the agent can respond to the user before working through queued tasks. Task-lane items run sequentially after — each gets its own `runTaskLane()` call with task-specific conversation history, system prompt, and tools (`updateTaskMessage`, `writeFile`, `runCommand`, etc.).
 
 User messages are written to the agent log at processing time, not when they arrive. This keeps the log cleanly ordered — no interleaving with agent output from a concurrent turn. The UI can still show user messages immediately via optimistic rendering from the mutation response.
 

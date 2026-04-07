@@ -10,9 +10,6 @@ import { requestUserInputTool } from "../tools/index.js";
 import { getModelForAgent } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
-/** Tools marked as internal — logged for audit but hidden from the UI. */
-const INTERNAL_TOOLS = new Set(["updateDocument"]);
-
 /**
  * Wrap tools to emit a TOOL log entry (input only) when execution starts.
  * Returns the wrapped tools and a map of toolCallId → logEntryId for
@@ -30,10 +27,6 @@ function withEagerLogging(
   const callLogIds = new Map<string, { logId: string; createdAt: string }>();
   const wrapped: Record<string, Tool> = {};
   for (const [name, t] of Object.entries(tools)) {
-    if (INTERNAL_TOOLS.has(name)) {
-      wrapped[name] = t;
-      continue;
-    }
     wrapped[name] = {
       ...t,
       execute: async (input: unknown, options: unknown) => {
@@ -139,7 +132,6 @@ export async function runAgentTurn(
     for (let i = 0; i < step.toolCalls.length; i++) {
       const toolCall = step.toolCalls[i];
       const toolResult = step.toolResults[i];
-      const isInternal = INTERNAL_TOOLS.has(toolCall.toolName);
       const toolCallId =
         "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
       const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
@@ -203,7 +195,7 @@ export async function runAgentTurn(
           toolName: toolCall.toolName as ToolName,
           toolInput: "input" in toolCall ? toolCall.input : undefined,
           toolResult: toolResult?.output,
-          internal: isInternal,
+          internal: false,
         });
       }
     }

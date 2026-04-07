@@ -30,10 +30,7 @@ export enum ToolName {
   Glob = "glob",
   Grep = "grep",
 
-  // Documents & attachments
-  CreateDocument = "createDocument",
-  UpdateDocument = "updateDocument",
-  ReadDocument = "readDocument",
+  // Attachments
   AttachFile = "attachFile",
   AttachLink = "attachLink",
 
