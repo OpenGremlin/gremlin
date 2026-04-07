@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, Easing, Platform, View } from "react-native";
+import { Animated, Easing, View } from "react-native";
 import type { StreamingMessage } from "../../hooks/useAgentStream";
 import { Markdown } from "./Markdown";
 
@@ -16,7 +16,7 @@ function TypingDots() {
   const dot3 = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    const useNativeDriver = Platform.OS !== "web";
+    const useNativeDriver = process.env.EXPO_OS !== "web";
     const animate = (dot: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([

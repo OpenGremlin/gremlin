@@ -1,4 +1,4 @@
-import { AppState, Platform } from "react-native";
+import { AppState } from "react-native";
 import { getApiUrl } from "./config";
 
 type LogLevel = "error" | "warn" | "info" | "debug";
@@ -61,7 +61,7 @@ function log(level: LogLevel, message: string, data?: Record<string, unknown>) {
     message,
     data,
     timestamp: new Date().toISOString(),
-    platform: Platform.OS,
+    platform: process.env.EXPO_OS ?? "unknown",
   });
 
   if (level === "error" || buffer.length >= MAX_BATCH_SIZE) {

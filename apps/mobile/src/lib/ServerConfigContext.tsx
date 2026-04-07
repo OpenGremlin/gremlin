@@ -5,7 +5,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Platform } from "react-native";
 import { clearToken } from "./auth";
 import {
   applyServerConfig,
@@ -71,7 +70,7 @@ export function ServerConfigProvider({
   useEffect(() => {
     (async () => {
       let cfg: ServerConfig | null = null;
-      if (Platform.OS === "web") {
+      if (process.env.EXPO_OS === "web") {
         cfg = await fetchWebConfig();
       } else {
         cfg = await loadServerConfig();

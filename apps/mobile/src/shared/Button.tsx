@@ -4,7 +4,6 @@ import type { ViewStyle } from "react-native";
 import {
   ActivityIndicator,
   Animated,
-  Platform,
   Pressable,
   Text,
   View,
@@ -78,7 +77,7 @@ export function Button({
     Animated.timing(opacity, {
       toValue: isDisabled ? DISABLED_OPACITY : 1,
       duration: ANIMATION_MS,
-      useNativeDriver: Platform.OS !== "web",
+      useNativeDriver: process.env.EXPO_OS !== "web",
     }).start();
   }, [isDisabled, opacity]);
 
@@ -100,7 +99,7 @@ export function Button({
     <Animated.View
       style={[
         { opacity },
-        Platform.OS === "web"
+        process.env.EXPO_OS === "web"
           ? ({
               cursor: isDisabled ? "default" : "pointer",
             } as unknown as ViewStyle)

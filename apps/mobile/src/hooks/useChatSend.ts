@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type FlatList, Platform } from "react-native";
+import type { FlatList } from "react-native";
 import {
   PendingInboxMessagesQuery,
   SendMessageMutation,
@@ -21,7 +21,7 @@ export function useChatSend({
   const [pendingMessages, setPendingMessages] = useState<string[]>([]);
   const listRef = useRef<FlatList>(null);
   const scrollToBottom = useCallback(() => {
-    if (Platform.OS === "web") {
+    if (process.env.EXPO_OS === "web") {
       listRef.current?.scrollToEnd({ animated: true });
     } else {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });

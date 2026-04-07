@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { Platform, Pressable } from "react-native";
+import { Pressable } from "react-native";
 
 type Colors = {
   headerBackground: string;
@@ -16,7 +16,7 @@ export function getStackScreenOptions(colors: Colors) {
     contentStyle: { backgroundColor: colors.background },
   };
 
-  if (Platform.OS === "web") {
+  if (process.env.EXPO_OS === "web") {
     base.headerBackVisible = false;
     base.headerLeft = () =>
       router.canGoBack() ? (

@@ -13,7 +13,6 @@ import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   RefreshControl,
   View,
@@ -38,7 +37,7 @@ import { ChatHeaderTitle } from "./ChatHeaderTitle";
 import { ChatInputBar } from "./ChatInputBar";
 import { PendingMessageBubble } from "./PendingMessageBubble";
 
-const isWeb = Platform.OS === "web";
+const isWeb = process.env.EXPO_OS === "web";
 
 // On native (inverted), paddingBottom is the visual top (space for header overlay).
 // On web (non-inverted), paddingTop is the visual top.
@@ -242,7 +241,7 @@ export function ChatScreen({
   }, [uploadFiles]);
 
   const handlePickFiles = useCallback(() => {
-    if (Platform.OS === "web") {
+    if (process.env.EXPO_OS === "web") {
       pickDocuments();
       return;
     }
@@ -256,7 +255,7 @@ export function ChatScreen({
       else if (index === 2) pickDocuments();
     };
 
-    if (Platform.OS === "ios") {
+    if (process.env.EXPO_OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         { options, cancelButtonIndex: cancelIndex },
         handleOption,
@@ -358,7 +357,7 @@ export function ChatScreen({
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-bg"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
       <FlatList
@@ -400,7 +399,7 @@ export function ChatScreen({
           ]}
           locations={[0, 0.65, 1]}
           style={{
-            paddingTop: Platform.OS === "ios" ? insets.top + 8 : 12,
+            paddingTop: process.env.EXPO_OS === "ios" ? insets.top + 8 : 12,
             paddingBottom: 32,
           }}
         >
@@ -408,7 +407,7 @@ export function ChatScreen({
             onPress={() => router.back()}
             style={{
               position: "absolute",
-              top: Platform.OS === "ios" ? insets.top + 4 : 8,
+              top: process.env.EXPO_OS === "ios" ? insets.top + 4 : 8,
               left: 8,
               zIndex: 3,
               padding: 8,
@@ -427,7 +426,7 @@ export function ChatScreen({
             <View
               style={{
                 position: "absolute",
-                top: Platform.OS === "ios" ? insets.top + 4 : 8,
+                top: process.env.EXPO_OS === "ios" ? insets.top + 4 : 8,
                 right: 12,
                 zIndex: 3,
                 padding: 8,

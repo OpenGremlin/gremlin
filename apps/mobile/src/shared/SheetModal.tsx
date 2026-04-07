@@ -7,7 +7,6 @@ import {
   Dimensions,
   Modal,
   PanResponder,
-  Platform,
   Pressable,
   Text,
   View,
@@ -19,7 +18,7 @@ import { useNavigationTheme } from "../lib/useNavigationTheme";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const DISMISS_THRESHOLD = 120;
-const useNativeDriver = Platform.OS !== "web";
+const useNativeDriver = process.env.EXPO_OS !== "web";
 
 export function SheetModal({
   visible,

@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Airplay, Cast, Maximize, Minimize, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function useFullscreen() {
@@ -9,7 +9,7 @@ function useFullscreen() {
   const ref = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (process.env.EXPO_OS !== "web") return;
     ref.current = document.documentElement;
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
@@ -17,7 +17,7 @@ function useFullscreen() {
   }, []);
 
   const toggle = useCallback(async () => {
-    if (Platform.OS !== "web") return;
+    if (process.env.EXPO_OS !== "web") return;
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
@@ -81,7 +81,7 @@ export default function AgentCanvasScreen() {
   }, [resetHideTimer]);
 
   const handleClose = useCallback(async () => {
-    if (Platform.OS === "web" && document.fullscreenElement) {
+    if (process.env.EXPO_OS === "web" && document.fullscreenElement) {
       try {
         await document.exitFullscreen();
       } catch {}
@@ -118,7 +118,7 @@ export default function AgentCanvasScreen() {
         <View
           style={{
             position: "absolute",
-            top: Platform.OS === "ios" ? insets.top + 8 : 12,
+            top: process.env.EXPO_OS === "ios" ? insets.top + 8 : 12,
             left: 12,
             right: 12,
           }}
@@ -138,7 +138,7 @@ export default function AgentCanvasScreen() {
               <Cast size={20} color="#fff" />
             </ToolbarButton>
 
-            {Platform.OS === "ios" && (
+            {process.env.EXPO_OS === "ios" && (
               <ToolbarButton
                 onPress={() => handleCast("airplay")}
                 label="AirPlay"
@@ -147,7 +147,7 @@ export default function AgentCanvasScreen() {
               </ToolbarButton>
             )}
 
-            {Platform.OS === "web" && (
+            {process.env.EXPO_OS === "web" && (
               <ToolbarButton
                 onPress={toggleFullscreen}
                 label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

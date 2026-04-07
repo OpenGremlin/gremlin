@@ -2,7 +2,6 @@ import { ArrowUp, Paperclip } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   Text,
   TextInput,
@@ -83,7 +82,7 @@ export function ChatInputBar({
 }: ChatInputBarProps) {
   const colors = useNavigationTheme();
   const inputRef = useRef<TextInput>(null);
-  const isWeb = Platform.OS === "web";
+  const isWeb = process.env.EXPO_OS === "web";
   const [webHeight, setWebHeight] = useState(0);
   const hasText = input.trim().length > 0;
   const canSend = hasText && !sending;

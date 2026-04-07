@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { Platform } from "react-native";
 import { getStackScreenOptions } from "../../../src/lib/stackScreenOptions";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 
@@ -8,7 +7,7 @@ export default function AgentsLayout() {
 
   // Chat screens use their own custom header (hidden on iOS, transparent on web)
   const chatHeaderStyle =
-    Platform.OS === "ios"
+    process.env.EXPO_OS === "ios"
       ? { backgroundColor: "transparent" }
       : ({ backgroundColor: "transparent", height: 120 } as {
           backgroundColor: string;
@@ -24,7 +23,7 @@ export default function AgentsLayout() {
           headerTransparent: true,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
-          headerShown: Platform.OS !== "ios",
+          headerShown: process.env.EXPO_OS !== "ios",
           headerBackVisible: false,
           title: "",
         }}
@@ -43,7 +42,7 @@ export default function AgentsLayout() {
           headerTransparent: true,
           headerTitleAlign: "center",
           headerStyle: chatHeaderStyle,
-          headerShown: Platform.OS !== "ios",
+          headerShown: process.env.EXPO_OS !== "ios",
           headerBackVisible: false,
           title: "",
         }}

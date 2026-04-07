@@ -8,7 +8,6 @@ import {
   useMemo,
   useRef,
 } from "react";
-import { Platform } from "react-native";
 import { SpeechStreamSubscription } from "../graphql/queries";
 import { useAuth } from "./AuthContext";
 import { useLocalSettings } from "./LocalSettingsContext";
@@ -182,7 +181,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   // Web fallback: poll for track end since expo-audio's web implementation
   // doesn't emit didJustFinish status updates.
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (process.env.EXPO_OS !== "web") return;
     const id = setInterval(() => {
       const s = state.current;
       if (!s.isPlaying || !s.active) return;

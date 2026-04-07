@@ -1,7 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
-import { Platform } from "react-native";
 import { execute } from "./apolloClient";
 import { clientLogger } from "./logger";
 
@@ -208,9 +207,9 @@ function resolvePlatformOAuth(provider: OAuthProviderConfig): {
   redirectUri: string;
 } {
   const override =
-    Platform.OS === "ios"
+    process.env.EXPO_OS === "ios"
       ? provider.ios
-      : Platform.OS === "android"
+      : process.env.EXPO_OS === "android"
         ? provider.android
         : null;
 
@@ -267,7 +266,7 @@ async function openAuthAndWaitForCallback(
 // ---------------------------------------------------------------------------
 
 export function isOAuthAvailable(): boolean {
-  return Platform.OS !== "web";
+  return process.env.EXPO_OS !== "web";
 }
 
 export async function startOAuthFlow(

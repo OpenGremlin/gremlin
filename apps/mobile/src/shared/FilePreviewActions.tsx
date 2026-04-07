@@ -3,7 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { MoreHorizontal } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { ActionSheetIOS, Alert, Platform, Pressable, View } from "react-native";
+import { ActionSheetIOS, Alert, Pressable, View } from "react-native";
 import { useAuth } from "../lib/AuthContext";
 import { downloadAuthFile } from "../lib/downloadAuthFile";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
@@ -144,7 +144,7 @@ export function FilePreviewActions({ file }: { file: AnyFile }) {
     if (printable) options.push({ label: "Print", onPress: doPrint });
 
     const labels = options.map((o) => o.label);
-    if (Platform.OS === "ios") {
+    if (process.env.EXPO_OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options: [...labels, "Cancel"],

@@ -1,11 +1,9 @@
-import { Platform } from "react-native";
-
 // Use SecureStore on native, localStorage on web
 let _getItem: (key: string) => Promise<string | null>;
 let _setItem: (key: string, value: string) => Promise<void>;
 let _deleteItem: (key: string) => Promise<void>;
 
-if (Platform.OS === "web") {
+if (process.env.EXPO_OS === "web") {
   _getItem = async (key) => localStorage.getItem(key);
   _setItem = async (key, value) => localStorage.setItem(key, value);
   _deleteItem = async (key) => localStorage.removeItem(key);

@@ -15,7 +15,7 @@ import {
   Sun,
   User,
 } from "lucide-react-native";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAuth } from "../../../src/lib/AuthContext";
 import { useServerConfig } from "../../../src/lib/ServerConfigContext";
 import { type ThemeMode, useTheme } from "../../../src/lib/ThemeContext";
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
             </Text>
             <Text className="text-text-faint text-lg">{"\u203A"}</Text>
           </Pressable>
-          {Platform.OS === "web" && (
+          {process.env.EXPO_OS === "web" && (
             <Pressable
               onPress={() => router.push("/settings/connect-mobile")}
               className="flex-row items-center gap-3 px-4 py-3.5 border-t border-border-subtle active:bg-surface-alt"
@@ -156,7 +156,7 @@ export default function SettingsScreen() {
               <Text className="text-text-faint text-lg">{"\u203A"}</Text>
             </Pressable>
           )}
-          {Platform.OS !== "web" && serverConfig && (
+          {process.env.EXPO_OS !== "web" && serverConfig && (
             <Pressable
               onPress={() => router.push("/settings/server")}
               className="flex-row items-center gap-3 px-4 py-3.5 border-t border-border-subtle active:bg-surface-alt"

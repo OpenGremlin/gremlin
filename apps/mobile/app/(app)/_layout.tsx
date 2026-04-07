@@ -1,6 +1,6 @@
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, Home, Settings } from "lucide-react-native";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
@@ -56,7 +56,7 @@ function AppTabs() {
           paddingTop: 6,
           paddingBottom: Math.max(insets.bottom, 6),
           height: 56 + Math.max(insets.bottom, 0),
-          ...(Platform.OS === "web" ? { boxShadow: "none" } : {}),
+          ...(process.env.EXPO_OS === "web" ? { boxShadow: "none" } : {}),
         },
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.tabBarActive,
