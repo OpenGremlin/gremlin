@@ -1,9 +1,17 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import type { TextStyle, ViewStyle } from "react-native";
+import { Platform, type TextStyle, type ViewStyle } from "react-native";
 import type { MarkedStyles } from "react-native-marked";
 import Marked, { Renderer } from "react-native-marked";
 import { useTheme } from "../../lib/ThemeContext";
+
+// "monospace" is an Android-only alias; iOS silently falls back to the system
+// proportional font. Pick a real family per platform.
+const MONO_FONT = Platform.select({
+  ios: "Menlo",
+  android: "monospace",
+  default: "monospace",
+});
 
 function buildStyles(
   base: number,
@@ -113,7 +121,7 @@ function buildStyles(
       paddingHorizontal: 4,
       paddingVertical: 1,
       borderRadius: 3,
-      fontFamily: "monospace",
+      fontFamily: MONO_FONT,
       fontSize: base - 1,
       lineHeight: Math.round((base - 1) * 1.45),
     },
@@ -183,7 +191,7 @@ export function Markdown({
   const renderer = useMemo(() => {
     const codeColor = isDark ? "#a3e635" : "#15603a";
     return new CodeTextRenderer({
-      fontFamily: "monospace",
+      fontFamily: MONO_FONT,
       fontSize: 12,
       color: codeColor,
     });
