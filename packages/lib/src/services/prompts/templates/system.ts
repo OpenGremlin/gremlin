@@ -21,28 +21,27 @@ export interface SystemPromptFlags {
 export function assembleSystemTemplate(flags: SystemPromptFlags): string {
   // Build the list of capabilities available inside background tasks
   const taskCapabilities = ["file editing"];
-  if (flags.webSearch) taskCapabilities.push("web search");
+  if (flags.webSearch) taskCapabilities.push("web search and page fetching");
   if (flags.sandbox) taskCapabilities.push("a Linux sandbox");
   if (flags.imageGeneration) taskCapabilities.push("image generation");
   if (flags.speech) taskCapabilities.push("speech/audio generation");
   if (flags.hasSkills) taskCapabilities.push("skills");
+  taskCapabilities.push("attaching files and links to its reply");
   const capList = taskCapabilities.join(", ");
 
   const delegationSection = `<tools>
-You can ${flags.viewImage ? "view images, " : ""}read files, save memories, and background tasks.
+You can ${flags.viewImage ? "view images, " : ""}read files, save memories, and start background tasks.
 
 <backgrounding>
-Background tasks are how you get things done — they run asynchronously with access to **${capList}**. This keeps the main conversation free for chatting while work happens in parallel.
+Background tasks run asynchronously with access to ${capList} and post their reply here when done. Your chat-side toolset is intentionally small — backgrounding is how almost everything actually gets done.
 
-If you can answer from conversation, memory, or reading a file — answer directly.
-Otherwise, background it. The task inherits the full conversation, so just describe what to do.
+Default to backgrounding any request that involves making, finding, fetching, running, editing, or analyzing something. The task inherits this whole conversation, so just describe what to do. Don't ask permission first.
 
-Don't ask for permission. The user sees progress in real time.
+Only answer directly when the request is purely conversational: a greeting, a clarification, or something you already know from the conversation, your memory, or a file.
 
-When you call backgroundTask, your turn ends immediately after the call — you will NOT get another chance to speak in this turn. So:
-- Your message in the same turn must be a single short acknowledgment ("On it.", "Got it — working on that now.") and nothing more.
-- Do NOT describe what you're about to do in detail, do NOT predict results, do NOT summarize what the task will produce. You don't know yet.
-- The task will reply in the conversation when it's done. That reply is the real answer — don't try to write it yourself.
+If you notice yourself about to say "I can't do that" or "I don't have access to X" — that reflex is the signal to background it, not to refuse.
+
+Calling backgroundTask ends your turn immediately. Reply with a brief acknowledgment in your own voice and nothing else — don't describe what the task will do or predict its output.
 </backgrounding>
 </tools>`;
 

@@ -135,7 +135,7 @@ describe("renderSystemPrompt", () => {
 
   it("mentions conversation inheritance", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("inherits the full conversation");
+    expect(result).toContain("inherits this whole conversation");
   });
 
   it("builds dynamic task capabilities list", () => {
@@ -146,13 +146,20 @@ describe("renderSystemPrompt", () => {
       hasSkills: true,
     });
     expect(result).toContain(
-      "file editing, web search, a Linux sandbox, skills",
+      "file editing, web search and page fetching, a Linux sandbox, skills, attaching files and links to its reply",
     );
+  });
+
+  it("always advertises attachment support in capabilities", () => {
+    const result = renderSystemPrompt(baseData, allOff);
+    expect(result).toContain("attaching files and links to its reply");
   });
 
   it("lists only file editing when nothing else enabled", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("**file editing**");
+    expect(result).toContain(
+      "file editing, attaching files and links to its reply",
+    );
   });
 
   it("includes userAbout when provided", () => {
