@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ExternalLink } from "lucide-react-native";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { useTheme } from "../../lib/ThemeContext";
 
@@ -16,7 +16,7 @@ export function BackgroundTaskCard({
 }) {
   const task = useTaskInfo(taskId);
   const { isDark } = useTheme();
-  const imageUrl = task?.imageUrl;
+  const emoji = task?.emoji;
   const lastMessage = task?.lastMessage;
 
   const handlePress = () => {
@@ -43,14 +43,12 @@ export function BackgroundTaskCard({
           style={{ borderRadius: 12 }}
         >
           <View className="flex-row items-center">
-            {imageUrl && (
-              <Image
-                source={{ uri: imageUrl }}
-                className="w-10 h-10 rounded-lg ml-3"
-                resizeMode="cover"
-              />
+            {emoji && (
+              <View className="w-9 ml-2 items-center justify-center">
+                <Text style={{ fontSize: 30, lineHeight: 36 }}>{emoji}</Text>
+              </View>
             )}
-            <View className="flex-1 px-3 py-2.5 min-w-0">
+            <View className="flex-1 pl-2 pr-3 py-2.5 min-w-0">
               <View className="flex-row items-center gap-1.5">
                 <Text
                   className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}

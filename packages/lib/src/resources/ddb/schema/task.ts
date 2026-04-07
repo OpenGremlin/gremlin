@@ -21,7 +21,7 @@ export const TaskEntity = new Entity({
     updatedAt: string(),
     completedAt: anyOf(string(), nul()),
     originJobId: anyOf(string(), nul()),
-    image: anyOf(string(), nul()),
+    emoji: anyOf(string(), nul()).optional(),
     attachments: list(
       map({
         type: string(),

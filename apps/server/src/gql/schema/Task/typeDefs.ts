@@ -8,7 +8,7 @@ export const taskTypeDefs = /* GraphQL */ `
     updatedAt: String!
     completedAt: String
     originJobId: String
-    imageUrl(width: Int): String
+    emoji: String
     attachments: [Attachment!]!
     documents: [Document!]! @deprecated(reason: "Use attachments instead")
     files: [File!]! @deprecated(reason: "Use attachments instead")

@@ -4,7 +4,7 @@ import { TaskQuery, TaskUpdatedSubscription } from "../graphql/queries";
 import { execute } from "../lib/apolloClient";
 
 interface TaskInfo {
-  imageUrl: string | null;
+  emoji: string | null;
   lastMessage: string | null;
 }
 
@@ -21,7 +21,7 @@ export function useTaskInfo(taskId: string | null) {
       .then((data) => {
         if (!cancelled && data.task) {
           setState({
-            imageUrl: data.task.imageUrl ?? null,
+            emoji: data.task.emoji ?? null,
             lastMessage: data.task.message ?? null,
           });
         }
@@ -38,7 +38,7 @@ export function useTaskInfo(taskId: string | null) {
       if (!data) return;
       const u = data.taskUpdated;
       setState((prev) => ({
-        imageUrl: u.imageUrl ?? prev?.imageUrl ?? null,
+        emoji: u.emoji ?? prev?.emoji ?? null,
         lastMessage: u.message ?? prev?.lastMessage ?? null,
       }));
     },

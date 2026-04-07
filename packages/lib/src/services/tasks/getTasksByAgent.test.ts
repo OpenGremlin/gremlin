@@ -22,7 +22,7 @@ describe("getTasksByAgent", () => {
         updatedAt: "2026-01-01T00:00:00.000Z",
         completedAt: null,
         originJobId: null,
-        image: null,
+        emoji: null,
         attachments: [],
       },
       {
@@ -34,7 +34,7 @@ describe("getTasksByAgent", () => {
         updatedAt: "2026-01-02T00:00:00.000Z",
         completedAt: null,
         originJobId: null,
-        image: null,
+        emoji: null,
         attachments: [],
       },
     ];

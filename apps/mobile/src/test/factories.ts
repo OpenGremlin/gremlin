@@ -94,7 +94,7 @@ export function buildTask(overrides?: Partial<Task>): Task {
     createdAt: "2025-06-15T12:00:00Z",
     updatedAt: "2025-06-15T12:00:00Z",
     completedAt: null,
-    imageUrl: null,
+    emoji: null,
     originJobId: null,
     attachments: [],
     documents: [],

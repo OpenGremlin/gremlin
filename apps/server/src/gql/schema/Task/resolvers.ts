@@ -28,14 +28,7 @@ const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
   return a;
 };
 
-const imageUrl: TaskResolvers["imageUrl"] = (parent, args, ctx) =>
-  parent.image
-    ? ctx.services.media.buildMediaUrl(
-        ctx.mediaBaseUrl,
-        `tasks/${parent.image}`,
-        args.width,
-      )
-    : null;
+const emoji: TaskResolvers["emoji"] = (parent) => parent.emoji ?? null;
 
 // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
 const attachments = (parent: any) => parent.attachments ?? [];
@@ -130,7 +123,7 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, imageUrl, attachments, documents, files, logs },
+  Task: { agent, emoji, attachments, documents, files, logs },
   TaskEdge: { node },
   Subscription: {
     taskUpdated,

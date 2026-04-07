@@ -71,7 +71,7 @@ describe("addTaskAttachment", () => {
       updatedAt: "2026-01-15T12:00:00.000Z",
       completedAt: null,
       originJobId: null,
-      image: null,
+      emoji: null,
       attachments: [{ type: "file", path: "/output/report.pdf" }],
     };
 

@@ -5,7 +5,7 @@ import {
   assembleSystemTemplate,
   type SystemPromptFlags,
 } from "./templates/system.js";
-import { taskImageTemplate } from "./templates/taskImage.js";
+import { taskEmojiTemplate } from "./templates/taskEmoji.js";
 import {
   assembleTaskSystemTemplate,
   type TaskSystemPromptFlags,
@@ -16,15 +16,13 @@ interface PromptRegistry {
   cron: {
     timezone: string;
   };
-  taskImage: {
-    images: string;
-  };
+  taskEmoji: Record<string, never>;
 }
 
 const templates: Record<keyof PromptRegistry, string> = {
   compaction: compactionTemplate,
   cron: cronTemplate,
-  taskImage: taskImageTemplate,
+  taskEmoji: taskEmojiTemplate,
 };
 
 const compiled = new Map<string, Handlebars.TemplateDelegate>();

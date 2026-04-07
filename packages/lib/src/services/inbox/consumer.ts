@@ -357,7 +357,7 @@ async function handleScheduledJob(
     originJobId: job.id,
   });
 
-  void ctx.services.tasks.selectAndSetTaskImage(ctx, task);
+  void ctx.services.tasks.selectAndSetTaskEmoji(ctx, task);
 
   const prompt = `[Scheduled Job] This task was triggered automatically by the scheduled job "${job.name}". Below are the user's instructions for this job:\n\n${job.description}`;
 

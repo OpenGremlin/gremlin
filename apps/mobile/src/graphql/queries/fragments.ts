@@ -138,7 +138,7 @@ export const TaskSummary = graphql(`
     title
     message
     createdAt
-    imageUrl(width: 200)
+    emoji
     files {
       ...FileFields
     }
@@ -156,7 +156,7 @@ export const TaskDetail = graphql(`
     createdAt
     updatedAt
     completedAt
-    imageUrl(width: 200)
+    emoji
     attachments {
       ...AttachmentFields
     }

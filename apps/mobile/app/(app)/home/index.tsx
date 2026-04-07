@@ -39,7 +39,7 @@ type TaskItem = {
   createdAt: string;
   agent: { id: string; name?: string };
   message?: string | null;
-  imageUrl?: string | null;
+  emoji?: string | null;
   files?: FileNode[];
 };
 
