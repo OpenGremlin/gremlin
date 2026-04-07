@@ -112,6 +112,7 @@ const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.AttachLink]: Link,
   [ToolName.EnsureSandbox]: Monitor,
   [ToolName.RunCommand]: Monitor,
+  [ToolName.ReadCommandOutput]: Monitor,
   [ToolName.ViewImage]: Eye,
   [ToolName.GenerateImage]: Sparkles,
   [ToolName.GenerateSpeech]: Sparkles,

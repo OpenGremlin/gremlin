@@ -308,6 +308,7 @@ enum ToolName {
   attachLink
   ensureSandbox
   runCommand
+  readCommandOutput
   viewImage
   generateImage
   generateSpeech
@@ -712,6 +713,8 @@ type SkillTemplate {
   install: String
   allowedCommands: [String!]
   connections: [SkillConnectionRequirement!]!
+  "Markdown body of SKILL.md (without YAML frontmatter)"
+  instructions: String
 }
 
 type SkillConnectionRequirement {

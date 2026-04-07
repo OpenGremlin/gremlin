@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import type { LucideIcon } from "lucide-react-native";
 import {
   Database,
+  FileCode2,
   FileText,
   Globe,
   ImageIcon,
@@ -57,6 +58,7 @@ const darkLogoMap: Record<string, ReturnType<typeof require>> = {
 const iconMap: Record<string, LucideIcon> = {
   database: Database,
   diagram: Workflow,
+  "file-code": FileCode2,
   "file-text": FileText,
   globe: Globe,
   image: ImageIcon,

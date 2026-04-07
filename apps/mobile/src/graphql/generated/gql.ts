@@ -84,7 +84,7 @@ type Documents = {
     "\n  query GlobalSettings {\n    globalSettings {\n      signupDisabled\n    }\n  }\n": typeof types.GlobalSettingsDocument,
     "\n  mutation UpdateGlobalSettings($signupDisabled: Boolean) {\n    updateGlobalSettings(signupDisabled: $signupDisabled) {\n      signupDisabled\n    }\n  }\n": typeof types.UpdateGlobalSettingsDocument,
     "\n  query SkillTemplates {\n    skillTemplates {\n      ...SkillTemplateFields\n    }\n  }\n": typeof types.SkillTemplatesDocument,
-    "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n    }\n  }\n": typeof types.SkillTemplateDocument,
+    "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n      instructions\n    }\n  }\n": typeof types.SkillTemplateDocument,
     "\n  query AgentSkills($agentId: ID!) {\n    agentSkills(agentId: $agentId) {\n      ...AgentSkillFields\n    }\n  }\n": typeof types.AgentSkillsDocument,
     "\n  mutation AssignSkill($agentId: ID!, $skillId: ID!) {\n    assignSkill(agentId: $agentId, skillId: $skillId) {\n      ...AgentSkillFields\n    }\n  }\n": typeof types.AssignSkillDocument,
     "\n  mutation RemoveSkill($agentId: ID!, $skillId: ID!) {\n    removeSkill(agentId: $agentId, skillId: $skillId) {\n      ...AgentSkillFields\n    }\n  }\n": typeof types.RemoveSkillDocument,
@@ -175,7 +175,7 @@ const documents: Documents = {
     "\n  query GlobalSettings {\n    globalSettings {\n      signupDisabled\n    }\n  }\n": types.GlobalSettingsDocument,
     "\n  mutation UpdateGlobalSettings($signupDisabled: Boolean) {\n    updateGlobalSettings(signupDisabled: $signupDisabled) {\n      signupDisabled\n    }\n  }\n": types.UpdateGlobalSettingsDocument,
     "\n  query SkillTemplates {\n    skillTemplates {\n      ...SkillTemplateFields\n    }\n  }\n": types.SkillTemplatesDocument,
-    "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n    }\n  }\n": types.SkillTemplateDocument,
+    "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n      instructions\n    }\n  }\n": types.SkillTemplateDocument,
     "\n  query AgentSkills($agentId: ID!) {\n    agentSkills(agentId: $agentId) {\n      ...AgentSkillFields\n    }\n  }\n": types.AgentSkillsDocument,
     "\n  mutation AssignSkill($agentId: ID!, $skillId: ID!) {\n    assignSkill(agentId: $agentId, skillId: $skillId) {\n      ...AgentSkillFields\n    }\n  }\n": types.AssignSkillDocument,
     "\n  mutation RemoveSkill($agentId: ID!, $skillId: ID!) {\n    removeSkill(agentId: $agentId, skillId: $skillId) {\n      ...AgentSkillFields\n    }\n  }\n": types.RemoveSkillDocument,
@@ -493,7 +493,7 @@ export function graphql(source: "\n  query SkillTemplates {\n    skillTemplates 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n    }\n  }\n"): (typeof documents)["\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n    }\n  }\n"];
+export function graphql(source: "\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n      instructions\n    }\n  }\n"): (typeof documents)["\n  query SkillTemplate($id: ID!) {\n    skillTemplate(id: $id) {\n      ...SkillTemplateFields\n      instructions\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

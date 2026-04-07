@@ -1,5 +1,11 @@
 import { useQuery } from "@apollo/client";
-import { ChevronRight, CircleCheck, Plus, Trash2 } from "lucide-react-native";
+import {
+  ChevronRight,
+  CircleCheck,
+  Info,
+  Plus,
+  Trash2,
+} from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +30,7 @@ import { groupSkillsByCategory } from "../categories";
 import { IntegrationLogo } from "../IntegrationLogo";
 import { SearchInput } from "../SearchInput";
 import { SheetModal } from "../SheetModal";
+import { SkillDetailContent } from "../SkillDetailContent";
 import { ConnectionPicker } from "./ConnectionPicker";
 
 export function SkillsConfig({ agentId }: { agentId: string }) {
@@ -37,6 +44,10 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+  const [detailSkill, setDetailSkill] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const handleRemove = useCallback(
     async (skillId: string) => {
@@ -88,6 +99,15 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           }
           onRemove={() => handleRemove(skill.skillId)}
           onConnectionChanged={refetch}
+          onShowDetails={() =>
+            setDetailSkill({
+              id: skill.skillId,
+              title:
+                skill.template?.displayName ??
+                skill.template?.name ??
+                skill.skillId,
+            })
+          }
         />
       ))}
 
@@ -102,6 +122,18 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           onClose={() => setAddModalOpen(false)}
         />
       )}
+
+      {detailSkill && (
+        <SheetModal
+          visible
+          title={detailSkill.title}
+          onClose={() => setDetailSkill(null)}
+        >
+          <ScrollView contentContainerClassName="px-4 pt-4 pb-16">
+            <SkillDetailContent id={detailSkill.id} />
+          </ScrollView>
+        </SheetModal>
+      )}
     </View>
   );
 }
@@ -113,6 +145,7 @@ function AgentSkillCard({
   onToggleExpand,
   onRemove,
   onConnectionChanged,
+  onShowDetails,
 }: {
   skill: {
     skillId: string;
@@ -142,11 +175,13 @@ function AgentSkillCard({
   onToggleExpand: () => void;
   onRemove: () => void;
   onConnectionChanged: () => void;
+  onShowDetails: () => void;
 }) {
   const [removing, setRemoving] = useState(false);
   const { data: connectionsData } = useQuery(IntegrationConnectionsQuery);
   const connections = connectionsData?.integrationConnections ?? [];
 
+  const colors = useNavigationTheme();
   const template = skill.template;
   if (!template) {
     return (
@@ -247,6 +282,9 @@ function AgentSkillCard({
               </Text>
             </View>
           )}
+          <Pressable onPress={onShowDetails} hitSlop={6} className="p-1">
+            <Info size={14} color={colors.iconDefault} />
+          </Pressable>
           <Pressable
             onPress={async () => {
               setRemoving(true);

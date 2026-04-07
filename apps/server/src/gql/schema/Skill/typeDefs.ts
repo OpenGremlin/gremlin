@@ -13,6 +13,8 @@ export const skillTypeDefs = /* GraphQL */ `
     install: String
     allowedCommands: [String!]
     connections: [SkillConnectionRequirement!]!
+    "Markdown body of SKILL.md (without YAML frontmatter)"
+    instructions: String
   }
 
   type SkillConnectionRequirement {

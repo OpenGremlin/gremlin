@@ -12,6 +12,7 @@ export const SkillTemplateQuery = graphql(`
   query SkillTemplate($id: ID!) {
     skillTemplate(id: $id) {
       ...SkillTemplateFields
+      instructions
     }
   }
 `);

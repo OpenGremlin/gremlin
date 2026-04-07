@@ -10,7 +10,7 @@ metadata:
   displayName: Basic Programming
   author: gremlin
   category: workflow
-  icon: code
+  icon: file-code
   tags: [coding, workspace, automation, persistence]
 ---
 

@@ -973,6 +973,8 @@ export type SkillTemplate = {
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   install?: Maybe<Scalars['String']['output']>;
+  /** Markdown body of SKILL.md (without YAML frontmatter) */
+  instructions?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   tags?: Maybe<Array<Scalars['String']['output']>>;
   version: Scalars['String']['output'];
@@ -1945,6 +1947,7 @@ export type SkillTemplateResolvers<ContextType = GremlinContext, ParentType exte
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   install?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  instructions?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   tags?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
