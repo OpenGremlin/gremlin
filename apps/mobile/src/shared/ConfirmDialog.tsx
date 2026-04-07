@@ -1,6 +1,7 @@
 import { vars } from "nativewind";
 import { useMemo } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
+import { haptics } from "../lib/haptics";
 import { useTheme } from "../lib/ThemeContext";
 import { darkVars, lightVars } from "../lib/themeVars";
 import { Button } from "./Button";
@@ -55,7 +56,11 @@ export function ConfirmDialog({
               {cancelLabel}
             </Button>
             <Button
-              onPress={onConfirm}
+              onPress={() => {
+                if (destructive) haptics.heavy();
+                else haptics.medium();
+                onConfirm();
+              }}
               variant={destructive ? "destructive" : "primary"}
             >
               {confirmLabel}

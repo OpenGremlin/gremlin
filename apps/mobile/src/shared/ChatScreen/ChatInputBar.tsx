@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import type { FileUploadState } from "../../hooks/useFileUpload";
+import { haptics } from "../../lib/haptics";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatFileSize } from "../formatFileSize";
 
@@ -155,7 +156,10 @@ export function ChatInputBar({
         {(canSend || sending) && (
           <View style={{ paddingBottom: 2 }}>
             <Pressable
-              onPress={onSend}
+              onPress={() => {
+                haptics.light();
+                onSend();
+              }}
               disabled={!canSend}
               className={`rounded-full items-center justify-center bg-accent ${canSend ? "active:bg-accent-light" : "opacity-50"}`}
               style={{ width: 30, height: 30 }}
