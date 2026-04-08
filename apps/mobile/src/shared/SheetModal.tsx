@@ -9,11 +9,24 @@ import {
   Text,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../lib/ThemeContext";
 import { darkVars, lightVars } from "../lib/themeVars";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
+
+// react-dom is only loaded on web; the dynamic require keeps it out of the
+// native bundle. createPortal lets us escape any parent stacking context
+// and DOM event-bubbling chain so clicks on the sheet don't reach the page
+// underneath.
+const createPortal:
+  | ((node: ReactNode, container: Element) => ReactNode)
+  | null =
+  process.env.EXPO_OS === "web"
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require("react-dom").createPortal
+    : null;
 
 const useNativeDriver = process.env.EXPO_OS !== "web";
 const isIOS = process.env.EXPO_OS === "ios";
@@ -158,38 +171,39 @@ function WebSheet({
     }
   }, [visible, slideAnim, fadeAnim, screenHeight]);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 justify-end" style={themeStyle}>
-        <Animated.View
-          style={{ opacity: fadeAnim }}
-          className="absolute inset-0"
-        >
-          <Pressable className="flex-1 bg-overlay" onPress={onClose} />
-        </Animated.View>
+  if (!visible || !createPortal || typeof document === "undefined") return null;
 
-        <Animated.View
-          style={{
-            height: sheetHeight,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          <View className="flex-1 bg-surface rounded-t-2xl overflow-hidden">
-            <SheetHeader
-              title={title}
-              onClose={onClose}
-              headerActions={headerActions}
-              iconColor={iconColor}
-            />
-            <View className="flex-1 overflow-hidden">{children}</View>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+  // position: fixed is a web-only style; cast through ViewStyle.
+  const fixedOverlay = {
+    position: "fixed",
+    inset: 0,
+    zIndex: 9999,
+  } as unknown as ViewStyle;
+
+  const sheet = (
+    <View style={[fixedOverlay, themeStyle]} className="justify-end">
+      <Animated.View style={{ opacity: fadeAnim }} className="absolute inset-0">
+        <Pressable className="flex-1 bg-overlay" onPress={onClose} />
+      </Animated.View>
+
+      <Animated.View
+        style={{
+          height: sheetHeight,
+          transform: [{ translateY: slideAnim }],
+        }}
+      >
+        <View className="flex-1 bg-surface rounded-t-2xl overflow-hidden">
+          <SheetHeader
+            title={title}
+            onClose={onClose}
+            headerActions={headerActions}
+            iconColor={iconColor}
+          />
+          <View className="flex-1 overflow-hidden">{children}</View>
+        </View>
+      </Animated.View>
+    </View>
   );
+
+  return createPortal(sheet, document.body);
 }
