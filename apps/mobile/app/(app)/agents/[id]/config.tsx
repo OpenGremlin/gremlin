@@ -13,7 +13,7 @@ import {
 import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
-import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
+import { presentAvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
@@ -40,7 +40,25 @@ export default function AgentConfigScreen() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const openAvatarPicker = () => {
+    presentAvatarPicker({
+      avatars: avatarsResult.data?.avatars ?? [],
+      loading: avatarsResult.loading,
+      onSelect: async (avatar) => {
+        try {
+          await execute(UpdateAgentMutation, {
+            id: id ?? "",
+            input: { avatar: avatar.id },
+          });
+          refetch();
+        } catch (err) {
+          setSaveError(
+            err instanceof Error ? err.message : "Failed to update avatar",
+          );
+        }
+      },
+    });
+  };
 
   useEffect(() => {
     if (!agent) return;
@@ -137,7 +155,7 @@ export default function AgentConfigScreen() {
 
       <View className="items-center">
         <Pressable
-          onPress={agent.retired ? undefined : () => setPickerOpen(true)}
+          onPress={agent.retired ? undefined : openAvatarPicker}
           disabled={!!agent.retired}
           className="relative"
         >
@@ -238,28 +256,6 @@ export default function AgentConfigScreen() {
         onConfirm={doRetire}
         onCancel={() => setShowRetireConfirm(false)}
       />
-
-      {pickerOpen && (
-        <AvatarPicker
-          avatars={avatarsResult.data?.avatars ?? []}
-          loading={avatarsResult.loading}
-          onSelect={async (avatar) => {
-            setPickerOpen(false);
-            try {
-              await execute(UpdateAgentMutation, {
-                id: id ?? "",
-                input: { avatar: avatar.id },
-              });
-              refetch();
-            } catch (err) {
-              setSaveError(
-                err instanceof Error ? err.message : "Failed to update avatar",
-              );
-            }
-          }}
-          onClose={() => setPickerOpen(false)}
-        />
-      )}
     </ScrollView>
   );
 }
