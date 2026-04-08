@@ -4,6 +4,12 @@ export default defineConfig({
   define: {
     __DEV__: false,
   },
+  // Use the automatic JSX runtime so tests can import .tsx components
+  // without needing `import React` in scope. Mobile inherits this from
+  // expo/tsconfig.base, but vitest uses esbuild which needs it set here.
+  esbuild: {
+    jsx: "automatic",
+  },
   test: {
     environment: "node",
     alias: {
