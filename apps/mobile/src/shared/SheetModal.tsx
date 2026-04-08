@@ -39,19 +39,19 @@ export function SheetModal({
     [isDark],
   );
 
-  // On iOS, defer to the native form sheet presentation. The OS handles
-  // swipe-to-dismiss, the rounded squircle, and (on iOS 26+) the liquid
-  // glass backdrop. We just render the content; no custom backdrop or
-  // pan responder needed.
+  // On iOS, defer to the native page sheet presentation. The OS handles
+  // the partial-height layout, swipe-to-dismiss gesture, and rounded
+  // corners. pageSheet (not formSheet) is what gives the iPhone the
+  // modern partial sheet — formSheet renders full-screen on iPhone.
+  // transparent must be false here, otherwise the sheet falls back to
+  // full-screen and the native chrome disappears.
   if (isIOS) {
     return (
       <Modal
         visible={visible}
         animationType="slide"
-        presentationStyle="formSheet"
+        presentationStyle="pageSheet"
         onRequestClose={onClose}
-        // transparent background lets iOS 26 liquid glass show through.
-        transparent
       >
         <View className="flex-1 bg-surface" style={themeStyle}>
           <SheetHeader
