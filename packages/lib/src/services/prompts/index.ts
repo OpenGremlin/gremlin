@@ -89,6 +89,8 @@ interface ManagerTeamMember {
   name: string;
   purpose?: string;
   role?: string;
+  /** Compact "skill (connection)" list — empty when no usable skills. */
+  skillBlurb: string;
 }
 
 interface ManagerActiveDelegation {

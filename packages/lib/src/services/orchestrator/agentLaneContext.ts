@@ -50,6 +50,15 @@ export interface TeamMember {
   name: string;
   purpose?: string;
   role?: string;
+  /**
+   * Compact one-line summary of the member's installed skills + bound
+   * connections, e.g. `slack (Acme), linear (Eng team), pdf-toolkit`.
+   * Empty string when the member has no usable skills. This is the
+   * single most important routing signal for the manager — generic
+   * capability flags rarely differ between agents but installed
+   * skills + their bound accounts almost always do.
+   */
+  skillBlurb: string;
 }
 
 /**
@@ -73,7 +82,7 @@ export interface AgentLaneContext {
   profile: Awaited<ReturnType<typeof loadAgentContext>>["profile"];
   displayName: string;
   timezone: string | undefined;
-  skillSummary: { promptSection: string };
+  skillSummary: { promptSection: string; mainLaneSection: string };
   skillTools: SkillToolsResult;
   modelSupportsImages: boolean;
   modelSupportsReasoning: boolean;
@@ -197,7 +206,7 @@ export async function buildAgentLaneContext(
         { err, component: "skills" },
         "Failed to build skill summary",
       );
-      return { promptSection: "" };
+      return { promptSection: "", mainLaneSection: "" };
     }),
     buildSkillTools(ctx, agentId).catch((err) => {
       ctx.log.error(
@@ -234,8 +243,9 @@ export async function buildAgentLaneContext(
 
   // Pre-load the team roster when manager mode is enabled. Roster is
   // cached per-manager with a short TTL — within the cache window we
-  // skip the parallel getAgent fan-out. Failures are tolerated: a
-  // deleted teammate shouldn't break the manager's drain loop.
+  // skip the parallel getAgent + buildSkillBlurb fan-out. Failures are
+  // tolerated per-member: a deleted teammate or a flaky S3 fetch
+  // shouldn't break the manager's drain loop.
   let team: TeamMember[] = [];
   const teamIds = agent.config?.manager?.enabled
     ? (agent.config.manager.team ?? [])
@@ -245,24 +255,45 @@ export async function buildAgentLaneContext(
     if (cached) {
       team = cached;
     } else {
-      const members = await Promise.all(
-        teamIds.map((id) =>
-          ctx.services.agents.getAgent(ctx, id).catch((err) => {
-            ctx.log.warn(
-              { err, agentId, memberId: id, component: "manager" },
-              "Failed to load team member",
-            );
-            return null;
-          }),
-        ),
+      // Fetch the agent record AND its skill blurb in parallel for
+      // each member. The blurb is the most important routing signal
+      // (skills + bound connections), so it pays to load eagerly.
+      const memberResults = await Promise.all(
+        teamIds.map(async (id) => {
+          const [member, skillBlurb] = await Promise.all([
+            ctx.services.agents.getAgent(ctx, id).catch((err) => {
+              ctx.log.warn(
+                { err, agentId, memberId: id, component: "manager" },
+                "Failed to load team member",
+              );
+              return null;
+            }),
+            ctx.services.skills.buildSkillBlurb(ctx, id).catch((err) => {
+              ctx.log.warn(
+                { err, agentId, memberId: id, component: "manager" },
+                "Failed to load team member skills",
+              );
+              return "";
+            }),
+          ]);
+          return { member, skillBlurb };
+        }),
       );
-      team = members
-        .filter((m): m is NonNullable<typeof m> => m != null && !m.retired)
-        .map((m) => ({
-          id: m.id,
-          name: m.name,
-          purpose: m.purpose,
-          role: m.role,
+      team = memberResults
+        .filter(
+          (
+            r,
+          ): r is {
+            member: NonNullable<typeof r.member>;
+            skillBlurb: string;
+          } => r.member != null && !r.member.retired,
+        )
+        .map((r) => ({
+          id: r.member.id,
+          name: r.member.name,
+          purpose: r.member.purpose,
+          role: r.member.role,
+          skillBlurb: r.skillBlurb,
         }));
       setCachedTeam(agentId, team);
     }

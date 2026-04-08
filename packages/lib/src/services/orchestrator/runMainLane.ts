@@ -36,27 +36,37 @@ export async function runMainLane(
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
   });
 
+  let systemPrompt = renderSystemPrompt(
+    {
+      name: agent.name,
+      personality: agent.personality,
+      role: agent.role,
+      userDisplayName: displayName,
+      userAbout: profile?.about,
+      ...(isManager
+        ? {
+            manager: {
+              team: agentLaneCtx.team,
+              activeDelegations: agentLaneCtx.activeDelegations,
+            },
+          }
+        : {}),
+    },
+    flags,
+  );
+
+  // Tell the main lane about its own skills using the instruction-free
+  // variant — the model only has backgroundTask/delegate here, NOT
+  // readSkill/runCommand/authenticate, so the verbose task-lane format
+  // would tempt it to hallucinate tool calls into thin air.
+  if (agentLaneCtx.skillSummary.mainLaneSection) {
+    systemPrompt += `\n\n${agentLaneCtx.skillSummary.mainLaneSection}`;
+  }
+
   return runLane(ctx, {
     agentId,
     taskId: null,
-    systemPrompt: renderSystemPrompt(
-      {
-        name: agent.name,
-        personality: agent.personality,
-        role: agent.role,
-        userDisplayName: displayName,
-        userAbout: profile?.about,
-        ...(isManager
-          ? {
-              manager: {
-                team: agentLaneCtx.team,
-                activeDelegations: agentLaneCtx.activeDelegations,
-              },
-            }
-          : {}),
-      },
-      flags,
-    ),
+    systemPrompt,
     tools: {
       backgroundTask: backgroundTaskTool(ctx, agentId),
       readFile: readFileTool(new FileStateTracker()),

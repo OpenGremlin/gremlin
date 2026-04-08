@@ -64,7 +64,7 @@ function makeAgentLaneCtx(
     profile: makeProfile() as any,
     displayName: "Alice",
     timezone: "America/New_York",
-    skillSummary: { promptSection: "" },
+    skillSummary: { promptSection: "", mainLaneSection: "" },
     skillTools: { tools: {}, getEnv: () => ({}) },
     modelSupportsImages: true,
     modelSupportsReasoning: false,
@@ -98,7 +98,10 @@ describe("buildAgentLaneContext", () => {
       displayName: "Alice",
       timezone: "America/New_York",
     });
-    mockBuildSkillSummary.mockResolvedValue({ promptSection: "skill info" });
+    mockBuildSkillSummary.mockResolvedValue({
+      promptSection: "skill info",
+      mainLaneSection: "",
+    });
     mockBuildSkillTools.mockResolvedValue({
       tools: { readSkill: {} as any },
       getEnv: () => ({}),
@@ -121,6 +124,7 @@ describe("buildAgentLaneContext", () => {
     });
     mockBuildSkillSummary.mockResolvedValue({
       promptSection: "## Skills\nDo stuff",
+      mainLaneSection: "",
     });
     const getEnv = () => ({ TOKEN: "abc" });
     mockBuildSkillTools.mockResolvedValue({
@@ -149,7 +153,7 @@ describe("buildAgentLaneContext", () => {
     });
     mockBuildSkillSummary.mockImplementation(async () => {
       callOrder.push("buildSkillSummary");
-      return { promptSection: "" };
+      return { promptSection: "", mainLaneSection: "" };
     });
     mockBuildSkillTools.mockImplementation(async () => {
       callOrder.push("buildSkillTools");
@@ -191,7 +195,10 @@ describe("buildAgentLaneContext", () => {
       displayName: "the user",
       timezone: undefined,
     });
-    mockBuildSkillSummary.mockResolvedValue({ promptSection: "" });
+    mockBuildSkillSummary.mockResolvedValue({
+      promptSection: "",
+      mainLaneSection: "",
+    });
     mockBuildSkillTools.mockRejectedValue(new Error("S3 down"));
 
     const result = await buildAgentLaneContext(ctx, "agent-1");
@@ -228,11 +235,15 @@ describe("buildAgentLaneContext — manager mode", () => {
     vi.clearAllMocks();
     _clearTeamCache();
 
-    mockBuildSkillSummary.mockResolvedValue({ promptSection: "" });
+    mockBuildSkillSummary.mockResolvedValue({
+      promptSection: "",
+      mainLaneSection: "",
+    });
     mockBuildSkillTools.mockResolvedValue({ tools: {}, getEnv: () => ({}) });
 
-    // No tasks by default — individual tests override.
+    // No tasks / skills by default — individual tests override.
     ctx.services.tasks.getTasksByAgent.mockResolvedValue([]);
+    ctx.services.skills.buildSkillBlurb.mockResolvedValue("");
   });
 
   it("returns empty team for non-manager agents", async () => {
@@ -271,6 +282,9 @@ describe("buildAgentLaneContext — manager mode", () => {
         purpose: "Drafts briefs",
         retired: false,
       } as any);
+    ctx.services.skills.buildSkillBlurb
+      .mockResolvedValueOnce("brave-search, linear (Eng)")
+      .mockResolvedValueOnce("");
 
     const result = await buildAgentLaneContext(ctx, "manager");
 
@@ -280,15 +294,48 @@ describe("buildAgentLaneContext — manager mode", () => {
         name: "Researcher",
         purpose: "Web research",
         role: "investigator",
+        skillBlurb: "brave-search, linear (Eng)",
       },
       {
         id: "writer",
         name: "Writer",
         purpose: "Drafts briefs",
         role: undefined,
+        skillBlurb: "",
       },
     ]);
     expect(ctx.services.agents.getAgent).toHaveBeenCalledTimes(2);
+    expect(ctx.services.skills.buildSkillBlurb).toHaveBeenCalledTimes(2);
+  });
+
+  it("tolerates buildSkillBlurb failures per member", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["a"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent.mockResolvedValue({
+      id: "a",
+      name: "A",
+      retired: false,
+    } as any);
+    ctx.services.skills.buildSkillBlurb.mockRejectedValue(
+      new Error("S3 outage"),
+    );
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.team).toEqual([
+      {
+        id: "a",
+        name: "A",
+        purpose: undefined,
+        role: undefined,
+        skillBlurb: "",
+      },
+    ]);
+    expect(ctx.log.warn).toHaveBeenCalled();
   });
 
   it("filters out retired team members", async () => {

@@ -1,6 +1,6 @@
 import { assignSkill } from "./assignSkill.js";
 import { bindAgentSkillConnection } from "./bindAgentSkillConnection.js";
-import { buildSkillSummary } from "./buildSkillSummary.js";
+import { buildSkillBlurb, buildSkillSummary } from "./buildSkillSummary.js";
 import { buildSkillTools } from "./buildSkillTools.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
@@ -21,6 +21,7 @@ export const skillService = {
   removeSkill,
   bindAgentSkillConnection,
   unbindAgentSkillConnection,
+  buildSkillBlurb,
   buildSkillSummary,
   buildSkillTools,
   resolveSkillEnv,
