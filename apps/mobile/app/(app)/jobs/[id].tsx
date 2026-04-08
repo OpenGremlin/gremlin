@@ -19,7 +19,7 @@ import { Card } from "../../../src/shared/Card";
 import { DestructiveButton } from "../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../src/shared/formatDate";
 import { Input } from "../../../src/shared/Input";
-import { PickerModal } from "../../../src/shared/PickerModal";
+import { presentPicker } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
 import { SaveButton } from "../../../src/shared/SaveButton";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
@@ -34,7 +34,6 @@ export default function JobDetailScreen() {
     variables: { id: id ?? "" },
   });
   const { data: agentsData } = useQuery(AgentsQuery);
-  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
   const agentOptions = useMemo(
     () =>
@@ -282,7 +281,17 @@ export default function JobDetailScreen() {
         <Card className="p-4 gap-4">
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Agent</Text>
-            <Pressable onPress={() => setAgentPickerOpen(true)}>
+            <Pressable
+              onPress={() =>
+                presentPicker({
+                  title: "Select Agent",
+                  options: agentOptions,
+                  selected: currentAgentId,
+                  onSelect: (val) =>
+                    setAgentId(val === job.agent.id ? null : val),
+                })
+              }
+            >
               <View className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5">
                 <Text className="text-sm text-text-primary">
                   {agentOptions.find((a) => a.value === currentAgentId)
@@ -290,14 +299,6 @@ export default function JobDetailScreen() {
                 </Text>
               </View>
             </Pressable>
-            <PickerModal
-              visible={agentPickerOpen}
-              title="Select Agent"
-              options={agentOptions}
-              selected={currentAgentId}
-              onSelect={(val) => setAgentId(val === job.agent.id ? null : val)}
-              onClose={() => setAgentPickerOpen(false)}
-            />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Name</Text>

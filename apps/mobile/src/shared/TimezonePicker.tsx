@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Pressable, Text } from "react-native";
-import { PickerModal } from "./PickerModal";
+import { presentPicker } from "./PickerModal";
 
 // Use dates in Jan and Jul to capture both standard and daylight abbreviations
 const JAN = new Date(2026, 0, 15);
@@ -136,32 +135,27 @@ export function TimezonePicker({
   placeholder?: string;
   className?: string;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <>
-      <Pressable
-        className={
-          className ??
-          "bg-surface-alt rounded-lg px-3 py-2.5 border border-app-border"
-        }
-        onPress={() => setOpen(true)}
+    <Pressable
+      className={
+        className ??
+        "bg-surface-alt rounded-lg px-3 py-2.5 border border-app-border"
+      }
+      onPress={() =>
+        presentPicker({
+          title: "Select Timezone",
+          options: timezoneOptions,
+          selected: value,
+          onSelect: onChange,
+          searchable: true,
+        })
+      }
+    >
+      <Text
+        className={`text-sm ${value ? "text-text-primary" : "text-text-muted"}`}
       >
-        <Text
-          className={`text-sm ${value ? "text-text-primary" : "text-text-muted"}`}
-        >
-          {value ? formatTzLabel(value) : placeholder}
-        </Text>
-      </Pressable>
-      <PickerModal
-        visible={open}
-        title="Select Timezone"
-        options={timezoneOptions}
-        selected={value}
-        onSelect={onChange}
-        onClose={() => setOpen(false)}
-        searchable
-      />
-    </>
+        {value ? formatTzLabel(value) : placeholder}
+      </Text>
+    </Pressable>
   );
 }

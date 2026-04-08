@@ -10,12 +10,11 @@ import { execute } from "../../../src/lib/apolloClient";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
-import { PickerModal } from "../../../src/shared/PickerModal";
+import { presentPicker } from "../../../src/shared/PickerModal";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 export default function NewJobScreen() {
   const { data: agentsData } = useQuery(AgentsQuery);
-  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
 
   const agentOptions = useMemo(
     () =>
@@ -80,7 +79,14 @@ export default function NewJobScreen() {
         <Text className="text-sm font-medium text-text-secondary">Agent</Text>
         <Pressable
           className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5"
-          onPress={() => setAgentPickerOpen(true)}
+          onPress={() =>
+            presentPicker({
+              title: "Select Agent",
+              options: agentOptions,
+              selected: agentId,
+              onSelect: setAgentId,
+            })
+          }
         >
           <Text
             className={`text-sm ${agentId ? "text-text-primary" : "text-text-muted"}`}
@@ -89,14 +95,6 @@ export default function NewJobScreen() {
               "Select agent"}
           </Text>
         </Pressable>
-        <PickerModal
-          visible={agentPickerOpen}
-          title="Select Agent"
-          options={agentOptions}
-          selected={agentId}
-          onSelect={setAgentId}
-          onClose={() => setAgentPickerOpen(false)}
-        />
       </View>
 
       <View className="gap-2">

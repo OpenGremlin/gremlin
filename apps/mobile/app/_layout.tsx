@@ -80,6 +80,14 @@ function RootStack() {
           contentStyle: { backgroundColor: "transparent" },
         }}
       />
+      <Stack.Screen
+        name="sheet/picker"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
     </Stack>
   );
 }

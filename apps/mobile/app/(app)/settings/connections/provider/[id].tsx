@@ -22,8 +22,8 @@ import { Card } from "../../../../../src/shared/Card";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import {
-  PickerModal,
   type PickerOption,
+  presentPicker,
 } from "../../../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { Toast } from "../../../../../src/shared/Toast";
@@ -274,7 +274,6 @@ function AwsIamRoleDetailView({
   const [roleArn, setRoleArn] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [region, setRegion] = useState("");
-  const [regionPickerVisible, setRegionPickerVisible] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
@@ -460,7 +459,15 @@ function AwsIamRoleDetailView({
               Region (optional)
             </Text>
             <Pressable
-              onPress={() => setRegionPickerVisible(true)}
+              onPress={() =>
+                presentPicker({
+                  title: "AWS Region",
+                  options: AWS_REGIONS,
+                  selected: region,
+                  onSelect: setRegion,
+                  searchable: true,
+                })
+              }
               className="bg-surface border border-app-border rounded-xl px-4 py-3 active:bg-surface-alt"
             >
               <Text
@@ -472,15 +479,6 @@ function AwsIamRoleDetailView({
                   : "Select a region"}
               </Text>
             </Pressable>
-            <PickerModal
-              visible={regionPickerVisible}
-              title="AWS Region"
-              options={AWS_REGIONS}
-              selected={region}
-              onSelect={setRegion}
-              onClose={() => setRegionPickerVisible(false)}
-              searchable
-            />
           </View>
 
           <View className="gap-2">
