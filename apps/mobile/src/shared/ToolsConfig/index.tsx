@@ -25,7 +25,6 @@ import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
 import type { ModelDetail, ModelDetailSheetPayload } from "../ModelDetail";
-import { SheetModal } from "../SheetModal";
 import { Toggle } from "../Toggle";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;

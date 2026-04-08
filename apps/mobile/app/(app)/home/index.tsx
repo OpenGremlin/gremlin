@@ -21,7 +21,7 @@ import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
-import { FilePager } from "../../../src/shared/FilePager";
+import { presentFilePager } from "../../../src/shared/FilePager";
 import { timeAgo } from "../../../src/shared/formatDate";
 import {
   ImageCollage,
@@ -86,7 +86,8 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const [override, setOverride] = useState<Partial<TaskItem>>({});
   const task = { ...item, ...override };
   const { agent } = task;
-  const [pagerIndex, setPagerIndex] = useState<number | null>(null);
+  const openPager = (initialIndex: number) =>
+    presentFilePager({ files, initialIndex });
 
   useSubscription(TaskUpdatedSubscription, {
     variables: { taskId: item.id },
@@ -138,7 +139,7 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
                     <ImageCollage
                       key={`images-${group.indices[0]}`}
                       images={group.files}
-                      onPressImage={(i) => setPagerIndex(group.indices[i])}
+                      onPressImage={(i) => openPager(group.indices[i])}
                     />
                   );
                 }
@@ -146,7 +147,7 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
                   <FileCard
                     key={`${group.file.path}-${group.index}`}
                     file={group.file}
-                    onPress={() => setPagerIndex(group.index)}
+                    onPress={() => openPager(group.index)}
                   />
                 );
               })}
@@ -154,15 +155,6 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
           ) : null}
         </View>
       </View>
-
-      {pagerIndex !== null && (
-        <FilePager
-          visible={pagerIndex !== null}
-          files={files}
-          initialIndex={pagerIndex}
-          onClose={() => setPagerIndex(null)}
-        />
-      )}
     </Pressable>
   );
 });
