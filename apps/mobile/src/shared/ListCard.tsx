@@ -4,18 +4,19 @@ import { Pressable, Text, View } from "react-native";
 import { AgentAvatar } from "./AgentAvatar";
 import { Card } from "./Card";
 
-interface ListCardProps {
+interface ListCardBaseProps {
   agentId: string;
   title: string;
-  /** Route to navigate to. Prefer this over `onPress` so iOS gets a Link preview. */
-  href?: string;
-  /** Fallback for non-href cards. */
-  onPress?: () => void;
   subtitle?: ReactNode;
   badge?: ReactNode;
   trailing?: ReactNode;
   dimmed?: boolean;
 }
+
+// Exactly one of `href` or `onPress` must be provided. Prefer `href`
+// so iOS gets a native Link preview on long-press.
+type ListCardProps = ListCardBaseProps &
+  ({ href: string; onPress?: never } | { href?: never; onPress: () => void });
 
 export function ListCard({
   agentId,

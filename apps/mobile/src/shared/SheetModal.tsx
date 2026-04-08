@@ -16,17 +16,13 @@ import { useTheme } from "../lib/ThemeContext";
 import { darkVars, lightVars } from "../lib/themeVars";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 
-// react-dom is only loaded on web; the dynamic require keeps it out of the
-// native bundle. createPortal lets us escape any parent stacking context
-// and DOM event-bubbling chain so clicks on the sheet don't reach the page
-// underneath.
-const createPortal:
-  | ((node: ReactNode, container: Element) => ReactNode)
-  | null =
-  process.env.EXPO_OS === "web"
-    ? // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require("react-dom").createPortal
-    : null;
+// react-dom is loaded dynamically so Metro doesn't pull it into native
+// bundles. createPortal lets the web sheet escape parent stacking contexts
+// and DOM event-bubbling chains so clicks on the sheet don't reach page
+// handlers underneath. A static `import` would force react-dom into every
+// platform's bundle even though only web ever calls it.
+const createPortal: typeof import("react-dom").createPortal | null =
+  process.env.EXPO_OS === "web" ? require("react-dom").createPortal : null;
 
 const useNativeDriver = process.env.EXPO_OS !== "web";
 const isIOS = process.env.EXPO_OS === "ios";

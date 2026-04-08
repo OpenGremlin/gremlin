@@ -11,22 +11,12 @@ export const haptics = {
   light() {
     if (isNative) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   },
-  /** Medium tap, e.g. job start, primary CTA. */
+  /** Medium tap, e.g. primary CTA confirm. */
   medium() {
     if (isNative) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   },
   /** Heavy tap, e.g. destructive confirm. */
   heavy() {
     if (isNative) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  },
-  /** Notify success after an async action completes. */
-  success() {
-    if (isNative)
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  },
-  /** Notify error after a failed action. */
-  error() {
-    if (isNative)
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
   },
 };
