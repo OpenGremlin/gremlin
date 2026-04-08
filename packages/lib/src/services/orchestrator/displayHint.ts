@@ -28,6 +28,20 @@ export function computeDisplayHint(
         text: isFinal ? "Replied with final result" : "Sent update to assigner",
       };
     }
+    case ToolName.Delegate: {
+      if (result && "error" in result) {
+        return {
+          text: `Delegation rejected: ${result.error}`,
+          variant: "error",
+        };
+      }
+      const target =
+        (result?.targetName as string | undefined) ??
+        (input?.targetAgentId as string | undefined) ??
+        "teammate";
+      const title = (input?.title as string | undefined) ?? "task";
+      return { text: `Delegated "${title}" to @${target}` };
+    }
 
     // ── File editor ────────────────────────────────────────────────
     case ToolName.ReadFile:

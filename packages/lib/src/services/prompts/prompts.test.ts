@@ -17,8 +17,10 @@ describe("resolvePromptFlags", () => {
       webSearch: false,
       imageGeneration: false,
       speech: false,
+      manager: false,
       hasSkills: false,
       hasPlan: false,
+      isDelegated: false,
     });
   });
 

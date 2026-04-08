@@ -41,6 +41,18 @@ import {
 } from "./sandboxTools.js";
 
 /**
+ * One row in the manager's team roster, pre-loaded once per drain loop.
+ * Just enough for the manager's system prompt and the delegate tool's
+ * ACL check — not the full agent record.
+ */
+export interface TeamMember {
+  id: string;
+  name: string;
+  purpose?: string;
+  role?: string;
+}
+
+/**
  * Per-agent context built once and shared across all lane invocations
  * (main lane + task lanes) within the same drain loop.
  */
@@ -58,6 +70,12 @@ export interface AgentLaneContext {
   speechVoice: string | undefined;
   /** Connection ID string for the speech model (e.g. "openai:tts-1"). */
   speechConnectionId: string | undefined;
+  /**
+   * Resolved team roster when this agent has manager mode enabled.
+   * Empty array for non-managers. Members that fail to load (deleted,
+   * S3 hiccup) are silently dropped.
+   */
+  team: TeamMember[];
 }
 
 /**
@@ -161,6 +179,36 @@ export async function buildAgentLaneContext(
       : Promise.resolve(null),
   ]);
 
+  // Pre-load the team roster when manager mode is enabled. Done after
+  // loadAgentContext so we know whether the team list is non-empty before
+  // firing N getAgent calls. Failures are tolerated — a deleted teammate
+  // shouldn't break the manager's drain loop.
+  let team: TeamMember[] = [];
+  const teamIds = agent.config?.manager?.enabled
+    ? (agent.config.manager.team ?? [])
+    : [];
+  if (teamIds.length > 0) {
+    const members = await Promise.all(
+      teamIds.map((id) =>
+        ctx.services.agents.getAgent(ctx, id).catch((err) => {
+          ctx.log.warn(
+            { err, agentId, memberId: id, component: "manager" },
+            "Failed to load team member",
+          );
+          return null;
+        }),
+      ),
+    );
+    team = members
+      .filter((m): m is NonNullable<typeof m> => m != null && !m.retired)
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        purpose: m.purpose,
+        role: m.role,
+      }));
+  }
+
   return {
     agent,
     profile,
@@ -174,6 +222,7 @@ export async function buildAgentLaneContext(
     speechModel,
     speechVoice: agent.config?.speech?.voice ?? agent.ttsVoice,
     speechConnectionId: speechConnectionId ?? undefined,
+    team,
   };
 }
 

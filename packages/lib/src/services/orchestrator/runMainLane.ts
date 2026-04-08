@@ -2,6 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
   backgroundTaskTool,
+  delegateTool,
   FileStateTracker,
   listFilesTool,
   listJobsTool,
@@ -28,6 +29,8 @@ export async function runMainLane(
 ): Promise<string> {
   const { agent, profile, displayName, timezone } = agentLaneCtx;
 
+  const isManager = !!agent.config?.manager?.enabled;
+
   const flags = resolvePromptFlags(agent.config, {
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
@@ -43,6 +46,7 @@ export async function runMainLane(
         role: agent.role,
         userDisplayName: displayName,
         userAbout: profile?.about,
+        ...(isManager ? { manager: { team: agentLaneCtx.team } } : {}),
       },
       flags,
     ),
@@ -56,6 +60,12 @@ export async function runMainLane(
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
+      // delegate is structurally restricted to the main lane only —
+      // task lanes never get this tool, which is how we enforce
+      // "no nested delegation" without runtime checks.
+      ...(isManager
+        ? { delegate: delegateTool(ctx, agentId, agentLaneCtx.team) }
+        : {}),
     },
     recallHint,
     timezone,

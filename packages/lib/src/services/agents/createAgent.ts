@@ -7,6 +7,7 @@ interface CreateAgentInput {
   id: string;
   name: string;
   personality?: string | null;
+  purpose?: string | null;
 }
 
 /** Skills auto-assigned to every new agent. */
@@ -25,6 +26,7 @@ export async function createAgent(
       personality: input.personality ?? "",
       avatar: "default",
       portraitId: "default",
+      ...(input.purpose ? { purpose: input.purpose } : {}),
     })
     .options({ returnValues: "NONE" })
     .send();
@@ -48,5 +50,6 @@ export async function createAgent(
     personality: input.personality ?? "",
     avatar: "default",
     portraitId: "default",
+    ...(input.purpose ? { purpose: input.purpose } : {}),
   };
 }

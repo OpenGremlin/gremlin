@@ -1,4 +1,5 @@
 import {
+  delegatedTaskSection,
   identitySection,
   jobsSection,
   memorySection,
@@ -15,6 +16,7 @@ export interface TaskSystemPromptFlags {
   viewImage: boolean;
   sandbox: boolean;
   hasPlan: boolean;
+  isDelegated?: boolean;
 }
 
 /**
@@ -31,6 +33,10 @@ export function assembleTaskSystemTemplate(
     taskToolGuidanceSection,
   ];
 
+  // For delegated tasks the brief replaces the implicit "you have full
+  // conversation context" framing — slot the section in early so the
+  // model reads the brief before any other workflow guidance.
+  if (flags.isDelegated) sections.push(delegatedTaskSection);
   if (flags.sandbox) sections.push(taskSandboxSection);
   if (flags.hasPlan) sections.push(taskPlanSection);
   sections.push(taskWorkflowSection);

@@ -53,6 +53,7 @@ interface AgentConfig {
   webSearch?: { enabled: boolean } | null;
   imageGeneration?: { enabled: boolean } | null;
   speech?: { enabled: boolean } | null;
+  manager?: { enabled: boolean; team?: string[] } | null;
 }
 
 /**
@@ -65,6 +66,7 @@ export function resolvePromptFlags(
     modelSupportsImages: boolean;
     hasSkills: boolean;
     hasPlan?: boolean;
+    isDelegated?: boolean;
   },
 ) {
   return {
@@ -73,12 +75,21 @@ export function resolvePromptFlags(
     webSearch: !!config?.webSearch?.enabled,
     imageGeneration: !!config?.imageGeneration?.enabled,
     speech: !!config?.speech?.enabled,
+    manager: !!config?.manager?.enabled,
     hasSkills: opts.hasSkills,
     hasPlan: opts.hasPlan ?? false,
+    isDelegated: opts.isDelegated ?? false,
   };
 }
 
 // ── Dynamic prompt renderers (template varies per config) ────────────
+
+interface ManagerTeamMember {
+  id: string;
+  name: string;
+  purpose?: string;
+  role?: string;
+}
 
 interface PromptData {
   name: string;
@@ -86,11 +97,17 @@ interface PromptData {
   role?: string;
   userDisplayName: string;
   userAbout?: string;
+  manager?: { team: ManagerTeamMember[] };
 }
 
 interface TaskPromptData extends PromptData {
   taskTitle: string;
   taskId: string;
+  delegated?: {
+    brief: string;
+    successCriteria?: string;
+    assignerName: string;
+  };
 }
 
 export function renderSystemPrompt(

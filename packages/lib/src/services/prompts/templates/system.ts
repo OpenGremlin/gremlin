@@ -1,6 +1,7 @@
 import {
   identitySection,
   jobsSection,
+  managerSection,
   memorySection,
   viewImageMainSection,
 } from "./sections/index.js";
@@ -12,6 +13,7 @@ export interface SystemPromptFlags {
   hasSkills: boolean;
   imageGeneration?: boolean;
   speech?: boolean;
+  manager?: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ Calling backgroundTask ends your turn immediately. Reply with a brief acknowledg
 
   const sections = [identitySection, delegationSection];
 
+  if (flags.manager) sections.push(managerSection);
   if (flags.viewImage) sections.push(viewImageMainSection);
   sections.push(jobsSection);
   sections.push(memorySection);

@@ -294,6 +294,7 @@ enum ToolName {
   updateTaskMessage
   replyToAssigner
   backgroundTask
+  delegate
   requestUserInput
   readFile
   writeFile
@@ -418,6 +419,11 @@ type AgentSpeechConfig {
   voice: String
 }
 
+type AgentManagerConfig {
+  enabled: Boolean!
+  team: [String!]!
+}
+
 type AgentConfig {
   model: AgentModelConfig
   imageModel: AgentModelConfig
@@ -428,6 +434,7 @@ type AgentConfig {
   viewImage: AgentViewImageConfig
   imageGeneration: AgentImageGenerationConfig
   speech: AgentSpeechConfig
+  manager: AgentManagerConfig
 }
 
 type Agent {
@@ -438,6 +445,7 @@ type Agent {
   imageUrl(width: Int): String!
   personality: String
   role: String
+  purpose: String
   retired: Boolean!
   ttsVoice: String
   config: AgentConfig
@@ -478,6 +486,11 @@ input AgentSpeechConfigInput {
   voice: String
 }
 
+input AgentManagerConfigInput {
+  enabled: Boolean!
+  team: [String!]!
+}
+
 input AgentConfigInput {
   model: AgentModelConfigInput
   imageModel: AgentModelConfigInput
@@ -488,12 +501,14 @@ input AgentConfigInput {
   viewImage: AgentViewImageConfigInput
   imageGeneration: AgentImageGenerationConfigInput
   speech: AgentSpeechConfigInput
+  manager: AgentManagerConfigInput
 }
 
 input UpdateAgentInput {
   name: String
   personality: String
   role: String
+  purpose: String
   avatar: String
   ttsVoice: String
   config: AgentConfigInput
@@ -504,6 +519,7 @@ input CreateAgentInput {
   name: String!
   personality: String
   role: String
+  purpose: String
 }
 
 type Avatar {

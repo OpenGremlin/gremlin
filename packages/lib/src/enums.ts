@@ -20,6 +20,7 @@ export enum ToolName {
   UpdateTaskMessage = "updateTaskMessage",
   ReplyToAssigner = "replyToAssigner",
   BackgroundTask = "backgroundTask",
+  Delegate = "delegate",
   RequestUserInput = "requestUserInput",
 
   // File editor

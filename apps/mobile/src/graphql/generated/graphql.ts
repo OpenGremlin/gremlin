@@ -25,6 +25,7 @@ export type Agent = {
   name: Scalars['String']['output'];
   personality?: Maybe<Scalars['String']['output']>;
   portraitId: Scalars['String']['output'];
+  purpose?: Maybe<Scalars['String']['output']>;
   retired: Scalars['Boolean']['output'];
   role?: Maybe<Scalars['String']['output']>;
   ttsVoice?: Maybe<Scalars['String']['output']>;
@@ -39,6 +40,7 @@ export type AgentConfig = {
   __typename?: 'AgentConfig';
   imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
+  manager?: Maybe<AgentManagerConfig>;
   model?: Maybe<AgentModelConfig>;
   reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
@@ -51,6 +53,7 @@ export type AgentConfig = {
 export type AgentConfigInput = {
   imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
+  manager?: InputMaybe<AgentManagerConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
   reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
@@ -131,6 +134,17 @@ export enum AgentLogRole {
   Tool = 'TOOL',
   User = 'USER'
 }
+
+export type AgentManagerConfig = {
+  __typename?: 'AgentManagerConfig';
+  enabled: Scalars['Boolean']['output'];
+  team: Array<Scalars['String']['output']>;
+};
+
+export type AgentManagerConfigInput = {
+  enabled: Scalars['Boolean']['input'];
+  team: Array<Scalars['String']['input']>;
+};
 
 export type AgentModelConfig = {
   __typename?: 'AgentModelConfig';
@@ -334,6 +348,7 @@ export type CreateAgentInput = {
   id: Scalars['String']['input'];
   name: Scalars['String']['input'];
   personality?: InputMaybe<Scalars['String']['input']>;
+  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1107,6 +1122,7 @@ export enum ToolName {
   AttachLink = 'attachLink',
   Authenticate = 'authenticate',
   BackgroundTask = 'backgroundTask',
+  Delegate = 'delegate',
   EditFile = 'editFile',
   EnsureSandbox = 'ensureSandbox',
   GenerateImage = 'generateImage',
@@ -1144,6 +1160,7 @@ export type UpdateAgentInput = {
   config?: InputMaybe<AgentConfigInput>;
   name?: InputMaybe<Scalars['String']['input']>;
   personality?: InputMaybe<Scalars['String']['input']>;
+  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
   ttsVoice?: InputMaybe<Scalars['String']['input']>;
 };

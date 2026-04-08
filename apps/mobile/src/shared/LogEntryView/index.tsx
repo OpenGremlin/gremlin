@@ -15,6 +15,7 @@ import {
   PencilLine,
   Save,
   Search,
+  Send,
   ShieldCheck,
   Sparkles,
 } from "lucide-react-native";
@@ -96,6 +97,7 @@ const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.UpdateTaskMessage]: Flag,
   [ToolName.ReplyToAssigner]: Bell,
   [ToolName.BackgroundTask]: Flag,
+  [ToolName.Delegate]: Send,
   [ToolName.RequestUserInput]: ShieldCheck,
   [ToolName.ReadFile]: Eye,
   [ToolName.WriteFile]: PencilLine,

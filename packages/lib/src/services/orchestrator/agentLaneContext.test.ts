@@ -67,6 +67,11 @@ function makeAgentLaneCtx(
     skillTools: { tools: {}, getEnv: () => ({}) },
     modelSupportsImages: true,
     modelSupportsReasoning: false,
+    imageModel: null,
+    speechModel: null,
+    speechVoice: undefined,
+    speechConnectionId: undefined,
+    team: [],
     ...overrides,
   };
 }

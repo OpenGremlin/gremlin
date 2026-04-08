@@ -1,6 +1,7 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
+import { list } from "dynamodb-toolbox/schema/list";
 import { map } from "dynamodb-toolbox/schema/map";
 import { number } from "dynamodb-toolbox/schema/number";
 import { string } from "dynamodb-toolbox/schema/string";
@@ -17,6 +18,9 @@ export const AgentEntity = new Entity({
     portraitId: string(),
     personality: string().optional(),
     role: string().optional(),
+    // One-line, peer-LLM-readable description of what this agent is good at.
+    // Surfaced to managers in their team roster — be specific.
+    purpose: string().optional(),
     retired: boolean().optional().default(false),
     sandboxInstanceId: string().optional(),
     ttsVoice: string().optional(),
@@ -58,6 +62,13 @@ export const AgentEntity = new Entity({
       speech: map({
         enabled: boolean(),
         voice: string().optional(),
+      }).optional(),
+      // Manager mode: when enabled, the agent can delegate well-scoped
+      // tasks to its team via the `delegate` tool. The team is a flat
+      // list of other agentIds the user has chosen to attach.
+      manager: map({
+        enabled: boolean(),
+        team: list(string()),
       }).optional(),
     }).optional(),
   }),

@@ -44,6 +44,7 @@ export type Agent = {
   name: Scalars['String']['output'];
   personality?: Maybe<Scalars['String']['output']>;
   portraitId: Scalars['String']['output'];
+  purpose?: Maybe<Scalars['String']['output']>;
   retired: Scalars['Boolean']['output'];
   role?: Maybe<Scalars['String']['output']>;
   ttsVoice?: Maybe<Scalars['String']['output']>;
@@ -58,6 +59,7 @@ export type AgentConfig = {
   __typename?: 'AgentConfig';
   imageGeneration?: Maybe<AgentImageGenerationConfig>;
   imageModel?: Maybe<AgentModelConfig>;
+  manager?: Maybe<AgentManagerConfig>;
   model?: Maybe<AgentModelConfig>;
   reasoning?: Maybe<AgentReasoningConfig>;
   sandbox?: Maybe<AgentSandboxConfig>;
@@ -70,6 +72,7 @@ export type AgentConfig = {
 export type AgentConfigInput = {
   imageGeneration?: InputMaybe<AgentImageGenerationConfigInput>;
   imageModel?: InputMaybe<AgentModelConfigInput>;
+  manager?: InputMaybe<AgentManagerConfigInput>;
   model?: InputMaybe<AgentModelConfigInput>;
   reasoning?: InputMaybe<AgentReasoningConfigInput>;
   sandbox?: InputMaybe<AgentSandboxConfigInput>;
@@ -150,6 +153,17 @@ export enum AgentLogRole {
   Tool = 'TOOL',
   User = 'USER'
 }
+
+export type AgentManagerConfig = {
+  __typename?: 'AgentManagerConfig';
+  enabled: Scalars['Boolean']['output'];
+  team: Array<Scalars['String']['output']>;
+};
+
+export type AgentManagerConfigInput = {
+  enabled: Scalars['Boolean']['input'];
+  team: Array<Scalars['String']['input']>;
+};
 
 export type AgentModelConfig = {
   __typename?: 'AgentModelConfig';
@@ -353,6 +367,7 @@ export type CreateAgentInput = {
   id: Scalars['String']['input'];
   name: Scalars['String']['input'];
   personality?: InputMaybe<Scalars['String']['input']>;
+  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1134,6 +1149,7 @@ export type UpdateAgentInput = {
   config?: InputMaybe<AgentConfigInput>;
   name?: InputMaybe<Scalars['String']['input']>;
   personality?: InputMaybe<Scalars['String']['input']>;
+  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
   ttsVoice?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1293,6 +1309,8 @@ export type ResolversTypes = {
   AgentLogEdge: ResolverTypeWrapper<AgentLogEdgeModel>;
   AgentLogPageInfo: ResolverTypeWrapper<PageInfoModel>;
   AgentLogRole: AgentLogRole;
+  AgentManagerConfig: ResolverTypeWrapper<AgentManagerConfig>;
+  AgentManagerConfigInput: AgentManagerConfigInput;
   AgentModelConfig: ResolverTypeWrapper<AgentModelConfig>;
   AgentModelConfigInput: AgentModelConfigInput;
   AgentReasoningConfig: ResolverTypeWrapper<AgentReasoningConfig>;
@@ -1389,6 +1407,8 @@ export type ResolversParentTypes = {
   AgentLogConnection: AgentLogConnectionModel;
   AgentLogEdge: AgentLogEdgeModel;
   AgentLogPageInfo: PageInfoModel;
+  AgentManagerConfig: AgentManagerConfig;
+  AgentManagerConfigInput: AgentManagerConfigInput;
   AgentModelConfig: AgentModelConfig;
   AgentModelConfigInput: AgentModelConfigInput;
   AgentReasoningConfig: AgentReasoningConfig;
@@ -1477,6 +1497,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   personality?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  purpose?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   role?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ttsVoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1485,6 +1506,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
 export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
   imageGeneration?: Resolver<Maybe<ResolversTypes['AgentImageGenerationConfig']>, ParentType, ContextType>;
   imageModel?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
+  manager?: Resolver<Maybe<ResolversTypes['AgentManagerConfig']>, ParentType, ContextType>;
   model?: Resolver<Maybe<ResolversTypes['AgentModelConfig']>, ParentType, ContextType>;
   reasoning?: Resolver<Maybe<ResolversTypes['AgentReasoningConfig']>, ParentType, ContextType>;
   sandbox?: Resolver<Maybe<ResolversTypes['AgentSandboxConfig']>, ParentType, ContextType>;
@@ -1545,6 +1567,11 @@ export type AgentLogPageInfoResolvers<ContextType = GremlinContext, ParentType e
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type AgentManagerConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentManagerConfig'] = ResolversParentTypes['AgentManagerConfig']> = {
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  team?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AgentModelConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentModelConfig'] = ResolversParentTypes['AgentModelConfig']> = {
@@ -2013,7 +2040,7 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, readCommandOutput?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, replyToAssigner?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
+export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, delegate?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, readCommandOutput?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, replyToAssigner?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateJob?: any, updateTaskMessage?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
 
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2064,6 +2091,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AgentLogConnection?: AgentLogConnectionResolvers<ContextType>;
   AgentLogEdge?: AgentLogEdgeResolvers<ContextType>;
   AgentLogPageInfo?: AgentLogPageInfoResolvers<ContextType>;
+  AgentManagerConfig?: AgentManagerConfigResolvers<ContextType>;
   AgentModelConfig?: AgentModelConfigResolvers<ContextType>;
   AgentReasoningConfig?: AgentReasoningConfigResolvers<ContextType>;
   AgentSandboxConfig?: AgentSandboxConfigResolvers<ContextType>;

@@ -7,6 +7,7 @@ interface UpdateAgentInput {
   name?: string | null;
   personality?: string | null;
   role?: string | null;
+  purpose?: string | null;
   avatar?: string | null;
   sandboxInstanceId?: string | null;
   ttsVoice?: string | null;
@@ -20,6 +21,7 @@ interface UpdateAgentInput {
     sandbox?: { enabled: boolean } | null;
     webSearch?: { enabled: boolean; provider?: string } | null;
     imageGeneration?: { enabled: boolean } | null;
+    manager?: { enabled: boolean; team: string[] } | null;
   } | null;
 }
 

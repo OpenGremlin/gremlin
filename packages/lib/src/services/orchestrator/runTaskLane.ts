@@ -27,10 +27,17 @@ export async function runTaskLane(
 
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
   const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
+  // Cross-agent delegation: this task was created by a manager via the
+  // `delegate` tool. The brief is the entire context — we must NOT
+  // inherit main-lane history (the recipient's main lane is unrelated)
+  // and we render the delegated-task system prompt section instead.
+  const isCrossAgentDelegation =
+    !!task.assignerAgentId && task.assignerAgentId !== task.agentId;
 
-  // For initial task creation, inherit the main lane conversation
+  // For initial background tasks, inherit the main lane conversation
   // so the task has full context without needing it re-described.
-  if (isInitialDelegation) {
+  // Skip this for delegated tasks — the brief is self-contained.
+  if (isInitialDelegation && !isCrossAgentDelegation) {
     const mainLaneMessages = await buildMainLaneContext(ctx, task.agentId);
     if (mainLaneMessages.length > 0) {
       // Log the conversation context as a system message
@@ -87,7 +94,20 @@ export async function runTaskLane(
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
     hasPlan: !!planText,
+    isDelegated: isCrossAgentDelegation,
   });
+
+  // Resolve the assigner's display name once so the delegated-task
+  // section can address them by name. Falls back to the agentId if
+  // the assigner record can't be loaded (e.g., deleted between
+  // delegation and execution).
+  let assignerName: string | undefined;
+  if (isCrossAgentDelegation && task.assignerAgentId) {
+    const assigner = await ctx.services.agents
+      .getAgent(ctx, task.assignerAgentId)
+      .catch(() => null);
+    assignerName = assigner?.name ?? task.assignerAgentId;
+  }
 
   let systemPrompt = renderTaskSystemPrompt(
     {
@@ -98,6 +118,17 @@ export async function runTaskLane(
       userAbout: profile?.about,
       taskTitle: task.title,
       taskId,
+      ...(isCrossAgentDelegation && task.brief && assignerName
+        ? {
+            delegated: {
+              brief: task.brief,
+              ...(task.successCriteria
+                ? { successCriteria: task.successCriteria }
+                : {}),
+              assignerName,
+            },
+          }
+        : {}),
     },
     flags,
   );

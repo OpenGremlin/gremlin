@@ -34,6 +34,11 @@ export const agentTypeDefs = /* GraphQL */ `
     voice: String
   }
 
+  type AgentManagerConfig {
+    enabled: Boolean!
+    team: [String!]!
+  }
+
   type AgentConfig {
     model: AgentModelConfig
     imageModel: AgentModelConfig
@@ -44,6 +49,7 @@ export const agentTypeDefs = /* GraphQL */ `
     viewImage: AgentViewImageConfig
     imageGeneration: AgentImageGenerationConfig
     speech: AgentSpeechConfig
+    manager: AgentManagerConfig
   }
 
   type Agent {
@@ -54,6 +60,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageUrl(width: Int): String!
     personality: String
     role: String
+    purpose: String
     retired: Boolean!
     ttsVoice: String
     config: AgentConfig
@@ -99,6 +106,11 @@ export const agentTypeDefs = /* GraphQL */ `
     voice: String
   }
 
+  input AgentManagerConfigInput {
+    enabled: Boolean!
+    team: [String!]!
+  }
+
   input AgentConfigInput {
     model: AgentModelConfigInput
     imageModel: AgentModelConfigInput
@@ -109,12 +121,14 @@ export const agentTypeDefs = /* GraphQL */ `
     viewImage: AgentViewImageConfigInput
     imageGeneration: AgentImageGenerationConfigInput
     speech: AgentSpeechConfigInput
+    manager: AgentManagerConfigInput
   }
 
   input UpdateAgentInput {
     name: String
     personality: String
     role: String
+    purpose: String
     avatar: String
     ttsVoice: String
     config: AgentConfigInput
@@ -125,6 +139,7 @@ export const agentTypeDefs = /* GraphQL */ `
     name: String!
     personality: String
     role: String
+    purpose: String
   }
 
   extend type Mutation {
