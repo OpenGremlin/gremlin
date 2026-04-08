@@ -95,7 +95,7 @@ function TypedModelList({
   const [search, setSearch] = useState("");
   const presentModelDetail = (model: ModelDetail) => {
     const sheetId = openSheet<ModelDetailSheetPayload>({ model });
-    router.push(`/settings/models/model-detail?id=${sheetId}`);
+    router.push(`/sheet/model-detail?id=${sheetId}`);
   };
 
   const modelsOfType = allModels.filter((m) => m.mode === modelMode);

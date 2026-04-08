@@ -37,15 +37,6 @@ export default function SettingsLayout() {
       <Stack.Screen name="connections/[id]" options={{ title: "Connection" }} />
       <Stack.Screen name="files/index" options={{ title: "Files" }} />
       <Stack.Screen name="files/[...path]" options={{ title: "Files" }} />
-      <Stack.Screen
-        name="models/model-detail"
-        options={{
-          presentation: "formSheet",
-          headerShown: false,
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
     </Stack>
   );
 }

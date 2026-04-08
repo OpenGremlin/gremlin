@@ -165,7 +165,7 @@ export default function ModelsScreen() {
               </View>
             ),
       });
-      router.push(`/settings/models/model-detail?id=${sheetId}`);
+      router.push(`/sheet/model-detail?id=${sheetId}`);
     } catch {
       // silently fail
     }

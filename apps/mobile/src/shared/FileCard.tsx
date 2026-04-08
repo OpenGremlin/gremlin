@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import {
   Code,
   FileAudio,
@@ -6,17 +7,20 @@ import {
   FileVideo,
   Image as ImageIcon,
 } from "lucide-react-native";
-import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { openSheet } from "../lib/sheetStore";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
-import { FilePreview } from "./FilePreview";
-import { FilePreviewActions } from "./FilePreviewActions";
 import { formatFileSize } from "./formatFileSize";
-import { SheetModal } from "./SheetModal";
 
 export type { FileNode } from "./FilePreview";
+
+/** Payload type stored in sheetStore for the file-preview sheet route. */
+export interface FilePreviewSheetPayload {
+  file: FileNode;
+  title: string;
+}
 
 function FileIcon_({ render }: { render: FileNode["render"] }) {
   const colors = useNavigationTheme();
@@ -55,13 +59,12 @@ export function FileCard({
 }: {
   file: FileNode;
   /**
-   * If provided, replaces the built-in preview-modal behavior. Use this when a
-   * parent owns a unified pager (e.g., the home feed) and wants taps routed
-   * back to it instead of opening a per-card SheetModal.
+   * If provided, replaces the built-in preview-sheet behavior. Use this
+   * when a parent owns a unified pager (e.g., the home feed) and wants
+   * taps routed back to it instead of opening a per-card preview.
    */
   onPress?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const canPreview =
     file.render.__typename === "DocumentRender" ||
     file.render.__typename === "CodeRender" ||
@@ -73,81 +76,63 @@ export function FileCard({
     isDocument && "title" in file.render
       ? file.render.title || file.name
       : file.name;
-  const useOwnModal = !onPress;
-  const handlePress = onPress ?? (() => setOpen(true));
+
+  const presentPreview = () => {
+    const sheetId = openSheet<FilePreviewSheetPayload>({
+      file,
+      title: displayTitle,
+    });
+    router.push(`/sheet/file-preview?id=${sheetId}`);
+  };
+
+  const handlePress = onPress ?? presentPreview;
 
   if (file.render.__typename === "ImageRender" && file.render.url) {
     const { url, aspectRatio } = file.render;
     return (
-      <>
-        <Pressable onPress={handlePress} className="rounded-lg overflow-hidden">
-          <AuthImage
-            uri={url}
-            style={{
-              width: "100%",
-              aspectRatio: aspectRatio ?? 1,
-              borderRadius: 8,
-            }}
-            contentFit="cover"
-          />
-        </Pressable>
-
-        {useOwnModal && (
-          <SheetModal
-            visible={open}
-            title={file.name}
-            onClose={() => setOpen(false)}
-            headerActions={<FilePreviewActions file={file} />}
-          >
-            <FilePreview render={file.render} />
-          </SheetModal>
-        )}
-      </>
+      <Pressable onPress={handlePress} className="rounded-lg overflow-hidden">
+        <AuthImage
+          uri={url}
+          style={{
+            width: "100%",
+            aspectRatio: aspectRatio ?? 1,
+            borderRadius: 8,
+          }}
+          contentFit="cover"
+        />
+      </Pressable>
     );
   }
 
   return (
-    <>
-      <Pressable
-        onPress={canPreview ? handlePress : undefined}
-        className="bg-surface border border-app-border rounded-lg overflow-hidden"
-        style={!canPreview ? { opacity: 0.7 } : undefined}
-      >
-        <View className="flex-row items-center gap-2 px-3 py-2">
-          <FileIcon_ render={file.render} />
-          {isDocument ? (
+    <Pressable
+      onPress={canPreview ? handlePress : undefined}
+      className="bg-surface border border-app-border rounded-lg overflow-hidden"
+      style={!canPreview ? { opacity: 0.7 } : undefined}
+    >
+      <View className="flex-row items-center gap-2 px-3 py-2">
+        <FileIcon_ render={file.render} />
+        {isDocument ? (
+          <Text
+            className="text-sm font-medium text-text-secondary flex-1"
+            numberOfLines={1}
+          >
+            {displayTitle}
+          </Text>
+        ) : (
+          <View className="flex-1 min-w-0">
             <Text
-              className="text-sm font-medium text-text-secondary flex-1"
+              className="text-sm font-medium text-text-secondary"
               numberOfLines={1}
             >
-              {displayTitle}
+              {file.name}
             </Text>
-          ) : (
-            <View className="flex-1 min-w-0">
-              <Text
-                className="text-sm font-medium text-text-secondary"
-                numberOfLines={1}
-              >
-                {file.name}
-              </Text>
-              <Text className="text-[10px] text-text-muted" numberOfLines={1}>
-                {cardSubtitle(file)}
-              </Text>
-            </View>
-          )}
-        </View>
-      </Pressable>
-
-      {canPreview && useOwnModal && (
-        <SheetModal
-          visible={open}
-          title={displayTitle}
-          onClose={() => setOpen(false)}
-          headerActions={<FilePreviewActions file={file} />}
-        >
-          <FilePreview render={file.render} />
-        </SheetModal>
-      )}
-    </>
+            <Text className="text-[10px] text-text-muted" numberOfLines={1}>
+              {cardSubtitle(file)}
+            </Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 }

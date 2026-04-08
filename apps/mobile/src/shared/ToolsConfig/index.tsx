@@ -183,7 +183,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   const presentModelDetail = (model: ModelDetail) => {
     const sheetId = openSheet<ModelDetailSheetPayload>({ model });
-    router.push(`/agents/model-detail?id=${sheetId}`);
+    router.push(`/sheet/model-detail?id=${sheetId}`);
   };
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<

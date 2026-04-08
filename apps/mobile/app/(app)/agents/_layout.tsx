@@ -47,15 +47,6 @@ export default function AgentsLayout() {
           title: "",
         }}
       />
-      <Stack.Screen
-        name="model-detail"
-        options={{
-          presentation: "formSheet",
-          headerShown: false,
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
     </Stack>
   );
 }

@@ -1,44 +1,41 @@
+import { router } from "expo-router";
 import { FileText } from "lucide-react-native";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { Document } from "../graphql/generated/graphql";
+import { openSheet } from "../lib/sheetStore";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
-import { Markdown } from "./LogEntryView/Markdown";
-import { SheetModal } from "./SheetModal";
+
+/** Payload type stored in sheetStore for the document sheet route. */
+export interface DocumentSheetPayload {
+  title: string;
+  body: string;
+}
 
 export function DocumentCard({ doc }: { doc: Document }) {
   const colors = useNavigationTheme();
-  const [open, setOpen] = useState(false);
+
+  const handlePress = () => {
+    const sheetId = openSheet<DocumentSheetPayload>({
+      title: doc.title,
+      body: doc.body ?? "",
+    });
+    router.push(`/sheet/document?id=${sheetId}`);
+  };
 
   return (
-    <>
-      <Pressable
-        onPress={() => setOpen(true)}
-        className="bg-surface border border-app-border rounded-lg overflow-hidden"
-      >
-        <View className="flex-row items-center gap-2 px-3 py-2">
-          <FileText size={14} color={colors.accentIndicator} />
-          <Text
-            className="text-sm font-medium text-text-secondary flex-1"
-            numberOfLines={1}
-          >
-            {doc.title}
-          </Text>
-        </View>
-      </Pressable>
-
-      <SheetModal
-        visible={open}
-        title={doc.title}
-        onClose={() => setOpen(false)}
-      >
-        <ScrollView
-          className="flex-1 bg-bg px-10 py-4"
-          contentContainerClassName="pb-16"
+    <Pressable
+      onPress={handlePress}
+      className="bg-surface border border-app-border rounded-lg overflow-hidden"
+    >
+      <View className="flex-row items-center gap-2 px-3 py-2">
+        <FileText size={14} color={colors.accentIndicator} />
+        <Text
+          className="text-sm font-medium text-text-secondary flex-1"
+          numberOfLines={1}
         >
-          <Markdown>{doc.body ?? ""}</Markdown>
-        </ScrollView>
-      </SheetModal>
-    </>
+          {doc.title}
+        </Text>
+      </View>
+    </Pressable>
   );
 }

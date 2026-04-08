@@ -5,7 +5,7 @@ import {
   DefaultTheme,
   ThemeProvider as NavThemeProvider,
 } from "@react-navigation/native";
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
@@ -44,6 +44,46 @@ function NavigationThemed({ children }: { children: React.ReactNode }) {
   return <NavThemeProvider value={navTheme}>{children}</NavThemeProvider>;
 }
 
+// Root-level stack so global modal sheets can be presented over any tab
+// without each tab's nested Stack having to register them. The (app)
+// group, login, and connect screens are normal stack children; routes
+// under app/sheet/* are registered as formSheet presentations so the
+// OS draws the partial-height sheet, swipe-to-dismiss, and grabber.
+function RootStack() {
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(app)" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="connect/index" />
+      <Stack.Screen name="connect/[payload]" />
+      <Stack.Screen
+        name="sheet/document"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
+      <Stack.Screen
+        name="sheet/model-detail"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
+      <Stack.Screen
+        name="sheet/file-preview"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
+    </Stack>
+  );
+}
+
 function ApolloGate({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -65,7 +105,7 @@ export default function RootLayout() {
                   <StatusBarThemed />
                   <NavigationThemed>
                     <View style={{ flex: 1 }}>
-                      <Slot />
+                      <RootStack />
                       <NetworkBanner />
                     </View>
                   </NavigationThemed>
