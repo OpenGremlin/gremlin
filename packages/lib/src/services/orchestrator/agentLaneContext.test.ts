@@ -214,7 +214,7 @@ describe("buildTaskTools", () => {
     const tools = buildTaskTools(ctx, makeAgentLaneCtx(), "agent-1", "task-1");
 
     expect(tools).toHaveProperty("updateTaskMessage");
-    expect(tools).toHaveProperty("postToMainLane");
+    expect(tools).toHaveProperty("replyToAssigner");
     expect(tools).toHaveProperty("readFile");
     expect(tools).toHaveProperty("writeFile");
     expect(tools).toHaveProperty("editFile");

@@ -94,7 +94,7 @@ function FileUploadCard({
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
 const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.UpdateTaskMessage]: Flag,
-  [ToolName.PostToMainLane]: Bell,
+  [ToolName.ReplyToAssigner]: Bell,
   [ToolName.BackgroundTask]: Flag,
   [ToolName.RequestUserInput]: ShieldCheck,
   [ToolName.ReadFile]: Eye,

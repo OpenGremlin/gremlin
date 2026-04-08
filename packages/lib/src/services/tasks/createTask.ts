@@ -8,12 +8,21 @@ export async function createTask(
     agentId: string;
     title: string;
     originJobId?: string;
+    /**
+     * Agent that assigned this task. Set when the task is delegated from
+     * another agent. Omit for background tasks the agent creates for itself —
+     * runtime code reads `task.assignerAgentId ?? task.agentId` as a fallback.
+     */
+    assignerAgentId?: string;
+    /** Explicit, self-contained brief passed via the `delegate` tool. */
+    brief?: string;
+    successCriteria?: string;
   },
 ): Promise<TaskItem> {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
 
-  const item = {
+  const item: TaskItem = {
     id,
     agentId: input.agentId,
     title: input.title,
@@ -23,6 +32,13 @@ export async function createTask(
     completedAt: null,
     originJobId: input.originJobId ?? null,
     attachments: [],
+    ...(input.assignerAgentId
+      ? { assignerAgentId: input.assignerAgentId }
+      : {}),
+    ...(input.brief ? { brief: input.brief } : {}),
+    ...(input.successCriteria
+      ? { successCriteria: input.successCriteria }
+      : {}),
   };
 
   // Write directly via document client so we can include GSI attributes.

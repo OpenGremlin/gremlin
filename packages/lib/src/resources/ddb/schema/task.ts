@@ -22,6 +22,14 @@ export const TaskEntity = new Entity({
     completedAt: anyOf(string(), nul()),
     originJobId: anyOf(string(), nul()),
     emoji: anyOf(string(), nul()).optional(),
+    // When set, identifies the agent that assigned this task. Absent for
+    // background tasks created by the agent itself; runtime code reads
+    // `task.assignerAgentId ?? task.agentId` so old rows behave as background.
+    assignerAgentId: string().optional(),
+    // Self-contained brief for delegated tasks. Undefined for background
+    // tasks (which inherit context implicitly via the conversation).
+    brief: string().optional(),
+    successCriteria: string().optional(),
     attachments: list(
       map({
         type: string(),

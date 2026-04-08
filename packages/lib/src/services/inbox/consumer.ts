@@ -224,6 +224,9 @@ async function processMainLaneItems(
       case "user_input_request_reply":
         await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
         break;
+      case "task_update":
+        await formatAndWriteTaskUpdate(ctx, agentId, payload);
+        break;
     }
   }
 
@@ -408,5 +411,55 @@ async function formatAndWriteInputRequestReply(
     taskId,
     role: "SYSTEM",
     content,
+  });
+}
+
+/**
+ * A worker task is reporting back to its assigner. Look up the task for
+ * context (title, originating agent), then write a SYSTEM message to the
+ * assigner's main lane with clear attribution so the model can reason about
+ * who is reporting and on what.
+ */
+async function formatAndWriteTaskUpdate(
+  ctx: ServiceContext,
+  assignerAgentId: string,
+  payload: {
+    taskId: string;
+    fromAgentId: string;
+    message: string;
+    kind: string;
+    isFinal: boolean;
+    attachments?: import("../tasks/attachment.js").Attachment[];
+  },
+) {
+  const task = await ctx.services.tasks.getTask(ctx, payload.taskId);
+  if (!task) {
+    ctx.log.warn(
+      { taskId: payload.taskId, assignerAgentId },
+      "task_update for unknown task",
+    );
+    return;
+  }
+
+  const isSelf = payload.fromAgentId === assignerAgentId;
+  let attribution: string;
+  if (isSelf) {
+    attribution = `[task update · "${task.title}" · ${payload.kind}]`;
+  } else {
+    const fromAgent = await ctx.services.agents
+      .getAgent(ctx, payload.fromAgentId)
+      .catch(() => null);
+    const fromName = fromAgent?.name ?? payload.fromAgentId;
+    attribution = `[task update from @${fromName} · "${task.title}" · ${payload.kind}]`;
+  }
+
+  const content = `${attribution}\n${payload.message}`;
+
+  await ctx.services.orchestrator.writeAgentLog(ctx, {
+    agentId: assignerAgentId,
+    taskId: null,
+    role: "SYSTEM",
+    content,
+    attachments: payload.attachments,
   });
 }

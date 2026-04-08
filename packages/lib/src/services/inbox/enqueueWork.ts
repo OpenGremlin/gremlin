@@ -10,7 +10,11 @@ export type InboxItemType =
   | "agent_self_followup"
   | "user_input_request_reply"
   | "core_memory_review"
-  | "resume_task";
+  | "resume_task"
+  // A worker task is reporting back to its assigner (the agent that created
+  // the task — itself for background tasks, a manager for delegated tasks).
+  // Lands on the assigner's `main` lane and wakes the doorbell.
+  | "task_update";
 
 export interface EnqueueInput {
   type: InboxItemType;

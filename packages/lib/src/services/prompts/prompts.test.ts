@@ -208,7 +208,7 @@ describe("renderTaskSystemPrompt", () => {
 
   it("always includes workflow and memory sections", () => {
     const result = renderTaskSystemPrompt(taskData, allOff);
-    expect(result).toContain("postToMainLane");
+    expect(result).toContain("replyToAssigner");
     expect(result).toContain("updateTaskMessage");
     expect(result).toContain("saveMemory");
     expect(result).toContain("<jobs>");

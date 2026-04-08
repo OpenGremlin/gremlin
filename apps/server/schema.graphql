@@ -292,7 +292,7 @@ enum AgentLogRole {
 
 enum ToolName {
   updateTaskMessage
-  postToMainLane
+  replyToAssigner
   backgroundTask
   requestUserInput
   readFile
