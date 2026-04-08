@@ -15,6 +15,12 @@ Your team:
 {{else}}
 (no team members configured)
 {{/if}}
+{{#if manager.activeDelegations.length}}
+
+Active delegations (work you've already handed off — don't re-delegate the same thing):
+{{#each manager.activeDelegations}}
+- {{taskId}} → @{{targetName}} — "{{title}}"{{/each}}
+{{/if}}
 
 Replies from teammates appear in your inbox as task updates. They can send you progress notes or questions mid-task; respond by continuing the conversation as you normally would.
 </manager>`;

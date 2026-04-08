@@ -72,6 +72,7 @@ function makeAgentLaneCtx(
     speechVoice: undefined,
     speechConnectionId: undefined,
     team: [],
+    activeDelegations: [],
     ...overrides,
   };
 }

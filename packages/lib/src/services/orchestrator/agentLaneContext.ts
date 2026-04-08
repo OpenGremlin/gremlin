@@ -53,6 +53,18 @@ export interface TeamMember {
 }
 
 /**
+ * One row in the manager's "active delegations" view — open tasks the
+ * manager has assigned to teammates that haven't been marked complete.
+ * Fetched fresh each drain (no cache) because it changes as work flows.
+ */
+export interface ActiveDelegation {
+  taskId: string;
+  targetId: string;
+  targetName: string;
+  title: string;
+}
+
+/**
  * Per-agent context built once and shared across all lane invocations
  * (main lane + task lanes) within the same drain loop.
  */
@@ -76,6 +88,47 @@ export interface AgentLaneContext {
    * S3 hiccup) are silently dropped.
    */
   team: TeamMember[];
+  /** Open tasks this agent has delegated to teammates. Empty for non-managers. */
+  activeDelegations: ActiveDelegation[];
+}
+
+// ── Team roster cache ────────────────────────────────────────────────
+//
+// Resolved team rosters are stable enough to cache between drain loops:
+// the underlying data (member names + purposes) only changes when a user
+// edits an agent. A short TTL gives us a free perf win for managers
+// answering rapid-fire user messages without holding stale data for long.
+// `activeDelegations` is *not* cached — those are time-sensitive.
+
+const TEAM_CACHE_TTL_MS = 30_000;
+
+interface CachedTeam {
+  team: TeamMember[];
+  expiresAt: number;
+}
+
+const teamCache = new Map<string, CachedTeam>();
+
+function getCachedTeam(managerId: string): TeamMember[] | null {
+  const entry = teamCache.get(managerId);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    teamCache.delete(managerId);
+    return null;
+  }
+  return entry.team;
+}
+
+function setCachedTeam(managerId: string, team: TeamMember[]): void {
+  teamCache.set(managerId, {
+    team,
+    expiresAt: Date.now() + TEAM_CACHE_TTL_MS,
+  });
+}
+
+/** Test helper: clear the team cache between cases. */
+export function _clearTeamCache(): void {
+  teamCache.clear();
 }
 
 /**
@@ -179,34 +232,69 @@ export async function buildAgentLaneContext(
       : Promise.resolve(null),
   ]);
 
-  // Pre-load the team roster when manager mode is enabled. Done after
-  // loadAgentContext so we know whether the team list is non-empty before
-  // firing N getAgent calls. Failures are tolerated — a deleted teammate
-  // shouldn't break the manager's drain loop.
+  // Pre-load the team roster when manager mode is enabled. Roster is
+  // cached per-manager with a short TTL — within the cache window we
+  // skip the parallel getAgent fan-out. Failures are tolerated: a
+  // deleted teammate shouldn't break the manager's drain loop.
   let team: TeamMember[] = [];
   const teamIds = agent.config?.manager?.enabled
     ? (agent.config.manager.team ?? [])
     : [];
   if (teamIds.length > 0) {
-    const members = await Promise.all(
-      teamIds.map((id) =>
-        ctx.services.agents.getAgent(ctx, id).catch((err) => {
+    const cached = getCachedTeam(agentId);
+    if (cached) {
+      team = cached;
+    } else {
+      const members = await Promise.all(
+        teamIds.map((id) =>
+          ctx.services.agents.getAgent(ctx, id).catch((err) => {
+            ctx.log.warn(
+              { err, agentId, memberId: id, component: "manager" },
+              "Failed to load team member",
+            );
+            return null;
+          }),
+        ),
+      );
+      team = members
+        .filter((m): m is NonNullable<typeof m> => m != null && !m.retired)
+        .map((m) => ({
+          id: m.id,
+          name: m.name,
+          purpose: m.purpose,
+          role: m.role,
+        }));
+      setCachedTeam(agentId, team);
+    }
+  }
+
+  // Active delegations: open tasks the manager has assigned to its team.
+  // Fetched fresh per drain loop — these change as work flows. We scan
+  // each team member's tasks in parallel and filter for the ones whose
+  // assignerAgentId points back to us.
+  let activeDelegations: ActiveDelegation[] = [];
+  if (team.length > 0) {
+    const taskLists = await Promise.all(
+      team.map((member) =>
+        ctx.services.tasks.getTasksByAgent(ctx, member.id).catch((err) => {
           ctx.log.warn(
-            { err, agentId, memberId: id, component: "manager" },
-            "Failed to load team member",
+            { err, agentId, memberId: member.id, component: "manager" },
+            "Failed to fetch member tasks for active delegations roster",
           );
-          return null;
+          return [];
         }),
       ),
     );
-    team = members
-      .filter((m): m is NonNullable<typeof m> => m != null && !m.retired)
-      .map((m) => ({
-        id: m.id,
-        name: m.name,
-        purpose: m.purpose,
-        role: m.role,
-      }));
+    activeDelegations = team.flatMap((member, i) =>
+      taskLists[i]
+        .filter((task) => task.assignerAgentId === agentId && !task.completedAt)
+        .map((task) => ({
+          taskId: task.id,
+          targetId: member.id,
+          targetName: member.name,
+          title: task.title,
+        })),
+    );
   }
 
   return {
@@ -223,6 +311,7 @@ export async function buildAgentLaneContext(
     speechVoice: agent.config?.speech?.voice ?? agent.ttsVoice,
     speechConnectionId: speechConnectionId ?? undefined,
     team,
+    activeDelegations,
   };
 }
 

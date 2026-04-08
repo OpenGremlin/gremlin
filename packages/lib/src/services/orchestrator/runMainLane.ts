@@ -46,7 +46,14 @@ export async function runMainLane(
         role: agent.role,
         userDisplayName: displayName,
         userAbout: profile?.about,
-        ...(isManager ? { manager: { team: agentLaneCtx.team } } : {}),
+        ...(isManager
+          ? {
+              manager: {
+                team: agentLaneCtx.team,
+                activeDelegations: agentLaneCtx.activeDelegations,
+              },
+            }
+          : {}),
       },
       flags,
     ),

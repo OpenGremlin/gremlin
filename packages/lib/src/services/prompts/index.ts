@@ -91,13 +91,22 @@ interface ManagerTeamMember {
   role?: string;
 }
 
+interface ManagerActiveDelegation {
+  taskId: string;
+  targetName: string;
+  title: string;
+}
+
 interface PromptData {
   name: string;
   personality?: string;
   role?: string;
   userDisplayName: string;
   userAbout?: string;
-  manager?: { team: ManagerTeamMember[] };
+  manager?: {
+    team: ManagerTeamMember[];
+    activeDelegations: ManagerActiveDelegation[];
+  };
 }
 
 interface TaskPromptData extends PromptData {
