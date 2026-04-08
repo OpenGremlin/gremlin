@@ -20,11 +20,11 @@ import {
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
+import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
-import type { ModelDetail } from "../ModelDetailModal";
-import { ModelDetailModal } from "../ModelDetailModal";
+import type { ModelDetail, ModelDetailSheetPayload } from "../ModelDetail";
 import { SheetModal } from "../SheetModal";
 import { Toggle } from "../Toggle";
 import { ModelPicker } from "./ModelPicker";
@@ -181,7 +181,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
   const [speechModelPickerOpen, setSpeechModelPickerOpen] = useState(false);
   const [voicePickerOpen, setVoicePickerOpen] = useState(false);
-  const [modelDetail, setModelDetail] = useState<ModelDetail | null>(null);
+  const presentModelDetail = (model: ModelDetail) => {
+    const sheetId = openSheet<ModelDetailSheetPayload>({ model });
+    router.push(`/agents/model-detail?id=${sheetId}`);
+  };
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
     boolean | null
@@ -457,7 +460,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                     const detail = result.enabledModelDetails.find(
                       (d) => d.id === ids.modelId,
                     );
-                    if (detail) setModelDetail(detail);
+                    if (detail) presentModelDetail(detail);
                   }}
                   className="p-2"
                 >
@@ -564,7 +567,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                         const detail = result.enabledModelDetails.find(
                           (d) => d.id === ids.modelId,
                         );
-                        if (detail) setModelDetail(detail);
+                        if (detail) presentModelDetail(detail);
                       }}
                       className="p-2"
                     >
@@ -629,7 +632,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                         const detail = result.enabledModelDetails.find(
                           (d) => d.id === ids.modelId,
                         );
-                        if (detail) setModelDetail(detail);
+                        if (detail) presentModelDetail(detail);
                       }}
                       className="p-2"
                     >
@@ -951,11 +954,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           onClose={() => setVoicePickerOpen(false)}
         />
       )}
-
-      <ModelDetailModal
-        model={modelDetail}
-        onClose={() => setModelDetail(null)}
-      />
     </View>
   );
 }

@@ -17,13 +17,13 @@ import {
   SetDefaultSpeechModelMutation,
 } from "../../../../src/graphql/queries";
 import { execute } from "../../../../src/lib/apolloClient";
+import { openSheet } from "../../../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { Chip } from "../../../../src/shared/Chip";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
-import type { ModelDetail } from "../../../../src/shared/ModelDetailModal";
-import { ModelDetailModal } from "../../../../src/shared/ModelDetailModal";
+import type { ModelDetailSheetPayload } from "../../../../src/shared/ModelDetail";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 
@@ -38,10 +38,6 @@ export default function ModelsScreen() {
   const providers = useQuery(IntegrationProvidersQuery);
   const allEnabled = useQuery(AllEnabledModelsQuery);
   const [search, setSearch] = useState("");
-  const [selectedModel, setSelectedModel] = useState<{
-    detail: ModelDetail;
-    providerId: string;
-  } | null>(null);
 
   const loading = providers.loading || allEnabled.loading;
   const error = providers.error || allEnabled.error;
@@ -97,16 +93,6 @@ export default function ModelsScreen() {
     return [...byProvider.values()];
   }, [enabledModels]);
 
-  async function handleModelPress(providerId: string, modelId: string) {
-    try {
-      const result = await execute(EnabledModelDetailsQuery, { providerId });
-      const detail = result.enabledModelDetails.find((m) => m.id === modelId);
-      if (detail) setSelectedModel({ detail, providerId });
-    } catch {
-      // silently fail
-    }
-  }
-
   const [defaultError, setDefaultError] = useState<string | null>(null);
 
   async function handleSetDefault(
@@ -125,11 +111,63 @@ export default function ModelsScreen() {
         await execute(SetDefaultModelMutation, vars);
       }
       providers.refetch();
-      setSelectedModel(null);
+      router.back();
     } catch (err) {
       setDefaultError(
         err instanceof Error ? err.message : "Failed to set default",
       );
+    }
+  }
+
+  async function handleModelPress(providerId: string, modelId: string) {
+    try {
+      const result = await execute(EnabledModelDetailsQuery, { providerId });
+      const detail = result.enabledModelDetails.find((m) => m.id === modelId);
+      if (!detail) return;
+
+      // Snapshot defaults at open time so the actions render-prop closure
+      // doesn't go stale if the user comes back later. The actions also
+      // close over handleSetDefault, which calls router.back() on success.
+      const isDefaultLLM =
+        defaultModel?.providerId === providerId &&
+        defaultModel?.modelId === detail.id;
+      const isDefaultImage =
+        defaultImageModel?.providerId === providerId &&
+        defaultImageModel?.modelId === detail.id;
+      const isDefaultSpeech =
+        defaultSpeechModel?.providerId === providerId &&
+        defaultSpeechModel?.modelId === detail.id;
+      const isDefault = isDefaultLLM || isDefaultImage || isDefaultSpeech;
+
+      const sheetId = openSheet<ModelDetailSheetPayload>({
+        model: detail,
+        actions: isDefault
+          ? undefined
+          : (model) => (
+              <View className="gap-2">
+                {defaultError && (
+                  <Text className="text-sm text-red-400 text-center">
+                    {defaultError}
+                  </Text>
+                )}
+                <Button
+                  onPress={() =>
+                    handleSetDefault(providerId, model.id, model.mode)
+                  }
+                  fullWidth
+                >
+                  {model.mode === "image_generation"
+                    ? "Set as Default Image"
+                    : model.mode === "audio_speech"
+                      ? "Set as Default Speech"
+                      : "Set as Default LLM"}
+                </Button>
+              </View>
+            ),
+      });
+      router.push(`/settings/models/model-detail?id=${sheetId}`);
+    } catch {
+      // silently fail
     }
   }
 
@@ -289,50 +327,6 @@ export default function ModelsScreen() {
             </>
           )}
         </ScrollView>
-
-        <ModelDetailModal
-          model={selectedModel?.detail ?? null}
-          onClose={() => setSelectedModel(null)}
-          actions={(model) => {
-            if (!selectedModel) return null;
-            const isDefaultLLM =
-              defaultModel?.providerId === selectedModel.providerId &&
-              defaultModel?.modelId === model.id;
-            const isDefaultImage =
-              defaultImageModel?.providerId === selectedModel.providerId &&
-              defaultImageModel?.modelId === model.id;
-            const isDefaultSpeech =
-              defaultSpeechModel?.providerId === selectedModel.providerId &&
-              defaultSpeechModel?.modelId === model.id;
-            const isDefault = isDefaultLLM || isDefaultImage || isDefaultSpeech;
-            if (isDefault) return null;
-            return (
-              <View className="gap-2">
-                {defaultError && (
-                  <Text className="text-sm text-red-400 text-center">
-                    {defaultError}
-                  </Text>
-                )}
-                <Button
-                  onPress={() =>
-                    handleSetDefault(
-                      selectedModel.providerId,
-                      model.id,
-                      model.mode,
-                    )
-                  }
-                  fullWidth
-                >
-                  {model.mode === "image_generation"
-                    ? "Set as Default Image"
-                    : model.mode === "audio_speech"
-                      ? "Set as Default Speech"
-                      : "Set as Default LLM"}
-                </Button>
-              </View>
-            );
-          }}
-        />
       </View>
     </QueryGate>
   );

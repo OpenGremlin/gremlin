@@ -1,8 +1,7 @@
 import type React from "react";
 import { ScrollView, Text, View } from "react-native";
-import { SheetModal } from "./SheetModal";
 
-interface ModelDetail {
+export interface ModelDetail {
   id: string;
   name: string;
   mode: string;
@@ -17,6 +16,13 @@ interface ModelDetail {
   outputCostPerImageToken?: number | null;
 }
 
+/** Payload type stored in sheetStore for the model-detail sheet routes. */
+export interface ModelDetailSheetPayload {
+  model: ModelDetail;
+  /** Optional render prop for additional actions below the cost rows. */
+  actions?: (model: ModelDetail) => React.ReactNode;
+}
+
 function formatCost(costPerToken: number): string {
   const perMillion = costPerToken * 1_000_000;
   if (perMillion < 0.01) return `$${perMillion.toFixed(4)}/M`;
@@ -24,19 +30,14 @@ function formatCost(costPerToken: number): string {
   return `$${perMillion.toFixed(2)}/M`;
 }
 
-export type { ModelDetail };
-
-export function ModelDetailModal({
+/** Pure layout for the body of a ModelDetail sheet route. */
+export function ModelDetailContent({
   model,
-  onClose,
   actions,
 }: {
-  model: ModelDetail | null;
-  onClose: () => void;
+  model: ModelDetail;
   actions?: (model: ModelDetail) => React.ReactNode;
 }) {
-  if (!model) return null;
-
   const rows: { label: string; value: string }[] = [
     { label: "ID", value: model.id },
     { label: "Mode", value: model.mode },
@@ -79,21 +80,19 @@ export function ModelDetailModal({
     });
 
   return (
-    <SheetModal visible title={model.name} onClose={onClose}>
-      <ScrollView contentContainerClassName="px-4 pb-6 gap-0">
-        {rows.map((row, i) => (
-          <View
-            key={row.label}
-            className={`flex-row items-center justify-between py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
-          >
-            <Text className="text-sm text-text-muted">{row.label}</Text>
-            <Text className="text-sm text-text-primary font-medium">
-              {row.value}
-            </Text>
-          </View>
-        ))}
-        {actions ? <View className="pt-4">{actions(model)}</View> : null}
-      </ScrollView>
-    </SheetModal>
+    <ScrollView contentContainerClassName="px-4 pb-6 gap-0">
+      {rows.map((row, i) => (
+        <View
+          key={row.label}
+          className={`flex-row items-center justify-between py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
+        >
+          <Text className="text-sm text-text-muted">{row.label}</Text>
+          <Text className="text-sm text-text-primary font-medium">
+            {row.value}
+          </Text>
+        </View>
+      ))}
+      {actions ? <View className="pt-4">{actions(model)}</View> : null}
+    </ScrollView>
   );
 }

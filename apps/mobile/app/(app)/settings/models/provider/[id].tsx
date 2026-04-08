@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
@@ -22,14 +22,17 @@ import {
   SetDefaultSpeechModelMutation,
 } from "../../../../../src/graphql/queries";
 import { execute } from "../../../../../src/lib/apolloClient";
+import { openSheet } from "../../../../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
 import { Chip } from "../../../../../src/shared/Chip";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
-import type { ModelDetail } from "../../../../../src/shared/ModelDetailModal";
-import { ModelDetailModal } from "../../../../../src/shared/ModelDetailModal";
+import type {
+  ModelDetail,
+  ModelDetailSheetPayload,
+} from "../../../../../src/shared/ModelDetail";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
 import { Toast } from "../../../../../src/shared/Toast";
@@ -90,7 +93,10 @@ function TypedModelList({
   const [settingModel, setSettingModel] = useState<string | null>(null);
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedModel, setSelectedModel] = useState<ModelDetail | null>(null);
+  const presentModelDetail = (model: ModelDetail) => {
+    const sheetId = openSheet<ModelDetailSheetPayload>({ model });
+    router.push(`/settings/models/model-detail?id=${sheetId}`);
+  };
 
   const modelsOfType = allModels.filter((m) => m.mode === modelMode);
   if (modelsOfType.length === 0) return null;
@@ -176,7 +182,7 @@ function TypedModelList({
                 <Pressable
                   key={model.id}
                   onPress={() => {
-                    if (detail) setSelectedModel(detail);
+                    if (detail) presentModelDetail(detail);
                   }}
                   className={`flex-row items-center justify-between px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
                 >
@@ -233,11 +239,6 @@ function TypedModelList({
           </Card>
         </View>
       )}
-
-      <ModelDetailModal
-        model={selectedModel}
-        onClose={() => setSelectedModel(null)}
-      />
 
       {availableModels.length > 0 && (
         <View className="gap-2">

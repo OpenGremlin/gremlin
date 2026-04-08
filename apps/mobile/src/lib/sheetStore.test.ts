@@ -1,64 +1,39 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { dismissSheet, getSheet, openSheet, resolveSheet } from "./sheetStore";
+import { describe, expect, it, vi } from "vitest";
+import { dismissSheet, getSheet, openSheet } from "./sheetStore";
 
 describe("sheetStore", () => {
-  beforeEach(() => {
-    // Clean up any leftover sheets between tests so IDs don't collide.
-    // The store has no public reset; dismissing by guessing IDs is fine
-    // because the ID generator is monotonic and we control it here.
-  });
-
   it("openSheet generates unique ascending IDs", () => {
-    const a = openSheet({ title: "A", items: [], onSelect: () => {} });
-    const b = openSheet({ title: "B", items: [], onSelect: () => {} });
+    const a = openSheet({ kind: "a" });
+    const b = openSheet({ kind: "b" });
     expect(a).not.toBe(b);
     dismissSheet(a);
     dismissSheet(b);
   });
 
-  it("getSheet returns the config registered by openSheet", () => {
-    const onSelect = vi.fn();
-    const id = openSheet({
-      title: "Pick model",
-      items: [{ value: "gpt-4", label: "GPT-4" }],
-      onSelect,
-    });
-    const config = getSheet(id);
-    expect(config?.title).toBe("Pick model");
-    expect(config?.items).toHaveLength(1);
-    expect(config?.id).toBe(id);
+  it("getSheet returns the payload registered by openSheet", () => {
+    const payload = { title: "Pick model", count: 3 };
+    const id = openSheet(payload);
+    expect(getSheet<typeof payload>(id)).toEqual(payload);
     dismissSheet(id);
   });
 
-  it("resolveSheet invokes the registered onSelect with the chosen value", () => {
+  it("payload may contain functions (callbacks)", () => {
     const onSelect = vi.fn();
-    const id = openSheet<string>({
-      title: "Pick",
-      items: [
-        { value: "a", label: "A" },
-        { value: "b", label: "B" },
-      ],
-      onSelect,
-    });
-    resolveSheet(id, "b");
-    expect(onSelect).toHaveBeenCalledWith("b");
+    type Payload = { onSelect: (v: string) => void };
+    const id = openSheet<Payload>({ onSelect });
+    const stored = getSheet<Payload>(id);
+    stored?.onSelect("hello");
+    expect(onSelect).toHaveBeenCalledWith("hello");
     dismissSheet(id);
   });
 
-  it("resolveSheet is a no-op for unknown IDs (no throw)", () => {
-    expect(() => resolveSheet("missing", "x")).not.toThrow();
-  });
-
-  it("dismissSheet removes the entry so it can't be resolved twice", () => {
-    const onSelect = vi.fn();
-    const id = openSheet({
-      title: "Pick",
-      items: [{ value: 1, label: "One" }],
-      onSelect,
-    });
+  it("dismissSheet removes the entry so getSheet returns undefined", () => {
+    const id = openSheet({ x: 1 });
     dismissSheet(id);
-    resolveSheet(id, 1);
-    expect(onSelect).not.toHaveBeenCalled();
     expect(getSheet(id)).toBeUndefined();
+  });
+
+  it("dismissSheet on an unknown id is a silent no-op", () => {
+    expect(() => dismissSheet("missing")).not.toThrow();
   });
 });
