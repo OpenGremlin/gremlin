@@ -27,7 +27,6 @@ import { Card } from "../Card";
 import type { ModelDetail, ModelDetailSheetPayload } from "../ModelDetail";
 import { SheetModal } from "../SheetModal";
 import { Toggle } from "../Toggle";
-import { ModelPicker } from "./ModelPicker";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;
 
@@ -177,13 +176,21 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     toPlainConfig(agent.config),
   );
   const [saving, setSaving] = useState(false);
-  const [modelPickerOpen, setModelPickerOpen] = useState(false);
-  const [imageModelPickerOpen, setImageModelPickerOpen] = useState(false);
-  const [speechModelPickerOpen, setSpeechModelPickerOpen] = useState(false);
-  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   const presentModelDetail = (model: ModelDetail) => {
     const sheetId = openSheet<ModelDetailSheetPayload>({ model });
     router.push(`/sheet/model-detail?id=${sheetId}`);
+  };
+  const presentModelPicker = (
+    payload: import("../../../app/sheet/model-picker").ModelPickerSheetPayload,
+  ) => {
+    const sheetId = openSheet(payload);
+    router.push(`/sheet/model-picker?id=${sheetId}`);
+  };
+  const presentVoicePicker = (
+    payload: import("../../../app/sheet/voice-picker").VoicePickerSheetPayload,
+  ) => {
+    const sheetId = openSheet(payload);
+    router.push(`/sheet/voice-picker?id=${sheetId}`);
   };
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
@@ -436,7 +443,19 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             )}
             <View className="flex-row items-center gap-2">
               <Pressable
-                onPress={() => setModelPickerOpen(true)}
+                onPress={() =>
+                  presentModelPicker({
+                    model: config.model,
+                    providers,
+                    mode: "chat",
+                    onSelect: (value) => updateConfig({ model: value }),
+                    onSelectDefault: () => updateConfig({ model: undefined }),
+                    defaultLabel: defaultChatModelLabel
+                      ? `Use default (${defaultChatModelLabel})`
+                      : "Use default",
+                    isUsingDefault: usingDefaultChatModel,
+                  })
+                }
                 className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultChatModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
               >
                 <Text
@@ -543,7 +562,21 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 )}
                 <View className="flex-row items-center gap-2">
                   <Pressable
-                    onPress={() => setImageModelPickerOpen(true)}
+                    onPress={() =>
+                      presentModelPicker({
+                        model: config.imageModel,
+                        providers,
+                        mode: "image_generation",
+                        onSelect: (value) =>
+                          updateConfig({ imageModel: value }),
+                        onSelectDefault: () =>
+                          updateConfig({ imageModel: undefined }),
+                        defaultLabel: defaultImageModelLabel
+                          ? `Use default (${defaultImageModelLabel})`
+                          : "Use default",
+                        isUsingDefault: usingDefaultImageModel,
+                      })
+                    }
                     className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultImageModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                   >
                     <Text
@@ -608,7 +641,21 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 )}
                 <View className="flex-row items-center gap-2">
                   <Pressable
-                    onPress={() => setSpeechModelPickerOpen(true)}
+                    onPress={() =>
+                      presentModelPicker({
+                        model: config.speechModel,
+                        providers,
+                        mode: "audio_speech",
+                        onSelect: (value) =>
+                          updateConfig({ speechModel: value }),
+                        onSelectDefault: () =>
+                          updateConfig({ speechModel: undefined }),
+                        defaultLabel: defaultSpeechModelLabel
+                          ? `Use default (${defaultSpeechModelLabel})`
+                          : "Use default",
+                        isUsingDefault: usingDefaultSpeechModel,
+                      })
+                    }
                     className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                   >
                     <Text
@@ -643,7 +690,15 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
                 {/* Voice */}
                 <Pressable
-                  onPress={() => setVoicePickerOpen(true)}
+                  onPress={() =>
+                    presentVoicePicker({
+                      providerId:
+                        resolveModelIds(effectiveSpeechModel)?.providerId,
+                      currentVoice: config.speech?.voice,
+                      onSelect: (voice) =>
+                        updateConfig({ speech: { enabled: true, voice } }),
+                    })
+                  }
                   className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg border ${config.speech?.voice ? "bg-surface-alt border-app-border" : "bg-surface-alt border-warning"}`}
                 >
                   <Volume2
@@ -891,152 +946,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           </View>
         </View>
       </Card>
-
-      {modelPickerOpen && (
-        <ModelPicker
-          model={config.model}
-          providers={providers}
-          mode="chat"
-          onSelect={(value) => updateConfig({ model: value })}
-          onSelectDefault={() => updateConfig({ model: undefined })}
-          defaultLabel={
-            defaultChatModelLabel
-              ? `Use default (${defaultChatModelLabel})`
-              : "Use default"
-          }
-          isUsingDefault={usingDefaultChatModel}
-          onClose={() => setModelPickerOpen(false)}
-        />
-      )}
-
-      {imageModelPickerOpen && (
-        <ModelPicker
-          model={config.imageModel}
-          providers={providers}
-          mode="image_generation"
-          onSelect={(value) => updateConfig({ imageModel: value })}
-          onSelectDefault={() => updateConfig({ imageModel: undefined })}
-          defaultLabel={
-            defaultImageModelLabel
-              ? `Use default (${defaultImageModelLabel})`
-              : "Use default"
-          }
-          isUsingDefault={usingDefaultImageModel}
-          onClose={() => setImageModelPickerOpen(false)}
-        />
-      )}
-
-      {speechModelPickerOpen && (
-        <ModelPicker
-          model={config.speechModel}
-          providers={providers}
-          mode="audio_speech"
-          onSelect={(value) => updateConfig({ speechModel: value })}
-          onSelectDefault={() => updateConfig({ speechModel: undefined })}
-          defaultLabel={
-            defaultSpeechModelLabel
-              ? `Use default (${defaultSpeechModelLabel})`
-              : "Use default"
-          }
-          isUsingDefault={usingDefaultSpeechModel}
-          onClose={() => setSpeechModelPickerOpen(false)}
-        />
-      )}
-
-      {voicePickerOpen && (
-        <VoicePickerModal
-          providerId={resolveModelIds(effectiveSpeechModel)?.providerId}
-          currentVoice={config.speech?.voice}
-          onSelect={(voice) => {
-            setVoicePickerOpen(false);
-            updateConfig({ speech: { enabled: true, voice } });
-          }}
-          onClose={() => setVoicePickerOpen(false)}
-        />
-      )}
     </View>
-  );
-}
-
-// ── Voice Picker ─────────────────────────────────────────────────────
-
-function VoicePickerModal({
-  providerId,
-  currentVoice,
-  onSelect,
-  onClose,
-}: {
-  providerId: string | undefined;
-  currentVoice: string | null | undefined;
-  onSelect: (voice: string) => void;
-  onClose: () => void;
-}) {
-  const colors = useNavigationTheme();
-  const [voices, setVoices] = useState<
-    { id: string; name: string; description?: string | null }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!providerId) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    execute(SpeechVoicesQuery, { providerId }).then((result) => {
-      if (cancelled) return;
-      setVoices(result.speechVoices);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [providerId]);
-
-  const data = voices;
-
-  return (
-    <SheetModal visible title="Choose Voice" onClose={onClose}>
-      {loading ? (
-        <View className="py-8 items-center">
-          <Text className="text-sm text-text-muted">Loading voices...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.id}
-          contentContainerClassName="p-3"
-          renderItem={({ item }) => {
-            const selected = currentVoice === item.id;
-            return (
-              <Pressable
-                onPress={() => onSelect(item.id)}
-                className={`flex-row items-center gap-3 px-3 py-3 rounded-lg ${
-                  selected ? "bg-surface-alt" : "active:bg-surface-alt"
-                }`}
-              >
-                <Volume2
-                  size={16}
-                  color={selected ? colors.headerText : colors.iconDefault}
-                />
-                <View className="flex-1">
-                  <Text
-                    className={`text-sm ${selected ? "text-text-primary font-medium" : "text-text-secondary"}`}
-                  >
-                    {item.name}
-                  </Text>
-                  {item.description && (
-                    <Text className="text-xs text-text-muted" numberOfLines={1}>
-                      {item.description}
-                    </Text>
-                  )}
-                </View>
-                {selected && <Check size={16} color={colors.headerText} />}
-              </Pressable>
-            );
-          }}
-        />
-      )}
-    </SheetModal>
   );
 }

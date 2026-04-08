@@ -1,13 +1,16 @@
 import { useQuery } from "@apollo/client";
+import { router, useLocalSearchParams } from "expo-router";
 import { Check } from "lucide-react-native";
+import { useEffect } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import type { IntegrationProvidersQuery } from "../../graphql/generated/graphql";
+import type { IntegrationProvidersQuery } from "../../src/graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
-} from "../../graphql/queries";
-import { useNavigationTheme } from "../../lib/useNavigationTheme";
-import { SheetModal } from "../SheetModal";
+} from "../../src/graphql/queries";
+import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
+import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
+import { Sheet } from "../../src/shared/Sheet";
 
 type Provider = IntegrationProvidersQuery["integrationProviders"][number];
 
@@ -18,46 +21,45 @@ interface ModelOption {
   value: { type: string; modelId?: string; connectionId?: string };
 }
 
-export function ModelPicker({
-  model,
-  providers,
-  onSelect,
-  onSelectDefault,
-  onClose,
-  mode,
-  defaultLabel,
-  isUsingDefault,
-}: {
+export interface ModelPickerSheetPayload {
   model?: {
     type: string;
     modelId?: string | null;
     connectionId?: string | null;
   } | null;
   providers: Provider[];
+  mode?: "chat" | "image_generation" | "audio_speech";
   onSelect: (value: {
     type: string;
     modelId?: string;
     connectionId?: string;
   }) => void;
-  /** Called when the user picks "Use default". If provided, a default option is shown. */
   onSelectDefault?: () => void;
-  onClose: () => void;
-  mode?: "chat" | "image_generation" | "audio_speech";
-  /** Label shown for the default option, e.g. "Use default (Bedrock / Claude Sonnet)" */
   defaultLabel?: string;
-  /** Whether the default option is currently selected */
   isUsingDefault?: boolean;
-}) {
+}
+
+export default function ModelPickerSheet() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const payload = useSheetPayload<ModelPickerSheetPayload>(id);
   const colors = useNavigationTheme();
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
   const { data: bedrockAvailable } = useQuery(BedrockAvailableModelsQuery);
 
+  useEffect(() => {
+    return () => {
+      if (id) dismissSheet(id);
+    };
+  }, [id]);
+
+  if (!payload) return null;
+
+  const { model, providers, mode, onSelect, onSelectDefault } = payload;
   const allEnabled = enabledData?.allEnabledModels ?? [];
   const bedrockAvailableModels = bedrockAvailable?.bedrockAvailableModels ?? [];
 
   const options: ModelOption[] = [];
 
-  // Bedrock enabled models — resolve names from available models list
   const bedrockEnabled = allEnabled.filter(
     (e) => e.providerId === "bedrock" && (!mode || e.modelMode === mode),
   );
@@ -71,7 +73,6 @@ export function ModelPicker({
     });
   }
 
-  // API-key provider enabled models
   const apiProviders = providers.filter(
     (p) => p.category === "ai" && p.id !== "bedrock" && p.hasConnection,
   );
@@ -102,7 +103,6 @@ export function ModelPicker({
     );
   }
 
-  // Pre-compute which items start a new section
   const sectionStarts = new Set<string>();
   {
     let prev = "";
@@ -115,7 +115,7 @@ export function ModelPicker({
   }
 
   return (
-    <SheetModal visible title="Choose Model" onClose={onClose}>
+    <Sheet title="Choose Model">
       {options.length === 0 && !onSelectDefault ? (
         <View className="py-12 items-center">
           <Text className="text-sm text-text-muted">No models available</Text>
@@ -130,16 +130,16 @@ export function ModelPicker({
               <Pressable
                 onPress={() => {
                   onSelectDefault();
-                  onClose();
+                  router.back();
                 }}
                 className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
               >
                 <Text
-                  className={`text-sm ${isUsingDefault ? "text-indigo-300" : "text-text-secondary"}`}
+                  className={`text-sm ${payload.isUsingDefault ? "text-indigo-300" : "text-text-secondary"}`}
                 >
-                  {defaultLabel ?? "Use default"}
+                  {payload.defaultLabel ?? "Use default"}
                 </Text>
-                {isUsingDefault && (
+                {payload.isUsingDefault && (
                   <Check size={14} color={colors.accentIndicator} />
                 )}
               </Pressable>
@@ -147,7 +147,7 @@ export function ModelPicker({
           }
           renderItem={({ item }) => {
             const showHeader = sectionStarts.has(item.key);
-            const selected = !isUsingDefault && isSelected(item);
+            const selected = !payload.isUsingDefault && isSelected(item);
             return (
               <>
                 {showHeader && (
@@ -158,7 +158,7 @@ export function ModelPicker({
                 <Pressable
                   onPress={() => {
                     onSelect(item.value);
-                    onClose();
+                    router.back();
                   }}
                   className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
                 >
@@ -176,6 +176,6 @@ export function ModelPicker({
           }}
         />
       )}
-    </SheetModal>
+    </Sheet>
   );
 }
