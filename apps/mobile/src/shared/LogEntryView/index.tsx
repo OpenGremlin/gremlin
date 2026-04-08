@@ -31,6 +31,7 @@ import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
 import { BackgroundTaskCard } from "./BackgroundTaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
+import { DelegateCard } from "./DelegateCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
@@ -148,6 +149,22 @@ function renderCustomWidget(
           agentId={agentId}
           taskId={(tool.result?.taskId as string) ?? null}
           taskTitle={(tool.input?.title as string) ?? "Untitled task"}
+        />
+      );
+
+    case ToolName.Delegate:
+      return (
+        <DelegateCard
+          targetAgentId={(tool.result?.targetAgentId as string) ?? null}
+          targetName={
+            (tool.result?.targetName as string) ??
+            (tool.input?.targetAgentId as string) ??
+            null
+          }
+          taskId={(tool.result?.taskId as string) ?? null}
+          taskTitle={(tool.input?.title as string) ?? "Delegated task"}
+          brief={(tool.input?.brief as string) ?? null}
+          rejectedReason={(tool.result?.error as string) ?? null}
         />
       );
 

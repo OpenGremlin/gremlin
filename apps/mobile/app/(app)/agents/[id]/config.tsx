@@ -1,10 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
-import { Pencil } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { Check, Pencil } from "lucide-react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   AgentQuery,
+  AgentsQuery,
   AvatarsQuery,
   RetireAgentMutation,
   UnretireAgentMutation,
@@ -22,6 +23,7 @@ import { Input } from "../../../../src/shared/Input";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SaveButton } from "../../../../src/shared/SaveButton";
 import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
+import { Toggle } from "../../../../src/shared/Toggle";
 import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
 
 export default function AgentConfigScreen() {
@@ -37,9 +39,22 @@ export default function AgentConfigScreen() {
   const [name, setName] = useState("");
   const [personality, setPersonality] = useState("");
   const [role, setRole] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [managerEnabled, setManagerEnabled] = useState(false);
+  const [team, setTeam] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
+
+  // Used by the team picker — fetched lazily once the user expands manager mode.
+  const allAgentsResult = useQuery(AgentsQuery, { skip: !managerEnabled });
+  const teamCandidates = useMemo(
+    () =>
+      (allAgentsResult.data?.agents ?? []).filter(
+        (a) => a.id !== id && !a.retired,
+      ),
+    [allAgentsResult.data, id],
+  );
   const openAvatarPicker = () => {
     presentAvatarPicker({
       avatars: avatarsResult.data?.avatars ?? [],
@@ -65,6 +80,9 @@ export default function AgentConfigScreen() {
     setName(agent.name);
     setPersonality(agent.personality ?? "");
     setRole(agent.role ?? "");
+    setPurpose(agent.purpose ?? "");
+    setManagerEnabled(agent.config?.manager?.enabled ?? false);
+    setTeam(agent.config?.manager?.team ?? []);
   }, [agent]);
 
   const handleSave = useCallback(async () => {
@@ -78,6 +96,12 @@ export default function AgentConfigScreen() {
           name: name.trim(),
           personality: personality.trim(),
           role: role.trim() || null,
+          purpose: purpose.trim() || null,
+          config: {
+            manager: managerEnabled
+              ? { enabled: true, team }
+              : { enabled: false, team: [] },
+          },
         },
       });
     } catch (err) {
@@ -87,7 +111,7 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, personality, role]);
+  }, [id, agent, name, personality, role, purpose, managerEnabled, team]);
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 
@@ -130,10 +154,26 @@ export default function AgentConfigScreen() {
     return <NotFound label="Agent not found" />;
   }
 
+  const savedTeam = agent.config?.manager?.team ?? [];
+  const teamChanged =
+    team.length !== savedTeam.length ||
+    team.some((t) => !savedTeam.includes(t)) ||
+    savedTeam.some((t) => !team.includes(t));
   const hasChanges =
     name.trim() !== agent.name ||
     personality.trim() !== (agent.personality ?? "") ||
-    role.trim() !== (agent.role ?? "");
+    role.trim() !== (agent.role ?? "") ||
+    purpose.trim() !== (agent.purpose ?? "") ||
+    managerEnabled !== (agent.config?.manager?.enabled ?? false) ||
+    (managerEnabled && teamChanged);
+
+  const toggleTeamMember = (memberId: string) => {
+    setTeam((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((m) => m !== memberId)
+        : [...prev, memberId],
+    );
+  };
 
   return (
     <ScrollView
@@ -217,6 +257,96 @@ export default function AgentConfigScreen() {
           editable={!agent.retired}
         />
       </View>
+
+      <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
+        <Text className="text-sm font-medium text-text-secondary">Purpose</Text>
+        <Text className="text-xs text-text-muted">
+          One line describing what this agent is good at. Other agents see this
+          when deciding whether to delegate to it. Be specific.
+        </Text>
+        <Input
+          value={purpose}
+          onChangeText={setPurpose}
+          placeholder="e.g. Pulls competitive intel from web sources and summarizes findings."
+          editable={!agent.retired}
+        />
+      </View>
+
+      {!agent.retired && (
+        <Card className="px-4 py-4 gap-3">
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1">
+              <Text className="text-base font-bold text-text-secondary">
+                Manager mode
+              </Text>
+              <Text className="text-xs text-text-muted">
+                Lets this agent delegate tasks to a small team of other agents
+                you choose.
+              </Text>
+            </View>
+            <Toggle
+              enabled={managerEnabled}
+              onChange={() => setManagerEnabled((v) => !v)}
+            />
+          </View>
+
+          {managerEnabled && (
+            <View className="gap-2 mt-1">
+              <Text className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                Team
+              </Text>
+              {allAgentsResult.loading && teamCandidates.length === 0 ? (
+                <Text className="text-xs text-text-muted">Loading agents…</Text>
+              ) : teamCandidates.length === 0 ? (
+                <Text className="text-xs text-text-muted">
+                  No other agents to add to a team.
+                </Text>
+              ) : (
+                <View className="gap-1">
+                  {teamCandidates.map((member) => {
+                    const selected = team.includes(member.id);
+                    return (
+                      <Pressable
+                        key={member.id}
+                        onPress={() => toggleTeamMember(member.id)}
+                        className={`flex-row items-center gap-3 px-3 py-2.5 rounded-lg border ${
+                          selected
+                            ? "bg-accent-surface border-accent"
+                            : "bg-surface border-app-border"
+                        }`}
+                      >
+                        <View className="flex-1 min-w-0">
+                          <Text
+                            className="text-sm font-medium text-text-primary"
+                            numberOfLines={1}
+                          >
+                            {member.name}
+                          </Text>
+                          {member.purpose ? (
+                            <Text
+                              className="text-xs text-text-muted mt-0.5"
+                              numberOfLines={2}
+                            >
+                              {member.purpose}
+                            </Text>
+                          ) : (
+                            <Text className="text-xs text-text-muted italic mt-0.5">
+                              No purpose set
+                            </Text>
+                          )}
+                        </View>
+                        {selected && (
+                          <Check size={18} color={colors.headerText} />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+        </Card>
+      )}
 
       {saveError ? (
         <Text className="text-error text-sm">{saveError}</Text>
