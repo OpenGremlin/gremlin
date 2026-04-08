@@ -96,6 +96,22 @@ function RootStack() {
           contentStyle: { backgroundColor: "transparent" },
         }}
       />
+      <Stack.Screen
+        name="sheet/skill-detail"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
+      <Stack.Screen
+        name="sheet/add-skill"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
     </Stack>
   );
 }

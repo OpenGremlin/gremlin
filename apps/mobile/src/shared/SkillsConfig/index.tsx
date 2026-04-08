@@ -1,36 +1,22 @@
 import { useQuery } from "@apollo/client";
-import {
-  ChevronRight,
-  CircleCheck,
-  Info,
-  Plus,
-  Trash2,
-} from "lucide-react-native";
+import { router } from "expo-router";
+import { CircleCheck, Info, Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import type { AddSkillSheetPayload } from "../../../app/sheet/add-skill";
+import type { SkillDetailSheetPayload } from "../../../app/sheet/skill-detail";
 import {
   AgentSkillsQuery,
-  AssignSkillMutation,
   BindAgentSkillConnectionMutation,
   RemoveSkillMutation,
-  SkillTemplatesQuery,
   UnbindAgentSkillConnectionMutation,
 } from "../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations";
 import { execute } from "../../lib/apolloClient";
+import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
-import { groupSkillsByCategory } from "../categories";
 import { IntegrationLogo } from "../IntegrationLogo";
-import { SearchInput } from "../SearchInput";
-import { SheetModal } from "../SheetModal";
-import { SkillDetailContent } from "../SkillDetailContent";
 import { ConnectionPicker } from "./ConnectionPicker";
 
 export function SkillsConfig({ agentId }: { agentId: string }) {
@@ -42,12 +28,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
   } = useQuery(AgentSkillsQuery, { variables: { agentId } });
   const agentSkills = skillsData?.agentSkills ?? [];
 
-  const [addModalOpen, setAddModalOpen] = useState(false);
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
-  const [detailSkill, setDetailSkill] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
 
   const handleRemove = useCallback(
     async (skillId: string) => {
@@ -57,6 +38,22 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
     [agentId, refetch],
   );
 
+  const openAddSheet = () => {
+    const sheetId = openSheet<AddSkillSheetPayload>({
+      agentId,
+      assignedSkillIds: agentSkills.map((s) => s.skillId),
+      onAssigned: () => {
+        refetch();
+      },
+    });
+    router.push(`/sheet/add-skill?id=${sheetId}`);
+  };
+
+  const openDetailSheet = (id: string, title: string) => {
+    const sheetId = openSheet<SkillDetailSheetPayload>({ id, title });
+    router.push(`/sheet/skill-detail?id=${sheetId}`);
+  };
+
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
@@ -64,7 +61,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           Skills
         </Text>
         <Pressable
-          onPress={() => setAddModalOpen(true)}
+          onPress={openAddSheet}
           className="flex-row items-center gap-1 px-2 py-1 rounded-md active:bg-surface-alt"
         >
           <Plus size={14} color={colors.iconDefault} />
@@ -100,40 +97,15 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           onRemove={() => handleRemove(skill.skillId)}
           onConnectionChanged={refetch}
           onShowDetails={() =>
-            setDetailSkill({
-              id: skill.skillId,
-              title:
-                skill.template?.displayName ??
+            openDetailSheet(
+              skill.skillId,
+              skill.template?.displayName ??
                 skill.template?.name ??
                 skill.skillId,
-            })
+            )
           }
         />
       ))}
-
-      {addModalOpen && (
-        <AddSkillModal
-          agentId={agentId}
-          assignedSkillIds={agentSkills.map((s) => s.skillId)}
-          onDone={() => {
-            setAddModalOpen(false);
-            refetch();
-          }}
-          onClose={() => setAddModalOpen(false)}
-        />
-      )}
-
-      {detailSkill && (
-        <SheetModal
-          visible
-          title={detailSkill.title}
-          onClose={() => setDetailSkill(null)}
-        >
-          <ScrollView contentContainerClassName="px-4 pt-4 pb-16">
-            <SkillDetailContent id={detailSkill.id} />
-          </ScrollView>
-        </SheetModal>
-      )}
     </View>
   );
 }
@@ -314,105 +286,5 @@ function AgentSkillCard({
         </View>
       )}
     </Card>
-  );
-}
-
-function AddSkillModal({
-  agentId,
-  assignedSkillIds,
-  onDone,
-  onClose,
-}: {
-  agentId: string;
-  assignedSkillIds: string[];
-  onDone: () => void;
-  onClose: () => void;
-}) {
-  const colors = useNavigationTheme();
-  const { data, loading } = useQuery(SkillTemplatesQuery);
-  const templates = data?.skillTemplates ?? [];
-  const available = templates.filter((t) => !assignedSkillIds.includes(t.id));
-  const [assigning, setAssigning] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-
-  const q = query.toLowerCase();
-  const filtered = available.filter(
-    (t) =>
-      t.name.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q),
-  );
-  const grouped = groupSkillsByCategory(filtered);
-
-  async function handleAssign(skillId: string) {
-    setAssigning(skillId);
-    try {
-      await execute(AssignSkillMutation, { agentId, skillId });
-      onDone();
-    } finally {
-      setAssigning(null);
-    }
-  }
-
-  return (
-    <SheetModal visible title="Add Skill" onClose={onClose}>
-      <ScrollView
-        contentContainerClassName="px-4 py-3 gap-4"
-        keyboardShouldPersistTaps="handled"
-      >
-        <SearchInput
-          placeholder="Search skills..."
-          value={query}
-          onChangeText={setQuery}
-        />
-
-        {loading && (
-          <View className="items-center py-4">
-            <ActivityIndicator size="small" color={colors.iconDefault} />
-          </View>
-        )}
-
-        {filtered.length === 0 && !loading && (
-          <Text className="text-sm text-text-muted py-4 text-center">
-            {available.length === 0
-              ? "All available skills are already assigned."
-              : "No skills match your search."}
-          </Text>
-        )}
-
-        {grouped.map((group) => (
-          <View
-            key={group.category}
-            className="gap-0 bg-surface border border-app-border rounded-xl overflow-hidden"
-          >
-            <Text className="text-xs font-medium text-text-muted uppercase tracking-wider px-3 pt-3 pb-1.5">
-              {group.label}
-            </Text>
-            {group.items.map((template) => (
-              <Pressable
-                key={template.id}
-                onPress={() => handleAssign(template.id)}
-                disabled={assigning !== null}
-                className="flex-row items-center gap-3 px-3 py-2.5 active:bg-surface-alt"
-              >
-                <IntegrationLogo id={template.icon ?? template.id} size={28} />
-                <View className="flex-1 min-w-0">
-                  <Text className="text-sm font-medium text-text-primary">
-                    {template.displayName ?? template.name}
-                  </Text>
-                  <Text className="text-xs text-text-muted" numberOfLines={1}>
-                    {template.description}
-                  </Text>
-                </View>
-                {assigning === template.id ? (
-                  <ActivityIndicator size="small" color={colors.iconDefault} />
-                ) : (
-                  <ChevronRight size={16} color={colors.iconDefault} />
-                )}
-              </Pressable>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
-    </SheetModal>
   );
 }
