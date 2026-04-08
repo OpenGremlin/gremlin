@@ -3,6 +3,7 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
 import {
+  _clearTeamCache,
   type AgentLaneContext,
   buildAgentLaneContext,
   buildTaskTools,
@@ -206,6 +207,230 @@ describe("buildAgentLaneContext", () => {
     await expect(buildAgentLaneContext(ctx, "bad-id")).rejects.toThrow(
       "Agent bad-id not found",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Manager-mode roster + active delegations
+// ---------------------------------------------------------------------------
+describe("buildAgentLaneContext — manager mode", () => {
+  let ctx: DeepMockProxy<ServiceContext>;
+
+  function managerAgent(team: string[]) {
+    return makeAgent({
+      id: "manager",
+      config: { manager: { enabled: true, team } },
+    });
+  }
+
+  beforeEach(() => {
+    ctx = createMockContext();
+    vi.clearAllMocks();
+    _clearTeamCache();
+
+    mockBuildSkillSummary.mockResolvedValue({ promptSection: "" });
+    mockBuildSkillTools.mockResolvedValue({ tools: {}, getEnv: () => ({}) });
+
+    // No tasks by default — individual tests override.
+    ctx.services.tasks.getTasksByAgent.mockResolvedValue([]);
+  });
+
+  it("returns empty team for non-manager agents", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: makeAgent() as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+
+    const result = await buildAgentLaneContext(ctx, "agent-1");
+
+    expect(result.team).toEqual([]);
+    expect(result.activeDelegations).toEqual([]);
+    expect(ctx.services.agents.getAgent).not.toHaveBeenCalled();
+  });
+
+  it("loads team members in parallel and projects them to TeamMember shape", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["researcher", "writer"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent
+      .mockResolvedValueOnce({
+        id: "researcher",
+        name: "Researcher",
+        purpose: "Web research",
+        role: "investigator",
+        retired: false,
+      } as any)
+      .mockResolvedValueOnce({
+        id: "writer",
+        name: "Writer",
+        purpose: "Drafts briefs",
+        retired: false,
+      } as any);
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.team).toEqual([
+      {
+        id: "researcher",
+        name: "Researcher",
+        purpose: "Web research",
+        role: "investigator",
+      },
+      {
+        id: "writer",
+        name: "Writer",
+        purpose: "Drafts briefs",
+        role: undefined,
+      },
+    ]);
+    expect(ctx.services.agents.getAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it("filters out retired team members", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["a", "b"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent
+      .mockResolvedValueOnce({ id: "a", name: "A", retired: false } as any)
+      .mockResolvedValueOnce({ id: "b", name: "B", retired: true } as any);
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.team.map((m) => m.id)).toEqual(["a"]);
+  });
+
+  it("tolerates failed member fetches without breaking the drain", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["a", "b"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent
+      .mockResolvedValueOnce({ id: "a", name: "A", retired: false } as any)
+      .mockRejectedValueOnce(new Error("DDB outage"));
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.team.map((m) => m.id)).toEqual(["a"]);
+    expect(ctx.log.warn).toHaveBeenCalled();
+  });
+
+  it("caches the resolved roster across drain loops", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["a"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent.mockResolvedValue({
+      id: "a",
+      name: "A",
+      purpose: "p",
+      retired: false,
+    } as any);
+
+    await buildAgentLaneContext(ctx, "manager");
+    await buildAgentLaneContext(ctx, "manager");
+
+    // Second call should hit cache and skip getAgent.
+    expect(ctx.services.agents.getAgent).toHaveBeenCalledTimes(1);
+  });
+
+  it("populates activeDelegations from open tasks assigned by self", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["researcher"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent.mockResolvedValue({
+      id: "researcher",
+      name: "Researcher",
+      purpose: "Web research",
+      retired: false,
+    } as any);
+    ctx.services.tasks.getTasksByAgent.mockResolvedValue([
+      // Open delegation from this manager — should be included
+      {
+        id: "task-open",
+        agentId: "researcher",
+        title: "Find pricing",
+        assignerAgentId: "manager",
+        completedAt: null,
+      },
+      // Completed delegation from this manager — should be excluded
+      {
+        id: "task-done",
+        agentId: "researcher",
+        title: "Old work",
+        assignerAgentId: "manager",
+        completedAt: "2026-01-10T00:00:00.000Z",
+      },
+      // Open task NOT assigned by this manager — should be excluded
+      {
+        id: "task-other",
+        agentId: "researcher",
+        title: "Direct chat work",
+        assignerAgentId: undefined,
+        completedAt: null,
+      },
+      // Open delegation from a different manager — should be excluded
+      {
+        id: "task-foreign",
+        agentId: "researcher",
+        title: "Other manager's work",
+        assignerAgentId: "other-manager",
+        completedAt: null,
+      },
+    ] as any);
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.activeDelegations).toEqual([
+      {
+        taskId: "task-open",
+        targetId: "researcher",
+        targetName: "Researcher",
+        title: "Find pricing",
+      },
+    ]);
+  });
+
+  it("tolerates getTasksByAgent failures per member", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["a", "b"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent
+      .mockResolvedValueOnce({ id: "a", name: "A", retired: false } as any)
+      .mockResolvedValueOnce({ id: "b", name: "B", retired: false } as any);
+    ctx.services.tasks.getTasksByAgent
+      .mockRejectedValueOnce(new Error("DDB outage"))
+      .mockResolvedValueOnce([
+        {
+          id: "t1",
+          agentId: "b",
+          title: "Open",
+          assignerAgentId: "manager",
+          completedAt: null,
+        },
+      ] as any);
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.activeDelegations.map((d) => d.taskId)).toEqual(["t1"]);
+    expect(ctx.log.warn).toHaveBeenCalled();
   });
 });
 
