@@ -43,7 +43,7 @@ export function delegateTool(
       "generic work. Use this only when a teammate is genuinely better " +
       "suited than you; for work you can do yourself, just do it or " +
       "use `backgroundTask`. The teammate may message you back during " +
-      "or after the task — you'll see those updates in your inbox.",
+      "or after the task — those updates appear in this conversation.",
     inputSchema: z.object({
       targetAgentId: z
         .string()

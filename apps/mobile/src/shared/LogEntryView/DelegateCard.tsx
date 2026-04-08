@@ -4,6 +4,14 @@ import { ExternalLink, Send } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { useTheme } from "../../lib/ThemeContext";
+import { AgentAvatar } from "../AgentAvatar";
+
+const AVATAR_SIZE = 56;
+const CARD_RADIUS = 12;
+// Border lives on the LinearGradient (not the outer Pressable) so the
+// avatar's left corners can match the inside of the border exactly:
+// inner curve = outer radius - border width = 12 - 1 = 11.
+const CARD_INNER_RADIUS = CARD_RADIUS - 1;
 
 /**
  * Inline card for a `delegate` tool call in the manager's main lane.
@@ -27,7 +35,6 @@ export function DelegateCard({
 }) {
   const task = useTaskInfo(taskId);
   const { isDark } = useTheme();
-  const emoji = task?.emoji;
   const lastMessage = task?.lastMessage;
 
   const handlePress = () => {
@@ -67,36 +74,60 @@ export function DelegateCard({
         ? `Delegated to @${targetName}`
         : "Delegated task";
 
+  const borderColor = isDark ? "rgba(20, 184, 166, 0.2)" : "#5eead4";
+
   return (
     <View className="py-2 max-w-[85%]">
       <Pressable
         onPress={taskId && targetAgentId ? handlePress : undefined}
         disabled={!taskId || !targetAgentId}
-        className={`rounded-xl overflow-hidden ${isDark ? "border border-teal-500/20" : "border border-teal-300"}`}
+        className="rounded-xl overflow-hidden"
       >
         <LinearGradient
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 12 }}
+          style={{
+            borderRadius: CARD_RADIUS,
+            borderWidth: 1,
+            borderColor,
+          }}
         >
-          <View className="flex-row items-center">
-            {emoji ? (
-              <View className="ml-2 pr-1 items-center justify-center">
-                <Text style={{ fontSize: 30, lineHeight: 36 }}>{emoji}</Text>
-              </View>
+          <View
+            className="flex-row items-stretch"
+            style={{ minHeight: AVATAR_SIZE }}
+          >
+            {targetAgentId ? (
+              <AgentAvatar
+                id={targetAgentId}
+                size={AVATAR_SIZE}
+                cornerStyle={{
+                  borderTopLeftRadius: CARD_INNER_RADIUS,
+                  borderBottomLeftRadius: CARD_INNER_RADIUS,
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                }}
+              />
             ) : (
-              <View className="ml-3 pr-1 items-center justify-center">
+              <View
+                style={{
+                  width: AVATAR_SIZE,
+                  height: AVATAR_SIZE,
+                  borderTopLeftRadius: CARD_INNER_RADIUS,
+                  borderBottomLeftRadius: CARD_INNER_RADIUS,
+                }}
+                className="items-center justify-center bg-surface-alt"
+              >
                 <Send size={20} color={isDark ? "#5eead4" : "#0d9488"} />
               </View>
             )}
-            <View className="flex-1 pl-2 pr-3 py-2.5 min-w-0">
+            <View className="flex-1 pl-3 pr-3 py-2.5 min-w-0 justify-center">
               <View className="flex-row items-center gap-1.5">
                 <Text
                   className={`text-sm font-medium flex-1 ${isDark ? "text-teal-100" : "text-teal-900"}`}
                   numberOfLines={1}
                 >
-                  {targetName ? `→ @${targetName}: ` : ""}
+                  {targetName ? `@${targetName}: ` : ""}
                   {taskTitle}
                 </Text>
                 {taskId && targetAgentId && (

@@ -208,6 +208,11 @@ async function processMainLaneItems(
   items: InboxItemItem[],
 ): Promise<void> {
   let recallHint: string | undefined;
+  // task_update is purely informational — it lands as an AGENT-role chat
+  // bubble that the user already sees. Don't run a main-lane inference for
+  // it (matches the old `postToMainLane` no-wake behavior). Inference still
+  // runs whenever there's a real conversational item to respond to.
+  let shouldRunInference = false;
 
   for (const item of items) {
     const payload = JSON.parse(item.payload);
@@ -220,22 +225,26 @@ async function processMainLaneItems(
           content: payload.content,
         });
         recallHint = payload.content;
+        shouldRunInference = true;
         break;
       case "user_input_request_reply":
         await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
+        shouldRunInference = true;
         break;
       case "task_update":
-        await formatAndWriteTaskUpdate(ctx, agentId, payload);
+        await _formatAndWriteTaskUpdate(ctx, agentId, payload);
         break;
     }
   }
 
-  await ctx.services.orchestrator.runMainLane(
-    ctx,
-    agentLaneCtx,
-    agentId,
-    recallHint,
-  );
+  if (shouldRunInference) {
+    await ctx.services.orchestrator.runMainLane(
+      ctx,
+      agentLaneCtx,
+      agentId,
+      recallHint,
+    );
+  }
 }
 
 /** Write all messages for a task to the log, then run one inference. */
@@ -415,12 +424,16 @@ async function formatAndWriteInputRequestReply(
 }
 
 /**
- * A worker task is reporting back to its assigner. Look up the task for
- * context (title, originating agent), then write a SYSTEM message to the
- * assigner's main lane with clear attribution so the model can reason about
- * who is reporting and on what.
+ * A worker task is reporting back to its assigner. The reply lands as an
+ * AGENT-role message on the assigner's main lane so it renders as a normal
+ * chat bubble (matching the old `postToMainLane` UX). For cross-agent
+ * delegations the message is prefixed with "[from @teammate]" so the
+ * attribution is visible to both the user and the model on its next turn.
+ *
+ * Exported with an underscore prefix so tests can exercise it directly
+ * without spinning up a full doorbell drain.
  */
-async function formatAndWriteTaskUpdate(
+export async function _formatAndWriteTaskUpdate(
   ctx: ServiceContext,
   assignerAgentId: string,
   payload: {
@@ -442,23 +455,21 @@ async function formatAndWriteTaskUpdate(
   }
 
   const isSelf = payload.fromAgentId === assignerAgentId;
-  let attribution: string;
+  let content: string;
   if (isSelf) {
-    attribution = `[task update · "${task.title}" · ${payload.kind}]`;
+    content = payload.message;
   } else {
     const fromAgent = await ctx.services.agents
       .getAgent(ctx, payload.fromAgentId)
       .catch(() => null);
     const fromName = fromAgent?.name ?? payload.fromAgentId;
-    attribution = `[task update from @${fromName} · "${task.title}" · ${payload.kind}]`;
+    content = `[from @${fromName}]\n${payload.message}`;
   }
-
-  const content = `${attribution}\n${payload.message}`;
 
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId: assignerAgentId,
     taskId: null,
-    role: "SYSTEM",
+    role: "AGENT",
     content,
     attachments: payload.attachments,
   });
