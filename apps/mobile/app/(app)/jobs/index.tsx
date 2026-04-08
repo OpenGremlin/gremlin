@@ -68,7 +68,7 @@ export default function JobsScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
-        contentContainerClassName="px-4 pb-6 gap-3 grow"
+        contentContainerClassName="px-4 pt-3 pb-6 gap-3 grow"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

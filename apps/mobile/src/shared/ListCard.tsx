@@ -1,8 +1,10 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { AgentAvatar } from "./AgentAvatar";
 import { Card } from "./Card";
+
+const isWeb = process.env.EXPO_OS === "web";
 
 interface ListCardBaseProps {
   agentId: string;
@@ -50,6 +52,14 @@ export function ListCard({
   );
 
   if (href) {
+    // On web, expo-router's Link renders an inline <a> that collapses the
+    // card to content width. Link.Preview is iOS-only anyway, so on web we
+    // skip the Link wrapper entirely and just call router.push from a
+    // Pressable, which renders as a block-level <div>. On native we keep
+    // the full Link.Trigger + Link.Preview pattern for the iOS peek.
+    if (isWeb) {
+      return <Pressable onPress={() => router.push(href)}>{inner}</Pressable>;
+    }
     return (
       <Link href={href}>
         <Link.Trigger>{inner}</Link.Trigger>

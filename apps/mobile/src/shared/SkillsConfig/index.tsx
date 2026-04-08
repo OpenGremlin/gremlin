@@ -16,7 +16,6 @@ import { execute } from "../../lib/apolloClient";
 import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Card } from "../Card";
-import { IntegrationLogo } from "../IntegrationLogo";
 import { ConnectionPicker } from "./ConnectionPicker";
 
 export function SkillsConfig({ agentId }: { agentId: string }) {

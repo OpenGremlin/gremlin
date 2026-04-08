@@ -1,22 +1,14 @@
 import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
-import {
-  Bot,
-  Check,
-  Globe,
-  Info,
-  Terminal,
-  Volume2,
-} from "lucide-react-native";
+import { Bot, Globe, Info, Terminal, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
   BedrockAvailableModelsQuery,
   EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
-  SpeechVoicesQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
