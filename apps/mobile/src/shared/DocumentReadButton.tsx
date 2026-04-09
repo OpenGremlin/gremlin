@@ -1,4 +1,5 @@
 import { Loader2, Pause, Play, Volume2 } from "lucide-react-native";
+import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useDocumentReader } from "../hooks/useDocumentReader";
 import { useTheme } from "../lib/ThemeContext";
@@ -15,8 +16,15 @@ const CARD_INNER_RADIUS = CARD_RADIUS - 1;
  */
 export function DocumentReadButton({ markdown }: { markdown: string }) {
   const { reader, available, loading, play, pickReader } = useDocumentReader();
-  const { playing, paused, pause, resume } = useVoice();
+  const { playing, paused, pause, resume, unsubscribe } = useVoice();
   const { isDark } = useTheme();
+
+  // Stop playback when navigating away
+  useEffect(() => {
+    return () => {
+      unsubscribe();
+    };
+  }, [unsubscribe]);
 
   if (!available || !reader) return null;
 

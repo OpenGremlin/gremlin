@@ -301,18 +301,57 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     [resetState, startSubscription],
   );
 
+  // Ref to track fade-out interval so we can cancel it on re-entry
+  const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const unsubscribe = useCallback(() => {
     subRef.current?.unsubscribe();
     subRef.current = null;
     scopeRef.current = null;
-    resetState();
-    playerA.pause();
-    playerB.pause();
+
+    // Fade audio to zero over ~2s, then fully stop
+    if (state.current.isPlaying && state.current.active) {
+      const active = state.current.active;
+      const onDeck = state.current.onDeck;
+      const startVolume = active.volume;
+      const steps = 40;
+      const stepMs = 50;
+      let step = 0;
+
+      // Mark as stopped immediately so advance() doesn't fire
+      resetState();
+
+      if (fadeRef.current) clearInterval(fadeRef.current);
+      fadeRef.current = setInterval(() => {
+        step++;
+        const vol = startVolume * (1 - step / steps);
+        active.volume = Math.max(0, vol);
+        if (step >= steps) {
+          if (fadeRef.current) clearInterval(fadeRef.current);
+          fadeRef.current = null;
+          active.pause();
+          active.volume = 1;
+          onDeck?.pause();
+          if (onDeck) onDeck.volume = 1;
+        }
+      }, stepMs);
+    } else {
+      resetState();
+      playerA.pause();
+      playerB.pause();
+    }
   }, [playerA, playerB, resetState]);
 
   /** Play an ordered array of pre-built audio URLs (e.g. on-demand TTS). */
   const playUrls = useCallback(
     (urls: string[]) => {
+      // Cancel any in-flight fade and restore volume
+      if (fadeRef.current) {
+        clearInterval(fadeRef.current);
+        fadeRef.current = null;
+        playerA.volume = 1;
+        playerB.volume = 1;
+      }
       // Stop any in-flight streaming playback
       subRef.current?.unsubscribe();
       subRef.current = null;
@@ -350,6 +389,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     return () => {
       subRef.current?.unsubscribe();
+      if (fadeRef.current) clearInterval(fadeRef.current);
     };
   }, []);
 
