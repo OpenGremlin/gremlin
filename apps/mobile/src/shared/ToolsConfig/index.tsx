@@ -727,7 +727,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   Sandbox
                 </Text>
                 <Text className="text-xs text-text-muted">
-                  Bash shell for running commands
+                  A shell for running commands and scripts
                 </Text>
               </View>
               <Toggle
@@ -754,11 +754,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 <View className="flex-row items-center justify-between gap-3">
                   <View className="flex-1">
                     <Text className="text-sm text-text-secondary">
-                      Sandbox Always On
+                      Always On
                     </Text>
                     <Text className="text-xs text-text-muted">
-                      Don't shut down sandbox after idle time. Sandbox takes
-                      about 2 minutes to restart.
+                      Keep running between tasks. Cold starts take ~2 minutes.
                     </Text>
                   </View>
                   <Toggle
@@ -780,9 +779,14 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 {!config.sandbox.alwaysOn && (
                   <View>
                     <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-sm text-text-secondary">
-                        Idle Shutdown
-                      </Text>
+                      <View className="flex-1">
+                        <Text className="text-sm text-text-secondary">
+                          Idle Shutdown
+                        </Text>
+                        <Text className="text-xs text-text-muted">
+                          Shut down after this long without activity
+                        </Text>
+                      </View>
                       <Text className="text-sm text-text-muted">
                         {config.sandbox.idleTimeoutMinutes ?? 20} min
                       </Text>
@@ -820,9 +824,12 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   </View>
                 )}
                 <View>
-                  <View className="flex-row items-center justify-between mb-1">
+                  <View className="mb-1">
                     <Text className="text-sm text-text-secondary">
                       Command Approval
+                    </Text>
+                    <Text className="text-xs text-text-muted">
+                      Whether to ask before the agent runs a command
                     </Text>
                   </View>
                   <View className="flex-row flex-wrap gap-1.5">
@@ -834,9 +841,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                       const current = sandbox.commandApproval ?? "ask";
                       const selected = current === mode;
                       const label =
-                        mode === "ask"
-                          ? "Ask user"
-                          : "Dangerously skip approval";
+                        mode === "ask" ? "Ask first" : "Skip (dangerous)";
                       return (
                         <Pressable
                           key={mode}
