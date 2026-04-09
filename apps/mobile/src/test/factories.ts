@@ -59,6 +59,7 @@ export function buildAgent(overrides?: Partial<Agent>): Agent {
     personality: "A helpful test agent",
     role: null,
     retired: false,
+    voiceEnabled: false,
     ttsVoice: null,
     config: buildAgentConfig(),
     ...overrides,

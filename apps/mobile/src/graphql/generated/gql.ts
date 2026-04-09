@@ -23,6 +23,7 @@ type Documents = {
     "\n  subscription LogCreated($agentId: ID, $taskId: ID) {\n    logCreated(agentId: $agentId, taskId: $taskId) {\n      ...AgentLogFields\n    }\n  }\n": typeof types.LogCreatedDocument,
     "\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n": typeof types.AgentStreamDocument,
     "\n  query SpeechUrls($logId: ID!) {\n    speechUrls(logId: $logId)\n  }\n": typeof types.SpeechUrlsDocument,
+    "\n  query DocumentSpeechUrls($text: String!, $agentId: ID!) {\n    documentSpeechUrls(text: $text, agentId: $agentId)\n  }\n": typeof types.DocumentSpeechUrlsDocument,
     "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n": typeof types.SpeechStreamDocument,
     "\n  query Agents {\n    agents {\n      ...AgentSummary\n    }\n  }\n": typeof types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      ...AgentDetail\n    }\n  }\n": typeof types.AgentDocument,
@@ -38,7 +39,7 @@ type Documents = {
     "\n  mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {\n    resolveCommandApproval(id: $id, decision: $decision) {\n      ...CommandApprovalFields\n    }\n  }\n": typeof types.ResolveCommandApprovalDocument,
     "\n  fragment FileFields on File {\n    path\n    name\n    sizeBytes\n    mimeType\n    modifiedAt\n    render {\n      __typename\n      ... on DocumentRender { markdown title }\n      ... on CodeRender { content language }\n      ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n      ... on AudioRender { url durationSeconds }\n      ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n      ... on UnknownRender { mimeType sizeBytes }\n    }\n  }\n": typeof types.FileFieldsFragmentDoc,
     "\n  fragment AttachmentFields on Attachment {\n    ... on FileAttachment {\n      file {\n        ...FileFields\n      }\n    }\n    ... on LinkAttachment {\n      url\n      title\n      description\n    }\n  }\n": typeof types.AttachmentFieldsFragmentDoc,
-    "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n  }\n": typeof types.AgentSummaryFragmentDoc,
+    "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n    voiceEnabled\n  }\n": typeof types.AgentSummaryFragmentDoc,
     "\n  fragment AgentDetail on Agent {\n    id\n    name\n    avatar\n    portraitId\n    imageUrl(width: 200)\n    personality\n    role\n    delegationHint\n    retired\n    ttsVoice\n    config {\n      model {\n        type\n        modelId\n        connectionId\n      }\n      imageModel {\n        type\n        modelId\n        connectionId\n      }\n      speechModel {\n        type\n        modelId\n        connectionId\n      }\n      sandbox {\n        enabled\n        idleTimeoutMinutes\n        alwaysOn\n        commandApproval\n      }\n      webSearch {\n        enabled\n        provider\n      }\n      reasoning {\n        enabled\n      }\n      viewImage {\n        enabled\n      }\n      imageGeneration {\n        enabled\n      }\n      speech {\n        enabled\n        voice\n      }\n      manager {\n        enabled\n        team\n      }\n    }\n  }\n": typeof types.AgentDetailFragmentDoc,
     "\n  fragment AgentLogFields on AgentLog {\n    id\n    role\n    content\n    toolName\n    toolInput\n    toolResult\n    displayHint\n    displayVariant\n    commandApprovalId\n    attachments {\n      ...AttachmentFields\n    }\n    files {\n      ...FileFields\n    }\n    taskId\n    createdAt\n  }\n": typeof types.AgentLogFieldsFragmentDoc,
     "\n  fragment TaskSummary on Task {\n    id\n    agent {\n      ...AgentSummary\n    }\n    title\n    message\n    createdAt\n    emoji\n    files {\n      ...FileFields\n    }\n  }\n": typeof types.TaskSummaryFragmentDoc,
@@ -115,6 +116,7 @@ const documents: Documents = {
     "\n  subscription LogCreated($agentId: ID, $taskId: ID) {\n    logCreated(agentId: $agentId, taskId: $taskId) {\n      ...AgentLogFields\n    }\n  }\n": types.LogCreatedDocument,
     "\n  subscription AgentStream($agentId: ID!) {\n    agentStream(agentId: $agentId) {\n      logId\n      agentId\n      taskId\n      delta\n      done\n    }\n  }\n": types.AgentStreamDocument,
     "\n  query SpeechUrls($logId: ID!) {\n    speechUrls(logId: $logId)\n  }\n": types.SpeechUrlsDocument,
+    "\n  query DocumentSpeechUrls($text: String!, $agentId: ID!) {\n    documentSpeechUrls(text: $text, agentId: $agentId)\n  }\n": types.DocumentSpeechUrlsDocument,
     "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n": types.SpeechStreamDocument,
     "\n  query Agents {\n    agents {\n      ...AgentSummary\n    }\n  }\n": types.AgentsDocument,
     "\n  query Agent($id: ID!) {\n    agent(id: $id) {\n      ...AgentDetail\n    }\n  }\n": types.AgentDocument,
@@ -130,7 +132,7 @@ const documents: Documents = {
     "\n  mutation ResolveCommandApproval($id: ID!, $decision: CommandApprovalDecision!) {\n    resolveCommandApproval(id: $id, decision: $decision) {\n      ...CommandApprovalFields\n    }\n  }\n": types.ResolveCommandApprovalDocument,
     "\n  fragment FileFields on File {\n    path\n    name\n    sizeBytes\n    mimeType\n    modifiedAt\n    render {\n      __typename\n      ... on DocumentRender { markdown title }\n      ... on CodeRender { content language }\n      ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n      ... on AudioRender { url durationSeconds }\n      ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n      ... on UnknownRender { mimeType sizeBytes }\n    }\n  }\n": types.FileFieldsFragmentDoc,
     "\n  fragment AttachmentFields on Attachment {\n    ... on FileAttachment {\n      file {\n        ...FileFields\n      }\n    }\n    ... on LinkAttachment {\n      url\n      title\n      description\n    }\n  }\n": types.AttachmentFieldsFragmentDoc,
-    "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n  }\n": types.AgentSummaryFragmentDoc,
+    "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n    voiceEnabled\n  }\n": types.AgentSummaryFragmentDoc,
     "\n  fragment AgentDetail on Agent {\n    id\n    name\n    avatar\n    portraitId\n    imageUrl(width: 200)\n    personality\n    role\n    delegationHint\n    retired\n    ttsVoice\n    config {\n      model {\n        type\n        modelId\n        connectionId\n      }\n      imageModel {\n        type\n        modelId\n        connectionId\n      }\n      speechModel {\n        type\n        modelId\n        connectionId\n      }\n      sandbox {\n        enabled\n        idleTimeoutMinutes\n        alwaysOn\n        commandApproval\n      }\n      webSearch {\n        enabled\n        provider\n      }\n      reasoning {\n        enabled\n      }\n      viewImage {\n        enabled\n      }\n      imageGeneration {\n        enabled\n      }\n      speech {\n        enabled\n        voice\n      }\n      manager {\n        enabled\n        team\n      }\n    }\n  }\n": types.AgentDetailFragmentDoc,
     "\n  fragment AgentLogFields on AgentLog {\n    id\n    role\n    content\n    toolName\n    toolInput\n    toolResult\n    displayHint\n    displayVariant\n    commandApprovalId\n    attachments {\n      ...AttachmentFields\n    }\n    files {\n      ...FileFields\n    }\n    taskId\n    createdAt\n  }\n": types.AgentLogFieldsFragmentDoc,
     "\n  fragment TaskSummary on Task {\n    id\n    agent {\n      ...AgentSummary\n    }\n    title\n    message\n    createdAt\n    emoji\n    files {\n      ...FileFields\n    }\n  }\n": types.TaskSummaryFragmentDoc,
@@ -251,6 +253,10 @@ export function graphql(source: "\n  query SpeechUrls($logId: ID!) {\n    speech
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query DocumentSpeechUrls($text: String!, $agentId: ID!) {\n    documentSpeechUrls(text: $text, agentId: $agentId)\n  }\n"): (typeof documents)["\n  query DocumentSpeechUrls($text: String!, $agentId: ID!) {\n    documentSpeechUrls(text: $text, agentId: $agentId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n"): (typeof documents)["\n  subscription SpeechStream($agentId: ID, $taskId: ID) {\n    speechStream(agentId: $agentId, taskId: $taskId) {\n      logId\n      agentId\n      sentenceIndex\n      url\n      done\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -311,7 +317,7 @@ export function graphql(source: "\n  fragment AttachmentFields on Attachment {\n
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n  }\n"): (typeof documents)["\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n  }\n"];
+export function graphql(source: "\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n    voiceEnabled\n  }\n"): (typeof documents)["\n  fragment AgentSummary on Agent {\n    id\n    name\n    role\n    delegationHint\n    retired\n    voiceEnabled\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

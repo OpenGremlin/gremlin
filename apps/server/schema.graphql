@@ -21,6 +21,8 @@ type Query {
   pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
   "Build TTS audio URLs for a completed agent log message, one per sentence"
   speechUrls(logId: ID!): [String!]!
+  "Build TTS audio URLs for arbitrary text using an agent's voice config"
+  documentSpeechUrls(text: String!, agentId: ID!): [String!]!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!
@@ -449,6 +451,7 @@ type Agent {
   role: String
   delegationHint: String
   retired: Boolean!
+  voiceEnabled: Boolean!
   ttsVoice: String
   config: AgentConfig
 }

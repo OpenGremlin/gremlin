@@ -1,5 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 import type { AgentLogsQuery, FileQuery } from "../graphql/generated/graphql";
+import { DocumentReadButton } from "./DocumentReadButton";
 import { Markdown } from "./LogEntryView/Markdown";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
 import { ZoomableImage } from "./ZoomableImage";
@@ -24,6 +25,7 @@ export function FilePreview({
         className="flex-1 bg-bg px-10 py-4"
         contentContainerClassName="pb-16"
       >
+        <DocumentReadButton markdown={render.markdown} />
         <Markdown>{render.markdown}</Markdown>
       </ScrollView>
     );

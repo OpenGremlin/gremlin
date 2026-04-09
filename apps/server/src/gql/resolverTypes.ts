@@ -48,6 +48,7 @@ export type Agent = {
   retired: Scalars['Boolean']['output'];
   role?: Maybe<Scalars['String']['output']>;
   ttsVoice?: Maybe<Scalars['String']['output']>;
+  voiceEnabled: Scalars['Boolean']['output'];
 };
 
 
@@ -815,6 +816,8 @@ export type Query = {
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
   defaultSpeechModel?: Maybe<DefaultModel>;
+  /** Build TTS audio URLs for arbitrary text using an agent's voice config */
+  documentSpeechUrls: Array<Scalars['String']['output']>;
   enabledModelDetails: Array<ModelInfo>;
   enabledModels: Array<Scalars['String']['output']>;
   file?: Maybe<File>;
@@ -867,6 +870,12 @@ export type QueryAgentSkillsArgs = {
 
 export type QueryCommandAllowlistArgs = {
   agentId: Scalars['ID']['input'];
+};
+
+
+export type QueryDocumentSpeechUrlsArgs = {
+  agentId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 
@@ -1508,6 +1517,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   role?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ttsVoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  voiceEnabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type AgentConfigResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentConfig'] = ResolversParentTypes['AgentConfig']> = {
@@ -1912,6 +1922,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultSpeechModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
+  documentSpeechUrls?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryDocumentSpeechUrlsArgs, 'agentId' | 'text'>>;
   enabledModelDetails?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType, RequireFields<QueryEnabledModelDetailsArgs, 'providerId'>>;
   enabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryEnabledModelsArgs, 'providerId'>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'path'>>;

@@ -93,6 +93,12 @@ export const SpeechUrlsQuery = graphql(`
   }
 `);
 
+export const DocumentSpeechUrlsQuery = graphql(`
+  query DocumentSpeechUrls($text: String!, $agentId: ID!) {
+    documentSpeechUrls(text: $text, agentId: $agentId)
+  }
+`);
+
 export const SpeechStreamSubscription = graphql(`
   subscription SpeechStream($agentId: ID, $taskId: ID) {
     speechStream(agentId: $agentId, taskId: $taskId) {

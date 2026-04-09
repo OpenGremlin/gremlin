@@ -79,6 +79,27 @@ const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
+/** Split text into sentences and build a TTS URL for each. */
+function textToSpeechUrls(
+  text: string,
+  voice: string | undefined,
+  connectionId: string,
+  baseUrl: string,
+): string[] {
+  const acc = new SentenceAccumulator();
+  const sentences = acc.push(text);
+  const last = acc.flush();
+  if (last) sentences.push(last);
+
+  const urls: string[] = [];
+  for (const sentence of sentences) {
+    const cleaned = stripMarkdownForSpeech(sentence);
+    if (!cleaned) continue;
+    urls.push(buildSpeechUrl(baseUrl, { text: cleaned, voice, connectionId }));
+  }
+  return urls;
+}
+
 const speechUrls = async (
   _parent: unknown,
   { logId }: { logId: string },
@@ -100,22 +121,34 @@ const speechUrls = async (
   );
   if (!connectionId) return [];
 
-  // Split into sentences using the same accumulator as streaming TTS
-  const acc = new SentenceAccumulator();
-  const sentences = acc.push(log.content);
-  const last = acc.flush();
-  if (last) sentences.push(last);
+  return textToSpeechUrls(
+    log.content,
+    agent.config.speech.voice,
+    connectionId,
+    ctx.serverBaseUrl,
+  );
+};
 
-  const voice = agent.config.speech.voice;
-  const urls: string[] = [];
-  for (const sentence of sentences) {
-    const cleaned = stripMarkdownForSpeech(sentence);
-    if (!cleaned) continue;
-    urls.push(
-      buildSpeechUrl(ctx.serverBaseUrl, { text: cleaned, voice, connectionId }),
-    );
-  }
-  return urls;
+const documentSpeechUrls = async (
+  _parent: unknown,
+  { text, agentId }: { text: string; agentId: string },
+  ctx: GremlinContext,
+): Promise<string[]> => {
+  const agent = await ctx.loaders.agentLoader.load(agentId);
+  if (!agent?.config?.speech?.enabled) return [];
+
+  const connectionId = await getSpeechConnectionId(
+    ctx,
+    agent.config.speechModel,
+  );
+  if (!connectionId) return [];
+
+  return textToSpeechUrls(
+    text,
+    agent.config.speech.voice,
+    connectionId,
+    ctx.serverBaseUrl,
+  );
 };
 
 const pendingInboxMessages = async (
@@ -216,7 +249,13 @@ const speechStream = {
 };
 
 export const agentLogResolvers = {
-  Query: { agentLogs, taskLogs, pendingInboxMessages, speechUrls },
+  Query: {
+    agentLogs,
+    taskLogs,
+    pendingInboxMessages,
+    speechUrls,
+    documentSpeechUrls,
+  },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {

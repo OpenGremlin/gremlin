@@ -70,9 +70,12 @@ const agentsUpdated = {
 
 const retired: AgentResolvers["retired"] = (parent) => parent.retired ?? false;
 
+const voiceEnabled: AgentResolvers["voiceEnabled"] = (parent) =>
+  !!parent.config?.speech?.enabled;
+
 export const agentResolvers = {
   Query: { agents, agent },
   Mutation: { createAgent, updateAgent, retireAgent, unretireAgent },
-  Agent: { imageUrl, retired },
+  Agent: { imageUrl, retired, voiceEnabled },
   Subscription: { agentUpdated, agentsUpdated },
 };

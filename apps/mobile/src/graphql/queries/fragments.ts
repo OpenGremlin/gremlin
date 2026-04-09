@@ -47,6 +47,7 @@ export const AgentSummary = graphql(`
     role
     delegationHint
     retired
+    voiceEnabled
   }
 `);
 

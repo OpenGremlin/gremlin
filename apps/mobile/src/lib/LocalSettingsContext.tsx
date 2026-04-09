@@ -9,15 +9,20 @@ import {
 import { storage } from "./storage";
 
 const VOICE_MODE_KEY = "gremlin_voice_mode";
+const DOC_READER_KEY = "gremlin_document_reader";
 
 interface LocalSettings {
   voiceEnabled: boolean;
   toggleVoice: () => void;
+  documentReaderId: string | null;
+  setDocumentReaderId: (id: string) => void;
 }
 
 const LocalSettingsContext = createContext<LocalSettings>({
   voiceEnabled: false,
   toggleVoice: () => {},
+  documentReaderId: null,
+  setDocumentReaderId: () => {},
 });
 
 export function LocalSettingsProvider({
@@ -26,10 +31,16 @@ export function LocalSettingsProvider({
   children: React.ReactNode;
 }) {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [documentReaderId, setDocumentReaderIdState] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     storage.getItem(VOICE_MODE_KEY).then((voice) => {
       if (voice === "true") setVoiceEnabled(true);
+    });
+    storage.getItem(DOC_READER_KEY).then((id) => {
+      if (id) setDocumentReaderIdState(id);
     });
   }, []);
 
@@ -41,9 +52,19 @@ export function LocalSettingsProvider({
     });
   }, []);
 
+  const setDocumentReaderId = useCallback((id: string) => {
+    setDocumentReaderIdState(id);
+    storage.setItem(DOC_READER_KEY, id);
+  }, []);
+
   const value = useMemo(
-    () => ({ voiceEnabled, toggleVoice }),
-    [voiceEnabled, toggleVoice],
+    () => ({
+      voiceEnabled,
+      toggleVoice,
+      documentReaderId,
+      setDocumentReaderId,
+    }),
+    [voiceEnabled, toggleVoice, documentReaderId, setDocumentReaderId],
   );
 
   return (

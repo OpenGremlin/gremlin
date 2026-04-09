@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { SpeechStreamSubscription } from "../graphql/queries";
 import { useAuth } from "./AuthContext";
@@ -19,11 +20,23 @@ interface VoiceContextValue {
   unsubscribe: () => void;
   /** Play an ordered array of audio URLs using the double-buffered queue. */
   playUrls: (urls: string[]) => void;
+  /** Pause playback without clearing the queue. */
+  pause: () => void;
+  /** Resume playback from where it was paused. */
+  resume: () => void;
+  /** Whether audio is currently playing (not paused). */
+  playing: boolean;
+  /** Whether playback is paused (can be resumed). */
+  paused: boolean;
 }
 
 const VoiceContext = createContext<VoiceContextValue>({
   subscribe: () => {},
   playUrls: () => {},
+  pause: () => {},
+  resume: () => {},
+  playing: false,
+  paused: false,
   unsubscribe: () => {},
 });
 
@@ -46,6 +59,10 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   const { voiceEnabled } = useLocalSettings();
   const { token } = useAuth();
   const client = useApolloClient();
+
+  // Reactive playing/paused state for UI consumers
+  const [playing, setPlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   // Two players for double-buffering
   const playerA = useAudioPlayer(null);
@@ -96,6 +113,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     state.current.active = null;
     state.current.onDeck = null;
     state.current.onDeckLoaded = false;
+    setPlaying(false);
+    setPaused(false);
   }, []);
 
   /** Try to pre-load the next sentence into the on-deck player. */
@@ -142,6 +161,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         s.isPlaying = false;
+        setPlaying(false);
+        setPaused(false);
       }
     }
   }, [bufferNext, makeSource]);
@@ -159,6 +180,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     s.onDeckLoaded = false;
     preload(playerA, makeSource(url));
     playerA.play();
+    setPlaying(true);
     // Pre-load next sentence into the on-deck player
     bufferNext();
   }, [playerA, playerB, makeSource, bufferNext]);
@@ -331,9 +353,35 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const pause = useCallback(() => {
+    if (!state.current.isPlaying) return;
+    state.current.active?.pause();
+    state.current.isPlaying = false;
+    setPlaying(false);
+    setPaused(true);
+  }, []);
+
+  const resume = useCallback(() => {
+    if (state.current.isPlaying) return;
+    if (state.current.active) {
+      state.current.isPlaying = true;
+      state.current.active.play();
+      setPlaying(true);
+      setPaused(false);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ subscribe, unsubscribe, playUrls }),
-    [subscribe, unsubscribe, playUrls],
+    () => ({
+      subscribe,
+      unsubscribe,
+      playUrls,
+      pause,
+      resume,
+      playing,
+      paused,
+    }),
+    [subscribe, unsubscribe, playUrls, pause, resume, playing, paused],
   );
 
   return (
