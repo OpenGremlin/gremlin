@@ -329,7 +329,11 @@ export default function AgentConfigScreen() {
                             : "bg-surface border-app-border"
                         }`}
                       >
-                        <AgentAvatar id={member.id} size={36} />
+                        <AgentAvatar
+                          id={member.id}
+                          size={36}
+                          hideManagerBadge
+                        />
                         <View className="flex-1 min-w-0">
                           <Text
                             className="text-sm font-medium text-text-primary"

@@ -44,7 +44,7 @@ export const AgentSummary = graphql(`
   fragment AgentSummary on Agent {
     id
     name
-    personality
+    role
     delegationHint
     retired
   }
