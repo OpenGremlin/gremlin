@@ -67,6 +67,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "@sentry/react-native/expo",
       "expo-router",
       "expo-secure-store",
       [
