@@ -161,6 +161,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         s.isPlaying = false;
+        s.active = null;
+        s.onDeck = null;
         setPlaying(false);
         setPaused(false);
       }
@@ -188,12 +190,20 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   // Native: advance on didJustFinish
   useEffect(() => {
     const subA = playerA.addListener("playbackStatusUpdate", (status) => {
-      if (status.didJustFinish && state.current.active === playerA) {
+      if (
+        status.didJustFinish &&
+        state.current.isPlaying &&
+        state.current.active === playerA
+      ) {
         advance();
       }
     });
     const subB = playerB.addListener("playbackStatusUpdate", (status) => {
-      if (status.didJustFinish && state.current.active === playerB) {
+      if (
+        status.didJustFinish &&
+        state.current.isPlaying &&
+        state.current.active === playerB
+      ) {
         advance();
       }
     });
