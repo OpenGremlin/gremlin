@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAgentStream } from "../../hooks/useAgentStream";
+import { useBubbleTTS } from "../../hooks/useBubbleTTS";
 import { useChatSend } from "../../hooks/useChatSend";
 import { useFileUpload } from "../../hooks/useFileUpload";
 import {
@@ -93,6 +94,10 @@ export function ChatScreen({
   // Sentence-streaming TTS — subscribes to speech events for this lane.
   // Reads voiceEnabled internally to avoid re-rendering the chat tree on toggle.
   useSpeechStream(scope);
+
+  // Long-press-to-TTS for completed agent bubbles
+  const { speechAvailable, handleLongPress: onBubbleLongPress } =
+    useBubbleTTS(agentId);
 
   const onLogCreated = useCallback(
     (logId: string) => {
@@ -288,10 +293,11 @@ export function ChatScreen({
           agentId={agentId}
           showTimestamp={show}
           sandboxStreams={sandboxStreams}
+          onBubbleLongPress={speechAvailable ? onBubbleLongPress : undefined}
         />
       );
     },
-    [agentId, sandboxStreams],
+    [agentId, sandboxStreams, speechAvailable, onBubbleLongPress],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);

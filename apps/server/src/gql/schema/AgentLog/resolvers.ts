@@ -5,7 +5,11 @@ import type {
   SpeechAudioEvent,
 } from "@opengremlin/lib/resources/pubsub.js";
 import { computeDisplayHint } from "@opengremlin/lib/services/orchestrator/displayHint.js";
+import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/model.js";
+import { cleanTextForSpeech } from "@opengremlin/lib/services/speech/cleanTextForSpeech.js";
+import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
+import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentLogEdgeResolvers,
@@ -73,6 +77,37 @@ const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
   resolveFiles(extractFilePaths(parent.attachments), ctx.serverBaseUrl);
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
+
+const speechUrl = async (
+  _parent: unknown,
+  { logId }: { logId: string },
+  ctx: GremlinContext,
+): Promise<string | null> => {
+  const { Item: log } = await ctx.resources.ddb.entities.AgentLog.build(
+    GetItemCommand,
+  )
+    .key({ id: logId })
+    .send();
+  if (!log || log.role !== "AGENT") return null;
+
+  const agent = await ctx.loaders.agentLoader.load(log.agentId);
+  if (!agent?.config?.speech?.enabled) return null;
+
+  const connectionId = await getSpeechConnectionId(
+    ctx,
+    agent.config.speechModel,
+  );
+  if (!connectionId) return null;
+
+  const cleaned = cleanTextForSpeech(log.content);
+  if (!cleaned) return null;
+
+  return buildSpeechUrl(ctx.serverBaseUrl, {
+    text: cleaned,
+    voice: agent.config.speech.voice,
+    connectionId,
+  });
+};
 
 const pendingInboxMessages = async (
   _parent: unknown,
@@ -172,7 +207,7 @@ const speechStream = {
 };
 
 export const agentLogResolvers = {
-  Query: { agentLogs, taskLogs, pendingInboxMessages },
+  Query: { agentLogs, taskLogs, pendingInboxMessages, speechUrl },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {

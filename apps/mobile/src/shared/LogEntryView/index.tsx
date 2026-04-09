@@ -20,7 +20,7 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { AgentLogRole } from "../../graphql/generated/graphql";
 import type { ChatMessage } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
@@ -378,11 +378,14 @@ export const LogEntryView = React.memo(function LogEntryView({
   agentId,
   showTimestamp,
   sandboxStreams,
+  onBubbleLongPress,
 }: {
   message: ChatMessage;
   agentId: string;
   showTimestamp: boolean;
   sandboxStreams?: Map<string, CommandStream>;
+  /** Long-press handler for agent bubbles (TTS). Omit to disable. */
+  onBubbleLongPress?: (logId: string) => void;
 }) {
   const colors = useNavigationTheme();
 
@@ -401,12 +404,25 @@ export const LogEntryView = React.memo(function LogEntryView({
 
   if (message.role === AgentLogRole.Agent) {
     const files = "files" in message ? (message.files ?? []) : [];
+    const bubble = (
+      <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+        <Markdown variant="agent">{message.content}</Markdown>
+      </View>
+    );
     return (
       <View className="py-2">
         <View className="flex-row justify-start">
-          <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
-            <Markdown variant="agent">{message.content}</Markdown>
-          </View>
+          {onBubbleLongPress ? (
+            <Pressable
+              onLongPress={() => onBubbleLongPress(message.id)}
+              delayLongPress={400}
+              className="max-w-[85%]"
+            >
+              {bubble}
+            </Pressable>
+          ) : (
+            bubble
+          )}
         </View>
         {files.length > 0 && (
           <View className="mt-1.5 gap-1 max-w-[85%]">

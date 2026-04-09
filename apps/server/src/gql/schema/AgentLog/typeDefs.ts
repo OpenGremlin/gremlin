@@ -53,6 +53,8 @@ export const agentLogTypeDefs = /* GraphQL */ `
     agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
     taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
     pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
+    "Build a TTS audio URL for a completed agent log message"
+    speechUrl(logId: ID!): String
   }
 
   type PendingInboxMessage {
