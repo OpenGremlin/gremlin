@@ -67,7 +67,13 @@
       "bundler": "metro"
     },
     "plugins": [
-      "@sentry/react-native/expo",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "opengremlin",
+          "project": "react-native"
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       [
