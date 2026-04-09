@@ -86,8 +86,11 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
 
-  const { streaming: streamingMessage, dismiss: dismissStream } =
-    useAgentStream(agentId, taskId ?? null);
+  const {
+    streaming: streamingMessage,
+    lastReasoning,
+    dismiss: dismissStream,
+  } = useAgentStream(agentId, taskId ?? null);
 
   const scope = taskId ? { taskId } : { agentId };
 
@@ -293,10 +296,13 @@ export function ChatScreen({
           showTimestamp={show}
           sandboxStreams={sandboxStreams}
           onBubbleLongPress={onBubbleLongPress}
+          reasoning={
+            lastReasoning?.logId === item.id ? lastReasoning : undefined
+          }
         />
       );
     },
-    [agentId, sandboxStreams, onBubbleLongPress],
+    [agentId, sandboxStreams, onBubbleLongPress, lastReasoning],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);

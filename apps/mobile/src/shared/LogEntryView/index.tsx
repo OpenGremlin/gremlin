@@ -35,6 +35,7 @@ import { DelegateCard } from "./DelegateCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
+import { ReasoningBlock } from "./ReasoningBlock";
 import {
   isKnownTool,
   resolveToolFields,
@@ -379,6 +380,7 @@ export const LogEntryView = React.memo(function LogEntryView({
   showTimestamp,
   sandboxStreams,
   onBubbleLongPress,
+  reasoning,
 }: {
   message: ChatMessage;
   agentId: string;
@@ -386,6 +388,8 @@ export const LogEntryView = React.memo(function LogEntryView({
   sandboxStreams?: Map<string, CommandStream>;
   /** Long-press handler for agent bubbles (copy + TTS). */
   onBubbleLongPress?: (logId: string, content: string) => void;
+  /** Ephemeral reasoning from the stream (not persisted). */
+  reasoning?: { logId: string; text: string; elapsedMs: number };
 }) {
   const colors = useNavigationTheme();
 
@@ -406,6 +410,12 @@ export const LogEntryView = React.memo(function LogEntryView({
     const files = "files" in message ? (message.files ?? []) : [];
     const bubble = (
       <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+        {reasoning?.text ? (
+          <ReasoningBlock
+            reasoning={reasoning.text}
+            elapsedMs={reasoning.elapsedMs}
+          />
+        ) : null}
         <Markdown variant="agent">{message.content}</Markdown>
       </View>
     );

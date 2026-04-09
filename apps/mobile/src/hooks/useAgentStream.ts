@@ -6,6 +6,11 @@ export interface StreamingMessage {
   logId: string;
   taskId: string | null;
   content: string;
+  reasoning: string;
+  /** Timestamp (ms) when the first reasoning delta arrived. */
+  reasoningStartedAt: number | null;
+  /** Timestamp (ms) when reasoning finished (first text delta arrived). */
+  reasoningEndedAt: number | null;
 }
 
 /**
@@ -15,16 +20,30 @@ export interface StreamingMessage {
  * The streaming bubble stays visible until `dismiss(logId)` is called —
  * typically when `useLogMessages` receives the final log entry with the
  * same ID, preventing a flicker between stream-end and log-arrival.
+ *
+ * When dismissed, `lastReasoning` retains the reasoning text so the
+ * final log bubble can still display it even though it's not persisted.
  */
 export function useAgentStream(
   agentId: string,
   taskId?: string | null,
 ): {
   streaming: StreamingMessage | null;
+  /** Reasoning from the most recently completed stream, keyed by logId. */
+  lastReasoning: { logId: string; text: string; elapsedMs: number } | null;
   dismiss: (logId: string) => void;
 } {
   const [streaming, setStreaming] = useState<StreamingMessage | null>(null);
-  const bufferRef = useRef("");
+  const [lastReasoning, setLastReasoning] = useState<{
+    logId: string;
+    text: string;
+    elapsedMs: number;
+  } | null>(null);
+
+  const textBufferRef = useRef("");
+  const reasoningBufferRef = useRef("");
+  const reasoningStartRef = useRef<number | null>(null);
+  const reasoningEndRef = useRef<number | null>(null);
   const taskIdRef = useRef(taskId);
   taskIdRef.current = taskId;
 
@@ -45,12 +64,30 @@ export function useAgentStream(
         return;
       }
 
-      // Accumulate text
-      bufferRef.current += event.delta;
+      if (event.kind === "reasoning") {
+        // Track when reasoning started
+        if (reasoningStartRef.current === null) {
+          reasoningStartRef.current = Date.now();
+        }
+        reasoningBufferRef.current += event.delta;
+      } else {
+        // First text delta marks the end of reasoning
+        if (
+          reasoningStartRef.current !== null &&
+          reasoningEndRef.current === null
+        ) {
+          reasoningEndRef.current = Date.now();
+        }
+        textBufferRef.current += event.delta;
+      }
+
       setStreaming({
         logId: event.logId,
         taskId: event.taskId ?? null,
-        content: bufferRef.current,
+        content: textBufferRef.current,
+        reasoning: reasoningBufferRef.current,
+        reasoningStartedAt: reasoningStartRef.current,
+        reasoningEndedAt: reasoningEndRef.current,
       });
     },
   });
@@ -58,12 +95,27 @@ export function useAgentStream(
   const dismiss = useCallback((logId: string) => {
     setStreaming((prev) => {
       if (prev?.logId === logId) {
-        bufferRef.current = "";
+        // Preserve reasoning for the final log bubble
+        if (prev.reasoning) {
+          const elapsed =
+            prev.reasoningEndedAt && prev.reasoningStartedAt
+              ? prev.reasoningEndedAt - prev.reasoningStartedAt
+              : 0;
+          setLastReasoning({
+            logId,
+            text: prev.reasoning,
+            elapsedMs: elapsed,
+          });
+        }
+        textBufferRef.current = "";
+        reasoningBufferRef.current = "";
+        reasoningStartRef.current = null;
+        reasoningEndRef.current = null;
         return null;
       }
       return prev;
     });
   }, []);
 
-  return { streaming, dismiss };
+  return { streaming, lastReasoning, dismiss };
 }

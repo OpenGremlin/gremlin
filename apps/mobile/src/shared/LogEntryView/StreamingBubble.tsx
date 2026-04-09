@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
 import type { StreamingMessage } from "../../hooks/useAgentStream";
 import { Markdown } from "./Markdown";
+import { ReasoningBlock } from "./ReasoningBlock";
 
 const dotStyle = {
   width: 8,
@@ -60,15 +61,30 @@ function TypingDots() {
 
 export function StreamingBubble({ message }: { message: StreamingMessage }) {
   const hasContent = message.content.length > 0;
+  const hasReasoning = message.reasoning.length > 0;
+  // Reasoning is "still streaming" if we have reasoning but no text yet
+  const isReasoningStreaming = hasReasoning && !hasContent;
+
+  const elapsedMs =
+    message.reasoningEndedAt && message.reasoningStartedAt
+      ? message.reasoningEndedAt - message.reasoningStartedAt
+      : null;
 
   return (
     <View className="py-2">
       <View className="flex-row justify-start">
         <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+          {hasReasoning && (
+            <ReasoningBlock
+              reasoning={message.reasoning}
+              isStreaming={isReasoningStreaming}
+              elapsedMs={elapsedMs}
+            />
+          )}
           {hasContent ? (
             <Markdown variant="agent">{message.content}</Markdown>
           ) : (
-            <TypingDots />
+            !hasReasoning && <TypingDots />
           )}
         </View>
       </View>

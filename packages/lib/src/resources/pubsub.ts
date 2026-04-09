@@ -19,6 +19,8 @@ export interface AgentStreamEvent {
   taskId: string | null;
   delta: string;
   done: boolean;
+  /** "text" (default) or "reasoning" */
+  kind?: string;
 }
 
 export interface SpeechAudioEvent {

@@ -83,6 +83,7 @@ export const AgentStreamSubscription = graphql(`
       taskId
       delta
       done
+      kind
     }
   }
 `);
