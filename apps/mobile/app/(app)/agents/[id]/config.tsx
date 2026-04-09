@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
-import { Check, Pencil } from "lucide-react-native";
+import { Check, Crown, Pencil } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
@@ -288,82 +288,91 @@ export default function AgentConfigScreen() {
       </View>
 
       {!agent.retired && (
-        <Card className="px-4 py-4 gap-3">
-          <View className="flex-row items-center justify-between gap-3">
-            <View className="flex-1">
-              <Text className="text-base font-bold text-text-secondary">
-                Enable Manager Mode
-              </Text>
-              <Text className="text-xs text-text-muted">
-                Lets this agent delegate tasks to a chosen team.
-              </Text>
+        <Card className="overflow-hidden">
+          <View className="flex-row px-4 py-3 gap-3">
+            <View className="w-[18px] pt-0.5">
+              <Crown size={18} color="#F5C518" fill="#F5C518" strokeWidth={2} />
             </View>
-            <Toggle
-              enabled={managerEnabled}
-              onChange={() => setManagerEnabled((v) => !v)}
-            />
-          </View>
+            <View className="flex-1 gap-3">
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-1">
+                  <Text className="text-base font-bold text-text-secondary">
+                    Manager Mode
+                  </Text>
+                  <Text className="text-xs text-text-muted">
+                    Lets this agent delegate tasks to a chosen team.
+                  </Text>
+                </View>
+                <Toggle
+                  enabled={managerEnabled}
+                  onChange={() => setManagerEnabled((v) => !v)}
+                />
+              </View>
 
-          {managerEnabled && (
-            <View className="gap-2 mt-1">
-              <Text className="text-xs font-medium text-text-secondary uppercase tracking-wide">
-                Team
-              </Text>
-              {allAgentsResult.loading && teamCandidates.length === 0 ? (
-                <Text className="text-xs text-text-muted">Loading agents…</Text>
-              ) : teamCandidates.length === 0 ? (
-                <Text className="text-xs text-text-muted">
-                  No other agents available.
-                </Text>
-              ) : (
-                <View className="gap-1">
-                  {teamCandidates.map((member) => {
-                    const selected = team.includes(member.id);
-                    return (
-                      <Pressable
-                        key={member.id}
-                        onPress={() => toggleTeamMember(member.id)}
-                        className={`flex-row items-center gap-3 px-3 py-2.5 rounded-lg border ${
-                          selected
-                            ? "bg-accent-surface border-accent"
-                            : "bg-surface border-app-border"
-                        }`}
-                      >
-                        <AgentAvatar
-                          id={member.id}
-                          size={36}
-                          hideManagerBadge
-                        />
-                        <View className="flex-1 min-w-0">
-                          <Text
-                            className="text-sm font-medium text-text-primary"
-                            numberOfLines={1}
+              {managerEnabled && (
+                <View className="gap-2">
+                  <Text className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                    Team
+                  </Text>
+                  {allAgentsResult.loading && teamCandidates.length === 0 ? (
+                    <Text className="text-xs text-text-muted">
+                      Loading agents…
+                    </Text>
+                  ) : teamCandidates.length === 0 ? (
+                    <Text className="text-xs text-text-muted">
+                      No other agents available.
+                    </Text>
+                  ) : (
+                    <View className="gap-1">
+                      {teamCandidates.map((member) => {
+                        const selected = team.includes(member.id);
+                        return (
+                          <Pressable
+                            key={member.id}
+                            onPress={() => toggleTeamMember(member.id)}
+                            className={`flex-row items-center gap-3 px-3 py-2.5 rounded-lg border ${
+                              selected
+                                ? "bg-accent-surface border-accent"
+                                : "bg-surface border-app-border"
+                            }`}
                           >
-                            {member.name}
-                          </Text>
-                          {member.delegationHint ? (
-                            <Text
-                              className="text-xs text-text-muted mt-0.5"
-                              numberOfLines={2}
-                            >
-                              {member.delegationHint}
-                            </Text>
-                          ) : (
-                            <Text className="text-xs text-text-muted italic mt-0.5">
-                              No hint set
-                            </Text>
-                          )}
-                        </View>
-                        {selected && (
-                          <Check size={18} color={colors.headerText} />
-                        )}
-                      </Pressable>
-                    );
-                  })}
+                            <AgentAvatar
+                              id={member.id}
+                              size={36}
+                              hideManagerBadge
+                            />
+                            <View className="flex-1 min-w-0">
+                              <Text
+                                className="text-sm font-medium text-text-primary"
+                                numberOfLines={1}
+                              >
+                                {member.name}
+                              </Text>
+                              {member.delegationHint ? (
+                                <Text
+                                  className="text-xs text-text-muted mt-0.5"
+                                  numberOfLines={2}
+                                >
+                                  {member.delegationHint}
+                                </Text>
+                              ) : (
+                                <Text className="text-xs text-text-muted italic mt-0.5">
+                                  No hint set
+                                </Text>
+                              )}
+                            </View>
+                            {selected && (
+                              <Check size={18} color={colors.headerText} />
+                            )}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               )}
             </View>
-          )}
+          </View>
         </Card>
       )}
 
