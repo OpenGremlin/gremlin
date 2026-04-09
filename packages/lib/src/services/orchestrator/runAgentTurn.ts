@@ -210,13 +210,14 @@ export async function runAgentTurn(
   // Pre-generate ID so the client can correlate stream deltas → final log entry
   const streamLogId = crypto.randomUUID();
 
-  const publishDelta = (delta: string, done: boolean) => {
+  const publishDelta = (delta: string, done: boolean, kind?: string) => {
     ctx.resources.pubsub.publish(`agentStream:${opts.agentId}`, {
       logId: streamLogId,
       agentId: opts.agentId,
       taskId: opts.taskId,
       delta,
       done,
+      kind,
     });
   };
 
@@ -281,7 +282,9 @@ export async function runAgentTurn(
     providerOptions: providerOptions as any,
     onStepFinish,
     onChunk: ({ chunk }) => {
-      if (chunk.type === "text-delta" && chunk.text) {
+      if (chunk.type === "reasoning-delta" && chunk.text) {
+        publishDelta(chunk.text, false, "reasoning");
+      } else if (chunk.type === "text-delta" && chunk.text) {
         publishDelta(chunk.text, false);
 
         if (sentenceAccumulator) {

@@ -80,6 +80,8 @@ export const agentLogTypeDefs = /* GraphQL */ `
     taskId: String
     delta: String!
     done: Boolean!
+    "text (default) or reasoning"
+    kind: String
   }
 
   type SpeechAudioChunk {

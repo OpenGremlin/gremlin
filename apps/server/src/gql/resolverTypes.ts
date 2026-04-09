@@ -228,6 +228,8 @@ export type AgentStreamDelta = {
   agentId: Scalars['ID']['output'];
   delta: Scalars['String']['output'];
   done: Scalars['Boolean']['output'];
+  /** text (default) or reasoning */
+  kind?: Maybe<Scalars['String']['output']>;
   logId: Scalars['ID']['output'];
   taskId?: Maybe<Scalars['String']['output']>;
 };
@@ -1625,6 +1627,7 @@ export type AgentStreamDeltaResolvers<ContextType = GremlinContext, ParentType e
   agentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   delta?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   done?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  kind?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   logId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
