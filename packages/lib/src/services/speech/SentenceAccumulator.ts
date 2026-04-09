@@ -1,3 +1,8 @@
+import {
+  cleanCodeForSpeech,
+  linearizeTable,
+} from "./stripMarkdownForSpeech.js";
+
 /** Common abbreviations that end with a period but don't end a sentence. */
 const ABBREVIATIONS = new Set([
   "dr",
@@ -29,10 +34,12 @@ const TWO_LETTER_ABBREVS = new Set(["ie", "eg", "al"]);
  * sentences suitable for TTS synthesis.
  *
  * Handles markdown structures:
- * - Fenced code blocks (```) → emits "Here's a code block."
- * - Tables (lines with | separators) → emits "Here's a table."
+ * - Fenced code blocks (```) → cleans code for speech
+ * - Tables (lines with | separators) → linearizes with header context
  */
-const MIN_WORDS = 5;
+const MIN_WORDS_FIRST = 5;
+const MIN_WORDS_SUBSEQUENT = 40;
+const MAX_WORDS = 200;
 
 function wordCount(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
@@ -41,9 +48,11 @@ function wordCount(text: string): number {
 export class SentenceAccumulator {
   private buffer = "";
   private inCodeBlock = false;
-  private tableLineCount = 0;
+  private tableLines: string[] = [];
   /** Holds completed sentences that are too short to emit on their own. */
   private pending = "";
+  /** Whether we've emitted at least one chunk. */
+  private emittedFirst = false;
 
   /**
    * Feed a token (one or more characters) from the stream.
@@ -60,18 +69,26 @@ export class SentenceAccumulator {
    * Returns null if the buffer is empty.
    */
   flush(): string | null {
-    // Handle unterminated code block
+    // Handle unterminated code block — clean and emit buffered code
     if (this.inCodeBlock) {
+      const code = cleanCodeForSpeech(
+        this.buffer.replace(/^[a-z]{1,15}\n/i, ""),
+      );
       this.buffer = "";
       this.inCodeBlock = false;
-      return this.flushPending("Here's a code block.");
+      return this.flushPending(code || null);
     }
 
-    // Handle unterminated table
-    if (this.tableLineCount > 0) {
+    // Handle unterminated table — linearize collected rows
+    if (this.tableLines.length > 0) {
+      // Include any remaining partial line in the buffer
+      if (this.buffer.trim() && this.isTableLine(this.buffer.trim())) {
+        this.tableLines.push(this.buffer.trim());
+      }
+      const table = linearizeTable(this.tableLines);
       this.buffer = "";
-      this.tableLineCount = 0;
-      return this.flushPending("Here's a table.");
+      this.tableLines = [];
+      return this.flushPending(table || null);
     }
 
     const text = this.buffer.trim();
@@ -92,16 +109,23 @@ export class SentenceAccumulator {
   }
 
   /**
-   * Buffer sentences until the combined pending text reaches MIN_WORDS,
-   * then emit them as a single chunk.
+   * Buffer sentences until the combined pending text reaches the adaptive
+   * minimum word threshold, then emit them as a single chunk.
+   *
+   * First chunk uses a small threshold for low initial latency.
+   * Subsequent chunks accumulate more words for smoother playback flow.
+   * A hard cap prevents any single chunk from growing too large.
    */
   private applyMinWords(sentences: string[]): string[] {
     const out: string[] = [];
     for (const s of sentences) {
       this.pending = this.pending ? `${this.pending} ${s}` : s;
-      if (wordCount(this.pending) >= MIN_WORDS) {
+      const min = this.emittedFirst ? MIN_WORDS_SUBSEQUENT : MIN_WORDS_FIRST;
+      const count = wordCount(this.pending);
+      if (count >= min || count >= MAX_WORDS) {
         out.push(this.pending);
         this.pending = "";
+        this.emittedFirst = true;
       }
     }
     return out;
@@ -118,12 +142,17 @@ export class SentenceAccumulator {
       if (this.inCodeBlock) {
         const closeIdx = this.buffer.indexOf("```");
         if (closeIdx === -1) break; // wait for closing fence
-        // Discard everything up to and including the closing fence
+        // Extract code content — strip leading language tag that may have
+        // arrived after fence entry during character-by-character streaming
+        const codeContent = this.buffer
+          .slice(0, closeIdx)
+          .replace(/^[a-z]{1,15}\n/i, "");
         const afterFence = this.buffer.indexOf("\n", closeIdx + 3);
         this.buffer =
           afterFence === -1 ? "" : this.buffer.slice(afterFence + 1);
         this.inCodeBlock = false;
-        sentences.push("Here's a code block.");
+        const cleaned = cleanCodeForSpeech(codeContent);
+        if (cleaned) sentences.push(cleaned);
         continue;
       }
 
@@ -164,22 +193,23 @@ export class SentenceAccumulator {
         const trimmedLine = line.trim();
 
         if (this.isTableLine(trimmedLine)) {
-          this.tableLineCount++;
+          this.tableLines.push(trimmedLine);
           this.buffer = this.buffer.slice(newlineIdx + 1);
           continue;
         }
 
-        if (this.tableLineCount > 0) {
-          // Table just ended — emit announcement
-          this.tableLineCount = 0;
-          sentences.push("Here's a table.");
+        if (this.tableLines.length > 0) {
+          // Table just ended — linearize and emit
+          const table = linearizeTable(this.tableLines);
+          this.tableLines = [];
+          if (table) sentences.push(table);
           // Don't consume the current line — it's normal text
           continue;
         }
       }
 
       // If we're mid-table and haven't seen a newline yet, wait for more input
-      if (this.tableLineCount > 0 && newlineIdx === -1) break;
+      if (this.tableLines.length > 0 && newlineIdx === -1) break;
 
       // --- Normal sentence boundary detection ---
       const extracted = this.extractSentences();

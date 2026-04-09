@@ -1,14 +1,12 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
+import { useCallback } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import {
-  FileQuery,
-  WorkspaceEntriesQuery,
-} from "../../../../src/graphql/queries";
+import { WorkspaceEntriesQuery } from "../../../../src/graphql/queries";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
-import { FilePreview } from "../../../../src/shared/FilePreview";
-import { QueryGate, QueryResult } from "../../../../src/shared/QueryResult";
+import { presentFilePager } from "../../../../src/shared/FilePager";
+import { QueryGate } from "../../../../src/shared/QueryResult";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -49,33 +47,24 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
   );
 }
 
-function FileView({ filePath }: { filePath: string }) {
-  const { data, loading, error } = useQuery(FileQuery, {
-    variables: { path: filePath },
-  });
-  const file = data?.file;
-
-  if (loading || error) {
-    return <QueryResult loading={loading} error={error} />;
-  }
-
-  if (!file) {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg p-6">
-        <Text className="text-text-muted text-sm">File not found</Text>
-      </View>
-    );
-  }
-
-  return <FilePreview render={file.render} />;
-}
-
 function DirectoryView({ dirPath }: { dirPath: string }) {
   const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(WorkspaceEntriesQuery, {
     variables: { path: dirPath },
   });
   const entries = data?.workspaceEntries ?? [];
+
+  const openFile = useCallback(
+    (entry: (typeof entries)[number]) => {
+      const fileEntries = entries.filter((e) => !e.isDirectory);
+      const initialIndex = fileEntries.findIndex((e) => e.path === entry.path);
+      presentFilePager({
+        files: fileEntries.map((e) => ({ path: e.path, name: e.name })),
+        initialIndex: Math.max(0, initialIndex),
+      });
+    },
+    [entries],
+  );
 
   return (
     <QueryGate loading={loading} error={error} data={data}>
@@ -87,7 +76,11 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
         {entries.map((entry) => (
           <Pressable
             key={entry.path}
-            onPress={() => router.replace(`/settings/files/${entry.path}`)}
+            onPress={() =>
+              entry.isDirectory
+                ? router.replace(`/settings/files/${entry.path}`)
+                : openFile(entry)
+            }
             className="flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface"
           >
             {entry.isDirectory ? (
@@ -124,19 +117,10 @@ export default function FilesScreen() {
   const workspacePath = pathParam?.join("/") ?? "";
   const segments = workspacePath ? workspacePath.split("/") : [];
 
-  // Check if this path is a file (has an extension) or directory
-  const lastSegment = segments[segments.length - 1];
-  const looksLikeFile = lastSegment?.includes(".");
-
   return (
     <View className="flex-1">
       <Breadcrumbs segments={segments} />
-
-      {looksLikeFile ? (
-        <FileView filePath={workspacePath} />
-      ) : (
-        <DirectoryView dirPath={workspacePath} />
-      )}
+      <DirectoryView dirPath={workspacePath} />
     </View>
   );
 }

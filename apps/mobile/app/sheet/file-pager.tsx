@@ -1,7 +1,9 @@
+import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -10,16 +12,80 @@ import {
   Text,
   View,
 } from "react-native";
+import { FileQuery } from "../../src/graphql/queries";
 import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
-import type { FileNode } from "../../src/shared/FilePreview";
+import type { FileNode, FileQueryNode } from "../../src/shared/FilePreview";
 import { FilePreview } from "../../src/shared/FilePreview";
 import { FilePreviewActions } from "../../src/shared/FilePreviewActions";
 import { Sheet } from "../../src/shared/Sheet";
 
+/** A lightweight entry that the pager can lazy-load render data for. */
+export interface PagerFileEntry {
+  path: string;
+  name: string;
+}
+
 export interface FilePagerSheetPayload {
-  files: FileNode[];
+  files: FileNode[] | PagerFileEntry[];
   initialIndex: number;
+}
+
+type AnyEntry = FileNode | PagerFileEntry;
+
+/** Returns true if the entry has pre-loaded render data (i.e. is a full FileNode). */
+function hasRender(entry: AnyEntry): entry is FileNode {
+  return "render" in entry && entry.render != null;
+}
+
+/** Hook that returns the full file data, either from the entry itself or via a lazy query. */
+function useResolvedFile(entry: AnyEntry): {
+  file: FileNode | FileQueryNode | null;
+  loading: boolean;
+  error: boolean;
+} {
+  const needsFetch = !hasRender(entry);
+  const { data, loading, error } = useQuery(FileQuery, {
+    variables: { path: entry.path },
+    skip: !needsFetch,
+  });
+  if (!needsFetch)
+    return { file: entry as FileNode, loading: false, error: false };
+  return { file: data?.file ?? null, loading, error: !!error };
+}
+
+/** Renders a single pager page — uses pre-loaded render data or fetches it lazily. */
+function PagerPage({
+  entry,
+  onZoomChange,
+}: {
+  entry: AnyEntry;
+  onZoomChange?: (zoomed: boolean) => void;
+}) {
+  const { file, loading, error } = useResolvedFile(entry);
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+  if (error || !file) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg p-6">
+        <Text className="text-text-muted text-sm">
+          Unable to load this file
+        </Text>
+      </View>
+    );
+  }
+  return <FilePreview render={file.render} onZoomChange={onZoomChange} />;
+}
+
+/** Header actions with resolved file data passed in from the parent. */
+function PagerActions({ file }: { file: FileNode | FileQueryNode | null }) {
+  if (!file) return null;
+  return <FilePreviewActions file={file} />;
 }
 
 /**
@@ -28,11 +94,12 @@ export interface FilePagerSheetPayload {
  * Header chevrons are a fallback for cases where horizontal swipe is
  * awkward (zoomed images, video scrubber).
  */
+
 export default function FilePagerSheet() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const payload = useSheetPayload<FilePagerSheetPayload>(id);
   const colors = useNavigationTheme();
-  const listRef = useRef<FlatList<FileNode>>(null);
+  const listRef = useRef<FlatList<AnyEntry>>(null);
   const [index, setIndex] = useState(payload?.initialIndex ?? 0);
   const [zoomed, setZoomed] = useState(false);
   // Measured size of the body. Each page needs explicit pixel dimensions
@@ -65,8 +132,13 @@ export default function FilePagerSheet() {
     listRef.current?.scrollToIndex({ index, animated: false });
   }, [size?.width]);
 
-  const files = payload?.files ?? [];
+  const files: AnyEntry[] = payload?.files ?? [];
   const current = files[index];
+  // Resolve the current entry once so the header actions share the same query
+  // as the visible page instead of firing a duplicate request.
+  const { file: resolvedCurrent } = useResolvedFile(
+    current ?? { path: "", name: "" },
+  );
 
   const onMomentumScrollEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -91,16 +163,16 @@ export default function FilePagerSheet() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: FileNode }) => (
+    ({ item }: { item: AnyEntry }) => (
       <View style={{ width: size?.width ?? 0, height: size?.height ?? 0 }}>
-        <FilePreview render={item.render} onZoomChange={setZoomed} />
+        <PagerPage entry={item} onZoomChange={setZoomed} />
       </View>
     ),
     [size],
   );
 
   const getItemLayout = useCallback(
-    (_: ArrayLike<FileNode> | null | undefined, i: number) => {
+    (_: ArrayLike<AnyEntry> | null | undefined, i: number) => {
       const w = size?.width ?? 0;
       return { length: w, offset: w * i, index: i };
     },
@@ -141,10 +213,10 @@ export default function FilePagerSheet() {
             </Pressable>
           </>
         ) : null}
-        <FilePreviewActions file={current} />
+        <PagerActions file={resolvedCurrent} />
       </View>
     );
-  }, [colors.iconDefault, current, files.length, goTo, index]);
+  }, [colors.iconDefault, resolvedCurrent, files.length, goTo, index, current]);
 
   if (!payload || !current) return null;
 

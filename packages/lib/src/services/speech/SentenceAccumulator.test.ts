@@ -137,34 +137,41 @@ describe("SentenceAccumulator", () => {
   });
 
   describe("code blocks", () => {
-    it("emits placeholder for fenced code blocks", () => {
+    it("reads code content instead of placeholder", () => {
       const text =
         "Here is some example code for you.\n```js\nconsole.log('hi');\n```\nThen we continue on with our work. ";
       expect(collect(text)).toEqual([
         "Here is some example code for you.",
-        "Here's a code block. Then we continue on with our work.",
+        "console.log 'hi' Then we continue on with our work.",
       ]);
     });
 
     it("handles unterminated code block on flush", () => {
       const acc = new SentenceAccumulator();
       acc.push("Look at this example code.\n```\nsome code here");
-      expect(acc.flush()).toBe("Here's a code block.");
+      expect(acc.flush()).toBe("some code here");
+    });
+
+    it("does not strip first line of code that looks like a word", () => {
+      const text = "Check this.\n```\nx\ny = 2\n```\nDone. ";
+      // "x" is a single-word first line — not a language tag, should be kept
+      expect(collect(text)).toEqual(["Check this. x y = 2", "Done."]);
     });
   });
 
   describe("tables", () => {
-    it("emits placeholder for tables", () => {
+    it("linearizes table with header context", () => {
       const acc = new SentenceAccumulator();
       expect(acc.push("Here is a nice data table.\n")).toEqual([
         "Here is a nice data table.",
       ]);
       expect(acc.push("| A | B |\n")).toEqual([]);
       expect(acc.push("| 1 | 2 |\n")).toEqual([]);
-      // Non-table line closes the table and the text after it
-      expect(acc.push("After the table we continue onward.\n")).toEqual([
-        "Here's a table. After the table we continue onward.",
-      ]);
+      // Non-table line closes the table — accumulated into subsequent chunk
+      expect(acc.push("After the table we continue onward.\n")).toEqual([]);
+      expect(acc.flush()).toBe(
+        "A: 1, B: 2 After the table we continue onward.",
+      );
     });
 
     it("handles unterminated table on flush", () => {
@@ -172,7 +179,72 @@ describe("SentenceAccumulator", () => {
       acc.push("Look at this.\n");
       acc.push("| X | Y |\n");
       acc.push("| 1 | 2 |\n");
-      expect(acc.flush()).toBe("Look at this. Here's a table.");
+      expect(acc.flush()).toBe("Look at this. X: 1, Y: 2");
+    });
+
+    it("linearizes multi-row table with separator", () => {
+      const acc = new SentenceAccumulator();
+      expect(acc.push("| Name | Age |\n")).toEqual([]);
+      expect(acc.push("|------|-----|\n")).toEqual([]);
+      expect(acc.push("| Alice | 30 |\n")).toEqual([]);
+      expect(acc.push("| Bob | 25 |\n")).toEqual([]);
+      // Non-table line triggers table emission as first chunk
+      expect(acc.push("Done.\n")).toEqual([
+        "Name: Alice, Age: 30. Name: Bob, Age: 25",
+      ]);
+      expect(acc.flush()).toBe("Done.");
+    });
+  });
+
+  describe("adaptive chunking", () => {
+    it("emits first chunk quickly then accumulates more for subsequent chunks", () => {
+      const acc = new SentenceAccumulator();
+      // First chunk emits at 5+ words
+      expect(acc.push("The quick brown fox jumps. ")).toEqual([
+        "The quick brown fox jumps.",
+      ]);
+      // Subsequent sentences are held until 40+ words
+      expect(
+        acc.push(
+          "Short sentence here. Another one here. And one more sentence. ",
+        ),
+      ).toEqual([]);
+      // Still accumulating — not yet at 40 words
+      expect(
+        acc.push(
+          "We keep going with more and more words to fill the buffer up past the subsequent threshold limit. ",
+        ),
+      ).toEqual([]);
+      // This push crosses 40 words total (10 + 15 + 17 = 42)
+      expect(
+        acc.push(
+          "Finally we have reached enough accumulated words to emit this much bigger subsequent chunk of text now. ",
+        ),
+      ).toEqual([
+        "Short sentence here. Another one here. And one more sentence. We keep going with more and more words to fill the buffer up past the subsequent threshold limit. Finally we have reached enough accumulated words to emit this much bigger subsequent chunk of text now.",
+      ]);
+    });
+
+    it("caps chunks at MAX_WORDS even if subsequent threshold is not met", () => {
+      const acc = new SentenceAccumulator();
+      // Emit first chunk to switch to subsequent mode
+      expect(acc.push("The quick brown fox jumps. ")).toEqual([
+        "The quick brown fox jumps.",
+      ]);
+      // Feed a single very long sentence (200+ words) with no boundary
+      const longSentence = `${Array.from({ length: 201 }, (_, i) => `word${i}`).join(" ")}. `;
+      const result = acc.push(longSentence);
+      expect(result).toHaveLength(1);
+      expect(
+        result[0]?.split(/\s+/).filter(Boolean).length,
+      ).toBeGreaterThanOrEqual(200);
+    });
+
+    it("flush emits remaining accumulated text", () => {
+      const acc = new SentenceAccumulator();
+      acc.push("First chunk with enough words here. ");
+      acc.push("Second sentence. ");
+      expect(acc.flush()).toBe("Second sentence.");
     });
   });
 
