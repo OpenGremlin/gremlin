@@ -409,7 +409,7 @@ export const LogEntryView = React.memo(function LogEntryView({
   if (message.role === AgentLogRole.Agent) {
     const files = "files" in message ? (message.files ?? []) : [];
     const bubble = (
-      <View className="max-w-[85%] bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
+      <View className="bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
         {reasoning?.text ? (
           <ReasoningBlock
             reasoning={reasoning.text}
@@ -431,7 +431,7 @@ export const LogEntryView = React.memo(function LogEntryView({
               {bubble}
             </Pressable>
           ) : (
-            bubble
+            <View className="max-w-[85%]">{bubble}</View>
           )}
         </View>
         {files.length > 0 && (
