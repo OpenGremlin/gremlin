@@ -45,7 +45,7 @@ export const AgentSummary = graphql(`
     id
     name
     personality
-    purpose
+    delegationHint
     retired
   }
 `);
@@ -59,7 +59,7 @@ export const AgentDetailFragment = graphql(`
     imageUrl(width: 200)
     personality
     role
-    purpose
+    delegationHint
     retired
     ttsVoice
     config {

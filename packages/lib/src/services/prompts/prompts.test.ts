@@ -176,6 +176,38 @@ describe("renderSystemPrompt", () => {
     const result = renderSystemPrompt(baseData, allOff);
     expect(result).not.toContain("About them:");
   });
+
+  it("renders manager team roster with delegationHint when available", () => {
+    const result = renderSystemPrompt(
+      {
+        ...baseData,
+        manager: {
+          team: [
+            {
+              id: "researcher",
+              name: "Researcher",
+              delegationHint: "Web research and summarization",
+              skillBlurb: "brave-search",
+            },
+            {
+              id: "sre",
+              name: "SRE",
+              role: "reliability engineer",
+              skillBlurb: "",
+            },
+          ],
+          activeDelegations: [],
+        },
+      },
+      { ...allOff, manager: true },
+    );
+    expect(result).toContain("<manager>");
+    expect(result).toContain("@Researcher");
+    expect(result).toContain("Web research and summarization");
+    // Falls back to role when delegationHint is absent.
+    expect(result).toContain("@SRE");
+    expect(result).toContain("reliability engineer");
+  });
 });
 
 describe("renderTaskSystemPrompt", () => {

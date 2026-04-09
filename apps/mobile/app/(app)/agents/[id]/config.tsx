@@ -39,7 +39,7 @@ export default function AgentConfigScreen() {
   const [name, setName] = useState("");
   const [personality, setPersonality] = useState("");
   const [role, setRole] = useState("");
-  const [purpose, setPurpose] = useState("");
+  const [delegationHint, setDelegationHint] = useState("");
   const [managerEnabled, setManagerEnabled] = useState(false);
   const [team, setTeam] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -80,7 +80,7 @@ export default function AgentConfigScreen() {
     setName(agent.name);
     setPersonality(agent.personality ?? "");
     setRole(agent.role ?? "");
-    setPurpose(agent.purpose ?? "");
+    setDelegationHint(agent.delegationHint ?? "");
     setManagerEnabled(agent.config?.manager?.enabled ?? false);
     setTeam(agent.config?.manager?.team ?? []);
   }, [agent]);
@@ -96,7 +96,7 @@ export default function AgentConfigScreen() {
           name: name.trim(),
           personality: personality.trim(),
           role: role.trim() || null,
-          purpose: purpose.trim() || null,
+          delegationHint: delegationHint.trim() || null,
           config: {
             manager: managerEnabled
               ? { enabled: true, team }
@@ -111,7 +111,16 @@ export default function AgentConfigScreen() {
     } finally {
       setSaving(false);
     }
-  }, [id, agent, name, personality, role, purpose, managerEnabled, team]);
+  }, [
+    id,
+    agent,
+    name,
+    personality,
+    role,
+    delegationHint,
+    managerEnabled,
+    team,
+  ]);
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 
@@ -163,7 +172,7 @@ export default function AgentConfigScreen() {
     name.trim() !== agent.name ||
     personality.trim() !== (agent.personality ?? "") ||
     role.trim() !== (agent.role ?? "") ||
-    purpose.trim() !== (agent.purpose ?? "") ||
+    delegationHint.trim() !== (agent.delegationHint ?? "") ||
     managerEnabled !== (agent.config?.manager?.enabled ?? false) ||
     (managerEnabled && teamChanged);
 
@@ -227,7 +236,7 @@ export default function AgentConfigScreen() {
           Personality
         </Text>
         <Text className="text-xs text-text-muted">
-          The agent's personality, tone, and voice
+          Mannerisms, tone, and voice
         </Text>
         <Input
           value={personality}
@@ -244,7 +253,7 @@ export default function AgentConfigScreen() {
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Role</Text>
         <Text className="text-xs text-text-muted">
-          The agent's role, expertise, and responsibilities
+          Expertise and responsibilities
         </Text>
         <Input
           value={role}
@@ -259,15 +268,21 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">Purpose</Text>
+        <Text className="text-sm font-medium text-text-secondary">
+          When to Delegate?
+        </Text>
         <Text className="text-xs text-text-muted">
-          One line describing what this agent is good at. Other agents see this
-          when deciding whether to delegate to it. Be specific.
+          Managers with this agent on their team read this to decide whether to
+          delegate. Be specific.
         </Text>
         <Input
-          value={purpose}
-          onChangeText={setPurpose}
-          placeholder="e.g. Pulls competitive intel from web sources and summarizes findings."
+          value={delegationHint}
+          onChangeText={setDelegationHint}
+          placeholder="e.g. When the task needs access to AWS logs or CloudWatch metrics to diagnose production issues."
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+          style={{ minHeight: 100 }}
           editable={!agent.retired}
         />
       </View>
@@ -277,11 +292,10 @@ export default function AgentConfigScreen() {
           <View className="flex-row items-center justify-between gap-3">
             <View className="flex-1">
               <Text className="text-base font-bold text-text-secondary">
-                Manager mode
+                Enable Manager Mode
               </Text>
               <Text className="text-xs text-text-muted">
-                Lets this agent delegate tasks to a small team of other agents
-                you choose.
+                Lets this agent delegate tasks to a chosen team.
               </Text>
             </View>
             <Toggle
@@ -299,7 +313,7 @@ export default function AgentConfigScreen() {
                 <Text className="text-xs text-text-muted">Loading agents…</Text>
               ) : teamCandidates.length === 0 ? (
                 <Text className="text-xs text-text-muted">
-                  No other agents to add to a team.
+                  No other agents available.
                 </Text>
               ) : (
                 <View className="gap-1">
@@ -315,6 +329,7 @@ export default function AgentConfigScreen() {
                             : "bg-surface border-app-border"
                         }`}
                       >
+                        <AgentAvatar id={member.id} size={36} />
                         <View className="flex-1 min-w-0">
                           <Text
                             className="text-sm font-medium text-text-primary"
@@ -322,16 +337,16 @@ export default function AgentConfigScreen() {
                           >
                             {member.name}
                           </Text>
-                          {member.purpose ? (
+                          {member.delegationHint ? (
                             <Text
                               className="text-xs text-text-muted mt-0.5"
                               numberOfLines={2}
                             >
-                              {member.purpose}
+                              {member.delegationHint}
                             </Text>
                           ) : (
                             <Text className="text-xs text-text-muted italic mt-0.5">
-                              No purpose set
+                              No hint set
                             </Text>
                           )}
                         </View>
@@ -380,7 +395,7 @@ export default function AgentConfigScreen() {
       <ConfirmDialog
         visible={showRetireConfirm}
         title="Retire Agent"
-        message="Are you sure? This agent will no longer be able to receive messages."
+        message="This agent will no longer receive messages."
         confirmLabel="Retire"
         destructive
         onConfirm={doRetire}

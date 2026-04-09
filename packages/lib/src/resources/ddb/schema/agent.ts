@@ -18,9 +18,9 @@ export const AgentEntity = new Entity({
     portraitId: string(),
     personality: string().optional(),
     role: string().optional(),
-    // One-line, peer-LLM-readable description of what this agent is good at.
-    // Surfaced to managers in their team roster — be specific.
-    purpose: string().optional(),
+    // One-line hint shown to managers in their team roster when deciding
+    // who to delegate a task to. Peer-LLM-readable — be specific.
+    delegationHint: string().optional(),
     retired: boolean().optional().default(false),
     sandboxInstanceId: string().optional(),
     ttsVoice: string().optional(),

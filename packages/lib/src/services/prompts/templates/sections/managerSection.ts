@@ -1,7 +1,7 @@
 /**
  * Rendered into a manager's main-lane system prompt. Lists the team
- * roster (each member's name + purpose) and gives brief delegate vs
- * background guidance. The roster is rendered fresh per turn from
+ * roster (each member's name + delegation hint) and gives brief delegate
+ * vs background guidance. The roster is rendered fresh per turn from
  * AgentLaneContext.team, so renames and removals are automatic.
  */
 export const managerSection = `<manager>
@@ -13,7 +13,7 @@ The most important routing signal is **skills + bound connections** — generic 
 
 Your team:
 {{#if manager.team.length}}{{#each manager.team}}
-- @{{name}} (id: {{id}}){{#if purpose}} — {{purpose}}{{else if role}} — {{role}}{{/if}}
+- @{{name}} (id: {{id}}){{#if delegationHint}} — {{delegationHint}}{{else if role}} — {{role}}{{/if}}
   Skills: {{#if skillBlurb}}{{skillBlurb}}{{else}}(none){{/if}}{{/each}}
 {{else}}
 (no team members configured)

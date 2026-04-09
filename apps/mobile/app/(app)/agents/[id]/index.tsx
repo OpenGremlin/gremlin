@@ -1,11 +1,12 @@
 import { useQuery } from "@apollo/client";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
 import { AgentQuery } from "../../../../src/graphql/queries";
 import { ChatScreen } from "../../../../src/shared/ChatScreen";
 import { VoiceModeButton } from "../../../../src/shared/VoiceModeButton";
 
 export default function AgentChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const isPreview = useIsPreview();
 
   const {
     data: agentData,
@@ -18,7 +19,7 @@ export default function AgentChatScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      {!isPreview && <Stack.Screen options={{ headerShown: false }} />}
       <ChatScreen
         agentId={id}
         title={agent?.name ?? ""}

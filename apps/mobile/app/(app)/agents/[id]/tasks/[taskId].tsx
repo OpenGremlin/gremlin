@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
 import { TaskQuery } from "../../../../../src/graphql/queries";
 import { useSandboxOutput } from "../../../../../src/hooks/useSandboxOutput";
 import { ChatScreen } from "../../../../../src/shared/ChatScreen";
@@ -10,6 +10,7 @@ export default function TaskThreadScreen() {
     id: string;
     taskId: string;
   }>();
+  const isPreview = useIsPreview();
 
   const {
     data: taskData,
@@ -23,7 +24,7 @@ export default function TaskThreadScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
+      {!isPreview && <Stack.Screen options={{ headerShown: false }} />}
       <ChatScreen
         agentId={id}
         taskId={taskId}

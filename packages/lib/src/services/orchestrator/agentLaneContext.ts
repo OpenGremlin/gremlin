@@ -48,7 +48,7 @@ import {
 export interface TeamMember {
   id: string;
   name: string;
-  purpose?: string;
+  delegationHint?: string;
   role?: string;
   /**
    * Compact one-line summary of the member's installed skills + bound
@@ -104,8 +104,8 @@ export interface AgentLaneContext {
 // ── Team roster cache ────────────────────────────────────────────────
 //
 // Resolved team rosters are stable enough to cache between drain loops:
-// the underlying data (member names + purposes) only changes when a user
-// edits an agent. A short TTL gives us a free perf win for managers
+// the underlying data (member names + delegation hints) only changes when
+// a user edits an agent. A short TTL gives us a free perf win for managers
 // answering rapid-fire user messages without holding stale data for long.
 // `activeDelegations` is *not* cached — those are time-sensitive.
 
@@ -291,7 +291,7 @@ export async function buildAgentLaneContext(
         .map((r) => ({
           id: r.member.id,
           name: r.member.name,
-          purpose: r.member.purpose,
+          delegationHint: r.member.delegationHint,
           role: r.member.role,
           skillBlurb: r.skillBlurb,
         }));

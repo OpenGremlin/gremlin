@@ -272,14 +272,14 @@ describe("buildAgentLaneContext — manager mode", () => {
       .mockResolvedValueOnce({
         id: "researcher",
         name: "Researcher",
-        purpose: "Web research",
+        delegationHint: "Web research",
         role: "investigator",
         retired: false,
       } as any)
       .mockResolvedValueOnce({
         id: "writer",
         name: "Writer",
-        purpose: "Drafts briefs",
+        delegationHint: "Drafts briefs",
         retired: false,
       } as any);
     ctx.services.skills.buildSkillBlurb
@@ -292,14 +292,14 @@ describe("buildAgentLaneContext — manager mode", () => {
       {
         id: "researcher",
         name: "Researcher",
-        purpose: "Web research",
+        delegationHint: "Web research",
         role: "investigator",
         skillBlurb: "brave-search, linear (Eng)",
       },
       {
         id: "writer",
         name: "Writer",
-        purpose: "Drafts briefs",
+        delegationHint: "Drafts briefs",
         role: undefined,
         skillBlurb: "",
       },
@@ -330,7 +330,7 @@ describe("buildAgentLaneContext — manager mode", () => {
       {
         id: "a",
         name: "A",
-        purpose: undefined,
+        delegationHint: undefined,
         role: undefined,
         skillBlurb: "",
       },
@@ -381,7 +381,7 @@ describe("buildAgentLaneContext — manager mode", () => {
     ctx.services.agents.getAgent.mockResolvedValue({
       id: "a",
       name: "A",
-      purpose: "p",
+      delegationHint: "p",
       retired: false,
     } as any);
 
@@ -402,7 +402,7 @@ describe("buildAgentLaneContext — manager mode", () => {
     ctx.services.agents.getAgent.mockResolvedValue({
       id: "researcher",
       name: "Researcher",
-      purpose: "Web research",
+      delegationHint: "Web research",
       retired: false,
     } as any);
     ctx.services.tasks.getTasksByAgent.mockResolvedValue([

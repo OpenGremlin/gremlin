@@ -7,7 +7,7 @@ interface UpdateAgentInput {
   name?: string | null;
   personality?: string | null;
   role?: string | null;
-  purpose?: string | null;
+  delegationHint?: string | null;
   avatar?: string | null;
   sandboxInstanceId?: string | null;
   ttsVoice?: string | null;

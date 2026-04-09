@@ -87,7 +87,7 @@ export function resolvePromptFlags(
 interface ManagerTeamMember {
   id: string;
   name: string;
-  purpose?: string;
+  delegationHint?: string;
   role?: string;
   /** Compact "skill (connection)" list — empty when no usable skills. */
   skillBlurb: string;

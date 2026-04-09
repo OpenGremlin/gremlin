@@ -39,12 +39,12 @@ export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
   config?: Maybe<AgentConfig>;
+  delegationHint?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
   personality?: Maybe<Scalars['String']['output']>;
   portraitId: Scalars['String']['output'];
-  purpose?: Maybe<Scalars['String']['output']>;
   retired: Scalars['Boolean']['output'];
   role?: Maybe<Scalars['String']['output']>;
   ttsVoice?: Maybe<Scalars['String']['output']>;
@@ -364,10 +364,10 @@ export type ConnectApiKeyResult = {
 export type ConnectionMeta = ApiKeyConnectionMeta | AwsIamRoleConnectionMeta | OAuthConnectionMeta;
 
 export type CreateAgentInput = {
+  delegationHint?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   name: Scalars['String']['input'];
   personality?: InputMaybe<Scalars['String']['input']>;
-  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1147,9 +1147,9 @@ export type UnknownRender = {
 export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
+  delegationHint?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   personality?: InputMaybe<Scalars['String']['input']>;
-  purpose?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
   ttsVoice?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1492,12 +1492,12 @@ export type ResolversParentTypes = {
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   config?: Resolver<Maybe<ResolversTypes['AgentConfig']>, ParentType, ContextType>;
+  delegationHint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   personality?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  purpose?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   retired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   role?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ttsVoice?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

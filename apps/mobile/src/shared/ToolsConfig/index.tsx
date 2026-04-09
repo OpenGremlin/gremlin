@@ -486,7 +486,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 <Text className="text-xs text-text-muted">
                   {!supportsReasoning
                     ? "Selected model does not support reasoning"
-                    : "Enable extended thinking for complex tasks"}
+                    : "Extended thinking for complex tasks"}
                 </Text>
               </View>
               <Toggle
@@ -508,7 +508,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 <Text className="text-xs text-text-muted">
                   {!supportsImages
                     ? "Selected model does not support images"
-                    : "Let the agent see image files"}
+                    : "See image files in conversations"}
                 </Text>
               </View>
               <Toggle
@@ -521,11 +521,14 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               />
             </View>
 
-            {/* Enable Image Generation Model */}
+            {/* Image Generation */}
             <View className="flex-row items-center justify-between mt-1 gap-3">
               <View className="flex-1">
                 <Text className="text-sm text-text-secondary">
-                  Enable Image Generation Model
+                  Image Generation
+                </Text>
+                <Text className="text-xs text-text-muted">
+                  Create images in responses
                 </Text>
               </View>
               <Toggle
@@ -602,11 +605,12 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               </>
             )}
 
-            {/* Enable Speech Model */}
+            {/* Speech */}
             <View className="flex-row items-center justify-between mt-1 gap-3">
               <View className="flex-1">
-                <Text className="text-sm text-text-secondary">
-                  Enable Speech Model
+                <Text className="text-sm text-text-secondary">Speech</Text>
+                <Text className="text-xs text-text-muted">
+                  Speak responses aloud and generate audio files
                 </Text>
               </View>
               <Toggle

@@ -1,4 +1,4 @@
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
 import { Airplay, Cast, Maximize, Minimize, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -56,6 +56,7 @@ function ToolbarButton({
 export default function AgentCanvasScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const isPreview = useIsPreview();
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const [showControls, setShowControls] = useState(true);
 
@@ -101,12 +102,14 @@ export default function AgentCanvasScreen() {
       onPress={resetHideTimer}
       style={{ cursor: "default" } as never}
     >
-      <Stack.Screen
-        options={{
-          headerShown: false,
-          animation: "fade",
-        }}
-      />
+      {!isPreview && (
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            animation: "fade",
+          }}
+        />
+      )}
 
       {/* Canvas area */}
       <View className="flex-1 items-center justify-center">

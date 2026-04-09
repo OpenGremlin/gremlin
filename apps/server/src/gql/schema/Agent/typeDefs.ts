@@ -60,7 +60,7 @@ export const agentTypeDefs = /* GraphQL */ `
     imageUrl(width: Int): String!
     personality: String
     role: String
-    purpose: String
+    delegationHint: String
     retired: Boolean!
     ttsVoice: String
     config: AgentConfig
@@ -128,7 +128,7 @@ export const agentTypeDefs = /* GraphQL */ `
     name: String
     personality: String
     role: String
-    purpose: String
+    delegationHint: String
     avatar: String
     ttsVoice: String
     config: AgentConfigInput
@@ -139,7 +139,7 @@ export const agentTypeDefs = /* GraphQL */ `
     name: String!
     personality: String
     role: String
-    purpose: String
+    delegationHint: String
   }
 
   extend type Mutation {

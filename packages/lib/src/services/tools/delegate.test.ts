@@ -12,8 +12,8 @@ const TOOL_OPTS = {
 };
 
 const team: TeamMember[] = [
-  { id: "researcher", name: "Researcher", purpose: "Web research" },
-  { id: "writer", name: "Writer", purpose: "Drafts briefs" },
+  { id: "researcher", name: "Researcher", delegationHint: "Web research" },
+  { id: "writer", name: "Writer", delegationHint: "Drafts briefs" },
 ];
 
 const createdTask = {
