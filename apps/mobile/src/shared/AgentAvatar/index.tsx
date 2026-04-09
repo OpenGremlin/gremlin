@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { Crown } from "lucide-react-native";
+import { Ban, Crown } from "lucide-react-native";
 import { useState } from "react";
 import {
   Image,
@@ -14,6 +14,10 @@ import { AgentQuery } from "../../graphql/queries";
 // for this concept yet — promote to `--color-manager` in themeVars.ts if
 // manager visuals grow beyond this one badge.
 const MANAGER_GOLD = "#F5C518";
+// Red used for the retired badge. Matches Tailwind red-600; inline for the
+// same reason — the existing --color-error token is for error states, not
+// for "intentionally taken out of rotation".
+const RETIRED_RED = "#dc2626";
 
 export function AgentAvatar({
   id,
@@ -52,26 +56,24 @@ export function AgentAvatar({
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const imgError = agent?.imageUrl != null && agent.imageUrl === failedUrl;
 
-  // Manager badge is only meaningful when the agent actually has a team.
-  // Skip at small sizes where a legible icon wouldn't fit — all our
-  // <48px call sites are identifier-only contexts anyway.
+  // Manager badge is only meaningful when the agent actually has a team
+  // AND isn't retired. Skip at small sizes where a legible icon wouldn't
+  // fit — all our <48px call sites are identifier-only contexts anyway.
   const isManager = !!(
     agent?.config?.manager?.enabled &&
     (agent.config.manager.team?.length ?? 0) > 0
   );
-  const showBadge = isManager && !hideManagerBadge && size >= 48;
+  const showCrown = isManager && !hideManagerBadge && !isRetired && size >= 48;
+  const showRetiredBadge = isRetired && size >= 48;
   const badgeSize = Math.round(size * 0.28);
-  // Hover the crown above the avatar edge, roughly half on / half off.
+  // Hover the badge above the avatar edge, roughly half on / half off.
   // Scales with badge size so small and large avatars look consistent.
   const badgeTopOffset = -Math.round(badgeSize * 0.55);
 
   return (
-    <View
-      style={{ width: size, height: size }}
-      className={`shrink-0 ${isRetired ? "opacity-50" : ""}`}
-    >
+    <View style={{ width: size, height: size }} className="shrink-0">
       <View
-        className={`w-full h-full bg-surface-alt items-center justify-center overflow-hidden ${cornerStyle ? "" : cornerClass}`}
+        className={`w-full h-full bg-surface-alt items-center justify-center overflow-hidden ${isRetired ? "opacity-50" : ""} ${cornerStyle ? "" : cornerClass}`}
         style={cornerStyle}
       >
         {agent?.imageUrl && !imgError ? (
@@ -84,7 +86,7 @@ export function AgentAvatar({
           <Text className="text-sm text-text-muted font-medium">{name[0]}</Text>
         )}
       </View>
-      {showBadge && (
+      {showCrown && (
         <View
           className="absolute left-0 right-0 items-center"
           style={{ top: badgeTopOffset }}
@@ -95,6 +97,14 @@ export function AgentAvatar({
             fill={MANAGER_GOLD}
             strokeWidth={2}
           />
+        </View>
+      )}
+      {showRetiredBadge && (
+        <View
+          className="absolute left-0 right-0 items-center opacity-50"
+          style={{ top: badgeTopOffset }}
+        >
+          <Ban size={badgeSize} color={RETIRED_RED} strokeWidth={2.5} />
         </View>
       )}
     </View>
