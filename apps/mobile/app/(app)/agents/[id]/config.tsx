@@ -290,8 +290,8 @@ export default function AgentConfigScreen() {
       {!agent.retired && (
         <Card className="overflow-hidden">
           <View className="flex-row px-4 py-3 gap-3">
-            <View className="w-[18px] pt-0.5">
-              <Crown size={18} color="#F5C518" fill="#F5C518" strokeWidth={2} />
+            <View className="w-[22px] pt-0.5">
+              <Crown size={22} color="#F5C518" fill="#F5C518" strokeWidth={2} />
             </View>
             <View className="flex-1 gap-3">
               <View className="flex-row items-center justify-between gap-3">
@@ -330,40 +330,65 @@ export default function AgentConfigScreen() {
                           <Pressable
                             key={member.id}
                             onPress={() => toggleTeamMember(member.id)}
-                            className={`flex-row items-center gap-3 px-3 py-2.5 rounded-lg border ${
-                              selected
-                                ? "bg-accent-surface border-accent"
-                                : "bg-surface border-app-border"
-                            }`}
+                            className="rounded-xl overflow-hidden"
                           >
-                            <AgentAvatar
-                              id={member.id}
-                              size={36}
-                              hideManagerBadge
-                            />
-                            <View className="flex-1 min-w-0">
-                              <Text
-                                className="text-sm font-medium text-text-primary"
-                                numberOfLines={1}
+                            <View
+                              className={
+                                selected ? "bg-accent-surface" : "bg-surface"
+                              }
+                              style={{
+                                borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: selected
+                                  ? colors.accent
+                                  : colors.border,
+                              }}
+                            >
+                              <View
+                                className="flex-row items-stretch"
+                                style={{ minHeight: 48 }}
                               >
-                                {member.name}
-                              </Text>
-                              {member.delegationHint ? (
-                                <Text
-                                  className="text-xs text-text-muted mt-0.5"
-                                  numberOfLines={2}
-                                >
-                                  {member.delegationHint}
-                                </Text>
-                              ) : (
-                                <Text className="text-xs text-text-muted italic mt-0.5">
-                                  No hint set
-                                </Text>
-                              )}
+                                <AgentAvatar
+                                  id={member.id}
+                                  size={48}
+                                  hideManagerBadge
+                                  cornerStyle={{
+                                    borderTopLeftRadius: 11,
+                                    borderBottomLeftRadius: 11,
+                                    borderTopRightRadius: 0,
+                                    borderBottomRightRadius: 0,
+                                  }}
+                                />
+                                <View className="flex-1 min-w-0 justify-center px-3 py-2">
+                                  <Text
+                                    className="text-sm font-medium text-text-primary"
+                                    numberOfLines={1}
+                                  >
+                                    {member.name}
+                                  </Text>
+                                  {member.delegationHint ? (
+                                    <Text
+                                      className="text-xs text-text-muted mt-0.5"
+                                      numberOfLines={2}
+                                    >
+                                      {member.delegationHint}
+                                    </Text>
+                                  ) : (
+                                    <Text className="text-xs text-text-muted italic mt-0.5">
+                                      No hint set
+                                    </Text>
+                                  )}
+                                </View>
+                                {selected && (
+                                  <View className="justify-center pr-3">
+                                    <Check
+                                      size={18}
+                                      color={colors.headerText}
+                                    />
+                                  </View>
+                                )}
+                              </View>
                             </View>
-                            {selected && (
-                              <Check size={18} color={colors.headerText} />
-                            )}
                           </Pressable>
                         );
                       })}

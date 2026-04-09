@@ -410,8 +410,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       {/* Models */}
       <Card className="overflow-hidden">
         <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[18px] pt-0.5">
-            <Bot size={18} color={colors.iconDefault} />
+          <View className="w-[22px] pt-0.5">
+            <Bot size={22} color={colors.iconDefault} />
           </View>
           <View className="flex-1 gap-2">
             <Text className="text-base font-bold text-text-secondary">
@@ -717,8 +717,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       {/* Sandbox */}
       <Card className="overflow-hidden">
         <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[18px] pt-0.5">
-            <Terminal size={18} color={colors.iconDefault} />
+          <View className="w-[22px] pt-0.5">
+            <Terminal size={22} color={colors.iconDefault} />
           </View>
           <View className="flex-1 gap-3">
             <View className="flex-row items-center justify-between gap-3">
@@ -874,8 +874,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       {/* Web Search */}
       <Card className="overflow-hidden">
         <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[18px] pt-0.5">
-            <Globe size={18} color={colors.iconDefault} />
+          <View className="w-[22px] pt-0.5">
+            <Globe size={22} color={colors.iconDefault} />
           </View>
           <View className="flex-1 gap-3">
             <View className="flex-row items-center justify-between gap-3">
