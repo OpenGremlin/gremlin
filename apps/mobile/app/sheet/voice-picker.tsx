@@ -1,8 +1,16 @@
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { router, useLocalSearchParams } from "expo-router";
-import { Check, Volume2 } from "lucide-react-native";
-import { useEffect, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { Check, Pause, Play, Volume2 } from "lucide-react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { SpeechVoicesQuery } from "../../src/graphql/queries";
+import { useAuth } from "../../src/lib/AuthContext";
 import { execute } from "../../src/lib/apolloClient";
 import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
@@ -14,7 +22,106 @@ export interface VoicePickerSheetPayload {
   onSelect: (voice: string) => void;
 }
 
-type Voice = { id: string; name: string; description?: string | null };
+type Voice = {
+  id: string;
+  name: string;
+  description?: string | null;
+  previewUrl?: string | null;
+};
+
+function PreviewButton({
+  url,
+  activePreview,
+  setActivePreview,
+}: {
+  url: string;
+  activePreview: string | null;
+  setActivePreview: (url: string | null) => void;
+}) {
+  const colors = useNavigationTheme();
+  const { token } = useAuth();
+  const isActive = activePreview === url;
+
+  const player = useAudioPlayer(
+    isActive
+      ? {
+          uri: url,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      : null,
+    { updateInterval: 0.25 },
+  );
+  const status = useAudioPlayerStatus(player);
+
+  // Stop when another preview becomes active
+  useEffect(() => {
+    if (!isActive && status.playing) {
+      player.pause();
+    }
+  }, [isActive, status.playing, player]);
+
+  // Auto-play when becoming active
+  useEffect(() => {
+    if (isActive && status.isLoaded && !status.playing) {
+      player.play();
+    }
+  }, [isActive, status.isLoaded, status.playing, player.play]);
+
+  // Clear active state when playback finishes
+  useEffect(() => {
+    if (
+      isActive &&
+      status.isLoaded &&
+      !status.playing &&
+      status.currentTime > 0 &&
+      status.currentTime >= status.duration
+    ) {
+      setActivePreview(null);
+    }
+  }, [
+    isActive,
+    status.isLoaded,
+    status.playing,
+    status.currentTime,
+    status.duration,
+    setActivePreview,
+  ]);
+
+  const toggle = useCallback(
+    (e: { stopPropagation: () => void }) => {
+      e.stopPropagation();
+      if (isActive) {
+        player.pause();
+        setActivePreview(null);
+      } else {
+        setActivePreview(url);
+      }
+    },
+    [isActive, player, url, setActivePreview],
+  );
+
+  const loading = isActive && !status.isLoaded;
+
+  return (
+    <Pressable
+      onPress={toggle}
+      hitSlop={8}
+      className="w-8 h-8 items-center justify-center rounded-full"
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={colors.iconDefault} />
+      ) : isActive && status.playing ? (
+        <Pause
+          size={14}
+          color={colors.accentIndicator}
+          fill={colors.accentIndicator}
+        />
+      ) : (
+        <Play size={14} color={colors.iconDefault} fill={colors.iconDefault} />
+      )}
+    </Pressable>
+  );
+}
 
 export default function VoicePickerSheet() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,6 +129,7 @@ export default function VoicePickerSheet() {
   const colors = useNavigationTheme();
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activePreview, setActivePreview] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -88,6 +196,13 @@ export default function VoicePickerSheet() {
                     </Text>
                   )}
                 </View>
+                {item.previewUrl && (
+                  <PreviewButton
+                    url={item.previewUrl}
+                    activePreview={activePreview}
+                    setActivePreview={setActivePreview}
+                  />
+                )}
                 {selected && <Check size={16} color={colors.headerText} />}
               </Pressable>
             );

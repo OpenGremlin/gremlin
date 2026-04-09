@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import { Platform, type TextStyle, type ViewStyle } from "react-native";
+import { Platform, type TextStyle, View, type ViewStyle } from "react-native";
 import type { MarkedStyles } from "react-native-marked";
 import Marked, { Renderer } from "react-native-marked";
 import { useTheme } from "../../lib/ThemeContext";
@@ -171,6 +171,46 @@ class CodeTextRenderer extends Renderer {
     _textStyle?: TextStyle,
   ): ReactNode {
     return super.code(text, _language, containerStyle, this.codeTextStyle);
+  }
+
+  list(
+    ordered: boolean,
+    li: ReactNode[],
+    listStyle?: ViewStyle,
+    textStyle?: TextStyle,
+    startIndex?: number,
+  ): ReactNode {
+    // The library uses listStyle as markerBoxStyle (applied to the View wrapping
+    // each marker number) and textStyle as markerTextStyle. Strip vertical
+    // margins from both so the marker number aligns with the content text
+    // baseline, and apply the list margin to a wrapping View instead.
+    const {
+      marginVertical: mv,
+      marginTop: mt,
+      marginBottom: mb,
+      ...markerBoxStyle
+    } = (listStyle ?? {}) as ViewStyle & {
+      marginVertical?: number;
+      marginTop?: number;
+      marginBottom?: number;
+    };
+    const wrapperStyle: ViewStyle = {
+      marginVertical: mv,
+      marginTop: mt,
+      marginBottom: mb,
+    };
+
+    return (
+      <View key={this.getKey()} style={wrapperStyle}>
+        {super.list(
+          ordered,
+          li,
+          markerBoxStyle as ViewStyle,
+          textStyle,
+          startIndex,
+        )}
+      </View>
+    );
   }
 }
 
