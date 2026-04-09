@@ -384,8 +384,8 @@ export const LogEntryView = React.memo(function LogEntryView({
   agentId: string;
   showTimestamp: boolean;
   sandboxStreams?: Map<string, CommandStream>;
-  /** Long-press handler for agent bubbles (TTS). Omit to disable. */
-  onBubbleLongPress?: (logId: string) => void;
+  /** Long-press handler for agent bubbles (copy + TTS). */
+  onBubbleLongPress?: (logId: string, content: string) => void;
 }) {
   const colors = useNavigationTheme();
 
@@ -414,7 +414,7 @@ export const LogEntryView = React.memo(function LogEntryView({
         <View className="flex-row justify-start">
           {onBubbleLongPress ? (
             <Pressable
-              onLongPress={() => onBubbleLongPress(message.id)}
+              onLongPress={() => onBubbleLongPress(message.id, message.content)}
               delayLongPress={400}
               className="max-w-[85%]"
             >

@@ -1,5 +1,6 @@
 import { useApolloClient, useQuery } from "@apollo/client";
 import { useAudioPlayer } from "expo-audio";
+import * as Clipboard from "expo-clipboard";
 import { useCallback, useRef } from "react";
 import { ActionSheetIOS, Platform } from "react-native";
 import { AgentQuery, SpeechUrlQuery } from "../graphql/queries";
@@ -8,10 +9,11 @@ import { haptics } from "../lib/haptics";
 import { clientLogger } from "../lib/logger";
 
 /**
- * Provides a long-press handler that offers "Play as Speech" for an agent
- * bubble. Call once per chat screen, not per message.
+ * Long-press menu for agent bubbles. Offers "Copy" always, and
+ * "Play as Speech" when the agent has TTS enabled.
+ * Call once per chat screen, not per message.
  */
-export function useBubbleTTS(agentId: string) {
+export function useBubbleLongPress(agentId: string) {
   const { data } = useQuery(AgentQuery, { variables: { id: agentId } });
   const speechAvailable = !!data?.agent?.config?.speech?.enabled;
 
@@ -49,26 +51,28 @@ export function useBubbleTTS(agentId: string) {
   );
 
   const handleLongPress = useCallback(
-    (logId: string) => {
-      if (!speechAvailable) return;
+    (logId: string, content: string) => {
       haptics.medium();
 
       if (Platform.OS === "ios") {
+        const options = speechAvailable
+          ? ["Copy", "Play as Speech", "Cancel"]
+          : ["Copy", "Cancel"];
+        const cancelIndex = options.length - 1;
+
         ActionSheetIOS.showActionSheetWithOptions(
-          {
-            options: ["Play as Speech", "Cancel"],
-            cancelButtonIndex: 1,
-          },
+          { options, cancelButtonIndex: cancelIndex },
           (index) => {
-            if (index === 0) playMessage(logId);
+            if (index === 0) Clipboard.setStringAsync(content);
+            if (speechAvailable && index === 1) playMessage(logId);
           },
         );
       } else {
-        playMessage(logId);
+        Clipboard.setStringAsync(content);
       }
     },
     [speechAvailable, playMessage],
   );
 
-  return { speechAvailable, handleLongPress };
+  return { handleLongPress };
 }
