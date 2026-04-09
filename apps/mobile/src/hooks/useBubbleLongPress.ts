@@ -1,12 +1,11 @@
 import { useApolloClient, useQuery } from "@apollo/client";
-import { useAudioPlayer } from "expo-audio";
 import * as Clipboard from "expo-clipboard";
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { ActionSheetIOS, Platform } from "react-native";
-import { AgentQuery, SpeechUrlQuery } from "../graphql/queries";
-import { useAuth } from "../lib/AuthContext";
+import { AgentQuery, SpeechUrlsQuery } from "../graphql/queries";
 import { haptics } from "../lib/haptics";
 import { clientLogger } from "../lib/logger";
+import { useVoice } from "../lib/VoiceContext";
 
 /**
  * Long-press menu for agent bubbles. Offers "Copy" always, and
@@ -18,36 +17,26 @@ export function useBubbleLongPress(agentId: string) {
   const speechAvailable = !!data?.agent?.config?.speech?.enabled;
 
   const client = useApolloClient();
-  const { token } = useAuth();
-  const player = useAudioPlayer(null);
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
+  const { playUrls } = useVoice();
 
   const playMessage = useCallback(
     async (logId: string) => {
       try {
         const { data: result } = await client.query({
-          query: SpeechUrlQuery,
+          query: SpeechUrlsQuery,
           variables: { logId },
           fetchPolicy: "network-only",
         });
 
-        const url = result?.speechUrl;
-        if (!url) return;
+        const urls = result?.speechUrls;
+        if (!urls?.length) return;
 
-        player.pause();
-        player.replace({
-          uri: url,
-          headers: tokenRef.current
-            ? { Authorization: `Bearer ${tokenRef.current}` }
-            : undefined,
-        });
-        player.play();
+        playUrls(urls);
       } catch (_err) {
         clientLogger.warn("Failed to play speech for log", { logId });
       }
     },
-    [client, player],
+    [client, playUrls],
   );
 
   const handleLongPress = useCallback(

@@ -87,9 +87,9 @@ export const AgentStreamSubscription = graphql(`
   }
 `);
 
-export const SpeechUrlQuery = graphql(`
-  query SpeechUrl($logId: ID!) {
-    speechUrl(logId: $logId)
+export const SpeechUrlsQuery = graphql(`
+  query SpeechUrls($logId: ID!) {
+    speechUrls(logId: $logId)
   }
 `);
 

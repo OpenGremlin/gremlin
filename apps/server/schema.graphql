@@ -19,8 +19,8 @@ type Query {
     before: String
   ): AgentLogConnection!
   pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
-  "Build a TTS audio URL for a completed agent log message"
-  speechUrl(logId: ID!): String
+  "Build TTS audio URLs for a completed agent log message, one per sentence"
+  speechUrls(logId: ID!): [String!]!
   agents: [Agent!]!
   agent(id: ID!): Agent
   avatars: [Avatar!]!

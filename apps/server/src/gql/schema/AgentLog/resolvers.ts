@@ -6,8 +6,9 @@ import type {
 } from "@opengremlin/lib/resources/pubsub.js";
 import { computeDisplayHint } from "@opengremlin/lib/services/orchestrator/displayHint.js";
 import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/model.js";
-import { cleanTextForSpeech } from "@opengremlin/lib/services/speech/cleanTextForSpeech.js";
+import { SentenceAccumulator } from "@opengremlin/lib/services/speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
+import { stripMarkdownForSpeech } from "@opengremlin/lib/services/speech/stripMarkdownForSpeech.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { GremlinContext } from "../../context.js";
@@ -78,35 +79,43 @@ const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
-const speechUrl = async (
+const speechUrls = async (
   _parent: unknown,
   { logId }: { logId: string },
   ctx: GremlinContext,
-): Promise<string | null> => {
+): Promise<string[]> => {
   const { Item: log } = await ctx.resources.ddb.entities.AgentLog.build(
     GetItemCommand,
   )
     .key({ id: logId })
     .send();
-  if (!log || log.role !== "AGENT") return null;
+  if (!log || log.role !== "AGENT") return [];
 
   const agent = await ctx.loaders.agentLoader.load(log.agentId);
-  if (!agent?.config?.speech?.enabled) return null;
+  if (!agent?.config?.speech?.enabled) return [];
 
   const connectionId = await getSpeechConnectionId(
     ctx,
     agent.config.speechModel,
   );
-  if (!connectionId) return null;
+  if (!connectionId) return [];
 
-  const cleaned = cleanTextForSpeech(log.content);
-  if (!cleaned) return null;
+  // Split into sentences using the same accumulator as streaming TTS
+  const acc = new SentenceAccumulator();
+  const sentences = acc.push(log.content);
+  const last = acc.flush();
+  if (last) sentences.push(last);
 
-  return buildSpeechUrl(ctx.serverBaseUrl, {
-    text: cleaned,
-    voice: agent.config.speech.voice,
-    connectionId,
-  });
+  const voice = agent.config.speech.voice;
+  const urls: string[] = [];
+  for (const sentence of sentences) {
+    const cleaned = stripMarkdownForSpeech(sentence);
+    if (!cleaned) continue;
+    urls.push(
+      buildSpeechUrl(ctx.serverBaseUrl, { text: cleaned, voice, connectionId }),
+    );
+  }
+  return urls;
 };
 
 const pendingInboxMessages = async (
@@ -207,7 +216,7 @@ const speechStream = {
 };
 
 export const agentLogResolvers = {
-  Query: { agentLogs, taskLogs, pendingInboxMessages, speechUrl },
+  Query: { agentLogs, taskLogs, pendingInboxMessages, speechUrls },
   Mutation: { sendMessage },
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {

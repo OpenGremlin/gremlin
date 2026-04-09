@@ -829,8 +829,8 @@ export type Query = {
   skillTemplate?: Maybe<SkillTemplate>;
   /** All skill templates from the catalog */
   skillTemplates: Array<SkillTemplate>;
-  /** Build a TTS audio URL for a completed agent log message */
-  speechUrl?: Maybe<Scalars['String']['output']>;
+  /** Build TTS audio URLs for a completed agent log message, one per sentence */
+  speechUrls: Array<Scalars['String']['output']>;
   speechVoices: Array<SpeechVoice>;
   task?: Maybe<Task>;
   taskLogs: AgentLogConnection;
@@ -906,7 +906,7 @@ export type QuerySkillTemplateArgs = {
 };
 
 
-export type QuerySpeechUrlArgs = {
+export type QuerySpeechUrlsArgs = {
   logId: Scalars['ID']['input'];
 };
 
@@ -1924,7 +1924,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
   skillTemplates?: Resolver<Array<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
-  speechUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySpeechUrlArgs, 'logId'>>;
+  speechUrls?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySpeechUrlsArgs, 'logId'>>;
   speechVoices?: Resolver<Array<ResolversTypes['SpeechVoice']>, ParentType, ContextType, RequireFields<QuerySpeechVoicesArgs, 'providerId'>>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;

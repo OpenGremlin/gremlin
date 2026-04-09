@@ -17,10 +17,13 @@ interface VoiceContextValue {
   subscribe: (scope: { agentId: string } | { taskId: string }) => void;
   /** Stop listening and clear the queue. */
   unsubscribe: () => void;
+  /** Play an ordered array of audio URLs using the double-buffered queue. */
+  playUrls: (urls: string[]) => void;
 }
 
 const VoiceContext = createContext<VoiceContextValue>({
   subscribe: () => {},
+  playUrls: () => {},
   unsubscribe: () => {},
 });
 
@@ -285,6 +288,28 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     playerB.pause();
   }, [playerA, playerB, resetState]);
 
+  /** Play an ordered array of pre-built audio URLs (e.g. on-demand TTS). */
+  const playUrls = useCallback(
+    (urls: string[]) => {
+      // Stop any in-flight streaming playback
+      subRef.current?.unsubscribe();
+      subRef.current = null;
+      resetState();
+      playerA.pause();
+      playerB.pause();
+
+      // Feed all URLs into the buffer and kick off playback
+      const s = state.current;
+      s.currentLogId = `ondemand-${Date.now()}`;
+      for (let i = 0; i < urls.length; i++) {
+        s.buffer.set(i, urls[i]);
+        s.maxSeenIndex = i;
+      }
+      playFirst();
+    },
+    [resetState, playerA, playerB, playFirst],
+  );
+
   // When voice is toggled, start or stop the subscription for the
   // current scope without re-running useSpeechStream's effect.
   useEffect(() => {
@@ -307,8 +332,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ subscribe, unsubscribe }),
-    [subscribe, unsubscribe],
+    () => ({ subscribe, unsubscribe, playUrls }),
+    [subscribe, unsubscribe, playUrls],
   );
 
   return (
