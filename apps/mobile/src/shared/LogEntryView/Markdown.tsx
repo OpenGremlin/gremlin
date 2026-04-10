@@ -292,6 +292,12 @@ export function Markdown({
       renderer={renderer}
       flatListProps={{
         scrollEnabled: false,
+        // Disable virtualization — each Markdown block is already inside the
+        // outer chat FlatList which handles windowing.  Without this, the inner
+        // FlatList renders only a small window of nodes and long bubbles show
+        // empty gaps that fill in late.
+        windowSize: 100,
+        removeClippedSubviews: false,
         style: { backgroundColor: "transparent" },
       }}
     />
