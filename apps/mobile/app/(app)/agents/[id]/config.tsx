@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { Check, Crown, Pencil } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   AgentQuery,
@@ -14,17 +14,16 @@ import {
 import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
-import { presentAvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
+import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
 import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { Input } from "../../../../src/shared/Input";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
-import { SaveButton } from "../../../../src/shared/SaveButton";
 import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
 import { Toggle } from "../../../../src/shared/Toggle";
-import { ToolsConfig } from "../../../../src/shared/ToolsConfig";
+import { ToolsConfig, toPlainConfig } from "../../../../src/shared/ToolsConfig";
 
 export default function AgentConfigScreen() {
   const colors = useNavigationTheme();
@@ -46,6 +45,76 @@ export default function AgentConfigScreen() {
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
 
+  // Ref holds latest text field values so the debounced save always reads
+  // current state without needing to recreate callbacks on every keystroke.
+  const fieldsRef = useRef({ name, personality, role, delegationHint });
+  fieldsRef.current = { name, personality, role, delegationHint };
+
+  // Debounced auto-save for text fields
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flushSave = useCallback(() => {
+    const f = fieldsRef.current;
+    setSaving(true);
+    setSaveError("");
+    execute(UpdateAgentMutation, {
+      id: id ?? "",
+      input: {
+        name: f.name.trim(),
+        personality: f.personality.trim(),
+        role: f.role.trim() || null,
+        delegationHint: f.delegationHint.trim() || null,
+      },
+    })
+      .catch((err) =>
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save changes",
+        ),
+      )
+      .finally(() => setSaving(false));
+  }, [id]);
+
+  const scheduleSave = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(flushSave, 600);
+  }, [flushSave]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  // Wrapped setters that trigger debounced save
+  const updateName = useCallback(
+    (v: string) => {
+      setName(v);
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+  const updatePersonality = useCallback(
+    (v: string) => {
+      setPersonality(v);
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+  const updateRole = useCallback(
+    (v: string) => {
+      setRole(v);
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+  const updateDelegationHint = useCallback(
+    (v: string) => {
+      setDelegationHint(v);
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+
   // Used by the team picker — fetched lazily once the user expands manager mode.
   const allAgentsResult = useQuery(AgentsQuery, { skip: !managerEnabled });
   const teamCandidates = useMemo(
@@ -55,25 +124,7 @@ export default function AgentConfigScreen() {
       ),
     [allAgentsResult.data, id],
   );
-  const openAvatarPicker = () => {
-    presentAvatarPicker({
-      avatars: avatarsResult.data?.avatars ?? [],
-      loading: avatarsResult.loading,
-      onSelect: async (avatar) => {
-        try {
-          await execute(UpdateAgentMutation, {
-            id: id ?? "",
-            input: { avatar: avatar.id },
-          });
-          refetch();
-        } catch (err) {
-          setSaveError(
-            err instanceof Error ? err.message : "Failed to update avatar",
-          );
-        }
-      },
-    });
-  };
+  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
 
   useEffect(() => {
     if (!agent) return;
@@ -85,42 +136,33 @@ export default function AgentConfigScreen() {
     setTeam(agent.config?.manager?.team ?? []);
   }, [agent]);
 
-  const handleSave = useCallback(async () => {
-    if (!agent) return;
-    setSaving(true);
-    setSaveError("");
-    try {
-      await execute(UpdateAgentMutation, {
+  // Immediately save manager config changes, merging with current server config
+  // to avoid clobbering model/tools settings
+  const saveManagerConfig = useCallback(
+    (enabled: boolean, memberIds: string[]) => {
+      if (!agent) return;
+      const merged = {
+        ...toPlainConfig(agent.config),
+        manager: enabled
+          ? { enabled: true, team: memberIds }
+          : { enabled: false, team: [] as string[] },
+      };
+
+      setSaving(true);
+      setSaveError("");
+      execute(UpdateAgentMutation, {
         id: id ?? "",
-        input: {
-          name: name.trim(),
-          personality: personality.trim(),
-          role: role.trim() || null,
-          delegationHint: delegationHint.trim() || null,
-          config: {
-            manager: managerEnabled
-              ? { enabled: true, team }
-              : { enabled: false, team: [] },
-          },
-        },
-      });
-    } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Failed to save changes",
-      );
-    } finally {
-      setSaving(false);
-    }
-  }, [
-    id,
-    agent,
-    name,
-    personality,
-    role,
-    delegationHint,
-    managerEnabled,
-    team,
-  ]);
+        input: { config: merged },
+      })
+        .catch((err) =>
+          setSaveError(
+            err instanceof Error ? err.message : "Failed to save changes",
+          ),
+        )
+        .finally(() => setSaving(false));
+    },
+    [id, agent],
+  );
 
   const [showRetireConfirm, setShowRetireConfirm] = useState(false);
 
@@ -163,25 +205,14 @@ export default function AgentConfigScreen() {
     return <NotFound label="Agent not found" />;
   }
 
-  const savedTeam = agent.config?.manager?.team ?? [];
-  const teamChanged =
-    team.length !== savedTeam.length ||
-    team.some((t) => !savedTeam.includes(t)) ||
-    savedTeam.some((t) => !team.includes(t));
-  const hasChanges =
-    name.trim() !== agent.name ||
-    personality.trim() !== (agent.personality ?? "") ||
-    role.trim() !== (agent.role ?? "") ||
-    delegationHint.trim() !== (agent.delegationHint ?? "") ||
-    managerEnabled !== (agent.config?.manager?.enabled ?? false) ||
-    (managerEnabled && teamChanged);
-
   const toggleTeamMember = (memberId: string) => {
-    setTeam((prev) =>
-      prev.includes(memberId)
+    setTeam((prev) => {
+      const next = prev.includes(memberId)
         ? prev.filter((m) => m !== memberId)
-        : [...prev, memberId],
-    );
+        : [...prev, memberId];
+      saveManagerConfig(managerEnabled, next);
+      return next;
+    });
   };
 
   return (
@@ -204,7 +235,9 @@ export default function AgentConfigScreen() {
 
       <View className="items-center">
         <Pressable
-          onPress={agent.retired ? undefined : openAvatarPicker}
+          onPress={
+            agent.retired ? undefined : () => setAvatarPickerVisible(true)
+          }
           disabled={!!agent.retired}
           className="relative"
         >
@@ -219,13 +252,16 @@ export default function AgentConfigScreen() {
             </View>
           )}
         </Pressable>
+        {saving && (
+          <Text className="text-xs text-text-faint mt-1">saving...</Text>
+        )}
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <Input
           value={name}
-          onChangeText={setName}
+          onChangeText={updateName}
           placeholder="Agent name"
           editable={!agent.retired}
         />
@@ -240,7 +276,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={personality}
-          onChangeText={setPersonality}
+          onChangeText={updatePersonality}
           placeholder="e.g. Warm and curious, explains things with analogies, asks clarifying questions before diving in."
           multiline
           numberOfLines={4}
@@ -257,7 +293,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={role}
-          onChangeText={setRole}
+          onChangeText={updateRole}
           placeholder="e.g. A senior backend engineer who reviews PRs and helps debug production issues."
           multiline
           numberOfLines={4}
@@ -277,7 +313,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={delegationHint}
-          onChangeText={setDelegationHint}
+          onChangeText={updateDelegationHint}
           placeholder="e.g. When the task needs access to AWS logs or CloudWatch metrics to diagnose production issues."
           multiline
           numberOfLines={4}
@@ -305,7 +341,11 @@ export default function AgentConfigScreen() {
                 </View>
                 <Toggle
                   enabled={managerEnabled}
-                  onChange={() => setManagerEnabled((v) => !v)}
+                  onChange={() => {
+                    const next = !managerEnabled;
+                    setManagerEnabled(next);
+                    saveManagerConfig(next, next ? team : []);
+                  }}
                 />
               </View>
 
@@ -407,14 +447,6 @@ export default function AgentConfigScreen() {
 
       {!agent.retired && (
         <>
-          <SaveButton
-            onPress={handleSave}
-            disabled={!hasChanges}
-            saving={saving}
-            label="Save Changes"
-            size="lg"
-          />
-
           <ToolsConfig agent={agent} />
 
           <SkillsConfig agentId={agent.id} />
@@ -438,6 +470,25 @@ export default function AgentConfigScreen() {
         destructive
         onConfirm={doRetire}
         onCancel={() => setShowRetireConfirm(false)}
+      />
+      <AvatarPicker
+        visible={avatarPickerVisible}
+        avatars={avatarsResult.data?.avatars ?? []}
+        loading={avatarsResult.loading}
+        onSelect={async (avatar) => {
+          try {
+            await execute(UpdateAgentMutation, {
+              id: id ?? "",
+              input: { avatar: avatar.id },
+            });
+            refetch();
+          } catch (err) {
+            setSaveError(
+              err instanceof Error ? err.message : "Failed to update avatar",
+            );
+          }
+        }}
+        onDismiss={() => setAvatarPickerVisible(false)}
       />
     </ScrollView>
   );

@@ -12,15 +12,16 @@ import {
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
-import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
+import { ModelPicker } from "../ModelPicker";
 import { Toggle } from "../Toggle";
+import { VoicePicker } from "../VoicePicker";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;
 
-interface PlainConfig {
+export interface PlainConfig {
   model?: { type: string; modelId?: string; connectionId?: string };
   imageModel?: { type: string; modelId?: string; connectionId?: string };
   speechModel?: { type: string; modelId?: string; connectionId?: string };
@@ -35,9 +36,10 @@ interface PlainConfig {
   viewImage?: { enabled: boolean };
   imageGeneration?: { enabled: boolean };
   speech?: { enabled: boolean; voice?: string };
+  manager?: { enabled: boolean; team: string[] };
 }
 
-function toPlainConfig(config: Agent["config"]): PlainConfig {
+export function toPlainConfig(config: Agent["config"]): PlainConfig {
   return {
     model: config?.model
       ? {
@@ -87,6 +89,12 @@ function toPlainConfig(config: Agent["config"]): PlainConfig {
       ? {
           enabled: config.speech.enabled,
           voice: config.speech.voice ?? undefined,
+        }
+      : undefined,
+    manager: config?.manager
+      ? {
+          enabled: config.manager.enabled,
+          team: config.manager.team ?? [],
         }
       : undefined,
   };
@@ -171,18 +179,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const presentModelDetail = (providerId: string, modelId: string) => {
     router.push(`/model/${providerId}/${modelId}`);
   };
-  const presentModelPicker = (
-    payload: import("../../../app/sheet/model-picker").ModelPickerSheetPayload,
-  ) => {
-    const sheetId = openSheet(payload);
-    router.push(`/sheet/model-picker?id=${sheetId}`);
-  };
-  const presentVoicePicker = (
-    payload: import("../../../app/sheet/voice-picker").VoicePickerSheetPayload,
-  ) => {
-    const sheetId = openSheet(payload);
-    router.push(`/sheet/voice-picker?id=${sheetId}`);
-  };
+  const [modelPickerMode, setModelPickerMode] = useState<
+    "chat" | "image_generation" | "audio_speech" | null
+  >(null);
+  const [voicePickerVisible, setVoicePickerVisible] = useState(false);
   const [modelModalities, setModelModalities] = useState<string[] | null>(null);
   const [modelSupportsReasoning, setModelSupportsReasoning] = useState<
     boolean | null
@@ -434,19 +434,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
             )}
             <View className="flex-row items-center gap-2">
               <Pressable
-                onPress={() =>
-                  presentModelPicker({
-                    model: config.model,
-                    providers,
-                    mode: "chat",
-                    onSelect: (value) => updateConfig({ model: value }),
-                    onSelectDefault: () => updateConfig({ model: undefined }),
-                    defaultLabel: defaultChatModelLabel
-                      ? `Use default (${defaultChatModelLabel})`
-                      : "Use default",
-                    isUsingDefault: usingDefaultChatModel,
-                  })
-                }
+                onPress={() => setModelPickerMode("chat")}
                 className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultChatModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
               >
                 <Text
@@ -549,21 +537,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 )}
                 <View className="flex-row items-center gap-2">
                   <Pressable
-                    onPress={() =>
-                      presentModelPicker({
-                        model: config.imageModel,
-                        providers,
-                        mode: "image_generation",
-                        onSelect: (value) =>
-                          updateConfig({ imageModel: value }),
-                        onSelectDefault: () =>
-                          updateConfig({ imageModel: undefined }),
-                        defaultLabel: defaultImageModelLabel
-                          ? `Use default (${defaultImageModelLabel})`
-                          : "Use default",
-                        isUsingDefault: usingDefaultImageModel,
-                      })
-                    }
+                    onPress={() => setModelPickerMode("image_generation")}
                     className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultImageModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                   >
                     <Text
@@ -623,21 +597,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 )}
                 <View className="flex-row items-center gap-2">
                   <Pressable
-                    onPress={() =>
-                      presentModelPicker({
-                        model: config.speechModel,
-                        providers,
-                        mode: "audio_speech",
-                        onSelect: (value) =>
-                          updateConfig({ speechModel: value }),
-                        onSelectDefault: () =>
-                          updateConfig({ speechModel: undefined }),
-                        defaultLabel: defaultSpeechModelLabel
-                          ? `Use default (${defaultSpeechModelLabel})`
-                          : "Use default",
-                        isUsingDefault: usingDefaultSpeechModel,
-                      })
-                    }
+                    onPress={() => setModelPickerMode("audio_speech")}
                     className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
                   >
                     <Text
@@ -666,17 +626,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
                 {/* Voice */}
                 <Pressable
-                  onPress={() =>
-                    presentVoicePicker({
-                      connectionId:
-                        effectiveSpeechModel?.type === "connection"
-                          ? effectiveSpeechModel.connectionId
-                          : undefined,
-                      currentVoice: config.speech?.voice,
-                      onSelect: (voice) =>
-                        updateConfig({ speech: { enabled: true, voice } }),
-                    })
-                  }
+                  onPress={() => setVoicePickerVisible(true)}
                   className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg border ${config.speech?.voice ? "bg-surface-alt border-app-border" : "bg-surface-alt border-warning"}`}
                 >
                   <Volume2
@@ -929,6 +879,64 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
           </View>
         </View>
       </Card>
+
+      <ModelPicker
+        visible={modelPickerMode !== null}
+        model={
+          modelPickerMode === "chat"
+            ? config.model
+            : modelPickerMode === "image_generation"
+              ? config.imageModel
+              : config.speechModel
+        }
+        providers={providers}
+        mode={modelPickerMode ?? undefined}
+        onSelect={(value) => {
+          if (modelPickerMode === "chat") updateConfig({ model: value });
+          else if (modelPickerMode === "image_generation")
+            updateConfig({ imageModel: value });
+          else updateConfig({ speechModel: value });
+        }}
+        onSelectDefault={() => {
+          if (modelPickerMode === "chat") updateConfig({ model: undefined });
+          else if (modelPickerMode === "image_generation")
+            updateConfig({ imageModel: undefined });
+          else updateConfig({ speechModel: undefined });
+        }}
+        defaultLabel={
+          modelPickerMode === "chat"
+            ? defaultChatModelLabel
+              ? `Use default (${defaultChatModelLabel})`
+              : "Use default"
+            : modelPickerMode === "image_generation"
+              ? defaultImageModelLabel
+                ? `Use default (${defaultImageModelLabel})`
+                : "Use default"
+              : defaultSpeechModelLabel
+                ? `Use default (${defaultSpeechModelLabel})`
+                : "Use default"
+        }
+        isUsingDefault={
+          modelPickerMode === "chat"
+            ? usingDefaultChatModel
+            : modelPickerMode === "image_generation"
+              ? usingDefaultImageModel
+              : usingDefaultSpeechModel
+        }
+        onDismiss={() => setModelPickerMode(null)}
+      />
+
+      <VoicePicker
+        visible={voicePickerVisible}
+        connectionId={
+          effectiveSpeechModel?.type === "connection"
+            ? effectiveSpeechModel.connectionId
+            : undefined
+        }
+        currentVoice={config.speech?.voice}
+        onSelect={(voice) => updateConfig({ speech: { enabled: true, voice } })}
+        onDismiss={() => setVoicePickerVisible(false)}
+      />
     </View>
   );
 }
