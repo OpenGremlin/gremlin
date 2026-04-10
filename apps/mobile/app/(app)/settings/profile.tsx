@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, Text, View } from "react-native";
 import {
@@ -7,7 +7,6 @@ import {
   UpdateProfileMutation,
 } from "../../../src/graphql/queries";
 import { execute } from "../../../src/lib/apolloClient";
-import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
@@ -23,13 +22,10 @@ interface ProfileFormValues {
 export default function ProfileScreen() {
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const readyRef = useRef(false);
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { isDirty, isSubmitting },
-  } = useForm<ProfileFormValues>({
+  const { control, reset, watch } = useForm<ProfileFormValues>({
     defaultValues: {
       displayName: "",
       about: "",
@@ -49,22 +45,41 @@ export default function ProfileScreen() {
         timezone:
           profile.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
+      readyRef.current = true;
     }
   }, [profile, reset]);
 
-  async function onSubmit(values: ProfileFormValues) {
-    await execute(UpdateProfileMutation, {
-      input: {
-        displayName: values.displayName,
-        about: values.about,
-        website: values.website || null,
-        timezone: values.timezone || null,
-      },
+  const flushSave = useCallback(async (values: ProfileFormValues) => {
+    try {
+      await execute(UpdateProfileMutation, {
+        input: {
+          displayName: values.displayName,
+          about: values.about,
+          website: values.website || null,
+          timezone: values.timezone || null,
+        },
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // silent — transient failures will retry on next change
+    }
+  }, []);
+
+  useEffect(() => {
+    const subscription = watch((values) => {
+      if (!readyRef.current) return;
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(
+        () => flushSave(values as ProfileFormValues),
+        600,
+      );
     });
-    reset(values);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
+    return () => {
+      clearTimeout(debounceRef.current);
+      subscription.unsubscribe();
+    };
+  }, [watch, flushSave]);
 
   if (loading || error) {
     return <QueryResult loading={loading} error={error} />;
@@ -138,14 +153,6 @@ export default function ProfileScreen() {
         />
       </View>
 
-      <Button
-        onPress={handleSubmit(onSubmit)}
-        disabled={!isDirty}
-        loading={isSubmitting}
-        size="lg"
-      >
-        Save
-      </Button>
       {saved && <SavedIndicator />}
     </ScrollView>
   );
