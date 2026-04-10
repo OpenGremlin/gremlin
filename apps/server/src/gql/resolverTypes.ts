@@ -273,7 +273,7 @@ export type Attachment = FileAttachment | LinkAttachment;
 export type AudioRender = {
   __typename?: 'AudioRender';
   durationSeconds?: Maybe<Scalars['Float']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
 };
 
 export type AvailableScope = {
@@ -422,7 +422,7 @@ export type FileAttachment = {
   file: File;
 };
 
-export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | UnknownRender | VideoRender;
+export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | PdfRender | UnknownRender | VideoRender;
 
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
@@ -446,7 +446,7 @@ export type ImageRender = {
   __typename?: 'ImageRender';
   aspectRatio?: Maybe<Scalars['Float']['output']>;
   height?: Maybe<Scalars['Int']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
   width?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -757,6 +757,11 @@ export type OAuthPlatformOverride = {
   __typename?: 'OAuthPlatformOverride';
   clientId: Scalars['String']['output'];
   redirectUri: Scalars['String']['output'];
+};
+
+export type PdfRender = {
+  __typename?: 'PdfRender';
+  url: Scalars['String']['output'];
 };
 
 export type PendingInboxMessage = {
@@ -1189,7 +1194,7 @@ export type VideoRender = {
   __typename?: 'VideoRender';
   durationSeconds?: Maybe<Scalars['Float']['output']>;
   thumbnailUrl?: Maybe<Scalars['String']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
 };
 
 
@@ -1292,6 +1297,7 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
     | ( CodeRender )
     | ( DocumentRender )
     | ( ImageRender )
+    | ( PdfRender )
     | ( UnknownRender )
     | ( VideoRender )
   ;
@@ -1368,6 +1374,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
   OAuthPlatformOverride: ResolverTypeWrapper<OAuthPlatformOverride>;
+  PdfRender: ResolverTypeWrapper<PdfRender>;
   PendingInboxMessage: ResolverTypeWrapper<PendingInboxMessage>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
@@ -1464,6 +1471,7 @@ export type ResolversParentTypes = {
   Mutation: Record<PropertyKey, never>;
   OAuthConnectionMeta: OAuthConnectionMeta;
   OAuthPlatformOverride: OAuthPlatformOverride;
+  PdfRender: PdfRender;
   PendingInboxMessage: PendingInboxMessage;
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
@@ -1638,7 +1646,7 @@ export type AttachmentResolvers<ContextType = GremlinContext, ParentType extends
 
 export type AudioRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AudioRender'] = ResolversParentTypes['AudioRender']> = {
   durationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1740,7 +1748,7 @@ export type FileAttachmentResolvers<ContextType = GremlinContext, ParentType ext
 };
 
 export type FileRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileRender'] = ResolversParentTypes['FileRender']> = {
-  __resolveType: TypeResolveFn<'AudioRender' | 'CodeRender' | 'DocumentRender' | 'ImageRender' | 'UnknownRender' | 'VideoRender', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'AudioRender' | 'CodeRender' | 'DocumentRender' | 'ImageRender' | 'PdfRender' | 'UnknownRender' | 'VideoRender', ParentType, ContextType>;
 };
 
 export type FileUploadUrlResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileUploadUrl'] = ResolversParentTypes['FileUploadUrl']> = {
@@ -1756,7 +1764,7 @@ export type GlobalSettingsResolvers<ContextType = GremlinContext, ParentType ext
 export type ImageRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ImageRender'] = ResolversParentTypes['ImageRender']> = {
   aspectRatio?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   height?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<ImageRenderUrlArgs>>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<ImageRenderUrlArgs>>;
   width?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1861,6 +1869,11 @@ export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentTyp
 export type OAuthPlatformOverrideResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthPlatformOverride'] = ResolversParentTypes['OAuthPlatformOverride']> = {
   clientId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   redirectUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type PdfRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PdfRender'] = ResolversParentTypes['PdfRender']> = {
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PendingInboxMessageResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PendingInboxMessage'] = ResolversParentTypes['PendingInboxMessage']> = {
@@ -2062,7 +2075,7 @@ export type UserInputRequestStatusResolvers = EnumResolverSignature<{ DISMISSED?
 export type VideoRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['VideoRender'] = ResolversParentTypes['VideoRender']> = {
   durationSeconds?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   thumbnailUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<VideoRenderThumbnailUrlArgs>>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2123,6 +2136,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   Mutation?: MutationResolvers<ContextType>;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;
   OAuthPlatformOverride?: OAuthPlatformOverrideResolvers<ContextType>;
+  PdfRender?: PdfRenderResolvers<ContextType>;
   PendingInboxMessage?: PendingInboxMessageResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   ProviderModelInfo?: ProviderModelInfoResolvers<ContextType>;

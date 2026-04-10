@@ -117,6 +117,7 @@ export type RenderKind =
   | "code"
   | "audio"
   | "video"
+  | "pdf"
   | "unknown";
 
 const CODE_EXTENSIONS = new Set([
@@ -180,6 +181,7 @@ const DOCUMENT_EXTENSIONS = new Set([".md", ".markdown", ".txt"]);
 export function detectRenderKind(mime: string | null, ext: string): RenderKind {
   const lower = ext.toLowerCase();
 
+  if (lower === ".pdf") return "pdf";
   if (DOCUMENT_EXTENSIONS.has(lower)) return "document";
   if (CODE_EXTENSIONS.has(lower)) return "code";
 

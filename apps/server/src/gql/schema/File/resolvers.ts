@@ -106,6 +106,11 @@ const render = async (parent: FileParent) => {
         height: dims?.height ?? null,
       };
     }
+    case "pdf":
+      return {
+        __typename: "PdfRender" as const,
+        url: buildWorkspaceFileUrl(serverBase, parent.path),
+      };
     case "audio":
       return {
         __typename: "AudioRender" as const,

@@ -126,10 +126,10 @@ type File {
   render: FileRender!
 }
 
-union FileRender = ImageRender | DocumentRender | CodeRender | AudioRender | VideoRender | UnknownRender
+union FileRender = ImageRender | DocumentRender | CodeRender | AudioRender | VideoRender | PdfRender | UnknownRender
 
 type ImageRender {
-  url(width: Int): String
+  url(width: Int): String!
   aspectRatio: Float
   width: Int
   height: Int
@@ -146,14 +146,18 @@ type CodeRender {
 }
 
 type AudioRender {
-  url: String
+  url: String!
   durationSeconds: Float
 }
 
 type VideoRender {
-  url: String
+  url: String!
   thumbnailUrl(width: Int): String
   durationSeconds: Float
+}
+
+type PdfRender {
+  url: String!
 }
 
 type UnknownRender {
@@ -182,17 +186,19 @@ input CompleteFileUploadInput {
   sizeBytes: Int!
 }
 
-input AttachFileReferenceInput {
-  agentId: String!
-  taskId: String
-  filePath: String!
-}
-
 type CompletedFileUpload {
   path: String!
   filename: String!
   sizeBytes: Int!
   contentType: String!
+}
+
+"Attach a reference to an existing workspace file in an agent's log (no upload needed)."
+input AttachFileReferenceInput {
+  agentId: String!
+  taskId: String
+  "Workspace-relative path, e.g. uploads/2026-04-10/notes.md"
+  filePath: String!
 }
 
 type AgentJob {

@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from "react-native";
+import WebView from "react-native-webview";
 import type {
   AttachmentFieldsFragment,
   FileQuery,
@@ -48,7 +49,7 @@ export function FilePreview({
   if (render.__typename === "DocumentRender") {
     return (
       <ScrollView
-        className="flex-1 bg-bg px-10 py-4"
+        className="flex-1 bg-bg px-5 py-4"
         contentContainerClassName="pb-16"
       >
         <View className="flex-row gap-2 mt-2 mb-2">
@@ -63,7 +64,7 @@ export function FilePreview({
   if (render.__typename === "CodeRender") {
     return (
       <ScrollView
-        className="flex-1 bg-bg px-4 py-4"
+        className="flex-1 bg-bg px-5 py-4"
         contentContainerClassName="pb-16"
         horizontal={false}
       >
@@ -81,6 +82,17 @@ export function FilePreview({
           {render.content}
         </Text>
       </ScrollView>
+    );
+  }
+
+  if (render.__typename === "PdfRender" && "url" in render) {
+    return (
+      <View className="flex-1 bg-bg">
+        <WebView
+          source={{ uri: render.url }}
+          style={{ flex: 1, backgroundColor: "transparent" }}
+        />
+      </View>
     );
   }
 

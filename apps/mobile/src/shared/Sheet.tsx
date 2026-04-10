@@ -38,7 +38,7 @@ export function Sheet({
 
   return (
     <View className="flex-1 bg-surface">
-      <View className="flex-row items-center justify-between px-4 pt-4 pb-3">
+      <View className="flex-row items-center justify-between pl-5 pr-4 pt-4 pb-3">
         <Text
           className="text-sm font-semibold text-text-primary flex-1 mr-4"
           numberOfLines={1}

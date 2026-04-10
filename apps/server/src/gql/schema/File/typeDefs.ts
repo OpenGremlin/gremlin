@@ -14,10 +14,11 @@ export const fileTypeDefs = /* GraphQL */ `
     | CodeRender
     | AudioRender
     | VideoRender
+    | PdfRender
     | UnknownRender
 
   type ImageRender {
-    url(width: Int): String
+    url(width: Int): String!
     aspectRatio: Float
     width: Int
     height: Int
@@ -34,14 +35,18 @@ export const fileTypeDefs = /* GraphQL */ `
   }
 
   type AudioRender {
-    url: String
+    url: String!
     durationSeconds: Float
   }
 
   type VideoRender {
-    url: String
+    url: String!
     thumbnailUrl(width: Int): String
     durationSeconds: Float
+  }
+
+  type PdfRender {
+    url: String!
   }
 
   type UnknownRender {
