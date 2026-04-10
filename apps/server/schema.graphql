@@ -48,6 +48,7 @@ type Mutation {
   removeCommandAllowlistEntry(agentId: ID!, pattern: String!): [AllowlistEntry!]!
   requestFileUploads(agentId: String!, taskId: String, files: [FileUploadRequest!]!): [FileUploadUrl!]!
   completeFileUpload(input: CompleteFileUploadInput!): CompletedFileUpload!
+  attachFileReference(input: AttachFileReferenceInput!): Boolean!
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
@@ -179,6 +180,12 @@ input CompleteFileUploadInput {
   filename: String!
   contentType: String!
   sizeBytes: Int!
+}
+
+input AttachFileReferenceInput {
+  agentId: String!
+  taskId: String
+  filePath: String!
 }
 
 type CompletedFileUpload {

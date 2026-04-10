@@ -69,7 +69,13 @@ function PagerPage({
       </View>
     );
   }
-  return <FilePreview render={file.render} onZoomChange={onZoomChange} />;
+  return (
+    <FilePreview
+      render={file.render}
+      filePath={file.path}
+      onZoomChange={onZoomChange}
+    />
+  );
 }
 
 function PagerActions({ file }: { file: FileNode | FileQueryNode | null }) {

@@ -17,6 +17,7 @@ import {
   filesFromAttachments,
 } from "../../src/shared/FilePreview";
 import { FilePreviewActions } from "../../src/shared/FilePreviewActions";
+import { PickerOverlay } from "../../src/shared/PickerModal";
 import { Sheet } from "../../src/shared/Sheet";
 
 /**
@@ -34,10 +35,16 @@ export default function FileScreen() {
   const filePath = Array.isArray(path) ? path.join("/") : (path ?? "");
   const isPager = !!task || !!dir;
 
-  if (isPager) {
-    return <PagerMode filePath={filePath} taskId={task} dirPath={dir} />;
-  }
-  return <SingleMode filePath={filePath} />;
+  return (
+    <>
+      {isPager ? (
+        <PagerMode filePath={filePath} taskId={task} dirPath={dir} />
+      ) : (
+        <SingleMode filePath={filePath} />
+      )}
+      <PickerOverlay />
+    </>
+  );
 }
 
 function SingleMode({ filePath }: { filePath: string }) {
@@ -65,7 +72,7 @@ function SingleMode({ filePath }: { filePath: string }) {
           </Text>
         </View>
       ) : (
-        <FilePreview render={file.render} />
+        <FilePreview render={file.render} filePath={file.path} />
       )}
     </Sheet>
   );

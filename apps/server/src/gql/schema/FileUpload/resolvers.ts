@@ -181,6 +181,59 @@ const completeFileUpload = async (
   };
 };
 
+const attachFileReference = async (
+  _parent: unknown,
+  {
+    input,
+  }: {
+    input: {
+      agentId: string;
+      taskId?: string | null;
+      filePath: string;
+    };
+  },
+  ctx: GremlinContext,
+) => {
+  if (!ctx.user) throw new Error("Unauthorized");
+
+  const workspace = getWorkspacePath();
+  // Normalise: accept both "/workspace/foo" and "foo" forms
+  const relativePath = input.filePath.startsWith("/workspace/")
+    ? input.filePath.slice("/workspace/".length)
+    : input.filePath;
+  const absPath = path.join(workspace, relativePath);
+
+  // Verify the file exists
+  const stat = await fs.stat(absPath).catch(() => null);
+  if (!stat || !stat.isFile()) {
+    throw new Error(`File not found: ${relativePath}`);
+  }
+
+  const filename = path.basename(absPath);
+
+  const content = JSON.stringify({
+    type: "file_upload",
+    filename,
+    path: `/workspace/${relativePath}`,
+    sizeBytes: stat.size,
+  });
+
+  await ctx.services.orchestrator.writeAgentLog(ctx, {
+    agentId: input.agentId,
+    taskId: input.taskId ?? null,
+    role: "SYSTEM",
+    content,
+    attachments: [{ type: "file", path: relativePath }],
+  });
+
+  ctx.log.info(
+    { agentId: input.agentId, filePath: relativePath },
+    "File reference attached",
+  );
+
+  return true;
+};
+
 export const fileUploadResolvers = {
-  Mutation: { requestFileUploads, completeFileUpload },
+  Mutation: { requestFileUploads, completeFileUpload, attachFileReference },
 };

@@ -3,6 +3,7 @@ import type {
   AttachmentFieldsFragment,
   FileQuery,
 } from "../graphql/generated/graphql";
+import { DocumentDiscussButton } from "./DocumentDiscussButton";
 import { DocumentReadButton } from "./DocumentReadButton";
 import { Markdown } from "./LogEntryView/Markdown";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
@@ -35,9 +36,12 @@ export type FileQueryNode = NonNullable<FileQuery["file"]>;
 
 export function FilePreview({
   render,
+  filePath,
   onZoomChange,
 }: {
   render: FileNode["render"] | FileQueryNode["render"];
+  /** File path in the workspace — enables the Discuss button on documents. */
+  filePath?: string;
   /** Forwarded to ZoomableImage for image renders so a pager can disable swipes while zoomed. */
   onZoomChange?: (zoomed: boolean) => void;
 }) {
@@ -47,7 +51,10 @@ export function FilePreview({
         className="flex-1 bg-bg px-10 py-4"
         contentContainerClassName="pb-16"
       >
-        <DocumentReadButton markdown={render.markdown} />
+        <View className="flex-row gap-2 mt-2 mb-2">
+          <DocumentReadButton markdown={render.markdown} />
+          {filePath && <DocumentDiscussButton filePath={filePath} />}
+        </View>
         <Markdown>{render.markdown}</Markdown>
       </ScrollView>
     );

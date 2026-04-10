@@ -1,6 +1,6 @@
 import { Check } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, Text, type TextInput, View } from "react-native";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { BottomSheet } from "./BottomSheet";
@@ -24,22 +24,25 @@ export interface PickerPayload {
 }
 
 // ---------------------------------------------------------------------------
-// Singleton ref for imperative presentPicker() calls
+// Stack of show handlers — the topmost overlay wins so that pickers
+// presented inside a native modal (formSheet) appear above it.
 // ---------------------------------------------------------------------------
 
-let showFn: ((payload: PickerPayload) => void) | null = null;
+const showFnStack: Array<(payload: PickerPayload) => void> = [];
 
 /**
  * Open the generic picker with the given options. The onSelect callback
  * fires when the user taps a row, and the picker dismisses itself.
  */
 export function presentPicker(payload: PickerPayload): void {
-  showFn?.(payload);
+  const fn = showFnStack[showFnStack.length - 1];
+  fn?.(payload);
 }
 
 /**
- * Render this once near the app root (e.g. inside RootLayout) so that
- * presentPicker() has a target to display in.
+ * Render this near the app root **and** inside any native modal (e.g.
+ * formSheet routes) so that presentPicker() always appears on top.
+ * Each instance registers itself on a stack; the topmost wins.
  */
 export function PickerOverlay() {
   const [payload, setPayload] = useState<PickerPayload | null>(null);
@@ -47,10 +50,19 @@ export function PickerOverlay() {
   const [search, setSearch] = useState("");
   const searchRef = useRef<TextInput>(null);
 
-  // Register the imperative show function
-  showFn = useCallback((p: PickerPayload) => {
+  // Register on the stack; last-mounted overlay (i.e. the one inside
+  // the topmost native modal) will be the one that receives calls.
+  const showRef = useRef((p: PickerPayload) => {
     setSearch("");
     setPayload(p);
+  });
+  useEffect(() => {
+    const fn = showRef.current;
+    showFnStack.push(fn);
+    return () => {
+      const idx = showFnStack.indexOf(fn);
+      if (idx >= 0) showFnStack.splice(idx, 1);
+    };
   }, []);
 
   const dismiss = useCallback(() => setPayload(null), []);

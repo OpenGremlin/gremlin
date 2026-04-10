@@ -60,49 +60,47 @@ export function DocumentReadButton({ markdown }: { markdown: string }) {
         : "Read aloud";
 
   return (
-    <View className="mt-2 mb-2">
-      <Pressable
-        onPress={handlePress}
-        style={{
-          borderRadius: CARD_RADIUS,
-          borderWidth: 1,
-          borderColor: isDark ? "rgba(129, 140, 248, 0.25)" : "#c7d2fe",
-          backgroundColor: isDark ? "#1e1b4b" : "#eef2ff",
-          overflow: "hidden",
-        }}
+    <View
+      style={{
+        borderRadius: CARD_RADIUS,
+        borderWidth: 1,
+        borderColor: isDark ? "rgba(129, 140, 248, 0.25)" : "#c7d2fe",
+        backgroundColor: isDark ? "#1e1b4b" : "#eef2ff",
+        overflow: "hidden",
+        flex: 1,
+      }}
+    >
+      <View
+        className="flex-row items-stretch"
+        style={{ minHeight: AVATAR_SIZE }}
       >
-        <View
-          className="flex-row items-stretch"
-          style={{ minHeight: AVATAR_SIZE }}
+        <Pressable onPress={pickReader}>
+          <AgentAvatar
+            id={reader.id}
+            size={AVATAR_SIZE}
+            cornerStyle={{
+              borderTopLeftRadius: CARD_INNER_RADIUS,
+              borderBottomLeftRadius: CARD_INNER_RADIUS,
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+            hideManagerBadge
+          />
+        </Pressable>
+        <Pressable
+          onPress={handlePress}
+          className="flex-1 flex-row items-center gap-2 px-3"
         >
-          <Pressable onPress={pickReader}>
-            <AgentAvatar
-              id={reader.id}
-              size={AVATAR_SIZE}
-              cornerStyle={{
-                borderTopLeftRadius: CARD_INNER_RADIUS,
-                borderBottomLeftRadius: CARD_INNER_RADIUS,
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0,
-              }}
-              hideManagerBadge
-            />
-          </Pressable>
-          <View className="flex-1 flex-row items-center gap-2 px-3">
-            {icon}
-            <Text
-              className="text-sm font-medium flex-1"
-              style={{ color: isDark ? "#c7d2fe" : "#4338ca" }}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
-            <Text className="text-xs text-text-muted" numberOfLines={1}>
-              {reader.name}
-            </Text>
-          </View>
-        </View>
-      </Pressable>
+          {icon}
+          <Text
+            className="text-sm font-medium"
+            style={{ color: isDark ? "#c7d2fe" : "#4338ca" }}
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

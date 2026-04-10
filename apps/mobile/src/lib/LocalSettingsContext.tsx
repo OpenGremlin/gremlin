@@ -10,12 +10,15 @@ import { storage } from "./storage";
 
 const VOICE_MODE_KEY = "gremlin_voice_mode";
 const DOC_READER_KEY = "gremlin_document_reader";
+const DOC_DISCUSS_KEY = "gremlin_document_discuss";
 
 interface LocalSettings {
   voiceEnabled: boolean;
   toggleVoice: () => void;
   documentReaderId: string | null;
   setDocumentReaderId: (id: string) => void;
+  documentDiscussAgentId: string | null;
+  setDocumentDiscussAgentId: (id: string) => void;
 }
 
 const LocalSettingsContext = createContext<LocalSettings>({
@@ -23,6 +26,8 @@ const LocalSettingsContext = createContext<LocalSettings>({
   toggleVoice: () => {},
   documentReaderId: null,
   setDocumentReaderId: () => {},
+  documentDiscussAgentId: null,
+  setDocumentDiscussAgentId: () => {},
 });
 
 export function LocalSettingsProvider({
@@ -34,6 +39,9 @@ export function LocalSettingsProvider({
   const [documentReaderId, setDocumentReaderIdState] = useState<string | null>(
     null,
   );
+  const [documentDiscussAgentId, setDocumentDiscussAgentIdState] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     storage.getItem(VOICE_MODE_KEY).then((voice) => {
@@ -41,6 +49,9 @@ export function LocalSettingsProvider({
     });
     storage.getItem(DOC_READER_KEY).then((id) => {
       if (id) setDocumentReaderIdState(id);
+    });
+    storage.getItem(DOC_DISCUSS_KEY).then((id) => {
+      if (id) setDocumentDiscussAgentIdState(id);
     });
   }, []);
 
@@ -57,14 +68,28 @@ export function LocalSettingsProvider({
     storage.setItem(DOC_READER_KEY, id);
   }, []);
 
+  const setDocumentDiscussAgentId = useCallback((id: string) => {
+    setDocumentDiscussAgentIdState(id);
+    storage.setItem(DOC_DISCUSS_KEY, id);
+  }, []);
+
   const value = useMemo(
     () => ({
       voiceEnabled,
       toggleVoice,
       documentReaderId,
       setDocumentReaderId,
+      documentDiscussAgentId,
+      setDocumentDiscussAgentId,
     }),
-    [voiceEnabled, toggleVoice, documentReaderId, setDocumentReaderId],
+    [
+      voiceEnabled,
+      toggleVoice,
+      documentReaderId,
+      setDocumentReaderId,
+      documentDiscussAgentId,
+      setDocumentDiscussAgentId,
+    ],
   );
 
   return (

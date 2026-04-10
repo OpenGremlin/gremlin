@@ -260,6 +260,14 @@ export type ApiKeyConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
 };
 
+/** Attach a reference to an existing workspace file in an agent's log (no upload needed). */
+export type AttachFileReferenceInput = {
+  agentId: Scalars['String']['input'];
+  /** Workspace-relative path, e.g. uploads/2026-04-10/notes.md */
+  filePath: Scalars['String']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Attachment = FileAttachment | LinkAttachment;
 
 export type AudioRender = {
@@ -510,6 +518,7 @@ export type Mutation = {
   addCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
+  attachFileReference: Scalars['Boolean']['output'];
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
   completeFileUpload: CompletedFileUpload;
@@ -554,6 +563,11 @@ export type MutationAddCommandAllowlistEntryArgs = {
 export type MutationAssignSkillArgs = {
   agentId: Scalars['ID']['input'];
   skillId: Scalars['ID']['input'];
+};
+
+
+export type MutationAttachFileReferenceArgs = {
+  input: AttachFileReferenceInput;
 };
 
 
@@ -1315,6 +1329,7 @@ export type ResolversTypes = {
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   AllowlistEntry: ResolverTypeWrapper<AllowlistEntry>;
   ApiKeyConnectionMeta: ResolverTypeWrapper<ApiKeyConnectionMeta>;
+  AttachFileReferenceInput: AttachFileReferenceInput;
   Attachment: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Attachment']>;
   AudioRender: ResolverTypeWrapper<AudioRender>;
   AvailableScope: ResolverTypeWrapper<AvailableScope>;
@@ -1412,6 +1427,7 @@ export type ResolversParentTypes = {
   AgentWebSearchConfigInput: AgentWebSearchConfigInput;
   AllowlistEntry: AllowlistEntry;
   ApiKeyConnectionMeta: ApiKeyConnectionMeta;
+  AttachFileReferenceInput: AttachFileReferenceInput;
   Attachment: ResolversUnionTypes<ResolversParentTypes>['Attachment'];
   AudioRender: AudioRender;
   AvailableScope: AvailableScope;
@@ -1803,6 +1819,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   addCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationAddCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
+  attachFileReference?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAttachFileReferenceArgs, 'input'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;

@@ -49,6 +49,12 @@ export const CompleteFileUploadMutation = graphql(`
   }
 `);
 
+export const AttachFileReferenceMutation = graphql(`
+  mutation AttachFileReference($input: AttachFileReferenceInput!) {
+    attachFileReference(input: $input)
+  }
+`);
+
 export const PendingInboxMessagesQuery = graphql(`
   query PendingInboxMessages($agentId: ID!, $taskId: String) {
     pendingInboxMessages(agentId: $agentId, taskId: $taskId) {
