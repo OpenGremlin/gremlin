@@ -96,7 +96,6 @@ pnpm gremlin destroy   # tear down everything
 | `packages/infra` | AWS CDK infrastructure stacks |
 | `packages/functions` | Lambda functions (EventBridge schedule targets, etc.) |
 | `packages/media-server` | Lambda-based media server for file serving |
-| `packages/logos` | Integration provider logos and brand assets |
 
 ## Conventions
 

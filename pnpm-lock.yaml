@@ -26,9 +26,6 @@ importers:
       '@expo/metro-runtime':
         specifier: ~55.0.9
         version: 55.0.9(@expo/dom-webview@55.0.5)(expo@55.0.12)(react-dom@19.2.0(react@19.2.0))(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
-      '@opengremlin/logos':
-        specifier: workspace:*
-        version: link:../../packages/logos
       '@react-native-async-storage/async-storage':
         specifier: ^2.2.0
         version: 2.2.0(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))
@@ -582,8 +579,6 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0(typescript@5.9.3)(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@22.19.13)(jiti@2.6.1)(jsdom@25.0.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
 
-  packages/logos: {}
-
   packages/media-server:
     dependencies:
       '@aws-sdk/client-s3':
@@ -607,10 +602,6 @@ importers:
         version: 5.9.3
 
   packages/providers:
-    dependencies:
-      '@opengremlin/logos':
-        specifier: workspace:*
-        version: link:../logos
     devDependencies:
       typescript:
         specifier: ^5
@@ -13972,9 +13963,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.74.89': {}

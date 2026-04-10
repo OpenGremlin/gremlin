@@ -14,9 +14,6 @@
     "clean": "rm -rf dist",
     "test": "echo 'No tests'"
   },
-  "dependencies": {
-    "@opengremlin/logos": "workspace:*"
-  },
   "devDependencies": {
     "typescript": "^5"
   }

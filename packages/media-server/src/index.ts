@@ -71,6 +71,22 @@ export async function handler(event: {
 
   try {
     const inputBytes = await streamToBuffer(originalBody);
+    const isSvg = contentType?.includes("svg") || key.endsWith(".svg");
+    const wantsResize = params.width || params.height || params.format;
+
+    if (isSvg && !wantsResize) {
+      // Serve SVG directly without rasterization
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "image/svg+xml",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+        body: inputBytes.toString("utf-8"),
+        isBase64Encoded: false,
+      };
+    }
+
     let pipeline = sharp(inputBytes);
 
     if (params.width || params.height) {

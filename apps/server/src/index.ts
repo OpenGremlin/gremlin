@@ -1,6 +1,5 @@
 import "./env.js";
 import { createServer } from "node:http";
-import path from "node:path";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { createLogger, logger } from "@opengremlin/lib/logger.js";
@@ -219,16 +218,8 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
-// Media assets: S3 + sharp in prod, local static files in dev
-if (process.env.MEDIA_BUCKET) {
-  app.get("/media/*", mediaRoute);
-} else {
-  const mediaAssets = path.resolve(
-    path.dirname(new URL(import.meta.url).pathname),
-    "../../../packages/media-server/assets",
-  );
-  app.use("/media", express.static(mediaAssets));
-}
+// Media assets: S3 in prod, local disk in dev — both support resizing/format conversion
+app.get("/media/*", mediaRoute);
 
 // Workspace file serving (auth at CloudFront edge + origin verification)
 app.options("/api/files/*", filesCorsPreflight);

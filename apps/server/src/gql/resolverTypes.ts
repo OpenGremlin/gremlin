@@ -6,6 +6,7 @@ import { AgentJobItem } from '@opengremlin/lib/resources/ddb/schema/agentJob.js'
 import { AgentLogItem } from '@opengremlin/lib/resources/ddb/schema/agentLog.js';
 import { AgentLogConnectionModel, AgentLogEdgeModel, PageInfoModel } from '@opengremlin/lib/services/agentLogs/pagination.js';
 import { AvatarModel } from './schema/Avatar/resolvers.js';
+import { LogoModel } from './schema/Logo/resolvers.js';
 import { IntegrationProviderDef } from '@opengremlin/lib/services/integrations/providers.js';
 import { SafeIntegrationConnection } from '@opengremlin/lib/services/integrations/getConnections.js';
 import { DefaultModelResult } from '@opengremlin/lib/services/integrations/getDefaultModel.js';
@@ -500,6 +501,23 @@ export type LinkAttachment = {
   url: Scalars['String']['output'];
 };
 
+export type Logo = {
+  __typename?: 'Logo';
+  darkUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lightUrl: Scalars['String']['output'];
+};
+
+
+export type LogoDarkUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type LogoLightUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type ModelInfo = {
   __typename?: 'ModelInfo';
   id: Scalars['ID']['output'];
@@ -832,6 +850,7 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
+  logos: Array<Logo>;
   pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
@@ -1384,6 +1403,7 @@ export type ResolversTypes = {
   IntegrationConnection: ResolverTypeWrapper<SafeIntegrationConnection>;
   IntegrationProvider: ResolverTypeWrapper<IntegrationProviderDef>;
   LinkAttachment: ResolverTypeWrapper<LinkAttachment>;
+  Logo: ResolverTypeWrapper<LogoModel>;
   ModelInfo: ResolverTypeWrapper<ModelInfo>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   OAuthConnectionMeta: ResolverTypeWrapper<OAuthConnectionMeta>;
@@ -1482,6 +1502,7 @@ export type ResolversParentTypes = {
   IntegrationConnection: SafeIntegrationConnection;
   IntegrationProvider: IntegrationProviderDef;
   LinkAttachment: LinkAttachment;
+  Logo: LogoModel;
   ModelInfo: ModelInfo;
   Mutation: Record<PropertyKey, never>;
   OAuthConnectionMeta: OAuthConnectionMeta;
@@ -1826,6 +1847,12 @@ export type LinkAttachmentResolvers<ContextType = GremlinContext, ParentType ext
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type LogoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Logo'] = ResolversParentTypes['Logo']> = {
+  darkUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<LogoDarkUrlArgs>>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lightUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<LogoLightUrlArgs>>;
+};
+
 export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ModelInfo'] = ResolversParentTypes['ModelInfo']> = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   inputCostPerImage?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -1938,6 +1965,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   globalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType>;
   integrationConnections?: Resolver<Array<ResolversTypes['IntegrationConnection']>, ParentType, ContextType, Partial<QueryIntegrationConnectionsArgs>>;
   integrationProviders?: Resolver<Array<ResolversTypes['IntegrationProvider']>, ParentType, ContextType>;
+  logos?: Resolver<Array<ResolversTypes['Logo']>, ParentType, ContextType>;
   pendingCommandApprovals?: Resolver<Array<ResolversTypes['CommandApproval']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
@@ -2153,6 +2181,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   IntegrationConnection?: IntegrationConnectionResolvers<ContextType>;
   IntegrationProvider?: IntegrationProviderResolvers<ContextType>;
   LinkAttachment?: LinkAttachmentResolvers<ContextType>;
+  Logo?: LogoResolvers<ContextType>;
   ModelInfo?: ModelInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   OAuthConnectionMeta?: OAuthConnectionMetaResolvers<ContextType>;

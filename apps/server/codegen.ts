@@ -26,6 +26,7 @@ const config: CodegenConfig = {
           AgentLogPageInfo:
             "@opengremlin/lib/services/agentLogs/pagination.js#PageInfoModel",
           Avatar: "./schema/Avatar/resolvers.js#AvatarModel",
+          Logo: "./schema/Logo/resolvers.js#LogoModel",
           IntegrationProvider:
             "@opengremlin/lib/services/integrations/providers.js#IntegrationProviderDef",
           IntegrationConnection:

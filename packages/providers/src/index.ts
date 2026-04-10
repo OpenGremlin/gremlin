@@ -64,10 +64,6 @@ export interface IntegrationProviderDef {
   models?: ModelDef[];
   /** Hide from the UI — provider exists but is not ready for users yet */
   hidden?: boolean;
-  /** Logo filename from @opengremlin/logos (e.g. "Google.svg") */
-  logo: string;
-  /** Light-mode logo variant filename, if available */
-  logoLight?: string;
   /** OAuth authorization endpoint URL */
   authorizeUrl?: string;
   /** OAuth token endpoint URL */
@@ -96,7 +92,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Server-side AWS models",
     connectionType: "bedrock",
-    logo: "Bedrock.svg",
     availableScopes: [],
   },
   {
@@ -105,8 +100,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Claude models",
     connectionType: "model_provider",
-    logo: "Anthropic.svg",
-    logoLight: "Anthropic_light.svg",
     availableScopes: [],
   },
   {
@@ -115,8 +108,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "ChatGPT models",
     connectionType: "model_provider",
-    logo: "OpenAI.svg",
-    logoLight: "OpenAI_light.svg",
     availableScopes: [],
   },
   {
@@ -125,7 +116,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Gemini models",
     connectionType: "model_provider",
-    logo: "Gemini.svg",
     availableScopes: [],
   },
   {
@@ -134,8 +124,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Grok models",
     connectionType: "model_provider",
-    logo: "xAI.svg",
-    logoLight: "xAI_light.svg",
     availableScopes: [],
   },
   {
@@ -144,7 +132,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Mistral chat & code models",
     connectionType: "model_provider",
-    logo: "Mistral.svg",
     availableScopes: [],
   },
   {
@@ -153,7 +140,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "DeepSeek models",
     connectionType: "model_provider",
-    logo: "DeepSeek.svg",
     availableScopes: [],
   },
   {
@@ -162,8 +148,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Fast open-source model inference",
     connectionType: "model_provider",
-    logo: "Groq.svg",
-    logoLight: "Groq_light.svg",
     availableScopes: [],
   },
   {
@@ -172,7 +156,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Search-powered Sonar models",
     connectionType: "model_provider",
-    logo: "Perplexity.svg",
     availableScopes: [],
   },
   {
@@ -181,7 +164,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Open-source model hosting",
     connectionType: "model_provider",
-    logo: "TogetherAI.svg",
     availableScopes: [],
   },
   {
@@ -190,7 +172,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Open-source model inference",
     connectionType: "model_provider",
-    logo: "FireworksAI.svg",
     availableScopes: [],
   },
   {
@@ -199,7 +180,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Cohere models",
     connectionType: "model_provider",
-    logo: "Cohere.svg",
     availableScopes: [],
   },
   {
@@ -208,7 +188,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "MiniMax models",
     connectionType: "model_provider",
-    logo: "MiniMax.svg",
     availableScopes: [],
   },
   {
@@ -217,7 +196,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Qwen models via DashScope",
     connectionType: "model_provider",
-    logo: "Qwen.svg",
     availableScopes: [],
   },
   {
@@ -226,8 +204,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "ai",
     description: "Speech synthesis models",
     connectionType: "model_provider",
-    logo: "ElevenLabs.svg",
-    logoLight: "ElevenLabs_light.svg",
     availableScopes: [],
   },
   // Web
@@ -237,7 +213,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "web",
     description: "Web search via Brave Search API",
     connectionType: "apikey",
-    logo: "Brave.svg",
     availableScopes: [],
   },
   {
@@ -246,7 +221,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "web",
     description: "AI-optimized web search API",
     connectionType: "apikey",
-    logo: "Tavily.svg",
     availableScopes: [],
   },
   // Productivity
@@ -256,7 +230,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "productivity",
     description: "Gmail & Google Docs",
     connectionType: "oauth",
-    logo: "Google.svg",
     authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenUrl: "https://oauth2.googleapis.com/token",
     defaultClientId:
@@ -298,8 +271,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "productivity",
     description: "Issues & Projects",
     connectionType: "oauth",
-    logo: "Linear.svg",
-    logoLight: "Linear_light.svg",
     authorizeUrl: "https://linear.app/oauth/authorize",
     tokenUrl: "https://api.linear.app/oauth/token",
     userInfo: {
@@ -320,7 +291,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "productivity",
     description: "Boards & Cards",
     connectionType: "custom",
-    logo: "Trello.svg",
     hidden: true,
     availableScopes: [
       { scope: "read", label: "Read Boards" },
@@ -333,7 +303,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "productivity",
     description: "Files & Cloud Storage",
     connectionType: "oauth",
-    logo: "Dropbox.svg",
     authorizeUrl: "https://www.dropbox.com/oauth2/authorize",
     tokenUrl: "https://api.dropboxapi.com/oauth2/token",
     defaultClientId: "i1lwuckf843zcf0",
@@ -365,7 +334,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Channels & Direct Messages",
     connectionType: "custom",
-    logo: "Slack.svg",
     hidden: true,
     availableScopes: [
       { scope: "channels:read", label: "Read Channels" },
@@ -378,7 +346,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Servers & Direct Messages",
     connectionType: "oauth",
-    logo: "Discord.svg",
     authorizeUrl: "https://discord.com/api/oauth2/authorize",
     tokenUrl: "https://discord.com/api/oauth2/token",
     defaultScopes: ["identify", "email"],
@@ -399,7 +366,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Chats & Channels",
     connectionType: "oauth",
-    logo: "Teams.svg",
     authorizeUrl:
       "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -422,7 +388,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Chats & Channels",
     connectionType: "custom",
-    logo: "Telegram.svg",
     hidden: true,
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
@@ -435,7 +400,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "communication",
     description: "Messages & Groups",
     connectionType: "custom",
-    logo: "WhatsApp.svg",
     hidden: true,
     availableScopes: [
       { scope: "messages:read", label: "Read Messages" },
@@ -449,8 +413,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "developer",
     description: "Repositories & Issues",
     connectionType: "oauth",
-    logo: "GitHub.svg",
-    logoLight: "GitHub_light.svg",
     authorizeUrl: "https://github.com/login/oauth/authorize",
     tokenUrl: "https://github.com/login/oauth/access_token",
     defaultClientId: "Ov23lifJONH8V9JAhnBe",
@@ -470,7 +432,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "developer",
     description: "Repositories & Merge Requests",
     connectionType: "oauth",
-    logo: "GitLab.svg",
     authorizeUrl: "https://gitlab.com/oauth/authorize",
     tokenUrl: "https://gitlab.com/oauth/token",
     userInfo: {
@@ -490,7 +451,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "developer",
     description: "Issues & Sprints",
     connectionType: "oauth",
-    logo: "Jira.svg",
     authorizeUrl: "https://auth.atlassian.com/authorize",
     tokenUrl: "https://auth.atlassian.com/oauth/token",
     extraAuthParams: { audience: "api.atlassian.com", prompt: "consent" },
@@ -512,7 +472,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "entertainment",
     description: "Playlists & Listening History",
     connectionType: "oauth",
-    logo: "Spotify.svg",
     authorizeUrl: "https://accounts.spotify.com/authorize",
     tokenUrl: "https://accounts.spotify.com/api/token",
     defaultClientId: "c7d96c11accd4e3ebdaa9fcd32e9e1b6",
@@ -549,8 +508,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "cloud",
     description: "Connect to an AWS account via IAM Role",
     connectionType: "aws_iam_role",
-    logo: "AWS.svg",
-    logoLight: "AWS_light.svg",
     availableScopes: [],
   },
   // Smart Home
@@ -560,7 +517,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "smart_home",
     description: "Lights & Scenes",
     connectionType: "custom",
-    logo: "Hue.svg",
     hidden: true,
     availableScopes: [
       { scope: "lights:read", label: "Read Light State" },
@@ -573,7 +529,6 @@ export const providers: IntegrationProviderDef[] = [
     category: "smart_home",
     description: "Devices & Automations",
     connectionType: "custom",
-    logo: "HomeAssistant.svg",
     hidden: true,
     availableScopes: [
       { scope: "state:read", label: "Read Device State" },

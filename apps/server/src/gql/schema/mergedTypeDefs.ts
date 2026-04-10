@@ -10,6 +10,7 @@ import { commandApprovalTypeDefs } from "./CommandApproval/typeDefs.js";
 import { fileTypeDefs } from "./File/typeDefs.js";
 import { fileUploadTypeDefs } from "./FileUpload/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
+import { logoTypeDefs } from "./Logo/typeDefs.js";
 import { profileTypeDefs } from "./Profile/typeDefs.js";
 import { settingsTypeDefs } from "./Settings/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
@@ -29,6 +30,7 @@ export const allTypeDefs = [
   avatarTypeDefs,
   commandApprovalTypeDefs,
   integrationTypeDefs,
+  logoTypeDefs,
   userInputRequestTypeDefs,
   profileTypeDefs,
   settingsTypeDefs,

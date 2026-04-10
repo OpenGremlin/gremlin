@@ -10,6 +10,7 @@ import { commandApprovalResolvers } from "./CommandApproval/resolvers.js";
 import { fileResolvers } from "./File/resolvers.js";
 import { fileUploadResolvers } from "./FileUpload/resolvers.js";
 import { integrationResolvers } from "./Integration/resolvers.js";
+import { logoResolvers } from "./Logo/resolvers.js";
 import { profileResolvers } from "./Profile/resolvers.js";
 import { settingsResolvers } from "./Settings/resolvers.js";
 import { skillResolvers } from "./Skill/resolvers.js";
@@ -28,6 +29,7 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   avatarResolvers,
   commandApprovalResolvers,
   integrationResolvers,
+  logoResolvers,
   userInputRequestResolvers,
   profileResolvers,
   settingsResolvers,

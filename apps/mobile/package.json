@@ -19,7 +19,6 @@
     "@apollo/client": "^3.14.1",
     "@expo/dom-webview": "^55.0.5",
     "@expo/metro-runtime": "~55.0.9",
-    "@opengremlin/logos": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/crashlytics": "^24.0.0",
