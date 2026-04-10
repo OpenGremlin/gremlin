@@ -44,7 +44,7 @@ export function SkillDetailContent({ id }: { id: string }) {
       <View className="flex-row items-center gap-3">
         <IntegrationLogo id={template.icon ?? template.id} size={44} />
         <View className="flex-1 min-w-0">
-          <Text className="text-lg font-semibold text-text-primary">
+          <Text className="text-xl font-semibold text-text-primary">
             {template.displayName ?? template.name}
           </Text>
           <Text className="text-sm font-bold text-text-muted font-mono">
@@ -87,8 +87,8 @@ export function SkillDetailContent({ id }: { id: string }) {
 
       {/* Instructions (SKILL.md body) */}
       {template.instructions ? (
-        <View>
-          <Markdown>{template.instructions}</Markdown>
+        <View className="bg-bg -mx-4 px-4 py-4 mt-1 border-t border-app-border">
+          <Markdown baseFontSize={12}>{template.instructions}</Markdown>
         </View>
       ) : null}
     </View>

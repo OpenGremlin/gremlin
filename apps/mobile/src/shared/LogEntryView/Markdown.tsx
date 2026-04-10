@@ -217,15 +217,17 @@ class CodeTextRenderer extends Renderer {
 export function Markdown({
   children,
   variant = "agent",
+  baseFontSize = 14,
 }: {
   children: string;
   variant?: "agent" | "user";
+  baseFontSize?: number;
 }) {
   const { isDark } = useTheme();
 
   const styles = useMemo(
-    () => buildStyles(14, isDark ? "dark" : "light", variant),
-    [isDark, variant],
+    () => buildStyles(baseFontSize, isDark ? "dark" : "light", variant),
+    [baseFontSize, isDark, variant],
   );
 
   const renderer = useMemo(() => {
