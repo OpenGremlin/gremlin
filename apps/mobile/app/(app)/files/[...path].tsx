@@ -3,9 +3,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
 import { useCallback } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { WorkspaceEntriesQuery } from "../../../../src/graphql/queries";
-import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
-import { QueryGate } from "../../../../src/shared/QueryResult";
+import { WorkspaceEntriesQuery } from "../../../src/graphql/queries";
+import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { QueryGate } from "../../../src/shared/QueryResult";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -21,7 +21,7 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
       contentContainerClassName="flex-row items-center gap-1 px-4 py-3"
       className="border-b border-app-border shrink-0 grow-0"
     >
-      <Pressable onPress={() => router.replace("/settings/files")}>
+      <Pressable onPress={() => router.replace("/files")}>
         <Text className="text-sm text-accent">/workspace</Text>
       </Pressable>
       {segments.map((seg, i) => {
@@ -33,9 +33,7 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
             {isLast ? (
               <Text className="text-sm text-text-secondary">{seg}</Text>
             ) : (
-              <Pressable
-                onPress={() => router.replace(`/settings/files/${partial}`)}
-              >
+              <Pressable onPress={() => router.replace(`/files/${partial}`)}>
                 <Text className="text-sm text-accent">{seg}</Text>
               </Pressable>
             )}
@@ -75,7 +73,7 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
             key={entry.path}
             onPress={() =>
               entry.isDirectory
-                ? router.replace(`/settings/files/${entry.path}`)
+                ? router.replace(`/files/${entry.path}`)
                 : openFile(entry)
             }
             className="flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface"

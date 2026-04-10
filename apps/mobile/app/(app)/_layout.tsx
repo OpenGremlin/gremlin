@@ -1,5 +1,5 @@
 import { Redirect, Tabs } from "expo-router";
-import { Bot, Calendar, Home, Settings } from "lucide-react-native";
+import { Bot, Calendar, FolderOpen, Home, Settings } from "lucide-react-native";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
@@ -103,6 +103,18 @@ function AppTabs() {
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Calendar size={22} color={color} />
+            </TabIcon>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="files"
+        options={{
+          href: "/files",
+          title: "Files",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon focused={focused}>
+              <FolderOpen size={22} color={color} />
             </TabIcon>
           ),
         }}
