@@ -109,7 +109,7 @@ export function FilePreview({
 
   if (render.__typename === "AudioRender") {
     if (render.url) {
-      return <AudioPlayer url={render.url} />;
+      return <AudioPlayer url={render.url} title={filePath} />;
     }
     return (
       <View className="flex-1 items-center justify-center bg-bg p-6">
@@ -122,7 +122,7 @@ export function FilePreview({
 
   if (render.__typename === "VideoRender") {
     if (render.url) {
-      return <VideoPlayer url={render.url} />;
+      return <VideoPlayer url={render.url} title={filePath} />;
     }
     return (
       <View className="flex-1 items-center justify-center bg-bg p-6">

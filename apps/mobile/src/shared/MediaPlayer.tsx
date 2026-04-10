@@ -1,5 +1,9 @@
 import { useEvent } from "expo";
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import {
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+} from "expo-audio";
 import { File, Paths } from "expo-file-system";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Pause, Play } from "lucide-react-native";
@@ -132,7 +136,7 @@ function useMediaSource(
   }, [url, token, localUri]);
 }
 
-export function AudioPlayer({ url }: { url: string }) {
+export function AudioPlayer({ url, title }: { url: string; title?: string }) {
   const { token } = useAuth();
   const colors = useNavigationTheme();
   const { uri: localUri, error: downloadError } = useLocalMediaUri(
@@ -144,6 +148,18 @@ export function AudioPlayer({ url }: { url: string }) {
 
   const player = useAudioPlayer(source, { updateInterval: 0.25 });
   const status = useAudioPlayerStatus(player);
+
+  useEffect(() => {
+    setAudioModeAsync({ interruptionMode: "doNotMix" });
+  }, []);
+
+  useEffect(() => {
+    if (!status.isLoaded) return;
+    player.setActiveForLockScreen(true, { title: title ?? "Audio" });
+    return () => {
+      player.clearLockScreenControls();
+    };
+  }, [player, status.isLoaded, title]);
 
   const togglePlay = useCallback(() => {
     if (status.playing) {
@@ -208,7 +224,7 @@ export function AudioPlayer({ url }: { url: string }) {
   );
 }
 
-export function VideoPlayer({ url }: { url: string }) {
+export function VideoPlayer({ url, title }: { url: string; title?: string }) {
   const { token } = useAuth();
   const { uri: localUri, error: downloadError } = useLocalMediaUri(
     url,
@@ -217,7 +233,16 @@ export function VideoPlayer({ url }: { url: string }) {
   );
   const source = useMediaSource(url, token, localUri);
 
-  const player = useVideoPlayer(source);
+  const videoSource = useMemo(
+    () =>
+      source ? { ...source, metadata: title ? { title } : undefined } : null,
+    [source, title],
+  );
+
+  const player = useVideoPlayer(videoSource, (p) => {
+    p.showNowPlayingNotification = true;
+    p.staysActiveInBackground = true;
+  });
 
   const { status } = useEvent(player, "statusChange", {
     status: player.status,

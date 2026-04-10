@@ -81,7 +81,7 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-video",
+      ["expo-video", { "supportsBackgroundPlayback": true }],
       "expo-audio",
       "expo-image",
       "expo-asset",
