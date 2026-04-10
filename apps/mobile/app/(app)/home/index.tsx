@@ -88,7 +88,11 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const { agent } = task;
   const openPager = (initialIndex: number) => {
     const file = files[initialIndex];
-    if (file) router.push(`/file/${file.path}?task=${item.id}`);
+    if (file)
+      router.push({
+        pathname: "/file/[...path]",
+        params: { path: file.path.split("/"), task: item.id },
+      });
   };
 
   useSubscription(TaskUpdatedSubscription, {

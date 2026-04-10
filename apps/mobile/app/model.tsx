@@ -1,26 +1,27 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import {
   EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
   SetDefaultImageModelMutation,
   SetDefaultModelMutation,
   SetDefaultSpeechModelMutation,
-} from "../../src/graphql/queries";
-import { execute } from "../../src/lib/apolloClient";
-import { Button } from "../../src/shared/Button";
-import { ModelDetailContent } from "../../src/shared/ModelDetail";
-import { Sheet } from "../../src/shared/Sheet";
+} from "../src/graphql/queries";
+import { execute } from "../src/lib/apolloClient";
+import { Button } from "../src/shared/Button";
+import { ModelDetailContent } from "../src/shared/ModelDetail";
+import { Sheet } from "../src/shared/Sheet";
 
 export default function ModelDetailScreen() {
-  const { params } = useLocalSearchParams<{ params: string[] }>();
-  const segments = Array.isArray(params) ? params : [params];
-  const [providerId, modelId] = segments;
-  const { data } = useQuery(EnabledModelDetailsQuery, {
-    variables: { providerId: providerId ?? "" },
-    skip: !providerId,
+  const { provider, model: modelId } = useLocalSearchParams<{
+    provider: string;
+    model: string;
+  }>();
+  const { data, loading } = useQuery(EnabledModelDetailsQuery, {
+    variables: { providerId: provider ?? "" },
+    skip: !provider,
   });
   const { data: providersData, refetch: refetchProviders } = useQuery(
     IntegrationProvidersQuery,
@@ -38,17 +39,17 @@ export default function ModelDetailScreen() {
     const dim = providersData.defaultImageModel;
     const dsm = providersData.defaultSpeechModel;
     return (
-      (dm?.providerId === providerId && dm?.modelId === modelId) ||
-      (dim?.providerId === providerId && dim?.modelId === modelId) ||
-      (dsm?.providerId === providerId && dsm?.modelId === modelId)
+      (dm?.providerId === provider && dm?.modelId === modelId) ||
+      (dim?.providerId === provider && dim?.modelId === modelId) ||
+      (dsm?.providerId === provider && dsm?.modelId === modelId)
     );
-  }, [providersData, providerId, modelId]);
+  }, [providersData, provider, modelId]);
 
   async function handleSetDefault() {
-    if (!model || !providerId || !modelId) return;
+    if (!model || !provider || !modelId) return;
     setDefaultError(null);
     try {
-      const vars = { providerId, modelId };
+      const vars = { providerId: provider, modelId };
       if (model.mode === "image_generation") {
         await execute(SetDefaultImageModelMutation, vars);
       } else if (model.mode === "audio_speech") {
@@ -67,7 +68,11 @@ export default function ModelDetailScreen() {
 
   return (
     <Sheet title={model?.name ?? "Model"}>
-      {model ? (
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator />
+        </View>
+      ) : model ? (
         <ModelDetailContent
           model={model}
           actions={

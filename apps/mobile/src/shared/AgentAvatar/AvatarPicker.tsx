@@ -1,18 +1,32 @@
-import { router } from "expo-router";
-import { openSheet } from "../../lib/sheetStore";
+import { BottomSheet } from "../BottomSheet";
 import type { Avatar } from "./AvatarPickerContent";
+import { AvatarPickerContent } from "./AvatarPickerContent";
 
 export type { Avatar } from "./AvatarPickerContent";
 
-/** Payload type stored in sheetStore for the avatar-picker sheet route. */
-export interface AvatarPickerSheetPayload {
+export function AvatarPicker({
+  visible,
+  avatars,
+  loading,
+  onSelect,
+  onDismiss,
+}: {
+  visible: boolean;
   avatars: Avatar[];
   loading: boolean;
   onSelect: (avatar: Avatar) => void;
-}
-
-/** Open the avatar picker sheet route. */
-export function presentAvatarPicker(payload: AvatarPickerSheetPayload): void {
-  const sheetId = openSheet<AvatarPickerSheetPayload>(payload);
-  router.push(`/sheet/avatar-picker?id=${sheetId}`);
+  onDismiss: () => void;
+}) {
+  return (
+    <BottomSheet visible={visible} title="Choose Avatar" onDismiss={onDismiss}>
+      <AvatarPickerContent
+        avatars={avatars}
+        loading={loading}
+        onSelect={(avatar) => {
+          onSelect(avatar);
+          onDismiss();
+        }}
+      />
+    </BottomSheet>
+  );
 }

@@ -1,5 +1,4 @@
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { router, useLocalSearchParams } from "expo-router";
 import { Check, Pause, Play, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -9,18 +8,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { SpeechVoicesQuery } from "../../src/graphql/queries";
-import { useAuth } from "../../src/lib/AuthContext";
-import { execute } from "../../src/lib/apolloClient";
-import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
-import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
-import { Sheet } from "../../src/shared/Sheet";
-
-export interface VoicePickerSheetPayload {
-  connectionId: string | undefined;
-  currentVoice: string | null | undefined;
-  onSelect: (voice: string) => void;
-}
+import { SpeechVoicesQuery } from "../graphql/queries";
+import { useAuth } from "../lib/AuthContext";
+import { execute } from "../lib/apolloClient";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { BottomSheet } from "./BottomSheet";
 
 type Voice = {
   id: string;
@@ -55,7 +47,6 @@ function PreviewButton({
 
   const hasStarted = useRef(false);
 
-  // Reset when becoming active/inactive
   useEffect(() => {
     if (!isActive) {
       hasStarted.current = false;
@@ -63,7 +54,6 @@ function PreviewButton({
     }
   }, [isActive, status.playing, player]);
 
-  // Auto-play once when becoming active and loaded
   useEffect(() => {
     if (isActive && status.isLoaded && !hasStarted.current) {
       hasStarted.current = true;
@@ -71,7 +61,6 @@ function PreviewButton({
     }
   }, [isActive, status.isLoaded, player]);
 
-  // Clear active state when playback finishes naturally
   useEffect(() => {
     if (
       isActive &&
@@ -132,29 +121,34 @@ function PreviewButton({
   );
 }
 
-export default function VoicePickerSheet() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const payload = useSheetPayload<VoicePickerSheetPayload>(id);
+export interface VoicePickerProps {
+  visible: boolean;
+  connectionId: string | undefined;
+  currentVoice: string | null | undefined;
+  onSelect: (voice: string) => void;
+  onDismiss: () => void;
+}
+
+export function VoicePicker({
+  visible,
+  connectionId,
+  currentVoice,
+  onSelect,
+  onDismiss,
+}: VoicePickerProps) {
   const colors = useNavigationTheme();
   const [voices, setVoices] = useState<Voice[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePreview, setActivePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (id) dismissSheet(id);
-    };
-  }, [id]);
-
-  useEffect(() => {
-    if (!payload?.connectionId) {
+    if (!connectionId || !visible) {
       setLoading(false);
       return;
     }
     let cancelled = false;
-    execute(SpeechVoicesQuery, {
-      connectionId: payload.connectionId,
-    }).then((result) => {
+    setLoading(true);
+    execute(SpeechVoicesQuery, { connectionId }).then((result) => {
       if (cancelled) return;
       setVoices(result.speechVoices);
       setLoading(false);
@@ -162,12 +156,10 @@ export default function VoicePickerSheet() {
     return () => {
       cancelled = true;
     };
-  }, [payload?.connectionId]);
-
-  if (!payload) return null;
+  }, [connectionId, visible]);
 
   return (
-    <Sheet title="Choose Voice">
+    <BottomSheet visible={visible} title="Choose Voice" onDismiss={onDismiss}>
       {loading ? (
         <View className="py-8 items-center">
           <Text className="text-sm text-text-muted">Loading voices...</Text>
@@ -178,12 +170,12 @@ export default function VoicePickerSheet() {
           keyExtractor={(item) => item.id}
           contentContainerClassName="p-3"
           renderItem={({ item }) => {
-            const selected = payload.currentVoice === item.id;
+            const selected = currentVoice === item.id;
             return (
               <Pressable
                 onPress={() => {
-                  payload.onSelect(item.id);
-                  router.back();
+                  onSelect(item.id);
+                  onDismiss();
                 }}
                 className={`flex-row items-center gap-3 px-3 py-3 rounded-lg ${
                   selected ? "bg-surface-alt" : "active:bg-surface-alt"
@@ -221,6 +213,6 @@ export default function VoicePickerSheet() {
           }}
         />
       )}
-    </Sheet>
+    </BottomSheet>
   );
 }

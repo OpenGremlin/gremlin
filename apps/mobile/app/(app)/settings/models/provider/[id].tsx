@@ -87,7 +87,9 @@ function TypedModelList({
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
   const presentModelDetail = (providerId: string, modelId: string) => {
-    router.push(`/model/${providerId}/${modelId}`);
+    router.push(
+      `/model?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
+    );
   };
 
   const modelsOfType = allModels.filter((m) => m.mode === modelMode);

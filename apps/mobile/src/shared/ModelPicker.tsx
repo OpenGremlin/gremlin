@@ -1,16 +1,10 @@
 import { useQuery } from "@apollo/client";
-import { router, useLocalSearchParams } from "expo-router";
 import { Check } from "lucide-react-native";
-import { useEffect } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import type { IntegrationProvidersQuery } from "../../src/graphql/generated/graphql";
-import {
-  AllEnabledModelsQuery,
-  ProviderModelsQuery,
-} from "../../src/graphql/queries";
-import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
-import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
-import { Sheet } from "../../src/shared/Sheet";
+import type { IntegrationProvidersQuery } from "../graphql/generated/graphql";
+import { AllEnabledModelsQuery, ProviderModelsQuery } from "../graphql/queries";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { BottomSheet } from "./BottomSheet";
 
 type Provider = IntegrationProvidersQuery["integrationProviders"][number];
 
@@ -21,7 +15,8 @@ interface ModelOption {
   value: { type: string; modelId?: string; connectionId?: string };
 }
 
-export interface ModelPickerSheetPayload {
+export interface ModelPickerProps {
+  visible: boolean;
   model?: {
     type: string;
     modelId?: string | null;
@@ -37,26 +32,26 @@ export interface ModelPickerSheetPayload {
   onSelectDefault?: () => void;
   defaultLabel?: string;
   isUsingDefault?: boolean;
+  onDismiss: () => void;
 }
 
-export default function ModelPickerSheet() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const payload = useSheetPayload<ModelPickerSheetPayload>(id);
+export function ModelPicker({
+  visible,
+  model,
+  providers,
+  mode,
+  onSelect,
+  onSelectDefault,
+  defaultLabel,
+  isUsingDefault,
+  onDismiss,
+}: ModelPickerProps) {
   const colors = useNavigationTheme();
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
   const { data: bedrockAvailable } = useQuery(ProviderModelsQuery, {
     variables: { providerId: "bedrock" },
   });
 
-  useEffect(() => {
-    return () => {
-      if (id) dismissSheet(id);
-    };
-  }, [id]);
-
-  if (!payload) return null;
-
-  const { model, providers, mode, onSelect, onSelectDefault } = payload;
   const allEnabled = enabledData?.allEnabledModels ?? [];
   const bedrockAvailableModels = bedrockAvailable?.providerModels ?? [];
 
@@ -117,7 +112,7 @@ export default function ModelPickerSheet() {
   }
 
   return (
-    <Sheet title="Choose Model">
+    <BottomSheet visible={visible} title="Choose Model" onDismiss={onDismiss}>
       {options.length === 0 && !onSelectDefault ? (
         <View className="py-12 items-center">
           <Text className="text-sm text-text-muted">No models available</Text>
@@ -132,16 +127,16 @@ export default function ModelPickerSheet() {
               <Pressable
                 onPress={() => {
                   onSelectDefault();
-                  router.back();
+                  onDismiss();
                 }}
                 className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
               >
                 <Text
-                  className={`text-sm ${payload.isUsingDefault ? "text-indigo-300" : "text-text-secondary"}`}
+                  className={`text-sm ${isUsingDefault ? "text-indigo-300" : "text-text-secondary"}`}
                 >
-                  {payload.defaultLabel ?? "Use default"}
+                  {defaultLabel ?? "Use default"}
                 </Text>
-                {payload.isUsingDefault && (
+                {isUsingDefault && (
                   <Check size={14} color={colors.accentIndicator} />
                 )}
               </Pressable>
@@ -149,7 +144,7 @@ export default function ModelPickerSheet() {
           }
           renderItem={({ item }) => {
             const showHeader = sectionStarts.has(item.key);
-            const selected = !payload.isUsingDefault && isSelected(item);
+            const selected = !isUsingDefault && isSelected(item);
             return (
               <>
                 {showHeader && (
@@ -160,7 +155,7 @@ export default function ModelPickerSheet() {
                 <Pressable
                   onPress={() => {
                     onSelect(item.value);
-                    router.back();
+                    onDismiss();
                   }}
                   className="flex-row items-center justify-between px-4 py-3 active:bg-surface-alt"
                 >
@@ -178,6 +173,6 @@ export default function ModelPickerSheet() {
           }}
         />
       )}
-    </Sheet>
+    </BottomSheet>
   );
 }

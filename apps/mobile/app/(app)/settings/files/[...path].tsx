@@ -55,7 +55,10 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
 
   const openFile = useCallback(
     (entry: (typeof entries)[number]) => {
-      router.push(`/file/${entry.path}?dir=${encodeURIComponent(dirPath)}`);
+      router.push({
+        pathname: "/file/[...path]",
+        params: { path: entry.path.split("/"), dir: dirPath },
+      });
     },
     [dirPath],
   );

@@ -71,7 +71,10 @@ export function FileCard({
       : file.name;
 
   const presentPreview = () => {
-    router.push(`/file/${file.path}`);
+    router.push({
+      pathname: "/file/[...path]",
+      params: { path: file.path.split("/") },
+    });
   };
 
   const handlePress = onPress ?? presentPreview;

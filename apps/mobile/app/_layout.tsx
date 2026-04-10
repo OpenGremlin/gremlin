@@ -19,6 +19,7 @@ import { ThemeProvider, useTheme } from "../src/lib/ThemeContext";
 import { useNavigationTheme } from "../src/lib/useNavigationTheme";
 import { VoiceProvider } from "../src/lib/VoiceContext";
 import { NetworkBanner } from "../src/shared/NetworkBanner";
+import { PickerOverlay } from "../src/shared/PickerModal";
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -63,7 +64,7 @@ function RootStack() {
       <Stack.Screen name="connect/index" />
       <Stack.Screen name="connect/[payload]" />
       <Stack.Screen
-        name="model/[...params]"
+        name="model"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,
@@ -79,47 +80,7 @@ function RootStack() {
         }}
       />
       <Stack.Screen
-        name="sheet/picker"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
-        name="sheet/avatar-picker"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
         name="skill/[id]"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
-        name="sheet/add-skill"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
-        name="sheet/model-picker"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
-        name="sheet/voice-picker"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,
@@ -153,6 +114,7 @@ function RootLayout() {
                     <View style={{ flex: 1 }}>
                       <RootStack />
                       <NetworkBanner />
+                      <PickerOverlay />
                     </View>
                   </NavigationThemed>
                 </VoiceProvider>

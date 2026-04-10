@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { CircleCheck, Info, Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import type { AddSkillSheetPayload } from "../../../app/sheet/add-skill";
 import {
   AgentSkillsQuery,
   BindAgentSkillConnectionMutation,
@@ -12,8 +11,8 @@ import {
 } from "../../graphql/queries";
 import { IntegrationConnectionsQuery } from "../../graphql/queries/integrations";
 import { execute } from "../../lib/apolloClient";
-import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { AddSkillPicker } from "../AddSkillPicker";
 import { Card } from "../Card";
 import { ConnectionPicker } from "./ConnectionPicker";
 
@@ -36,16 +35,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
     [agentId, refetch],
   );
 
-  const openAddSheet = () => {
-    const sheetId = openSheet<AddSkillSheetPayload>({
-      agentId,
-      assignedSkillIds: agentSkills.map((s) => s.skillId),
-      onAssigned: () => {
-        refetch();
-      },
-    });
-    router.push(`/sheet/add-skill?id=${sheetId}`);
-  };
+  const [addSkillVisible, setAddSkillVisible] = useState(false);
 
   const openDetailSheet = (id: string) => {
     router.push(`/skill/${id}`);
@@ -58,7 +48,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           Skills
         </Text>
         <Pressable
-          onPress={openAddSheet}
+          onPress={() => setAddSkillVisible(true)}
           className="flex-row items-center gap-1 px-2 py-1 rounded-md active:bg-surface-alt"
         >
           <Plus size={14} color={colors.iconDefault} />
@@ -96,6 +86,14 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           onShowDetails={() => openDetailSheet(skill.skillId)}
         />
       ))}
+
+      <AddSkillPicker
+        visible={addSkillVisible}
+        agentId={agentId}
+        assignedSkillIds={agentSkills.map((s) => s.skillId)}
+        onAssigned={refetch}
+        onDismiss={() => setAddSkillVisible(false)}
+      />
     </View>
   );
 }

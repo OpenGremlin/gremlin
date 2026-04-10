@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
-import { router, useLocalSearchParams } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,45 +8,36 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  AssignSkillMutation,
-  SkillTemplatesQuery,
-} from "../../src/graphql/queries";
-import { execute } from "../../src/lib/apolloClient";
-import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
-import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
-import { groupSkillsByCategory } from "../../src/shared/categories";
-import { IntegrationLogo } from "../../src/shared/IntegrationLogo";
-import { SearchInput } from "../../src/shared/SearchInput";
-import { Sheet } from "../../src/shared/Sheet";
+import { AssignSkillMutation, SkillTemplatesQuery } from "../graphql/queries";
+import { execute } from "../lib/apolloClient";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { BottomSheet } from "./BottomSheet";
+import { groupSkillsByCategory } from "./categories";
+import { IntegrationLogo } from "./IntegrationLogo";
+import { SearchInput } from "./SearchInput";
 
-export interface AddSkillSheetPayload {
+export interface AddSkillPickerProps {
+  visible: boolean;
   agentId: string;
   assignedSkillIds: string[];
-  /** Called after a skill is successfully assigned. The route then pops. */
   onAssigned: () => void;
+  onDismiss: () => void;
 }
 
-export default function AddSkillSheet() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const payload = useSheetPayload<AddSkillSheetPayload>(id);
+export function AddSkillPicker({
+  visible,
+  agentId,
+  assignedSkillIds,
+  onAssigned,
+  onDismiss,
+}: AddSkillPickerProps) {
   const colors = useNavigationTheme();
   const { data, loading } = useQuery(SkillTemplatesQuery);
   const [assigning, setAssigning] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    return () => {
-      if (id) dismissSheet(id);
-    };
-  }, [id]);
-
-  if (!payload) return null;
-
   const templates = data?.skillTemplates ?? [];
-  const available = templates.filter(
-    (t) => !payload.assignedSkillIds.includes(t.id),
-  );
+  const available = templates.filter((t) => !assignedSkillIds.includes(t.id));
   const q = query.toLowerCase();
   const filtered = available.filter(
     (t) =>
@@ -57,22 +47,18 @@ export default function AddSkillSheet() {
   const grouped = groupSkillsByCategory(filtered);
 
   async function handleAssign(skillId: string) {
-    if (!payload) return;
     setAssigning(skillId);
     try {
-      await execute(AssignSkillMutation, {
-        agentId: payload.agentId,
-        skillId,
-      });
-      payload.onAssigned();
-      router.back();
+      await execute(AssignSkillMutation, { agentId, skillId });
+      onAssigned();
+      onDismiss();
     } finally {
       setAssigning(null);
     }
   }
 
   return (
-    <Sheet title="Add Skill">
+    <BottomSheet visible={visible} title="Add Skill" onDismiss={onDismiss}>
       <ScrollView
         contentContainerClassName="px-4 py-3 gap-4"
         keyboardShouldPersistTaps="handled"
@@ -131,6 +117,6 @@ export default function AddSkillSheet() {
           </View>
         ))}
       </ScrollView>
-    </Sheet>
+    </BottomSheet>
   );
 }

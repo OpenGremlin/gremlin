@@ -177,7 +177,9 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   );
   const [saving, setSaving] = useState(false);
   const presentModelDetail = (providerId: string, modelId: string) => {
-    router.push(`/model/${providerId}/${modelId}`);
+    router.push(
+      `/model?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
+    );
   };
   const [modelPickerMode, setModelPickerMode] = useState<
     "chat" | "image_generation" | "audio_speech" | null

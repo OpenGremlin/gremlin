@@ -86,7 +86,9 @@ export default function ModelsScreen() {
   }, [enabledModels]);
 
   function handleModelPress(providerId: string, modelId: string) {
-    router.push(`/model/${providerId}/${modelId}`);
+    router.push(
+      `/model?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
+    );
   }
 
   return (
