@@ -51,7 +51,12 @@ export function DocumentDiscussButton({ filePath }: { filePath: string }) {
 
   const handlePress = useCallback(() => {
     if (!agent) return;
-    router.push(`/agents/${agent.id}`);
+    // Dismiss the file preview formSheet first, then navigate to the agent
+    // chat. Without this the sheet stays stuck behind the new screen.
+    router.dismiss();
+    setTimeout(() => {
+      router.push(`/agents/${agent.id}`);
+    }, 0);
     execute(AttachFileReferenceMutation, {
       input: { agentId: agent.id, filePath },
     }).catch((err) => {
