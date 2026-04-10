@@ -4,6 +4,5 @@ export {
   type IntegrationProviderDef,
   type ModelDef,
   type ModelMode,
-  type ModelType,
   providers,
 } from "@opengremlin/providers";

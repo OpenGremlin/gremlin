@@ -15,9 +15,6 @@ export interface AvailableScope {
 
 export type ModelMode = "chat" | "image_generation" | "audio_speech";
 
-/** @deprecated Use ModelMode instead */
-export type ModelType = "llm" | "image";
-
 export interface ModelDef {
   id: string;
   name: string;
