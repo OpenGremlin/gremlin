@@ -5,7 +5,6 @@ import {
   DefaultTheme,
   ThemeProvider as NavThemeProvider,
 } from "@react-navigation/native";
-import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
@@ -20,11 +19,6 @@ import { useNavigationTheme } from "../src/lib/useNavigationTheme";
 import { VoiceProvider } from "../src/lib/VoiceContext";
 import { NetworkBanner } from "../src/shared/NetworkBanner";
 import { PickerOverlay } from "../src/shared/PickerModal";
-
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN && !__DEV__,
-});
 
 function StatusBarThemed() {
   const { isDark } = useTheme();
@@ -127,4 +121,4 @@ function RootLayout() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default RootLayout;

@@ -17,6 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.opengremlin.mobile",
       "appleTeamId": "7WGYS2TFHY",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": ["applinks:opengremlin.com"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -31,6 +32,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -67,13 +69,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      [
-        "@sentry/react-native/expo",
-        {
-          "organization": "opengremlin",
-          "project": "react-native"
-        }
-      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics",
       "expo-router",
       "expo-secure-store",
       [
