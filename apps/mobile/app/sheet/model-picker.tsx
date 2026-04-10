@@ -6,7 +6,7 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import type { IntegrationProvidersQuery } from "../../src/graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
-  BedrockAvailableModelsQuery,
+  ProviderModelsQuery,
 } from "../../src/graphql/queries";
 import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
@@ -44,7 +44,9 @@ export default function ModelPickerSheet() {
   const payload = useSheetPayload<ModelPickerSheetPayload>(id);
   const colors = useNavigationTheme();
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
-  const { data: bedrockAvailable } = useQuery(BedrockAvailableModelsQuery);
+  const { data: bedrockAvailable } = useQuery(ProviderModelsQuery, {
+    variables: { providerId: "bedrock" },
+  });
 
   useEffect(() => {
     return () => {
@@ -56,7 +58,7 @@ export default function ModelPickerSheet() {
 
   const { model, providers, mode, onSelect, onSelectDefault } = payload;
   const allEnabled = enabledData?.allEnabledModels ?? [];
-  const bedrockAvailableModels = bedrockAvailable?.bedrockAvailableModels ?? [];
+  const bedrockAvailableModels = bedrockAvailable?.providerModels ?? [];
 
   const options: ModelOption[] = [];
 

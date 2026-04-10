@@ -194,12 +194,6 @@ export const DisableModelMutation = graphql(`
   }
 `);
 
-export const BedrockEnabledModelsQuery = graphql(`
-  query BedrockEnabledModels {
-    bedrockEnabledModels
-  }
-`);
-
 export const EnabledModelDetailsQuery = graphql(`
   query EnabledModelDetails($providerId: String!) {
     enabledModelDetails(providerId: $providerId) {
@@ -217,28 +211,6 @@ export const EnabledModelDetailsQuery = graphql(`
       outputCostPerImageToken
       supportsReasoning
     }
-  }
-`);
-
-export const BedrockAvailableModelsQuery = graphql(`
-  query BedrockAvailableModels {
-    bedrockAvailableModels {
-      id
-      name
-      mode
-    }
-  }
-`);
-
-export const EnableBedrockModelMutation = graphql(`
-  mutation EnableBedrockModel($modelId: String!) {
-    enableBedrockModel(modelId: $modelId)
-  }
-`);
-
-export const DisableBedrockModelMutation = graphql(`
-  mutation DisableBedrockModel($modelId: String!) {
-    disableBedrockModel(modelId: $modelId)
   }
 `);
 

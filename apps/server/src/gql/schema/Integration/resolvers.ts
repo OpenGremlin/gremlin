@@ -83,23 +83,6 @@ const enabledModels: QueryResolvers["enabledModels"] = async (
   return models.map((m) => m.id);
 };
 
-const bedrockEnabledModels: QueryResolvers["bedrockEnabledModels"] = async (
-  _parent,
-  _args,
-  ctx,
-) => {
-  const models = await ctx.services.integrations.getBedrockEnabledModels(
-    ctx.resources,
-  );
-  return models.map((m) => m.id);
-};
-
-const bedrockAvailableModels: QueryResolvers["bedrockAvailableModels"] = (
-  _parent,
-  _args,
-  ctx,
-) => ctx.services.integrations.listBedrockModels();
-
 const enabledModelDetails: QueryResolvers["enabledModelDetails"] = async (
   _parent,
   { providerId },
@@ -414,34 +397,6 @@ const disableModelMutation: MutationResolvers["disableModel"] = async (
   }
 };
 
-const enableBedrockModel: MutationResolvers["enableBedrockModel"] = async (
-  _parent,
-  { modelId, modelName },
-  ctx,
-) => {
-  await ctx.services.integrations.enableBedrockModel(
-    ctx.resources,
-    modelId,
-    modelName ?? undefined,
-  );
-  const models = await ctx.services.integrations.getBedrockEnabledModels(
-    ctx.resources,
-  );
-  return models.map((m) => m.id);
-};
-
-const disableBedrockModel: MutationResolvers["disableBedrockModel"] = async (
-  _parent,
-  { modelId },
-  ctx,
-) => {
-  await ctx.services.integrations.disableBedrockModel(ctx.resources, modelId);
-  const models = await ctx.services.integrations.getBedrockEnabledModels(
-    ctx.resources,
-  );
-  return models.map((m) => m.id);
-};
-
 const submitOAuthConnection: MutationResolvers["submitOAuthConnection"] =
   async (
     _parent,
@@ -488,8 +443,6 @@ export const integrationResolvers = {
     defaultSpeechModel,
     allEnabledModels,
     enabledModels,
-    bedrockEnabledModels,
-    bedrockAvailableModels,
     providerModels,
     enabledModelDetails,
     speechVoices,
@@ -503,8 +456,6 @@ export const integrationResolvers = {
     setDefaultSpeechModel,
     enableModel: enableModelMutation,
     disableModel: disableModelMutation,
-    enableBedrockModel,
-    disableBedrockModel,
     submitOAuthConnection,
   },
   IntegrationProvider: {

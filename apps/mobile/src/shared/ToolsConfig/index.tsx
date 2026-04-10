@@ -6,9 +6,9 @@ import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
-  BedrockAvailableModelsQuery,
   EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
+  ProviderModelsQuery,
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
@@ -16,7 +16,6 @@ import { openSheet } from "../../lib/sheetStore";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { AllowlistConfig } from "../AllowlistConfig";
 import { Card } from "../Card";
-import type { ModelDetail, ModelDetailSheetPayload } from "../ModelDetail";
 import { Toggle } from "../Toggle";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;
@@ -151,10 +150,12 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const router = useRouter();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
-  const { data: bedrockAvailableData } = useQuery(BedrockAvailableModelsQuery);
+  const { data: bedrockAvailableData } = useQuery(ProviderModelsQuery, {
+    variables: { providerId: "bedrock" },
+  });
   const providers = providersData?.integrationProviders ?? [];
   const allEnabled = enabledData?.allEnabledModels ?? [];
-  const bedrockModels = bedrockAvailableData?.bedrockAvailableModels ?? [];
+  const bedrockModels = bedrockAvailableData?.providerModels ?? [];
   const defaultModel = providersData?.defaultModel ?? null;
   const defaultImageModel = providersData?.defaultImageModel ?? null;
   const defaultSpeechModel = providersData?.defaultSpeechModel ?? null;
@@ -167,9 +168,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     toPlainConfig(agent.config),
   );
   const [saving, setSaving] = useState(false);
-  const presentModelDetail = (model: ModelDetail) => {
-    const sheetId = openSheet<ModelDetailSheetPayload>({ model });
-    router.push(`/sheet/model-detail?id=${sheetId}`);
+  const presentModelDetail = (providerId: string, modelId: string) => {
+    router.push(`/model/${providerId}/${modelId}`);
   };
   const presentModelPicker = (
     payload: import("../../../app/sheet/model-picker").ModelPickerSheetPayload,
@@ -461,16 +461,9 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
               </Pressable>
               {!usingDefaultChatModel && (
                 <Pressable
-                  onPress={async () => {
+                  onPress={() => {
                     const ids = resolveModelIds(config.model);
-                    if (!ids) return;
-                    const result = await execute(EnabledModelDetailsQuery, {
-                      providerId: ids.providerId,
-                    });
-                    const detail = result.enabledModelDetails.find(
-                      (d) => d.id === ids.modelId,
-                    );
-                    if (detail) presentModelDetail(detail);
+                    if (ids) presentModelDetail(ids.providerId, ids.modelId);
                   }}
                   className="p-2"
                 >
@@ -585,16 +578,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   </Pressable>
                   {!usingDefaultImageModel && (
                     <Pressable
-                      onPress={async () => {
+                      onPress={() => {
                         const ids = resolveModelIds(config.imageModel);
-                        if (!ids) return;
-                        const result = await execute(EnabledModelDetailsQuery, {
-                          providerId: ids.providerId,
-                        });
-                        const detail = result.enabledModelDetails.find(
-                          (d) => d.id === ids.modelId,
-                        );
-                        if (detail) presentModelDetail(detail);
+                        if (ids)
+                          presentModelDetail(ids.providerId, ids.modelId);
                       }}
                       className="p-2"
                     >
@@ -665,16 +652,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                   </Pressable>
                   {!usingDefaultSpeechModel && (
                     <Pressable
-                      onPress={async () => {
+                      onPress={() => {
                         const ids = resolveModelIds(config.speechModel);
-                        if (!ids) return;
-                        const result = await execute(EnabledModelDetailsQuery, {
-                          providerId: ids.providerId,
-                        });
-                        const detail = result.enabledModelDetails.find(
-                          (d) => d.id === ids.modelId,
-                        );
-                        if (detail) presentModelDetail(detail);
+                        if (ids)
+                          presentModelDetail(ids.providerId, ids.modelId);
                       }}
                       className="p-2"
                     >

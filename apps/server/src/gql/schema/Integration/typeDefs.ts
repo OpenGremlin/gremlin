@@ -125,10 +125,8 @@ export const integrationTypeDefs = /* GraphQL */ `
     defaultSpeechModel: DefaultModel
     enabledModels(providerId: String!): [String!]!
     allEnabledModels: [EnabledModelEntry!]!
-    bedrockEnabledModels: [String!]!
     awsPresetRoles: [AwsPresetRole!]!
     awsSetupInfo: AwsSetupInfo!
-    bedrockAvailableModels: [ModelInfo!]!
     providerModels(providerId: String!): [ProviderModelInfo!]!
     enabledModelDetails(providerId: String!): [ModelInfo!]!
     speechVoices(connectionId: String!): [SpeechVoice!]!
@@ -142,8 +140,6 @@ export const integrationTypeDefs = /* GraphQL */ `
     setDefaultSpeechModel(providerId: String!, modelId: String!): DefaultModel!
     enableModel(providerId: String!, modelId: String!, modelName: String): [EnabledModelEntry!]!
     disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
-    enableBedrockModel(modelId: String!, modelName: String): [String!]!
-    disableBedrockModel(modelId: String!): [String!]!
     connectAwsIamRole(roleArn: String!, displayName: String, region: String): IntegrationConnection!
     submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): IntegrationConnection!
   }

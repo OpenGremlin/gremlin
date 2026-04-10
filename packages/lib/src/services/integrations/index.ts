@@ -1,14 +1,11 @@
 import { connectApiKey } from "./connectApiKey.js";
 import { connectAwsIamRole } from "./connectAwsIamRole.js";
 import { describeScopes } from "./describeScopes.js";
-import { disableBedrockModel } from "./disableBedrockModel.js";
 import { disableModel } from "./disableModel.js";
-import { enableBedrockModel } from "./enableBedrockModel.js";
 import { enableModel } from "./enableModel.js";
 import { getAllEnabledModels } from "./getAllEnabledModels.js";
 import { getAwsPresetRoles } from "./getAwsPresetRoles.js";
 import { getAwsTrustPolicy } from "./getAwsTrustPolicy.js";
-import { getBedrockEnabledModels } from "./getBedrockEnabledModels.js";
 import { getConnections } from "./getConnections.js";
 import { getDefaultModel } from "./getDefaultModel.js";
 import { getEnabledModels } from "./getEnabledModels.js";
@@ -28,13 +25,10 @@ export const integrationService = {
   describeScopes,
   getAwsPresetRoles,
   getAwsTrustPolicy,
-  disableBedrockModel,
   disableModel,
-  enableBedrockModel,
   enableModel,
   getAllEnabledModels,
   getDefaultModel,
-  getBedrockEnabledModels,
   getConnections,
   getEnabledModels,
   getIntegration,

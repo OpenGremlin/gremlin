@@ -518,10 +518,8 @@ export type Mutation = {
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
-  disableBedrockModel: Array<Scalars['String']['output']>;
   disableModel: Array<EnabledModelEntry>;
   dismissUserInputRequest?: Maybe<UserInputRequest>;
-  enableBedrockModel: Array<Scalars['String']['output']>;
   enableModel: Array<EnabledModelEntry>;
   removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
@@ -600,11 +598,6 @@ export type MutationDeleteAgentJobArgs = {
 };
 
 
-export type MutationDisableBedrockModelArgs = {
-  modelId: Scalars['String']['input'];
-};
-
-
 export type MutationDisableModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
@@ -613,12 +606,6 @@ export type MutationDisableModelArgs = {
 
 export type MutationDismissUserInputRequestArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type MutationEnableBedrockModelArgs = {
-  modelId: Scalars['String']['input'];
-  modelName?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -801,8 +788,6 @@ export type Query = {
   avatars: Array<Avatar>;
   awsPresetRoles: Array<AwsPresetRole>;
   awsSetupInfo: AwsSetupInfo;
-  bedrockAvailableModels: Array<ModelInfo>;
-  bedrockEnabledModels: Array<Scalars['String']['output']>;
   commandAllowlist: Array<AllowlistEntry>;
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
@@ -1825,10 +1810,8 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
-  disableBedrockModel?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationDisableBedrockModelArgs, 'modelId'>>;
   disableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
   dismissUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationDismissUserInputRequestArgs, 'id'>>;
-  enableBedrockModel?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationEnableBedrockModelArgs, 'modelId'>>;
   enableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
   removeCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationRemoveCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
   removeSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
@@ -1894,8 +1877,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   awsPresetRoles?: Resolver<Array<ResolversTypes['AwsPresetRole']>, ParentType, ContextType>;
   awsSetupInfo?: Resolver<ResolversTypes['AwsSetupInfo'], ParentType, ContextType>;
-  bedrockAvailableModels?: Resolver<Array<ResolversTypes['ModelInfo']>, ParentType, ContextType>;
-  bedrockEnabledModels?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
   defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
