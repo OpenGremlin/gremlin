@@ -201,7 +201,12 @@ const attachFileReference = async (
   const relativePath = input.filePath.startsWith("/workspace/")
     ? input.filePath.slice("/workspace/".length)
     : input.filePath;
-  const absPath = path.join(workspace, relativePath);
+  const absPath = path.resolve(workspace, relativePath);
+
+  // Guard against path traversal
+  if (!absPath.startsWith(workspace + path.sep) && absPath !== workspace) {
+    throw new Error("Invalid file path");
+  }
 
   // Verify the file exists
   const stat = await fs.stat(absPath).catch(() => null);
@@ -214,7 +219,7 @@ const attachFileReference = async (
   const content = JSON.stringify({
     type: "file_upload",
     filename,
-    path: `/workspace/${relativePath}`,
+    path: relativePath,
     sizeBytes: stat.size,
   });
 
