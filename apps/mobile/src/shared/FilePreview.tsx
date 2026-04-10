@@ -26,7 +26,8 @@ export function filesFromAttachments(
         { __typename?: "FileAttachment" }
       > => a.__typename === "FileAttachment",
     )
-    .map((a) => a.file);
+    .map((a) => a.file)
+    .filter((f): f is FileNode => f != null);
 }
 
 /** The file(path) query returns the same shape — reuse it. */

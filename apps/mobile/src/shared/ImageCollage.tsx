@@ -13,7 +13,7 @@ export type ImageFile = FileNode & {
 
 /** Narrow a file to ImageFile if it has a renderable image url. */
 export function isImageFile(file: FileNode): file is ImageFile {
-  return file.render.__typename === "ImageRender" && !!file.render.url;
+  return file.render?.__typename === "ImageRender" && !!file.render.url;
 }
 
 interface ImageCollageProps {

@@ -29,6 +29,22 @@ export const reconnectTracker = new ReconnectTracker();
 // ── Cache ───────────────────────────────────────────────────────────
 
 export const cache = new InMemoryCache({
+  possibleTypes: {
+    Attachment: ["FileAttachment", "LinkAttachment"],
+    FileRender: [
+      "ImageRender",
+      "DocumentRender",
+      "CodeRender",
+      "AudioRender",
+      "VideoRender",
+      "UnknownRender",
+    ],
+    ConnectionMeta: [
+      "OAuthConnectionMeta",
+      "ApiKeyConnectionMeta",
+      "AwsIamRoleConnectionMeta",
+    ],
+  },
   typePolicies: {
     Query: {
       fields: {
@@ -76,6 +92,8 @@ export const cache = new InMemoryCache({
     SkillConnectionRequirement: { keyFields: false },
     SkillConnectionStatus: { keyFields: false },
     UserInputRequestAction: { keyFields: false },
+    FileAttachment: { keyFields: false, merge: false },
+    LinkAttachment: { keyFields: false, merge: false },
     AgentStreamDelta: { keyFields: false },
     SandboxOutput: { keyFields: false },
     OAuthConnectionMeta: { keyFields: false },
