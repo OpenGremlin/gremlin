@@ -9,7 +9,6 @@ import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/mo
 import { SentenceAccumulator } from "@opengremlin/lib/services/speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import { stripMarkdownForSpeech } from "@opengremlin/lib/services/speech/stripMarkdownForSpeech.js";
-import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -17,7 +16,6 @@ import type {
   AgentLogResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
-import { parseFrontmatter } from "../shared/parseFrontmatter.js";
 import { extractFilePaths } from "../shared/resolveAttachments.js";
 import { resolveFiles } from "../shared/resolveFiles.js";
 
@@ -53,25 +51,6 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
 
 // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
 const attachments = (parent: any) => parent.attachments ?? [];
-
-const documents: AgentLogResolvers["documents"] = async (parent) => {
-  // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
-  const paths = extractFilePaths((parent as any).attachments);
-  if (paths.length === 0) return [];
-  const results = await Promise.all(
-    paths.map(async (filePath: string) => {
-      try {
-        const content = await readFile(filePath);
-        if (!content) return null;
-        const { title, body } = parseFrontmatter(content);
-        return { path: filePath, title: title || filePath, body };
-      } catch {
-        return null;
-      }
-    }),
-  );
-  return results.filter((d): d is NonNullable<typeof d> => d != null);
-};
 
 // biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
 const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
@@ -275,7 +254,6 @@ export const agentLogResolvers = {
       );
     },
     attachments,
-    documents,
     files,
   },
   AgentLogEdge: { node },

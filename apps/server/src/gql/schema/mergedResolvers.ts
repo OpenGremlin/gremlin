@@ -7,7 +7,6 @@ import { allowlistResolvers } from "./Allowlist/resolvers.js";
 import { attachmentResolvers } from "./Attachment/resolvers.js";
 import { avatarResolvers } from "./Avatar/resolvers.js";
 import { commandApprovalResolvers } from "./CommandApproval/resolvers.js";
-import { documentResolvers } from "./Document/resolvers.js";
 import { fileResolvers } from "./File/resolvers.js";
 import { fileUploadResolvers } from "./FileUpload/resolvers.js";
 import { integrationResolvers } from "./Integration/resolvers.js";
@@ -21,7 +20,6 @@ import { workspaceResolvers } from "./Workspace/resolvers.js";
 export const mergedResolvers: IResolvers = mergeResolvers([
   allowlistResolvers,
   attachmentResolvers,
-  documentResolvers,
   fileResolvers,
   fileUploadResolvers,
   agentJobResolvers,

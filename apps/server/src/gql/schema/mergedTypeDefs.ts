@@ -7,7 +7,6 @@ import { attachmentTypeDefs } from "./Attachment/typeDefs.js";
 import { avatarTypeDefs } from "./Avatar/typeDefs.js";
 import { baseTypeDefs } from "./base.js";
 import { commandApprovalTypeDefs } from "./CommandApproval/typeDefs.js";
-import { documentTypeDefs } from "./Document/typeDefs.js";
 import { fileTypeDefs } from "./File/typeDefs.js";
 import { fileUploadTypeDefs } from "./FileUpload/typeDefs.js";
 import { integrationTypeDefs } from "./Integration/typeDefs.js";
@@ -22,7 +21,6 @@ export const allTypeDefs = [
   baseTypeDefs,
   allowlistTypeDefs,
   attachmentTypeDefs,
-  documentTypeDefs,
   fileTypeDefs,
   fileUploadTypeDefs,
   agentJobTypeDefs,

@@ -117,8 +117,6 @@ export type AgentLog = {
   displayHint?: Maybe<Scalars['String']['output']>;
   displayVariant?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use attachments instead */
-  documents: Array<Document>;
-  /** @deprecated Use attachments instead */
   files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
@@ -387,13 +385,6 @@ export type DefaultModel = {
   modelId: Scalars['String']['output'];
   modelName?: Maybe<Scalars['String']['output']>;
   providerId: Scalars['String']['output'];
-};
-
-export type Document = {
-  __typename?: 'Document';
-  body?: Maybe<Scalars['String']['output']>;
-  path: Scalars['String']['output'];
-  title: Scalars['String']['output'];
 };
 
 export type DocumentRender = {
@@ -1113,8 +1104,6 @@ export type Task = {
   attachments: Array<Attachment>;
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
-  /** @deprecated Use attachments instead */
-  documents: Array<Document>;
   emoji?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use attachments instead */
   files: Array<File>;
@@ -1364,7 +1353,6 @@ export type ResolversTypes = {
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
-  Document: ResolverTypeWrapper<Document>;
   DocumentRender: ResolverTypeWrapper<DocumentRender>;
   EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
   File: ResolverTypeWrapper<Omit<File, 'render'> & { render: ResolversTypes['FileRender'] }>;
@@ -1460,7 +1448,6 @@ export type ResolversParentTypes = {
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
   DefaultModel: DefaultModelResult;
-  Document: Document;
   DocumentRender: DocumentRender;
   EnabledModelEntry: EnabledModelEntry;
   File: Omit<File, 'render'> & { render: ResolversParentTypes['FileRender'] };
@@ -1561,7 +1548,6 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayHint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   displayVariant?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
@@ -1728,12 +1714,6 @@ export type DefaultModelResolvers<ContextType = GremlinContext, ParentType exten
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   providerId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type DocumentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = {
-  body?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type DocumentRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DocumentRender'] = ResolversParentTypes['DocumentRender']> = {
@@ -2034,7 +2014,6 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
   completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  documents?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2137,7 +2116,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   ConnectApiKeyResult?: ConnectApiKeyResultResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
-  Document?: DocumentResolvers<ContextType>;
   DocumentRender?: DocumentRenderResolvers<ContextType>;
   EnabledModelEntry?: EnabledModelEntryResolvers<ContextType>;
   File?: FileResolvers<ContextType>;

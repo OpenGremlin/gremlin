@@ -63,14 +63,6 @@ function RootStack() {
       <Stack.Screen name="connect/index" />
       <Stack.Screen name="connect/[payload]" />
       <Stack.Screen
-        name="sheet/document"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
         name="sheet/model-detail"
         options={{
           presentation: "formSheet",

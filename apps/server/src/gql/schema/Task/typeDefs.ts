@@ -10,7 +10,6 @@ export const taskTypeDefs = /* GraphQL */ `
     originJobId: String
     emoji: String
     attachments: [Attachment!]!
-    documents: [Document!]! @deprecated(reason: "Use attachments instead")
     files: [File!]! @deprecated(reason: "Use attachments instead")
     logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
   }

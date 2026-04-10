@@ -27,7 +27,6 @@ export const agentLogTypeDefs = /* GraphQL */ `
     displayVariant: String
     commandApprovalId: String
     attachments: [Attachment!]!
-    documents: [Document!]! @deprecated(reason: "Use attachments instead")
     files: [File!]! @deprecated(reason: "Use attachments instead")
     createdAt: String!
   }

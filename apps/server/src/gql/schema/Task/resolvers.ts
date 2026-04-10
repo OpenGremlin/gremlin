@@ -2,14 +2,12 @@ import { filter, pipe, Repeater } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLog.js";
 import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
 import type { SandboxOutputEvent } from "@opengremlin/lib/resources/pubsub.js";
-import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   QueryResolvers,
   TaskEdgeResolvers,
   TaskResolvers,
 } from "../../resolverTypes.js";
-import { parseFrontmatter } from "../shared/parseFrontmatter.js";
 import { extractFilePaths } from "../shared/resolveAttachments.js";
 import { resolveFiles } from "../shared/resolveFiles.js";
 
@@ -32,24 +30,6 @@ const emoji: TaskResolvers["emoji"] = (parent) => parent.emoji ?? null;
 
 // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
 const attachments = (parent: any) => parent.attachments ?? [];
-
-const documents: TaskResolvers["documents"] = async (parent) => {
-  // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
-  const paths = extractFilePaths((parent as any).attachments);
-  const results = await Promise.all(
-    paths.map(async (filePath: string) => {
-      try {
-        const content = await readFile(filePath);
-        if (!content) return null;
-        const { title, body } = parseFrontmatter(content);
-        return { path: filePath, title: title || filePath, body };
-      } catch {
-        return null;
-      }
-    }),
-  );
-  return results.filter((d): d is NonNullable<typeof d> => d != null);
-};
 
 // biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
 const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
@@ -123,7 +103,7 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, emoji, attachments, documents, files, logs },
+  Task: { agent, emoji, attachments, files, logs },
   TaskEdge: { node },
   Subscription: {
     taskUpdated,
