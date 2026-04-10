@@ -61,7 +61,7 @@ type Documents = {
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": typeof types.SetDefaultModelDocument,
     "\n  mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {\n    setDefaultImageModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": typeof types.SetDefaultImageModelDocument,
     "\n  mutation SetDefaultSpeechModel($providerId: String!, $modelId: String!) {\n    setDefaultSpeechModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": typeof types.SetDefaultSpeechModelDocument,
-    "\n  query SpeechVoices($providerId: String!) {\n    speechVoices(providerId: $providerId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n": typeof types.SpeechVoicesDocument,
+    "\n  query SpeechVoices($connectionId: String!) {\n    speechVoices(connectionId: $connectionId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n": typeof types.SpeechVoicesDocument,
     "\n  query EnabledModels($providerId: String!) {\n    enabledModels(providerId: $providerId)\n  }\n": typeof types.EnabledModelsDocument,
     "\n  query AllEnabledModels {\n    allEnabledModels {\n      providerId\n      modelId\n      modelName\n      modelMode\n    }\n  }\n": typeof types.AllEnabledModelsDocument,
     "\n  mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {\n    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName) {\n      providerId\n      modelId\n      modelName\n      modelMode\n    }\n  }\n": typeof types.EnableModelDocument,
@@ -154,7 +154,7 @@ const documents: Documents = {
     "\n  mutation SetDefaultModel($providerId: String!, $modelId: String!) {\n    setDefaultModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": types.SetDefaultModelDocument,
     "\n  mutation SetDefaultImageModel($providerId: String!, $modelId: String!) {\n    setDefaultImageModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": types.SetDefaultImageModelDocument,
     "\n  mutation SetDefaultSpeechModel($providerId: String!, $modelId: String!) {\n    setDefaultSpeechModel(providerId: $providerId, modelId: $modelId) {\n      providerId\n      modelId\n      modelName\n    }\n  }\n": types.SetDefaultSpeechModelDocument,
-    "\n  query SpeechVoices($providerId: String!) {\n    speechVoices(providerId: $providerId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n": types.SpeechVoicesDocument,
+    "\n  query SpeechVoices($connectionId: String!) {\n    speechVoices(connectionId: $connectionId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n": types.SpeechVoicesDocument,
     "\n  query EnabledModels($providerId: String!) {\n    enabledModels(providerId: $providerId)\n  }\n": types.EnabledModelsDocument,
     "\n  query AllEnabledModels {\n    allEnabledModels {\n      providerId\n      modelId\n      modelName\n      modelMode\n    }\n  }\n": types.AllEnabledModelsDocument,
     "\n  mutation EnableModel($providerId: String!, $modelId: String!, $modelName: String) {\n    enableModel(providerId: $providerId, modelId: $modelId, modelName: $modelName) {\n      providerId\n      modelId\n      modelName\n      modelMode\n    }\n  }\n": types.EnableModelDocument,
@@ -405,7 +405,7 @@ export function graphql(source: "\n  mutation SetDefaultSpeechModel($providerId:
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query SpeechVoices($providerId: String!) {\n    speechVoices(providerId: $providerId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n"): (typeof documents)["\n  query SpeechVoices($providerId: String!) {\n    speechVoices(providerId: $providerId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n"];
+export function graphql(source: "\n  query SpeechVoices($connectionId: String!) {\n    speechVoices(connectionId: $connectionId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n"): (typeof documents)["\n  query SpeechVoices($connectionId: String!) {\n    speechVoices(connectionId: $connectionId) {\n      id\n      name\n      description\n      previewUrl\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

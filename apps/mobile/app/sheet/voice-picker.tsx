@@ -1,7 +1,7 @@
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { router, useLocalSearchParams } from "expo-router";
 import { Check, Pause, Play, Volume2 } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -17,7 +17,7 @@ import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 import { Sheet } from "../../src/shared/Sheet";
 
 export interface VoicePickerSheetPayload {
-  providerId: string | undefined;
+  connectionId: string | undefined;
   currentVoice: string | null | undefined;
   onSelect: (voice: string) => void;
 }
@@ -53,27 +53,31 @@ function PreviewButton({
   );
   const status = useAudioPlayerStatus(player);
 
-  // Stop when another preview becomes active
+  const hasStarted = useRef(false);
+
+  // Reset when becoming active/inactive
   useEffect(() => {
-    if (!isActive && status.playing) {
-      player.pause();
+    if (!isActive) {
+      hasStarted.current = false;
+      if (status.playing) player.pause();
     }
   }, [isActive, status.playing, player]);
 
-  // Auto-play when becoming active
+  // Auto-play once when becoming active and loaded
   useEffect(() => {
-    if (isActive && status.isLoaded && !status.playing) {
+    if (isActive && status.isLoaded && !hasStarted.current) {
+      hasStarted.current = true;
       player.play();
     }
-  }, [isActive, status.isLoaded, status.playing, player.play]);
+  }, [isActive, status.isLoaded, player]);
 
-  // Clear active state when playback finishes
+  // Clear active state when playback finishes naturally
   useEffect(() => {
     if (
       isActive &&
+      hasStarted.current &&
       status.isLoaded &&
       !status.playing &&
-      status.currentTime > 0 &&
       status.currentTime >= status.duration
     ) {
       setActivePreview(null);
@@ -105,11 +109,16 @@ function PreviewButton({
   return (
     <Pressable
       onPress={toggle}
-      hitSlop={8}
-      className="w-8 h-8 items-center justify-center rounded-full"
+      hitSlop={4}
+      style={
+        isActive && status.playing
+          ? { backgroundColor: `${colors.accentIndicator}20` }
+          : undefined
+      }
+      className={`w-8 h-8 items-center justify-center rounded-full ${isActive && status.playing ? "" : "bg-surface"}`}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={colors.iconDefault} />
+        <ActivityIndicator size="small" color={colors.accentIndicator} />
       ) : isActive && status.playing ? (
         <Pause
           size={14}
@@ -138,22 +147,22 @@ export default function VoicePickerSheet() {
   }, [id]);
 
   useEffect(() => {
-    if (!payload?.providerId) {
+    if (!payload?.connectionId) {
       setLoading(false);
       return;
     }
     let cancelled = false;
-    execute(SpeechVoicesQuery, { providerId: payload.providerId }).then(
-      (result) => {
-        if (cancelled) return;
-        setVoices(result.speechVoices);
-        setLoading(false);
-      },
-    );
+    execute(SpeechVoicesQuery, {
+      connectionId: payload.connectionId,
+    }).then((result) => {
+      if (cancelled) return;
+      setVoices(result.speechVoices);
+      setLoading(false);
+    });
     return () => {
       cancelled = true;
     };
-  }, [payload?.providerId]);
+  }, [payload?.connectionId]);
 
   if (!payload) return null;
 
@@ -180,10 +189,20 @@ export default function VoicePickerSheet() {
                   selected ? "bg-surface-alt" : "active:bg-surface-alt"
                 }`}
               >
-                <Volume2
-                  size={16}
-                  color={selected ? colors.headerText : colors.iconDefault}
-                />
+                {item.previewUrl ? (
+                  <PreviewButton
+                    url={item.previewUrl}
+                    activePreview={activePreview}
+                    setActivePreview={setActivePreview}
+                  />
+                ) : (
+                  <View className="w-8 h-8 items-center justify-center">
+                    <Volume2
+                      size={16}
+                      color={selected ? colors.headerText : colors.iconDefault}
+                    />
+                  </View>
+                )}
                 <View className="flex-1">
                   <Text
                     className={`text-sm ${selected ? "text-text-primary font-medium" : "text-text-secondary"}`}
@@ -196,13 +215,6 @@ export default function VoicePickerSheet() {
                     </Text>
                   )}
                 </View>
-                {item.previewUrl && (
-                  <PreviewButton
-                    url={item.previewUrl}
-                    activePreview={activePreview}
-                    setActivePreview={setActivePreview}
-                  />
-                )}
                 {selected && <Check size={16} color={colors.headerText} />}
               </Pressable>
             );

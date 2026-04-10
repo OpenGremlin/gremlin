@@ -40,7 +40,7 @@ type Query {
   bedrockAvailableModels: [ModelInfo!]!
   providerModels(providerId: String!): [ProviderModelInfo!]!
   enabledModelDetails(providerId: String!): [ModelInfo!]!
-  speechVoices(providerId: String!): [SpeechVoice!]!
+  speechVoices(connectionId: String!): [SpeechVoice!]!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!

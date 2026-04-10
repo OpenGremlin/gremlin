@@ -1,4 +1,5 @@
 import type { SafeIntegrationConnection } from "@opengremlin/lib/services/integrations/getConnections.js";
+import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import { GraphQLError } from "graphql";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -130,18 +131,74 @@ const providerModels: QueryResolvers["providerModels"] = async (
   return ctx.services.integrations.listProviderModels(providerId, apiKey);
 };
 
+const VOICE_PREVIEW_LINES = [
+  "You must construct additional pylons!",
+  "The cake is a lie!",
+  "It's dangerous to go alone! Take this.",
+  "Do a barrel roll!",
+  "War. War never changes.",
+  "Would you kindly?",
+  "Stay a while and listen.",
+  "All your base are belong to us.",
+  "It's super effective!",
+  "What is a man? A miserable little pile of secrets!",
+  "You have died of dysentery.",
+  "A man chooses. A slave obeys.",
+  "Stop right there, criminal scum!",
+  "You were almost a Jill sandwich!",
+  "Kept you waiting, huh?",
+  "You've met with a terrible fate, haven't you?",
+  "Did I ever tell you the definition of insanity?",
+  "Time is money, friend!",
+  "My life for Aiur!",
+  "Let me guess, someone stole your sweetroll?",
+  "Look behind you, a three-headed monkey!",
+  "How about a round of Gwent?",
+  "Another settlement needs your help.",
+  "Hey cousin, want to go bowling?",
+  "Welcome to the circus of value!",
+  "Watch those wrist rockets!",
+  "Now you're thinking with portals.",
+  "Praise the sun! Jolly cooperation!",
+  "Not even death can save you from me.",
+  "Zug zug! Whatcha want me to do?",
+  "Finish him! Fatality!",
+  "Hey! Listen! Hey! Watch out!",
+  "Boy! Come here, boy. We have work to do.",
+  "Let's a-go! Wahoo! Here we go!",
+  "Snake? Snake! Snaaake!",
+  "Booker, catch! Heads or tails?",
+  "Job's done. Off I go then. More work?",
+];
+
 const speechVoices: QueryResolvers["speechVoices"] = async (
   _parent,
-  { providerId },
+  { connectionId },
   ctx,
 ) => {
+  const [providerId] = connectionId.split(":", 2);
   const apiKey = await ctx.services.integrations
     .getProviderApiKey(ctx.resources, providerId)
     .catch(() => null);
-  return ctx.services.integrations.listProviderVoices(
+  const voices = await ctx.services.integrations.listProviderVoices(
     providerId,
     apiKey ?? undefined,
   );
+
+  // For voices without a previewUrl, generate one via the TTS endpoint
+  return voices.map((v) => {
+    if (v.previewUrl) return v;
+    return {
+      ...v,
+      previewUrl: buildSpeechUrl(ctx.serverBaseUrl, {
+        text: VOICE_PREVIEW_LINES[
+          Math.floor(Math.random() * VOICE_PREVIEW_LINES.length)
+        ],
+        voice: v.id,
+        connectionId,
+      }),
+    };
+  });
 };
 
 const connectionCount: IntegrationProviderResolvers["connectionCount"] = async (

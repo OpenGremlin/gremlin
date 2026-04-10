@@ -687,8 +687,10 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
                 <Pressable
                   onPress={() =>
                     presentVoicePicker({
-                      providerId:
-                        resolveModelIds(effectiveSpeechModel)?.providerId,
+                      connectionId:
+                        effectiveSpeechModel?.type === "connection"
+                          ? effectiveSpeechModel.connectionId
+                          : undefined,
                       currentVoice: config.speech?.voice,
                       onSelect: (voice) =>
                         updateConfig({ speech: { enabled: true, voice } }),

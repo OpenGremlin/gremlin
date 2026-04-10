@@ -145,8 +145,8 @@ export const SetDefaultSpeechModelMutation = graphql(`
 `);
 
 export const SpeechVoicesQuery = graphql(`
-  query SpeechVoices($providerId: String!) {
-    speechVoices(providerId: $providerId) {
+  query SpeechVoices($connectionId: String!) {
+    speechVoices(connectionId: $connectionId) {
       id
       name
       description

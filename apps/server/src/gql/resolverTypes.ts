@@ -923,7 +923,7 @@ export type QuerySpeechUrlsArgs = {
 
 
 export type QuerySpeechVoicesArgs = {
-  providerId: Scalars['String']['input'];
+  connectionId: Scalars['String']['input'];
 };
 
 
@@ -1939,7 +1939,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
   skillTemplates?: Resolver<Array<ResolversTypes['SkillTemplate']>, ParentType, ContextType>;
   speechUrls?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySpeechUrlsArgs, 'logId'>>;
-  speechVoices?: Resolver<Array<ResolversTypes['SpeechVoice']>, ParentType, ContextType, RequireFields<QuerySpeechVoicesArgs, 'providerId'>>;
+  speechVoices?: Resolver<Array<ResolversTypes['SpeechVoice']>, ParentType, ContextType, RequireFields<QuerySpeechVoicesArgs, 'connectionId'>>;
   task?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>;
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
