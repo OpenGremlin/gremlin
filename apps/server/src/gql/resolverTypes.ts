@@ -116,8 +116,6 @@ export type AgentLog = {
   createdAt: Scalars['String']['output'];
   displayHint?: Maybe<Scalars['String']['output']>;
   displayVariant?: Maybe<Scalars['String']['output']>;
-  /** @deprecated Use attachments instead */
-  files: Array<File>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
@@ -1105,8 +1103,6 @@ export type Task = {
   completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   emoji?: Maybe<Scalars['String']['output']>;
-  /** @deprecated Use attachments instead */
-  files: Array<File>;
   id: Scalars['ID']['output'];
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
@@ -1548,7 +1544,6 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayHint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   displayVariant?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2015,7 +2010,6 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
-import type { AgentLogsQuery } from "../../../src/graphql/generated/graphql";
+import type { AttachmentFieldsFragment } from "../../../src/graphql/generated/graphql";
 import {
   TasksQuery,
   TaskUpdatedSubscription,
@@ -22,6 +22,10 @@ import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
 import { presentFilePager } from "../../../src/shared/FilePager";
+import {
+  type FileNode,
+  filesFromAttachments,
+} from "../../../src/shared/FilePreview";
 import { timeAgo } from "../../../src/shared/formatDate";
 import {
   ImageCollage,
@@ -36,9 +40,6 @@ function ListSeparator() {
   return <View className="h-px bg-border-subtle mx-4" />;
 }
 
-type FileNode =
-  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
-
 type TaskItem = {
   id: string;
   title: string;
@@ -46,7 +47,7 @@ type TaskItem = {
   agent: { id: string; name?: string };
   message?: string | null;
   emoji?: string | null;
-  files?: FileNode[];
+  attachments?: readonly AttachmentFieldsFragment[];
 };
 
 /**
@@ -100,7 +101,10 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
     },
   });
 
-  const files = task.files ?? [];
+  const files = useMemo(
+    () => filesFromAttachments(task.attachments ?? []),
+    [task.attachments],
+  );
   const groups = useMemo(() => groupFiles(files), [files]);
 
   return (

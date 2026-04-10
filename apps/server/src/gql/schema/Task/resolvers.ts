@@ -8,8 +8,6 @@ import type {
   TaskEdgeResolvers,
   TaskResolvers,
 } from "../../resolverTypes.js";
-import { extractFilePaths } from "../shared/resolveAttachments.js";
-import { resolveFiles } from "../shared/resolveFiles.js";
 
 const tasks: QueryResolvers["tasks"] = (
   _parent,
@@ -30,10 +28,6 @@ const emoji: TaskResolvers["emoji"] = (parent) => parent.emoji ?? null;
 
 // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
 const attachments = (parent: any) => parent.attachments ?? [];
-
-// biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
-const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
-  resolveFiles(extractFilePaths(parent.attachments), ctx.serverBaseUrl);
 
 const logs: TaskResolvers["logs"] = (
   parent,
@@ -103,7 +97,7 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Task: { agent, emoji, attachments, files, logs },
+  Task: { agent, emoji, attachments, logs },
   TaskEdge: { node },
   Subscription: {
     taskUpdated,

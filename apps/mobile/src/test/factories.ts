@@ -78,8 +78,6 @@ export function buildAgentLog(overrides?: Partial<AgentLog>): AgentLog {
     toolResult: null,
     commandApprovalId: null,
     attachments: [],
-    documents: [],
-    files: [],
     taskId: null,
     createdAt: "2025-06-15T12:00:00Z",
     ...overrides,
@@ -98,8 +96,6 @@ export function buildTask(overrides?: Partial<Task>): Task {
     emoji: null,
     originJobId: null,
     attachments: [],
-    documents: [],
-    files: [],
     logs: {
       __typename: "AgentLogConnection" as const,
       edges: [],

@@ -16,8 +16,6 @@ import type {
   AgentLogResolvers,
   QueryResolvers,
 } from "../../resolverTypes.js";
-import { extractFilePaths } from "../shared/resolveAttachments.js";
-import { resolveFiles } from "../shared/resolveFiles.js";
 
 const agentLogs: QueryResolvers["agentLogs"] = (
   _parent,
@@ -51,10 +49,6 @@ const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
 
 // biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
 const attachments = (parent: any) => parent.attachments ?? [];
-
-// biome-ignore lint/suspicious/noExplicitAny: files field not in generated types yet
-const files = async (parent: any, _args: unknown, ctx: GremlinContext) =>
-  resolveFiles(extractFilePaths(parent.attachments), ctx.serverBaseUrl);
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
@@ -254,7 +248,6 @@ export const agentLogResolvers = {
       );
     },
     attachments,
-    files,
   },
   AgentLogEdge: { node },
 };

@@ -27,6 +27,7 @@ import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { UserBubble } from "../ChatScreen/UserBubble";
 import { FileCard } from "../FileCard";
+import { filesFromAttachments } from "../FilePreview";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
 import { BackgroundTaskCard } from "./BackgroundTaskCard";
@@ -320,7 +321,7 @@ function renderCustomWidget(
 
 /**
  * Render a tool call entry. Uses custom widgets for complex tools,
- * otherwise renders `{icon} {displayHint}` + file previews from `message.files`.
+ * otherwise renders `{icon} {displayHint}` + file previews from attachments.
  */
 function renderToolCall(
   toolName: ToolName,
@@ -351,7 +352,7 @@ function renderToolCall(
   if (!hint) return null;
 
   const icon = TOOL_ICON[toolName];
-  const files = message.files ?? [];
+  const files = filesFromAttachments(message.attachments ?? []);
 
   return (
     <View>
@@ -407,7 +408,7 @@ export const LogEntryView = React.memo(function LogEntryView({
   }
 
   if (message.role === AgentLogRole.Agent) {
-    const files = "files" in message ? (message.files ?? []) : [];
+    const files = filesFromAttachments(message.attachments ?? []);
     const bubble = (
       <View className="bg-surface rounded-2xl rounded-bl-md px-3.5 pt-2 pb-0.5">
         {reasoning?.text ? (
@@ -508,7 +509,7 @@ export const LogEntryView = React.memo(function LogEntryView({
     // Handle file_upload entries — prefer FileCard (with preview modal)
     // when resolved file data is available, fall back to static card
     if (parsed?.type === "file_upload") {
-      const files = "files" in message ? (message.files ?? []) : [];
+      const files = filesFromAttachments(message.attachments ?? []);
       if (files.length > 0) {
         return (
           <View className="py-1 gap-1">

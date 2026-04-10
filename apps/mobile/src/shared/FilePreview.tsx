@@ -1,12 +1,33 @@
 import { ScrollView, Text, View } from "react-native";
-import type { AgentLogsQuery, FileQuery } from "../graphql/generated/graphql";
+import type {
+  AttachmentFieldsFragment,
+  FileQuery,
+} from "../graphql/generated/graphql";
 import { DocumentReadButton } from "./DocumentReadButton";
 import { Markdown } from "./LogEntryView/Markdown";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
 import { ZoomableImage } from "./ZoomableImage";
 
-export type FileNode =
-  AgentLogsQuery["agentLogs"]["edges"][number]["node"]["files"][number];
+export type FileNode = Extract<
+  AttachmentFieldsFragment,
+  { __typename?: "FileAttachment" }
+>["file"];
+
+/** Extract File objects from an attachments array. */
+export function filesFromAttachments(
+  attachments: readonly AttachmentFieldsFragment[],
+): FileNode[] {
+  return attachments
+    .filter(
+      (
+        a,
+      ): a is Extract<
+        AttachmentFieldsFragment,
+        { __typename?: "FileAttachment" }
+      > => a.__typename === "FileAttachment",
+    )
+    .map((a) => a.file);
+}
 
 /** The file(path) query returns the same shape — reuse it. */
 export type FileQueryNode = NonNullable<FileQuery["file"]>;

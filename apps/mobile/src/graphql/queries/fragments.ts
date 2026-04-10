@@ -126,9 +126,6 @@ export const AgentLogFields = graphql(`
     attachments {
       ...AttachmentFields
     }
-    files {
-      ...FileFields
-    }
     taskId
     createdAt
   }
@@ -146,8 +143,8 @@ export const TaskSummary = graphql(`
     message
     createdAt
     emoji
-    files {
-      ...FileFields
+    attachments {
+      ...AttachmentFields
     }
   }
 `);
@@ -166,9 +163,6 @@ export const TaskDetail = graphql(`
     emoji
     attachments {
       ...AttachmentFields
-    }
-    files {
-      ...FileFields
     }
   }
 `);
