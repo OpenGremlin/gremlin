@@ -1,10 +1,10 @@
-import type { ApolloError } from "@apollo/client";
+import { type ApolloError, useMutation } from "@apollo/client";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, EllipsisVertical } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ClearAgentLogMutation } from "../../graphql/queries";
 import { useAgentStream } from "../../hooks/useAgentStream";
 import { useBubbleLongPress } from "../../hooks/useBubbleLongPress";
 import { useChatSend } from "../../hooks/useChatSend";
@@ -114,6 +115,7 @@ export function ChatScreen({
     hasMore,
     loadMore,
     loadingMore,
+    refetch,
     fetchNewer,
   } = useLogMessages(scope, {
     onLogCreated,
@@ -139,6 +141,33 @@ export function ChatScreen({
 
   const { input, setInput, pendingMessages, listRef, handleSend, sending } =
     useChatSend({ agentId, taskId, messages });
+
+  const [clearAgentLog] = useMutation(ClearAgentLogMutation);
+
+  const handleClearChat = useCallback(() => {
+    const doClear = () => {
+      clearAgentLog({ variables: { agentId, taskId } })
+        .then(() => refetch())
+        .catch(() => Alert.alert("Error", "Failed to clear chat"));
+    };
+    if (process.env.EXPO_OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Clear Chat", "Cancel"],
+          destructiveButtonIndex: 0,
+          cancelButtonIndex: 1,
+        },
+        (index) => {
+          if (index === 0) doClear();
+        },
+      );
+    } else {
+      Alert.alert("Clear Chat", "This will clear the visible chat history.", [
+        { text: "Clear", style: "destructive", onPress: doClear },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
+  }, [agentId, taskId, clearAgentLog, refetch]);
 
   // On web (non-inverted list), keep the scroll pinned to the bottom.
   // We track whether the user is "at the bottom" and auto-scroll on every
@@ -433,19 +462,22 @@ export function ChatScreen({
               onPress={headerTitlePress}
             />
           </View>
-          {headerRight && (
-            <View
-              style={{
-                position: "absolute",
-                top: process.env.EXPO_OS === "ios" ? insets.top + 4 : 8,
-                right: 12,
-                zIndex: 3,
-                padding: 8,
-              }}
-            >
-              {headerRight}
-            </View>
-          )}
+          <View
+            style={{
+              position: "absolute",
+              top: process.env.EXPO_OS === "ios" ? insets.top + 4 : 8,
+              right: 12,
+              zIndex: 3,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Pressable onPress={handleClearChat} style={{ padding: 8 }}>
+              <EllipsisVertical size={22} color={colors.headerText} />
+            </Pressable>
+            {headerRight}
+          </View>
         </LinearGradient>
       </View>
 

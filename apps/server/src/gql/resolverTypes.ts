@@ -315,6 +315,11 @@ export type AwsSetupInfo = {
   trustPolicy: Scalars['String']['output'];
 };
 
+export type ClearAgentLogResult = {
+  __typename?: 'ClearAgentLogResult';
+  clearedAt: Scalars['String']['output'];
+};
+
 export type CodeRender = {
   __typename?: 'CodeRender';
   content: Scalars['String']['output'];
@@ -521,6 +526,8 @@ export type Mutation = {
   attachFileReference: Scalars['Boolean']['output'];
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
+  /** Clear visible log history for an agent's main lane or a specific task lane */
+  clearAgentLog: ClearAgentLogResult;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
   connectAwsIamRole: IntegrationConnection;
@@ -576,6 +583,12 @@ export type MutationBindAgentSkillConnectionArgs = {
   connectionId: Scalars['ID']['input'];
   provider: Scalars['String']['input'];
   skillId: Scalars['ID']['input'];
+};
+
+
+export type MutationClearAgentLogArgs = {
+  agentId: Scalars['ID']['input'];
+  taskId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1344,6 +1357,7 @@ export type ResolversTypes = {
   AwsPresetRole: ResolverTypeWrapper<AwsPresetRole>;
   AwsSetupInfo: ResolverTypeWrapper<AwsSetupInfo>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  ClearAgentLogResult: ResolverTypeWrapper<ClearAgentLogResult>;
   CodeRender: ResolverTypeWrapper<CodeRender>;
   CommandApproval: ResolverTypeWrapper<Omit<CommandApproval, 'agent'> & { agent: ResolversTypes['Agent'] }>;
   CommandApprovalDecision: CommandApprovalDecision;
@@ -1443,6 +1457,7 @@ export type ResolversParentTypes = {
   AwsPresetRole: AwsPresetRole;
   AwsSetupInfo: AwsSetupInfo;
   Boolean: Scalars['Boolean']['output'];
+  ClearAgentLogResult: ClearAgentLogResult;
   CodeRender: CodeRender;
   CommandApproval: Omit<CommandApproval, 'agent'> & { agent: ResolversParentTypes['Agent'] };
   CompleteFileUploadInput: CompleteFileUploadInput;
@@ -1680,6 +1695,10 @@ export type AwsSetupInfoResolvers<ContextType = GremlinContext, ParentType exten
   trustPolicy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type ClearAgentLogResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ClearAgentLogResult'] = ResolversParentTypes['ClearAgentLogResult']> = {
+  clearedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type CodeRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CodeRender'] = ResolversParentTypes['CodeRender']> = {
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1829,6 +1848,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   attachFileReference?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAttachFileReferenceArgs, 'input'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
+  clearAgentLog?: Resolver<ResolversTypes['ClearAgentLogResult'], ParentType, ContextType, RequireFields<MutationClearAgentLogArgs, 'agentId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
@@ -2115,6 +2135,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   AwsIamRoleConnectionMeta?: AwsIamRoleConnectionMetaResolvers<ContextType>;
   AwsPresetRole?: AwsPresetRoleResolvers<ContextType>;
   AwsSetupInfo?: AwsSetupInfoResolvers<ContextType>;
+  ClearAgentLogResult?: ClearAgentLogResultResolvers<ContextType>;
   CodeRender?: CodeRenderResolvers<ContextType>;
   CommandApproval?: CommandApprovalResolvers<ContextType>;
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;

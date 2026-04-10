@@ -55,6 +55,14 @@ export const AttachFileReferenceMutation = graphql(`
   }
 `);
 
+export const ClearAgentLogMutation = graphql(`
+  mutation ClearAgentLog($agentId: ID!, $taskId: String) {
+    clearAgentLog(agentId: $agentId, taskId: $taskId) {
+      clearedAt
+    }
+  }
+`);
+
 export const PendingInboxMessagesQuery = graphql(`
   query PendingInboxMessages($agentId: ID!, $taskId: String) {
     pendingInboxMessages(agentId: $agentId, taskId: $taskId) {

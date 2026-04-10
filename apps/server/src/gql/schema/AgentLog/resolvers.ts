@@ -29,17 +29,19 @@ const agentLogs: QueryResolvers["agentLogs"] = (
     before,
   });
 
-const taskLogs: QueryResolvers["taskLogs"] = (
+const taskLogs: QueryResolvers["taskLogs"] = async (
   _parent,
   { taskId, first, after, last, before },
   ctx,
-) =>
-  ctx.services.agentLogs.getTaskLogs(ctx, taskId, {
-    first,
-    after,
-    last,
-    before,
-  });
+) => {
+  const task = await ctx.loaders.taskLoader.load(taskId);
+  return ctx.services.agentLogs.getTaskLogs(
+    ctx,
+    taskId,
+    { first, after, last, before },
+    task?.agentId,
+  );
+};
 
 const agent: AgentLogResolvers["agent"] = async (parent, _args, ctx) => {
   const a = await ctx.loaders.agentLoader.load(parent.agentId);
@@ -158,6 +160,12 @@ const sendMessage = async (
   return { queued: true, content };
 };
 
+const clearAgentLog = async (
+  _parent: unknown,
+  { agentId, taskId }: { agentId: string; taskId?: string | null },
+  ctx: GremlinContext,
+) => ctx.services.agentLogs.clearAgentLog(ctx, agentId, taskId);
+
 const agentLogCreated = {
   subscribe: (
     _parent: unknown,
@@ -229,7 +237,7 @@ export const agentLogResolvers = {
     speechUrls,
     documentSpeechUrls,
   },
-  Mutation: { sendMessage },
+  Mutation: { sendMessage, clearAgentLog },
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {
     agent,

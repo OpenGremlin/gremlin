@@ -68,8 +68,14 @@ export const agentLogTypeDefs = /* GraphQL */ `
     content: String!
   }
 
+  type ClearAgentLogResult {
+    clearedAt: String!
+  }
+
   extend type Mutation {
     sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
+    "Clear visible log history for an agent's main lane or a specific task lane"
+    clearAgentLog(agentId: ID!, taskId: String): ClearAgentLogResult!
   }
 
   type AgentStreamDelta {

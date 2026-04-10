@@ -1,6 +1,7 @@
 import { QueryCommand } from "dynamodb-toolbox/table/actions/query";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
+import { getChatLane } from "./getChatLane.js";
 import {
   type AgentLogConnectionModel,
   buildConnection,
@@ -13,7 +14,8 @@ export async function getAgentLogs(
   agentId: string,
   args: PaginationArgs = {},
 ): Promise<AgentLogConnectionModel> {
-  return queryLogs(ctx, `LOG_AGENT#${agentId}`, args);
+  const chatLane = await getChatLane(ctx, agentId, "main");
+  return queryLogs(ctx, `LOG_AGENT#${agentId}`, args, chatLane?.clearedAt);
 }
 
 /**
@@ -25,16 +27,21 @@ export async function queryLogs(
   ctx: ServiceContext,
   partition: string,
   args: PaginationArgs,
+  clearedAt?: string,
 ): Promise<AgentLogConnectionModel> {
   const isBackward = args.last != null;
   const limit = args.first ?? args.last ?? 50;
   const need = limit + 1; // one extra to determine hasMore
 
   const rangeCondition = args.after
-    ? { gt: decodeCursor(args.after) }
+    ? clearedAt && clearedAt > decodeCursor(args.after)
+      ? { gte: clearedAt }
+      : { gt: decodeCursor(args.after) }
     : args.before
       ? { lt: decodeCursor(args.before) }
-      : undefined;
+      : clearedAt
+        ? { gte: clearedAt }
+        : undefined;
 
   const collected: AgentLogItem[] = [];
   let exclusiveStartKey: Record<string, unknown> | undefined;
@@ -58,10 +65,11 @@ export async function queryLogs(
     const page = result.Items ?? [];
 
     for (const item of page) {
-      if (!item.internal) {
-        collected.push(item);
-        if (collected.length >= need) break;
-      }
+      if (item.internal) continue;
+      // When paginating backward past the clearedAt boundary, stop collecting
+      if (clearedAt && item.createdAt < clearedAt) continue;
+      collected.push(item);
+      if (collected.length >= need) break;
     }
 
     if (!result.LastEvaluatedKey) break;

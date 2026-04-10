@@ -18,7 +18,7 @@ export function VoiceModeButton({ agentId }: { agentId: string }) {
   };
 
   return (
-    <Pressable onPress={handlePress}>
+    <Pressable onPress={handlePress} style={{ padding: 8 }}>
       {voiceEnabled ? (
         <Volume2 size={22} color={colors.accentIndicator} />
       ) : (

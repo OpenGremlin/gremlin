@@ -2,6 +2,7 @@ import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
 import { AgentSkillEntity } from "./schema/agentSkill.js";
+import { ChatLaneEntity } from "./schema/chatLane.js";
 import { CommandApprovalEntity } from "./schema/commandApproval.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
 import { DefaultModelEntity } from "./schema/defaultModel.js";
@@ -33,6 +34,7 @@ export const ddb = {
     AgentJob: AgentJobEntity,
     AgentLog: AgentLogEntity,
     AgentSkill: AgentSkillEntity,
+    ChatLane: ChatLaneEntity,
 
     CommandApproval: CommandApprovalEntity,
     UserInputRequest: UserInputRequestEntity,
