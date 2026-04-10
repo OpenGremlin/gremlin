@@ -33,7 +33,7 @@ export default function FileScreen() {
     dir?: string;
   }>();
   const filePath = Array.isArray(path) ? path.join("/") : (path ?? "");
-  const isPager = !!task || !!dir;
+  const isPager = !!task || dir != null;
 
   return (
     <>
@@ -98,7 +98,7 @@ function PagerMode({
     WorkspaceEntriesQuery,
     {
       variables: { path: dirPath ?? "" },
-      skip: !dirPath,
+      skip: dirPath == null,
     },
   );
 
@@ -110,7 +110,7 @@ function PagerMode({
       const idx = taskFiles.findIndex((f) => f.path === filePath);
       return { files: taskFiles, initialIndex: Math.max(0, idx) };
     }
-    if (dirPath && dirData?.workspaceEntries) {
+    if (dirPath != null && dirData?.workspaceEntries) {
       const entries = dirData.workspaceEntries
         .filter((e) => !e.isDirectory)
         .map((e): PagerFileEntry => ({ path: e.path, name: e.name }));

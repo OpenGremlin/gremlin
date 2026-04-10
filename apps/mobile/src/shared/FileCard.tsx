@@ -71,9 +71,11 @@ export function FileCard({
       : file.name;
 
   const presentPreview = () => {
+    const segments = file.path.split("/");
+    const dir = segments.length > 1 ? segments.slice(0, -1).join("/") : "";
     router.push({
       pathname: "/file/[...path]",
-      params: { path: file.path.split("/") },
+      params: { path: segments, dir },
     });
   };
 
