@@ -1,9 +1,16 @@
 import { useEvent } from "expo";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { File, Paths } from "expo-file-system";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Pause, Play } from "lucide-react-native";
-import { useCallback, useMemo, useRef } from "react";
-import { type LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type LayoutChangeEvent,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
@@ -63,17 +70,77 @@ function ProgressBar({
   );
 }
 
+/**
+ * On native, AVFoundation doesn't reliably forward custom HTTP headers
+ * (like Authorization) on audio/video sub-requests. We download the file
+ * first and play from a local URI. On web, we pass headers directly.
+ */
+function useLocalMediaUri(
+  url: string,
+  token: string | null,
+  fallbackExt: string,
+): { uri: string | null; error: boolean } {
+  const [localUri, setLocalUri] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const tokenRef = useRef(token);
+  tokenRef.current = token;
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+
+    let cancelled = false;
+    setLocalUri(null);
+    setError(false);
+
+    const ext = new URL(url).pathname.split(".").pop() ?? fallbackExt;
+    const dest = new File(Paths.cache, `media_${Date.now()}.${ext}`);
+
+    File.downloadFileAsync(url, dest, {
+      headers: tokenRef.current
+        ? { Authorization: `Bearer ${tokenRef.current}` }
+        : undefined,
+    })
+      .then((file) => {
+        if (!cancelled) setLocalUri(file.uri);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
+
+    return () => {
+      cancelled = true;
+      dest.delete();
+    };
+  }, [url, fallbackExt]);
+
+  return { uri: localUri, error };
+}
+
+function useMediaSource(
+  url: string,
+  token: string | null,
+  localUri: string | null,
+) {
+  return useMemo(() => {
+    if (Platform.OS === "web") {
+      return {
+        uri: url,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      };
+    }
+    return localUri ? { uri: localUri } : null;
+  }, [url, token, localUri]);
+}
+
 export function AudioPlayer({ url }: { url: string }) {
   const { token } = useAuth();
   const colors = useNavigationTheme();
-
-  const source = useMemo(
-    () => ({
-      uri: url,
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }),
-    [url, token],
+  const { uri: localUri, error: downloadError } = useLocalMediaUri(
+    url,
+    token,
+    "mp3",
   );
+  const source = useMediaSource(url, token, localUri);
 
   const player = useAudioPlayer(source, { updateInterval: 0.25 });
   const status = useAudioPlayerStatus(player);
@@ -93,7 +160,15 @@ export function AudioPlayer({ url }: { url: string }) {
     [player],
   );
 
-  if (!status.isLoaded) {
+  if (downloadError) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg p-6">
+        <Text className="text-text-muted text-sm">Unable to load audio</Text>
+      </View>
+    );
+  }
+
+  if (!source || !status.isLoaded) {
     return (
       <View className="flex-1 items-center justify-center bg-bg">
         <DelayedSpinner />
@@ -135,14 +210,12 @@ export function AudioPlayer({ url }: { url: string }) {
 
 export function VideoPlayer({ url }: { url: string }) {
   const { token } = useAuth();
-
-  const source = useMemo(
-    () => ({
-      uri: url,
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }),
-    [url, token],
+  const { uri: localUri, error: downloadError } = useLocalMediaUri(
+    url,
+    token,
+    "mp4",
   );
+  const source = useMediaSource(url, token, localUri);
 
   const player = useVideoPlayer(source);
 
@@ -150,7 +223,15 @@ export function VideoPlayer({ url }: { url: string }) {
     status: player.status,
   });
 
-  if (status === "loading") {
+  if (downloadError) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg p-6">
+        <Text className="text-text-muted text-sm">Unable to load video</Text>
+      </View>
+    );
+  }
+
+  if (!source || status === "loading") {
     return (
       <View className="flex-1 items-center justify-center bg-bg">
         <DelayedSpinner />
