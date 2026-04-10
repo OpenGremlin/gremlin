@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import { Platform, type TextStyle, View, type ViewStyle } from "react-native";
+import {
+  Linking,
+  Platform,
+  Text,
+  type TextStyle,
+  View,
+  type ViewStyle,
+} from "react-native";
 import type { MarkedStyles } from "react-native-marked";
 import Marked, { Renderer } from "react-native-marked";
 import { useTheme } from "../../lib/ThemeContext";
@@ -173,6 +180,28 @@ class CodeTextRenderer extends Renderer {
     return super.code(text, _language, containerStyle, this.codeTextStyle);
   }
 
+  // Override link to remove the `selectable` prop that the base Renderer sets,
+  // which triggers the native iOS "Copy" callout on long-press.
+  link(
+    children: string | ReactNode[],
+    href: string,
+    styles?: TextStyle,
+    title?: string,
+  ): ReactNode {
+    return (
+      <Text
+        accessibilityRole="link"
+        accessibilityHint="Opens in a new window"
+        accessibilityLabel={title || "Link"}
+        key={this.getKey()}
+        onPress={() => Linking.openURL(href)}
+        style={styles}
+      >
+        {children}
+      </Text>
+    );
+  }
+
   list(
     ordered: boolean,
     li: ReactNode[],
@@ -213,6 +242,22 @@ class CodeTextRenderer extends Renderer {
     );
   }
 }
+
+// The base Renderer's private `getTextNode` renders every <Text> with
+// `selectable`, which triggers the native iOS "Copy" callout on long-press.
+// TypeScript `private` compiles to a regular method, so we can patch it.
+// biome-ignore lint/suspicious/noExplicitAny: patching private method on base Renderer
+(CodeTextRenderer.prototype as any).getTextNode = function (
+  this: CodeTextRenderer,
+  children: string | ReactNode[],
+  styles?: TextStyle,
+): ReactNode {
+  return (
+    <Text key={this.getKey()} style={styles}>
+      {children}
+    </Text>
+  );
+};
 
 export function Markdown({
   children,
