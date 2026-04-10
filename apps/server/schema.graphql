@@ -4,20 +4,8 @@ type Query {
   file(path: String!): File
   agentJobs: [AgentJob!]!
   agentJob(id: ID!): AgentJob
-  agentLogs(
-    agentId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
-  taskLogs(
-    taskId: ID!
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  agentLogs(agentId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
+  taskLogs(taskId: ID!, first: Int, after: String, last: Int, before: String): AgentLogConnection!
   pendingInboxMessages(agentId: ID!, taskId: String): [PendingInboxMessage!]!
   "Build TTS audio URLs for a completed agent log message, one per sentence"
   speechUrls(logId: ID!): [String!]!
@@ -59,60 +47,30 @@ type Query {
 type Mutation {
   _empty: String
   addCommandAllowlistEntry(agentId: ID!, pattern: String!): [AllowlistEntry!]!
-  removeCommandAllowlistEntry(
-    agentId: ID!
-    pattern: String!
-  ): [AllowlistEntry!]!
-  requestFileUploads(
-    agentId: String!
-    taskId: String
-    files: [FileUploadRequest!]!
-  ): [FileUploadUrl!]!
+  removeCommandAllowlistEntry(agentId: ID!, pattern: String!): [AllowlistEntry!]!
+  requestFileUploads(agentId: String!, taskId: String, files: [FileUploadRequest!]!): [FileUploadUrl!]!
   completeFileUpload(input: CompleteFileUploadInput!): CompletedFileUpload!
   updateAgentJob(id: ID!, input: UpdateAgentJobInput!): AgentJob
   createAgentJob(input: CreateAgentJobInput!): AgentJob!
   deleteAgentJob(id: ID!): AgentJob
   triggerJob(id: ID!): AgentJob!
-  sendMessage(
-    agentId: ID!
-    content: String!
-    taskId: String
-  ): SendMessageResult!
+  sendMessage(agentId: ID!, content: String!, taskId: String): SendMessageResult!
   createAgent(input: CreateAgentInput!): Agent!
   updateAgent(id: ID!, input: UpdateAgentInput!): Agent
   retireAgent(id: ID!): Agent!
   unretireAgent(id: ID!): Agent!
-  resolveCommandApproval(
-    id: ID!
-    decision: CommandApprovalDecision!
-  ): CommandApproval
+  resolveCommandApproval(id: ID!, decision: CommandApprovalDecision!): CommandApproval
   connectApiKey(providerId: String!, apiKey: String!): ConnectApiKeyResult!
   revokeIntegrationConnection(id: ID!): IntegrationConnection!
   setDefaultModel(providerId: String!, modelId: String!): DefaultModel!
   setDefaultImageModel(providerId: String!, modelId: String!): DefaultModel!
   setDefaultSpeechModel(providerId: String!, modelId: String!): DefaultModel!
-  enableModel(
-    providerId: String!
-    modelId: String!
-    modelName: String
-  ): [EnabledModelEntry!]!
+  enableModel(providerId: String!, modelId: String!, modelName: String): [EnabledModelEntry!]!
   disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
   enableBedrockModel(modelId: String!, modelName: String): [String!]!
   disableBedrockModel(modelId: String!): [String!]!
-  connectAwsIamRole(
-    roleArn: String!
-    displayName: String
-    region: String
-  ): IntegrationConnection!
-  submitOAuthConnection(
-    providerId: String!
-    accessToken: String!
-    refreshToken: String
-    expiresAt: String
-    scopes: [String!]!
-    accountId: String
-    clientId: String
-  ): IntegrationConnection!
+  connectAwsIamRole(roleArn: String!, displayName: String, region: String): IntegrationConnection!
+  submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): IntegrationConnection!
   resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
   dismissUserInputRequest(id: ID!): UserInputRequest
   updateProfile(input: ProfileInput!): Profile!
@@ -122,19 +80,9 @@ type Mutation {
   "Remove a skill from an agent"
   removeSkill(agentId: ID!, skillId: ID!): AgentSkill!
   "Bind a connection to an agent's skill"
-  bindAgentSkillConnection(
-    agentId: ID!
-    skillId: ID!
-    provider: String!
-    connectionId: ID!
-  ): AgentSkill!
+  bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   "Unbind a connection from an agent's skill"
-  unbindAgentSkillConnection(
-    agentId: ID!
-    skillId: ID!
-    provider: String!
-    connectionId: ID!
-  ): AgentSkill!
+  unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
 }
 
 type Subscription {
@@ -187,13 +135,7 @@ type File {
   render: FileRender!
 }
 
-union FileRender =
-  | ImageRender
-  | DocumentRender
-  | CodeRender
-  | AudioRender
-  | VideoRender
-  | UnknownRender
+union FileRender = ImageRender | DocumentRender | CodeRender | AudioRender | VideoRender | UnknownRender
 
 type ImageRender {
   url(width: Int): String
@@ -664,10 +606,7 @@ type AwsSetupInfo {
   trustPolicy: String!
 }
 
-union ConnectionMeta =
-  | OAuthConnectionMeta
-  | ApiKeyConnectionMeta
-  | AwsIamRoleConnectionMeta
+union ConnectionMeta = OAuthConnectionMeta | ApiKeyConnectionMeta | AwsIamRoleConnectionMeta
 
 type IntegrationConnection {
   id: ID!
@@ -777,12 +716,7 @@ type Task {
   attachments: [Attachment!]!
   documents: [Document!]! @deprecated(reason: "Use attachments instead")
   files: [File!]! @deprecated(reason: "Use attachments instead")
-  logs(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): AgentLogConnection!
+  logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
 }
 
 type TaskEdge {

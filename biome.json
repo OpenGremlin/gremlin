@@ -39,6 +39,7 @@
       "!**/cdk.out",
       "!reference",
       "!**/resolverTypes.ts",
+      "!**/schema.graphql",
       "!apps/mobile/ios",
       "!apps/mobile/android"
     ],
