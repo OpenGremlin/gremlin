@@ -1,10 +1,11 @@
 import { useApolloClient, useQuery } from "@apollo/client";
-import { useCallback, useMemo, useState } from "react";
+import { createElement, useCallback, useMemo, useState } from "react";
 import type { AgentSummaryFragment } from "../graphql/generated/graphql";
 import { AgentsQuery, DocumentSpeechUrlsQuery } from "../graphql/queries";
 import { useLocalSettings } from "../lib/LocalSettingsContext";
 import { clientLogger } from "../lib/logger";
 import { useVoice } from "../lib/VoiceContext";
+import { AgentAvatar } from "../shared/AgentAvatar";
 import { presentPicker } from "../shared/PickerModal";
 
 /**
@@ -78,6 +79,7 @@ export function useDocumentReader() {
         value: a.id,
         label: a.name,
         subtitle: a.role ?? undefined,
+        icon: createElement(AgentAvatar, { id: a.id, size: 28 }),
       })),
       selected: reader?.id,
       onSelect: setDocumentReaderId,

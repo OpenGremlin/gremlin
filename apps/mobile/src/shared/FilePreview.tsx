@@ -63,25 +63,31 @@ export function FilePreview({
 
   if (render.__typename === "CodeRender") {
     return (
-      <ScrollView
-        className="flex-1 bg-bg px-5 py-4"
-        contentContainerClassName="pb-16"
-        horizontal={false}
-      >
-        <Text
-          className="text-xs text-text-muted mb-2"
-          style={{ fontFamily: "monospace" }}
+      <View className="flex-1 bg-bg">
+        <View className="flex-row gap-2 mx-5 mt-4 mb-2">
+          <DocumentReadButton markdown={render.content} />
+          {filePath && <DocumentDiscussButton filePath={filePath} />}
+        </View>
+        <ScrollView
+          className="flex-1 px-5"
+          contentContainerClassName="pb-16"
+          horizontal={false}
         >
-          {render.language}
-        </Text>
-        <Text
-          className="text-sm text-text-primary"
-          style={{ fontFamily: "monospace" }}
-          selectable
-        >
-          {render.content}
-        </Text>
-      </ScrollView>
+          <Text
+            className="text-xs text-text-muted mb-2"
+            style={{ fontFamily: "monospace" }}
+          >
+            {render.language}
+          </Text>
+          <Text
+            className="text-sm text-text-primary"
+            style={{ fontFamily: "monospace" }}
+            selectable
+          >
+            {render.content}
+          </Text>
+        </ScrollView>
+      </View>
     );
   }
 

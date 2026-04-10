@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
-import { Bot, Globe, Info, Terminal, Volume2 } from "lucide-react-native";
+import { Cpu, Globe, Info, Terminal, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
@@ -413,7 +413,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
       <Card className="overflow-hidden">
         <View className="flex-row px-4 py-3 gap-3">
           <View className="w-[22px] pt-0.5">
-            <Bot size={22} color={colors.iconDefault} />
+            <Cpu size={22} color={colors.iconDefault} />
           </View>
           <View className="flex-1 gap-2">
             <Text className="text-base font-bold text-text-secondary">

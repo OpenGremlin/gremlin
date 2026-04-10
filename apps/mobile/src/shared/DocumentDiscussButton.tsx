@@ -43,6 +43,7 @@ export function DocumentDiscussButton({ filePath }: { filePath: string }) {
         value: a.id,
         label: a.name,
         subtitle: a.role ?? undefined,
+        icon: <AgentAvatar id={a.id} size={28} />,
       })),
       selected: agent?.id,
       onSelect: setDocumentDiscussAgentId,

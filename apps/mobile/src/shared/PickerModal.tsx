@@ -114,10 +114,16 @@ export function PickerOverlay() {
           >
             <View className="flex-1 flex-row items-center gap-3">
               {item.icon}
-              <Text className="text-sm text-text-primary">{item.label}</Text>
-              {item.subtitle && (
-                <Text className="text-xs text-text-muted">{item.subtitle}</Text>
-              )}
+              <View className="flex-1 min-w-0">
+                <Text className="text-sm text-text-primary" numberOfLines={1}>
+                  {item.label}
+                </Text>
+                {item.subtitle && (
+                  <Text className="text-xs text-text-muted" numberOfLines={1}>
+                    {item.subtitle}
+                  </Text>
+                )}
+              </View>
             </View>
             {item.value === payload?.selected && (
               <Check size={18} color={colors.accentIndicator} />
