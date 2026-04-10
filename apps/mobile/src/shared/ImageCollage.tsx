@@ -2,7 +2,7 @@ import { Pressable, Text, View } from "react-native";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 
-const GAP = 0;
+const GAP = 2;
 
 /** A file we know has a renderable image url. */
 export type ImageFile = FileNode & {
@@ -34,7 +34,12 @@ function Tile({
   return (
     <Pressable
       onPress={onPress}
-      style={{ flex: 1, overflow: "hidden", position: "relative" }}
+      style={{
+        flex: 1,
+        borderRadius: 4,
+        overflow: "hidden",
+        position: "relative",
+      }}
     >
       <AuthImage
         uri={image.render.url}
