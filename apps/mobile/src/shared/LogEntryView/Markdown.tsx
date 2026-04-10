@@ -246,6 +246,7 @@ class CodeTextRenderer extends Renderer {
 // The base Renderer's private `getTextNode` renders every <Text> with
 // `selectable`, which triggers the native iOS "Copy" callout on long-press.
 // TypeScript `private` compiles to a regular method, so we can patch it.
+// Verified against react-native-marked ^8.0.1 — re-check after upgrades.
 // biome-ignore lint/suspicious/noExplicitAny: patching private method on base Renderer
 (CodeTextRenderer.prototype as any).getTextNode = function (
   this: CodeTextRenderer,

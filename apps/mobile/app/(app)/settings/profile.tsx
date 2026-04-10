@@ -22,6 +22,7 @@ interface ProfileFormValues {
 export default function ProfileScreen() {
   const { data, loading, error } = useQuery(ProfileQuery);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const readyRef = useRef(false);
 
@@ -59,10 +60,11 @@ export default function ProfileScreen() {
           timezone: values.timezone || null,
         },
       });
+      setSaveError(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch {
-      // silent — transient failures will retry on next change
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : String(err));
     }
   }, []);
 
@@ -154,6 +156,7 @@ export default function ProfileScreen() {
       </View>
 
       {saved && <SavedIndicator />}
+      {saveError && <Text className="text-sm text-error">{saveError}</Text>}
     </ScrollView>
   );
 }
