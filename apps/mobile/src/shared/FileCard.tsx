@@ -8,19 +8,12 @@ import {
   Image as ImageIcon,
 } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
-import { openSheet } from "../lib/sheetStore";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 import { formatFileSize } from "./formatFileSize";
 
 export type { FileNode } from "./FilePreview";
-
-/** Payload type stored in sheetStore for the file-preview sheet route. */
-export interface FilePreviewSheetPayload {
-  file: FileNode;
-  title: string;
-}
 
 function FileIcon_({ render }: { render: FileNode["render"] }) {
   const colors = useNavigationTheme();
@@ -78,11 +71,7 @@ export function FileCard({
       : file.name;
 
   const presentPreview = () => {
-    const sheetId = openSheet<FilePreviewSheetPayload>({
-      file,
-      title: displayTitle,
-    });
-    router.push(`/sheet/file-preview?id=${sheetId}`);
+    router.push(`/file/${file.path}`);
   };
 
   const handlePress = onPress ?? presentPreview;

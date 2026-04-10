@@ -4,7 +4,6 @@ import { CircleCheck, Info, Plus, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { AddSkillSheetPayload } from "../../../app/sheet/add-skill";
-import type { SkillDetailSheetPayload } from "../../../app/sheet/skill-detail";
 import {
   AgentSkillsQuery,
   BindAgentSkillConnectionMutation,
@@ -48,9 +47,8 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
     router.push(`/sheet/add-skill?id=${sheetId}`);
   };
 
-  const openDetailSheet = (id: string, title: string) => {
-    const sheetId = openSheet<SkillDetailSheetPayload>({ id, title });
-    router.push(`/sheet/skill-detail?id=${sheetId}`);
+  const openDetailSheet = (id: string) => {
+    router.push(`/skill/${id}`);
   };
 
   return (
@@ -95,14 +93,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
           }
           onRemove={() => handleRemove(skill.skillId)}
           onConnectionChanged={refetch}
-          onShowDetails={() =>
-            openDetailSheet(
-              skill.skillId,
-              skill.template?.displayName ??
-                skill.template?.name ??
-                skill.skillId,
-            )
-          }
+          onShowDetails={() => openDetailSheet(skill.skillId)}
         />
       ))}
     </View>

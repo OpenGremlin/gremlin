@@ -22,17 +22,12 @@ import {
   SetDefaultSpeechModelMutation,
 } from "../../../../../src/graphql/queries";
 import { execute } from "../../../../../src/lib/apolloClient";
-import { openSheet } from "../../../../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
 import { Chip } from "../../../../../src/shared/Chip";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
-import type {
-  ModelDetail,
-  ModelDetailSheetPayload,
-} from "../../../../../src/shared/ModelDetail";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
 import { Toast } from "../../../../../src/shared/Toast";
@@ -66,7 +61,6 @@ function TypedModelList({
   label,
   allModels,
   enabledModelIds,
-  modelDetails,
   defaultModel,
   refetchEnabled,
   refetchDetails,
@@ -79,7 +73,6 @@ function TypedModelList({
   label: string;
   allModels: { id: string; name: string; mode: string }[];
   enabledModelIds: string[];
-  modelDetails: ModelDetail[];
   defaultModel: DefaultModel;
   refetchEnabled: () => void;
   refetchDetails: () => void;
@@ -93,9 +86,8 @@ function TypedModelList({
   const [settingModel, setSettingModel] = useState<string | null>(null);
   const [showAvailable, setShowAvailable] = useState(true);
   const [search, setSearch] = useState("");
-  const presentModelDetail = (model: ModelDetail) => {
-    const sheetId = openSheet<ModelDetailSheetPayload>({ model });
-    router.push(`/sheet/model-detail?id=${sheetId}`);
+  const presentModelDetail = (providerId: string, modelId: string) => {
+    router.push(`/model/${providerId}/${modelId}`);
   };
 
   const modelsOfType = allModels.filter((m) => m.mode === modelMode);
@@ -176,13 +168,12 @@ function TypedModelList({
               const isDisabling = disablingModel === model.id;
               const isSetting = settingModel === model.id;
               const busy = isDisabling || isSetting;
-              const detail = modelDetails.find((d) => d.id === model.id);
 
               return (
                 <Pressable
                   key={model.id}
                   onPress={() => {
-                    if (detail) presentModelDetail(detail);
+                    presentModelDetail(providerId, model.id);
                   }}
                   className={`flex-row items-center justify-between px-4 py-3 active:bg-surface-alt ${i > 0 ? "border-t border-app-border" : ""}`}
                 >
@@ -431,14 +422,12 @@ function ModelLists({
     EnabledModelsQuery,
     { variables: { providerId } },
   );
-  const { data: detailsData, refetch: refetchDetails } = useQuery(
-    EnabledModelDetailsQuery,
-    { variables: { providerId } },
-  );
+  const { refetch: refetchDetails } = useQuery(EnabledModelDetailsQuery, {
+    variables: { providerId },
+  });
 
   const allModels = modelsData?.providerModels ?? [];
   const enabledModelIds = enabledData?.enabledModels ?? [];
-  const modelDetails = detailsData?.enabledModelDetails ?? [];
 
   const defaultsByMode: Record<ModelMode, DefaultModel> = {
     chat: defaultModel,
@@ -469,7 +458,6 @@ function ModelLists({
           label={MODEL_MODE_LABELS[m]}
           allModels={allModels}
           enabledModelIds={enabledModelIds}
-          modelDetails={modelDetails}
           defaultModel={defaultsByMode[m]}
           refetchEnabled={refetchEnabled}
           refetchDetails={refetchDetails}

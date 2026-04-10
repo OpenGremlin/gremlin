@@ -63,7 +63,7 @@ function RootStack() {
       <Stack.Screen name="connect/index" />
       <Stack.Screen name="connect/[payload]" />
       <Stack.Screen
-        name="sheet/model-detail"
+        name="model/[...params]"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,
@@ -71,7 +71,7 @@ function RootStack() {
         }}
       />
       <Stack.Screen
-        name="sheet/file-preview"
+        name="file/[...path]"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,
@@ -95,7 +95,7 @@ function RootStack() {
         }}
       />
       <Stack.Screen
-        name="sheet/skill-detail"
+        name="skill/[id]"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,
@@ -120,14 +120,6 @@ function RootStack() {
       />
       <Stack.Screen
         name="sheet/voice-picker"
-        options={{
-          presentation: "formSheet",
-          sheetGrabberVisible: true,
-          contentStyle: { backgroundColor: "transparent" },
-        }}
-      />
-      <Stack.Screen
-        name="sheet/file-pager"
         options={{
           presentation: "formSheet",
           sheetGrabberVisible: true,

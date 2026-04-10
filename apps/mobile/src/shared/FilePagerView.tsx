@@ -1,5 +1,4 @@
 import { useQuery } from "@apollo/client";
-import { useLocalSearchParams } from "expo-router";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -12,13 +11,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { FileQuery } from "../../src/graphql/queries";
-import { dismissSheet, useSheetPayload } from "../../src/lib/sheetStore";
-import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
-import type { FileNode, FileQueryNode } from "../../src/shared/FilePreview";
-import { FilePreview } from "../../src/shared/FilePreview";
-import { FilePreviewActions } from "../../src/shared/FilePreviewActions";
-import { Sheet } from "../../src/shared/Sheet";
+import { FileQuery } from "../graphql/queries";
+import { useNavigationTheme } from "../lib/useNavigationTheme";
+import type { FileNode, FileQueryNode } from "./FilePreview";
+import { FilePreview } from "./FilePreview";
+import { FilePreviewActions } from "./FilePreviewActions";
+import { Sheet } from "./Sheet";
 
 /** A lightweight entry that the pager can lazy-load render data for. */
 export interface PagerFileEntry {
@@ -26,19 +24,12 @@ export interface PagerFileEntry {
   name: string;
 }
 
-export interface FilePagerSheetPayload {
-  files: FileNode[] | PagerFileEntry[];
-  initialIndex: number;
-}
-
 type AnyEntry = FileNode | PagerFileEntry;
 
-/** Returns true if the entry has pre-loaded render data (i.e. is a full FileNode). */
 function hasRender(entry: AnyEntry): entry is FileNode {
   return "render" in entry && entry.render != null;
 }
 
-/** Hook that returns the full file data, either from the entry itself or via a lazy query. */
 function useResolvedFile(entry: AnyEntry): {
   file: FileNode | FileQueryNode | null;
   loading: boolean;
@@ -54,7 +45,6 @@ function useResolvedFile(entry: AnyEntry): {
   return { file: data?.file ?? null, loading, error: !!error };
 }
 
-/** Renders a single pager page — uses pre-loaded render data or fetches it lazily. */
 function PagerPage({
   entry,
   onZoomChange,
@@ -82,75 +72,36 @@ function PagerPage({
   return <FilePreview render={file.render} onZoomChange={onZoomChange} />;
 }
 
-/** Header actions with resolved file data passed in from the parent. */
 function PagerActions({ file }: { file: FileNode | FileQueryNode | null }) {
   if (!file) return null;
   return <FilePreviewActions file={file} />;
 }
 
 /**
- * Horizontal pager across a task's files. Each page is a FilePreview;
- * swiping between pages is disabled while the current image is zoomed.
- * Header chevrons are a fallback for cases where horizontal swipe is
- * awkward (zoomed images, video scrubber).
+ * Shared file pager wrapped in a Sheet. Horizontal swipe across files
+ * with lazy loading, chevron navigation, and file actions in the header.
  */
-
-export default function FilePagerSheet() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const payload = useSheetPayload<FilePagerSheetPayload>(id);
+export function FilePagerSheet({
+  files,
+  initialIndex,
+}: {
+  files: AnyEntry[];
+  initialIndex: number;
+}) {
   const colors = useNavigationTheme();
   const listRef = useRef<FlatList<AnyEntry>>(null);
-  const [index, setIndex] = useState(payload?.initialIndex ?? 0);
+  const [index, setIndex] = useState(initialIndex);
   const [zoomed, setZoomed] = useState(false);
-  // Measured size of the body. Each page needs explicit pixel dimensions
-  // so the inner ScrollView (`flex-1`) has a bounded parent on RN Web.
   const [size, setSize] = useState<{ width: number; height: number } | null>(
     null,
   );
 
-  useEffect(() => {
-    return () => {
-      if (id) dismissSheet(id);
-    };
-  }, [id]);
-
-  const onLayout = useCallback((e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    setSize((prev) =>
-      prev && prev.width === width && prev.height === height
-        ? prev
-        : { width, height },
-    );
-  }, []);
-
-  // Re-anchor on the current page when the container is resized
-  // (rotation, iPad split view). Without this the FlatList keeps its
-  // old contentOffset and lands between pages.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: only width should re-trigger
-  useEffect(() => {
-    if (!size) return;
-    listRef.current?.scrollToIndex({ index, animated: false });
-  }, [size?.width]);
-
-  const files: AnyEntry[] = payload?.files ?? [];
   const current = files[index];
-  // Resolve the current entry once so the header actions share the same query
-  // as the visible page instead of firing a duplicate request.
   const { file: resolvedCurrent } = useResolvedFile(
     current ?? { path: "", name: "" },
   );
 
-  const onMomentumScrollEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!size) return;
-      const next = Math.round(e.nativeEvent.contentOffset.x / size.width);
-      if (next !== index) {
-        setIndex(next);
-        setZoomed(false);
-      }
-    },
-    [index, size],
-  );
+  const title = current?.name ?? "File";
 
   const goTo = useCallback(
     (next: number) => {
@@ -160,23 +111,6 @@ export default function FilePagerSheet() {
       setZoomed(false);
     },
     [files.length],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: AnyEntry }) => (
-      <View style={{ width: size?.width ?? 0, height: size?.height ?? 0 }}>
-        <PagerPage entry={item} onZoomChange={setZoomed} />
-      </View>
-    ),
-    [size],
-  );
-
-  const getItemLayout = useCallback(
-    (_: ArrayLike<AnyEntry> | null | undefined, i: number) => {
-      const w = size?.width ?? 0;
-      return { length: w, offset: w * i, index: i };
-    },
-    [size],
   );
 
   const headerActions = useMemo(() => {
@@ -218,10 +152,54 @@ export default function FilePagerSheet() {
     );
   }, [colors.iconDefault, resolvedCurrent, files.length, goTo, index, current]);
 
-  if (!payload || !current) return null;
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setSize((prev) =>
+      prev && prev.width === width && prev.height === height
+        ? prev
+        : { width, height },
+    );
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only width should re-trigger
+  useEffect(() => {
+    if (!size) return;
+    listRef.current?.scrollToIndex({ index, animated: false });
+  }, [size?.width]);
+
+  const onMomentumScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!size) return;
+      const next = Math.round(e.nativeEvent.contentOffset.x / size.width);
+      if (next !== index) {
+        setIndex(next);
+        setZoomed(false);
+      }
+    },
+    [index, size],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: AnyEntry }) => (
+      <View style={{ width: size?.width ?? 0, height: size?.height ?? 0 }}>
+        <PagerPage entry={item} onZoomChange={setZoomed} />
+      </View>
+    ),
+    [size],
+  );
+
+  const getItemLayout = useCallback(
+    (_: ArrayLike<AnyEntry> | null | undefined, i: number) => {
+      const w = size?.width ?? 0;
+      return { length: w, offset: w * i, index: i };
+    },
+    [size],
+  );
+
+  if (files.length === 0) return null;
 
   return (
-    <Sheet title={current.name} headerActions={headerActions}>
+    <Sheet title={title} headerActions={headerActions}>
       <View style={{ flex: 1 }} onLayout={onLayout}>
         {size ? (
           <FlatList
@@ -233,7 +211,7 @@ export default function FilePagerSheet() {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            initialScrollIndex={payload.initialIndex}
+            initialScrollIndex={initialIndex}
             scrollEnabled={!zoomed}
             onMomentumScrollEnd={onMomentumScrollEnd}
             windowSize={3}

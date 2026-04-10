@@ -10,20 +10,12 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   AllEnabledModelsQuery,
-  EnabledModelDetailsQuery,
   IntegrationProvidersQuery,
-  SetDefaultImageModelMutation,
-  SetDefaultModelMutation,
-  SetDefaultSpeechModelMutation,
 } from "../../../../src/graphql/queries";
-import { execute } from "../../../../src/lib/apolloClient";
-import { openSheet } from "../../../../src/lib/sheetStore";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
-import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { Chip } from "../../../../src/shared/Chip";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
-import type { ModelDetailSheetPayload } from "../../../../src/shared/ModelDetail";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
 
@@ -93,82 +85,8 @@ export default function ModelsScreen() {
     return [...byProvider.values()];
   }, [enabledModels]);
 
-  const [defaultError, setDefaultError] = useState<string | null>(null);
-
-  async function handleSetDefault(
-    providerId: string,
-    modelId: string,
-    mode: string,
-  ) {
-    setDefaultError(null);
-    try {
-      const vars = { providerId, modelId };
-      if (mode === "image_generation") {
-        await execute(SetDefaultImageModelMutation, vars);
-      } else if (mode === "audio_speech") {
-        await execute(SetDefaultSpeechModelMutation, vars);
-      } else {
-        await execute(SetDefaultModelMutation, vars);
-      }
-      providers.refetch();
-      router.back();
-    } catch (err) {
-      setDefaultError(
-        err instanceof Error ? err.message : "Failed to set default",
-      );
-    }
-  }
-
-  async function handleModelPress(providerId: string, modelId: string) {
-    try {
-      const result = await execute(EnabledModelDetailsQuery, { providerId });
-      const detail = result.enabledModelDetails.find((m) => m.id === modelId);
-      if (!detail) return;
-
-      // Snapshot defaults at open time so the actions render-prop closure
-      // doesn't go stale if the user comes back later. The actions also
-      // close over handleSetDefault, which calls router.back() on success.
-      const isDefaultLLM =
-        defaultModel?.providerId === providerId &&
-        defaultModel?.modelId === detail.id;
-      const isDefaultImage =
-        defaultImageModel?.providerId === providerId &&
-        defaultImageModel?.modelId === detail.id;
-      const isDefaultSpeech =
-        defaultSpeechModel?.providerId === providerId &&
-        defaultSpeechModel?.modelId === detail.id;
-      const isDefault = isDefaultLLM || isDefaultImage || isDefaultSpeech;
-
-      const sheetId = openSheet<ModelDetailSheetPayload>({
-        model: detail,
-        actions: isDefault
-          ? undefined
-          : (model) => (
-              <View className="gap-2">
-                {defaultError && (
-                  <Text className="text-sm text-red-400 text-center">
-                    {defaultError}
-                  </Text>
-                )}
-                <Button
-                  onPress={() =>
-                    handleSetDefault(providerId, model.id, model.mode)
-                  }
-                  fullWidth
-                >
-                  {model.mode === "image_generation"
-                    ? "Set as Default Image"
-                    : model.mode === "audio_speech"
-                      ? "Set as Default Speech"
-                      : "Set as Default LLM"}
-                </Button>
-              </View>
-            ),
-      });
-      router.push(`/sheet/model-detail?id=${sheetId}`);
-    } catch {
-      // silently fail
-    }
+  function handleModelPress(providerId: string, modelId: string) {
+    router.push(`/model/${providerId}/${modelId}`);
   }
 
   return (

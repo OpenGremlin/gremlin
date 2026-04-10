@@ -5,7 +5,6 @@ import { useCallback } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { WorkspaceEntriesQuery } from "../../../../src/graphql/queries";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
-import { presentFilePager } from "../../../../src/shared/FilePager";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 
 function formatSize(bytes: number): string {
@@ -56,14 +55,9 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
 
   const openFile = useCallback(
     (entry: (typeof entries)[number]) => {
-      const fileEntries = entries.filter((e) => !e.isDirectory);
-      const initialIndex = fileEntries.findIndex((e) => e.path === entry.path);
-      presentFilePager({
-        files: fileEntries.map((e) => ({ path: e.path, name: e.name })),
-        initialIndex: Math.max(0, initialIndex),
-      });
+      router.push(`/file/${entry.path}?dir=${encodeURIComponent(dirPath)}`);
     },
-    [entries],
+    [dirPath],
   );
 
   return (

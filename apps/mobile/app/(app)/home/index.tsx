@@ -21,7 +21,6 @@ import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
-import { presentFilePager } from "../../../src/shared/FilePager";
 import {
   type FileNode,
   filesFromAttachments,
@@ -87,8 +86,10 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const [override, setOverride] = useState<Partial<TaskItem>>({});
   const task = { ...item, ...override };
   const { agent } = task;
-  const openPager = (initialIndex: number) =>
-    presentFilePager({ files, initialIndex });
+  const openPager = (initialIndex: number) => {
+    const file = files[initialIndex];
+    if (file) router.push(`/file/${file.path}?task=${item.id}`);
+  };
 
   useSubscription(TaskUpdatedSubscription, {
     variables: { taskId: item.id },
