@@ -7,8 +7,9 @@ export type DrawingTool = "thin" | "thick" | "eraser";
 const COLORS = [
   "#000000",
   "#EF4444",
-  "#3B82F6",
+  "#F59E0B",
   "#22C55E",
+  "#3B82F6",
   "#F97316",
   "#8B5CF6",
 ];
@@ -140,14 +141,24 @@ export function DrawingToolbar({
               key={color}
               onPress={() => onColorChange(color)}
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: color,
-                borderWidth: isSelected ? 3 : 1,
-                borderColor: isSelected ? "#3B82F6" : "#D1D5DB",
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: isSelected ? "#3B82F6" : "transparent",
               }}
-            />
+            >
+              <View
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  backgroundColor: color,
+                }}
+              />
+            </Pressable>
           );
         })}
       </View>

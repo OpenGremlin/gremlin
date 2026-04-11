@@ -132,7 +132,7 @@ export function DrawingCanvas({
         strokeJoin="round"
         color={stroke.color}
       >
-        {stroke.tool === "thick" && <BlurMask style="normal" blur={2} />}
+        {stroke.tool === "thick" && <BlurMask style="normal" blur={1} />}
       </Path>
     );
   }, []);
@@ -180,7 +180,7 @@ export function DrawingCanvas({
               strokeJoin="round"
               color={currentColor}
             >
-              {currentTool === "thick" && <BlurMask style="normal" blur={2} />}
+              {currentTool === "thick" && <BlurMask style="normal" blur={1} />}
             </Path>
           )}
         </Canvas>
