@@ -19,7 +19,10 @@ import {
   WorkspaceEntriesQuery,
 } from "../../../src/graphql/queries";
 import { useDebounce } from "../../../src/hooks/useDebounce";
-import { useFileSelection } from "../../../src/hooks/useFileSelection";
+import {
+  type FileSelectionState,
+  useFileSelection,
+} from "../../../src/hooks/useFileSelection";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { ConfirmDialog } from "../../../src/shared/ConfirmDialog";
@@ -67,7 +70,7 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
   );
 }
 
-function SelectionHeader({
+function SelectionHeaderOverlay({
   count,
   onSelectAll,
   onDone,
@@ -79,9 +82,9 @@ function SelectionHeader({
   const colors = useNavigationTheme();
   return (
     <Animated.View
-      entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(150)}
-      className="flex-row items-center justify-between px-4 py-2 border-b border-app-border bg-surface"
+      entering={FadeIn.duration(150)}
+      exiting={FadeOut.duration(120)}
+      className="absolute inset-0 flex-row items-center justify-between px-4 bg-bg"
     >
       <Text className="text-sm font-semibold text-text-primary">
         {count} selected
@@ -102,14 +105,21 @@ function SelectionHeader({
   );
 }
 
-function DirectoryView({ dirPath }: { dirPath: string }) {
+function DirectoryView({
+  dirPath,
+  selection,
+  selectAllRef,
+}: {
+  dirPath: string;
+  selection: FileSelectionState;
+  selectAllRef: React.MutableRefObject<() => void>;
+}) {
   const colors = useNavigationTheme();
   const { data, loading, error, refetch } = useQuery(WorkspaceEntriesQuery, {
     variables: { path: dirPath },
   });
   const entries = data?.workspaceEntries ?? [];
   const { refreshing, onRefresh } = useListRefresh(refetch);
-  const selection = useFileSelection();
   const [actionBusy, setActionBusy] = useState(false);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -118,14 +128,10 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
   const [deleteEntries] = useMutation(DeleteWorkspaceEntriesMutation);
   const [moveEntries] = useMutation(MoveWorkspaceEntriesMutation);
 
-  // Clear selection when navigating to a different directory
-  const prevDirPath = useRef(dirPath);
+  const { selectAll } = selection;
   useEffect(() => {
-    if (prevDirPath.current !== dirPath) {
-      selection.clearSelection();
-      prevDirPath.current = dirPath;
-    }
-  }, [dirPath, selection]);
+    selectAllRef.current = () => selectAll(entries.map((e) => e.path));
+  }, [entries, selectAll, selectAllRef]);
 
   const openFile = useCallback(
     (entry: (typeof entries)[number]) => {
@@ -227,14 +233,6 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
   return (
     <QueryGate loading={loading} error={error} data={data}>
       <View className="flex-1">
-        {selection.isSelectionMode && (
-          <SelectionHeader
-            count={selection.count}
-            onSelectAll={() => selection.selectAll(entries.map((e) => e.path))}
-            onDone={selection.clearSelection}
-          />
-        )}
-
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           className="flex-1"
@@ -344,20 +342,42 @@ export default function FilesScreen() {
   }, [initialQuery]);
   const debouncedQuery = useDebounce(searchQuery);
 
+  const selection = useFileSelection();
+  const selectAllRef = useRef<() => void>(() => {});
+  const { clearSelection } = selection;
+  const prevWorkspacePath = useRef(workspacePath);
+  useEffect(() => {
+    if (prevWorkspacePath.current !== workspacePath) {
+      prevWorkspacePath.current = workspacePath;
+      clearSelection();
+    }
+  }, [workspacePath, clearSelection]);
+
   return (
     <View className="flex-1">
       <Breadcrumbs segments={segments} />
-      <View className="px-4 py-2">
+      <View className="px-4 pt-3 pb-2">
         <SearchInput
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search files..."
         />
+        {selection.isSelectionMode && (
+          <SelectionHeaderOverlay
+            count={selection.count}
+            onSelectAll={() => selectAllRef.current()}
+            onDone={clearSelection}
+          />
+        )}
       </View>
       {debouncedQuery ? (
         <SearchResults query={debouncedQuery} />
       ) : (
-        <DirectoryView dirPath={workspacePath} />
+        <DirectoryView
+          dirPath={workspacePath}
+          selection={selection}
+          selectAllRef={selectAllRef}
+        />
       )}
     </View>
   );
