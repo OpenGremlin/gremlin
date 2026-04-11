@@ -31,6 +31,10 @@ export interface ServerStackProps extends cdk.StackProps {
   uploadsBucketName: string;
   skillsBucket: s3.IBucket;
   skillsBucketName: string;
+  /** Tenant ID for managed SaaS deployments. When set, enables tenant-scoped metrics. */
+  tenantId?: string;
+  /** Control plane API URL for managed SaaS deployments. */
+  controlPlaneApiUrl?: string;
 }
 
 export class ServerStack extends cdk.Stack {
@@ -158,6 +162,17 @@ export class ServerStack extends cdk.Stack {
       }),
     );
 
+    // CloudWatch custom metrics (agent turn billing metering)
+    serverRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["cloudwatch:PutMetricData"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: { "cloudwatch:namespace": "Gremlin" },
+        },
+      }),
+    );
+
     // ── Log group ────────────────────────────────────────────
     const logGroup = new logs.LogGroup(this, "ServerLogGroup", {
       logGroupName: "/gremlin/server",
@@ -226,6 +241,10 @@ export class ServerStack extends cdk.Stack {
         `-e WORKSPACE_PATH=/workspace`,
         `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
         `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,
+        ...(props.tenantId ? [`-e TENANT_ID=${props.tenantId}`] : []),
+        ...(props.controlPlaneApiUrl
+          ? [`-e CONTROL_PLANE_API_URL=${props.controlPlaneApiUrl}`]
+          : []),
         imageAsset.imageUri,
       ].join(" "),
     );

@@ -2,13 +2,20 @@ import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import type { Construct } from "constructs";
 
+export interface AuthStackProps extends cdk.StackProps {
+  /** Override the Cognito domain prefix. Defaults to "gremlin-admin". */
+  cognitoDomainPrefix?: string;
+}
+
 export class AuthStack extends cdk.Stack {
   readonly userPoolId: string;
   readonly userPoolClientId: string;
   readonly cognitoDomain: string;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: AuthStackProps) {
     super(scope, id, props);
+
+    const domainPrefix = props?.cognitoDomainPrefix ?? "gremlin-admin";
 
     const userPool = new cognito.UserPool(this, "AdminUsers", {
       selfSignUpEnabled: true,
@@ -30,7 +37,7 @@ export class AuthStack extends cdk.Stack {
     });
 
     const userPoolDomain = userPool.addDomain("Domain", {
-      cognitoDomain: { domainPrefix: "gremlin-admin" },
+      cognitoDomain: { domainPrefix: domainPrefix },
     });
 
     const cognitoDomainName = `${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`;

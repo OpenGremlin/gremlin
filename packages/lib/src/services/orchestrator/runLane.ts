@@ -1,5 +1,6 @@
 import type { Tool } from "ai";
 import type { ServiceContext } from "../context.js";
+import { publishAgentTurnMetric } from "../metrics/publishAgentTurn.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import {
   buildContextMessages,
@@ -196,6 +197,9 @@ export async function runLane(
       response = fallback;
     }
   }
+
+  // Fire-and-forget billing metric (only publishes in managed SaaS deployments)
+  publishAgentTurnMetric(agentId).catch(() => {});
 
   // Fire-and-forget compaction (triggered when context exceeds 70% of model limit)
   maybeCompact(ctx, {

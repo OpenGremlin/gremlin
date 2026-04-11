@@ -17,6 +17,14 @@ const env = {
 
 const app = new cdk.App();
 
+// Optional context params for managed SaaS tenant deployments.
+// When deploying via the account vending CodeBuild, these are passed as:
+//   cdk deploy --all -c tenantId=abc123 -c controlPlaneApiUrl=https://api.opengremlin.com/v1
+const tenantId = app.node.tryGetContext("tenantId") as string | undefined;
+const controlPlaneApiUrl = app.node.tryGetContext("controlPlaneApiUrl") as
+  | string
+  | undefined;
+
 // 0. Network — no dependencies
 const network = new VpcStack(app, "GremlinVpcStack", { env });
 
@@ -25,7 +33,10 @@ const db = new DatabaseStack(app, "GremlinDatabaseStack", {
   env,
   vpc: network.vpc,
 });
-const auth = new AuthStack(app, "GremlinAuthStack", { env });
+const auth = new AuthStack(app, "GremlinAuthStack", {
+  env,
+  cognitoDomainPrefix: tenantId ? `gremlin-${tenantId}` : undefined,
+});
 const media = new MediaStack(app, "GremlinMediaStack", { env });
 
 // 2. Server — depends on VPC, Database, Auth, Media
@@ -47,6 +58,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   uploadsBucketName: db.uploadsBucketName,
   skillsBucket: db.skillsBucket,
   skillsBucketName: db.skillsBucketName,
+  tenantId,
+  controlPlaneApiUrl,
 });
 
 // 3. Messaging — depends on Database, Server
