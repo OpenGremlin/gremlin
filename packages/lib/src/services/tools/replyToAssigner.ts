@@ -39,7 +39,7 @@ export function replyToAssignerTool(ctx: ServiceContext, taskId: string) {
         .describe(
           "A short, conversational message. Attached files are rendered " +
             "inline for the assigner, so just reference what you did rather " +
-            'than repeating the content. e.g. "Done — report attached." or ' +
+            'than repeating the content. e.g. "Completed report." or ' +
             '"Found 2 of 3 results, still searching for the third."',
         ),
       kind: z

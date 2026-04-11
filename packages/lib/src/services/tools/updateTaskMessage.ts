@@ -10,7 +10,7 @@ export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
       message: z
         .string()
         .describe(
-          "A brief progress update — aim for under 10 words. Examples: 'Brainstorming characters', 'Writing first draft', 'Done — 1,200 words'.",
+          "A brief progress update — aim for under 10 words. Examples: 'Brainstorming characters', 'Writing first draft', 'Draft of epic story complete'.",
         ),
       completed: z
         .boolean()
