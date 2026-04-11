@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
 import { buildWorkspaceFileUrl } from "@opengremlin/lib/services/workspace/buildFileUrl.js";
 import {
+  detectFileType,
   detectRenderKind,
   languageByExtension,
 } from "@opengremlin/lib/services/workspace/mime.js";
@@ -145,7 +146,11 @@ const imageRenderUrl = (
 
 export const fileResolvers = {
   Query: { file },
-  File: { render },
+  File: {
+    render,
+    fileType: (parent: FileParent) =>
+      detectFileType(nodePath.extname(parent.name)),
+  },
   FileRender: {
     __resolveType: (obj: { __typename: string }) => obj.__typename,
   },

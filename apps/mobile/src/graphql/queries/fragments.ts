@@ -9,6 +9,7 @@ export const FileFields = graphql(`
     sizeBytes
     mimeType
     modifiedAt
+    fileType
     render {
       __typename
       ... on DocumentRender { markdown title }

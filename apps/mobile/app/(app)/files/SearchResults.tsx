@@ -1,10 +1,9 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
-import { File } from "lucide-react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SearchMode } from "../../../src/graphql/generated/graphql";
 import { WorkspaceSearchQuery } from "../../../src/graphql/queries";
-import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { FileTypeIcon } from "../../../src/shared/fileTypeAppearance";
 import { QueryGate } from "../../../src/shared/QueryResult";
 
 function HighlightedText({
@@ -96,7 +95,6 @@ export function SearchResults({
   query: string;
   mode?: SearchMode;
 }) {
-  const colors = useNavigationTheme();
   const { data, loading, error } = useQuery(WorkspaceSearchQuery, {
     variables: { query, mode },
     skip: !query,
@@ -123,7 +121,7 @@ export function SearchResults({
             className="px-4 py-3 border-b border-border-subtle active:bg-surface"
           >
             <View className="flex-row items-center gap-3">
-              <File size={18} color={colors.iconMuted} />
+              <FileTypeIcon fileType={result.fileType} />
               <Text
                 className="text-sm text-text-secondary flex-1"
                 numberOfLines={1}

@@ -1,9 +1,6 @@
 import { execFile } from "node:child_process";
 import * as path from "node:path";
-
-function getWorkspacePath() {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
+import { getWorkspacePath } from "./workspacePath.js";
 
 export type SearchMode = "FILENAME" | "CONTENT" | "ALL";
 

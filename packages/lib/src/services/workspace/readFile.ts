@@ -1,9 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { getWorkspacePath } from "./workspacePath.js";
 
-function getWorkspacePath() {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
 const MAX_SIZE = 1024 * 1024; // 1 MB
 
 export async function readFile(filePath: string): Promise<string | null> {

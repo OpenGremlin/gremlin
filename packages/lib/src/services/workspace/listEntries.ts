@@ -1,9 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-
-function getWorkspacePath() {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
+import { getWorkspacePath } from "./workspacePath.js";
 
 export interface WorkspaceEntry {
   name: string;

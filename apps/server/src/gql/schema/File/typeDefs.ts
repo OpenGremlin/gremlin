@@ -5,6 +5,7 @@ export const fileTypeDefs = /* GraphQL */ `
     sizeBytes: Int!
     mimeType: String
     modifiedAt: String!
+    fileType: FileType!
     render: FileRender!
   }
 

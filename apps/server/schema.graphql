@@ -84,6 +84,10 @@ type Mutation {
   bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   "Unbind a connection from an agent's skill"
   unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
+  """Delete one or more workspace files or directories"""
+  deleteWorkspaceEntries(paths: [String!]!): WorkspaceMutationResult!
+  """Move one or more workspace entries to a destination directory"""
+  moveWorkspaceEntries(paths: [String!]!, destination: String!): WorkspaceMutationResult!
 }
 
 type Subscription {
@@ -127,6 +131,7 @@ type File {
   sizeBytes: Int!
   mimeType: String
   modifiedAt: String!
+  fileType: FileType!
   render: FileRender!
 }
 
@@ -757,6 +762,27 @@ type SandboxOutput {
   exitCode: Int
 }
 
+enum FileType {
+  JAVASCRIPT
+  TYPESCRIPT
+  PYTHON
+  GO
+  RUST
+  JAVA
+  SWIFT
+  SHELL
+  WEB
+  CONFIG
+  CODE_OTHER
+  DOCUMENT
+  PDF
+  IMAGE
+  AUDIO
+  VIDEO
+  ARCHIVE
+  UNKNOWN
+}
+
 type WorkspaceEntry {
   name: String!
   path: String!
@@ -764,6 +790,7 @@ type WorkspaceEntry {
   size: Int
   modifiedAt: String
   mimeType: String
+  fileType: FileType
 }
 
 enum SearchMode {
@@ -780,6 +807,14 @@ type WorkspaceSearchResult {
   matchContent: String
   matchContextBefore: [String!]
   matchContextAfter: [String!]
+  fileType: FileType
+}
+
+type WorkspaceMutationResult {
+  """Paths that were successfully processed"""
+  succeeded: [String!]!
+  """Paths that failed"""
+  failed: [String!]!
 }
 
 schema {

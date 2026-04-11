@@ -1,5 +1,7 @@
+import { deleteEntries } from "./deleteEntries.js";
 import { getFileInfo } from "./getFileInfo.js";
 import { listEntries } from "./listEntries.js";
+import { moveEntries } from "./moveEntries.js";
 import { readFile } from "./readFile.js";
 import { searchFiles } from "./searchFiles.js";
 
@@ -19,6 +21,8 @@ export interface WorkspaceService {
   readFile: typeof readFile;
   getFileInfo: typeof getFileInfo;
   searchFiles: typeof searchFiles;
+  deleteEntries: typeof deleteEntries;
+  moveEntries: typeof moveEntries;
 }
 
 export const workspaceService: WorkspaceService = {
@@ -26,4 +30,6 @@ export const workspaceService: WorkspaceService = {
   readFile,
   getFileInfo,
   searchFiles,
+  deleteEntries,
+  moveEntries,
 };

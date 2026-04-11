@@ -1,39 +1,11 @@
 import { router } from "expo-router";
-import {
-  Code,
-  FileAudio,
-  File as FileIcon,
-  FileText,
-  FileVideo,
-  Image as ImageIcon,
-} from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
-import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
+import { FileTypeIcon } from "./fileTypeAppearance";
 import { formatFileSize } from "./formatFileSize";
 
 export type { FileNode } from "./FilePreview";
-
-function FileIcon_({ render }: { render: FileNode["render"] }) {
-  const colors = useNavigationTheme();
-  const size = 14;
-
-  switch (render.__typename) {
-    case "DocumentRender":
-      return <FileText size={size} color={colors.accentIndicator} />;
-    case "CodeRender":
-      return <Code size={size} color={colors.accentIndicator} />;
-    case "ImageRender":
-      return <ImageIcon size={size} color={colors.accentIndicator} />;
-    case "AudioRender":
-      return <FileAudio size={size} color={colors.accentIndicator} />;
-    case "VideoRender":
-      return <FileVideo size={size} color={colors.accentIndicator} />;
-    default:
-      return <FileIcon size={size} color={colors.accentIndicator} />;
-  }
-}
 
 function cardSubtitle(file: FileNode): string {
   const parts: string[] = [];
@@ -105,7 +77,7 @@ export function FileCard({
       style={!canPreview ? { opacity: 0.7 } : undefined}
     >
       <View className="flex-row items-center gap-2 px-3 py-2">
-        <FileIcon_ render={file.render} />
+        <FileTypeIcon fileType={file.fileType} size={14} />
         {isDocument ? (
           <Text
             className="text-sm font-medium text-text-secondary flex-1"

@@ -1,10 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { mimeByExtension } from "./mime.js";
-
-function getWorkspacePath() {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
+import { getWorkspacePath } from "./workspacePath.js";
 
 export interface FileInfo {
   path: string;

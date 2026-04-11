@@ -8,6 +8,7 @@ export const WorkspaceEntriesQuery = graphql(`
       isDirectory
       size
       modifiedAt
+      fileType
     }
   }
 `);
@@ -28,6 +29,25 @@ export const WorkspaceSearchQuery = graphql(`
       matchContent
       matchContextBefore
       matchContextAfter
+      fileType
+    }
+  }
+`);
+
+export const DeleteWorkspaceEntriesMutation = graphql(`
+  mutation DeleteWorkspaceEntries($paths: [String!]!) {
+    deleteWorkspaceEntries(paths: $paths) {
+      succeeded
+      failed
+    }
+  }
+`);
+
+export const MoveWorkspaceEntriesMutation = graphql(`
+  mutation MoveWorkspaceEntries($paths: [String!]!, $destination: String!) {
+    moveWorkspaceEntries(paths: $paths, destination: $destination) {
+      succeeded
+      failed
     }
   }
 `);
@@ -40,6 +60,7 @@ export const FileQuery = graphql(`
       sizeBytes
       mimeType
       modifiedAt
+      fileType
       render {
         __typename
         ... on DocumentRender { markdown title }

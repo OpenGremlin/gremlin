@@ -415,6 +415,7 @@ export type EnabledModelEntry = {
 
 export type File = {
   __typename?: 'File';
+  fileType: FileType;
   mimeType?: Maybe<Scalars['String']['output']>;
   modifiedAt: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -429,6 +430,27 @@ export type FileAttachment = {
 };
 
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | PdfRender | UnknownRender | VideoRender;
+
+export enum FileType {
+  Archive = 'ARCHIVE',
+  Audio = 'AUDIO',
+  CodeOther = 'CODE_OTHER',
+  Config = 'CONFIG',
+  Document = 'DOCUMENT',
+  Go = 'GO',
+  Image = 'IMAGE',
+  Java = 'JAVA',
+  Javascript = 'JAVASCRIPT',
+  Pdf = 'PDF',
+  Python = 'PYTHON',
+  Rust = 'RUST',
+  Shell = 'SHELL',
+  Swift = 'SWIFT',
+  Typescript = 'TYPESCRIPT',
+  Unknown = 'UNKNOWN',
+  Video = 'VIDEO',
+  Web = 'WEB'
+}
 
 export type FileUploadRequest = {
   contentType: Scalars['String']['input'];
@@ -552,9 +574,13 @@ export type Mutation = {
   createAgent: Agent;
   createAgentJob: AgentJob;
   deleteAgentJob?: Maybe<AgentJob>;
+  /** Delete one or more workspace files or directories */
+  deleteWorkspaceEntries: WorkspaceMutationResult;
   disableModel: Array<EnabledModelEntry>;
   dismissUserInputRequest?: Maybe<UserInputRequest>;
   enableModel: Array<EnabledModelEntry>;
+  /** Move one or more workspace entries to a destination directory */
+  moveWorkspaceEntries: WorkspaceMutationResult;
   removeCommandAllowlistEntry: Array<AllowlistEntry>;
   /** Remove a skill from an agent */
   removeSkill: AgentSkill;
@@ -643,6 +669,11 @@ export type MutationDeleteAgentJobArgs = {
 };
 
 
+export type MutationDeleteWorkspaceEntriesArgs = {
+  paths: Array<Scalars['String']['input']>;
+};
+
+
 export type MutationDisableModelArgs = {
   modelId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
@@ -658,6 +689,12 @@ export type MutationEnableModelArgs = {
   modelId: Scalars['String']['input'];
   modelName?: InputMaybe<Scalars['String']['input']>;
   providerId: Scalars['String']['input'];
+};
+
+
+export type MutationMoveWorkspaceEntriesArgs = {
+  destination: Scalars['String']['input'];
+  paths: Array<Scalars['String']['input']>;
 };
 
 
@@ -1249,6 +1286,7 @@ export type VideoRenderThumbnailUrlArgs = {
 
 export type WorkspaceEntry = {
   __typename?: 'WorkspaceEntry';
+  fileType?: Maybe<FileType>;
   isDirectory: Scalars['Boolean']['output'];
   mimeType?: Maybe<Scalars['String']['output']>;
   modifiedAt?: Maybe<Scalars['String']['output']>;
@@ -1257,8 +1295,17 @@ export type WorkspaceEntry = {
   size?: Maybe<Scalars['Int']['output']>;
 };
 
+export type WorkspaceMutationResult = {
+  __typename?: 'WorkspaceMutationResult';
+  /** Paths that failed */
+  failed: Array<Scalars['String']['output']>;
+  /** Paths that were successfully processed */
+  succeeded: Array<Scalars['String']['output']>;
+};
+
 export type WorkspaceSearchResult = {
   __typename?: 'WorkspaceSearchResult';
+  fileType?: Maybe<FileType>;
   matchContent?: Maybe<Scalars['String']['output']>;
   matchContextAfter?: Maybe<Array<Scalars['String']['output']>>;
   matchContextBefore?: Maybe<Array<Scalars['String']['output']>>;
@@ -1417,6 +1464,7 @@ export type ResolversTypes = {
   File: ResolverTypeWrapper<Omit<File, 'render'> & { render: ResolversTypes['FileRender'] }>;
   FileAttachment: ResolverTypeWrapper<Omit<FileAttachment, 'file'> & { file: ResolversTypes['File'] }>;
   FileRender: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['FileRender']>;
+  FileType: FileType;
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: ResolverTypeWrapper<FileUploadUrl>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
@@ -1461,6 +1509,7 @@ export type ResolversTypes = {
   UserInputRequestStatus: UserInputRequestStatus;
   VideoRender: ResolverTypeWrapper<VideoRender>;
   WorkspaceEntry: ResolverTypeWrapper<WorkspaceEntry>;
+  WorkspaceMutationResult: ResolverTypeWrapper<WorkspaceMutationResult>;
   WorkspaceSearchResult: ResolverTypeWrapper<WorkspaceSearchResult>;
 };
 
@@ -1559,6 +1608,7 @@ export type ResolversParentTypes = {
   UserInputRequestAction: UserInputRequestAction;
   VideoRender: VideoRender;
   WorkspaceEntry: WorkspaceEntry;
+  WorkspaceMutationResult: WorkspaceMutationResult;
   WorkspaceSearchResult: WorkspaceSearchResult;
 };
 
@@ -1801,6 +1851,7 @@ export type EnabledModelEntryResolvers<ContextType = GremlinContext, ParentType 
 };
 
 export type FileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = {
+  fileType?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1909,9 +1960,11 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
+  deleteWorkspaceEntries?: Resolver<ResolversTypes['WorkspaceMutationResult'], ParentType, ContextType, RequireFields<MutationDeleteWorkspaceEntriesArgs, 'paths'>>;
   disableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
   dismissUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationDismissUserInputRequestArgs, 'id'>>;
   enableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationEnableModelArgs, 'modelId' | 'providerId'>>;
+  moveWorkspaceEntries?: Resolver<ResolversTypes['WorkspaceMutationResult'], ParentType, ContextType, RequireFields<MutationMoveWorkspaceEntriesArgs, 'destination' | 'paths'>>;
   removeCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationRemoveCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
   removeSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationRemoveSkillArgs, 'agentId' | 'skillId'>>;
   requestFileUploads?: Resolver<Array<ResolversTypes['FileUploadUrl']>, ParentType, ContextType, RequireFields<MutationRequestFileUploadsArgs, 'agentId' | 'files'>>;
@@ -2156,6 +2209,7 @@ export type VideoRenderResolvers<ContextType = GremlinContext, ParentType extend
 };
 
 export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceEntry'] = ResolversParentTypes['WorkspaceEntry']> = {
+  fileType?: Resolver<Maybe<ResolversTypes['FileType']>, ParentType, ContextType>;
   isDirectory?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   modifiedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2164,7 +2218,13 @@ export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType ext
   size?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
+export type WorkspaceMutationResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceMutationResult'] = ResolversParentTypes['WorkspaceMutationResult']> = {
+  failed?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  succeeded?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type WorkspaceSearchResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceSearchResult'] = ResolversParentTypes['WorkspaceSearchResult']> = {
+  fileType?: Resolver<Maybe<ResolversTypes['FileType']>, ParentType, ContextType>;
   matchContent?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   matchContextAfter?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   matchContextBefore?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
@@ -2248,6 +2308,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   UserInputRequestStatus?: UserInputRequestStatusResolvers;
   VideoRender?: VideoRenderResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;
+  WorkspaceMutationResult?: WorkspaceMutationResultResolvers<ContextType>;
   WorkspaceSearchResult?: WorkspaceSearchResultResolvers<ContextType>;
 };
 
