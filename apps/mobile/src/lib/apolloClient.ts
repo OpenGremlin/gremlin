@@ -16,6 +16,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistCache } from "apollo3-cache-persist";
 import { createClient } from "graphql-ws";
+import { SCHEMA_HASH } from "../graphql/generated/schemaHash";
 import { clearToken, getToken, getTokenSync, refreshSession } from "./auth";
 import { getApiUrl } from "./config";
 import { clientLogger } from "./logger";
@@ -278,10 +279,6 @@ export async function execute<
 
 // ── Initialization (cache hydration from disk) ──────────────────────
 
-// Bump this version whenever the GraphQL schema or cache typePolicies
-// change to avoid hydrating a stale persisted cache that can cause
-// circular-reference crashes (TypeError: cyclical structure in JSON object).
-const CACHE_SCHEMA_VERSION = "1";
 const CACHE_VERSION_KEY = "apollo_cache_schema_version";
 const CACHE_STORAGE_KEY = "apollo-cache-persist";
 
@@ -304,16 +301,16 @@ export function initApollo(): Promise<void> {
     // Clear persisted cache if schema version changed to prevent stale
     // cache data from causing crashes on app update.
     const storedVersion = await AsyncStorage.getItem(CACHE_VERSION_KEY);
-    if (storedVersion !== CACHE_SCHEMA_VERSION) {
+    if (storedVersion !== SCHEMA_HASH) {
       clientLogger.info(
         "Cache schema version changed, clearing persisted cache",
         {
           from: storedVersion,
-          to: CACHE_SCHEMA_VERSION,
+          to: SCHEMA_HASH,
         },
       );
       await AsyncStorage.removeItem(CACHE_STORAGE_KEY);
-      await AsyncStorage.setItem(CACHE_VERSION_KEY, CACHE_SCHEMA_VERSION);
+      await AsyncStorage.setItem(CACHE_VERSION_KEY, SCHEMA_HASH);
     }
 
     try {
