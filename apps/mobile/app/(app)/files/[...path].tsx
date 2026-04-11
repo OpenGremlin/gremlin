@@ -2,8 +2,15 @@ import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
 import { useCallback } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { WorkspaceEntriesQuery } from "../../../src/graphql/queries";
+import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { QueryGate } from "../../../src/shared/QueryResult";
 
@@ -46,10 +53,11 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
 
 function DirectoryView({ dirPath }: { dirPath: string }) {
   const colors = useNavigationTheme();
-  const { data, loading, error } = useQuery(WorkspaceEntriesQuery, {
+  const { data, loading, error, refetch } = useQuery(WorkspaceEntriesQuery, {
     variables: { path: dirPath },
   });
   const entries = data?.workspaceEntries ?? [];
+  const { refreshing, onRefresh } = useListRefresh(refetch);
 
   const openFile = useCallback(
     (entry: (typeof entries)[number]) => {
@@ -67,6 +75,9 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
         contentContainerClassName="pb-6"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {entries.map((entry) => (
           <Pressable
