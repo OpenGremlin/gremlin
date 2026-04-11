@@ -2,7 +2,7 @@ import { Pressable, Text, View } from "react-native";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 
-const GAP = 2;
+const GAP = 4;
 
 /** A file we know has a renderable image url. */
 export type ImageFile = FileNode & {
