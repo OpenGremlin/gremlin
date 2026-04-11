@@ -1,9 +1,5 @@
 import { useEvent } from "expo";
-import {
-  setAudioModeAsync,
-  useAudioPlayer,
-  useAudioPlayerStatus,
-} from "expo-audio";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { File, Paths } from "expo-file-system";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Pause, Play } from "lucide-react-native";
@@ -148,10 +144,6 @@ export function AudioPlayer({ url, title }: { url: string; title?: string }) {
 
   const player = useAudioPlayer(source, { updateInterval: 0.25 });
   const status = useAudioPlayerStatus(player);
-
-  useEffect(() => {
-    setAudioModeAsync({ interruptionMode: "doNotMix" });
-  }, []);
 
   useEffect(() => {
     if (!status.isLoaded) return;

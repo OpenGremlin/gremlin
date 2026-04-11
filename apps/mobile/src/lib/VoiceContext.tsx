@@ -1,5 +1,9 @@
 import { useApolloClient } from "@apollo/client";
-import { type AudioPlayer, useAudioPlayer } from "expo-audio";
+import {
+  type AudioPlayer,
+  setAudioModeAsync,
+  useAudioPlayer,
+} from "expo-audio";
 import {
   createContext,
   useCallback,
@@ -63,6 +67,13 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   // Reactive playing/paused state for UI consumers
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    setAudioModeAsync({
+      interruptionMode: "doNotMix",
+      playsInSilentMode: true,
+    });
+  }, []);
 
   // Two players for double-buffering
   const playerA = useAudioPlayer(null);

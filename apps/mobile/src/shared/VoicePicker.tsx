@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { SpeechVoicesQuery } from "../graphql/queries";
-import { useAuth } from "../lib/AuthContext";
 import { execute } from "../lib/apolloClient";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { BottomSheet } from "./BottomSheet";
@@ -31,18 +30,13 @@ function PreviewButton({
   setActivePreview: (url: string | null) => void;
 }) {
   const colors = useNavigationTheme();
-  const { token } = useAuth();
   const isActive = activePreview === url;
 
-  const player = useAudioPlayer(
-    isActive
-      ? {
-          uri: url,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        }
-      : null,
-    { updateInterval: 0.25 },
-  );
+  // Preview URLs are public CDN links (e.g. ElevenLabs via storage.googleapis.com),
+  // so no auth headers — passing Authorization here makes AVFoundation fail silently.
+  const player = useAudioPlayer(isActive ? { uri: url } : null, {
+    updateInterval: 0.25,
+  });
   const status = useAudioPlayerStatus(player);
 
   const hasStarted = useRef(false);
