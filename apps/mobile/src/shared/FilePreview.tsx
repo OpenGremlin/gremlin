@@ -1,5 +1,4 @@
 import { ScrollView, Text, View } from "react-native";
-import WebView from "react-native-webview";
 import type {
   AttachmentFieldsFragment,
   FileQuery,
@@ -8,6 +7,7 @@ import { DocumentDiscussButton } from "./DocumentDiscussButton";
 import { DocumentReadButton } from "./DocumentReadButton";
 import { Markdown } from "./LogEntryView/Markdown";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
+import { PdfViewer } from "./PdfViewer";
 import { ZoomableImage } from "./ZoomableImage";
 
 export type FileNode = Extract<
@@ -92,14 +92,7 @@ export function FilePreview({
   }
 
   if (render.__typename === "PdfRender" && "url" in render) {
-    return (
-      <View className="flex-1 bg-bg">
-        <WebView
-          source={{ uri: render.url }}
-          style={{ flex: 1, backgroundColor: "transparent" }}
-        />
-      </View>
-    );
+    return <PdfViewer url={render.url} />;
   }
 
   if (render.__typename === "ImageRender") {

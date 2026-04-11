@@ -68,6 +68,7 @@ export const FileQuery = graphql(`
         ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }
         ... on AudioRender { url durationSeconds }
         ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }
+        ... on PdfRender { url }
         ... on UnknownRender { mimeType sizeBytes }
       }
     }
