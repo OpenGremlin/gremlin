@@ -31,6 +31,8 @@ import {
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useSpeechStream } from "../../hooks/useSpeechStream";
 import { hexToTransparent } from "../../lib/color";
+import { hasDraft } from "../../lib/drawingDraft";
+import { drawingEvents } from "../../lib/drawingEvents";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { LogEntryView } from "../LogEntryView";
 import { StreamingBubble } from "../LogEntryView/StreamingBubble";
@@ -222,6 +224,27 @@ export function ChatScreen({
     return () => clearTimeout(timer);
   }, [uploads, clearUploads]);
 
+  // Track whether a drawing draft exists for this agent
+  const [, setDraftExists] = useState(false);
+  useEffect(() => {
+    setDraftExists(hasDraft(agentId));
+  }, [agentId]);
+
+  // Drawing feature: subscribe to drawing-complete events for upload
+  useEffect(() => {
+    const handler = (file: {
+      uri: string;
+      name: string;
+      size: number;
+      type: string;
+    }) => {
+      uploadFiles([file]);
+      setDraftExists(false);
+    };
+    drawingEvents.on(handler);
+    return () => drawingEvents.off(handler);
+  }, [uploadFiles]);
+
   const pickDocuments = useCallback(async () => {
     const result = await DocumentPicker.getDocumentAsync({
       multiple: true,
@@ -276,19 +299,42 @@ export function ChatScreen({
     ]);
   }, [uploadFiles]);
 
+  const openDrawing = useCallback(
+    (mode: "new" | "continue") => {
+      router.push({
+        pathname: "/draw",
+        params: { agentId, mode },
+      });
+    },
+    [agentId],
+  );
+
   const handlePickFiles = useCallback(() => {
     if (process.env.EXPO_OS === "web") {
       pickDocuments();
       return;
     }
 
-    const options = ["Photo Library", "Take Photo", "Choose File", "Cancel"];
-    const cancelIndex = 3;
+    // Refresh draft status before showing sheet
+    const hasDraftNow = hasDraft(agentId);
+    setDraftExists(hasDraftNow);
+
+    const options = [
+      "Photo Library",
+      "Take Photo",
+      "Choose File",
+      "New Drawing",
+      ...(hasDraftNow ? ["Continue Drawing"] : []),
+      "Cancel",
+    ];
+    const cancelIndex = options.length - 1;
 
     const handleOption = (index: number) => {
       if (index === 0) pickImages();
       else if (index === 1) takePhoto();
       else if (index === 2) pickDocuments();
+      else if (index === 3) openDrawing("new");
+      else if (index === 4 && hasDraftNow) openDrawing("continue");
     };
 
     if (process.env.EXPO_OS === "ios") {
@@ -297,14 +343,24 @@ export function ChatScreen({
         handleOption,
       );
     } else {
-      Alert.alert("Upload", undefined, [
+      const buttons = [
         { text: "Photo Library", onPress: () => pickImages() },
         { text: "Take Photo", onPress: () => takePhoto() },
         { text: "Choose File", onPress: () => pickDocuments() },
-        { text: "Cancel", style: "cancel" },
-      ]);
+        { text: "New Drawing", onPress: () => openDrawing("new") },
+        ...(hasDraftNow
+          ? [
+              {
+                text: "Continue Drawing",
+                onPress: () => openDrawing("continue"),
+              },
+            ]
+          : []),
+        { text: "Cancel", style: "cancel" as const },
+      ];
+      Alert.alert("Upload", undefined, buttons);
     }
-  }, [pickDocuments, pickImages, takePhoto]);
+  }, [pickDocuments, pickImages, takePhoto, openDrawing, agentId]);
 
   const displayRef = useRef(displayMessages);
   displayRef.current = displayMessages;

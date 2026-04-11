@@ -51,7 +51,7 @@ interface PresignedUpload {
   key: string;
 }
 
-interface UploadableFile {
+export interface UploadableFile {
   name: string;
   size: number;
   type: string;
