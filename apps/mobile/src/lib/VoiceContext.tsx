@@ -32,6 +32,8 @@ interface VoiceContextValue {
   playing: boolean;
   /** Whether playback is paused (can be resumed). */
   paused: boolean;
+  /** True after play() is requested but before the native player is audible. */
+  loading: boolean;
 }
 
 const VoiceContext = createContext<VoiceContextValue>({
@@ -41,6 +43,7 @@ const VoiceContext = createContext<VoiceContextValue>({
   resume: () => {},
   playing: false,
   paused: false,
+  loading: false,
   unsubscribe: () => {},
 });
 
@@ -67,6 +70,27 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   // Reactive playing/paused state for UI consumers
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Watchdog: if the native player never reports status.playing (e.g. network
+  // failure loading a source), clear `loading` after a timeout so the UI
+  // doesn't hang on a spinner forever.
+  const loadingWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const armLoading = useCallback(() => {
+    setLoading(true);
+    if (loadingWatchdogRef.current) clearTimeout(loadingWatchdogRef.current);
+    loadingWatchdogRef.current = setTimeout(() => {
+      setLoading(false);
+      loadingWatchdogRef.current = null;
+    }, 10_000);
+  }, []);
+  const disarmLoading = useCallback(() => {
+    setLoading(false);
+    if (loadingWatchdogRef.current) {
+      clearTimeout(loadingWatchdogRef.current);
+      loadingWatchdogRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -126,7 +150,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     state.current.onDeckLoaded = false;
     setPlaying(false);
     setPaused(false);
-  }, []);
+    disarmLoading();
+  }, [disarmLoading]);
 
   /** Try to pre-load the next sentence into the on-deck player. */
   const bufferNext = useCallback(() => {
@@ -167,6 +192,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         if (s.active) {
           preload(s.active, makeSource(url));
           s.active.play();
+          armLoading();
           // Pre-load the next sentence into the on-deck player
           bufferNext();
         }
@@ -178,7 +204,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         setPaused(false);
       }
     }
-  }, [bufferNext, makeSource]);
+  }, [bufferNext, makeSource, armLoading]);
 
   /** Kick off playback from idle — load into player A and start. */
   const playFirst = useCallback(() => {
@@ -194,35 +220,29 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     preload(playerA, makeSource(url));
     playerA.play();
     setPlaying(true);
+    armLoading();
     // Pre-load next sentence into the on-deck player
     bufferNext();
-  }, [playerA, playerB, makeSource, bufferNext]);
+  }, [playerA, playerB, makeSource, bufferNext, armLoading]);
 
-  // Native: advance on didJustFinish
+  // Native: advance on didJustFinish, clear loading when audio actually starts
   useEffect(() => {
-    const subA = playerA.addListener("playbackStatusUpdate", (status) => {
-      if (
-        status.didJustFinish &&
-        state.current.isPlaying &&
-        state.current.active === playerA
-      ) {
-        advance();
-      }
-    });
-    const subB = playerB.addListener("playbackStatusUpdate", (status) => {
-      if (
-        status.didJustFinish &&
-        state.current.isPlaying &&
-        state.current.active === playerB
-      ) {
-        advance();
-      }
-    });
+    const handle =
+      (player: AudioPlayer) =>
+      (status: { didJustFinish?: boolean; playing?: boolean }) => {
+        if (state.current.active !== player) return;
+        if (status.playing) disarmLoading();
+        if (status.didJustFinish && state.current.isPlaying) {
+          advance();
+        }
+      };
+    const subA = playerA.addListener("playbackStatusUpdate", handle(playerA));
+    const subB = playerB.addListener("playbackStatusUpdate", handle(playerB));
     return () => {
       subA.remove();
       subB.remove();
     };
-  }, [playerA, playerB, advance]);
+  }, [playerA, playerB, advance, disarmLoading]);
 
   // Web fallback: poll for track end since expo-audio's web implementation
   // doesn't emit didJustFinish status updates.
@@ -411,6 +431,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subRef.current?.unsubscribe();
       if (fadeRef.current) clearInterval(fadeRef.current);
+      if (loadingWatchdogRef.current) clearTimeout(loadingWatchdogRef.current);
     };
   }, []);
 
@@ -420,7 +441,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     state.current.isPlaying = false;
     setPlaying(false);
     setPaused(true);
-  }, []);
+    disarmLoading();
+  }, [disarmLoading]);
 
   const resume = useCallback(() => {
     if (state.current.isPlaying) return;
@@ -441,8 +463,9 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       resume,
       playing,
       paused,
+      loading,
     }),
-    [subscribe, unsubscribe, playUrls, pause, resume, playing, paused],
+    [subscribe, unsubscribe, playUrls, pause, resume, playing, paused, loading],
   );
 
   return (

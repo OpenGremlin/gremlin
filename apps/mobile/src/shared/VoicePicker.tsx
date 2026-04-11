@@ -1,6 +1,5 @@
-import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { Check, Pause, Play, Volume2 } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +10,9 @@ import {
 import { SpeechVoicesQuery } from "../graphql/queries";
 import { execute } from "../lib/apolloClient";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { useVoice } from "../lib/VoiceContext";
 import { BottomSheet } from "./BottomSheet";
+import { decideToggleAction, shouldClearActive } from "./voicePickerState";
 
 type Voice = {
   id: string;
@@ -20,89 +21,42 @@ type Voice = {
   previewUrl?: string | null;
 };
 
-function PreviewButton({
-  url,
-  activePreview,
-  setActivePreview,
-}: {
+interface PreviewButtonProps {
   url: string;
-  activePreview: string | null;
-  setActivePreview: (url: string | null) => void;
-}) {
+  isActive: boolean;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onToggle: (url: string) => void;
+}
+
+const PreviewButton = memo(function PreviewButton({
+  url,
+  isActive,
+  isPlaying,
+  isLoading,
+  onToggle,
+}: PreviewButtonProps) {
   const colors = useNavigationTheme();
-  const isActive = activePreview === url;
-
-  // Preview URLs are public CDN links (e.g. ElevenLabs via storage.googleapis.com),
-  // so no auth headers — passing Authorization here makes AVFoundation fail silently.
-  const player = useAudioPlayer(isActive ? { uri: url } : null, {
-    updateInterval: 0.25,
-  });
-  const status = useAudioPlayerStatus(player);
-
-  const hasStarted = useRef(false);
-
-  useEffect(() => {
-    if (!isActive) {
-      hasStarted.current = false;
-      if (status.playing) player.pause();
-    }
-  }, [isActive, status.playing, player]);
-
-  useEffect(() => {
-    if (isActive && status.isLoaded && !hasStarted.current) {
-      hasStarted.current = true;
-      player.play();
-    }
-  }, [isActive, status.isLoaded, player]);
-
-  useEffect(() => {
-    if (
-      isActive &&
-      hasStarted.current &&
-      status.isLoaded &&
-      !status.playing &&
-      status.currentTime >= status.duration
-    ) {
-      setActivePreview(null);
-    }
-  }, [
-    isActive,
-    status.isLoaded,
-    status.playing,
-    status.currentTime,
-    status.duration,
-    setActivePreview,
-  ]);
-
-  const toggle = useCallback(
-    (e: { stopPropagation: () => void }) => {
-      e.stopPropagation();
-      if (isActive) {
-        player.pause();
-        setActivePreview(null);
-      } else {
-        setActivePreview(url);
-      }
-    },
-    [isActive, player, url, setActivePreview],
-  );
-
-  const loading = isActive && !status.isLoaded;
+  const showSpinner = isActive && isLoading;
+  const showPause = isActive && isPlaying && !isLoading;
 
   return (
     <Pressable
-      onPress={toggle}
+      onPress={(e) => {
+        e.stopPropagation();
+        onToggle(url);
+      }}
       hitSlop={4}
       style={
-        isActive && status.playing
+        showPause
           ? { backgroundColor: `${colors.accentIndicator}20` }
           : undefined
       }
-      className={`w-8 h-8 items-center justify-center rounded-full ${isActive && status.playing ? "" : "bg-surface"}`}
+      className={`w-8 h-8 items-center justify-center rounded-full ${showPause ? "" : "bg-surface"}`}
     >
-      {loading ? (
+      {showSpinner ? (
         <ActivityIndicator size="small" color={colors.accentIndicator} />
-      ) : isActive && status.playing ? (
+      ) : showPause ? (
         <Pause
           size={14}
           color={colors.accentIndicator}
@@ -113,7 +67,7 @@ function PreviewButton({
       )}
     </Pressable>
   );
-}
+});
 
 export interface VoicePickerProps {
   visible: boolean;
@@ -131,30 +85,82 @@ export function VoicePicker({
   onDismiss,
 }: VoicePickerProps) {
   const colors = useNavigationTheme();
+  const {
+    playUrls,
+    pause: pausePlayback,
+    resume,
+    playing,
+    paused,
+    loading: audioLoading,
+  } = useVoice();
   const [voices, setVoices] = useState<Voice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activePreview, setActivePreview] = useState<string | null>(null);
+  const [voicesLoading, setVoicesLoading] = useState(true);
+  // URL of the preview the picker last initiated. Cleared by shouldClearActive
+  // once the provider reports a fully idle playback state.
+  const [activeUrl, setActiveUrl] = useState<string | null>(null);
+
+  // Mirror reactive state into refs so togglePreview can be a stable callback.
+  // A stable onToggle lets PreviewButton's React.memo actually skip re-renders
+  // on every context tick when the list is long.
+  const stateRef = useRef({ activeUrl, playing, paused });
+  stateRef.current = { activeUrl, playing, paused };
 
   useEffect(() => {
     if (!connectionId || !visible) {
-      setLoading(false);
+      setVoicesLoading(false);
       return;
     }
     let cancelled = false;
-    setLoading(true);
+    setVoicesLoading(true);
     execute(SpeechVoicesQuery, { connectionId }).then((result) => {
       if (cancelled) return;
       setVoices(result.speechVoices);
-      setLoading(false);
+      setVoicesLoading(false);
     });
     return () => {
       cancelled = true;
     };
   }, [connectionId, visible]);
 
+  useEffect(() => {
+    if (
+      shouldClearActive({ activeUrl, playing, paused, loading: audioLoading })
+    ) {
+      setActiveUrl(null);
+    }
+  }, [activeUrl, playing, paused, audioLoading]);
+
+  useEffect(() => {
+    if (!visible && activeUrl) {
+      pausePlayback();
+      setActiveUrl(null);
+    }
+  }, [visible, activeUrl, pausePlayback]);
+
+  const togglePreview = useCallback(
+    (url: string) => {
+      const action = decideToggleAction(url, stateRef.current);
+      switch (action.type) {
+        case "play":
+          playUrls([action.url]);
+          setActiveUrl(action.url);
+          return;
+        case "pause":
+          pausePlayback();
+          return;
+        case "resume":
+          resume();
+          return;
+        case "noop":
+          return;
+      }
+    },
+    [playUrls, pausePlayback, resume],
+  );
+
   return (
     <BottomSheet visible={visible} title="Choose Voice" onDismiss={onDismiss}>
-      {loading ? (
+      {voicesLoading ? (
         <View className="py-8 items-center">
           <Text className="text-sm text-text-muted">Loading voices...</Text>
         </View>
@@ -165,6 +171,8 @@ export function VoicePicker({
           contentContainerClassName="p-3"
           renderItem={({ item }) => {
             const selected = currentVoice === item.id;
+            const previewUrl = item.previewUrl;
+            const isActive = previewUrl != null && activeUrl === previewUrl;
             return (
               <Pressable
                 onPress={() => {
@@ -175,11 +183,13 @@ export function VoicePicker({
                   selected ? "bg-surface-alt" : "active:bg-surface-alt"
                 }`}
               >
-                {item.previewUrl ? (
+                {previewUrl ? (
                   <PreviewButton
-                    url={item.previewUrl}
-                    activePreview={activePreview}
-                    setActivePreview={setActivePreview}
+                    url={previewUrl}
+                    isActive={isActive}
+                    isPlaying={isActive && playing}
+                    isLoading={isActive && audioLoading}
+                    onToggle={togglePreview}
                   />
                 ) : (
                   <View className="w-8 h-8 items-center justify-center">
