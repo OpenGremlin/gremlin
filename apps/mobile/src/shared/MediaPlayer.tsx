@@ -11,6 +11,14 @@ import {
   Text,
   View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { useAuth } from "../lib/AuthContext";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
@@ -21,6 +29,9 @@ function formatTime(seconds: number): string {
   const s = total % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+const THUMB_SIZE = 18;
+const THUMB_ACTIVE_SCALE = 1.3;
 
 function ProgressBar({
   position,
@@ -33,31 +44,82 @@ function ProgressBar({
 }) {
   const colors = useNavigationTheme();
   const progress = duration > 0 ? position / duration : 0;
-  const barWidth = useRef(1);
+  const barWidth = useSharedValue(1);
+  const isDragging = useSharedValue(false);
+  const thumbScale = useSharedValue(1);
+  const dragProgress = useSharedValue(progress);
+
+  // Sync shared value when not dragging
+  useDerivedValue(() => {
+    if (!isDragging.value) {
+      dragProgress.value = progress;
+    }
+  });
+
+  const pan = Gesture.Pan()
+    .activeOffsetX([-5, 5])
+    .failOffsetY([-10, 10])
+    .onStart((e) => {
+      isDragging.value = true;
+      thumbScale.value = withSpring(THUMB_ACTIVE_SCALE, { damping: 15 });
+      dragProgress.value = Math.max(0, Math.min(1, e.x / barWidth.value));
+    })
+    .onUpdate((e) => {
+      dragProgress.value = Math.max(0, Math.min(1, e.x / barWidth.value));
+    })
+    .onFinalize(() => {
+      isDragging.value = false;
+      thumbScale.value = withSpring(1, { damping: 15 });
+      runOnJS(onSeek)(dragProgress.value * duration);
+    });
+
+  const tap = Gesture.Tap().onEnd((e) => {
+    const ratio = Math.max(0, Math.min(1, e.x / barWidth.value));
+    runOnJS(onSeek)(ratio * duration);
+  });
+
+  const gesture = Gesture.Race(pan, tap);
+
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: dragProgress.value * barWidth.value - THUMB_SIZE / 2 },
+      { scale: thumbScale.value },
+    ],
+  }));
+
+  const fillStyle = useAnimatedStyle(() => ({
+    width: `${dragProgress.value * 100}%`,
+  }));
 
   return (
     <View>
-      <Pressable
-        onLayout={(e: LayoutChangeEvent) => {
-          barWidth.current = e.nativeEvent.layout.width;
-        }}
-        onPress={(e) => {
-          const { locationX } = e.nativeEvent;
-          const ratio = Math.max(0, Math.min(1, locationX / barWidth.current));
-          onSeek(ratio * duration);
-        }}
-        className="h-6 justify-center"
-      >
-        <View className="h-1 rounded-full bg-surface-hover overflow-hidden">
-          <View
-            style={{
-              width: `${progress * 100}%`,
-              backgroundColor: colors.accentIndicator,
-            }}
-            className="h-full rounded-full"
+      <GestureDetector gesture={gesture}>
+        <Animated.View
+          onLayout={(e: LayoutChangeEvent) => {
+            barWidth.value = e.nativeEvent.layout.width;
+          }}
+          className="h-10 justify-center"
+        >
+          <View className="h-1.5 rounded-full bg-surface-hover overflow-hidden">
+            <Animated.View
+              style={[fillStyle, { backgroundColor: colors.accentIndicator }]}
+              className="h-full rounded-full"
+            />
+          </View>
+          <Animated.View
+            style={[
+              {
+                position: "absolute",
+                width: THUMB_SIZE,
+                height: THUMB_SIZE,
+                borderRadius: THUMB_SIZE / 2,
+                backgroundColor: colors.accentIndicator,
+              },
+              thumbStyle,
+            ]}
           />
-        </View>
-      </Pressable>
+        </Animated.View>
+      </GestureDetector>
       <View className="flex-row justify-between mt-0.5">
         <Text className="text-[10px] text-text-muted">
           {formatTime(position)}
