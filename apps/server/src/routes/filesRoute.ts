@@ -120,11 +120,12 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
 
     if (isResizableImage && requestedWidth && requestedWidth > 0) {
       const inputBytes = await fs.readFile(resolved);
+      const isSvg = mime === "image/svg+xml";
       const buffer = await sharp(inputBytes)
         .resize({
           width: Math.min(requestedWidth, 3000),
           fit: "inside",
-          withoutEnlargement: true,
+          withoutEnlargement: !isSvg,
         })
         .webp({ quality: 90 })
         .toBuffer();
