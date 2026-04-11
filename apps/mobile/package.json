@@ -4,8 +4,9 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "expo start --go",
-    "start": "expo start --go",
+    "dev": "expo start --dev-client",
+    "start": "expo start --dev-client",
+    "go": "expo start --go",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
