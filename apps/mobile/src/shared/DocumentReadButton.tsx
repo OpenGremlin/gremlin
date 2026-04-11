@@ -6,8 +6,8 @@ import { useTheme } from "../lib/ThemeContext";
 import { useVoice } from "../lib/VoiceContext";
 import { AgentAvatar } from "./AgentAvatar";
 
-const AVATAR_SIZE = 48;
-const CARD_RADIUS = 12;
+const AVATAR_SIZE = 36;
+const CARD_RADIUS = 10;
 const CARD_INNER_RADIUS = CARD_RADIUS - 1;
 
 /**
