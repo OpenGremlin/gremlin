@@ -22,7 +22,7 @@ RUN pnpm --filter @opengremlin/server deploy --prod --ignore-scripts /deploy
 
 # Stage 4: runtime
 FROM node:20-slim AS runtime
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+RUN apt-get update && apt-get install -y --no-install-recommends curl ripgrep \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deploy /deploy .

@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import type { WorkspaceEntry } from "@opengremlin/lib/services/workspace/listEntries.js";
+import type { SearchMode } from "@opengremlin/lib/services/workspace/searchFiles.js";
 import type { GremlinContext } from "../../context.js";
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -18,8 +19,14 @@ const workspaceFile = (
   ctx: GremlinContext,
 ) => ctx.services.workspace.readFile(path);
 
+const workspaceSearch = (
+  _parent: unknown,
+  { query, mode }: { query: string; mode?: SearchMode },
+  ctx: GremlinContext,
+) => ctx.services.workspace.searchFiles(query, mode ?? "ALL");
+
 export const workspaceResolvers = {
-  Query: { workspaceEntries, workspaceFile },
+  Query: { workspaceEntries, workspaceFile, workspaceSearch },
   WorkspaceEntry: {
     mimeType: (entry: WorkspaceEntry) => {
       if (entry.isDirectory) return null;

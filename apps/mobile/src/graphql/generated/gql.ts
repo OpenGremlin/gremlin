@@ -102,6 +102,7 @@ type Documents = {
     "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": typeof types.PendingItemsUpdatedDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": typeof types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": typeof types.WorkspaceFileDocument,
+    "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n    }\n  }\n": typeof types.WorkspaceSearchDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": typeof types.FileDocument,
 };
 const documents: Documents = {
@@ -193,6 +194,7 @@ const documents: Documents = {
     "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": types.PendingItemsUpdatedDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n    }\n  }\n": types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": types.WorkspaceFileDocument,
+    "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n    }\n  }\n": types.WorkspaceSearchDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": types.FileDocument,
 };
 
@@ -562,6 +564,10 @@ export function graphql(source: "\n  query WorkspaceEntries($path: String!) {\n 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n"): (typeof documents)["\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n    }\n  }\n"): (typeof documents)["\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -18,6 +18,20 @@ export const WorkspaceFileQuery = graphql(`
   }
 `);
 
+export const WorkspaceSearchQuery = graphql(`
+  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {
+    workspaceSearch(query: $query, mode: $mode) {
+      path
+      name
+      matchType
+      matchLine
+      matchContent
+      matchContextBefore
+      matchContextAfter
+    }
+  }
+`);
+
 export const FileQuery = graphql(`
   query File($path: String!) {
     file(path: $path) {

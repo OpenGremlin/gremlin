@@ -868,6 +868,7 @@ export type Query = {
   userInputRequests: Array<UserInputRequest>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
+  workspaceSearch: Array<WorkspaceSearchResult>;
 };
 
 
@@ -983,6 +984,12 @@ export type QueryWorkspaceFileArgs = {
   path: Scalars['String']['input'];
 };
 
+
+export type QueryWorkspaceSearchArgs = {
+  mode?: InputMaybe<SearchMode>;
+  query: Scalars['String']['input'];
+};
+
 export type SandboxOutput = {
   __typename?: 'SandboxOutput';
   commandId: Scalars['String']['output'];
@@ -991,6 +998,12 @@ export type SandboxOutput = {
   exitCode?: Maybe<Scalars['Int']['output']>;
   stream: Scalars['String']['output'];
 };
+
+export enum SearchMode {
+  All = 'ALL',
+  Content = 'CONTENT',
+  Filename = 'FILENAME'
+}
 
 export type SendMessageResult = {
   __typename?: 'SendMessageResult';
@@ -1244,6 +1257,17 @@ export type WorkspaceEntry = {
   size?: Maybe<Scalars['Int']['output']>;
 };
 
+export type WorkspaceSearchResult = {
+  __typename?: 'WorkspaceSearchResult';
+  matchContent?: Maybe<Scalars['String']['output']>;
+  matchContextAfter?: Maybe<Array<Scalars['String']['output']>>;
+  matchContextBefore?: Maybe<Array<Scalars['String']['output']>>;
+  matchLine?: Maybe<Scalars['Int']['output']>;
+  matchType: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+};
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -1415,6 +1439,7 @@ export type ResolversTypes = {
   ProviderModelInfo: ResolverTypeWrapper<ProviderModelInfo>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SandboxOutput: ResolverTypeWrapper<SandboxOutput>;
+  SearchMode: SearchMode;
   SendMessageResult: ResolverTypeWrapper<SendMessageResult>;
   SkillConnectionRequirement: ResolverTypeWrapper<SkillConnectionRequirement>;
   SkillConnectionStatus: ResolverTypeWrapper<SkillConnectionStatus>;
@@ -1436,6 +1461,7 @@ export type ResolversTypes = {
   UserInputRequestStatus: UserInputRequestStatus;
   VideoRender: ResolverTypeWrapper<VideoRender>;
   WorkspaceEntry: ResolverTypeWrapper<WorkspaceEntry>;
+  WorkspaceSearchResult: ResolverTypeWrapper<WorkspaceSearchResult>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1533,6 +1559,7 @@ export type ResolversParentTypes = {
   UserInputRequestAction: UserInputRequestAction;
   VideoRender: VideoRender;
   WorkspaceEntry: WorkspaceEntry;
+  WorkspaceSearchResult: WorkspaceSearchResult;
 };
 
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
@@ -1980,6 +2007,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   userInputRequests?: Resolver<Array<ResolversTypes['UserInputRequest']>, ParentType, ContextType>;
   workspaceEntries?: Resolver<Array<ResolversTypes['WorkspaceEntry']>, ParentType, ContextType, RequireFields<QueryWorkspaceEntriesArgs, 'path'>>;
   workspaceFile?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryWorkspaceFileArgs, 'path'>>;
+  workspaceSearch?: Resolver<Array<ResolversTypes['WorkspaceSearchResult']>, ParentType, ContextType, RequireFields<QueryWorkspaceSearchArgs, 'mode' | 'query'>>;
 };
 
 export type SandboxOutputResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['SandboxOutput'] = ResolversParentTypes['SandboxOutput']> = {
@@ -2136,6 +2164,16 @@ export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType ext
   size?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
+export type WorkspaceSearchResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceSearchResult'] = ResolversParentTypes['WorkspaceSearchResult']> = {
+  matchContent?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  matchContextAfter?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  matchContextBefore?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  matchLine?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  matchType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GremlinContext> = {
   Agent?: AgentResolvers<ContextType>;
   AgentConfig?: AgentConfigResolvers<ContextType>;
@@ -2210,5 +2248,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   UserInputRequestStatus?: UserInputRequestStatusResolvers;
   VideoRender?: VideoRenderResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;
+  WorkspaceSearchResult?: WorkspaceSearchResultResolvers<ContextType>;
 };
 

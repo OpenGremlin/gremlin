@@ -8,8 +8,25 @@ export const workspaceTypeDefs = /* GraphQL */ `
     mimeType: String
   }
 
+  enum SearchMode {
+    FILENAME
+    CONTENT
+    ALL
+  }
+
+  type WorkspaceSearchResult {
+    path: String!
+    name: String!
+    matchType: String!
+    matchLine: Int
+    matchContent: String
+    matchContextBefore: [String!]
+    matchContextAfter: [String!]
+  }
+
   extend type Query {
     workspaceEntries(path: String!): [WorkspaceEntry!]!
     workspaceFile(path: String!): String
+    workspaceSearch(query: String!, mode: SearchMode = ALL): [WorkspaceSearchResult!]!
   }
 `;

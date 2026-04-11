@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -10,9 +10,12 @@ import {
   View,
 } from "react-native";
 import { WorkspaceEntriesQuery } from "../../../src/graphql/queries";
+import { useDebounce } from "../../../src/hooks/useDebounce";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { QueryGate } from "../../../src/shared/QueryResult";
+import { SearchInput } from "../../../src/shared/SearchInput";
+import { SearchResults } from "./SearchResults";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -122,11 +125,24 @@ export default function FilesScreen() {
   const { path: pathParam } = useLocalSearchParams<{ path: string[] }>();
   const workspacePath = pathParam?.join("/") ?? "";
   const segments = workspacePath ? workspacePath.split("/") : [];
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery);
 
   return (
     <View className="flex-1">
       <Breadcrumbs segments={segments} />
-      <DirectoryView dirPath={workspacePath} />
+      <View className="px-4 py-2">
+        <SearchInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search files..."
+        />
+      </View>
+      {debouncedQuery ? (
+        <SearchResults query={debouncedQuery} />
+      ) : (
+        <DirectoryView dirPath={workspacePath} />
+      )}
     </View>
   );
 }

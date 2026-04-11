@@ -481,6 +481,23 @@ export type LinkAttachment = {
   url: Scalars['String']['output'];
 };
 
+export type Logo = {
+  __typename?: 'Logo';
+  darkUrl: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lightUrl: Scalars['String']['output'];
+};
+
+
+export type LogoDarkUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type LogoLightUrlArgs = {
+  width?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type ModelInfo = {
   __typename?: 'ModelInfo';
   id: Scalars['ID']['output'];
@@ -507,6 +524,7 @@ export type Mutation = {
   attachFileReference: Scalars['Boolean']['output'];
   /** Bind a connection to an agent's skill */
   bindAgentSkillConnection: AgentSkill;
+  /** Clear visible log history for an agent's main lane or a specific task lane */
   clearAgentLog: ClearAgentLogResult;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
@@ -812,6 +830,7 @@ export type Query = {
   globalSettings: GlobalSettings;
   integrationConnections: Array<IntegrationConnection>;
   integrationProviders: Array<IntegrationProvider>;
+  logos: Array<Logo>;
   pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
   profile: Profile;
@@ -829,6 +848,7 @@ export type Query = {
   userInputRequests: Array<UserInputRequest>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
+  workspaceSearch: Array<WorkspaceSearchResult>;
 };
 
 
@@ -944,6 +964,12 @@ export type QueryWorkspaceFileArgs = {
   path: Scalars['String']['input'];
 };
 
+
+export type QueryWorkspaceSearchArgs = {
+  mode?: InputMaybe<SearchMode>;
+  query: Scalars['String']['input'];
+};
+
 export type SandboxOutput = {
   __typename?: 'SandboxOutput';
   commandId: Scalars['String']['output'];
@@ -952,6 +978,12 @@ export type SandboxOutput = {
   exitCode?: Maybe<Scalars['Int']['output']>;
   stream: Scalars['String']['output'];
 };
+
+export enum SearchMode {
+  All = 'ALL',
+  Content = 'CONTENT',
+  Filename = 'FILENAME'
+}
 
 export type SendMessageResult = {
   __typename?: 'SendMessageResult';
@@ -1237,6 +1269,17 @@ export type WorkspaceEntry = {
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
   size?: Maybe<Scalars['Int']['output']>;
+};
+
+export type WorkspaceSearchResult = {
+  __typename?: 'WorkspaceSearchResult';
+  matchContent?: Maybe<Scalars['String']['output']>;
+  matchContextAfter?: Maybe<Array<Scalars['String']['output']>>;
+  matchContextBefore?: Maybe<Array<Scalars['String']['output']>>;
+  matchLine?: Maybe<Scalars['Int']['output']>;
+  matchType: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
 };
 
 export type AgentLogsQueryVariables = Exact<{
@@ -1970,6 +2013,14 @@ export type WorkspaceFileQueryVariables = Exact<{
 
 export type WorkspaceFileQuery = { __typename?: 'Query', workspaceFile?: string | null };
 
+export type WorkspaceSearchQueryVariables = Exact<{
+  query: Scalars['String']['input'];
+  mode?: InputMaybe<SearchMode>;
+}>;
+
+
+export type WorkspaceSearchQuery = { __typename?: 'Query', workspaceSearch: Array<{ __typename?: 'WorkspaceSearchResult', path: string, name: string, matchType: string, matchLine?: number | null, matchContent?: string | null, matchContextBefore?: Array<string> | null, matchContextAfter?: Array<string> | null }> };
+
 export type FileQueryVariables = Exact<{
   path: Scalars['String']['input'];
 }>;
@@ -2073,4 +2124,5 @@ export const DismissUserInputRequestDocument = {"kind":"Document","definitions":
 export const PendingItemsUpdatedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PendingItemsUpdated"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pendingItemsUpdated"}}]}}]} as unknown as DocumentNode<PendingItemsUpdatedSubscription, PendingItemsUpdatedSubscriptionVariables>;
 export const WorkspaceEntriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceEntries"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceEntries"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"isDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<WorkspaceEntriesQuery, WorkspaceEntriesQueryVariables>;
 export const WorkspaceFileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceFile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}]}]}}]} as unknown as DocumentNode<WorkspaceFileQuery, WorkspaceFileQueryVariables>;
+export const WorkspaceSearchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceSearch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mode"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SearchMode"}},"defaultValue":{"kind":"EnumValue","value":"ALL"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceSearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"query"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}},{"kind":"Argument","name":{"kind":"Name","value":"mode"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mode"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"matchType"}},{"kind":"Field","name":{"kind":"Name","value":"matchLine"}},{"kind":"Field","name":{"kind":"Name","value":"matchContent"}},{"kind":"Field","name":{"kind":"Name","value":"matchContextBefore"}},{"kind":"Field","name":{"kind":"Name","value":"matchContextAfter"}}]}}]}}]} as unknown as DocumentNode<WorkspaceSearchQuery, WorkspaceSearchQueryVariables>;
 export const FileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"File"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"file"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}},{"kind":"Field","name":{"kind":"Name","value":"render"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DocumentRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"markdown"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"CodeRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"language"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ImageRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"width"},"value":{"kind":"IntValue","value":"800"}}]},{"kind":"Field","alias":{"kind":"Name","value":"fullUrl"},"name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"aspectRatio"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"AudioRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"durationSeconds"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"VideoRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"thumbnailUrl"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"width"},"value":{"kind":"IntValue","value":"400"}}]},{"kind":"Field","name":{"kind":"Name","value":"durationSeconds"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UnknownRender"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"sizeBytes"}}]}}]}}]}}]}}]} as unknown as DocumentNode<FileQuery, FileQueryVariables>;
