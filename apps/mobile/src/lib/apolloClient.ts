@@ -278,6 +278,13 @@ export async function execute<
 
 // ── Initialization (cache hydration from disk) ──────────────────────
 
+// Bump this version whenever the GraphQL schema or cache typePolicies
+// change to avoid hydrating a stale persisted cache that can cause
+// circular-reference crashes (TypeError: cyclical structure in JSON object).
+const CACHE_SCHEMA_VERSION = "1";
+const CACHE_VERSION_KEY = "apollo_cache_schema_version";
+const CACHE_STORAGE_KEY = "apollo-cache-persist";
+
 let _initPromise: Promise<void> | null = null;
 
 export function initApollo(): Promise<void> {
@@ -294,11 +301,36 @@ export function initApollo(): Promise<void> {
       return;
     }
 
-    await persistCache({
-      cache,
-      storage: AsyncStorage,
-      maxSize: 5 * 1024 * 1024, // 5 MB
-    });
+    // Clear persisted cache if schema version changed to prevent stale
+    // cache data from causing crashes on app update.
+    const storedVersion = await AsyncStorage.getItem(CACHE_VERSION_KEY);
+    if (storedVersion !== CACHE_SCHEMA_VERSION) {
+      clientLogger.info(
+        "Cache schema version changed, clearing persisted cache",
+        {
+          from: storedVersion,
+          to: CACHE_SCHEMA_VERSION,
+        },
+      );
+      await AsyncStorage.removeItem(CACHE_STORAGE_KEY);
+      await AsyncStorage.setItem(CACHE_VERSION_KEY, CACHE_SCHEMA_VERSION);
+    }
+
+    try {
+      await persistCache({
+        cache,
+        storage: AsyncStorage,
+        key: CACHE_STORAGE_KEY,
+        maxSize: 5 * 1024 * 1024, // 5 MB
+      });
+    } catch (err) {
+      // If cache hydration fails (e.g. corrupted data), clear it and
+      // continue with an empty cache rather than crashing.
+      clientLogger.warn("Cache hydration failed, clearing persisted cache", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      await AsyncStorage.removeItem(CACHE_STORAGE_KEY);
+    }
   })().catch((err) => {
     clientLogger.error("Cache persistence init failed", {
       error: err instanceof Error ? err.message : String(err),
