@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { FileQuery } from "../graphql/queries";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
+import { FileNotFoundState } from "./FileNotFoundState";
 import type { FileNode, FileQueryNode } from "./FilePreview";
 import { FilePreview } from "./FilePreview";
 import { FilePreviewActions } from "./FilePreviewActions";
@@ -61,13 +62,7 @@ function PagerPage({
     );
   }
   if (error || !file) {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg p-6">
-        <Text className="text-text-muted text-sm">
-          Unable to load this file
-        </Text>
-      </View>
-    );
+    return <FileNotFoundState fileName={entry.name} />;
   }
   return (
     <FilePreview

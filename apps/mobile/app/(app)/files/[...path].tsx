@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { File, Folder } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -122,10 +122,19 @@ function DirectoryView({ dirPath }: { dirPath: string }) {
 }
 
 export default function FilesScreen() {
-  const { path: pathParam } = useLocalSearchParams<{ path: string[] }>();
+  const { path: pathParam, q } = useLocalSearchParams<{
+    path: string[];
+    q?: string | string[];
+  }>();
   const workspacePath = pathParam?.join("/") ?? "";
   const segments = workspacePath ? workspacePath.split("/") : [];
-  const [searchQuery, setSearchQuery] = useState("");
+  const initialQuery = Array.isArray(q) ? (q[0] ?? "") : (q ?? "");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  // Re-seed when the tab is already mounted and we're deep-linked with a new
+  // `q` (e.g. from the file-not-found sheet's Search CTA).
+  useEffect(() => {
+    if (initialQuery) setSearchQuery(initialQuery);
+  }, [initialQuery]);
   const debouncedQuery = useDebounce(searchQuery);
 
   return (

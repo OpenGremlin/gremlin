@@ -1,12 +1,13 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import {
   FileQuery,
   TaskQuery,
   WorkspaceEntriesQuery,
 } from "../../src/graphql/queries";
+import { FileNotFoundState } from "../../src/shared/FileNotFoundState";
 import {
   FilePagerSheet,
   type PagerFileEntry,
@@ -66,11 +67,7 @@ function SingleMode({ filePath }: { filePath: string }) {
           <ActivityIndicator />
         </View>
       ) : error || !file ? (
-        <View className="flex-1 items-center justify-center p-6">
-          <Text className="text-text-muted text-sm">
-            Unable to load this file
-          </Text>
-        </View>
+        <FileNotFoundState fileName={filePath.split("/").pop() ?? ""} />
       ) : (
         <FilePreview render={file.render} filePath={file.path} />
       )}
