@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
 import { Cpu, Globe, Info, Terminal, Volume2 } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
@@ -199,6 +199,8 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   }
 
   const config = localConfig;
+  const localConfigRef = useRef(localConfig);
+  localConfigRef.current = localConfig;
 
   // Whether using defaults
   const usingDefaultChatModel = !config.model;
@@ -208,16 +210,14 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const speechEnabled = config.speech?.enabled ?? false;
 
   const updateConfig = useCallback(
-    async (patch: Partial<PlainConfig>) => {
-      setLocalConfig((prev) => {
-        const merged = { ...prev, ...patch };
-        setSaving(true);
-        execute(UpdateAgentDoc, {
-          id: agent.id,
-          input: { config: merged },
-        }).finally(() => setSaving(false));
-        return merged;
-      });
+    (patch: Partial<PlainConfig>) => {
+      const merged = { ...localConfigRef.current, ...patch };
+      setLocalConfig(merged);
+      setSaving(true);
+      execute(UpdateAgentDoc, {
+        id: agent.id,
+        input: { config: merged },
+      }).finally(() => setSaving(false));
     },
     [agent.id],
   );

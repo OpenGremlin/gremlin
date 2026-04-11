@@ -8,6 +8,7 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
+import { removeTypenameFromVariables } from "@apollo/client/link/remove-typename";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import {
   getMainDefinition,
@@ -227,6 +228,10 @@ export function getWsClient() {
 
 const wsLink = new GraphQLWsLink(getWsClient());
 
+// ── Strip __typename from mutation variables ──────────────────────
+
+const removeTypenameLink = removeTypenameFromVariables();
+
 // ── Split link (subscriptions → WS, everything else → HTTP) ────────
 
 const splitLink = split(
@@ -238,7 +243,13 @@ const splitLink = split(
     );
   },
   wsLink,
-  ApolloLink.from([connectivityLink, authLink, errorLink, httpLink]),
+  ApolloLink.from([
+    removeTypenameLink,
+    connectivityLink,
+    authLink,
+    errorLink,
+    httpLink,
+  ]),
 );
 
 // ── Client ──────────────────────────────────────────────────────────
