@@ -1,10 +1,10 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { SearchMode } from "../../../src/graphql/generated/graphql";
-import { WorkspaceSearchQuery } from "../../../src/graphql/queries";
-import { FileTypeIcon } from "../../../src/shared/fileTypeAppearance";
-import { QueryGate } from "../../../src/shared/QueryResult";
+import { SearchMode } from "../graphql/generated/graphql";
+import { WorkspaceSearchQuery } from "../graphql/queries";
+import { FileTypeIcon } from "./fileTypeAppearance";
+import { QueryGate } from "./QueryResult";
 
 function HighlightedText({
   text,

@@ -27,8 +27,8 @@ import { FolderPicker } from "../../../src/shared/FolderPicker";
 import { FileTypeIcon } from "../../../src/shared/fileTypeAppearance";
 import { QueryGate } from "../../../src/shared/QueryResult";
 import { SearchInput } from "../../../src/shared/SearchInput";
+import { SearchResults } from "../../../src/shared/SearchResults";
 import { SelectionActionBar } from "../../../src/shared/SelectionActionBar";
-import { SearchResults } from "./SearchResults";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
