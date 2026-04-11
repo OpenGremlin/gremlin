@@ -70,7 +70,7 @@
     },
     "plugins": [
       "@react-native-firebase/app",
-      "@react-native-firebase/crashlytics",
+      ["@react-native-firebase/crashlytics", { "uploadDebugsymbols": true }],
       "expo-router",
       "expo-secure-store",
       [
