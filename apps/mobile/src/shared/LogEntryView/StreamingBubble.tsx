@@ -12,14 +12,15 @@ import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Markdown } from "./Markdown";
 import { ReasoningBlock } from "./ReasoningBlock";
 
-const dotStyle = {
+const dotBase = {
   width: 8,
   height: 8,
   borderRadius: 4,
-  backgroundColor: "#888",
 };
 
 function TypingDots() {
+  const colors = useNavigationTheme();
+  const dotStyle = { ...dotBase, backgroundColor: colors.iconMuted };
   const dot1 = useRef(new Animated.Value(0.3)).current;
   const dot2 = useRef(new Animated.Value(0.3)).current;
   const dot3 = useRef(new Animated.Value(0.3)).current;

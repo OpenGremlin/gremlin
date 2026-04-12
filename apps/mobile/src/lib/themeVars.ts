@@ -59,5 +59,5 @@ export const darkVars = {
   "--color-error-surface": "rgba(248, 113, 113, 0.15)",
   "--color-error-border": "rgba(248, 113, 113, 0.3)",
   "--color-warning-border": "rgba(251, 191, 36, 0.3)",
-  "--color-user-bubble": "#4338ca",
+  "--color-user-bubble": "#5b3cc4",
 };

@@ -32,6 +32,7 @@ export function ListCard({
 }: ListCardProps) {
   const inner = (
     <Card
+      borderless
       className={`p-4 flex-row items-start gap-3 ${dimmed ? "opacity-50" : ""}`}
     >
       <AgentAvatar id={agentId} />

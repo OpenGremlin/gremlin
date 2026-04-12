@@ -41,7 +41,7 @@ const darkColors = {
   success: "#4ade80",
   warning: "#fbbf24",
   error: "#f87171",
-  userBubble: "#4338ca",
+  userBubble: "#5b3cc4",
 };
 
 export function useNavigationTheme() {

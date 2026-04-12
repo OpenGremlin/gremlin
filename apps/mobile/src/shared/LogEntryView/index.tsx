@@ -409,7 +409,7 @@ export const LogEntryView = React.memo(function LogEntryView({
       <View className="py-2">
         <UserBubble content={message.content} />
         {showTimestamp && (
-          <Text className="text-[10px] text-text-muted text-right mt-1 mr-1">
+          <Text className="text-[10px] text-text-faint text-right mt-1 mr-1">
             {formatTime(message.createdAt)}
           </Text>
         )}
@@ -453,7 +453,7 @@ export const LogEntryView = React.memo(function LogEntryView({
           </View>
         )}
         {showTimestamp && (
-          <Text className="text-[10px] text-text-muted mt-1 ml-1">
+          <Text className="text-[10px] text-text-faint mt-1 ml-1">
             {formatTime(message.createdAt)}
           </Text>
         )}
