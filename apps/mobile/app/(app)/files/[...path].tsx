@@ -12,7 +12,12 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
+
 import {
   DeleteWorkspaceEntriesMutation,
   MoveWorkspaceEntriesMutation,
@@ -33,6 +38,8 @@ import { SearchInput } from "../../../src/shared/SearchInput";
 import { SearchResults } from "../../../src/shared/SearchResults";
 import { SelectionActionBar } from "../../../src/shared/SelectionActionBar";
 import { TabScrollView } from "../../../src/shared/TabScrollView";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -242,8 +249,9 @@ function DirectoryView({
           {entries.map((entry) => {
             const isSelected = selection.selectedPaths.has(entry.path);
             return (
-              <Pressable
+              <AnimatedPressable
                 key={entry.path}
+                layout={LinearTransition.duration(200)}
                 onPress={() => handlePress(entry)}
                 onLongPress={() => handleLongPress(entry)}
                 delayLongPress={400}
@@ -283,7 +291,7 @@ function DirectoryView({
                     {formatSize(entry.size)}
                   </Text>
                 )}
-              </Pressable>
+              </AnimatedPressable>
             );
           })}
 
