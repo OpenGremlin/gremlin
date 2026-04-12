@@ -1,6 +1,7 @@
+import { BlurView } from "expo-blur";
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, FolderOpen, Home, Settings } from "lucide-react-native";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
@@ -8,6 +9,7 @@ import {
   PendingCountProvider,
   usePendingCount,
 } from "../../src/lib/PendingCountContext";
+import { useTheme } from "../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../src/lib/useNavigationTheme";
 import { DelayedSpinner } from "../../src/shared/DelayedSpinner";
 
@@ -41,6 +43,8 @@ function AppTabs() {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
   const { pendingCount } = usePendingCount();
+  const { isDark } = useTheme();
+  const isWeb = process.env.EXPO_OS === "web";
 
   return (
     <Tabs
@@ -49,15 +53,30 @@ function AppTabs() {
         // @ts-expect-error — href is an Expo Router extension not in BottomTabNavigationOptions
         href: null,
         tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopWidth: 0,
+          position: isWeb ? undefined : "absolute",
+          backgroundColor: isWeb ? colors.background : "transparent",
+          borderTopWidth: isWeb ? 0 : StyleSheet.hairlineWidth,
+          borderTopColor: colors.tabBarBorder,
           elevation: 0,
           shadowColor: "transparent",
           paddingTop: 6,
           paddingBottom: Math.max(insets.bottom, 6),
           height: 56 + Math.max(insets.bottom, 0),
-          ...(process.env.EXPO_OS === "web" ? { boxShadow: "none" } : {}),
+          ...(isWeb ? { boxShadow: "none" } : {}),
         },
+        tabBarBackground: isWeb
+          ? undefined
+          : () => (
+              <BlurView
+                tint={
+                  isDark
+                    ? "systemChromeMaterialDark"
+                    : "systemChromeMaterialLight"
+                }
+                intensity={80}
+                style={StyleSheet.absoluteFill}
+              />
+            ),
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.tabBarActive,
         tabBarInactiveTintColor: colors.tabBarInactive,

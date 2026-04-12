@@ -4,7 +4,10 @@ import type {
   AgentStreamEvent,
   SpeechAudioEvent,
 } from "@opengremlin/lib/resources/pubsub.js";
-import { computeDisplayHint } from "@opengremlin/lib/services/orchestrator/displayHint.js";
+import {
+  computeDisplayHint,
+  type DisplayHint,
+} from "@opengremlin/lib/services/orchestrator/displayHint.js";
 import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/model.js";
 import { SentenceAccumulator } from "@opengremlin/lib/services/speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
@@ -241,20 +244,28 @@ export const agentLogResolvers = {
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {
     agent,
-    displayHint: (parent: AgentLogItem) => {
-      if (parent.role !== "TOOL" || !parent.toolName) return null;
-      const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
-      const result = parent.toolResult ? JSON.parse(parent.toolResult) : null;
-      return computeDisplayHint(parent.toolName, input, result)?.text ?? null;
-    },
-    displayVariant: (parent: AgentLogItem) => {
-      if (parent.role !== "TOOL" || !parent.toolName) return null;
-      const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
-      const result = parent.toolResult ? JSON.parse(parent.toolResult) : null;
-      return (
-        computeDisplayHint(parent.toolName, input, result)?.variant ?? null
-      );
-    },
+    ...(() => {
+      const cache = new WeakMap<AgentLogItem, DisplayHint | null>();
+      function resolve(parent: AgentLogItem): DisplayHint | null {
+        const cached = cache.get(parent);
+        if (cached !== undefined) return cached;
+        if (parent.role !== "TOOL" || !parent.toolName) {
+          cache.set(parent, null);
+          return null;
+        }
+        const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
+        const result = parent.toolResult ? JSON.parse(parent.toolResult) : null;
+        const hint = computeDisplayHint(parent.toolName, input, result);
+        cache.set(parent, hint);
+        return hint;
+      }
+      return {
+        displayHint: (parent: AgentLogItem) => resolve(parent)?.text ?? null,
+        displayVariant: (parent: AgentLogItem) =>
+          resolve(parent)?.variant ?? null,
+        displayError: (parent: AgentLogItem) => resolve(parent)?.error ?? null,
+      };
+    })(),
     attachments,
   },
   AgentLogEdge: { node },

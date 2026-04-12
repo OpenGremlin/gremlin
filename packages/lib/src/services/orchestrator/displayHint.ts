@@ -3,7 +3,23 @@ import { ToolName } from "../../enums.js";
 export type DisplayHint = {
   text: string;
   variant?: "success" | "error" | "warning";
+  /** Short error message extracted from the tool result, if present. */
+  error?: string;
 };
+
+/**
+ * Extract an error message from a tool result, if present.
+ * Handles the common patterns tools use to report errors.
+ */
+function extractToolError(
+  result: Record<string, unknown> | null,
+): string | undefined {
+  if (!result) return undefined;
+  if (typeof result.error === "string") return result.error;
+  if (result.type === "error" && typeof result.message === "string")
+    return result.message;
+  return undefined;
+}
 
 /**
  * Compute a short, human-readable display hint for a tool call.
@@ -14,6 +30,23 @@ export type DisplayHint = {
  * the frontend owns the icon.
  */
 export function computeDisplayHint(
+  toolName: string,
+  input: Record<string, unknown> | null,
+  result: Record<string, unknown> | null,
+): DisplayHint | null {
+  const hint = computeDisplayHintInner(toolName, input, result);
+  if (!hint) return null;
+
+  // Layer on a generic error from the tool result.
+  // Sets variant to "error" so the status icon reflects the failure too.
+  const error = extractToolError(result);
+  if (error) {
+    return { ...hint, error, variant: "error" };
+  }
+  return hint;
+}
+
+function computeDisplayHintInner(
   toolName: string,
   input: Record<string, unknown> | null,
   result: Record<string, unknown> | null,
@@ -29,18 +62,12 @@ export function computeDisplayHint(
       };
     }
     case ToolName.Delegate: {
-      if (result && "error" in result) {
-        return {
-          text: `Delegation rejected: ${result.error}`,
-          variant: "error",
-        };
-      }
       const target =
         (result?.targetName as string | undefined) ??
         (input?.targetAgentId as string | undefined) ??
         "teammate";
       const title = (input?.title as string | undefined) ?? "task";
-      return { text: `Delegated "${title}" to @${target}` };
+      return { text: `Delegating "${title}" to @${target}` };
     }
 
     // ── File editor ────────────────────────────────────────────────
@@ -82,25 +109,14 @@ export function computeDisplayHint(
       const status = result?.status as string | undefined;
       if (status === "ready")
         return { text: "Sandbox ready", variant: "success" };
-      if (status === "error")
-        return {
-          text: `Sandbox error: ${(result?.error as string) ?? "unknown"}`,
-          variant: "error",
-        };
       return { text: "Connecting to sandbox…", variant: "warning" };
     }
 
     // ── Media ──────────────────────────────────────────────────────
-    case ToolName.ViewImage: {
-      if (result?.type === "error")
-        return {
-          text: `${(result?.message as string) ?? "Image error"}`,
-          variant: "error",
-        };
+    case ToolName.ViewImage:
       return {
         text: `Viewing image: ${(input?.path as string) ?? "unknown"}`,
       };
-    }
     case ToolName.GenerateImage:
       return {
         text: `Generating image: ${(result?.path as string) ?? (input?.outputPath as string) ?? "unknown"}`,
@@ -117,29 +133,16 @@ export function computeDisplayHint(
       return { text: `Fetching: ${(input?.url as string) ?? "unknown"}` };
 
     // ── Skills ─────────────────────────────────────────────────────
-    case ToolName.ReadSkill: {
-      const skillId = (input?.skillId as string) ?? "skill";
-      if (result?.error)
-        return {
-          text: `Failed to read ${skillId}: ${result.error}`,
-          variant: "error",
-        };
-      return { text: `Reading skill: ${skillId}` };
-    }
-    case ToolName.ReadSkillReference: {
-      if (result?.error)
-        return {
-          text: `Failed to read reference: ${result.error}`,
-          variant: "error",
-        };
+    case ToolName.ReadSkill:
+      return {
+        text: `Reading skill: ${(input?.skillId as string) ?? "skill"}`,
+      };
+    case ToolName.ReadSkillReference:
       return {
         text: `Reading reference: ${(input?.reference as string) ?? "unknown"}`,
       };
-    }
     case ToolName.Authenticate: {
       const skillId = (input?.skillId as string) ?? "skill";
-      if (result?.error)
-        return { text: `Auth failed: ${skillId}`, variant: "error" };
       if (!result) return { text: `Authenticating ${skillId}…` };
       const connLabel = result?.connectionLabel as string | undefined;
       return {

@@ -115,6 +115,7 @@ export type AgentLog = {
   commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  displayError?: Maybe<Scalars['String']['output']>;
   displayHint?: Maybe<Scalars['String']['output']>;
   displayVariant?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -1664,6 +1665,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   commandApprovalId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  displayError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   displayHint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   displayVariant?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;

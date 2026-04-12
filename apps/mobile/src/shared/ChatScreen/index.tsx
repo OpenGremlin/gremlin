@@ -1,4 +1,5 @@
 import { type ApolloError, useMutation } from "@apollo/client";
+import { BlurView } from "expo-blur";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -12,9 +13,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Pressable,
   RefreshControl,
+  StyleSheet,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,6 +36,7 @@ import { useSpeechStream } from "../../hooks/useSpeechStream";
 import { hexToTransparent } from "../../lib/color";
 import { hasDraft } from "../../lib/drawingDraft";
 import { drawingEvents } from "../../lib/drawingEvents";
+import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { LogEntryView } from "../LogEntryView";
 import { StreamingBubble } from "../LogEntryView/StreamingBubble";
@@ -88,6 +92,23 @@ export function ChatScreen({
 }: ChatScreenProps) {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
+  const tabBarHeight = 56 + Math.max(insets.bottom, 0);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      process.env.EXPO_OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKeyboardVisible(true),
+    );
+    const hide = Keyboard.addListener(
+      process.env.EXPO_OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardVisible(false),
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const {
     streaming: streamingMessage,
@@ -487,18 +508,44 @@ export function ChatScreen({
       />
 
       <View pointerEvents="box-none" style={overlayContainerStyle}>
-        <LinearGradient
-          colors={[
-            colors.background,
-            colors.background,
-            hexToTransparent(colors.background),
-          ]}
-          locations={[0, 0.65, 1]}
+        <View
           style={{
             paddingTop: process.env.EXPO_OS === "ios" ? insets.top + 8 : 12,
             paddingBottom: 32,
           }}
         >
+          {process.env.EXPO_OS !== "web" ? (
+            <BlurView
+              tint={
+                isDark
+                  ? "systemChromeMaterialDark"
+                  : "systemChromeMaterialLight"
+              }
+              intensity={80}
+              style={[StyleSheet.absoluteFillObject, { bottom: 32 }]}
+              pointerEvents="none"
+            />
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFillObject,
+                { bottom: 32, backgroundColor: colors.background },
+              ]}
+              pointerEvents="none"
+            />
+          )}
+          <LinearGradient
+            colors={[colors.background, hexToTransparent(colors.background)]}
+            locations={[0, 1]}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 32,
+            }}
+            pointerEvents="none"
+          />
           <Pressable
             onPress={() => router.back()}
             style={{
@@ -534,7 +581,7 @@ export function ChatScreen({
             </Pressable>
             {headerRight}
           </View>
-        </LinearGradient>
+        </View>
       </View>
 
       <ChatInputBar
@@ -547,6 +594,9 @@ export function ChatScreen({
         isUploading={isUploading}
         onPickFiles={handlePickFiles}
       />
+      {!isWeb && !keyboardVisible ? (
+        <View pointerEvents="none" style={{ height: tabBarHeight }} />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }

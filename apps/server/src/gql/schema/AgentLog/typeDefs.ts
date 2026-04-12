@@ -25,6 +25,7 @@ export const agentLogTypeDefs = /* GraphQL */ `
     toolResult: String
     displayHint: String
     displayVariant: String
+    displayError: String
     commandApprovalId: String
     attachments: [Attachment!]!
     createdAt: String!

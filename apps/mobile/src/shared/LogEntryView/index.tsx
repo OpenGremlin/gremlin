@@ -364,10 +364,19 @@ function renderToolCall(
           undefined
         }
       />
+      {message.displayError ? (
+        <Text className="text-sm text-error italic px-1 pb-1">
+          {message.displayError}
+        </Text>
+      ) : null}
       {files.length > 0 && (
         <View className="mt-1 gap-1">
           {files.map((file) => (
-            <FileCard key={file.path} file={file} />
+            <FileCard
+              key={file.path}
+              file={file}
+              showInlineImage={toolName === ToolName.GenerateImage}
+            />
           ))}
         </View>
       )}

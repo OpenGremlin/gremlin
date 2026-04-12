@@ -21,6 +21,7 @@ function cardSubtitle(file: FileNode): string {
 export function FileCard({
   file,
   onPress,
+  showInlineImage = false,
 }: {
   file: FileNode;
   /**
@@ -29,6 +30,9 @@ export function FileCard({
    * taps routed back to it instead of opening a per-card preview.
    */
   onPress?: () => void;
+  /** When true, render images inline at full width. Otherwise use the
+   *  standard filename card treatment. Defaults to false. */
+  showInlineImage?: boolean;
 }) {
   const canPreview =
     file.render.__typename === "DocumentRender" ||
@@ -53,7 +57,11 @@ export function FileCard({
 
   const handlePress = onPress ?? presentPreview;
 
-  if (file.render.__typename === "ImageRender" && file.render.url) {
+  if (
+    showInlineImage &&
+    file.render.__typename === "ImageRender" &&
+    file.render.url
+  ) {
     const { url, aspectRatio } = file.render;
     return (
       <Pressable onPress={handlePress} className="rounded-lg overflow-hidden">
