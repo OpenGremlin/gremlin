@@ -1,4 +1,5 @@
 import { type ApolloError, useMutation } from "@apollo/client";
+import MaskedView from "@react-native-masked-view/masked-view";
 import { BlurView } from "expo-blur";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
@@ -515,37 +516,35 @@ export function ChatScreen({
           }}
         >
           {process.env.EXPO_OS !== "web" ? (
-            <BlurView
-              tint={
-                isDark
-                  ? "systemChromeMaterialDark"
-                  : "systemChromeMaterialLight"
-              }
-              intensity={80}
-              style={[StyleSheet.absoluteFillObject, { bottom: 32 }]}
+            <MaskedView
+              style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
-            />
+              maskElement={
+                <LinearGradient
+                  colors={["black", "black", "transparent"]}
+                  locations={[0, 0.4, 1]}
+                  style={StyleSheet.absoluteFill}
+                />
+              }
+            >
+              <BlurView
+                tint={
+                  isDark
+                    ? "systemChromeMaterialDark"
+                    : "systemChromeMaterialLight"
+                }
+                intensity={90}
+                style={StyleSheet.absoluteFillObject}
+              />
+            </MaskedView>
           ) : (
-            <View
-              style={[
-                StyleSheet.absoluteFillObject,
-                { bottom: 32, backgroundColor: colors.background },
-              ]}
+            <LinearGradient
+              colors={[colors.background, hexToTransparent(colors.background)]}
+              locations={[0, 1]}
+              style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
             />
           )}
-          <LinearGradient
-            colors={[colors.background, hexToTransparent(colors.background)]}
-            locations={[0, 1]}
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 32,
-            }}
-            pointerEvents="none"
-          />
           <Pressable
             onPress={() => router.back()}
             style={{

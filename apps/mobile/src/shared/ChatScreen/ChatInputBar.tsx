@@ -1,14 +1,17 @@
+import { BlurView } from "expo-blur";
 import { ArrowUp, Paperclip } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import type { FileUploadState } from "../../hooks/useFileUpload";
 import { haptics } from "../../lib/haptics";
+import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatFileSize } from "../formatFileSize";
 
@@ -82,6 +85,7 @@ export function ChatInputBar({
   onPickFiles,
 }: ChatInputBarProps) {
   const colors = useNavigationTheme();
+  const { isDark } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const isWeb = process.env.EXPO_OS === "web";
   const [webHeight, setWebHeight] = useState(0);
@@ -114,7 +118,26 @@ export function ChatInputBar({
         </View>
       )}
 
-      <View className="flex-row items-end gap-1.5 bg-surface border border-app-border rounded-3xl pl-1.5 pr-1.5 py-1">
+      <View
+        className="flex-row items-end gap-1.5 border border-app-border rounded-3xl pl-1.5 pr-1.5 py-1 overflow-hidden"
+        style={{ borderCurve: "continuous" }}
+      >
+        {!isWeb ? (
+          <BlurView
+            tint={
+              isDark ? "systemChromeMaterialDark" : "systemChromeMaterialLight"
+            }
+            intensity={70}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+        ) : (
+          <View
+            className="bg-surface"
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+        )}
         <View style={{ paddingBottom: 2 }}>
           <Pressable
             onPress={onPickFiles}
