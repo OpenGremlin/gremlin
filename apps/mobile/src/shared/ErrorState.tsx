@@ -24,7 +24,7 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
       </Text>
       {onRetry && (
         <View className="mt-4">
-          <Button variant="secondary" onPress={onRetry}>
+          <Button variant="secondary" onPress={() => onRetry?.()}>
             Try again
           </Button>
         </View>

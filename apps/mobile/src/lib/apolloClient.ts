@@ -39,6 +39,7 @@ export const cache = new InMemoryCache({
       "CodeRender",
       "AudioRender",
       "VideoRender",
+      "PdfRender",
       "UnknownRender",
     ],
     ConnectionMeta: [

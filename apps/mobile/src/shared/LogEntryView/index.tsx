@@ -371,7 +371,7 @@ function renderToolCall(
         </Text>
       ) : null}
       {files.length > 0 && (
-        <View className="mt-1 gap-1">
+        <View className="mt-1 gap-1 max-w-[85%]">
           {files.map((file) => (
             <FileCard
               key={file.path}
@@ -522,17 +522,23 @@ export const LogEntryView = React.memo(function LogEntryView({
       const files = filesFromAttachments(message.attachments ?? []);
       if (files.length > 0) {
         return (
-          <View className="py-1 gap-1">
-            {files.map((file) => (
-              <FileCard key={file.path} file={file} />
-            ))}
+          <View className="py-1 items-end">
+            <View className="gap-1 w-[80%]">
+              {files.map((file) => (
+                <FileCard key={file.path} file={file} />
+              ))}
+            </View>
           </View>
         );
       }
       return (
-        <FileUploadCard
-          data={parsed as Parameters<typeof FileUploadCard>[0]["data"]}
-        />
+        <View className="items-end">
+          <View className="w-[80%]">
+            <FileUploadCard
+              data={parsed as Parameters<typeof FileUploadCard>[0]["data"]}
+            />
+          </View>
+        </View>
       );
     }
 
