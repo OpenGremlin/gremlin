@@ -68,6 +68,7 @@ function AppTabs() {
           // tabBarHeight in ChatScreen.
           paddingTop: isWeb ? 6 : 28,
           paddingBottom: isWeb ? 6 : Math.max(insets.bottom - 14, 8),
+          paddingHorizontal: 20,
           height:
             (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0)),
           ...(isWeb ? { boxShadow: "none" } : {}),
