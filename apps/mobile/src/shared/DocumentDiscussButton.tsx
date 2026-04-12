@@ -13,7 +13,7 @@ import { presentPicker } from "./PickerModal";
 
 const AVATAR_SIZE = 36;
 const CARD_RADIUS = 10;
-const CARD_INNER_RADIUS = CARD_RADIUS - 1;
+const CARD_INNER_RADIUS = CARD_RADIUS;
 
 export function DocumentDiscussButton({ filePath }: { filePath: string }) {
   const { data } = useQuery(AgentsQuery);
@@ -75,8 +75,6 @@ export function DocumentDiscussButton({ filePath }: { filePath: string }) {
     <View
       style={{
         borderRadius: CARD_RADIUS,
-        borderWidth: 1,
-        borderColor: isDark ? "rgba(52, 211, 153, 0.25)" : "#a7f3d0",
         backgroundColor: isDark ? "#022c22" : "#ecfdf5",
         overflow: "hidden",
         flex: 1,

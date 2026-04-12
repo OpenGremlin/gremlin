@@ -27,11 +27,11 @@ interface ButtonProps {
 
 const variantClasses: Record<ButtonVariant, { base: string; text: string }> = {
   primary: {
-    base: "bg-accent border border-accent active:bg-accent-light",
+    base: "bg-accent active:bg-accent-light",
     text: "text-white",
   },
   secondary: {
-    base: "bg-accent-surface border border-accent-border active:bg-accent-surface/80",
+    base: "bg-accent-surface active:bg-accent-surface/80",
     text: "text-accent",
   },
   destructive: {

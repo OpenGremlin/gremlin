@@ -104,11 +104,9 @@ export function InputRequestCard({
                           ? "#1e3a5f"
                           : "#dbeafe"
                         : isDark
-                          ? "#1a1a1a"
-                          : "#f5f5f5",
-                      borderWidth: isChosen ? 1 : 0,
-                      borderColor: isDark ? "#3b82f6" : "#93c5fd",
-                      opacity: isChosen ? 1 : 0.4,
+                          ? "#262626"
+                          : "#e5e5e5",
+                      opacity: isChosen ? 1 : 0.35,
                     }}
                   >
                     <Text
@@ -159,10 +157,8 @@ export function InputRequestCard({
                       ? "#4338ca"
                       : "#4f46e5"
                     : isDark
-                      ? "#1a1a1a"
-                      : "#f5f5f5",
-                  borderWidth: isPrimary ? 0 : 1,
-                  borderColor: isDark ? "#404040" : "#d4d4d4",
+                      ? "#262626"
+                      : "#e5e5e5",
                   opacity: resolving ? 0.5 : 1,
                 }}
               >

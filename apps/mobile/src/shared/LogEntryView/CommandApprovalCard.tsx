@@ -136,10 +136,9 @@ export function CommandApprovalCard({
           <Pressable
             onPress={() => handleResolve(CommandApprovalDecision.AllowOnce)}
             disabled={!!resolving}
-            className="flex-1 rounded-lg py-2 items-center border"
+            className="flex-1 rounded-lg py-2 items-center"
             style={{
-              borderColor: isDark ? "#404040" : "#d4d4d4",
-              backgroundColor: isDark ? "#1a1a1a" : "#f5f5f5",
+              backgroundColor: isDark ? "#262626" : "#e5e5e5",
               opacity: resolving ? 0.5 : 1,
             }}
           >
@@ -182,10 +181,9 @@ export function CommandApprovalCard({
           <Pressable
             onPress={() => handleResolve(CommandApprovalDecision.Deny)}
             disabled={!!resolving}
-            className="flex-1 rounded-lg py-2 items-center border"
+            className="flex-1 rounded-lg py-2 items-center"
             style={{
-              borderColor: isDark ? "#7f1d1d" : "#fecaca",
-              backgroundColor: isDark ? "#1c1111" : "#fef2f2",
+              backgroundColor: isDark ? "#2a1515" : "#fee2e2",
               opacity: resolving ? 0.5 : 1,
             }}
           >

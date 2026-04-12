@@ -8,7 +8,7 @@ import { AgentAvatar } from "./AgentAvatar";
 
 const AVATAR_SIZE = 36;
 const CARD_RADIUS = 10;
-const CARD_INNER_RADIUS = CARD_RADIUS - 1;
+const CARD_INNER_RADIUS = CARD_RADIUS;
 
 /**
  * "Read aloud" card for document previews. DelegateCard-style treatment
@@ -63,8 +63,6 @@ export function DocumentReadButton({ markdown }: { markdown: string }) {
     <View
       style={{
         borderRadius: CARD_RADIUS,
-        borderWidth: 1,
-        borderColor: isDark ? "rgba(129, 140, 248, 0.25)" : "#c7d2fe",
         backgroundColor: isDark ? "#1e1b4b" : "#eef2ff",
         overflow: "hidden",
         flex: 1,
