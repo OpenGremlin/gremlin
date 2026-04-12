@@ -48,11 +48,10 @@ import { PendingMessageBubble } from "./PendingMessageBubble";
 
 const isWeb = process.env.EXPO_OS === "web";
 
-// On native (inverted), paddingBottom is the visual top (space for header overlay).
-// On web (non-inverted), paddingTop is the visual top.
-const flatListContentStyle = isWeb
-  ? ({ paddingHorizontal: 16, paddingTop: 200, paddingBottom: 8 } as const)
-  : ({ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 200 } as const);
+// Reserve space at the visual bottom of the message list for the floating
+// input capsule and the tab bar, so the newest message isn't hidden under
+// them while older messages can still scroll behind the blurred chrome.
+const INPUT_BAR_HEIGHT = 60;
 
 const overlayContainerStyle = {
   position: "absolute" as const,
@@ -94,8 +93,31 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
-  const tabBarHeight = 56 + Math.max(insets.bottom, 0);
+  // Matches tabBarStyle.height in app/(app)/_layout.tsx. The native tab bar
+  // has extra top padding for the blur fade zone, and its bottom padding is
+  // trimmed below the raw safe-area inset.
+  const tabBarHeight =
+    (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0));
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // When the keyboard is up the tab bar is hidden behind it; only reserve
+  // space for the input bar in that case.
+  const bottomChromeHeight =
+    INPUT_BAR_HEIGHT + (keyboardVisible ? 0 : tabBarHeight);
+  // On native the list is inverted, so paddingTop is the *visual* bottom
+  // (where newest messages sit). Reserve enough space for the floating
+  // input capsule (and tab bar, when visible) so the newest message isn't
+  // hidden under them while older content can still scroll behind them.
+  const flatListContentStyle = isWeb
+    ? {
+        paddingHorizontal: 16,
+        paddingTop: 200,
+        paddingBottom: 8 + bottomChromeHeight,
+      }
+    : {
+        paddingHorizontal: 16,
+        paddingTop: 8 + bottomChromeHeight,
+        paddingBottom: 200,
+      };
   useEffect(() => {
     const show = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -583,19 +605,39 @@ export function ChatScreen({
         </View>
       </View>
 
-      <ChatInputBar
-        input={input}
-        setInput={setInput}
-        onSend={handleSend}
-        sending={sending}
-        disabled={disabled}
-        uploads={uploads}
-        isUploading={isUploading}
-        onPickFiles={handlePickFiles}
-      />
-      {!isWeb && !keyboardVisible ? (
-        <View pointerEvents="none" style={{ height: tabBarHeight }} />
-      ) : null}
+      {isWeb ? (
+        <ChatInputBar
+          input={input}
+          setInput={setInput}
+          onSend={handleSend}
+          sending={sending}
+          disabled={disabled}
+          uploads={uploads}
+          isUploading={isUploading}
+          onPickFiles={handlePickFiles}
+        />
+      ) : (
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: keyboardVisible ? 0 : tabBarHeight,
+            zIndex: 1,
+          }}
+        >
+          <ChatInputBar
+            input={input}
+            setInput={setInput}
+            onSend={handleSend}
+            sending={sending}
+            disabled={disabled}
+            uploads={uploads}
+            isUploading={isUploading}
+            onPickFiles={handlePickFiles}
+          />
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }

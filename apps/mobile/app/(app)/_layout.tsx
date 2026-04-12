@@ -1,4 +1,6 @@
+import MaskedView from "@react-native-masked-view/masked-view";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, FolderOpen, Home, Settings } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
@@ -55,27 +57,45 @@ function AppTabs() {
         tabBarStyle: {
           position: isWeb ? undefined : "absolute",
           backgroundColor: isWeb ? colors.background : "transparent",
-          borderTopWidth: isWeb ? 0 : StyleSheet.hairlineWidth,
+          borderTopWidth: isWeb ? StyleSheet.hairlineWidth : 0,
           borderTopColor: colors.tabBarBorder,
           elevation: 0,
           shadowColor: "transparent",
-          paddingTop: 6,
-          paddingBottom: Math.max(insets.bottom, 6),
-          height: 56 + Math.max(insets.bottom, 0),
+          // Extra top padding on native reserves a breathing zone above the
+          // icons for the blur to fade out through. Bottom padding is trimmed
+          // below the raw safe-area inset so icons sit closer to the home
+          // indicator instead of floating high in the bar. Keep in sync with
+          // tabBarHeight in ChatScreen.
+          paddingTop: isWeb ? 6 : 28,
+          paddingBottom: isWeb ? 6 : Math.max(insets.bottom - 14, 8),
+          height:
+            (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0)),
           ...(isWeb ? { boxShadow: "none" } : {}),
         },
         tabBarBackground: isWeb
           ? undefined
           : () => (
-              <BlurView
-                tint={
-                  isDark
-                    ? "systemChromeMaterialDark"
-                    : "systemChromeMaterialLight"
-                }
-                intensity={80}
+              <MaskedView
                 style={StyleSheet.absoluteFill}
-              />
+                pointerEvents="none"
+                maskElement={
+                  <LinearGradient
+                    colors={["transparent", "black", "black"]}
+                    locations={[0, 0.3, 1]}
+                    style={StyleSheet.absoluteFill}
+                  />
+                }
+              >
+                <BlurView
+                  tint={
+                    isDark
+                      ? "systemChromeMaterialDark"
+                      : "systemChromeMaterialLight"
+                  }
+                  intensity={90}
+                  style={StyleSheet.absoluteFill}
+                />
+              </MaskedView>
             ),
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.tabBarActive,
