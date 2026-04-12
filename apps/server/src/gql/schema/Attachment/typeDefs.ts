@@ -2,7 +2,7 @@ export const attachmentTypeDefs = /* GraphQL */ `
   union Attachment = FileAttachment | LinkAttachment
 
   type FileAttachment {
-    file: File!
+    file: File
   }
 
   type LinkAttachment {

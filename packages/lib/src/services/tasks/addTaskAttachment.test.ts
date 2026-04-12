@@ -11,6 +11,10 @@ describe("addTaskAttachment", () => {
   beforeEach(() => {
     ctx = createMockContext();
 
+    vi.stubGlobal("crypto", {
+      randomUUID: vi.fn().mockReturnValue("att-uuid-1"),
+    });
+
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-15T12:00:00.000Z"));
 
@@ -21,35 +25,41 @@ describe("addTaskAttachment", () => {
     ctx.resources.ddb.table.getName.mockReturnValue("test-table");
   });
 
-  it("sends UpdateCommand for a file attachment", async () => {
+  it("writes a file attachment with UUID pk, GSI1 for task, GSI2 for path", async () => {
     mockDocSend
-      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
-      .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
+      .mockResolvedValueOnce({ Items: [] }) // dedup query
+      .mockResolvedValueOnce({}) // PutCommand
+      .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand (touch task)
 
     await addTaskAttachment(ctx, "task-1", {
       type: "file",
       path: "/output/report.pdf",
     });
 
-    expect(mockDocSend).toHaveBeenCalledTimes(2);
-    const command = mockDocSend.mock.calls[1][0];
-    expect(command.input).toEqual({
-      TableName: "test-table",
-      Key: { pk: "TASK", sk: "TASK#task-1" },
-      UpdateExpression:
-        "SET attachments = list_append(if_not_exists(attachments, :empty), :item), updatedAt = :now",
-      ExpressionAttributeValues: {
-        ":item": [{ type: "file", path: "/output/report.pdf" }],
-        ":empty": [],
-        ":now": "2026-01-15T12:00:00.000Z",
-      },
-      ReturnValues: "ALL_NEW",
+    expect(mockDocSend).toHaveBeenCalledTimes(3);
+
+    // PutCommand for standalone attachment item
+    const putCommand = mockDocSend.mock.calls[1][0];
+    expect(putCommand.input.Item).toMatchObject({
+      _et: "TaskAttachment",
+      pk: "ATTACHMENT",
+      sk: "ATTACHMENT#att-uuid-1",
+      id: "att-uuid-1",
+      taskId: "task-1",
+      dedupKey: "file:/output/report.pdf",
+      type: "file",
+      path: "/output/report.pdf",
+      gsi1pk: "TASK_ATTACHMENT#task-1",
+      gsi1sk: "2026-01-15T12:00:00.000Z",
+      gsi2pk: "ATTACHMENT_FILE",
+      gsi2sk: "/output/report.pdf",
     });
   });
 
-  it("sends UpdateCommand for a link attachment", async () => {
+  it("writes a link attachment with GSI1 but no GSI2", async () => {
     mockDocSend
-      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Items: [] }) // dedup query
+      .mockResolvedValueOnce({}) // PutCommand
       .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
@@ -58,11 +68,16 @@ describe("addTaskAttachment", () => {
       title: "Example",
     });
 
-    expect(mockDocSend).toHaveBeenCalledTimes(2);
-    const command = mockDocSend.mock.calls[1][0];
-    expect(command.input.ExpressionAttributeValues[":item"]).toEqual([
-      { type: "link", url: "https://example.com", title: "Example" },
-    ]);
+    const putCommand = mockDocSend.mock.calls[1][0];
+    expect(putCommand.input.Item).toMatchObject({
+      type: "link",
+      url: "https://example.com",
+      title: "Example",
+      gsi1pk: "TASK_ATTACHMENT#task-1",
+    });
+    // Link attachments should NOT have GSI2 keys
+    expect(putCommand.input.Item.gsi2pk).toBeUndefined();
+    expect(putCommand.input.Item.gsi2sk).toBeUndefined();
   });
 
   it("publishes to pubsub when Attributes returned", async () => {
@@ -70,17 +85,12 @@ describe("addTaskAttachment", () => {
       id: "task-1",
       agentId: "agent-1",
       title: "Test Task",
-      message: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-15T12:00:00.000Z",
-      completedAt: null,
-      originJobId: null,
-      emoji: null,
-      attachments: [{ type: "file", path: "/output/report.pdf" }],
     };
 
     mockDocSend
-      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Items: [] }) // dedup
+      .mockResolvedValueOnce({}) // PutCommand
       .mockResolvedValueOnce({ Attributes: updatedTask }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
@@ -96,7 +106,8 @@ describe("addTaskAttachment", () => {
 
   it("does not publish when Attributes is undefined", async () => {
     mockDocSend
-      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Items: [] }) // dedup
+      .mockResolvedValueOnce({}) // PutCommand
       .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
@@ -107,11 +118,9 @@ describe("addTaskAttachment", () => {
     expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
   });
 
-  it("skips duplicate file attachment", async () => {
+  it("skips duplicate attachment (dedup query finds existing)", async () => {
     mockDocSend.mockResolvedValueOnce({
-      Item: {
-        attachments: [{ type: "file", path: "/output/report.pdf" }],
-      },
+      Items: [{ dedupKey: "file:/output/report.pdf" }],
     });
 
     await addTaskAttachment(ctx, "task-1", {
@@ -119,44 +128,8 @@ describe("addTaskAttachment", () => {
       path: "/output/report.pdf",
     });
 
-    // Only the GetCommand should have been sent, no UpdateCommand
+    // Only the dedup query should have been sent
     expect(mockDocSend).toHaveBeenCalledTimes(1);
     expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
-  });
-
-  it("skips duplicate link attachment", async () => {
-    mockDocSend.mockResolvedValueOnce({
-      Item: {
-        attachments: [
-          { type: "link", url: "https://example.com", title: "Old Title" },
-        ],
-      },
-    });
-
-    await addTaskAttachment(ctx, "task-1", {
-      type: "link",
-      url: "https://example.com",
-      title: "New Title",
-    });
-
-    expect(mockDocSend).toHaveBeenCalledTimes(1);
-    expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
-  });
-
-  it("allows different attachments on the same task", async () => {
-    mockDocSend
-      .mockResolvedValueOnce({
-        Item: {
-          attachments: [{ type: "file", path: "/output/a.pdf" }],
-        },
-      })
-      .mockResolvedValueOnce({ Attributes: undefined });
-
-    await addTaskAttachment(ctx, "task-1", {
-      type: "file",
-      path: "/output/b.pdf",
-    });
-
-    expect(mockDocSend).toHaveBeenCalledTimes(2);
   });
 });

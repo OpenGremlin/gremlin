@@ -427,7 +427,7 @@ export type File = {
 
 export type FileAttachment = {
   __typename?: 'FileAttachment';
-  file: File;
+  file?: Maybe<File>;
 };
 
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | PdfRender | UnknownRender | VideoRender;
@@ -1388,7 +1388,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
   Attachment:
-    | ( Omit<FileAttachment, 'file'> & { file: _RefType['File'] } )
+    | ( Omit<FileAttachment, 'file'> & { file?: Maybe<_RefType['File']> } )
     | ( LinkAttachment )
   ;
   ConnectionMeta:
@@ -1463,7 +1463,7 @@ export type ResolversTypes = {
   DocumentRender: ResolverTypeWrapper<DocumentRender>;
   EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
   File: ResolverTypeWrapper<Omit<File, 'render'> & { render: ResolversTypes['FileRender'] }>;
-  FileAttachment: ResolverTypeWrapper<Omit<FileAttachment, 'file'> & { file: ResolversTypes['File'] }>;
+  FileAttachment: ResolverTypeWrapper<Omit<FileAttachment, 'file'> & { file?: Maybe<ResolversTypes['File']> }>;
   FileRender: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['FileRender']>;
   FileType: FileType;
   FileUploadRequest: FileUploadRequest;
@@ -1566,7 +1566,7 @@ export type ResolversParentTypes = {
   DocumentRender: DocumentRender;
   EnabledModelEntry: EnabledModelEntry;
   File: Omit<File, 'render'> & { render: ResolversParentTypes['FileRender'] };
-  FileAttachment: Omit<FileAttachment, 'file'> & { file: ResolversParentTypes['File'] };
+  FileAttachment: Omit<FileAttachment, 'file'> & { file?: Maybe<ResolversParentTypes['File']> };
   FileRender: ResolversUnionTypes<ResolversParentTypes>['FileRender'];
   FileUploadRequest: FileUploadRequest;
   FileUploadUrl: FileUploadUrl;
@@ -1863,7 +1863,7 @@ export type FileResolvers<ContextType = GremlinContext, ParentType extends Resol
 };
 
 export type FileAttachmentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['FileAttachment'] = ResolversParentTypes['FileAttachment']> = {
-  file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
+  file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

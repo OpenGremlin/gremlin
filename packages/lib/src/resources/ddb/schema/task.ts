@@ -1,8 +1,6 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { anyOf } from "dynamodb-toolbox/schema/anyOf";
 import { item } from "dynamodb-toolbox/schema/item";
-import { list } from "dynamodb-toolbox/schema/list";
-import { map } from "dynamodb-toolbox/schema/map";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
 
@@ -30,15 +28,6 @@ export const TaskEntity = new Entity({
     // tasks (which inherit context implicitly via the conversation).
     brief: string().optional(),
     successCriteria: string().optional(),
-    attachments: list(
-      map({
-        type: string(),
-        path: string().optional(),
-        url: string().optional(),
-        title: string().optional(),
-        description: string().optional(),
-      }),
-    ).default([]),
   }),
   // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
   // PutCommand because dynamodb-toolbox v2 computeKey ignores them.

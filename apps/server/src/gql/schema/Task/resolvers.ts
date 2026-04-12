@@ -26,8 +26,11 @@ const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
 
 const emoji: TaskResolvers["emoji"] = (parent) => parent.emoji ?? null;
 
-// biome-ignore lint/suspicious/noExplicitAny: attachments field not in generated types yet
-const attachments = (parent: any) => parent.attachments ?? [];
+const attachments = (
+  parent: { id: string },
+  _args: unknown,
+  ctx: GremlinContext,
+) => ctx.services.tasks.getTaskAttachments(ctx, parent.id);
 
 const logs: TaskResolvers["logs"] = (
   parent,

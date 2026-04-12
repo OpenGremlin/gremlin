@@ -10,12 +10,11 @@ import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
 import { PdfViewer } from "./PdfViewer";
 import { ZoomableImage } from "./ZoomableImage";
 
-export type FileNode = Extract<
-  AttachmentFieldsFragment,
-  { __typename?: "FileAttachment" }
->["file"];
+export type FileNode = NonNullable<
+  Extract<AttachmentFieldsFragment, { __typename?: "FileAttachment" }>["file"]
+>;
 
-/** Extract File objects from an attachments array. */
+/** Extract File objects from an attachments array, skipping missing files. */
 export function filesFromAttachments(
   attachments: readonly AttachmentFieldsFragment[],
 ): FileNode[] {

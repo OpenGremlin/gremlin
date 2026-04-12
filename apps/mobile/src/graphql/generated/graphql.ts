@@ -407,7 +407,7 @@ export type File = {
 
 export type FileAttachment = {
   __typename?: 'FileAttachment';
-  file: File;
+  file?: Maybe<File>;
 };
 
 export type FileRender = AudioRender | CodeRender | DocumentRender | ImageRender | PdfRender | UnknownRender | VideoRender;
@@ -1340,7 +1340,7 @@ export type AgentLogsQueryVariables = Exact<{
 
 
 export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-          | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+          | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
                 | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1348,7 +1348,7 @@ export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: '
                 | { __typename: 'PdfRender', url: string }
                 | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
                 | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-               } }
+               } | null }
           | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
         > } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
@@ -1406,7 +1406,7 @@ export type AgentLogCreatedSubscriptionVariables = Exact<{
 
 
 export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+      | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1414,7 +1414,7 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
             | { __typename: 'PdfRender', url: string }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-           } }
+           } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
     > } };
 
@@ -1425,7 +1425,7 @@ export type LogCreatedSubscriptionVariables = Exact<{
 
 
 export type LogCreatedSubscription = { __typename?: 'Subscription', logCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+      | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1433,7 +1433,7 @@ export type LogCreatedSubscription = { __typename?: 'Subscription', logCreated: 
             | { __typename: 'PdfRender', url: string }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-           } }
+           } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
     > } };
 
@@ -1561,7 +1561,7 @@ export type FileFieldsFragment = { __typename?: 'File', path: string, name: stri
     | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
    };
 
-type AttachmentFields_FileAttachment_Fragment = { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+type AttachmentFields_FileAttachment_Fragment = { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
       | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
       | { __typename: 'CodeRender', content: string, language: string }
       | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1569,7 +1569,7 @@ type AttachmentFields_FileAttachment_Fragment = { __typename?: 'FileAttachment',
       | { __typename: 'PdfRender', url: string }
       | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
       | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-     } };
+     } | null };
 
 type AttachmentFields_LinkAttachment_Fragment = { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null };
 
@@ -1583,7 +1583,7 @@ export type AgentSummaryFragment = { __typename?: 'Agent', id: string, name: str
 export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, personality?: string | null, role?: string | null, delegationHint?: string | null, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, speechModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null, speech?: { __typename?: 'AgentSpeechConfig', enabled: boolean, voice?: string | null } | null, manager?: { __typename?: 'AgentManagerConfig', enabled: boolean, team: Array<string> } | null } | null };
 
 export type AgentLogFieldsFragment = { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-    | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+    | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
           | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1591,12 +1591,12 @@ export type AgentLogFieldsFragment = { __typename?: 'AgentLog', id: string, role
           | { __typename: 'PdfRender', url: string }
           | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
           | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-         } }
+         } | null }
     | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
   > };
 
 export type TaskSummaryFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean }, attachments: Array<
-    | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+    | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
           | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1604,12 +1604,12 @@ export type TaskSummaryFragment = { __typename?: 'Task', id: string, title: stri
           | { __typename: 'PdfRender', url: string }
           | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
           | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-         } }
+         } | null }
     | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
   > };
 
 export type TaskDetailFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
-    | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+    | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
           | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1617,7 +1617,7 @@ export type TaskDetailFragment = { __typename?: 'Task', id: string, title: strin
           | { __typename: 'PdfRender', url: string }
           | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
           | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-         } }
+         } | null }
     | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
   > };
 
@@ -1927,7 +1927,7 @@ export type TasksQueryVariables = Exact<{
 
 
 export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean }, attachments: Array<
-          | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+          | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
                 | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1935,7 +1935,7 @@ export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConn
                 | { __typename: 'PdfRender', url: string }
                 | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
                 | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-               } }
+               } | null }
           | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
         > } }>, pageInfo: { __typename?: 'TaskPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
@@ -1945,7 +1945,7 @@ export type TaskQueryVariables = Exact<{
 
 
 export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
-      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+      | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1953,7 +1953,7 @@ export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id
             | { __typename: 'PdfRender', url: string }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-           } }
+           } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
     > } | null };
 
@@ -1967,7 +1967,7 @@ export type TaskLogsQueryVariables = Exact<{
 
 
 export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-          | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+          | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
                 | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1975,7 +1975,7 @@ export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'Ag
                 | { __typename: 'PdfRender', url: string }
                 | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
                 | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-               } }
+               } | null }
           | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
         > } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
@@ -1985,7 +1985,7 @@ export type TaskLogCreatedSubscriptionVariables = Exact<{
 
 
 export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
-      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+      | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -1993,7 +1993,7 @@ export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogC
             | { __typename: 'PdfRender', url: string }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-           } }
+           } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
     > } };
 
@@ -2003,7 +2003,7 @@ export type TaskUpdatedSubscriptionVariables = Exact<{
 
 
 export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, completedAt?: string | null, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
-      | { __typename?: 'FileAttachment', file: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
+      | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
             | { __typename: 'DocumentRender', markdown: string, title?: string | null }
@@ -2011,7 +2011,7 @@ export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated
             | { __typename: 'PdfRender', url: string }
             | { __typename: 'UnknownRender', mimeType?: string | null, sizeBytes: number }
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
-           } }
+           } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
     > } };
 

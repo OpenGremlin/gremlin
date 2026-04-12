@@ -22,7 +22,6 @@ describe("getTask", () => {
       completedAt: null,
       originJobId: null,
       emoji: null,
-      attachments: [],
     };
 
     const mockSend = vi.fn().mockResolvedValue({ Item: task });

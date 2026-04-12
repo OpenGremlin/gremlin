@@ -23,7 +23,6 @@ describe("getTasksByAgent", () => {
         completedAt: null,
         originJobId: null,
         emoji: null,
-        attachments: [],
       },
       {
         id: "task-2",
@@ -35,7 +34,6 @@ describe("getTasksByAgent", () => {
         completedAt: null,
         originJobId: null,
         emoji: null,
-        attachments: [],
       },
     ];
 

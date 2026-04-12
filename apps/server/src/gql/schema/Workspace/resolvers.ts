@@ -44,6 +44,26 @@ const moveWorkspaceEntries = async (
     paths,
     destination,
   );
+
+  // Fire-and-forget: update attachment paths for moved files/directories
+  if (moved.length > 0) {
+    const destDir =
+      destination === "" ? "" : `${destination.replace(/\/$/, "")}/`;
+    Promise.all(
+      moved.map((sourcePath) => {
+        const name = sourcePath.split("/").pop() ?? sourcePath;
+        const newPath = destDir + name;
+        return ctx.services.tasks.updateAttachmentPaths(
+          ctx,
+          sourcePath,
+          newPath,
+        );
+      }),
+    ).catch((err) => {
+      ctx.log.error("Failed to update attachment paths after move", err);
+    });
+  }
+
   return { succeeded: moved, failed };
 };
 

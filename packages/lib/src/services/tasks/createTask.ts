@@ -31,7 +31,6 @@ export async function createTask(
     updatedAt: now,
     completedAt: null,
     originJobId: input.originJobId ?? null,
-    attachments: [],
     ...(input.assignerAgentId
       ? { assignerAgentId: input.assignerAgentId }
       : {}),

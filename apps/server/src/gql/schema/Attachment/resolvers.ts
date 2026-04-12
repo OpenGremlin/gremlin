@@ -11,16 +11,7 @@ const fileField = async (
   ctx: GremlinContext,
 ) => {
   const info = await ctx.services.workspace.getFileInfo(parent.path);
-  if (!info) {
-    return {
-      path: parent.path,
-      name: parent.path.split("/").pop() ?? parent.path,
-      sizeBytes: 0,
-      mimeType: null,
-      modifiedAt: new Date().toISOString(),
-      _serverBase: ctx.serverBaseUrl,
-    };
-  }
+  if (!info) return null;
   return { ...info, _serverBase: ctx.serverBaseUrl };
 };
 
