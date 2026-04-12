@@ -1,3 +1,4 @@
+import { createFolder } from "./createFolder.js";
 import { deleteEntries } from "./deleteEntries.js";
 import { getFileInfo } from "./getFileInfo.js";
 import { listEntries } from "./listEntries.js";
@@ -23,6 +24,7 @@ export interface WorkspaceService {
   searchFiles: typeof searchFiles;
   deleteEntries: typeof deleteEntries;
   moveEntries: typeof moveEntries;
+  createFolder: typeof createFolder;
 }
 
 export const workspaceService: WorkspaceService = {
@@ -32,4 +34,5 @@ export const workspaceService: WorkspaceService = {
   searchFiles,
   deleteEntries,
   moveEntries,
+  createFolder,
 };

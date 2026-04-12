@@ -1,17 +1,28 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { File, Paths } from "expo-file-system";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { Check, Folder, X } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, Folder, Plus, X } from "lucide-react-native";
 import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActionSheetIOS,
   Alert,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from "react-native";
+
+const INVALID_FOLDER_NAME = /[/\\\0]/;
+
 import Animated, {
   FadeIn,
   FadeOut,
@@ -19,6 +30,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import {
+  CreateWorkspaceFolderMutation,
   DeleteWorkspaceEntriesMutation,
   MoveWorkspaceEntriesMutation,
   WorkspaceEntriesQuery,
@@ -33,6 +45,7 @@ import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { ConfirmDialog } from "../../../src/shared/ConfirmDialog";
 import { FolderPicker } from "../../../src/shared/FolderPicker";
 import { FileTypeIcon } from "../../../src/shared/fileTypeAppearance";
+import { PromptDialog } from "../../../src/shared/PromptDialog";
 import { QueryGate } from "../../../src/shared/QueryResult";
 import { SearchInput } from "../../../src/shared/SearchInput";
 import { SearchResults } from "../../../src/shared/SearchResults";
@@ -117,10 +130,12 @@ function DirectoryView({
   dirPath,
   selection,
   selectAllRef,
+  refetchRef,
 }: {
   dirPath: string;
   selection: FileSelectionState;
   selectAllRef: React.MutableRefObject<() => void>;
+  refetchRef: React.MutableRefObject<() => void>;
 }) {
   const colors = useNavigationTheme();
   const { data, loading, error, refetch } = useQuery(WorkspaceEntriesQuery, {
@@ -140,6 +155,10 @@ function DirectoryView({
   useEffect(() => {
     selectAllRef.current = () => selectAll(entries.map((e) => e.path));
   }, [entries, selectAll, selectAllRef]);
+
+  useEffect(() => {
+    refetchRef.current = () => refetch();
+  }, [refetch, refetchRef]);
 
   const openFile = useCallback(
     (entry: (typeof entries)[number]) => {
@@ -350,6 +369,7 @@ export default function FilesScreen() {
 
   const selection = useFileSelection();
   const selectAllRef = useRef<() => void>(() => {});
+  const refetchRef = useRef<() => void>(() => {});
   const { clearSelection } = selection;
   const prevWorkspacePath = useRef(workspacePath);
   useEffect(() => {
@@ -358,6 +378,58 @@ export default function FilesScreen() {
       clearSelection();
     }
   }, [workspacePath, clearSelection]);
+
+  const colors = useNavigationTheme();
+  const navigation = useNavigation();
+  const [createFolder] = useMutation(CreateWorkspaceFolderMutation);
+  const [showNewFolder, setShowNewFolder] = useState(false);
+
+  const showAddMenu = useCallback(() => {
+    const options = ["New Folder", "Cancel"];
+    const cancelButtonIndex = 1;
+
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex },
+        (index) => {
+          if (index === 0) setShowNewFolder(true);
+        },
+      );
+    } else {
+      setShowNewFolder(true);
+    }
+  }, []);
+
+  const validateFolderName = useCallback((name: string) => {
+    if (INVALID_FOLDER_NAME.test(name)) {
+      return "Folder name cannot contain / or \\ characters.";
+    }
+    return null;
+  }, []);
+
+  const handleCreateFolder = useCallback(
+    async (name: string) => {
+      setShowNewFolder(false);
+      const folderPath = workspacePath ? `${workspacePath}/${name}` : name;
+      try {
+        await createFolder({ variables: { path: folderPath } });
+        refetchRef.current();
+      } catch (e) {
+        Alert.alert("Failed to create folder", (e as Error).message);
+      }
+    },
+    [workspacePath, createFolder],
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={showAddMenu} hitSlop={8} className="mr-2">
+          <Plus size={22} color={colors.accent} />
+        </Pressable>
+      ),
+    });
+  }, [navigation, showAddMenu, colors.accent]);
 
   return (
     <View className="flex-1">
@@ -383,8 +455,20 @@ export default function FilesScreen() {
           dirPath={workspacePath}
           selection={selection}
           selectAllRef={selectAllRef}
+          refetchRef={refetchRef}
         />
       )}
+
+      <PromptDialog
+        visible={showNewFolder}
+        title="New Folder"
+        message="Enter a name for the new folder."
+        placeholder="Folder name"
+        confirmLabel="Create"
+        validate={validateFolderName}
+        onConfirm={handleCreateFolder}
+        onCancel={() => setShowNewFolder(false)}
+      />
     </View>
   );
 }

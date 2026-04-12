@@ -105,6 +105,7 @@ type Documents = {
     "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n      fileType\n    }\n  }\n": typeof types.WorkspaceSearchDocument,
     "\n  mutation DeleteWorkspaceEntries($paths: [String!]!) {\n    deleteWorkspaceEntries(paths: $paths) {\n      succeeded\n      failed\n    }\n  }\n": typeof types.DeleteWorkspaceEntriesDocument,
     "\n  mutation MoveWorkspaceEntries($paths: [String!]!, $destination: String!) {\n    moveWorkspaceEntries(paths: $paths, destination: $destination) {\n      succeeded\n      failed\n    }\n  }\n": typeof types.MoveWorkspaceEntriesDocument,
+    "\n  mutation CreateWorkspaceFolder($path: String!) {\n    createWorkspaceFolder(path: $path)\n  }\n": typeof types.CreateWorkspaceFolderDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      fileType\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on PdfRender { url }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": typeof types.FileDocument,
 };
 const documents: Documents = {
@@ -199,6 +200,7 @@ const documents: Documents = {
     "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n      fileType\n    }\n  }\n": types.WorkspaceSearchDocument,
     "\n  mutation DeleteWorkspaceEntries($paths: [String!]!) {\n    deleteWorkspaceEntries(paths: $paths) {\n      succeeded\n      failed\n    }\n  }\n": types.DeleteWorkspaceEntriesDocument,
     "\n  mutation MoveWorkspaceEntries($paths: [String!]!, $destination: String!) {\n    moveWorkspaceEntries(paths: $paths, destination: $destination) {\n      succeeded\n      failed\n    }\n  }\n": types.MoveWorkspaceEntriesDocument,
+    "\n  mutation CreateWorkspaceFolder($path: String!) {\n    createWorkspaceFolder(path: $path)\n  }\n": types.CreateWorkspaceFolderDocument,
     "\n  query File($path: String!) {\n    file(path: $path) {\n      path\n      name\n      sizeBytes\n      mimeType\n      modifiedAt\n      fileType\n      render {\n        __typename\n        ... on DocumentRender { markdown title }\n        ... on CodeRender { content language }\n        ... on ImageRender { url(width: 800) fullUrl: url width height aspectRatio }\n        ... on AudioRender { url durationSeconds }\n        ... on VideoRender { url thumbnailUrl(width: 400) durationSeconds }\n        ... on PdfRender { url }\n        ... on UnknownRender { mimeType sizeBytes }\n      }\n    }\n  }\n": types.FileDocument,
 };
 
@@ -580,6 +582,10 @@ export function graphql(source: "\n  mutation DeleteWorkspaceEntries($paths: [St
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation MoveWorkspaceEntries($paths: [String!]!, $destination: String!) {\n    moveWorkspaceEntries(paths: $paths, destination: $destination) {\n      succeeded\n      failed\n    }\n  }\n"): (typeof documents)["\n  mutation MoveWorkspaceEntries($paths: [String!]!, $destination: String!) {\n    moveWorkspaceEntries(paths: $paths, destination: $destination) {\n      succeeded\n      failed\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateWorkspaceFolder($path: String!) {\n    createWorkspaceFolder(path: $path)\n  }\n"): (typeof documents)["\n  mutation CreateWorkspaceFolder($path: String!) {\n    createWorkspaceFolder(path: $path)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

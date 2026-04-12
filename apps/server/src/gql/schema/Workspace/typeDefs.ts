@@ -65,5 +65,7 @@ export const workspaceTypeDefs = /* GraphQL */ `
     deleteWorkspaceEntries(paths: [String!]!): WorkspaceMutationResult!
     """Move one or more workspace entries to a destination directory"""
     moveWorkspaceEntries(paths: [String!]!, destination: String!): WorkspaceMutationResult!
+    """Create a new folder at the given path"""
+    createWorkspaceFolder(path: String!): String!
   }
 `;

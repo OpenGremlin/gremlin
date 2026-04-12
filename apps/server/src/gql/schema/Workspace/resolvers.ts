@@ -67,9 +67,19 @@ const moveWorkspaceEntries = async (
   return { succeeded: moved, failed };
 };
 
+const createWorkspaceFolder = (
+  _parent: unknown,
+  { path }: { path: string },
+  ctx: GremlinContext,
+) => ctx.services.workspace.createFolder(path);
+
 export const workspaceResolvers = {
   Query: { workspaceEntries, workspaceFile, workspaceSearch },
-  Mutation: { deleteWorkspaceEntries, moveWorkspaceEntries },
+  Mutation: {
+    deleteWorkspaceEntries,
+    moveWorkspaceEntries,
+    createWorkspaceFolder,
+  },
   WorkspaceEntry: {
     mimeType: (entry: WorkspaceEntry) => {
       if (entry.isDirectory) return null;

@@ -52,6 +52,12 @@ export const MoveWorkspaceEntriesMutation = graphql(`
   }
 `);
 
+export const CreateWorkspaceFolderMutation = graphql(`
+  mutation CreateWorkspaceFolder($path: String!) {
+    createWorkspaceFolder(path: $path)
+  }
+`);
+
 export const FileQuery = graphql(`
   query File($path: String!) {
     file(path: $path) {

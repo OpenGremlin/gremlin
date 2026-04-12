@@ -574,6 +574,8 @@ export type Mutation = {
   connectAwsIamRole: IntegrationConnection;
   createAgent: Agent;
   createAgentJob: AgentJob;
+  /** Create a new folder at the given path */
+  createWorkspaceFolder: Scalars['String']['output'];
   deleteAgentJob?: Maybe<AgentJob>;
   /** Delete one or more workspace files or directories */
   deleteWorkspaceEntries: WorkspaceMutationResult;
@@ -662,6 +664,11 @@ export type MutationCreateAgentArgs = {
 
 export type MutationCreateAgentJobArgs = {
   input: CreateAgentJobInput;
+};
+
+
+export type MutationCreateWorkspaceFolderArgs = {
+  path: Scalars['String']['input'];
 };
 
 
@@ -1961,6 +1968,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
+  createWorkspaceFolder?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateWorkspaceFolderArgs, 'path'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   deleteWorkspaceEntries?: Resolver<ResolversTypes['WorkspaceMutationResult'], ParentType, ContextType, RequireFields<MutationDeleteWorkspaceEntriesArgs, 'paths'>>;
   disableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
