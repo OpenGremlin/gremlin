@@ -7,7 +7,7 @@ export default function HomeLayout() {
 
   return (
     <Stack screenOptions={getStackScreenOptions(colors)}>
-      <Stack.Screen name="index" options={{ title: "Home" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }
