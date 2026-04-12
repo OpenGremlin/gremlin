@@ -3,7 +3,7 @@ import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
 import { Copy } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Pressable, Switch, Text, View } from "react-native";
 import {
   AwsSetupQuery,
   ConnectApiKeyMutation,
@@ -26,6 +26,7 @@ import {
   presentPicker,
 } from "../../../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
+import { TabScrollView } from "../../../../../src/shared/TabScrollView";
 import { Toast } from "../../../../../src/shared/Toast";
 
 function OAuthDetailView({
@@ -545,10 +546,8 @@ export default function ConnectionProviderDetailScreen() {
   }
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-5"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-5"
       keyboardShouldPersistTaps="handled"
     >
       <View className="flex-row items-center gap-4">
@@ -583,6 +582,6 @@ export default function ConnectionProviderDetailScreen() {
           </Text>
         </Card>
       )}
-    </ScrollView>
+    </TabScrollView>
   );
 }

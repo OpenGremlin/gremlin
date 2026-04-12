@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import {
   GlobalSettingsQuery,
   UpdateGlobalSettingsMutation,
@@ -8,6 +8,7 @@ import {
 import { execute } from "../../../src/lib/apolloClient";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 import { Toggle } from "../../../src/shared/Toggle";
 
 export default function GlobalSettingsScreen() {
@@ -36,11 +37,7 @@ export default function GlobalSettingsScreen() {
   }
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-6"
-    >
+    <TabScrollView contentContainerClassName="px-4 pt-6 gap-6">
       <View className="flex-row items-center justify-between rounded-xl border border-app-border bg-surface p-4">
         <View className="flex-1 mr-4">
           <Text className="text-sm font-medium text-text-primary">
@@ -60,6 +57,6 @@ export default function GlobalSettingsScreen() {
           />
         </View>
       </View>
-    </ScrollView>
+    </TabScrollView>
   );
 }

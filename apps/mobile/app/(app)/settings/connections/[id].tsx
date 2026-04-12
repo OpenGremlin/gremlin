@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import {
   IntegrationConnectionsQuery,
   RevokeConnectionMutation,
@@ -13,6 +13,7 @@ import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
+import { TabScrollView } from "../../../../src/shared/TabScrollView";
 
 export default function ConnectionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,11 +52,7 @@ export default function ConnectionDetailScreen() {
   }
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-5"
-    >
+    <TabScrollView contentContainerClassName="px-4 pt-6 gap-5">
       {revokeError ? (
         <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
           <Text className="text-sm text-red-300">{revokeError}</Text>
@@ -159,6 +156,6 @@ export default function ConnectionDetailScreen() {
         onConfirm={doRevoke}
         onCancel={() => setConfirmVisible(false)}
       />
-    </ScrollView>
+    </TabScrollView>
   );
 }

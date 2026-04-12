@@ -2,13 +2,7 @@ import { useQuery } from "@apollo/client";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import {
   ConnectApiKeyMutation,
   DisableModelMutation,
@@ -30,6 +24,7 @@ import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../../src/shared/SearchInput";
+import { TabScrollView } from "../../../../../src/shared/TabScrollView";
 import { Toast } from "../../../../../src/shared/Toast";
 
 type DefaultModel = { providerId: string; modelId: string } | null;
@@ -504,10 +499,8 @@ export default function ModelProviderDetailScreen() {
 
   return (
     <View className="flex-1">
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        className="flex-1"
-        contentContainerClassName="px-4 py-6 gap-5"
+      <TabScrollView
+        contentContainerClassName="px-4 pt-6 gap-5"
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-row items-center gap-4">
@@ -534,7 +527,7 @@ export default function ModelProviderDetailScreen() {
             onError={handleError}
           />
         )}
-      </ScrollView>
+      </TabScrollView>
 
       <Toast
         message={toastMessage}

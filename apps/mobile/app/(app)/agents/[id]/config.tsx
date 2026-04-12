@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { Check, Crown, Pencil } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   AgentQuery,
   AgentsQuery,
@@ -22,6 +22,7 @@ import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { Input } from "../../../../src/shared/Input";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
+import { TabScrollView } from "../../../../src/shared/TabScrollView";
 import { Toggle } from "../../../../src/shared/Toggle";
 import { ToolsConfig, toPlainConfig } from "../../../../src/shared/ToolsConfig";
 
@@ -216,10 +217,8 @@ export default function AgentConfigScreen() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-6"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-6"
       keyboardShouldPersistTaps="handled"
     >
       {agent.retired && (
@@ -490,6 +489,6 @@ export default function AgentConfigScreen() {
         }}
         onDismiss={() => setAvatarPickerVisible(false)}
       />
-    </ScrollView>
+    </TabScrollView>
   );
 }

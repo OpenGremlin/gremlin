@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { router, useFocusEffect } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
+import { Pressable, RefreshControl, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
@@ -11,6 +11,7 @@ import { Button } from "../../../src/shared/Button";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryGate } from "../../../src/shared/QueryResult";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 type Agent = AgentsQueryType["agents"][number];
 
@@ -64,10 +65,8 @@ export default function AgentsScreen() {
 
   return (
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        className="flex-1"
-        contentContainerClassName="px-4 pt-3 pb-6 gap-3 grow"
+      <TabScrollView
+        contentContainerClassName="px-4 pt-3 gap-3 grow"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -121,7 +120,7 @@ export default function AgentsScreen() {
               : null}
           </>
         ) : null}
-      </ScrollView>
+      </TabScrollView>
     </QueryGate>
   );
 }

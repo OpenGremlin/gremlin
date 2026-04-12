@@ -14,12 +14,13 @@ import {
   Sun,
   User,
 } from "lucide-react-native";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useAuth } from "../../../src/lib/AuthContext";
 import { useServerConfig } from "../../../src/lib/ServerConfigContext";
 import { type ThemeMode, useTheme } from "../../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { Card } from "../../../src/shared/Card";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 type SettingsItem = {
   label: string;
@@ -62,11 +63,7 @@ export default function SettingsScreen() {
   const { config: serverConfig } = useServerConfig();
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-4 gap-6"
-    >
+    <TabScrollView contentContainerClassName="px-4 pt-4 gap-6">
       <View className="flex-row gap-2">
         {themeOptions.map((option) => {
           const Icon = option.icon;
@@ -187,6 +184,6 @@ export default function SettingsScreen() {
         <LogOut size={18} color={colors.error} />
         <Text className="text-base font-medium text-error">Log Out</Text>
       </Pressable>
-    </ScrollView>
+    </TabScrollView>
   );
 }

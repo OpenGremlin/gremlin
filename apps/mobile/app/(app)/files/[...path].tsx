@@ -32,6 +32,7 @@ import { QueryGate } from "../../../src/shared/QueryResult";
 import { SearchInput } from "../../../src/shared/SearchInput";
 import { SearchResults } from "../../../src/shared/SearchResults";
 import { SelectionActionBar } from "../../../src/shared/SelectionActionBar";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -233,10 +234,7 @@ function DirectoryView({
   return (
     <QueryGate loading={loading} error={error} data={data}>
       <View className="flex-1">
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          className="flex-1"
-          contentContainerClassName="pb-6"
+        <TabScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -294,7 +292,7 @@ function DirectoryView({
               Empty directory
             </Text>
           )}
-        </ScrollView>
+        </TabScrollView>
 
         {selection.isSelectionMode && selection.count > 0 && (
           <SelectionActionBar

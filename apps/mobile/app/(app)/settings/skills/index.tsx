@@ -2,13 +2,14 @@ import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { groupSkillsByCategory } from "../../../../src/shared/categories";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
+import { TabScrollView } from "../../../../src/shared/TabScrollView";
 
 export default function SkillsScreen() {
   const [query, setQuery] = useState("");
@@ -29,10 +30,8 @@ export default function SkillsScreen() {
 
   return (
     <QueryGate loading={loading} error={error} data={data}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        className="flex-1"
-        contentContainerClassName="px-4 py-4 gap-5"
+      <TabScrollView
+        contentContainerClassName="px-4 pt-4 gap-5"
         keyboardShouldPersistTaps="handled"
       >
         <SearchInput
@@ -69,7 +68,7 @@ export default function SkillsScreen() {
             ))}
           </View>
         ))}
-      </ScrollView>
+      </TabScrollView>
     </QueryGate>
   );
 }

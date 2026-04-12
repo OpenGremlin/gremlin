@@ -7,7 +7,7 @@ import {
   Paintbrush,
 } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   AllEnabledModelsQuery,
   IntegrationProvidersQuery,
@@ -18,6 +18,7 @@ import { Chip } from "../../../../src/shared/Chip";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
+import { TabScrollView } from "../../../../src/shared/TabScrollView";
 
 const MODE_ICON = {
   chat: MessageSquare,
@@ -98,11 +99,7 @@ export default function ModelsScreen() {
       data={providers.data && allEnabled.data}
     >
       <View className="flex-1">
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          className="flex-1"
-          contentContainerClassName="px-4 py-4 gap-5"
-        >
+        <TabScrollView contentContainerClassName="px-4 pt-4 gap-5">
           {grouped.length > 0 && (
             <View className="gap-2">
               <Card className="overflow-hidden">
@@ -246,7 +243,7 @@ export default function ModelsScreen() {
               </View>
             </>
           )}
-        </ScrollView>
+        </TabScrollView>
       </View>
     </QueryGate>
   );

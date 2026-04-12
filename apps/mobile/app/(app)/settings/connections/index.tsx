@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,6 +20,7 @@ import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { QueryGate } from "../../../../src/shared/QueryResult";
 import { SearchInput } from "../../../../src/shared/SearchInput";
+import { TabScrollView } from "../../../../src/shared/TabScrollView";
 import { Toast } from "../../../../src/shared/Toast";
 
 function ConnectionCountBadge({ count }: { count: number }) {
@@ -156,11 +157,7 @@ export default function IntegrationsScreen() {
           visible={toastVisible}
           onDismiss={() => setToastVisible(false)}
         />
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          className="flex-1"
-          contentContainerClassName="px-4 py-4 gap-5"
-        >
+        <TabScrollView contentContainerClassName="px-4 pt-4 gap-5">
           {connectionList.length > 0 && (
             <View className="gap-2">
               <Card className="overflow-hidden">
@@ -261,7 +258,7 @@ export default function IntegrationsScreen() {
                 </Text>
               </Card>
             )}
-        </ScrollView>
+        </TabScrollView>
       </View>
     </QueryGate>
   );

@@ -1,10 +1,11 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { CreateAgentMutation } from "../../../src/graphql/queries";
 import { execute } from "../../../src/lib/apolloClient";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 export default function NewAgentScreen() {
   const [id, setId] = useState("");
@@ -29,10 +30,8 @@ export default function NewAgentScreen() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-4"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-4"
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
@@ -61,6 +60,6 @@ export default function NewAgentScreen() {
       >
         Create Agent
       </Button>
-    </ScrollView>
+    </TabScrollView>
   );
 }

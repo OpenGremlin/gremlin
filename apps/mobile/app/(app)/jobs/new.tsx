@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   AgentsQuery,
   CreateAgentJobMutation,
@@ -11,6 +11,7 @@ import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
 import { presentPicker } from "../../../src/shared/PickerModal";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 export default function NewJobScreen() {
@@ -64,10 +65,8 @@ export default function NewJobScreen() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-4"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-4"
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
@@ -144,6 +143,6 @@ export default function NewJobScreen() {
       >
         Create
       </Button>
-    </ScrollView>
+    </TabScrollView>
   );
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { cognitoChangePassword } from "../../../src/lib/auth";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 interface ChangePasswordForm {
   currentPassword: string;
@@ -52,10 +53,8 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-4"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-4"
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-1">
@@ -117,6 +116,6 @@ export default function ChangePasswordScreen() {
       <Button onPress={handleSubmit(onSubmit)} loading={isSubmitting} size="lg">
         Change Password
       </Button>
-    </ScrollView>
+    </TabScrollView>
   );
 }

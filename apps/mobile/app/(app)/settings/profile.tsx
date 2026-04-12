@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import {
   ProfileQuery,
   UpdateProfileMutation,
@@ -10,6 +10,7 @@ import { execute } from "../../../src/lib/apolloClient";
 import { Input } from "../../../src/shared/Input";
 import { QueryResult } from "../../../src/shared/QueryResult";
 import { SavedIndicator } from "../../../src/shared/SavedIndicator";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 
 interface ProfileFormValues {
@@ -88,10 +89,8 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-4"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-4"
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-1">
@@ -157,6 +156,6 @@ export default function ProfileScreen() {
 
       {saved && <SavedIndicator />}
       {saveError && <Text className="text-sm text-error">{saveError}</Text>}
-    </ScrollView>
+    </TabScrollView>
   );
 }

@@ -3,7 +3,7 @@ import cronstrue from "cronstrue";
 import { router } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
 import { useRef, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text } from "react-native";
+import { Pressable, RefreshControl, Text } from "react-native";
 import {
   AgentJobsQuery,
   JobCreatedSubscription,
@@ -17,6 +17,7 @@ import { EmptyState } from "../../../src/shared/EmptyState";
 import { formatDate } from "../../../src/shared/formatDate";
 import { ListCard } from "../../../src/shared/ListCard";
 import { QueryGate } from "../../../src/shared/QueryResult";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 function RunNowButton({ jobId }: { jobId: string }) {
   const [triggering, setTriggering] = useState(false);
@@ -65,10 +66,8 @@ export default function JobsScreen() {
 
   return (
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        className="flex-1"
-        contentContainerClassName="px-4 pt-3 pb-6 gap-3 grow"
+      <TabScrollView
+        contentContainerClassName="px-4 pt-3 gap-3 grow"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -140,7 +139,7 @@ export default function JobsScreen() {
             New Job
           </Button>
         )}
-      </ScrollView>
+      </TabScrollView>
     </QueryGate>
   );
 }

@@ -3,7 +3,7 @@ import cronstrue from "cronstrue";
 import { router, useLocalSearchParams } from "expo-router";
 import { Play } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 import type { AgentJobQuery as AgentJobQueryType } from "../../../src/graphql/generated/graphql";
 import {
   AgentJobQuery,
@@ -22,6 +22,7 @@ import { Input } from "../../../src/shared/Input";
 import { presentPicker } from "../../../src/shared/PickerModal";
 import { NotFound, QueryResult } from "../../../src/shared/QueryResult";
 import { SaveButton } from "../../../src/shared/SaveButton";
+import { TabScrollView } from "../../../src/shared/TabScrollView";
 import { TimezonePicker } from "../../../src/shared/TimezonePicker";
 import { Toggle } from "../../../src/shared/Toggle";
 
@@ -198,10 +199,8 @@ export default function JobDetailScreen() {
   ].slice(0, 10);
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      contentContainerClassName="px-4 py-6 gap-6"
+    <TabScrollView
+      contentContainerClassName="px-4 pt-6 gap-6"
       keyboardShouldPersistTaps="handled"
     >
       <View className="flex-row items-center gap-3">
@@ -409,6 +408,6 @@ export default function JobDetailScreen() {
           size="lg"
         />
       </View>
-    </ScrollView>
+    </TabScrollView>
   );
 }
