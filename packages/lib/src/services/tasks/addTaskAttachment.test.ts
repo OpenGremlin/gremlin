@@ -22,15 +22,17 @@ describe("addTaskAttachment", () => {
   });
 
   it("sends UpdateCommand for a file attachment", async () => {
-    mockDocSend.mockResolvedValue({ Attributes: undefined });
+    mockDocSend
+      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
       type: "file",
       path: "/output/report.pdf",
     });
 
-    expect(mockDocSend).toHaveBeenCalledOnce();
-    const command = mockDocSend.mock.calls[0][0];
+    expect(mockDocSend).toHaveBeenCalledTimes(2);
+    const command = mockDocSend.mock.calls[1][0];
     expect(command.input).toEqual({
       TableName: "test-table",
       Key: { pk: "TASK", sk: "TASK#task-1" },
@@ -46,7 +48,9 @@ describe("addTaskAttachment", () => {
   });
 
   it("sends UpdateCommand for a link attachment", async () => {
-    mockDocSend.mockResolvedValue({ Attributes: undefined });
+    mockDocSend
+      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
       type: "link",
@@ -54,8 +58,8 @@ describe("addTaskAttachment", () => {
       title: "Example",
     });
 
-    expect(mockDocSend).toHaveBeenCalledOnce();
-    const command = mockDocSend.mock.calls[0][0];
+    expect(mockDocSend).toHaveBeenCalledTimes(2);
+    const command = mockDocSend.mock.calls[1][0];
     expect(command.input.ExpressionAttributeValues[":item"]).toEqual([
       { type: "link", url: "https://example.com", title: "Example" },
     ]);
@@ -75,7 +79,9 @@ describe("addTaskAttachment", () => {
       attachments: [{ type: "file", path: "/output/report.pdf" }],
     };
 
-    mockDocSend.mockResolvedValue({ Attributes: updatedTask });
+    mockDocSend
+      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Attributes: updatedTask }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
       type: "file",
@@ -89,7 +95,9 @@ describe("addTaskAttachment", () => {
   });
 
   it("does not publish when Attributes is undefined", async () => {
-    mockDocSend.mockResolvedValue({ Attributes: undefined });
+    mockDocSend
+      .mockResolvedValueOnce({ Item: undefined }) // GetCommand
+      .mockResolvedValueOnce({ Attributes: undefined }); // UpdateCommand
 
     await addTaskAttachment(ctx, "task-1", {
       type: "file",
@@ -97,5 +105,58 @@ describe("addTaskAttachment", () => {
     });
 
     expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
+  });
+
+  it("skips duplicate file attachment", async () => {
+    mockDocSend.mockResolvedValueOnce({
+      Item: {
+        attachments: [{ type: "file", path: "/output/report.pdf" }],
+      },
+    });
+
+    await addTaskAttachment(ctx, "task-1", {
+      type: "file",
+      path: "/output/report.pdf",
+    });
+
+    // Only the GetCommand should have been sent, no UpdateCommand
+    expect(mockDocSend).toHaveBeenCalledTimes(1);
+    expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
+  });
+
+  it("skips duplicate link attachment", async () => {
+    mockDocSend.mockResolvedValueOnce({
+      Item: {
+        attachments: [
+          { type: "link", url: "https://example.com", title: "Old Title" },
+        ],
+      },
+    });
+
+    await addTaskAttachment(ctx, "task-1", {
+      type: "link",
+      url: "https://example.com",
+      title: "New Title",
+    });
+
+    expect(mockDocSend).toHaveBeenCalledTimes(1);
+    expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
+  });
+
+  it("allows different attachments on the same task", async () => {
+    mockDocSend
+      .mockResolvedValueOnce({
+        Item: {
+          attachments: [{ type: "file", path: "/output/a.pdf" }],
+        },
+      })
+      .mockResolvedValueOnce({ Attributes: undefined });
+
+    await addTaskAttachment(ctx, "task-1", {
+      type: "file",
+      path: "/output/b.pdf",
+    });
+
+    expect(mockDocSend).toHaveBeenCalledTimes(2);
   });
 });
