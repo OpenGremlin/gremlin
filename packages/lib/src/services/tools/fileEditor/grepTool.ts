@@ -26,7 +26,7 @@ export function grepTool() {
         .string()
         .optional()
         .describe(
-          "File or directory to search in (relative to workspace). Omit for workspace root.",
+          "Absolute path to a file or directory within the workspace (e.g. /workspace/src). Omit for workspace root.",
         ),
       glob: z
         .string()
@@ -100,12 +100,7 @@ export function grepTool() {
       // Search each file.
       const matches: FileMatch[] = [];
       for (const file of files) {
-        const fileMatch = await searchFile(
-          file,
-          regex,
-          workspace,
-          context_lines ?? 0,
-        );
+        const fileMatch = await searchFile(file, regex, context_lines ?? 0);
         if (fileMatch) matches.push(fileMatch);
       }
 
@@ -134,7 +129,7 @@ interface LineMatch {
 }
 
 interface FileMatch {
-  relativePath: string;
+  filePath: string;
   matches: LineMatch[];
 }
 
@@ -177,7 +172,6 @@ async function collectFiles(
 async function searchFile(
   filePath: string,
   regex: RegExp,
-  workspace: string,
   contextLines: number,
 ): Promise<FileMatch | null> {
   let content: string;
@@ -222,11 +216,7 @@ async function searchFile(
         : lines[i],
   }));
 
-  const relativePath = filePath.startsWith(`${workspace}/`)
-    ? filePath.slice(workspace.length + 1)
-    : filePath;
-
-  return { relativePath, matches: matchLines };
+  return { filePath, matches: matchLines };
 }
 
 // ── Output formatters ────────────────────────────────────────────────
@@ -253,7 +243,7 @@ function formatContentMode(
           truncated: true,
         };
       }
-      lines.push(`${file.relativePath}:${m.lineNumber}:${m.line}`);
+      lines.push(`${file.filePath}:${m.lineNumber}:${m.line}`);
     }
     fileCount++;
   }
@@ -290,7 +280,7 @@ function formatCountMode(
         truncated: true,
       };
     }
-    lines.push(`${file.relativePath}:${file.matches.length}`);
+    lines.push(`${file.filePath}:${file.matches.length}`);
     totalMatches += file.matches.length;
   }
 
@@ -321,7 +311,7 @@ function formatFilesMode(
   const sliced = matches.slice(0, limit);
 
   return {
-    files: sliced.map((m) => m.relativePath),
+    files: sliced.map((m) => m.filePath),
     numFiles: sliced.length,
     ...(truncated ? { truncated: true, total: matches.length } : {}),
   };

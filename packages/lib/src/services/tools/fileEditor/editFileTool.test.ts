@@ -48,7 +48,10 @@ describe("editFileTool", () => {
         },
         {} as any,
       );
-      expect(result).toMatchObject({ path: "file.ts", replacements: 1 });
+      expect(result).toMatchObject({
+        path: path.join(tmpDir, "file.ts"),
+        replacements: 1,
+      });
       const content = await fsp.readFile(path.join(tmpDir, "file.ts"), "utf-8");
       expect(content).toBe("const x = 42;\nconst y = 2;\n");
     });

@@ -37,7 +37,7 @@ describe("readFileTool", () => {
     const t = createTool();
     const result = await t.execute({ file_path: "hello.txt" }, {} as any);
     expect(result).toMatchObject({
-      file_path: "hello.txt",
+      file_path: path.join(tmpDir, "hello.txt"),
       totalLines: 3,
     });
     expect((result as any).content).toContain("1\tline1");
@@ -48,7 +48,9 @@ describe("readFileTool", () => {
   it("returns error for missing file", async () => {
     const t = createTool();
     const result = await t.execute({ file_path: "nope.txt" }, {} as any);
-    expect(result).toMatchObject({ error: "File not found: nope.txt" });
+    expect(result).toMatchObject({
+      error: `File not found: ${path.join(tmpDir, "nope.txt")}`,
+    });
   });
 
   it("supports offset and limit for partial reads", async () => {

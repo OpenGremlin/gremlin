@@ -4,7 +4,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
 import type { FileStateTracker } from "./fileState.js";
-import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";
+import { resolveAndValidate } from "./pathUtils.js";
 
 /**
  * Tool that writes (creates or overwrites) a file in the workspace.
@@ -24,7 +24,7 @@ export function writeFileTool(
       file_path: z
         .string()
         .describe(
-          "Path to the file (relative to workspace root, or absolute within workspace)",
+          "Absolute path to the file within the workspace (e.g. /workspace/src/index.ts)",
         ),
       content: z.string().describe("The full content to write to the file"),
     }),
@@ -41,12 +41,9 @@ export function writeFileTool(
       // Clear tracked state so a fresh read is required before the next edit.
       tracker.clear(resolved);
 
-      const workspace = getWorkspacePath();
-      const relativePath = path.relative(workspace, resolved);
-
       return {
         type: fileExists ? ("update" as const) : ("create" as const),
-        path: relativePath,
+        path: resolved,
       };
     },
   });

@@ -20,7 +20,7 @@ export function readFileTool(tracker: FileStateTracker) {
       file_path: z
         .string()
         .describe(
-          "Path to the file (relative to workspace root, or absolute within workspace)",
+          "Absolute path to the file within the workspace (e.g. /workspace/src/index.ts)",
         ),
       offset: z
         .number()
@@ -46,7 +46,7 @@ export function readFileTool(tracker: FileStateTracker) {
       try {
         content = await fs.readFile(resolved, "utf-8");
       } catch {
-        return { error: `File not found: ${file_path}` };
+        return { error: `File not found: ${resolved}` };
       }
 
       const lines = content.split("\n");
@@ -65,7 +65,7 @@ export function readFileTool(tracker: FileStateTracker) {
       tracker.recordRead(resolved, content, isPartialRead);
 
       return {
-        file_path,
+        file_path: resolved,
         totalLines,
         content: numbered,
         ...(isPartialRead

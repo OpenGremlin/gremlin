@@ -1,10 +1,9 @@
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
 import type { FileStateTracker } from "./fileState.js";
-import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";
+import { resolveAndValidate } from "./pathUtils.js";
 
 /**
  * Tool that performs exact string replacements in files, mirroring
@@ -30,7 +29,7 @@ export function editFileTool(
       file_path: z
         .string()
         .describe(
-          "Path to the file (relative to workspace root, or absolute within workspace)",
+          "Absolute path to the file within the workspace (e.g. /workspace/src/index.ts)",
         ),
       old_string: z.string().describe("The exact text to find in the file"),
       new_string: z
@@ -63,7 +62,7 @@ export function editFileTool(
       try {
         content = await fs.readFile(resolved, "utf-8");
       } catch {
-        return { error: `File not found: ${file_path}` };
+        return { error: `File not found: ${resolved}` };
       }
 
       tracker.validateForWrite(resolved, true);
@@ -72,14 +71,14 @@ export function editFileTool(
       const matchCount = countOccurrences(content, old_string);
       if (matchCount === 0) {
         return {
-          error: `old_string not found in ${file_path}. Make sure the text matches exactly, including whitespace and indentation.`,
+          error: `old_string not found in ${resolved}. Make sure the text matches exactly, including whitespace and indentation.`,
         };
       }
 
       if (matchCount > 1 && !replace_all) {
         return {
           error:
-            `old_string appears ${matchCount} times in ${file_path}. ` +
+            `old_string appears ${matchCount} times in ${resolved}. ` +
             "Either set replace_all to true, or include more surrounding " +
             "context in old_string to make the match unique.",
         };
@@ -95,11 +94,8 @@ export function editFileTool(
       // Clear staleness so a fresh read is needed before the next edit.
       tracker.clear(resolved);
 
-      const workspace = getWorkspacePath();
-      const relativePath = path.relative(workspace, resolved);
-
       return {
-        path: relativePath,
+        path: resolved,
         replacements: replace_all ? matchCount : 1,
       };
     },

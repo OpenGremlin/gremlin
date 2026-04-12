@@ -26,7 +26,7 @@ export function globTool() {
         .string()
         .optional()
         .describe(
-          "Directory to search in (relative to workspace). Omit for workspace root.",
+          "Absolute directory path within the workspace (e.g. /workspace/src). Omit for workspace root.",
         ),
     }),
     execute: async ({ pattern, path: searchPath }) => {
@@ -73,16 +73,9 @@ export function globTool() {
       const truncated = withStats.length > MAX_RESULTS;
       const results = withStats.slice(0, MAX_RESULTS);
 
-      // Return paths relative to workspace.
-      const relative = results.map((r) =>
-        r.file.startsWith(`${workspace}/`)
-          ? r.file.slice(workspace.length + 1)
-          : r.file,
-      );
-
       return {
-        numFiles: relative.length,
-        files: relative,
+        numFiles: results.length,
+        files: results.map((r) => r.file),
         ...(truncated
           ? {
               truncated: true,

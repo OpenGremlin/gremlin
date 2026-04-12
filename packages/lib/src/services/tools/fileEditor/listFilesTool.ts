@@ -21,7 +21,7 @@ export function listFilesTool() {
         .optional()
         .default("")
         .describe(
-          "Directory path relative to workspace root. Omit or pass empty string for workspace root.",
+          "Absolute directory path within the workspace (e.g. /workspace/src). Omit or pass empty string for workspace root.",
         ),
     }),
     execute: async ({ path: dirPath }) => {
@@ -33,7 +33,7 @@ export function listFilesTool() {
       try {
         entries = await fs.readdir(resolved, { withFileTypes: true });
       } catch {
-        return { error: `Directory not found: ${dirPath || "/"}` };
+        return { error: `Directory not found: ${resolved}` };
       }
 
       const items = entries
@@ -42,7 +42,7 @@ export function listFilesTool() {
         .slice(0, MAX_ENTRIES);
 
       return {
-        path: dirPath || "/",
+        path: resolved,
         entries: items,
         ...(entries.length > MAX_ENTRIES
           ? { truncated: true, total: entries.length }

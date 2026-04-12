@@ -33,9 +33,9 @@ describe("globTool", () => {
     const result = (await t.execute({ pattern: "**/*.ts" }, {} as any)) as any;
 
     expect(result.numFiles).toBe(2);
-    expect(result.files).toContain("src/index.ts");
-    expect(result.files).toContain("src/utils.ts");
-    expect(result.files).not.toContain("src/readme.md");
+    expect(result.files).toContain(path.join(tmpDir, "src/index.ts"));
+    expect(result.files).toContain(path.join(tmpDir, "src/utils.ts"));
+    expect(result.files).not.toContain(path.join(tmpDir, "src/readme.md"));
   });
 
   it("scopes search to a subdirectory", async () => {
@@ -49,7 +49,7 @@ describe("globTool", () => {
     )) as any;
 
     expect(result.numFiles).toBe(1);
-    expect(result.files).toContain("src/app.ts");
+    expect(result.files).toContain(path.join(tmpDir, "src/app.ts"));
   });
 
   it("returns empty result for no matches", async () => {
@@ -81,7 +81,7 @@ describe("globTool", () => {
     )) as any;
 
     expect(result.numFiles).toBe(2);
-    expect(result.files).toContain("a.json");
-    expect(result.files).toContain("b.yaml");
+    expect(result.files).toContain(path.join(tmpDir, "a.json"));
+    expect(result.files).toContain(path.join(tmpDir, "b.yaml"));
   });
 });

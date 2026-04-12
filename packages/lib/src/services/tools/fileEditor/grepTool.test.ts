@@ -37,9 +37,9 @@ describe("grepTool", () => {
       )) as any;
 
       expect(result.numFiles).toBe(2);
-      expect(result.files).toContain("a.ts");
-      expect(result.files).toContain("c.ts");
-      expect(result.files).not.toContain("b.ts");
+      expect(result.files).toContain(path.join(tmpDir, "a.ts"));
+      expect(result.files).toContain(path.join(tmpDir, "c.ts"));
+      expect(result.files).not.toContain(path.join(tmpDir, "b.ts"));
     });
 
     it("returns empty for no matches", async () => {
@@ -67,7 +67,9 @@ describe("grepTool", () => {
       )) as any;
 
       expect(result.numFiles).toBe(1);
-      expect(result.content).toContain("src/app.ts:2:const x = 42;");
+      expect(result.content).toContain(
+        `${path.join(tmpDir, "src/app.ts")}:2:const x = 42;`,
+      );
     });
 
     it("supports context lines", async () => {
@@ -83,9 +85,15 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.content).toContain("file.ts:2:line2");
-      expect(result.content).toContain("file.ts:3:MATCH");
-      expect(result.content).toContain("file.ts:4:line4");
+      expect(result.content).toContain(
+        `${path.join(tmpDir, "file.ts")}:2:line2`,
+      );
+      expect(result.content).toContain(
+        `${path.join(tmpDir, "file.ts")}:3:MATCH`,
+      );
+      expect(result.content).toContain(
+        `${path.join(tmpDir, "file.ts")}:4:line4`,
+      );
     });
 
     it("supports case insensitive search", async () => {
@@ -118,8 +126,8 @@ describe("grepTool", () => {
 
       expect(result.numFiles).toBe(2);
       expect(result.numMatches).toBe(3);
-      expect(result.counts).toContain("a.ts:2");
-      expect(result.counts).toContain("b.ts:1");
+      expect(result.counts).toContain(`${path.join(tmpDir, "a.ts")}:2`);
+      expect(result.counts).toContain(`${path.join(tmpDir, "b.ts")}:1`);
     });
   });
 
@@ -136,7 +144,7 @@ describe("grepTool", () => {
       )) as any;
 
       expect(result.numFiles).toBe(1);
-      expect(result.files).toContain("a.ts");
+      expect(result.files).toContain(path.join(tmpDir, "a.ts"));
     });
 
     it("scopes to a subdirectory", async () => {
@@ -150,7 +158,7 @@ describe("grepTool", () => {
       )) as any;
 
       expect(result.numFiles).toBe(1);
-      expect(result.files).toContain("src/a.ts");
+      expect(result.files).toContain(path.join(tmpDir, "src/a.ts"));
     });
 
     it("searches a single file", async () => {
@@ -162,7 +170,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.content).toContain("file.ts:2:world");
+      expect(result.content).toContain(
+        `${path.join(tmpDir, "file.ts")}:2:world`,
+      );
     });
   });
 
