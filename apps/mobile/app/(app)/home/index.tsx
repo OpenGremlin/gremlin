@@ -16,6 +16,7 @@ import {
   TaskUpdatedSubscription,
 } from "../../../src/graphql/queries";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
+import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -173,6 +174,11 @@ const PAGE_SIZE = 20;
 
 export default function HomeScreen() {
   const colors = useNavigationTheme();
+  const tabBarHeight = useTabBarHeight();
+  const contentContainerStyle = useMemo(
+    () => ({ paddingBottom: tabBarHeight }),
+    [tabBarHeight],
+  );
   const { data, loading, error, refetch, fetchMore } = useQuery(TasksQuery, {
     variables: { last: PAGE_SIZE },
   });
@@ -220,6 +226,7 @@ export default function HomeScreen() {
   return (
     <FlatList
       contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={contentContainerStyle}
       data={nodes}
       keyExtractor={keyExtractor}
       renderItem={renderTaskItem}

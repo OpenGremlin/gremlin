@@ -34,6 +34,7 @@ import {
 } from "../../hooks/useLogMessages";
 import type { CommandStream } from "../../hooks/useSandboxOutput";
 import { useSpeechStream } from "../../hooks/useSpeechStream";
+import { useTabBarHeight } from "../../hooks/useTabBarHeight";
 import { hexToTransparent } from "../../lib/color";
 import { hasDraft } from "../../lib/drawingDraft";
 import { drawingEvents } from "../../lib/drawingEvents";
@@ -93,11 +94,7 @@ export function ChatScreen({
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
-  // Matches tabBarStyle.height in app/(app)/_layout.tsx. The native tab bar
-  // has extra top padding for the blur fade zone, and its bottom padding is
-  // trimmed below the raw safe-area inset.
-  const tabBarHeight =
-    (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0));
+  const tabBarHeight = useTabBarHeight();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const keyboardVisible = keyboardHeight > 0;
   // When the keyboard is up the tab bar is hidden behind it; only reserve

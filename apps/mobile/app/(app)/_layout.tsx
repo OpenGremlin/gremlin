@@ -5,6 +5,7 @@ import { Redirect, Tabs } from "expo-router";
 import { Bot, Calendar, FolderOpen, Home, Settings } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabBarHeight } from "../../src/hooks/useTabBarHeight";
 import { useAuth } from "../../src/lib/AuthContext";
 import { isAuthEnabled } from "../../src/lib/auth";
 import {
@@ -47,6 +48,7 @@ function AppTabs() {
   const { pendingCount } = usePendingCount();
   const { isDark } = useTheme();
   const isWeb = process.env.EXPO_OS === "web";
+  const tabBarHeight = useTabBarHeight();
 
   return (
     <Tabs
@@ -61,16 +63,10 @@ function AppTabs() {
           borderTopColor: colors.tabBarBorder,
           elevation: 0,
           shadowColor: "transparent",
-          // Extra top padding on native reserves a breathing zone above the
-          // icons for the blur to fade out through. Bottom padding is trimmed
-          // below the raw safe-area inset so icons sit closer to the home
-          // indicator instead of floating high in the bar. Keep in sync with
-          // tabBarHeight in ChatScreen.
           paddingTop: isWeb ? 6 : 28,
           paddingBottom: isWeb ? 6 : Math.max(insets.bottom - 14, 8),
           paddingHorizontal: 20,
-          height:
-            (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0)),
+          height: tabBarHeight,
           ...(isWeb ? { boxShadow: "none" } : {}),
         },
         tabBarBackground: isWeb
