@@ -12,6 +12,8 @@ function cardSubtitle(file: FileNode): string {
   parts.push(formatFileSize(file.sizeBytes));
   if (file.render.__typename === "CodeRender") {
     parts.push(file.render.language);
+  } else if (file.render.__typename === "DocumentRender") {
+    parts.push("document");
   } else if (file.mimeType) {
     parts.push(file.mimeType);
   }
@@ -86,26 +88,17 @@ export function FileCard({
     >
       <View className="flex-row items-center gap-2 px-3 py-2">
         <FileTypeIcon fileType={file.fileType} size={14} />
-        {isDocument ? (
+        <View className="flex-1 min-w-0">
           <Text
-            className="text-sm font-medium text-text-secondary flex-1"
+            className="text-sm font-medium text-text-secondary"
             numberOfLines={1}
           >
             {displayTitle}
           </Text>
-        ) : (
-          <View className="flex-1 min-w-0">
-            <Text
-              className="text-sm font-medium text-text-secondary"
-              numberOfLines={1}
-            >
-              {file.name}
-            </Text>
-            <Text className="text-[10px] text-text-muted" numberOfLines={1}>
-              {cardSubtitle(file)}
-            </Text>
-          </View>
-        )}
+          <Text className="text-[10px] text-text-muted" numberOfLines={1}>
+            {cardSubtitle(file)}
+          </Text>
+        </View>
       </View>
     </Pressable>
   );
