@@ -14,10 +14,10 @@ import { formatTime } from "../formatDate";
 
 const COLLAPSED_MAX_HEIGHT = 100;
 
-const darkCodeBg = "#0a0a0a";
+const darkCodeBg = "#0e0918";
 const darkCodeText = "rgba(74,222,128,0.9)";
-const darkCodeFade = "rgba(10,10,10,0.9)";
-const darkCodeFadeTransparent = "rgba(10,10,10,0)";
+const darkCodeFade = "rgba(14,9,24,0.9)";
+const darkCodeFadeTransparent = "rgba(14,9,24,0)";
 const lightCodeBg = "#e4e4e4";
 const lightCodeText = "#b45309";
 const lightCodeFade = "rgba(228,228,228,0.9)";

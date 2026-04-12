@@ -1,13 +1,13 @@
 import { useTheme } from "./ThemeContext";
 
 const lightColors = {
-  background: "#f0f0f0",
-  headerBackground: "#f0f0f0",
+  background: "#f5f2ed",
+  headerBackground: "#f5f2ed",
   headerText: "#171717",
-  tabBarBackground: "#f0f0f0",
-  tabBarBorder: "#d4d4d4",
+  tabBarBackground: "#f5f2ed",
+  tabBarBorder: "#ddd8d0",
   tabBarActive: "#4f46e5",
-  tabBarInactive: "#525252",
+  tabBarInactive: "#4a4540",
   border: "#d4d4d4",
   loadingIndicator: "#a3a3a3",
   accentIndicator: "#4f46e5",
@@ -23,11 +23,11 @@ const lightColors = {
 };
 
 const darkColors = {
-  background: "#141414",
-  headerBackground: "#141414",
+  background: "#110c18",
+  headerBackground: "#110c18",
   headerText: "#e5e5e5",
-  tabBarBackground: "#141414",
-  tabBarBorder: "#2a2a2a",
+  tabBarBackground: "#110c18",
+  tabBarBorder: "#271e34",
   tabBarActive: "#a5b4fc",
   tabBarInactive: "#a3a3a3",
   border: "#404040",
