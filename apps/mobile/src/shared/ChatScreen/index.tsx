@@ -15,7 +15,6 @@ import {
   Alert,
   FlatList,
   Keyboard,
-  KeyboardAvoidingView,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -99,11 +98,12 @@ export function ChatScreen({
   // trimmed below the raw safe-area inset.
   const tabBarHeight =
     (isWeb ? 56 : 78) + (isWeb ? 0 : Math.max(insets.bottom - 14, 0));
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardVisible = keyboardHeight > 0;
   // When the keyboard is up the tab bar is hidden behind it; only reserve
   // space for the input bar in that case.
   const bottomChromeHeight =
-    INPUT_BAR_HEIGHT + (keyboardVisible ? 0 : tabBarHeight);
+    INPUT_BAR_HEIGHT + (keyboardVisible ? keyboardHeight : tabBarHeight);
   // On native the list is inverted, so paddingTop is the *visual* bottom
   // (where newest messages sit). Reserve enough space for the floating
   // input capsule (and tab bar, when visible) so the newest message isn't
@@ -126,11 +126,11 @@ export function ChatScreen({
   useEffect(() => {
     const show = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      () => setKeyboardVisible(true),
+      (e) => setKeyboardHeight(e.endCoordinates.height),
     );
     const hide = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardVisible(false),
+      () => setKeyboardHeight(0),
     );
     return () => {
       show.remove();
@@ -505,11 +505,7 @@ export function ChatScreen({
   ) : null;
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-bg"
-      behavior={process.env.EXPO_OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
-    >
+    <View className="flex-1 bg-bg">
       <FlatList
         ref={listRef}
         style={isWeb ? { flex: 1 } : undefined}
@@ -662,7 +658,7 @@ export function ChatScreen({
             position: "absolute",
             left: 0,
             right: 0,
-            bottom: keyboardVisible ? 0 : tabBarHeight,
+            bottom: keyboardVisible ? keyboardHeight : tabBarHeight,
             zIndex: 1,
           }}
         >
@@ -678,6 +674,6 @@ export function ChatScreen({
           />
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
