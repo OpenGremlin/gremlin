@@ -172,7 +172,7 @@ export function ChatInputBar({
 
         <TextInput
           ref={inputRef}
-          className="flex-1 text-text-primary text-base leading-[20px] px-1 outline-none"
+          className="flex-1 text-text-primary text-base leading-[20px] px-1 outline-none relative z-10"
           style={{
             ...(!isWeb && { minHeight: 34 }),
             ...(isWeb && webHeight > 0 && { height: Math.min(140, webHeight) }),

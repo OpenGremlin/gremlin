@@ -1,25 +1,27 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-import PdfRendererView from "react-native-pdf-renderer";
 import { useAuth } from "../lib/AuthContext";
-import { downloadAuthFile } from "../lib/downloadAuthFile";
 import { DelayedSpinner } from "./DelayedSpinner";
 
 export function PdfViewer({ url }: { url: string }) {
   const { token } = useAuth();
-  const [localUri, setLocalUri] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
-  const tokenRef = useRef(token);
-  tokenRef.current = token;
 
   useEffect(() => {
     let cancelled = false;
-    setLocalUri(null);
+    setBlobUrl(null);
     setError(false);
 
-    downloadAuthFile(url, { token: tokenRef.current, filename: "file.pdf" })
-      .then((file) => {
-        if (!cancelled) setLocalUri(file.uri);
+    fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!cancelled) setBlobUrl(URL.createObjectURL(blob));
       })
       .catch(() => {
         if (!cancelled) setError(true);
@@ -27,8 +29,12 @@ export function PdfViewer({ url }: { url: string }) {
 
     return () => {
       cancelled = true;
+      setBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     };
-  }, [url]);
+  }, [url, token]);
 
   if (error) {
     return (
@@ -38,7 +44,7 @@ export function PdfViewer({ url }: { url: string }) {
     );
   }
 
-  if (!localUri) {
+  if (!blobUrl) {
     return (
       <View className="flex-1 items-center justify-center bg-bg">
         <DelayedSpinner />
@@ -48,11 +54,10 @@ export function PdfViewer({ url }: { url: string }) {
 
   return (
     <View className="flex-1 bg-bg">
-      <PdfRendererView
-        source={localUri}
-        distanceBetweenPages={16}
-        maxPageResolution={2048}
-        style={{ flex: 1, backgroundColor: "transparent" }}
+      <iframe
+        src={blobUrl}
+        style={{ flex: 1, border: "none" }}
+        title="PDF preview"
       />
     </View>
   );
