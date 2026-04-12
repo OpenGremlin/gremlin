@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { ArrowUp, Paperclip } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -109,11 +109,6 @@ export function ChatInputBar({
     });
     onSend();
   }, [onSend, sendScale]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   if (disabled) {
     return (
