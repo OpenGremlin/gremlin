@@ -35,10 +35,6 @@ import { PendingApprovals } from "../../../src/shared/PendingApprovals";
 import { PendingInputRequests } from "../../../src/shared/PendingInputRequests";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
-function ListSeparator() {
-  return <View className="h-px bg-border-subtle mx-4" />;
-}
-
 type TaskItem = {
   id: string;
   title: string;
@@ -227,7 +223,6 @@ export default function HomeScreen() {
       data={nodes}
       keyExtractor={keyExtractor}
       renderItem={renderTaskItem}
-      ItemSeparatorComponent={ListSeparator}
       ListHeaderComponent={
         approvals.length > 0 || pendingInputRequests.length > 0 ? (
           <View>
