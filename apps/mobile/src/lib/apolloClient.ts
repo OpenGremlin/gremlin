@@ -124,17 +124,26 @@ export function setApolloOnUnauthorized(cb: () => void) {
   _onUnauthorized = cb;
 }
 
+const RETRY_CONTEXT_KEY = "__401_retried";
+
 const errorLink = onError(({ networkError, operation, forward }) => {
   if (
     networkError &&
     "statusCode" in networkError &&
     networkError.statusCode === 401
   ) {
+    if (operation.getContext()[RETRY_CONTEXT_KEY]) {
+      clientLogger.warn("Apollo 401 after retry, logging out");
+      clearToken();
+      _onUnauthorized?.();
+      return;
+    }
+
     clientLogger.warn("Apollo 401, attempting token refresh");
 
     return new Observable((observer) => {
       refreshSession()
-        .then((refreshed) => {
+        .then(async (refreshed) => {
           if (!refreshed) {
             clientLogger.warn("Token refresh failed, logging out");
             clearToken();
@@ -143,7 +152,16 @@ const errorLink = onError(({ networkError, operation, forward }) => {
             return;
           }
 
-          // Retry the operation with the new token
+          const token = await getToken();
+          const oldHeaders = operation.getContext().headers ?? {};
+          operation.setContext({
+            [RETRY_CONTEXT_KEY]: true,
+            headers: {
+              ...oldHeaders,
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          });
+
           const subscriber = forward(operation).subscribe({
             next: observer.next.bind(observer),
             error: observer.error.bind(observer),
