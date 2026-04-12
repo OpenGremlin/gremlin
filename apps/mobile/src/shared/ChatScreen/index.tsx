@@ -6,7 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
-import { ChevronLeft, EllipsisVertical } from "lucide-react-native";
+import { ArrowDown, ChevronLeft, EllipsisVertical } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -21,6 +21,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ClearAgentLogMutation } from "../../graphql/queries";
 import { useAgentStream } from "../../hooks/useAgentStream";
@@ -107,17 +108,21 @@ export function ChatScreen({
   // (where newest messages sit). Reserve enough space for the floating
   // input capsule (and tab bar, when visible) so the newest message isn't
   // hidden under them while older content can still scroll behind them.
-  const flatListContentStyle = isWeb
-    ? {
-        paddingHorizontal: 16,
-        paddingTop: 200,
-        paddingBottom: 8 + bottomChromeHeight,
-      }
-    : {
-        paddingHorizontal: 16,
-        paddingTop: 8 + bottomChromeHeight,
-        paddingBottom: 200,
-      };
+  const flatListContentStyle = useMemo(
+    () =>
+      isWeb
+        ? {
+            paddingHorizontal: 16,
+            paddingTop: 200,
+            paddingBottom: 8 + bottomChromeHeight,
+          }
+        : {
+            paddingHorizontal: 16,
+            paddingTop: 8 + bottomChromeHeight,
+            paddingBottom: 200,
+          },
+    [bottomChromeHeight],
+  );
   useEffect(() => {
     const show = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -436,9 +441,8 @@ export function ChatScreen({
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
 
-  // On web (non-inverted), detect scroll position for two purposes:
-  // 1. Load older messages when near the top
-  // 2. Un-pin auto-scroll when user scrolls away from the bottom
+  const [showScrollDown, setShowScrollDown] = useState(false);
+
   const handleScroll = useCallback(
     (e: {
       nativeEvent: {
@@ -447,21 +451,27 @@ export function ChatScreen({
         layoutMeasurement: { height: number };
       };
     }) => {
-      if (!isWeb) return;
       const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      if (hasMore && contentOffset.y < 200) {
-        loadMore();
-      }
-      // Only update pin state from user-initiated scrolls. Programmatic
-      // scrolls are identified by a recent timestamp.
-      if (Date.now() - lastAutoScrollAt.current > 200) {
-        const distFromBottom =
-          contentSize.height - contentOffset.y - layoutMeasurement.height;
-        atBottom.current = distFromBottom < 100;
+
+      if (isWeb) {
+        if (hasMore && contentOffset.y < 200) {
+          loadMore();
+        }
+        if (Date.now() - lastAutoScrollAt.current > 200) {
+          const distFromBottom =
+            contentSize.height - contentOffset.y - layoutMeasurement.height;
+          atBottom.current = distFromBottom < 100;
+        }
+      } else {
+        setShowScrollDown(contentOffset.y > 300);
       }
     },
     [hasMore, loadMore],
   );
+
+  const scrollToBottom = useCallback(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [listRef]);
 
   if (externalLoading || messagesLoading) {
     return <QueryResult loading error={null} />;
@@ -509,10 +519,15 @@ export function ChatScreen({
         inverted={!isWeb}
         onEndReached={!isWeb && hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
-        onScroll={isWeb ? handleScroll : undefined}
+        onScroll={handleScroll}
         onContentSizeChange={isWeb ? onContentSizeChange : undefined}
-        scrollEventThrottle={isWeb ? 100 : undefined}
+        scrollEventThrottle={100}
         contentContainerStyle={flatListContentStyle}
+        maintainVisibleContentPosition={
+          !isWeb
+            ? { minIndexForVisible: 0, autoscrollToTopThreshold: 200 }
+            : undefined
+        }
         // On web, disable windowing so all items stay mounted (the list is
         // small enough that this is fine).
         {...(isWeb && { windowSize: 100 })}
@@ -529,6 +544,31 @@ export function ChatScreen({
         ListHeaderComponent={isWeb ? loadingSpinner : pendingBubbles}
         ListFooterComponent={isWeb ? pendingBubbles : loadingSpinner}
       />
+
+      {!isWeb && showScrollDown && (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          style={{
+            position: "absolute",
+            alignSelf: "center",
+            bottom: bottomChromeHeight + 16,
+            zIndex: 3,
+          }}
+        >
+          <Pressable
+            onPress={scrollToBottom}
+            className="bg-surface border border-app-border rounded-full items-center justify-center"
+            style={{
+              width: 36,
+              height: 36,
+              borderCurve: "continuous",
+            }}
+          >
+            <ArrowDown size={18} color={colors.accent} />
+          </Pressable>
+        </Animated.View>
+      )}
 
       <View pointerEvents="box-none" style={overlayContainerStyle}>
         <View

@@ -2,6 +2,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatTime } from "../formatDate";
@@ -112,6 +118,11 @@ export function ToolBlock({
   const colors = useNavigationTheme();
   const [open, setOpen] = useState(defaultOpen);
   const [expanded, setExpanded] = useState(false);
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [
+      { rotate: withTiming(open ? "90deg" : "0deg", { duration: 200 }) },
+    ],
+  }));
 
   const contentBlock =
     streaming || !children ? (
@@ -142,13 +153,9 @@ export function ToolBlock({
         onPress={() => setOpen((o) => !o)}
         className="flex-row items-center gap-1.5 py-1"
       >
-        <View
-          style={{
-            transform: [{ rotate: open ? "90deg" : "0deg" }],
-          }}
-        >
+        <Animated.View style={chevronStyle}>
           <ChevronRight size={14} color={colors.headerText} />
-        </View>
+        </Animated.View>
         {typeof label === "string" ? (
           <Text
             className="text-sm text-text-secondary font-bold font-mono flex-shrink"
@@ -166,7 +173,14 @@ export function ToolBlock({
         )}
       </Pressable>
 
-      {open && contentBlock}
+      {open && (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+        >
+          {contentBlock}
+        </Animated.View>
+      )}
     </View>
   );
 }

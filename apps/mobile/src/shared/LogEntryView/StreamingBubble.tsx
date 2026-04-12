@@ -1,6 +1,14 @@
 import { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
+import ReanimatedModule, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import type { StreamingMessage } from "../../hooks/useAgentStream";
+import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Markdown } from "./Markdown";
 import { ReasoningBlock } from "./ReasoningBlock";
 
@@ -51,7 +59,7 @@ function TypingDots() {
   }, [dot1, dot2, dot3]);
 
   return (
-    <View className="flex-row items-center gap-1 py-1 px-1">
+    <View className="flex-row items-center gap-1 pt-1 pb-2 px-1">
       <Animated.View style={[dotStyle, { opacity: dot1 }]} />
       <Animated.View style={[dotStyle, { opacity: dot2 }]} />
       <Animated.View style={[dotStyle, { opacity: dot3 }]} />
@@ -59,10 +67,41 @@ function TypingDots() {
   );
 }
 
+function StreamingCursor() {
+  const colors = useNavigationTheme();
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.15, { duration: 500 }),
+        withTiming(1, { duration: 500 }),
+      ),
+      -1,
+    );
+  }, [opacity]);
+
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <ReanimatedModule.View
+      style={[
+        {
+          width: 2,
+          height: 14,
+          borderRadius: 1,
+          backgroundColor: colors.accent,
+          marginBottom: 2,
+        },
+        animStyle,
+      ]}
+    />
+  );
+}
+
 export function StreamingBubble({ message }: { message: StreamingMessage }) {
   const hasContent = message.content.length > 0;
   const hasReasoning = message.reasoning.length > 0;
-  // Reasoning is "still streaming" if we have reasoning but no text yet
   const isReasoningStreaming = hasReasoning && !hasContent;
 
   const elapsedMs =
@@ -82,7 +121,10 @@ export function StreamingBubble({ message }: { message: StreamingMessage }) {
             />
           )}
           {hasContent ? (
-            <Markdown variant="agent">{message.content}</Markdown>
+            <>
+              <Markdown variant="agent">{message.content}</Markdown>
+              <StreamingCursor />
+            </>
           ) : (
             !hasReasoning && <TypingDots />
           )}

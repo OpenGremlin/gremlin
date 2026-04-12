@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { ArrowUp, Paperclip } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,6 +9,11 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import type { FileUploadState } from "../../hooks/useFileUpload";
 import { haptics } from "../../lib/haptics";
 import { useTheme } from "../../lib/ThemeContext";
@@ -92,6 +97,18 @@ export function ChatInputBar({
   const hasText = input.trim().length > 0;
   const canSend = hasText && !sending;
   const hasUploads = uploads.length > 0;
+
+  const sendScale = useSharedValue(1);
+  const sendAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sendScale.value }],
+  }));
+  const handleSend = useCallback(() => {
+    haptics.light();
+    sendScale.value = withSpring(0.85, { damping: 12, stiffness: 400 }, () => {
+      sendScale.value = withSpring(1, { damping: 10, stiffness: 300 });
+    });
+    onSend();
+  }, [onSend, sendScale]);
 
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 300);
@@ -178,21 +195,20 @@ export function ChatInputBar({
 
         {(canSend || sending) && (
           <View style={{ paddingBottom: 2 }}>
-            <Pressable
-              onPress={() => {
-                haptics.light();
-                onSend();
-              }}
-              disabled={!canSend}
-              className={`rounded-full items-center justify-center bg-accent ${canSend ? "active:bg-accent-light" : "opacity-50"}`}
-              style={{ width: 30, height: 30 }}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <ArrowUp size={18} color="#fff" />
-              )}
-            </Pressable>
+            <Animated.View style={sendAnimStyle}>
+              <Pressable
+                onPress={handleSend}
+                disabled={!canSend}
+                className={`rounded-full items-center justify-center bg-accent ${canSend ? "active:bg-accent-light" : "opacity-50"}`}
+                style={{ width: 30, height: 30 }}
+              >
+                {sending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <ArrowUp size={18} color="#fff" />
+                )}
+              </Pressable>
+            </Animated.View>
           </View>
         )}
       </View>

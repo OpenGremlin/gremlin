@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
 
@@ -32,42 +33,44 @@ function Tile({
   overlayCount?: number;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        flex: 1,
-        borderRadius: 4,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <AuthImage
-        uri={image.render.url}
-        style={{ width: "100%", height: "100%" }}
-        contentFit="cover"
-      />
-      {overlayCount ? (
-        <View
-          style={{
-            position: "absolute",
-            inset: 0,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(0,0,0,0.45)",
-          }}
-        >
-          <Text
+    <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+      <Pressable
+        onPress={onPress}
+        style={{
+          flex: 1,
+          borderRadius: 4,
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        <AuthImage
+          uri={image.render.url}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
+        {overlayCount ? (
+          <View
             style={{
-              color: "white",
-              fontSize: 22,
-              fontWeight: "600",
+              position: "absolute",
+              inset: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0,0,0,0.45)",
             }}
           >
-            +{overlayCount}
-          </Text>
-        </View>
-      ) : null}
-    </Pressable>
+            <Text
+              style={{
+                color: "white",
+                fontSize: 22,
+                fontWeight: "600",
+              }}
+            >
+              +{overlayCount}
+            </Text>
+          </View>
+        ) : null}
+      </Pressable>
+    </Animated.View>
   );
 }
 
