@@ -93,7 +93,7 @@ export function ChatInputBar({
   const { isDark } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const isWeb = process.env.EXPO_OS === "web";
-  const [webHeight, setWebHeight] = useState(0);
+  const [webHeight, _setWebHeight] = useState(0);
   const hasText = input.trim().length > 0;
   const canSend = hasText && !sending;
   const hasUploads = uploads.length > 0;

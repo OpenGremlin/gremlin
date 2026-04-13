@@ -102,7 +102,7 @@ export type AgentLog = {
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
-  toolName?: Maybe<ToolName>;
+  toolName?: Maybe<Scalars['String']['output']>;
   toolResult?: Maybe<Scalars['String']['output']>;
 };
 
@@ -1376,7 +1376,7 @@ export type AgentLogsQueryVariables = Exact<{
 }>;
 
 
-export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
           | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
@@ -1442,7 +1442,7 @@ export type AgentLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
       | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
@@ -1461,7 +1461,7 @@ export type LogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type LogCreatedSubscription = { __typename?: 'Subscription', logCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type LogCreatedSubscription = { __typename?: 'Subscription', logCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
       | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
@@ -1633,7 +1633,7 @@ export type AgentSummaryFragment = { __typename?: 'Agent', id: string, name: str
 
 export type AgentDetailFragment = { __typename?: 'Agent', id: string, name: string, avatar: string, portraitId: string, imageUrl: string, personality?: string | null, role?: string | null, delegationHint?: string | null, retired: boolean, ttsVoice?: string | null, config?: { __typename?: 'AgentConfig', model?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, imageModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, speechModel?: { __typename?: 'AgentModelConfig', type: string, modelId?: string | null, connectionId?: string | null } | null, sandbox?: { __typename?: 'AgentSandboxConfig', enabled: boolean, idleTimeoutMinutes?: number | null, alwaysOn?: boolean | null, commandApproval: string } | null, webSearch?: { __typename?: 'AgentWebSearchConfig', enabled: boolean, provider?: string | null } | null, reasoning?: { __typename?: 'AgentReasoningConfig', enabled: boolean } | null, viewImage?: { __typename?: 'AgentViewImageConfig', enabled: boolean } | null, imageGeneration?: { __typename?: 'AgentImageGenerationConfig', enabled: boolean } | null, speech?: { __typename?: 'AgentSpeechConfig', enabled: boolean, voice?: string | null } | null, manager?: { __typename?: 'AgentManagerConfig', enabled: boolean, team: Array<string> } | null } | null };
 
-export type AgentLogFieldsFragment = { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type AgentLogFieldsFragment = { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
     | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
@@ -2017,7 +2017,7 @@ export type TaskLogsQueryVariables = Exact<{
 }>;
 
 
-export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'AgentLogConnection', edges: Array<{ __typename?: 'AgentLogEdge', cursor: string, node: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
           | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
@@ -2035,7 +2035,7 @@ export type TaskLogCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: ToolName | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
+export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogCreated: { __typename?: 'AgentLog', id: string, role: AgentLogRole, content: string, toolName?: string | null, toolInput?: string | null, toolResult?: string | null, displayHint?: string | null, displayVariant?: string | null, displayError?: string | null, commandApprovalId?: string | null, taskId?: string | null, createdAt: string, attachments: Array<
       | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }

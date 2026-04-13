@@ -122,7 +122,7 @@ export type AgentLog = {
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
   toolInput?: Maybe<Scalars['String']['output']>;
-  toolName?: Maybe<ToolName>;
+  toolName?: Maybe<Scalars['String']['output']>;
   toolResult?: Maybe<Scalars['String']['output']>;
 };
 
@@ -1712,7 +1712,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  toolName?: Resolver<Maybe<ResolversTypes['ToolName']>, ParentType, ContextType>;
+  toolName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
