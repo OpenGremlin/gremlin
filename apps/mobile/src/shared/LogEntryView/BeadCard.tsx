@@ -2,7 +2,7 @@ import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Check, Circle, ExternalLink } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { BeadUpdatedSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
@@ -90,6 +90,8 @@ export function BeadCard({
 
   // Subscribe to real-time bead updates (child adds, status changes)
   const [liveBead, setLiveBead] = useState<BeadInfo | null>(null);
+  const beadId = bead?.id;
+  useEffect(() => setLiveBead(null), [beadId]);
   useSubscription(BeadUpdatedSubscription, {
     variables: { id: bead?.id ?? "" },
     skip: !bead,

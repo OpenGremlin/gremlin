@@ -18,19 +18,26 @@ async function bdJson(args: string[]): Promise<unknown> {
   }
 }
 
+/** Parse a `bd show --json` result into a single issue object. */
+function parseBdShow(raw: string) {
+  const parsed = JSON.parse(raw);
+  return Array.isArray(parsed) ? parsed[0] : parsed;
+}
+
 /**
- * Publish a `beadUpdated` event for a top-level bead (epic or parentless task).
- * Fetches the current bead state + children and pushes it over pub/sub so that
- * subscribed clients (e.g. BeadCard) update in real time.
+ * Fetch a bead and publish a `beadUpdated` event for it.
+ * Only meaningful for top-level beads (epics or parentless tasks) — those are
+ * the ones clients subscribe to. Includes children so the BeadCard renders
+ * the full tree.
+ *
+ * Best-effort: pub/sub failures are logged but don't break the tool call.
  */
 async function publishBeadUpdated(
   ctx: ServiceContext,
   beadId: string,
 ): Promise<void> {
   try {
-    const raw = await bd(["show", beadId, "--json"]);
-    const parsed = JSON.parse(raw);
-    const issue = Array.isArray(parsed) ? parsed[0] : parsed;
+    const issue = parseBdShow(await bd(["show", beadId, "--json"]));
 
     const childrenRaw = await bd(["children", beadId, "--json"]).catch(
       () => "[]",
@@ -54,22 +61,28 @@ async function publishBeadUpdated(
     };
 
     ctx.resources.pubsub.publish(`beadUpdated:${beadId}`, event);
-  } catch {
-    // Best-effort — don't let pub/sub failures break the tool
+  } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: best-effort, no logger available
+    console.error(`[beads] publishBeadUpdated(${beadId}):`, err);
   }
 }
 
 /**
- * Look up the parent of a bead. Returns the parent ID or null.
+ * Fetch a bead and return its parent ID (if any).
+ * Also publishes a `beadUpdated` event for the resolved top-level bead,
+ * avoiding a redundant `bd show` call from the caller.
  */
-async function getParentId(issueId: string): Promise<string | null> {
+async function publishForIssue(
+  ctx: ServiceContext,
+  issueId: string,
+): Promise<void> {
   try {
-    const raw = await bd(["show", issueId, "--json"]);
-    const parsed = JSON.parse(raw);
-    const issue = Array.isArray(parsed) ? parsed[0] : parsed;
-    return issue.parent ?? null;
-  } catch {
-    return null;
+    const issue = parseBdShow(await bd(["show", issueId, "--json"]));
+    const parentId: string | undefined = issue.parent;
+    await publishBeadUpdated(ctx, parentId ?? issueId);
+  } catch (err) {
+    // biome-ignore lint/suspicious/noConsole: best-effort
+    console.error(`[beads] publishForIssue(${issueId}):`, err);
   }
 }
 
@@ -160,16 +173,10 @@ export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
           }
         }
 
-        // Notify parent epic so BeadCard updates in real time
+        // Notify parent epic so its BeadCard updates in real time.
+        // Top-level creates don't publish — no client is subscribed yet.
         if (parent) {
           await publishBeadUpdated(ctx, parent);
-        } else if (
-          typeof result === "object" &&
-          result !== null &&
-          "id" in result
-        ) {
-          // Top-level bead — publish its own event
-          await publishBeadUpdated(ctx, (result as { id: string }).id);
         }
 
         return result;
@@ -224,9 +231,9 @@ export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
           }
         }
 
-        // Publish update — parent epic if this is a child, otherwise self
-        const parentId = await getParentId(issue_id);
-        await publishBeadUpdated(ctx, parentId ?? issue_id);
+        // Publish update — parent epic if this is a child, otherwise self.
+        // publishForIssue does a single bd show to find the parent.
+        await publishForIssue(ctx, issue_id);
 
         return { success: true, issue_id };
       },
@@ -243,9 +250,6 @@ export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
           .describe("Reason for closing (e.g. completed, duplicate, wontfix)"),
       }),
       execute: async ({ issue_id, reason }) => {
-        // Look up parent before closing (close may change the issue state)
-        const parentId = await getParentId(issue_id);
-
         const args = ["close", issue_id];
         if (reason) args.push("--reason", reason);
 
@@ -255,8 +259,7 @@ export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
           return { error: String(err) };
         }
 
-        // Publish update — parent epic if this is a child, otherwise self
-        await publishBeadUpdated(ctx, parentId ?? issue_id);
+        await publishForIssue(ctx, issue_id);
 
         return { success: true, issue_id };
       },
