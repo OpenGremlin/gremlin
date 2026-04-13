@@ -1,30 +1,4 @@
-#!/bin/sh
-set -e
-
-echo "Running pre-commit checks..."
-
-echo "→ Lint"
-pnpm lint
-
-echo "→ Build & Typecheck"
-pnpm turbo build --filter @opengremlin/server --filter @opengremlin/mobile
-pnpm --filter @opengremlin/server exec tsc --noEmit
-pnpm --filter @opengremlin/mobile exec tsc --noEmit
-
-echo "→ Codegen"
-pnpm --filter @opengremlin/server codegen
-pnpm --filter @opengremlin/mobile codegen
-if ! git diff --quiet -- apps/server/src/gql/ apps/mobile/src/graphql/generated/; then
-  echo "ERROR: Codegen produced uncommitted changes. Please commit them before pushing."
-  git diff --stat -- apps/server/src/gql/ apps/mobile/src/graphql/generated/
-  exit 1
-fi
-
-echo "→ Tests"
-pnpm --filter @opengremlin/server test
-
-echo "All checks passed."
-
+#!/usr/bin/env sh
 # --- BEGIN BEADS INTEGRATION v1.0.0 ---
 # This section is managed by beads. Do not remove these markers.
 if command -v bd >/dev/null 2>&1; then

@@ -43,19 +43,26 @@ const bead = async (
   { id }: { id: string },
   ctx: GremlinContext,
 ) => {
-  const summary = await ctx.services.beads.showIssue({ issue_id: id });
-  const comments = await ctx.services.beads.getComments({ issue_id: id });
-  const lastComment =
-    comments.length > 0 ? comments[comments.length - 1].text : null;
-  return {
-    id: summary.id,
-    title: summary.title,
-    status: toBeadStatus(summary.status),
-    assignee: summary.assignee ?? null,
-    parentId: summary.parentId ?? null,
-    latestComment: lastComment,
-    _children: null, // resolved lazily by field resolver
-  };
+  try {
+    const summary = await ctx.services.beads.showIssue({ issue_id: id });
+    const comments = await ctx.services.beads
+      .getComments({ issue_id: id })
+      .catch(() => []);
+    const lastComment =
+      comments.length > 0 ? comments[comments.length - 1].text : null;
+    return {
+      id: summary.id,
+      title: summary.title,
+      status: toBeadStatus(summary.status),
+      assignee: summary.assignee ?? null,
+      parentId: summary.parentId ?? null,
+      latestComment: lastComment,
+      _children: null,
+    };
+  } catch {
+    // Bead not found (may exist in embedded DB but not server DB)
+    return null;
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -84,7 +91,9 @@ const children = async (
     return parent._children.map(mapIssue);
   }
   // Otherwise fetch children on demand (query path).
-  const kids = await ctx.services.beads.getChildren({ issue_id: parent.id });
+  const kids = await ctx.services.beads
+    .getChildren({ issue_id: parent.id })
+    .catch(() => []);
   if (kids.length === 0) return null;
   return kids.map((k) => ({
     id: k.id,

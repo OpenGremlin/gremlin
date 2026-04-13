@@ -1,8 +1,6 @@
-import { useQuery, useSubscription } from "@apollo/client";
-import {
-  BeadUpdatedSubscription,
-  GetBeadQuery,
-} from "../graphql/queries/beads";
+import { useQuery } from "@apollo/client";
+import { useEffect } from "react";
+import { GetBeadQuery } from "../graphql/queries/beads";
 
 export interface BeadChild {
   id: string;
@@ -28,24 +26,22 @@ export interface BeadInfo {
  * Fetches a bead by ID and subscribes to live updates.
  */
 export function useBeadInfo(beadId: string | null): BeadInfo | null {
-  const { data } = useQuery(GetBeadQuery, {
+  const { data, startPolling, stopPolling } = useQuery(GetBeadQuery, {
     variables: { id: beadId ?? "" },
     skip: !beadId,
+    // network-only: bead may not exist in the DB when the card first
+    // renders (race between tool call and UI query). We poll until loaded.
+    fetchPolicy: "network-only",
   });
 
-  useSubscription(BeadUpdatedSubscription, {
-    variables: { id: beadId ?? "" },
-    skip: !beadId,
-    onData: ({ client, data: subData }) => {
-      if (!subData.data?.beadUpdated) return;
-      // Update the Apollo cache so the useQuery result re-renders
-      client.writeQuery({
-        query: GetBeadQuery,
-        variables: { id: beadId },
-        data: { bead: subData.data.beadUpdated },
-      });
-    },
-  });
+  // Poll every 3s while the bead hasn't loaded, stop once it has data.
+  useEffect(() => {
+    if (!data?.bead) {
+      startPolling(3000);
+    } else {
+      stopPolling();
+    }
+  }, [data?.bead, startPolling, stopPolling]);
 
   const bead = data?.bead;
   if (!bead) return null;

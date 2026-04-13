@@ -1,7 +1,10 @@
 {
   "database": "dolt",
   "backend": "dolt",
-  "dolt_mode": "embedded",
+  "dolt_mode": "server",
+  "dolt_server_host": "127.0.0.1",
+  "dolt_server_port": 3307,
+  "dolt_server_user": "beads",
   "dolt_database": "gremlin",
-  "project_id": "c3379361-b992-41c2-ac62-69341f45dc0e"
+  "project_id": "a9d4122e-0423-42be-be82-7b4144b8e9b3"
 }
