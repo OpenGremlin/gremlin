@@ -17,10 +17,6 @@ export enum CommandApprovalDecision {
 
 export enum ToolName {
   // Task & messaging
-  UpdateTask = "updateTask",
-  CompleteTask = "completeTask",
-  BackgroundTask = "backgroundTask",
-  Delegate = "delegate",
   RequestUserInput = "requestUserInput",
 
   // File editor

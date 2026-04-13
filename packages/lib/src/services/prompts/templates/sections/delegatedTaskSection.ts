@@ -1,23 +1,16 @@
 /**
- * Rendered into a task lane's system prompt when the task was created
- * via cross-agent delegation (task.assignerAgentId !== task.agentId).
- * Replaces the implicit "you have full conversation context" framing
- * from background tasks: a delegated task has *no* shared history,
- * only the brief.
+ * Rendered into a task lane's system prompt when the task is a bead
+ * assigned by another agent. The worker has no shared conversation
+ * history — the bead description is the brief.
  */
-export const delegatedTaskSection = `<delegated_task>
-You are working on a task that was delegated to you by @{{delegated.assignerName}}. You cannot see their conversation history, their tools, or anything they were working on — everything you need is in the brief below.
+export const delegatedTaskSection = `<bead_assignment>
+You are working on bead \`{{beadId}}\`.
 
-<brief>
-{{delegated.brief}}
-</brief>
-{{#if delegated.successCriteria}}
-<success_criteria>
-{{delegated.successCriteria}}
-</success_criteria>
-{{/if}}
+Use \`beads_show_issue\` to read your full assignment, dependencies, and any comments from other agents. Use \`beads_update_issue\` for progress updates. Use \`beads_close_issue\` when done.
 
-If the brief leaves details unspecified, use your best judgement and make reasonable choices rather than stopping to ask. The user can course-correct afterwards.
+If the work is larger than expected, use \`beads_create_issue\` to decompose it into sub-beads.
 
-When you have something to report back, call \`completeTask\` with your answer. Any files or links you attached to the task are included automatically.
-</delegated_task>`;
+If the assignment leaves details unspecified, use your best judgement and make reasonable choices rather than stopping to ask. The user can course-correct afterwards.
+
+Any files or links you attached are included automatically when you close the bead.
+</bead_assignment>`;

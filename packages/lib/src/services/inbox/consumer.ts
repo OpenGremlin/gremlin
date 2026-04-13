@@ -1,10 +1,28 @@
-import { CommandApprovalDecision, ToolName } from "../../enums.js";
+import { CommandApprovalDecision, type ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
+import type { BeadsClient } from "../orchestrator/reconcileBeads.js";
+import { reconcile } from "../orchestrator/reconcileBeads.js";
 import { activeSessions } from "../orchestrator/sandboxTools.js";
 import { updateAgentLogResult } from "../orchestrator/writeAgentLog.js";
 import type { Attachment } from "../tasks/attachment.js";
+
+// TODO: Replace with real MCP-backed BeadsClient once beads MCP integration is wired up.
+// The stub returns empty results so the reconciler is a safe no-op until wired.
+const stubBeadsClient: BeadsClient = {
+  async readyWork() {
+    return [];
+  },
+  async updateIssue() {},
+  async showIssue({ issue_id }) {
+    return { id: issue_id, title: "", description: "", status: "open" };
+  },
+  async closeIssue() {},
+  async listIssues() {
+    return [];
+  },
+};
 
 /**
  * Tracks which lanes are currently draining.
@@ -64,6 +82,9 @@ export async function ringDoorbell(
 
       if (lane === "main") {
         await processMainLaneItems(ctx, agentLaneCtx, agentId, items);
+        // TODO: Optimize to only reconcile when beads tools were actually used.
+        // TODO: Resolve workspaceId from agent config instead of "default".
+        await reconcile(ctx, stubBeadsClient, "default", agentId);
       } else if (lane.startsWith("task:")) {
         const taskId = lane.slice(5);
 
@@ -113,6 +134,11 @@ export async function ringDoorbell(
             taskId,
           );
         }
+
+        // Reconcile after task lane completes — the worker may have closed a bead,
+        // unblocking downstream work or completing an epic.
+        // TODO: Resolve workspaceId from agent config instead of "default".
+        await reconcile(ctx, stubBeadsClient, "default", agentId);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }
@@ -208,10 +234,8 @@ async function processMainLaneItems(
   items: InboxItemItem[],
 ): Promise<void> {
   let recallHint: string | undefined;
-  // task_update is purely informational — it lands as an AGENT-role chat
-  // bubble that the user already sees. Don't run a main-lane inference for
-  // it (matches the old `postToMainLane` no-wake behavior). Inference still
-  // runs whenever there's a real conversational item to respond to.
+  // Only run inference for items that need an agent response (user messages,
+  // beads needing assignment, epic completions). Informational items skip it.
   let shouldRunInference = false;
 
   for (const item of items) {
@@ -231,8 +255,23 @@ async function processMainLaneItems(
         await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
         shouldRunInference = true;
         break;
-      case "task_update":
-        await _formatAndWriteTaskUpdate(ctx, agentId, payload);
+      case "beads_need_assignment":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "SYSTEM",
+          content: `The following beads are ready but need assignment: ${(payload.beadIds as string[]).join(", ")}. Review and assign them.`,
+        });
+        shouldRunInference = true;
+        break;
+      case "epic_complete":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "SYSTEM",
+          content: `Epic ${payload.beadId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
+        });
+        shouldRunInference = true;
         break;
     }
   }
@@ -375,7 +414,10 @@ async function handleScheduledJob(
     agentId,
     taskId: null,
     role: "TOOL",
-    toolName: ToolName.BackgroundTask,
+    // Legacy tool name for scheduled job log entries — the BackgroundTask
+    // enum value was removed when beads replaced the task tools, but old
+    // UI clients still render cards based on this string.
+    toolName: "backgroundTask" as ToolName,
     toolInput: { title: job.name, prompt },
     toolResult: { taskId: task.id, title: job.name },
   });
@@ -417,55 +459,5 @@ async function formatAndWriteInputRequestReply(
     taskId,
     role: "SYSTEM",
     content,
-  });
-}
-
-/**
- * A worker task is reporting back to its assigner. The reply lands as an
- * AGENT-role message on the assigner's main lane so it renders as a normal
- * chat bubble (matching the old `postToMainLane` UX). For cross-agent
- * delegations the message is prefixed with "[from @teammate]" so the
- * attribution is visible to both the user and the model on its next turn.
- *
- * Exported with an underscore prefix so tests can exercise it directly
- * without spinning up a full doorbell drain.
- */
-export async function _formatAndWriteTaskUpdate(
-  ctx: ServiceContext,
-  assignerAgentId: string,
-  payload: {
-    taskId: string;
-    fromAgentId: string;
-    message: string;
-    attachments?: import("../tasks/attachment.js").Attachment[];
-  },
-) {
-  const task = await ctx.services.tasks.getTask(ctx, payload.taskId);
-  if (!task) {
-    ctx.log.warn(
-      { taskId: payload.taskId, assignerAgentId },
-      "task_update for unknown task",
-    );
-    return;
-  }
-
-  const isSelf = payload.fromAgentId === assignerAgentId;
-  let content: string;
-  if (isSelf) {
-    content = payload.message;
-  } else {
-    const fromAgent = await ctx.services.agents
-      .getAgent(ctx, payload.fromAgentId)
-      .catch(() => null);
-    const fromName = fromAgent?.name ?? payload.fromAgentId;
-    content = `[from @${fromName}]\n${payload.message}`;
-  }
-
-  await ctx.services.orchestrator.writeAgentLog(ctx, {
-    agentId: assignerAgentId,
-    taskId: null,
-    role: "AGENT",
-    content,
-    attachments: payload.attachments,
   });
 }

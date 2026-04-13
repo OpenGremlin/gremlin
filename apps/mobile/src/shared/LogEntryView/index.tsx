@@ -3,11 +3,9 @@ import {
   BookOpen,
   Brain,
   Calendar,
-  CheckCircle,
   CircleAlert,
   Eye,
   File,
-  Flag,
   KeyRound,
   Link,
   List,
@@ -15,7 +13,6 @@ import {
   PencilLine,
   Save,
   Search,
-  Send,
   ShieldCheck,
   Sparkles,
 } from "lucide-react-native";
@@ -31,9 +28,8 @@ import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
-import { BackgroundTaskCard } from "./BackgroundTaskCard";
+import { BeadCard } from "./BeadCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
-import { DelegateCard } from "./DelegateCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
 import { Markdown } from "./Markdown";
@@ -98,10 +94,6 @@ function FileUploadCard({
 
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
 const TOOL_ICON: Record<ToolName, LucideIcon> = {
-  [ToolName.UpdateTask]: Flag,
-  [ToolName.CompleteTask]: CheckCircle,
-  [ToolName.BackgroundTask]: Flag,
-  [ToolName.Delegate]: Send,
   [ToolName.RequestUserInput]: ShieldCheck,
   [ToolName.ReadFile]: Eye,
   [ToolName.WriteFile]: PencilLine,
@@ -140,37 +132,12 @@ function renderCustomWidget(
     result: Record<string, unknown> | null;
   },
   message: ChatMessage,
-  agentId: string,
+  _agentId: string,
   showTimestamp: boolean,
   colors: ReturnType<typeof useNavigationTheme>,
   sandboxStreams?: Map<string, CommandStream>,
 ): React.ReactNode | undefined {
   switch (toolName) {
-    case ToolName.BackgroundTask:
-      return (
-        <BackgroundTaskCard
-          agentId={agentId}
-          taskId={(tool.result?.taskId as string) ?? null}
-          taskTitle={(tool.input?.title as string) ?? "Untitled task"}
-        />
-      );
-
-    case ToolName.Delegate:
-      return (
-        <DelegateCard
-          targetAgentId={(tool.result?.targetAgentId as string) ?? null}
-          targetName={
-            (tool.result?.targetName as string) ??
-            (tool.input?.targetAgentId as string) ??
-            null
-          }
-          taskId={(tool.result?.taskId as string) ?? null}
-          taskTitle={(tool.input?.title as string) ?? "Delegated task"}
-          brief={(tool.input?.brief as string) ?? null}
-          rejectedReason={(tool.result?.error as string) ?? null}
-        />
-      );
-
     case ToolName.RequestUserInput: {
       const inputRequestId = tool.result?.inputRequestId as string | undefined;
       const question =
@@ -463,6 +430,17 @@ export const LogEntryView = React.memo(function LogEntryView({
 
   if (message.role === AgentLogRole.Tool) {
     const tool = resolveToolFields(message);
+
+    // beads_create_issue is an MCP tool name (not in the ToolName enum), so it's
+    // handled here before the isKnownTool guard rather than in renderCustomWidget.
+    if (tool.name === "beads_create_issue") {
+      const beadId = tool.result?.id as string | undefined;
+      const parentId = tool.input?.parent as string | undefined;
+      if (beadId && !parentId) {
+        return <BeadCard beadId={beadId} agentId={agentId} />;
+      }
+      // Child bead — fall through to default hint rendering
+    }
 
     if (isKnownTool(tool.name)) {
       const rendered = renderToolCall(

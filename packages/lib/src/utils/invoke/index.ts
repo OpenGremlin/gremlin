@@ -93,7 +93,7 @@ let systemPrompt = renderTaskSystemPrompt(
     userDisplayName: agentCtx.displayName,
     userAbout: agentCtx.profile?.about,
     taskTitle: "(test task)",
-    taskId,
+    beadId: taskId,
   },
   flags,
 );

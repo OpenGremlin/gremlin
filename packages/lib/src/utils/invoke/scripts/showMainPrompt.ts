@@ -5,7 +5,6 @@ import {
   resolvePromptFlags,
 } from "../../../services/prompts/index.js";
 import {
-  backgroundTaskTool,
   FileStateTracker,
   listFilesTool,
   listJobsTool,
@@ -38,7 +37,6 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
   );
 
   const tools: Record<string, any> = {
-    backgroundTask: backgroundTaskTool(ctx, agentId),
     readFile: readFileTool(new FileStateTracker()),
     listFiles: listFilesTool(),
     saveMemory: saveMemoryTool(ctx, agentId),

@@ -1,9 +1,7 @@
 export { attachFileTool } from "./attachFile.js";
 export { attachLinkTool } from "./attachLink.js";
-export { backgroundTaskTool } from "./backgroundTask.js";
+export { buildBeadsMcpTools } from "./beadsMcpTools.js";
 export { createBraveSearchTool } from "./braveSearch.js";
-export { completeTaskTool } from "./completeTask.js";
-export { delegateTool } from "./delegate.js";
 export {
   editFileTool,
   FileStateTracker,
@@ -25,6 +23,5 @@ export {
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { requestUserInputTool } from "./requestUserInput.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
-export { updateTaskTool } from "./updateTask.js";
 export { viewImageTool } from "./viewImage.js";
 export { webFetch } from "./webFetch.js";

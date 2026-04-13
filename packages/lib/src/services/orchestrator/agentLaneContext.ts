@@ -4,10 +4,10 @@ import type { EnabledModel } from "../integrations/getEnabledModels.js";
 import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
+import { buildBeadsMcpTools } from "../tools/beadsMcpTools.js";
 import {
   attachFileTool,
   attachLinkTool,
-  completeTaskTool,
   createBraveSearchTool,
   createTavilySearchTool,
   editFileTool,
@@ -23,7 +23,6 @@ import {
   saveMemoryTool,
   scheduleJobTool,
   updateJobTool,
-  updateTaskTool,
   viewImageTool,
   webFetch,
   writeFileTool,
@@ -370,8 +369,7 @@ export function buildTaskTools(
           [ToolName.WebFetch]: webFetch,
         }
       : {}),
-    [ToolName.UpdateTask]: updateTaskTool(ctx, taskId),
-    [ToolName.CompleteTask]: completeTaskTool(ctx, taskId),
+    ...buildBeadsMcpTools(ctx),
     ...buildFileEditorTools(ctx, taskId),
     [ToolName.AttachFile]: attachFileTool(ctx, taskId),
     [ToolName.AttachLink]: attachLinkTool(ctx, taskId),

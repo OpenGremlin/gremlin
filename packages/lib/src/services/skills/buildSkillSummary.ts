@@ -168,7 +168,7 @@ function formatMainLaneSection(skills: ResolvedSkill[]): string {
 
   return `# Available Skills
 
-These skills are available inside your background tasks. You cannot call them directly from this conversation — to use one, call \`backgroundTask\` (or \`delegate\` to a teammate who has the right skill) and describe what you need done. Use this list to decide which requests need backgrounding or delegating.
+These skills are available inside your beads (tasks). You cannot call them directly from this conversation — to use one, create a bead (assign to yourself or a teammate with the right skill) and describe what you need done. Use this list to decide which requests need a bead.
 
 ${entries.join("\n")}`;
 }

@@ -119,49 +119,23 @@ describe("renderSystemPrompt", () => {
     expect(result).toContain("viewImage");
   });
 
-  it("uses backgrounding framing instead of delegation", () => {
+  it("uses beads framing instead of legacy backgrounding/delegation", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("background tasks");
-    expect(result).toContain("<backgrounding>");
+    expect(result).toContain("create beads");
+    expect(result).toContain("<beads>");
     expect(result).not.toContain("delegateTask");
+    expect(result).not.toContain("backgroundTask");
   });
 
-  it("includes the clear backgrounding rule", () => {
-    const result = renderSystemPrompt(baseData, {
-      ...allOff,
-      sandbox: true,
-    });
+  it("includes the clear beads-first rule", () => {
+    const result = renderSystemPrompt(baseData, allOff);
     expect(result).toContain("answer directly");
-    expect(result).toContain("background it");
+    expect(result).toContain("creating a bead");
   });
 
-  it("mentions conversation inheritance", () => {
+  it("mentions beads dispatch", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("inherits this whole conversation");
-  });
-
-  it("builds dynamic task capabilities list", () => {
-    const result = renderSystemPrompt(baseData, {
-      viewImage: false,
-      sandbox: true,
-      webSearch: true,
-      hasSkills: true,
-    });
-    expect(result).toContain(
-      "file editing, web search and page fetching, a Linux sandbox, skills, attaching files and links to its reply",
-    );
-  });
-
-  it("always advertises attachment support in capabilities", () => {
-    const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("attaching files and links to its reply");
-  });
-
-  it("lists only file editing when nothing else enabled", () => {
-    const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain(
-      "file editing, attaching files and links to its reply",
-    );
+    expect(result).toContain("dispatches ready work automatically");
   });
 
   it("includes userAbout when provided", () => {
@@ -211,7 +185,7 @@ describe("renderSystemPrompt", () => {
 });
 
 describe("renderTaskSystemPrompt", () => {
-  const taskData = { ...baseData, taskTitle: "Do the thing", taskId: "t-1" };
+  const taskData = { ...baseData, taskTitle: "Do the thing", beadId: "bd-t1" };
   const allOff = {
     viewImage: false,
     sandbox: false,
@@ -221,7 +195,7 @@ describe("renderTaskSystemPrompt", () => {
   it("includes task preamble with interpolated values", () => {
     const result = renderTaskSystemPrompt(taskData, allOff);
     expect(result).toContain("Do the thing");
-    expect(result).toContain("t-1");
+    expect(result).toContain("bd-t1");
   });
 
   it("omits sandbox section when disabled", () => {
@@ -242,8 +216,6 @@ describe("renderTaskSystemPrompt", () => {
 
   it("always includes workflow and memory sections", () => {
     const result = renderTaskSystemPrompt(taskData, allOff);
-    expect(result).toContain("completeTask");
-    expect(result).toContain("updateTask");
     expect(result).toContain("saveMemory");
     expect(result).toContain("<jobs>");
   });

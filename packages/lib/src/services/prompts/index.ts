@@ -113,7 +113,10 @@ interface PromptData {
 
 interface TaskPromptData extends PromptData {
   taskTitle: string;
-  taskId: string;
+  /** Bead ID (same as taskId during migration bridge). Used in templates as {{beadId}}. */
+  beadId: string;
+  /** @deprecated Alias for beadId — kept for callers still using task-based naming. */
+  taskId?: string;
   delegated?: {
     brief: string;
     successCriteria?: string;

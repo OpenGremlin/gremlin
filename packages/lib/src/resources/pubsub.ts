@@ -32,6 +32,17 @@ export interface SpeechAudioEvent {
   done: boolean;
 }
 
+/** Raw bead issue shape as returned by the beads MCP server. */
+export interface BeadIssueEvent {
+  id: string;
+  title: string;
+  status: string;
+  assignee?: string;
+  parent_id?: string;
+  latest_comment?: string;
+  children?: BeadIssueEvent[];
+}
+
 export type PubSubEvents = {
   [key: `agentLogCreated:${string}`]: [AgentLogItem];
   [key: `agentLogCreated:task:${string}`]: [AgentLogItem];
@@ -44,6 +55,7 @@ export type PubSubEvents = {
   [key: `agentStream:${string}`]: [AgentStreamEvent];
   [key: `speechAudio:${string}`]: [SpeechAudioEvent];
   [key: `speechAudio:task:${string}`]: [SpeechAudioEvent];
+  [key: `beadUpdated:${string}`]: [BeadIssueEvent];
   pendingItemsUpdated: [];
 };
 

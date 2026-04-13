@@ -1,8 +1,7 @@
 import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
+import { buildBeadsMcpTools } from "../tools/beadsMcpTools.js";
 import {
-  backgroundTaskTool,
-  delegateTool,
   FileStateTracker,
   listFilesTool,
   listJobsTool,
@@ -56,7 +55,7 @@ export async function runMainLane(
   );
 
   // Tell the main lane about its own skills using the instruction-free
-  // variant — the model only has backgroundTask/delegate here, NOT
+  // variant — the model only has beads MCP tools here, NOT
   // readSkill/runCommand/authenticate, so the verbose task-lane format
   // would tempt it to hallucinate tool calls into thin air.
   if (agentLaneCtx.skillSummary.mainLaneSection) {
@@ -68,7 +67,7 @@ export async function runMainLane(
     taskId: null,
     systemPrompt,
     tools: {
-      backgroundTask: backgroundTaskTool(ctx, agentId),
+      ...buildBeadsMcpTools(ctx),
       readFile: readFileTool(new FileStateTracker()),
       listFiles: listFilesTool(),
       saveMemory: saveMemoryTool(ctx, agentId),
@@ -77,12 +76,6 @@ export async function runMainLane(
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
-      // delegate is structurally restricted to the main lane only —
-      // task lanes never get this tool, which is how we enforce
-      // "no nested delegation" without runtime checks.
-      ...(isManager
-        ? { delegate: delegateTool(ctx, agentId, agentLaneCtx.team) }
-        : {}),
     },
     recallHint,
     timezone,

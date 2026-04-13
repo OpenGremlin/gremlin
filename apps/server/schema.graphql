@@ -1,5 +1,6 @@
 type Query {
   _empty: String
+  bead(id: ID!): Bead
   commandAllowlist(agentId: ID!): [AllowlistEntry!]!
   file(path: String!): File
   agentJobs: [AgentJob!]!
@@ -94,6 +95,7 @@ type Mutation {
 
 type Subscription {
   _empty: String
+  beadUpdated(id: ID!): Bead
   jobCreated: AgentJob!
   agentLogCreated(agentId: ID!): AgentLog!
   "Subscribe to log entries by agentId or taskId"
@@ -109,6 +111,24 @@ type Subscription {
   jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
+}
+
+enum BeadStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  CLOSED
+}
+
+type Bead {
+  id: ID!
+  title: String!
+  status: BeadStatus!
+  assignee: String
+  assigneeName: String
+  parentId: ID
+  latestComment: String
+  children: [Bead!]
 }
 
 type AllowlistEntry {
@@ -251,10 +271,6 @@ enum AgentLogRole {
 }
 
 enum ToolName {
-  updateTask
-  completeTask
-  backgroundTask
-  delegate
   requestUserInput
   readFile
   writeFile

@@ -20,27 +20,37 @@ export async function runTaskLane(
   agentLaneCtx: AgentLaneContext,
   taskId: string,
   prompt: string,
-  opts?: { role?: "SYSTEM" | "USER"; attachments?: Attachment[] },
+  opts?: {
+    role?: "SYSTEM" | "USER";
+    attachments?: Attachment[];
+    /** Beads bead ID — when provided, this task lane is executing a bead. */
+    beadId?: string;
+  },
 ): Promise<string> {
-  const task = await ctx.services.tasks.getTask(ctx, taskId);
-  if (!task) throw new Error(`Task ${taskId} not found`);
+  // Task lookup: for bead-dispatched work the lane key is a bead ID, not a
+  // Task UUID. The migration bridge may have created a Task projection, but
+  // it uses a different ID. Tolerate null — beads carry their own context.
+  const task = await ctx.services.tasks.getTask(ctx, taskId).catch(() => null);
+  const beadId = opts?.beadId ?? taskId;
+  const agentId = task?.agentId ?? agentLaneCtx.agent.id;
 
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
   const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
-  // Cross-agent delegation: this task was created by a manager via the
-  // `delegate` tool. The brief is the entire context — we must NOT
+  // Cross-agent delegation: this task was created by a manager and assigned
+  // to a different agent. The brief is the entire context — we must NOT
   // inherit main-lane history (the recipient's main lane is unrelated)
   // and we render the delegated-task system prompt section instead.
-  const isCrossAgentDelegation =
-    !!task.assignerAgentId && task.assignerAgentId !== task.agentId;
+  const isCrossAgentDelegation = task
+    ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
+    : !!(opts?.role === "SYSTEM"); // bead-dispatched cross-agent work
 
-  // For initial background tasks, inherit the main lane conversation
-  // so the task has full context without needing it re-described.
-  // Skip this for delegated tasks — the brief is self-contained.
+  // For initial background tasks (self-assigned beads), inherit the main
+  // lane conversation so the task has full context without needing it
+  // re-described. Skip for delegated/cross-agent work — the brief is
+  // self-contained.
   if (isInitialDelegation && !isCrossAgentDelegation) {
-    const mainLaneMessages = await buildMainLaneContext(ctx, task.agentId);
+    const mainLaneMessages = await buildMainLaneContext(ctx, agentId);
     if (mainLaneMessages.length > 0) {
-      // Log the conversation context as a system message
       const contextLines = mainLaneMessages
         .map(
           (m) =>
@@ -49,7 +59,7 @@ export async function runTaskLane(
         .join("\n\n");
 
       await writeAgentLog(ctx, {
-        agentId: task.agentId,
+        agentId,
         taskId,
         role: "SYSTEM",
         content: `[Conversation context]\n\n${contextLines}`,
@@ -60,7 +70,7 @@ export async function runTaskLane(
   // Log the prompt — SYSTEM for backgrounded tasks, USER for follow-up messages
   if (prompt) {
     await writeAgentLog(ctx, {
-      agentId: task.agentId,
+      agentId,
       taskId,
       role: opts?.role ?? "SYSTEM",
       content: prompt,
@@ -68,23 +78,24 @@ export async function runTaskLane(
     });
   }
 
+  const taskTitle = task?.title ?? prompt.slice(0, 80);
+
   // Generate an execution plan for new task delegations
   let planText: string | undefined;
   if (isInitialDelegation) {
     try {
-      const plan = await generatePlan(ctx, task.agentId, task.title, prompt);
+      const plan = await generatePlan(ctx, agentId, taskTitle, prompt);
       planText = formatPlan(plan);
 
-      // Log the plan so it's visible in the task timeline and conversation history
       await writeAgentLog(ctx, {
-        agentId: task.agentId,
+        agentId,
         taskId,
         role: "SYSTEM",
         content: `[Execution plan]\n\n${planText}`,
       });
     } catch (err) {
       ctx.log.warn(
-        { err, agentId: task.agentId, taskId },
+        { err, agentId, taskId },
         "Plan generation failed, proceeding without plan",
       );
     }
@@ -102,7 +113,7 @@ export async function runTaskLane(
   // the assigner record can't be loaded (e.g., deleted between
   // delegation and execution).
   let assignerName: string | undefined;
-  if (isCrossAgentDelegation && task.assignerAgentId) {
+  if (isCrossAgentDelegation && task?.assignerAgentId) {
     const assigner = await ctx.services.agents
       .getAgent(ctx, task.assignerAgentId)
       .catch(() => null);
@@ -116,9 +127,9 @@ export async function runTaskLane(
       role: agent.role,
       userDisplayName: displayName,
       userAbout: profile?.about,
-      taskTitle: task.title,
-      taskId,
-      ...(isCrossAgentDelegation && task.brief && assignerName
+      taskTitle: taskTitle,
+      beadId,
+      ...(isCrossAgentDelegation && task?.brief && assignerName
         ? {
             delegated: {
               brief: task.brief,
@@ -138,16 +149,16 @@ export async function runTaskLane(
   }
 
   ctx.log.info(
-    { agentId: task.agentId, taskId, systemPromptLength: systemPrompt.length },
+    { agentId, taskId, beadId, systemPromptLength: systemPrompt.length },
     "Task lane system prompt: %s",
     systemPrompt,
   );
 
   return runLane(ctx, {
-    agentId: task.agentId,
+    agentId,
     taskId,
     systemPrompt,
-    tools: buildTaskTools(ctx, agentLaneCtx, task.agentId, taskId),
+    tools: buildTaskTools(ctx, agentLaneCtx, agentId, taskId),
     recallHint: prompt,
     timezone,
     reasoningEnabled:

@@ -52,20 +52,6 @@ function computeDisplayHintInner(
   result: Record<string, unknown> | null,
 ): DisplayHint | null {
   switch (toolName) {
-    // ── Task & messaging ───────────────────────────────────────────
-    case ToolName.UpdateTask:
-      return { text: (input?.message as string) || "Progress update" };
-    case ToolName.CompleteTask:
-      return { text: "Task complete" };
-    case ToolName.Delegate: {
-      const target =
-        (result?.targetName as string | undefined) ??
-        (input?.targetAgentId as string | undefined) ??
-        "teammate";
-      const title = (input?.title as string | undefined) ?? "task";
-      return { text: `Delegating "${title}" to @${target}` };
-    }
-
     // ── File editor ────────────────────────────────────────────────
     case ToolName.ReadFile:
       return {
@@ -165,7 +151,6 @@ function computeDisplayHintInner(
       return { text: "Updated job" };
 
     // ── Custom widget tools — no hint, frontend renders its own UI ─
-    case ToolName.BackgroundTask:
     case ToolName.RequestUserInput:
     case ToolName.RunCommand:
       return null;
