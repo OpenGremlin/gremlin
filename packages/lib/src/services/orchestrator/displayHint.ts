@@ -51,6 +51,42 @@ function computeDisplayHintInner(
   input: Record<string, unknown> | null,
   result: Record<string, unknown> | null,
 ): DisplayHint | null {
+  // Beads MCP tools — string names, not in ToolName enum
+  if (toolName === "beads_create_issue") {
+    return { text: `Created bead: ${(input?.title as string) ?? "bead"}` };
+  }
+  if (toolName === "beads_show_issue") {
+    return { text: `Viewing bead: ${(input?.issue_id as string) ?? "bead"}` };
+  }
+  if (toolName === "beads_update_issue") {
+    const parts = [(input?.issue_id as string) ?? "bead"];
+    if (input?.status) parts.push(`→ ${input.status}`);
+    return { text: `Updated bead: ${parts.join(" ")}` };
+  }
+  if (toolName === "beads_close_issue") {
+    return {
+      text: `Closed bead: ${(input?.issue_id as string) ?? "bead"}`,
+      variant: "success",
+    };
+  }
+  if (toolName === "beads_list_issues") {
+    return { text: "Listed beads" };
+  }
+  if (toolName === "beads_ready_work") {
+    return { text: "Checked ready work" };
+  }
+  if (toolName === "beads_add_dependency") {
+    return {
+      text: `Added dependency: ${(input?.issue_id as string) ?? ""} → ${(input?.depends_on_id as string) ?? ""}`,
+    };
+  }
+  if (toolName === "beads_blocked") {
+    return { text: "Checked blocked beads" };
+  }
+  if (toolName === "beads_stats") {
+    return { text: "Bead statistics" };
+  }
+
   switch (toolName) {
     // ── File editor ────────────────────────────────────────────────
     case ToolName.ReadFile:

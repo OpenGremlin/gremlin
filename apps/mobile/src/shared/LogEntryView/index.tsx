@@ -13,6 +13,7 @@ import {
   List,
   Monitor,
   PencilLine,
+  PlusCircle,
   Save,
   Search,
   Send,
@@ -94,6 +95,19 @@ function FileUploadCard({
     </View>
   );
 }
+
+/** Icons for beads MCP tools (string names, not in ToolName enum). */
+const BEADS_TOOL_ICON: Record<string, LucideIcon> = {
+  beads_create_issue: Flag,
+  beads_show_issue: Eye,
+  beads_update_issue: PencilLine,
+  beads_close_issue: CheckCircle,
+  beads_list_issues: List,
+  beads_ready_work: List,
+  beads_add_dependency: Link,
+  beads_blocked: CircleAlert,
+  beads_stats: List,
+};
 
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
 const TOOL_ICON: Record<ToolName, LucideIcon> = {
@@ -447,7 +461,11 @@ export const LogEntryView = React.memo(function LogEntryView({
       if (beadId && !parentId) {
         return <BeadCard beadId={beadId} agentId={agentId} />;
       }
-      // Child bead — fall through to default hint rendering
+      // Child bead — render compact hint (parent BeadCard shows the tree)
+      if (beadId && parentId) {
+        const title = (tool.input?.title as string) ?? "child bead";
+        return <ToolStatus icon={PlusCircle} text={`Created: ${title}`} />;
+      }
     }
 
     if (isKnownTool(tool.name)) {
@@ -461,6 +479,37 @@ export const LogEntryView = React.memo(function LogEntryView({
         sandboxStreams,
       );
       if (rendered) return rendered;
+    }
+
+    // If the backend provided a display hint, render a nice status line
+    // (covers beads MCP tools and any future string-named tools with hints).
+    const beadsIcon = BEADS_TOOL_ICON[tool.name];
+    if (message.displayHint && beadsIcon) {
+      const files = filesFromAttachments(message.attachments ?? []);
+      return (
+        <View>
+          <ToolStatus
+            icon={beadsIcon}
+            text={message.displayHint}
+            variant={
+              (message.displayVariant as "success" | "warning" | "error") ??
+              undefined
+            }
+          />
+          {message.displayError ? (
+            <Text className="text-sm text-error italic px-1 pb-1">
+              {message.displayError}
+            </Text>
+          ) : null}
+          {files.length > 0 && (
+            <View className="mt-1 gap-1 max-w-[85%]">
+              {files.map((file) => (
+                <FileCard key={file.path} file={file} />
+              ))}
+            </View>
+          )}
+        </View>
+      );
     }
 
     // Unknown or unhandled tool: generic collapsible JSON

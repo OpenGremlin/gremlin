@@ -44,14 +44,17 @@ const bead = async (
   ctx: GremlinContext,
 ) => {
   const summary = await ctx.services.beads.showIssue({ issue_id: id });
+  const comments = await ctx.services.beads.getComments({ issue_id: id });
+  const lastComment =
+    comments.length > 0 ? comments[comments.length - 1].text : null;
   return {
     id: summary.id,
     title: summary.title,
     status: toBeadStatus(summary.status),
     assignee: summary.assignee ?? null,
     parentId: summary.parentId ?? null,
-    latestComment: null,
-    _children: null,
+    latestComment: lastComment,
+    _children: null, // resolved lazily by field resolver
   };
 };
 
@@ -71,9 +74,27 @@ const assigneeName = async (
 };
 
 /** Return child beads one level deep, mapped to the GraphQL shape. */
-const children = (parent: MappedBead) => {
-  if (!parent._children || parent._children.length === 0) return null;
-  return parent._children.map(mapIssue);
+const children = async (
+  parent: MappedBead,
+  _args: unknown,
+  ctx: GremlinContext,
+) => {
+  // For subscription payloads that already carry _children, use them directly.
+  if (parent._children && parent._children.length > 0) {
+    return parent._children.map(mapIssue);
+  }
+  // Otherwise fetch children on demand (query path).
+  const kids = await ctx.services.beads.getChildren({ issue_id: parent.id });
+  if (kids.length === 0) return null;
+  return kids.map((k) => ({
+    id: k.id,
+    title: k.title,
+    status: toBeadStatus(k.status),
+    assignee: k.assignee ?? null,
+    parentId: k.parentId ?? null,
+    latestComment: null, // skip nested comments for perf
+    _children: null,
+  }));
 };
 
 // ---------------------------------------------------------------------------

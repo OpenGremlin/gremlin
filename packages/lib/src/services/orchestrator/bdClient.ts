@@ -125,6 +125,30 @@ export function createBdClient(opts?: { workingDir?: string }): BeadsClient {
       await bd(args, bdOpts);
     },
 
+    async getComments(params: {
+      issue_id: string;
+    }): Promise<Array<{ id: string; text: string; created_at: string }>> {
+      const raw = await bd(["comments", params.issue_id, "--json"], bdOpts);
+      const comments: Array<{
+        id: string;
+        issue_id: string;
+        author: string;
+        text: string;
+        created_at: string;
+      }> = JSON.parse(raw);
+      return comments.map((c) => ({
+        id: c.id,
+        text: c.text,
+        created_at: c.created_at,
+      }));
+    },
+
+    async getChildren(params: { issue_id: string }): Promise<BeadSummary[]> {
+      const raw = await bd(["children", params.issue_id, "--json"], bdOpts);
+      const children: BdIssueRaw[] = JSON.parse(raw);
+      return children.map(mapToBeadSummary);
+    },
+
     async listIssues(params?: {
       status?: string;
       type?: string;

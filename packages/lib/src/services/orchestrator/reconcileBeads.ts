@@ -40,6 +40,12 @@ export interface BeadsClient {
     type?: string;
     assignee?: string;
   }): Promise<BeadSummary[]>;
+  /** Fetch comments for a bead. */
+  getComments(params: {
+    issue_id: string;
+  }): Promise<Array<{ id: string; text: string; created_at: string }>>;
+  /** Fetch child beads one level deep. */
+  getChildren(params: { issue_id: string }): Promise<BeadSummary[]>;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -109,6 +115,14 @@ export async function reconcile(
     }
 
     await beads.updateIssue({ issue_id: bead.id, status: "in_progress" });
+
+    ctx.resources.pubsub.publish(`beadUpdated:${bead.id}`, {
+      id: bead.id,
+      title: bead.title,
+      status: "in_progress",
+      assignee: targetAgentId,
+      parent_id: bead.parentId,
+    });
 
     await ctx.services.inbox.enqueueWork(
       ctx,
@@ -200,6 +214,14 @@ export async function closeCompletedEpics(
     await beads.closeIssue({
       issue_id: epic.id,
       reason: "All children completed",
+    });
+
+    ctx.resources.pubsub.publish(`beadUpdated:${epic.id}`, {
+      id: epic.id,
+      title: epic.title,
+      status: "closed",
+      assignee: epic.assignee,
+      parent_id: epic.parentId,
     });
 
     const epicInput: EnqueueInput = {
