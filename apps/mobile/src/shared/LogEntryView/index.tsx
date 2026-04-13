@@ -3,9 +3,11 @@ import {
   BookOpen,
   Brain,
   Calendar,
+  CheckCircle,
   CircleAlert,
   Eye,
   File,
+  Flag,
   KeyRound,
   Link,
   List,
@@ -13,6 +15,7 @@ import {
   PencilLine,
   Save,
   Search,
+  Send,
   ShieldCheck,
   Sparkles,
 } from "lucide-react-native";
@@ -94,6 +97,11 @@ function FileUploadCard({
 
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
 const TOOL_ICON: Record<ToolName, LucideIcon> = {
+  // Legacy tools — kept for old AgentLog entries
+  [ToolName.BackgroundTask]: Flag,
+  [ToolName.Delegate]: Send,
+  [ToolName.CompleteTask]: CheckCircle,
+  [ToolName.UpdateTask]: Flag,
   [ToolName.RequestUserInput]: ShieldCheck,
   [ToolName.ReadFile]: Eye,
   [ToolName.WriteFile]: PencilLine,

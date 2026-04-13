@@ -150,6 +150,16 @@ function computeDisplayHintInner(
     case ToolName.UpdateJob:
       return { text: "Updated job" };
 
+    // ── Legacy task tools — render a basic hint for old log entries ─
+    case ToolName.BackgroundTask:
+      return { text: `Task: ${(input?.title as string) ?? "background task"}` };
+    case ToolName.Delegate:
+      return { text: `Delegated: ${(input?.title as string) ?? "task"}` };
+    case ToolName.CompleteTask:
+      return { text: "Task completed", variant: "success" };
+    case ToolName.UpdateTask:
+      return { text: `Progress: ${(input?.message as string) ?? "updated"}` };
+
     // ── Custom widget tools — no hint, frontend renders its own UI ─
     case ToolName.RequestUserInput:
     case ToolName.RunCommand:
