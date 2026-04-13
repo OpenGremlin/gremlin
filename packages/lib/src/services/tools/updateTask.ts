@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 export function updateTaskTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Update the task's status message. Call at meaningful milestones — not after every tool call.",
+      "Update the task's status message. Call when starting and after each step.",
     inputSchema: z.object({
       message: z
         .string()
