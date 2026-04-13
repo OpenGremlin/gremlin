@@ -13,7 +13,6 @@ import {
   List,
   Monitor,
   PencilLine,
-  PlusCircle,
   Save,
   Search,
   Send,
@@ -478,11 +477,9 @@ export const LogEntryView = React.memo(function LogEntryView({
           />
         );
       }
-      // Child bead — render compact hint (parent BeadCard shows the tree)
-      const beadId = tool.result?.id as string | undefined;
-      if (beadId && parentId) {
-        const title = (tool.input?.title as string) ?? "child bead";
-        return <ToolStatus icon={PlusCircle} text={`Created: ${title}`} />;
+      // Child bead — parent BeadCard already shows the tree, so hide these
+      if (parentId) {
+        return null;
       }
     }
 

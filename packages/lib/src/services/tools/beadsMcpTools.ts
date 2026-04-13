@@ -100,7 +100,7 @@ export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
   return {
     beads_create_issue: tool({
       description:
-        "Create a new bead (issue/task/epic) in the project tracker. Use this when the user or plan requires a new work item, subtask, or epic to be tracked.",
+        "Create a new bead (issue/task/epic) in the project tracker. Use this when the user or plan requires a new work item, subtask, or epic to be tracked. The UI renders a rich card for created beads automatically — do NOT repeat the task structure, IDs, or list of children in your text response. Just describe what you're about to do or move on to the next step.",
       inputSchema: z.object({
         title: z.string().describe("Short title for the bead"),
         description: z
