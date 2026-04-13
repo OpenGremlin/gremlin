@@ -9,10 +9,12 @@ import { type JobService, jobService } from "./jobs/index.js";
 import { type MediaService, mediaService } from "./media/index.js";
 import { type MemoryService, memoryService } from "./memory/index.js";
 import { type OAuthService, oauthService } from "./oauth/index.js";
+import { createBdClient } from "./orchestrator/bdClient.js";
 import {
   type OrchestratorService,
   orchestratorService,
 } from "./orchestrator/index.js";
+import type { BeadsClient } from "./orchestrator/reconcileBeads.js";
 import { type ProfileService, profileService } from "./profile/index.js";
 import { type SandboxService, sandboxService } from "./sandbox/index.js";
 import {
@@ -30,6 +32,7 @@ import { type WorkspaceService, workspaceService } from "./workspace/index.js";
 export interface Services {
   agentLogs: AgentLogService;
   agents: AgentService;
+  beads: BeadsClient;
   inbox: InboxService;
   jobs: JobService;
   integrations: IntegrationService;
@@ -51,6 +54,7 @@ export function createServices(): Services {
   return {
     agentLogs: agentLogService,
     agents: agentService,
+    beads: createBdClient(),
     inbox: inboxService,
     jobs: jobService,
     integrations: integrationService,

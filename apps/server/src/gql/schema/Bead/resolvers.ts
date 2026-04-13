@@ -2,21 +2,6 @@ import type { BeadIssueEvent } from "@opengremlin/lib/resources/pubsub.js";
 import type { GremlinContext } from "../../context.js";
 
 // ---------------------------------------------------------------------------
-// Placeholder types for the Beads client.
-// TODO: Replace with the real BeadsClient interface once MCP wiring is done.
-// ---------------------------------------------------------------------------
-
-interface BeadsClient {
-  showIssue(params: { issue_id: string }): Promise<BeadIssueEvent | null>;
-}
-
-// TODO: Wire up the real BeadsClient from the MCP server / reconciler context.
-// For now every call returns null so the schema is queryable but inert.
-const getBeadsClient = (_ctx: GremlinContext): BeadsClient => ({
-  showIssue: async (_params) => null,
-});
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -58,11 +43,16 @@ const bead = async (
   { id }: { id: string },
   ctx: GremlinContext,
 ) => {
-  // TODO: Wire up real beads client call
-  const client = getBeadsClient(ctx);
-  const issue = await client.showIssue({ issue_id: id });
-  if (!issue) return null;
-  return mapIssue(issue);
+  const summary = await ctx.services.beads.showIssue({ issue_id: id });
+  return {
+    id: summary.id,
+    title: summary.title,
+    status: toBeadStatus(summary.status),
+    assignee: summary.assignee ?? null,
+    parentId: summary.parentId ?? null,
+    latestComment: null,
+    _children: null,
+  };
 };
 
 // ---------------------------------------------------------------------------

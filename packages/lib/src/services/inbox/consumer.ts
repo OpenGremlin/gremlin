@@ -2,27 +2,10 @@ import { CommandApprovalDecision, type ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
-import type { BeadsClient } from "../orchestrator/reconcileBeads.js";
 import { reconcile } from "../orchestrator/reconcileBeads.js";
 import { activeSessions } from "../orchestrator/sandboxTools.js";
 import { updateAgentLogResult } from "../orchestrator/writeAgentLog.js";
 import type { Attachment } from "../tasks/attachment.js";
-
-// TODO: Replace with real MCP-backed BeadsClient once beads MCP integration is wired up.
-// The stub returns empty results so the reconciler is a safe no-op until wired.
-const stubBeadsClient: BeadsClient = {
-  async readyWork() {
-    return [];
-  },
-  async updateIssue() {},
-  async showIssue({ issue_id }) {
-    return { id: issue_id, title: "", description: "", status: "open" };
-  },
-  async closeIssue() {},
-  async listIssues() {
-    return [];
-  },
-};
 
 /**
  * Tracks which lanes are currently draining.
@@ -84,7 +67,7 @@ export async function ringDoorbell(
         await processMainLaneItems(ctx, agentLaneCtx, agentId, items);
         // TODO: Optimize to only reconcile when beads tools were actually used.
         // TODO: Resolve workspaceId from agent config instead of "default".
-        await reconcile(ctx, stubBeadsClient, "default", agentId);
+        await reconcile(ctx, ctx.services.beads, "default", agentId);
       } else if (lane.startsWith("task:")) {
         const taskId = lane.slice(5);
 
@@ -138,7 +121,7 @@ export async function ringDoorbell(
         // Reconcile after task lane completes — the worker may have closed a bead,
         // unblocking downstream work or completing an epic.
         // TODO: Resolve workspaceId from agent config instead of "default".
-        await reconcile(ctx, stubBeadsClient, "default", agentId);
+        await reconcile(ctx, ctx.services.beads, "default", agentId);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }
