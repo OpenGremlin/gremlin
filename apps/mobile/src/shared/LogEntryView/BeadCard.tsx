@@ -55,7 +55,7 @@ function ChildRow({
   isDark: boolean;
 }) {
   const handlePress = () => {
-    router.push(`/agents/${agentId}/beads/${child.id}`);
+    router.push(`/agents/${agentId}/tasks/${child.id}`);
   };
 
   return (
