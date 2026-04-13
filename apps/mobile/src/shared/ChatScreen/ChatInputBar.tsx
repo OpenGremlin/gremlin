@@ -176,11 +176,7 @@ export function ChatInputBar({
           }}
           value={input}
           onChangeText={setInput}
-          onContentSizeChange={
-            isWeb
-              ? (e) => setWebHeight(e.nativeEvent.contentSize.height)
-              : undefined
-          }
+          onContentSizeChange={undefined}
           placeholder="Message..."
           placeholderTextColor={colors.placeholderText}
           multiline
