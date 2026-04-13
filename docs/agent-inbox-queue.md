@@ -72,7 +72,6 @@ type InboxItemType =
   | "user_task_message"
   | "run_task"
   | "scheduled_job"
-  | "agent_self_followup"
   | "user_notification_reply"
   | "core_memory_review"
   | "resume_task";
@@ -174,7 +173,7 @@ The `while (true)` loop is the key: after processing a batch, the consumer check
 The consumer splits the batch into two categories:
 
 - **Main-lane items** (`user_message`, `user_task_message`, `user_notification_reply`) — conversational. Written to the main-thread agent log and handled by `runMainLane()`. Multiple user messages are batched into a single turn — the agent sees all of them in its conversation history and responds holistically, like receiving multiple requirements at once.
-- **Task-lane items** (`run_task`, `scheduled_job`, `agent_self_followup`, `core_memory_review`) — dispatched work. Each goes directly to `runTaskLane()` with its own task context, tools, and sub-thread. These run sequentially within the batch, not concurrently, preserving per-agent serialization.
+- **Task-lane items** (`run_task`, `scheduled_job`, `core_memory_review`) — dispatched work. Each goes directly to `runTaskLane()` with its own task context, tools, and sub-thread. These run sequentially within the batch, not concurrently, preserving per-agent serialization.
 
 ```typescript
 async function routeBatch(ctx: ServiceContext, agentId: string, items: InboxItem[]) {
@@ -182,7 +181,7 @@ async function routeBatch(ctx: ServiceContext, agentId: string, items: InboxItem
     i.type === "user_message" || i.type === "user_notification_reply"
   );
   const taskLaneItems = items.filter(i =>
-    i.type === "run_task" || i.type === "scheduled_job" || i.type === "agent_self_followup"
+    i.type === "run_task" || i.type === "scheduled_job"
   );
 
   // Main lane: batch all conversational items into one turn.
@@ -213,9 +212,6 @@ async function routeBatch(ctx: ServiceContext, agentId: string, items: InboxItem
         break;
       case "scheduled_job":
         await handleScheduledJob(ctx, agentId, item);
-        break;
-      case "agent_self_followup":
-        await runTaskLane(ctx, item.payload.taskId, item.payload.prompt);
         break;
     }
   }
@@ -252,7 +248,7 @@ These anchor entries are purely for the UI. The agent's system prompt should ins
 
 > SYSTEM log entries prefixed with "Scheduled task started:" are UI anchors for background tasks. Do not respond to or reference them in conversation.
 
-For `run_task` (delegation), the anchor is the `delegateTask` tool call itself — no extra log entry needed. For `agent_self_followup`, the anchor already exists from when the task was originally created.
+For `run_task` (delegation), the anchor is the `delegateTask` tool call itself — no extra log entry needed.
 
 ### Notification Reply Formatting
 
@@ -294,20 +290,6 @@ User creates/updates AgentJob
 ```
 
 EventBridge fires exactly on time. CronJobTrigger dedup (TransactWrite) runs inside the consumer's `handleScheduledJob()`.
-
-### Agent self-follow-up (delayed self-wake)
-
-```
-Agent calls createFollowUp({ delayMs, prompt })
-  → create one-shot EventBridge Schedule at now + delayMs
-  → schedule target = Lambda
-  → Lambda fires at scheduled time
-  → writes to inbox: { type: "agent_self_followup", payload: { taskId, prompt } }
-  → rings doorbell
-  → schedule auto-deletes (ActionAfterCompletion: DELETE)
-```
-
-Timing is precise — the schedule fires at exactly the requested time.
 
 ### User replies to notification
 
@@ -408,7 +390,7 @@ The 10-minute threshold gives healthy agents room to work. 3-minute sweep interv
 
 - `MaxNumberOfMessages` on the SQS receive call controls how many agents process in parallel (e.g., 10)
 - Per-agent serialization is enforced by `activeAgents` set — one processing loop per agent at a time
-- Within a batch, main-lane items (user messages, notification replies) are batched into one `runMainLane()` turn; task-lane items (`run_task`, `scheduled_job`, `agent_self_followup`) each get their own `runTaskLane()` call, run sequentially
+- Within a batch, main-lane items (user messages, notification replies) are batched into one `runMainLane()` turn; task-lane items (`run_task`, `scheduled_job`) each get their own `runTaskLane()` call, run sequentially
 - Main lane runs first so the user gets a response before background tasks execute
 - For multi-instance deployments, replace `activeAgents` with a DDB conditional write (distributed lock)
 

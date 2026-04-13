@@ -13,8 +13,6 @@ export interface ScheduleEvent {
 
 function getLane(event: ScheduleEvent): string {
   switch (event.type) {
-    case "agent_self_followup":
-      return `task:${event.payload.taskId as string}`;
     case "scheduled_job":
     case "core_memory_review":
       return "system";

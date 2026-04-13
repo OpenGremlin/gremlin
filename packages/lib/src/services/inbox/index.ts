@@ -1,6 +1,5 @@
 import { ringDoorbell } from "./consumer.js";
 import { createCronSchedule } from "./createCronSchedule.js";
-import { createFollowUpSchedule } from "./createFollowUpSchedule.js";
 import { deleteCronSchedule } from "./deleteCronSchedule.js";
 import { enqueueWork } from "./enqueueWork.js";
 import { getStaleUnreadTargets } from "./getStaleUnreadAgentIds.js";
@@ -13,7 +12,6 @@ export const inboxService = {
   markRead,
   ringDoorbell,
   createCronSchedule,
-  createFollowUpSchedule,
   deleteCronSchedule,
 };
 

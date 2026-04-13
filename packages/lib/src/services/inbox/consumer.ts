@@ -274,9 +274,6 @@ async function processTaskGroup(
       case "user_task_message":
         prompts.push({ content: payload.content, role: "USER" });
         break;
-      case "agent_self_followup":
-        prompts.push({ content: payload.prompt, role: "SYSTEM" });
-        break;
       case "user_input_request_reply": {
         const reply = await buildInputRequestReplyContent(ctx, payload);
         prompts.push({ content: reply, role: "SYSTEM" });

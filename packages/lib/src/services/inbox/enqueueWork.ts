@@ -7,7 +7,6 @@ export type InboxItemType =
   | "user_task_message"
   | "run_task"
   | "scheduled_job"
-  | "agent_self_followup"
   | "user_input_request_reply"
   | "core_memory_review"
   | "resume_task"

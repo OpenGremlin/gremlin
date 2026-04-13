@@ -18,7 +18,6 @@ Agent
 
 **Task** — A discrete unit of work spawned by an agent. Has its own lane with its own AgentLog sub-thread branching off the main conversation at the point the task was created.
 
-**Deferred wake-ups** — When an agent needs to wait (e.g., "check back in 15 minutes"), it creates a one-shot EventBridge Schedule that fires at the target time. The schedule target writes an `agent_self_followup` inbox item and rings the SQS doorbell. See `agent-inbox-queue.md` for details.
 
 ## Data Model
 
@@ -94,38 +93,6 @@ Agent sends email, needs to wait
     │
     ▼
 Agent turn ENDS — inbox is free for next work
-```
-
-### EventBridge Follow-Up Dispatch
-
-```
-EventBridge Schedule fires at scheduled time:
-    │
-    ▼
-Lambda target writes inbox item:
-    { type: "agent_self_followup", payload: { taskId, prompt } }
-    + rings SQS doorbell
-    │
-    ▼
-Consumer drains inbox, dispatches agent:
-    ├── Load Task context + AgentLog history
-    │
-    ▼
-Agent resumes task work
-    ├── Checks email → no reply?
-    │     ├── AgentLog: "No reply yet. Will check again in 15 minutes."
-    │     ├── Creates new EventBridge Schedule (now + 15min)
-    │     └── Turn ends
-    │
-    ├── Checks email → reply found!
-    │     ├── AgentLog: "Dealer countered at $28k..."
-    │     ├── Does more work, creates another follow-up schedule
-    │     └── Turn ends
-    │
-    └── Task complete?
-          ├── Updates Task (status: completed)
-          ├── AgentLog: "Negotiation complete. Final price: $26,500."
-          └── No more follow-ups — task is done
 ```
 
 ### Service Restart Recovery
