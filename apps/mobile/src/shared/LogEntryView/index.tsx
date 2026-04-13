@@ -456,12 +456,30 @@ export const LogEntryView = React.memo(function LogEntryView({
     // beads_create_issue is an MCP tool name (not in the ToolName enum), so it's
     // handled here before the isKnownTool guard rather than in renderCustomWidget.
     if (tool.name === "beads_create_issue") {
-      const beadId = tool.result?.id as string | undefined;
       const parentId = tool.input?.parent as string | undefined;
-      if (beadId && !parentId) {
-        return <BeadCard beadId={beadId} agentId={agentId} />;
+      if (!parentId && message.bead) {
+        const b = message.bead;
+        return (
+          <BeadCard
+            bead={{
+              ...b,
+              assignee: b.assignee ?? null,
+              assigneeName: b.assigneeName ?? null,
+              parentId: b.parentId ?? null,
+              latestComment: b.latestComment ?? null,
+              children: (b.children ?? []).map((c) => ({
+                ...c,
+                assignee: c.assignee ?? null,
+                assigneeName: c.assigneeName ?? null,
+                latestComment: c.latestComment ?? null,
+              })),
+            }}
+            agentId={agentId}
+          />
+        );
       }
       // Child bead — render compact hint (parent BeadCard shows the tree)
+      const beadId = tool.result?.id as string | undefined;
       if (beadId && parentId) {
         const title = (tool.input?.title as string) ?? "child bead";
         return <ToolStatus icon={PlusCircle} text={`Created: ${title}`} />;

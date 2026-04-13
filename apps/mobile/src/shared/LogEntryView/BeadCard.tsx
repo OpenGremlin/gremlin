@@ -2,9 +2,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Check, Circle, ExternalLink } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
-import type { BeadChild } from "../../hooks/useBeadInfo";
-import { useBeadInfo } from "../../hooks/useBeadInfo";
 import { useTheme } from "../../lib/ThemeContext";
+
+export interface BeadChild {
+  id: string;
+  title: string;
+  status: string;
+  assignee: string | null;
+  assigneeName: string | null;
+  latestComment: string | null;
+}
+
+export interface BeadInfo {
+  id: string;
+  title: string;
+  status: string;
+  assignee: string | null;
+  assigneeName: string | null;
+  parentId: string | null;
+  latestComment: string | null;
+  children: BeadChild[];
+}
 
 function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   switch (status) {
@@ -53,30 +71,25 @@ function ChildRow({
           {child.assigneeName ? `@${child.assigneeName} ` : ""}
           {child.title}
         </Text>
-        {child.latestComment ? (
-          <Text className="text-xs text-text-muted mt-0.5" numberOfLines={1}>
-            {child.latestComment}
-          </Text>
-        ) : null}
       </View>
     </Pressable>
   );
 }
 
 export function BeadCard({
-  beadId,
+  bead,
   agentId,
 }: {
-  beadId: string;
+  bead: BeadInfo | null;
   agentId: string;
 }) {
-  const bead = useBeadInfo(beadId);
   const { isDark } = useTheme();
 
   const handlePress = () => {
+    if (!bead) return;
     // Navigate to the task lane view — the bead ID is the task lane key,
     // so the task detail page shows the full work log (tool calls, etc.)
-    router.push(`/agents/${agentId}/tasks/${beadId}`);
+    router.push(`/agents/${agentId}/tasks/${bead.id}`);
   };
 
   const gradientColors: [string, string, string] = isDark
@@ -123,15 +136,21 @@ export function BeadCard({
               )}
             </View>
 
-            {/* Simple task: assignee + subtitle */}
+            {/* Simple task: status + assignee */}
             {bead && !hasChildren && (
               <Text
-                className={`text-xs mt-0.5 ${bead.latestComment || bead.assigneeName ? "text-text-muted" : "text-transparent"}`}
+                className="text-xs mt-0.5 text-text-muted"
                 numberOfLines={1}
               >
-                {bead.assigneeName ? `@${bead.assigneeName}` : ""}
-                {bead.assigneeName && bead.latestComment ? " \u00b7 " : ""}
-                {bead.latestComment ?? ""}
+                {bead.status === "CLOSED"
+                  ? "✓ Done"
+                  : bead.status === "IN_PROGRESS"
+                    ? "◐ In progress"
+                    : bead.status === "BLOCKED"
+                      ? "● Blocked"
+                      : "○ Open"}
+                {bead.assigneeName ? ` · @${bead.assigneeName}` : ""}
+                {bead.latestComment ? ` · ${bead.latestComment}` : ""}
               </Text>
             )}
 

@@ -6,7 +6,7 @@ import type { GremlinContext } from "../../context.js";
 // ---------------------------------------------------------------------------
 
 /** Map the raw beads status string to the GraphQL enum value. */
-const toBeadStatus = (
+export const toBeadStatus = (
   raw: string,
 ): "OPEN" | "IN_PROGRESS" | "BLOCKED" | "CLOSED" => {
   switch (raw) {
@@ -27,7 +27,6 @@ const mapIssue = (issue: BeadIssueEvent) => ({
   status: toBeadStatus(issue.status),
   assignee: issue.assignee ?? null,
   parentId: issue.parent_id ?? null,
-  latestComment: issue.latest_comment ?? null,
   // Keep the raw children for the field-level resolver
   _children: issue.children,
 });
@@ -45,22 +44,26 @@ const bead = async (
 ) => {
   try {
     const summary = await ctx.services.beads.showIssue({ issue_id: id });
-    const comments = await ctx.services.beads
-      .getComments({ issue_id: id })
-      .catch(() => []);
-    const lastComment =
-      comments.length > 0 ? comments[comments.length - 1].text : null;
     return {
       id: summary.id,
       title: summary.title,
       status: toBeadStatus(summary.status),
       assignee: summary.assignee ?? null,
       parentId: summary.parentId ?? null,
-      latestComment: lastComment,
       _children: null,
     };
-  } catch {
-    // Bead not found (may exist in embedded DB but not server DB)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Infrastructure errors (Dolt server down, lock contention) must
+    // surface as GraphQL errors so the client sees the real problem.
+    if (
+      msg.includes("embeddeddolt") ||
+      msg.includes("exclusive lock") ||
+      msg.includes("Dolt server")
+    ) {
+      throw err;
+    }
+    // Bead genuinely not found — return null per the nullable schema.
     return null;
   }
 };
@@ -78,6 +81,18 @@ const assigneeName = async (
   if (!parent.assignee) return null;
   const agent = await ctx.loaders.agentLoader.load(parent.assignee);
   return agent?.name ?? null;
+};
+
+/** Fetch the most recent comment on a bead. */
+const latestComment = async (
+  parent: MappedBead,
+  _args: unknown,
+  ctx: GremlinContext,
+) => {
+  const comments = await ctx.services.beads
+    .getComments({ issue_id: parent.id })
+    .catch(() => []);
+  return comments.length > 0 ? comments[comments.length - 1].text : null;
 };
 
 /** Return child beads one level deep, mapped to the GraphQL shape. */
@@ -101,7 +116,6 @@ const children = async (
     status: toBeadStatus(k.status),
     assignee: k.assignee ?? null,
     parentId: k.parentId ?? null,
-    latestComment: null, // skip nested comments for perf
     _children: null,
   }));
 };
@@ -124,6 +138,6 @@ const beadUpdated = {
 
 export const beadResolvers = {
   Query: { bead },
-  Bead: { assigneeName, children },
+  Bead: { assigneeName, latestComment, children },
   Subscription: { beadUpdated },
 };

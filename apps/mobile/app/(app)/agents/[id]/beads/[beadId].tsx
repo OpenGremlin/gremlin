@@ -1,3 +1,4 @@
+import { gql, useQuery } from "@apollo/client";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, Check, Circle, User } from "lucide-react-native";
 import {
@@ -7,10 +8,31 @@ import {
   Text,
   View,
 } from "react-native";
-import type { BeadChild } from "../../../../../src/hooks/useBeadInfo";
-import { useBeadInfo } from "../../../../../src/hooks/useBeadInfo";
+import type { BeadChild } from "../../../../../src/shared/LogEntryView/BeadCard";
 import { useTheme } from "../../../../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
+
+const BEAD_DETAIL_QUERY = gql`
+  query BeadDetail($id: ID!) {
+    bead(id: $id) {
+      id
+      title
+      status
+      assignee
+      assigneeName
+      parentId
+      latestComment
+      children {
+        id
+        title
+        status
+        assignee
+        assigneeName
+        latestComment
+      }
+    }
+  }
+`;
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -159,7 +181,33 @@ export default function BeadDetailScreen() {
 
   const { isDark } = useTheme();
   const colors = useNavigationTheme();
-  const bead = useBeadInfo(beadId ?? null);
+  const { data } = useQuery(BEAD_DETAIL_QUERY, {
+    variables: { id: beadId ?? "" },
+    skip: !beadId,
+    fetchPolicy: "network-only",
+  });
+  const raw = data?.bead;
+  const bead = raw
+    ? {
+        id: raw.id as string,
+        title: raw.title as string,
+        status: raw.status as string,
+        assignee: (raw.assignee as string) ?? null,
+        assigneeName: (raw.assigneeName as string) ?? null,
+        parentId: (raw.parentId as string) ?? null,
+        latestComment: (raw.latestComment as string) ?? null,
+        children: ((raw.children as BeadChild[]) ?? []).map(
+          (c: BeadChild) => ({
+            id: c.id,
+            title: c.title,
+            status: c.status,
+            assignee: c.assignee ?? null,
+            assigneeName: c.assigneeName ?? null,
+            latestComment: c.latestComment ?? null,
+          }),
+        ),
+      }
+    : null;
 
   const hasChildren = bead && bead.children.length > 0;
   const closedCount =
@@ -239,21 +287,6 @@ export default function BeadDetailScreen() {
                 </View>
               ) : null}
             </View>
-
-            {/* Latest comment */}
-            {bead.latestComment ? (
-              <Section title="Latest Comment" colors={colors}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: colors.headerText,
-                    lineHeight: 20,
-                  }}
-                >
-                  {bead.latestComment}
-                </Text>
-              </Section>
-            ) : null}
 
             {/* Children tree (epics) */}
             {hasChildren ? (

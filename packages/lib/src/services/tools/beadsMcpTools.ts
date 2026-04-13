@@ -1,53 +1,8 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
 import { type Tool, tool } from "ai";
 import { z } from "zod";
 
 import type { ServiceContext } from "../context.js";
-
-// ── CLI helper ─────────────────────────────────────────────────────
-
-const execFileAsync = promisify(execFile);
-const BD_TIMEOUT_MS = 30_000;
-
-/**
- * Invoke the `bd` CLI and return stdout.
- * Uses execFile (no shell) to avoid injection.
- */
-async function bd(args: string[]): Promise<string> {
-  const bin = process.env.BD_PATH ?? "bd";
-  const cwd = process.env.BEADS_WORKING_DIR;
-
-  const env: Record<string, string> = { ...process.env } as Record<
-    string,
-    string
-  >;
-  if (process.env.BEADS_DOLT_SERVER_HOST) {
-    env.BEADS_DOLT_SERVER_HOST = process.env.BEADS_DOLT_SERVER_HOST;
-  }
-  if (process.env.BEADS_DOLT_SERVER_PORT) {
-    env.BEADS_DOLT_SERVER_PORT = process.env.BEADS_DOLT_SERVER_PORT;
-  }
-
-  try {
-    const { stdout } = await execFileAsync(bin, args, {
-      cwd,
-      env,
-      timeout: BD_TIMEOUT_MS,
-    });
-    return stdout;
-  } catch (err: unknown) {
-    const execErr = err as { stderr?: string; message?: string };
-    if (execErr.stderr) {
-      // biome-ignore lint/suspicious/noConsole: no logger available in tool context
-      console.error(`[beadsMcpTools] stderr: ${execErr.stderr}`);
-    }
-    throw new Error(
-      `bd ${args.join(" ")} failed: ${execErr.message ?? String(err)}`,
-    );
-  }
-}
+import { bd } from "../orchestrator/bdExec.js";
 
 /**
  * Run a bd command and parse JSON output. Returns the parsed object,

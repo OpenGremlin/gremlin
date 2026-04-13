@@ -129,6 +129,23 @@ export const AgentLogFields = graphql(`
     attachments {
       ...AttachmentFields
     }
+    bead {
+      id
+      title
+      status
+      assignee
+      assigneeName
+      parentId
+      latestComment
+      children {
+        id
+        title
+        status
+        assignee
+        assigneeName
+        latestComment
+      }
+    }
     taskId
     createdAt
   }

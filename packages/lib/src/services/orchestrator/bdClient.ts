@@ -1,57 +1,5 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
+import { bd, type BdOptions } from "./bdExec.js";
 import type { BeadSummary, BeadsClient } from "./reconcileBeads.js";
-
-const execFileAsync = promisify(execFile);
-
-const BD_TIMEOUT_MS = 30_000;
-
-// ── CLI helper ─────────────────────────────────────────────────────
-
-interface BdOptions {
-  workingDir?: string;
-}
-
-/**
- * Invoke the `bd` CLI with the given arguments.
- *
- * Uses execFile (not exec) to avoid shell injection — arguments are
- * passed as an array and never interpolated into a shell string.
- */
-async function bd(args: string[], opts?: BdOptions): Promise<string> {
-  const bin = process.env.BD_PATH ?? "bd";
-  const cwd = opts?.workingDir ?? process.env.BEADS_WORKING_DIR;
-
-  const env: Record<string, string> = { ...process.env } as Record<
-    string,
-    string
-  >;
-  if (process.env.BEADS_DOLT_SERVER_HOST) {
-    env.BEADS_DOLT_SERVER_HOST = process.env.BEADS_DOLT_SERVER_HOST;
-  }
-  if (process.env.BEADS_DOLT_SERVER_PORT) {
-    env.BEADS_DOLT_SERVER_PORT = process.env.BEADS_DOLT_SERVER_PORT;
-  }
-
-  try {
-    const { stdout } = await execFileAsync(bin, args, {
-      cwd,
-      env,
-      timeout: BD_TIMEOUT_MS,
-    });
-    return stdout;
-  } catch (err: unknown) {
-    const execErr = err as { stderr?: string; message?: string };
-    if (execErr.stderr) {
-      // biome-ignore lint/suspicious/noConsole: no logger available in standalone client
-      console.error(`[bdClient] stderr: ${execErr.stderr}`);
-    }
-    throw new Error(
-      `bd ${args.join(" ")} failed: ${execErr.message ?? String(err)}`,
-    );
-  }
-}
 
 // ── Field mapping ──────────────────────────────────────────────────
 
