@@ -52,3 +52,11 @@
 # - linear.api-key
 # - github.org
 # - github.repo
+
+# Dolt backend configuration
+dolt:
+  mode: server
+  server_host: "127.0.0.1"
+  server_port: 3307
+  server_user: "beads"
+  server_pass: ""
