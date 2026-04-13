@@ -74,7 +74,9 @@ export function BeadCard({
   const { isDark } = useTheme();
 
   const handlePress = () => {
-    router.push(`/agents/${agentId}/beads/${beadId}`);
+    // Navigate to the task lane view — the bead ID is the task lane key,
+    // so the task detail page shows the full work log (tool calls, etc.)
+    router.push(`/agents/${agentId}/tasks/${beadId}`);
   };
 
   const gradientColors: [string, string, string] = isDark

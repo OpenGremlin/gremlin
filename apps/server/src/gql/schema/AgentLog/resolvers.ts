@@ -37,7 +37,9 @@ const taskLogs: QueryResolvers["taskLogs"] = async (
   { taskId, first, after, last, before },
   ctx,
 ) => {
-  const task = await ctx.loaders.taskLoader.load(taskId);
+  // For bead-dispatched work, taskId is a bead ID (e.g. "gremlin-3m2").
+  // The Task entity may not exist — tolerate null.
+  const task = await ctx.loaders.taskLoader.load(taskId).catch(() => null);
   return ctx.services.agentLogs.getTaskLogs(
     ctx,
     taskId,
