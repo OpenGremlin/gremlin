@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { useTheme } from "../../lib/ThemeContext";
 import { AgentAvatar } from "../AgentAvatar";
+import { TaskAttachments } from "../TaskAttachments";
 
 const AVATAR_SIZE = 56;
 const CARD_RADIUS = 12;
@@ -147,6 +148,9 @@ export function DelegateCard({
           </View>
         </LinearGradient>
       </Pressable>
+      {taskId && task?.attachments && task.attachments.length > 0 && (
+        <TaskAttachments attachments={task.attachments} taskId={taskId} />
+      )}
     </View>
   );
 }

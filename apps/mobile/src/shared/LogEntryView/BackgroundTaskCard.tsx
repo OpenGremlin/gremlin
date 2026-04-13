@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useTaskInfo } from "../../hooks/useTaskInfo";
 import { useTheme } from "../../lib/ThemeContext";
+import { TaskAttachments } from "../TaskAttachments";
 
 export function BackgroundTaskCard({
   agentId,
@@ -73,6 +74,9 @@ export function BackgroundTaskCard({
           </View>
         </LinearGradient>
       </Pressable>
+      {taskId && task?.attachments && task.attachments.length > 0 && (
+        <TaskAttachments attachments={task.attachments} taskId={taskId} />
+      )}
     </View>
   );
 }

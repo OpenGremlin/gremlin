@@ -55,12 +55,8 @@ function computeDisplayHintInner(
     // ── Task & messaging ───────────────────────────────────────────
     case ToolName.UpdateTaskMessage:
       return { text: (input?.message as string) || "Progress update" };
-    case ToolName.ReplyToAssigner: {
-      const isFinal = (input?.final as boolean) || input?.kind === "final";
-      return {
-        text: isFinal ? "Replied with final result" : "Sent update to assigner",
-      };
-    }
+    case ToolName.ReplyToAssigner:
+      return { text: "Sent update to assigner" };
     case ToolName.Delegate: {
       const target =
         (result?.targetName as string | undefined) ??

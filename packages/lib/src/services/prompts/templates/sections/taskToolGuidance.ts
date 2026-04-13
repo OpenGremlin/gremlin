@@ -1,5 +1,5 @@
 export const taskToolGuidanceSection = `<tool_guidance>
-Use replyToAssigner to deliver your answer back to the agent that assigned this task. Write naturally as if replying — your message appears in their conversation. Set final=true on your last message. You may also send earlier progress messages if there's something the assigner needs to know mid-task (a partial finding, a clarifying question, a blocker), but for short tasks one final message is normal.
+Use replyToAssigner to deliver your answer back to the agent that assigned this task. Write naturally as if replying — your message appears in their conversation. Any files or links you attached to the task are included automatically.
 
 Whenever you save a file that the user might find interesting — even intermediate results like screenshots, downloaded data, or debug output — call attachFile so it appears on the task.
 

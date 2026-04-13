@@ -32,14 +32,11 @@ describe("replyToAssignerTool", () => {
   });
 
   it("routes background-task replies back to the worker's own main lane", async () => {
-    // Background task: no assignerAgentId on the row → fall back to worker.
     ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
+    ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
 
     const tool = replyToAssignerTool(ctx, "task-1");
-    await tool.execute(
-      { message: "done", kind: "final", final: true },
-      TOOL_OPTS,
-    );
+    await tool.execute({ message: "done" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
@@ -51,8 +48,6 @@ describe("replyToAssignerTool", () => {
           taskId: "task-1",
           fromAgentId: "worker-agent",
           message: "done",
-          kind: "final",
-          isFinal: true,
         }),
       }),
     );
@@ -63,12 +58,10 @@ describe("replyToAssignerTool", () => {
       ...baseTask,
       assignerAgentId: "manager-agent",
     } as any);
+    ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
 
     const tool = replyToAssignerTool(ctx, "task-1");
-    await tool.execute(
-      { message: "found 2 of 3", kind: "progress", final: false },
-      TOOL_OPTS,
-    );
+    await tool.execute({ message: "found 2 of 3" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
@@ -80,72 +73,20 @@ describe("replyToAssignerTool", () => {
           taskId: "task-1",
           fromAgentId: "worker-agent",
           message: "found 2 of 3",
-          kind: "progress",
-          isFinal: false,
         }),
       }),
     );
   });
 
-  it("calls completeTask when final=true", async () => {
+  it("auto-fetches task attachments and includes them in the payload", async () => {
     ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
+    ctx.services.tasks.getTaskAttachments.mockResolvedValue([
+      { type: "file", path: "report.md" },
+      { type: "link", url: "https://example.com", title: "Dashboard" },
+    ]);
 
     const tool = replyToAssignerTool(ctx, "task-1");
-    await tool.execute(
-      { message: "all done", kind: "progress", final: true },
-      TOOL_OPTS,
-    );
-
-    expect(ctx.services.tasks.completeTask).toHaveBeenCalledWith(ctx, "task-1");
-  });
-
-  it("calls completeTask when kind=final even if final=false", async () => {
-    ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
-
-    const tool = replyToAssignerTool(ctx, "task-1");
-    const result = await tool.execute(
-      { message: "wrapping up", kind: "final", final: false },
-      TOOL_OPTS,
-    );
-
-    expect(ctx.services.tasks.completeTask).toHaveBeenCalledWith(ctx, "task-1");
-    expect(result).toMatchObject({ sent: true, isFinal: true });
-  });
-
-  it("does not call completeTask for progress messages", async () => {
-    ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
-
-    const tool = replyToAssignerTool(ctx, "task-1");
-    await tool.execute(
-      { message: "still working", kind: "progress", final: false },
-      TOOL_OPTS,
-    );
-
-    expect(ctx.services.tasks.completeTask).not.toHaveBeenCalled();
-  });
-
-  it("throws when task not found", async () => {
-    ctx.services.tasks.getTask.mockResolvedValue(null);
-
-    const tool = replyToAssignerTool(ctx, "task-1");
-    await expect(
-      tool.execute({ message: "x", kind: "final", final: true }, TOOL_OPTS),
-    ).rejects.toThrow("Task task-1 not found");
-  });
-
-  it("forwards attachments through to the inbox payload", async () => {
-    ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
-
-    const tool = replyToAssignerTool(ctx, "task-1");
-    await tool.execute(
-      {
-        message: "report ready",
-        kind: "final",
-        final: true,
-        attachments: [{ type: "file", path: "report.md" }],
-      },
-      TOOL_OPTS,
-    );
+    await tool.execute({ message: "report ready" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
       ctx,
@@ -153,9 +94,33 @@ describe("replyToAssignerTool", () => {
       "main",
       expect.objectContaining({
         payload: expect.objectContaining({
-          attachments: [{ type: "file", path: "report.md" }],
+          attachments: [
+            { type: "file", path: "report.md" },
+            { type: "link", url: "https://example.com", title: "Dashboard" },
+          ],
         }),
       }),
+    );
+  });
+
+  it("omits attachments key when task has none", async () => {
+    ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
+    ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
+
+    const tool = replyToAssignerTool(ctx, "task-1");
+    await tool.execute({ message: "done" }, TOOL_OPTS);
+
+    const payload = (ctx.services.inbox.enqueueWork as any).mock.calls[0][3]
+      .payload;
+    expect(payload).not.toHaveProperty("attachments");
+  });
+
+  it("throws when task not found", async () => {
+    ctx.services.tasks.getTask.mockResolvedValue(null);
+
+    const tool = replyToAssignerTool(ctx, "task-1");
+    await expect(tool.execute({ message: "x" }, TOOL_OPTS)).rejects.toThrow(
+      "Task task-1 not found",
     );
   });
 });

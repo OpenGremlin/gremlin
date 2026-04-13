@@ -32,8 +32,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "task-1",
       fromAgentId: "worker",
       message: "done — report attached",
-      kind: "final",
-      isFinal: true,
     });
 
     expect(ctx.services.orchestrator.writeAgentLog).toHaveBeenCalledWith(
@@ -61,8 +59,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "task-1",
       fromAgentId: "worker",
       message: "found 2 of 3",
-      kind: "progress",
-      isFinal: false,
     });
 
     expect(ctx.services.orchestrator.writeAgentLog).toHaveBeenCalledWith(
@@ -87,8 +83,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "task-1",
       fromAgentId: "worker",
       message: "found something",
-      kind: "progress",
-      isFinal: false,
     });
 
     expect(ctx.services.orchestrator.writeAgentLog).toHaveBeenCalledWith(
@@ -110,8 +104,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "task-1",
       fromAgentId: "worker",
       message: "x",
-      kind: "progress",
-      isFinal: false,
     });
 
     expect(ctx.services.orchestrator.writeAgentLog).toHaveBeenCalledWith(
@@ -129,8 +121,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "task-1",
       fromAgentId: "worker",
       message: "report ready",
-      kind: "final",
-      isFinal: true,
       attachments: [{ type: "file", path: "report.md" }],
     });
 
@@ -149,8 +139,6 @@ describe("_formatAndWriteTaskUpdate", () => {
       taskId: "missing",
       fromAgentId: "worker",
       message: "x",
-      kind: "final",
-      isFinal: true,
     });
 
     expect(ctx.services.orchestrator.writeAgentLog).not.toHaveBeenCalled();

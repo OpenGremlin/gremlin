@@ -440,8 +440,6 @@ export async function _formatAndWriteTaskUpdate(
     taskId: string;
     fromAgentId: string;
     message: string;
-    kind: string;
-    isFinal: boolean;
     attachments?: import("../tasks/attachment.js").Attachment[];
   },
 ) {
