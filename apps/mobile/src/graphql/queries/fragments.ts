@@ -151,6 +151,30 @@ export const AgentLogFields = graphql(`
   }
 `);
 
+// ── Bead ───────────────────────────────────────────────────────
+
+export const BeadUpdatedSubscription = graphql(`
+  subscription BeadUpdated($id: ID!) {
+    beadUpdated(id: $id) {
+      id
+      title
+      status
+      assignee
+      assigneeName
+      parentId
+      latestComment
+      children {
+        id
+        title
+        status
+        assignee
+        assigneeName
+        latestComment
+      }
+    }
+  }
+`);
+
 // ── Task ────────────────────────────────────────────────────────────
 
 export const TaskSummary = graphql(`

@@ -179,13 +179,52 @@ export function ChatScreen({
     }
   }, [fetchNewer]);
 
+  // Anchor the streaming bubble at its start position so tool calls that
+  // arrive during streaming appear AFTER the text, not before it.
+  // messages is newest-first (inverted). We capture the count when streaming
+  // starts; messages added after that (tool calls) have lower indices.
+  const streamAnchorCount = useRef<number | null>(null);
+  if (streamingMessage && streamAnchorCount.current === null) {
+    streamAnchorCount.current = messages.length;
+  } else if (!streamingMessage) {
+    streamAnchorCount.current = null;
+  }
+
   // On web, don't use inverted FlatList (react-native-web's scaleY(-1) hack is
   // buggy and keeps regressing). Instead reverse the data so oldest is first and
   // the newest message naturally sits at the bottom.
-  const displayMessages = useMemo(
-    () => (isWeb ? [...messages].reverse() : messages),
-    [messages],
-  );
+  type ListItem =
+    | (ChatMessage & { _type?: undefined })
+    | { _type: "streaming"; id: string };
+
+  const displayMessages: ListItem[] = useMemo(() => {
+    if (!streamingMessage) {
+      return isWeb ? [...messages].reverse() : messages;
+    }
+
+    // Insert a streaming placeholder at the anchor position.
+    const anchor = streamAnchorCount.current ?? messages.length;
+    const placeholder: ListItem = {
+      _type: "streaming",
+      id: `__streaming__${streamingMessage.logId}`,
+    };
+
+    if (isWeb) {
+      // oldest-first: anchor from the end
+      const reversed: ListItem[] = [...messages].reverse();
+      const insertIdx = reversed.length - (messages.length - anchor);
+      reversed.splice(insertIdx, 0, placeholder);
+      return reversed;
+    }
+
+    // newest-first (inverted): new tool calls are at lower indices.
+    // Anchor = count when streaming started. New messages pushed the
+    // count up, so items at index 0..(count-anchor-1) arrived after.
+    const insertIdx = messages.length - anchor;
+    const result: ListItem[] = [...messages];
+    result.splice(insertIdx, 0, placeholder);
+    return result;
+  }, [messages, streamingMessage]);
 
   const { input, setInput, pendingMessages, listRef, handleSend, sending } =
     useChatSend({ agentId, taskId, messages });
@@ -412,13 +451,21 @@ export function ChatScreen({
   displayRef.current = displayMessages;
 
   const renderItem = useCallback(
-    ({ item, index }: { item: ChatMessage; index: number }) => {
+    ({ item, index }: { item: ListItem; index: number }) => {
+      if (item._type === "streaming") {
+        return streamingMessage ? (
+          <StreamingBubble message={streamingMessage} />
+        ) : null;
+      }
+
       const data = displayRef.current;
       // Inverted (iOS): index-1 is the newer adjacent message (lower index = newer).
       // Non-inverted web: index+1 is the newer adjacent message (higher index = newer).
       const nextIdx = isWeb ? index + 1 : index - 1;
-      const next =
+      const nextItem =
         nextIdx >= 0 && nextIdx < data.length ? data[nextIdx] : undefined;
+      const next =
+        nextItem && !nextItem._type ? (nextItem as ChatMessage) : undefined;
       const show = shouldShowTimestamp(item, next);
       return (
         <LogEntryView
@@ -433,10 +480,10 @@ export function ChatScreen({
         />
       );
     },
-    [agentId, sandboxStreams, onBubbleLongPress, lastReasoning],
+    [agentId, sandboxStreams, onBubbleLongPress, lastReasoning, streamingMessage],
   );
 
-  const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
+  const keyExtractor = useCallback((item: ListItem) => item.id, []);
 
   const [showScrollDown, setShowScrollDown] = useState(false);
 
@@ -484,14 +531,14 @@ export function ChatScreen({
     return <NotFound label={notFoundLabel ?? "Not found"} />;
   }
 
-  // Pending messages and streaming bubble — shown at the "newest" end of the list.
+  // Pending user messages — shown at the "newest" end of the list.
+  // StreamingBubble is now interleaved in the message list at its start position.
   const pendingBubbles =
-    pendingMessages.length > 0 || streamingMessage ? (
+    pendingMessages.length > 0 ? (
       <View>
         {pendingMessages.map((content) => (
           <PendingMessageBubble key={content} content={content} />
         ))}
-        {streamingMessage && <StreamingBubble message={streamingMessage} />}
       </View>
     ) : null;
 

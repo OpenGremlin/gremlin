@@ -1,6 +1,7 @@
 import { type Tool, tool } from "ai";
 import { z } from "zod";
 
+import type { BeadIssueEvent } from "../../resources/pubsub.js";
 import type { ServiceContext } from "../context.js";
 import { bd } from "../orchestrator/bdExec.js";
 
@@ -17,6 +18,61 @@ async function bdJson(args: string[]): Promise<unknown> {
   }
 }
 
+/**
+ * Publish a `beadUpdated` event for a top-level bead (epic or parentless task).
+ * Fetches the current bead state + children and pushes it over pub/sub so that
+ * subscribed clients (e.g. BeadCard) update in real time.
+ */
+async function publishBeadUpdated(
+  ctx: ServiceContext,
+  beadId: string,
+): Promise<void> {
+  try {
+    const raw = await bd(["show", beadId, "--json"]);
+    const parsed = JSON.parse(raw);
+    const issue = Array.isArray(parsed) ? parsed[0] : parsed;
+
+    const childrenRaw = await bd(["children", beadId, "--json"]).catch(
+      () => "[]",
+    );
+    const children = JSON.parse(childrenRaw);
+
+    const event: BeadIssueEvent = {
+      id: issue.id,
+      title: issue.title,
+      status: issue.status,
+      assignee: issue.assignee ?? undefined,
+      children: children.map(
+        (c: { id: string; title: string; status: string; assignee?: string; parent?: string }) => ({
+          id: c.id,
+          title: c.title,
+          status: c.status,
+          assignee: c.assignee ?? undefined,
+          parent_id: c.parent ?? undefined,
+        }),
+      ),
+    };
+
+    ctx.resources.pubsub.publish(`beadUpdated:${beadId}`, event);
+  } catch {
+    // Best-effort — don't let pub/sub failures break the tool
+  }
+}
+
+/**
+ * Look up the parent of a bead. Returns the parent ID or null.
+ */
+async function getParentId(issueId: string): Promise<string | null> {
+  try {
+    const raw = await bd(["show", issueId, "--json"]);
+    const parsed = JSON.parse(raw);
+    const issue = Array.isArray(parsed) ? parsed[0] : parsed;
+    return issue.parent ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // ── Tool definitions ──────────────────────────────────────────────
 
 /**
@@ -27,7 +83,7 @@ async function bdJson(args: string[]): Promise<unknown> {
  * beads (issues / tasks / epics) in the workspace's Dolt-backed
  * project tracker.
  */
-export function buildBeadsMcpTools(_ctx: ServiceContext): Record<string, Tool> {
+export function buildBeadsMcpTools(ctx: ServiceContext): Record<string, Tool> {
   return {
     beads_create_issue: tool({
       description:
@@ -104,6 +160,18 @@ export function buildBeadsMcpTools(_ctx: ServiceContext): Record<string, Tool> {
           }
         }
 
+        // Notify parent epic so BeadCard updates in real time
+        if (parent) {
+          await publishBeadUpdated(ctx, parent);
+        } else if (
+          typeof result === "object" &&
+          result !== null &&
+          "id" in result
+        ) {
+          // Top-level bead — publish its own event
+          await publishBeadUpdated(ctx, (result as { id: string }).id);
+        }
+
         return result;
       },
     }),
@@ -156,6 +224,10 @@ export function buildBeadsMcpTools(_ctx: ServiceContext): Record<string, Tool> {
           }
         }
 
+        // Publish update — parent epic if this is a child, otherwise self
+        const parentId = await getParentId(issue_id);
+        await publishBeadUpdated(ctx, parentId ?? issue_id);
+
         return { success: true, issue_id };
       },
     }),
@@ -171,15 +243,22 @@ export function buildBeadsMcpTools(_ctx: ServiceContext): Record<string, Tool> {
           .describe("Reason for closing (e.g. completed, duplicate, wontfix)"),
       }),
       execute: async ({ issue_id, reason }) => {
+        // Look up parent before closing (close may change the issue state)
+        const parentId = await getParentId(issue_id);
+
         const args = ["close", issue_id];
         if (reason) args.push("--reason", reason);
 
         try {
           await bd(args);
-          return { success: true, issue_id };
         } catch (err) {
           return { error: String(err) };
         }
+
+        // Publish update — parent epic if this is a child, otherwise self
+        await publishBeadUpdated(ctx, parentId ?? issue_id);
+
+        return { success: true, issue_id };
       },
     }),
 

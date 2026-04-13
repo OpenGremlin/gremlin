@@ -1,7 +1,10 @@
+import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Check, Circle, ExternalLink } from "lucide-react-native";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { BeadUpdatedSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
 
 export interface BeadChild {
@@ -85,21 +88,51 @@ export function BeadCard({
 }) {
   const { isDark } = useTheme();
 
+  // Subscribe to real-time bead updates (child adds, status changes)
+  const [liveBead, setLiveBead] = useState<BeadInfo | null>(null);
+  useSubscription(BeadUpdatedSubscription, {
+    variables: { id: bead?.id ?? "" },
+    skip: !bead,
+    onData: ({ data: { data } }) => {
+      if (!data?.beadUpdated) return;
+      const u = data.beadUpdated;
+      setLiveBead({
+        id: u.id,
+        title: u.title,
+        status: u.status as string,
+        assignee: u.assignee ?? null,
+        assigneeName: u.assigneeName ?? null,
+        parentId: u.parentId ?? null,
+        latestComment: u.latestComment ?? null,
+        children: (u.children ?? []).map((c) => ({
+          id: c.id,
+          title: c.title,
+          status: c.status as string,
+          assignee: c.assignee ?? null,
+          assigneeName: c.assigneeName ?? null,
+          latestComment: c.latestComment ?? null,
+        })),
+      });
+    },
+  });
+
+  const resolved = liveBead ?? bead;
+
   const handlePress = () => {
-    if (!bead) return;
+    if (!resolved) return;
     // Navigate to the task lane view — the bead ID is the task lane key,
     // so the task detail page shows the full work log (tool calls, etc.)
-    router.push(`/agents/${agentId}/tasks/${bead.id}`);
+    router.push(`/agents/${agentId}/tasks/${resolved.id}`);
   };
 
   const gradientColors: [string, string, string] = isDark
     ? ["#080a1c", "#190837", "#280830"]
     : ["#eef2ff", "#e8e0f7", "#f0e8f5"];
 
-  const hasChildren = bead && bead.children.length > 0;
+  const hasChildren = resolved && resolved.children.length > 0;
   const closedCount =
-    bead?.children.filter((c) => c.status === "CLOSED").length ?? 0;
-  const totalCount = bead?.children.length ?? 0;
+    resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
+  const totalCount = resolved?.children.length ?? 0;
 
   return (
     <View className="py-2 max-w-[85%]">
@@ -120,7 +153,7 @@ export function BeadCard({
                 className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
                 numberOfLines={1}
               >
-                {bead?.title ?? "Loading..."}
+                {resolved?.title ?? "Loading..."}
               </Text>
               {hasChildren ? (
                 <Text
@@ -137,27 +170,27 @@ export function BeadCard({
             </View>
 
             {/* Simple task: status + assignee */}
-            {bead && !hasChildren && (
+            {resolved && !hasChildren && (
               <Text
                 className="text-xs mt-0.5 text-text-muted"
                 numberOfLines={1}
               >
-                {bead.status === "CLOSED"
+                {resolved.status === "CLOSED"
                   ? "✓ Done"
-                  : bead.status === "IN_PROGRESS"
+                  : resolved.status === "IN_PROGRESS"
                     ? "◐ In progress"
-                    : bead.status === "BLOCKED"
+                    : resolved.status === "BLOCKED"
                       ? "● Blocked"
                       : "○ Open"}
-                {bead.assigneeName ? ` · @${bead.assigneeName}` : ""}
-                {bead.latestComment ? ` · ${bead.latestComment}` : ""}
+                {resolved.assigneeName ? ` · @${resolved.assigneeName}` : ""}
+                {resolved.latestComment ? ` · ${resolved.latestComment}` : ""}
               </Text>
             )}
 
             {/* Epic: child rows */}
-            {bead && hasChildren && (
+            {resolved && hasChildren && (
               <View className="mt-2">
-                {bead.children.map((child) => (
+                {resolved.children.map((child) => (
                   <ChildRow
                     key={child.id}
                     child={child}

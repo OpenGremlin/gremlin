@@ -126,8 +126,6 @@ const children = async (
 
 const beadUpdated = {
   subscribe: (_parent: unknown, { id }: { id: string }, ctx: GremlinContext) =>
-    // TODO: Publish beadUpdated events from the reconciler / beads MCP layer
-    // using ctx.resources.pubsub.publish(`beadUpdated:${id}`, payload).
     ctx.resources.pubsub.subscribe(`beadUpdated:${id}`),
   resolve: (payload: BeadIssueEvent) => mapIssue(payload),
 };
