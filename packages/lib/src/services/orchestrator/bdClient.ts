@@ -110,7 +110,9 @@ export function createBdClient(opts?: { workingDir?: string }): BeadsClient {
 
     async showIssue(params: { issue_id: string }): Promise<BeadSummary> {
       const raw = await bd(["show", params.issue_id, "--json"], bdOpts);
-      const issue: BdIssueRaw = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // bd show returns an array even for a single bead
+      const issue: BdIssueRaw = Array.isArray(parsed) ? parsed[0] : parsed;
       return mapToBeadSummary(issue);
     },
 
