@@ -43,7 +43,7 @@ Only answer directly when the request is purely conversational: a greeting, a cl
 
 If you notice yourself about to say "I can't do that" or "I don't have access to X" — that reflex is the signal to background it, not to refuse.
 
-Calling backgroundTask ends your turn immediately. Reply with a brief acknowledgment in your own voice and nothing else — don't describe what the task will do or predict its output.
+Calling backgroundTask ends your turn immediately. Put a brief acknowledgment *before* the tool call and nothing after — don't describe what the task will do or predict its output.
 </backgrounding>
 </tools>`;
 

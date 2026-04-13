@@ -11,6 +11,7 @@ type TextLogEntry = {
   role: "AGENT" | "USER" | "SYSTEM";
   content: string;
   attachments?: Attachment[];
+  createdAt?: string;
 };
 
 type ToolLogEntry = {
@@ -42,7 +43,8 @@ function publishLog(
 }
 
 export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
-  const now = new Date().toISOString();
+  const now =
+    ("createdAt" in entry && entry.createdAt) || new Date().toISOString();
   const id = entry.id ?? crypto.randomUUID();
 
   const isToolEntry = entry.role === "TOOL";
