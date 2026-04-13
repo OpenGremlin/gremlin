@@ -1,9 +1,9 @@
 import type { LucideIcon } from "lucide-react-native";
 import {
-  Bell,
   BookOpen,
   Brain,
   Calendar,
+  CheckCircle,
   CircleAlert,
   Eye,
   File,
@@ -98,8 +98,8 @@ function FileUploadCard({
 
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
 const TOOL_ICON: Record<ToolName, LucideIcon> = {
-  [ToolName.UpdateTaskMessage]: Flag,
-  [ToolName.ReplyToAssigner]: Bell,
+  [ToolName.UpdateTask]: Flag,
+  [ToolName.CompleteTask]: CheckCircle,
   [ToolName.BackgroundTask]: Flag,
   [ToolName.Delegate]: Send,
   [ToolName.RequestUserInput]: ShieldCheck,
