@@ -7,6 +7,7 @@ import { buildSkillTools } from "../skills/buildSkillTools.js";
 import {
   attachFileTool,
   attachLinkTool,
+  completeTaskTool,
   createBraveSearchTool,
   createTavilySearchTool,
   editFileTool,
@@ -19,7 +20,6 @@ import {
   listJobsTool,
   readFileTool,
   recallMemoryTool,
-  completeTaskTool,
   saveMemoryTool,
   scheduleJobTool,
   updateJobTool,

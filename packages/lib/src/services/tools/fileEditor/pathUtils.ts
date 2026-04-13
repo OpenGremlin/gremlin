@@ -22,7 +22,7 @@ export function resolveAndValidate(filePath: string): string {
   // which may differ outside the sandbox.
   if (path.isAbsolute(filePath)) {
     const canonical = "/workspace";
-    if (filePath === canonical || filePath.startsWith(canonical + "/")) {
+    if (filePath === canonical || filePath.startsWith(`${canonical}/`)) {
       filePath = filePath.slice(canonical.length + 1) || ".";
     }
   }

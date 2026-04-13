@@ -2,6 +2,7 @@ export { attachFileTool } from "./attachFile.js";
 export { attachLinkTool } from "./attachLink.js";
 export { backgroundTaskTool } from "./backgroundTask.js";
 export { createBraveSearchTool } from "./braveSearch.js";
+export { completeTaskTool } from "./completeTask.js";
 export { delegateTool } from "./delegate.js";
 export {
   editFileTool,
@@ -22,7 +23,6 @@ export {
   updateJobTool,
 } from "./jobs.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
-export { completeTaskTool } from "./completeTask.js";
 export { requestUserInputTool } from "./requestUserInput.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
 export { updateTaskTool } from "./updateTask.js";

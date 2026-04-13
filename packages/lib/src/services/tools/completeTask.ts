@@ -12,8 +12,7 @@ import type { ServiceContext } from "../context.js";
  */
 export function completeTaskTool(ctx: ServiceContext, taskId: string) {
   return tool({
-    description:
-      "Mark the task as complete and report your result.",
+    description: "Mark the task as complete and report your result.",
     inputSchema: z.object({
       message: z
         .string()

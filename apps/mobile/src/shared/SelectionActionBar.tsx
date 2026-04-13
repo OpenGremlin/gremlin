@@ -1,5 +1,6 @@
 import { FolderInput, Share2, Trash2 } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
+import { useTabBarHeight } from "../hooks/useTabBarHeight";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 
 interface SelectionActionBarProps {
@@ -38,9 +39,13 @@ export function SelectionActionBar({
   disabled,
 }: SelectionActionBarProps) {
   const colors = useNavigationTheme();
+  const tabBarHeight = useTabBarHeight();
 
   return (
-    <View className="border-t border-app-border bg-surface">
+    <View
+      className="border-t border-app-border bg-surface"
+      style={{ paddingBottom: tabBarHeight }}
+    >
       <View
         className="flex-row justify-around py-2"
         style={disabled ? { opacity: 0.4, pointerEvents: "none" } : undefined}
