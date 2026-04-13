@@ -1,5 +1,5 @@
 import { useQuery, useSubscription } from "@apollo/client";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Home } from "lucide-react-native";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
@@ -22,16 +22,10 @@ import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { EmptyState } from "../../../src/shared/EmptyState";
 import { FileCard } from "../../../src/shared/FileCard";
-import {
-  type FileNode,
-  filesFromAttachments,
-} from "../../../src/shared/FilePreview";
+import { filesFromAttachments } from "../../../src/shared/FilePreview";
 import { timeAgo } from "../../../src/shared/formatDate";
-import {
-  ImageCollage,
-  type ImageFile,
-  isImageFile,
-} from "../../../src/shared/ImageCollage";
+import { groupFiles } from "../../../src/shared/groupFiles";
+import { ImageCollage } from "../../../src/shared/ImageCollage";
 import { PendingApprovals } from "../../../src/shared/PendingApprovals";
 import { PendingInputRequests } from "../../../src/shared/PendingInputRequests";
 import { QueryResult } from "../../../src/shared/QueryResult";
@@ -45,39 +39,6 @@ type TaskItem = {
   emoji?: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
 };
-
-/**
- * Group consecutive image files into collage blocks while preserving the
- * original interleaved order. Each entry is either a single non-image file or
- * a run of >=1 images. Indices into the original `files` array are kept so a
- * tap can open the unified pager at the right page.
- */
-type FileGroup =
-  | { kind: "file"; file: FileNode; index: number }
-  | { kind: "images"; files: ImageFile[]; indices: number[] };
-
-function groupFiles(files: FileNode[]): FileGroup[] {
-  const groups: FileGroup[] = [];
-  let run: { files: ImageFile[]; indices: number[] } | null = null;
-  const flush = () => {
-    if (run) {
-      groups.push({ kind: "images", files: run.files, indices: run.indices });
-      run = null;
-    }
-  };
-  files.forEach((file, index) => {
-    if (isImageFile(file)) {
-      if (!run) run = { files: [], indices: [] };
-      run.files.push(file);
-      run.indices.push(index);
-    } else {
-      flush();
-      groups.push({ kind: "file", file, index });
-    }
-  });
-  flush();
-  return groups;
-}
 
 const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   const [override, setOverride] = useState<Partial<TaskItem>>({});
@@ -213,11 +174,14 @@ export default function HomeScreen() {
     refetchInputRequests,
   } = usePendingCount();
 
-  const { refreshing, onRefresh } = useListRefresh(() => {
+  const refreshAll = useCallback(() => {
     refetch();
     refetchApprovals();
     refetchInputRequests();
-  });
+  }, [refetch, refetchApprovals, refetchInputRequests]);
+
+  const { refreshing, onRefresh } = useListRefresh(refreshAll);
+  useFocusEffect(refreshAll);
 
   if ((loading || error) && nodes.length === 0) {
     return <QueryResult loading={loading} error={error} onRetry={refetch} />;

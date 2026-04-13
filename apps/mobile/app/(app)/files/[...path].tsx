@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { File, Paths } from "expo-file-system";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Check, Folder, Plus, X } from "lucide-react-native";
 import {
@@ -378,6 +383,12 @@ export default function FilesScreen() {
       clearSelection();
     }
   }, [workspacePath, clearSelection]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchRef.current();
+    }, []),
+  );
 
   const colors = useNavigationTheme();
   const navigation = useNavigation();

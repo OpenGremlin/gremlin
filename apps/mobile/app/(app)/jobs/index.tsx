@@ -1,8 +1,8 @@
 import { useQuery, useSubscription } from "@apollo/client";
 import cronstrue from "cronstrue";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Calendar, Play, Plus } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pressable, RefreshControl, Text } from "react-native";
 import {
   AgentJobsQuery,
@@ -55,6 +55,12 @@ export default function JobsScreen() {
   const { refreshing, onRefresh } = useListRefresh(refetch);
   const refetchRef = useRef(refetch);
   refetchRef.current = refetch;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   useSubscription(JobCreatedSubscription, {
     onData: () => {
