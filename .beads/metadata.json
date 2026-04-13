@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "gremlin",
+  "project_id": "c3379361-b992-41c2-ac62-69341f45dc0e"
+}
