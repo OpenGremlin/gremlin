@@ -480,8 +480,8 @@ describe("buildTaskTools", () => {
   it("includes base tools for every task", () => {
     const tools = buildTaskTools(ctx, makeAgentLaneCtx(), "agent-1", "task-1");
 
-    expect(tools).toHaveProperty("updateTaskMessage");
-    expect(tools).toHaveProperty("replyToAssigner");
+    expect(tools).toHaveProperty("updateTask");
+    expect(tools).toHaveProperty("completeTask");
     expect(tools).toHaveProperty("readFile");
     expect(tools).toHaveProperty("writeFile");
     expect(tools).toHaveProperty("editFile");

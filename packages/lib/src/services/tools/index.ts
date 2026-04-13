@@ -22,9 +22,9 @@ export {
   updateJobTool,
 } from "./jobs.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
-export { replyToAssignerTool } from "./replyToAssigner.js";
+export { completeTaskTool } from "./completeTask.js";
 export { requestUserInputTool } from "./requestUserInput.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
-export { updateTaskMessageTool } from "./updateTaskMessage.js";
+export { updateTaskTool } from "./updateTask.js";
 export { viewImageTool } from "./viewImage.js";
 export { webFetch } from "./webFetch.js";

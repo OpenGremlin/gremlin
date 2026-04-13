@@ -59,8 +59,17 @@ export function useAgentStream(
       }
 
       if (event.done) {
-        // Mark the content as final but keep the bubble visible.
-        // It will be dismissed when the log entry arrives.
+        // If there's accumulated content, keep the bubble visible until
+        // the final log entry arrives and dismiss() is called.
+        // If there's no content (e.g. turn ended on backgroundTask with
+        // no text), clear the bubble immediately — no log entry will come.
+        if (!textBufferRef.current && !reasoningBufferRef.current) {
+          textBufferRef.current = "";
+          reasoningBufferRef.current = "";
+          reasoningStartRef.current = null;
+          reasoningEndRef.current = null;
+          setStreaming(null);
+        }
         return;
       }
 

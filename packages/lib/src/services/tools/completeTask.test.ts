@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DeepMockProxy } from "vitest-mock-extended";
 import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
-import { replyToAssignerTool } from "./replyToAssigner.js";
+import { completeTaskTool } from "./completeTask.js";
 
 const TOOL_OPTS = {
   toolCallId: "tc-1",
@@ -23,7 +23,7 @@ const baseTask = {
   attachments: [],
 };
 
-describe("replyToAssignerTool", () => {
+describe("completeTaskTool", () => {
   let ctx: DeepMockProxy<ServiceContext>;
 
   beforeEach(() => {
@@ -31,11 +31,11 @@ describe("replyToAssignerTool", () => {
     vi.clearAllMocks();
   });
 
-  it("routes background-task replies back to the worker's own main lane", async () => {
+  it("routes background-task results back to the worker's own main lane", async () => {
     ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
     ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
 
-    const tool = replyToAssignerTool(ctx, "task-1");
+    const tool = completeTaskTool(ctx, "task-1");
     await tool.execute({ message: "done" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
@@ -53,14 +53,14 @@ describe("replyToAssignerTool", () => {
     );
   });
 
-  it("routes delegated-task replies back to the assigner (different agent)", async () => {
+  it("routes delegated-task results back to the assigner (different agent)", async () => {
     ctx.services.tasks.getTask.mockResolvedValue({
       ...baseTask,
       assignerAgentId: "manager-agent",
     } as any);
     ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
 
-    const tool = replyToAssignerTool(ctx, "task-1");
+    const tool = completeTaskTool(ctx, "task-1");
     await tool.execute({ message: "found 2 of 3" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
@@ -85,7 +85,7 @@ describe("replyToAssignerTool", () => {
       { type: "link", url: "https://example.com", title: "Dashboard" },
     ]);
 
-    const tool = replyToAssignerTool(ctx, "task-1");
+    const tool = completeTaskTool(ctx, "task-1");
     await tool.execute({ message: "report ready" }, TOOL_OPTS);
 
     expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
@@ -107,7 +107,7 @@ describe("replyToAssignerTool", () => {
     ctx.services.tasks.getTask.mockResolvedValue(baseTask as any);
     ctx.services.tasks.getTaskAttachments.mockResolvedValue([]);
 
-    const tool = replyToAssignerTool(ctx, "task-1");
+    const tool = completeTaskTool(ctx, "task-1");
     await tool.execute({ message: "done" }, TOOL_OPTS);
 
     const payload = (ctx.services.inbox.enqueueWork as any).mock.calls[0][3]
@@ -118,7 +118,7 @@ describe("replyToAssignerTool", () => {
   it("throws when task not found", async () => {
     ctx.services.tasks.getTask.mockResolvedValue(null);
 
-    const tool = replyToAssignerTool(ctx, "task-1");
+    const tool = completeTaskTool(ctx, "task-1");
     await expect(tool.execute({ message: "x" }, TOOL_OPTS)).rejects.toThrow(
       "Task task-1 not found",
     );

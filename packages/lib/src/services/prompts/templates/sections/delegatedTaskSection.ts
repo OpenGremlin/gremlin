@@ -19,5 +19,5 @@ You are working on a task that was delegated to you by @{{delegated.assignerName
 
 If the brief leaves details unspecified, use your best judgement and make reasonable choices rather than stopping to ask. The user can course-correct afterwards.
 
-When you have something to report back, call \`replyToAssigner\` with your answer. Any files or links you attached to the task are included automatically.
+When you have something to report back, call \`completeTask\` with your answer. Any files or links you attached to the task are included automatically.
 </delegated_task>`;

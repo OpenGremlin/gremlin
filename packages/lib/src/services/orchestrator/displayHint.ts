@@ -53,10 +53,10 @@ function computeDisplayHintInner(
 ): DisplayHint | null {
   switch (toolName) {
     // ── Task & messaging ───────────────────────────────────────────
-    case ToolName.UpdateTaskMessage:
+    case ToolName.UpdateTask:
       return { text: (input?.message as string) || "Progress update" };
-    case ToolName.ReplyToAssigner:
-      return { text: "Sent update to assigner" };
+    case ToolName.CompleteTask:
+      return { text: "Task complete" };
     case ToolName.Delegate: {
       const target =
         (result?.targetName as string | undefined) ??

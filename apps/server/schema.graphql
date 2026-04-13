@@ -251,8 +251,8 @@ enum AgentLogRole {
 }
 
 enum ToolName {
-  updateTaskMessage
-  replyToAssigner
+  updateTask
+  completeTask
   backgroundTask
   delegate
   requestUserInput

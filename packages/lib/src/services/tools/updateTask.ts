@@ -2,10 +2,10 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
 
-export function updateTaskMessageTool(ctx: ServiceContext, taskId: string) {
+export function updateTaskTool(ctx: ServiceContext, taskId: string) {
   return tool({
     description:
-      "Post a short progress update for the current task. Call at meaningful milestones — not after every tool call.",
+      "Update the task's status message. Call at meaningful milestones — not after every tool call.",
     inputSchema: z.object({
       message: z
         .string()
