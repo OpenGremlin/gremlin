@@ -58,4 +58,42 @@ describe("pathUtils", () => {
       );
     });
   });
+
+  describe("resolveAndValidate with non-default WORKSPACE_PATH", () => {
+    beforeEach(() => {
+      process.env.WORKSPACE_PATH = "/home/user/data";
+    });
+
+    it("strips /workspace prefix and resolves against real workspace", () => {
+      const result = resolveAndValidate("/workspace/file.txt");
+      expect(result).toBe("/home/user/data/file.txt");
+    });
+
+    it("strips /workspace prefix for nested paths", () => {
+      const result = resolveAndValidate("/workspace/src/components/App.tsx");
+      expect(result).toBe("/home/user/data/src/components/App.tsx");
+    });
+
+    it("strips bare /workspace path", () => {
+      const result = resolveAndValidate("/workspace");
+      expect(result).toBe("/home/user/data");
+    });
+
+    it("does not strip /workspace-other (similar prefix)", () => {
+      expect(() => resolveAndValidate("/workspace-other/file.txt")).toThrow(
+        "Path traversal not allowed",
+      );
+    });
+
+    it("resolves relative paths against real workspace", () => {
+      const result = resolveAndValidate("docs/readme.md");
+      expect(result).toBe("/home/user/data/docs/readme.md");
+    });
+
+    it("rejects /workspace/../etc/passwd after stripping", () => {
+      expect(() => resolveAndValidate("/workspace/../etc/passwd")).toThrow(
+        "Path traversal not allowed",
+      );
+    });
+  });
 });

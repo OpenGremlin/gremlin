@@ -16,6 +16,17 @@ export function getWorkspacePath(): string {
  */
 export function resolveAndValidate(filePath: string): string {
   const workspace = getWorkspacePath();
+
+  // The agent always uses /workspace as the canonical prefix (matching the
+  // sandbox). Strip it so the path resolves against the real WORKSPACE_PATH,
+  // which may differ outside the sandbox.
+  if (path.isAbsolute(filePath)) {
+    const canonical = "/workspace";
+    if (filePath === canonical || filePath.startsWith(canonical + "/")) {
+      filePath = filePath.slice(canonical.length + 1) || ".";
+    }
+  }
+
   const resolved = path.resolve(workspace, filePath);
   if (!resolved.startsWith(workspace + path.sep) && resolved !== workspace) {
     throw new Error("Path traversal not allowed");
