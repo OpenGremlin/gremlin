@@ -162,7 +162,6 @@ export const TaskDetail = graphql(`
     message
     createdAt
     updatedAt
-    completedAt
     emoji
     attachments {
       ...AttachmentFields

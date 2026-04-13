@@ -733,7 +733,6 @@ type Task {
   message: String
   createdAt: String!
   updatedAt: String!
-  completedAt: String
   originJobId: String
   emoji: String
   attachments: [Attachment!]!

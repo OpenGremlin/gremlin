@@ -92,7 +92,6 @@ export function buildTask(overrides?: Partial<Task>): Task {
     message: "Do something useful",
     createdAt: "2025-06-15T12:00:00Z",
     updatedAt: "2025-06-15T12:00:00Z",
-    completedAt: null,
     emoji: null,
     originJobId: null,
     attachments: [],

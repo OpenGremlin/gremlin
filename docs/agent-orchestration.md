@@ -56,7 +56,6 @@ Query a task sub-thread: `GSI1PK = LOG_TASK#<taskId>`, sorted by `createdAt`.
 | `message` | string? | Short human-readable status update (e.g., "Waiting for dealer email reply") |
 | `createdAt` | string (ISO 8601) | When the task was spawned |
 | `updatedAt` | string (ISO 8601) | Last status change |
-| `completedAt` | string? (ISO 8601) | When the task reached a terminal state |
 | `originJobId` | string? | If this task was triggered by an AgentJob |
 
 **DynamoDB key pattern:**

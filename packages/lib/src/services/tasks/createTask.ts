@@ -29,7 +29,6 @@ export async function createTask(
     message: null,
     createdAt: now,
     updatedAt: now,
-    completedAt: null,
     originJobId: input.originJobId ?? null,
     ...(input.assignerAgentId
       ? { assignerAgentId: input.assignerAgentId }

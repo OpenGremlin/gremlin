@@ -406,37 +406,26 @@ describe("buildAgentLaneContext — manager mode", () => {
       retired: false,
     } as any);
     ctx.services.tasks.getTasksByAgent.mockResolvedValue([
-      // Open delegation from this manager — should be included
+      // Delegation from this manager — should be included
       {
         id: "task-open",
         agentId: "researcher",
         title: "Find pricing",
         assignerAgentId: "manager",
-        completedAt: null,
       },
-      // Completed delegation from this manager — should be excluded
-      {
-        id: "task-done",
-        agentId: "researcher",
-        title: "Old work",
-        assignerAgentId: "manager",
-        completedAt: "2026-01-10T00:00:00.000Z",
-      },
-      // Open task NOT assigned by this manager — should be excluded
+      // Task NOT assigned by this manager — should be excluded
       {
         id: "task-other",
         agentId: "researcher",
         title: "Direct chat work",
         assignerAgentId: undefined,
-        completedAt: null,
       },
-      // Open delegation from a different manager — should be excluded
+      // Delegation from a different manager — should be excluded
       {
         id: "task-foreign",
         agentId: "researcher",
         title: "Other manager's work",
         assignerAgentId: "other-manager",
-        completedAt: null,
       },
     ] as any);
 

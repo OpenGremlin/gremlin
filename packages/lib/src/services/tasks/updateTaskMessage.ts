@@ -5,7 +5,6 @@ export async function updateTaskMessage(
   ctx: ServiceContext,
   taskId: string,
   message: string,
-  opts?: { completed?: boolean },
 ) {
   const now = new Date().toISOString();
 
@@ -19,7 +18,6 @@ export async function updateTaskMessage(
       createdAt: task.createdAt,
       message,
       updatedAt: now,
-      ...(opts?.completed ? { completedAt: now } : {}),
     })
     .options({ returnValues: "NONE" })
     .send();
@@ -28,6 +26,5 @@ export async function updateTaskMessage(
     ...task,
     message,
     updatedAt: now,
-    ...(opts?.completed ? { completedAt: now } : {}),
   });
 }

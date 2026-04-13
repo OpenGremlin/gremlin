@@ -1194,7 +1194,6 @@ export type Task = {
   __typename?: 'Task';
   agent: Agent;
   attachments: Array<Attachment>;
-  completedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   emoji?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -2157,7 +2156,6 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
   attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
-  completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;

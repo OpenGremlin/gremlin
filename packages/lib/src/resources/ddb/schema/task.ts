@@ -17,7 +17,6 @@ export const TaskEntity = new Entity({
     message: anyOf(string(), nul()),
     createdAt: string(),
     updatedAt: string(),
-    completedAt: anyOf(string(), nul()),
     originJobId: anyOf(string(), nul()),
     emoji: anyOf(string(), nul()).optional(),
     // When set, identifies the agent that assigned this task. Absent for

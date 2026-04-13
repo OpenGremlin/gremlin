@@ -318,7 +318,7 @@ export async function buildAgentLaneContext(
     );
     activeDelegations = team.flatMap((member, i) =>
       taskLists[i]
-        .filter((task) => task.assignerAgentId === agentId && !task.completedAt)
+        .filter((task) => task.assignerAgentId === agentId)
         .map((task) => ({
           taskId: task.id,
           targetId: member.id,

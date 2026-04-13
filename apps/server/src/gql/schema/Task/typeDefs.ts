@@ -6,7 +6,6 @@ export const taskTypeDefs = /* GraphQL */ `
     message: String
     createdAt: String!
     updatedAt: String!
-    completedAt: String
     originJobId: String
     emoji: String
     attachments: [Attachment!]!
