@@ -46,8 +46,7 @@ export function buildTaskTrackingTools(
           .describe("Parent task ID (e.g. an epic) to nest under"),
         emoji: z
           .string()
-          .optional()
-          .describe("A single emoji that represents the task"),
+          .describe("A single emoji that best fits the task"),
         blockedBy: z
           .array(z.string())
           .optional()
