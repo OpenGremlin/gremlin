@@ -30,6 +30,7 @@ export async function resumeTaskLane(
 
   let systemPrompt = renderTaskSystemPrompt(
     {
+      agentId: agentLaneCtx.agentId,
       name: agent.name,
       personality: agent.personality,
       userDisplayName: displayName,

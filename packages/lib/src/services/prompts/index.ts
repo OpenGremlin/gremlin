@@ -100,6 +100,7 @@ interface ManagerActiveDelegation {
 }
 
 interface PromptData {
+  agentId: string;
   name: string;
   personality?: string;
   role?: string;

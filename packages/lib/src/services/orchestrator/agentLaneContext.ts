@@ -77,6 +77,7 @@ export interface ActiveDelegation {
  * (main lane + task lanes) within the same drain loop.
  */
 export interface AgentLaneContext {
+  agentId: string;
   agent: Awaited<ReturnType<typeof loadAgentContext>>["agent"];
   profile: Awaited<ReturnType<typeof loadAgentContext>>["profile"];
   displayName: string;
@@ -328,6 +329,7 @@ export async function buildAgentLaneContext(
   }
 
   return {
+    agentId,
     agent,
     profile,
     displayName,

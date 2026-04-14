@@ -16,13 +16,14 @@ import { writeAgentLog } from "./writeAgentLog.js";
  */
 async function buildRelatedTaskContext(
   ctx: ServiceContext,
-  task: { id: string; parentId?: string; issueType?: string },
+  task: { id: string; parentId?: string },
 ): Promise<string | null> {
   let relatedTasks: Awaited<ReturnType<typeof ctx.services.tasks.getChildren>>;
 
-  if (task.issueType === "epic") {
-    // Epic: show all children
-    relatedTasks = await ctx.services.tasks.getChildren(ctx, task.id);
+  // Check if this task has children (parent role)
+  const ownChildren = await ctx.services.tasks.getChildren(ctx, task.id);
+  if (ownChildren.length > 0) {
+    relatedTasks = ownChildren;
   } else if (task.parentId) {
     // Child: show siblings (exclude self)
     const siblings = await ctx.services.tasks.getChildren(ctx, task.parentId);
@@ -154,6 +155,7 @@ export async function runTaskLane(
 
   let systemPrompt = renderTaskSystemPrompt(
     {
+      agentId: agentLaneCtx.agentId,
       name: agent.name,
       personality: agent.personality,
       role: agent.role,

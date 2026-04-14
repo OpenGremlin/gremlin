@@ -28,6 +28,7 @@ export default async function showMainPrompt(invokeCtx: InvokeContext) {
 
   const systemPrompt = renderSystemPrompt(
     {
+      agentId,
       name: agent.name,
       personality: agent.personality,
       userDisplayName: displayName,

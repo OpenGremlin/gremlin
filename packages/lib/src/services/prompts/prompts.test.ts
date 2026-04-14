@@ -72,6 +72,7 @@ describe("resolvePromptFlags", () => {
 });
 
 const baseData = {
+  agentId: "agent-test-123",
   name: "TestAgent",
   personality: "You are helpful.",
   userDisplayName: "Alice",
