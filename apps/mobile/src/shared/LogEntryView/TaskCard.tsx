@@ -76,19 +76,21 @@ function ChildRow({
     >
       <View className="flex-row items-center gap-2">
         {child.agentId ? (
-          <AgentAvatar id={child.agentId} size={20} />
+          <AgentAvatar id={child.agentId} size={28} />
         ) : (
-          <View className="w-5 h-5" />
+          <View className="w-7 h-7" />
         )}
-        <Text
-          className={`text-sm flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
-          numberOfLines={1}
-        >
-          {child.title}
-        </Text>
-        <StatusIcon status={child.status} isDark={isDark} />
+        <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
+          <Text
+            className={`text-sm shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+            numberOfLines={1}
+          >
+            {child.title}
+          </Text>
+          <StatusIcon status={child.status} isDark={isDark} />
+        </View>
       </View>
-      <View className="ml-7">
+      <View className="ml-9">
         <Text
           className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
           numberOfLines={1}
@@ -177,23 +179,25 @@ export function TaskCard({
               {resolved?.emoji ? (
                 <Text className="text-2xl leading-7">{resolved.emoji}</Text>
               ) : null}
-              <Text
-                className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
-                numberOfLines={1}
-              >
-                {resolved?.title ?? "Loading..."}
-              </Text>
-              {hasChildren ? (
+              <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
                 <Text
-                  className={`text-xs font-medium ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
+                  className={`text-sm font-medium shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+                  numberOfLines={1}
                 >
-                  {closedCount}/{totalCount}
+                  {resolved?.title ?? "Loading..."}
                 </Text>
-              ) : null}
-              <StatusIcon
-                status={resolved?.status ?? "OPEN"}
-                isDark={isDark}
-              />
+                <StatusIcon
+                  status={resolved?.status ?? "OPEN"}
+                  isDark={isDark}
+                />
+                {hasChildren ? (
+                  <Text
+                    className={`text-xs font-medium ml-auto ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
+                  >
+                    {closedCount}/{totalCount}
+                  </Text>
+                ) : null}
+              </View>
             </View>
 
             {/* Update line */}
