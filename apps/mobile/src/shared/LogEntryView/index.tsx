@@ -479,7 +479,6 @@ export const LogEntryView = React.memo(function LogEntryView({
                 latestComment: c.latestComment ?? null,
               })),
             }}
-            agentId={agentId}
           />
         );
       }

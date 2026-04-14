@@ -46,16 +46,13 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
 
 function ChildRow({
   child,
-  agentId,
   isDark,
 }: {
   child: TaskChild;
-  agentId: string;
   isDark: boolean;
 }) {
   const handlePress = () => {
-    const targetAgent = child.agentId ?? agentId;
-    router.push(`/agents/${targetAgent}/tasks/${child.id}`);
+    router.push(`/tasks/${child.id}`);
   };
 
   return (
@@ -81,10 +78,8 @@ function ChildRow({
 
 export function TaskCard({
   task,
-  agentId,
 }: {
   task: TaskInfo | null;
-  agentId: string;
 }) {
   const { isDark } = useTheme();
 
@@ -122,8 +117,7 @@ export function TaskCard({
 
   const handlePress = () => {
     if (!resolved) return;
-    const targetAgent = resolved.agentId ?? agentId;
-    router.push(`/agents/${targetAgent}/tasks/${resolved.id}`);
+    router.push(`/tasks/${resolved.id}`);
   };
 
   const gradientColors: [string, string, string] = isDark
@@ -192,7 +186,6 @@ export function TaskCard({
                   <ChildRow
                     key={child.id}
                     child={child}
-                    agentId={agentId}
                     isDark={isDark}
                   />
                 ))}

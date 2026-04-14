@@ -72,7 +72,7 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/agents/${agent?.id ?? "unknown"}/tasks/${task.id}`)}
+      onPress={() => router.push(`/tasks/${task.id}`)}
       className="px-4 py-4 active:bg-surface/50"
     >
       <View className="flex-row items-start gap-3">

@@ -44,7 +44,7 @@ function ApprovalCard({
   return (
     <Pressable
       onPress={() =>
-        router.push(`/agents/${approval.agent.id}/tasks/${approval.taskId}`)
+        router.push(`/tasks/${approval.taskId}`)
       }
       className="bg-surface border border-app-border rounded-xl p-4"
     >
