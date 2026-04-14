@@ -56,6 +56,7 @@ function computeDisplayHintInner(
   // over the raw ID from the input.
   const taskTitle =
     (result?.title as string) ??
+    ((result?.task as Record<string, unknown>)?.title as string) ??
     (input?.title as string) ??
     (input?.taskId as string) ??
     "task";
