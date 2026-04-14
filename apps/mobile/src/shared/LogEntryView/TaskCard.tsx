@@ -237,7 +237,7 @@ export function TaskCard({
 
             {/* Children — indented with subtle tree line */}
             {resolved && hasChildren && (
-              <View className="mt-1.5 ml-5 pl-3" style={{ borderLeftWidth: 1, borderLeftColor: isDark ? "rgba(129,140,248,0.15)" : "rgba(99,102,241,0.15)" }}>
+              <View className="mt-1.5 ml-5 pl-3">
                 {resolved.children.map((child) => (
                   <ChildRow key={child.id} child={child} isDark={isDark} />
                 ))}
