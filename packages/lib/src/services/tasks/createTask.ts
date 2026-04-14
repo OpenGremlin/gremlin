@@ -2,6 +2,18 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+function generateTaskId(): string {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  let id = "";
+  for (let i = 0; i < 8; i++) {
+    id += CHARS[bytes[i] % CHARS.length];
+  }
+  return id;
+}
+
 export async function createTask(
   ctx: ServiceContext,
   input: {
@@ -26,7 +38,7 @@ export async function createTask(
   },
 ): Promise<TaskItem> {
   const now = new Date().toISOString();
-  const id = crypto.randomUUID();
+  const id = generateTaskId();
   const status = input.status ?? "open";
 
   const item: TaskItem = {
