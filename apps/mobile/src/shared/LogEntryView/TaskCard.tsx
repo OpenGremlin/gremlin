@@ -7,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
 import { TaskTrackingSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
+import { AgentAvatar } from "../AgentAvatar";
 import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
 
@@ -64,46 +65,44 @@ function ChildRow({
   child: TaskChild;
   isDark: boolean;
 }) {
-  const handlePress = () => {
-    router.push(`/tasks/${child.id}`);
-  };
-
   const files = filesFromAttachments(
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
 
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={() => router.push(`/tasks/${child.id}`)}
       className="py-1.5"
     >
-      <View className="flex-row items-start gap-2">
-        <View className="mt-0.5">
-          <StatusIcon status={child.status} isDark={isDark} />
-        </View>
-        <View className="flex-1 min-w-0">
-          <Text
-            className={`text-sm ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
-            numberOfLines={1}
-          >
-            {child.assigneeName ? `@${child.assigneeName}: ` : ""}
-            {child.title}
-          </Text>
-          <Text
-            className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-            numberOfLines={1}
-          >
-            {statusLabel(child.status)}
-            {child.latestComment ? ` · ${child.latestComment}` : ""}
-          </Text>
-          {files.length > 0 && (
-            <View className="mt-1 gap-1">
-              {files.map((file) => (
-                <FileCard key={file.path} file={file} />
-              ))}
-            </View>
-          )}
-        </View>
+      <View className="flex-row items-center gap-2">
+        {child.agentId ? (
+          <AgentAvatar id={child.agentId} size={20} />
+        ) : (
+          <View className="w-5 h-5" />
+        )}
+        <Text
+          className={`text-sm flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+          numberOfLines={1}
+        >
+          {child.title}
+        </Text>
+        <StatusIcon status={child.status} isDark={isDark} />
+      </View>
+      <View className="ml-7">
+        <Text
+          className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
+          numberOfLines={1}
+        >
+          {statusLabel(child.status)}
+          {child.latestComment ? ` · ${child.latestComment}` : ""}
+        </Text>
+        {files.length > 0 && (
+          <View className="mt-1 gap-1">
+            {files.map((file) => (
+              <FileCard key={file.path} file={file} />
+            ))}
+          </View>
+        )}
       </View>
     </Pressable>
   );
@@ -151,11 +150,6 @@ export function TaskCard({
 
   const resolved = liveTask ?? task;
 
-  const handlePress = () => {
-    if (!resolved) return;
-    router.push(`/tasks/${resolved.id}`);
-  };
-
   const gradientColors: [string, string, string] = isDark
     ? ["#080a1c", "#190837", "#280830"]
     : ["#eef2ff", "#e8e0f7", "#f0e8f5"];
@@ -164,13 +158,11 @@ export function TaskCard({
   const closedCount =
     resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
   const totalCount = resolved?.children.length ?? 0;
-  const isEpicDone =
-    hasChildren && closedCount === totalCount && resolved?.status === "CLOSED";
 
   return (
     <View className="py-2 max-w-[85%]">
       <Pressable
-        onPress={handlePress}
+        onPress={() => resolved && router.push(`/tasks/${resolved.id}`)}
         className={`rounded-xl overflow-hidden ${isDark ? "border border-indigo-500/20" : "border border-indigo-300"}`}
       >
         <LinearGradient
@@ -180,58 +172,49 @@ export function TaskCard({
           style={{ borderRadius: 12 }}
         >
           <View className="px-3 py-2.5">
-            {/* Epic/task header row */}
-            <View className="flex-row items-start gap-2">
+            {/* Header: {emoji} {title} {status} */}
+            <View className="flex-row items-center gap-2">
               {resolved?.emoji ? (
                 <Text className="text-2xl leading-7">{resolved.emoji}</Text>
               ) : null}
-              <View className="mt-0.5">
-                <StatusIcon
-                  status={resolved?.status ?? "OPEN"}
-                  isDark={isDark}
-                />
-              </View>
-              <View className="flex-1 min-w-0">
-                <View className="flex-row items-center gap-1.5">
-                  <Text
-                    className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
-                    numberOfLines={1}
-                  >
-                    {resolved?.title ?? "Loading..."}
-                  </Text>
-                  {hasChildren ? (
-                    <Text
-                      className={`text-xs font-medium ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
-                    >
-                      {closedCount}/{totalCount}
-                    </Text>
-                  ) : (
-                    <ExternalLink
-                      size={12}
-                      color={isDark ? "#818cf8" : "#4f46e5"}
-                    />
-                  )}
-                </View>
-                {resolved && (
-                  <Text
-                    className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-                    numberOfLines={1}
-                  >
-                    {statusLabel(resolved.status)}
-                    {resolved.assigneeName
-                      ? ` · @${resolved.assigneeName}`
-                      : ""}
-                    {resolved.latestComment
-                      ? ` · ${resolved.latestComment}`
-                      : ""}
-                  </Text>
-                )}
-              </View>
+              <Text
+                className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+                numberOfLines={1}
+              >
+                {resolved?.title ?? "Loading..."}
+              </Text>
+              {hasChildren ? (
+                <Text
+                  className={`text-xs font-medium ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
+                >
+                  {closedCount}/{totalCount}
+                </Text>
+              ) : null}
+              <StatusIcon
+                status={resolved?.status ?? "OPEN"}
+                isDark={isDark}
+              />
             </View>
 
-            {/* Children — indented with subtle tree line */}
+            {/* Update line */}
+            {resolved && (
+              <Text
+                className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"} ${resolved.emoji ? "ml-9" : ""}`}
+                numberOfLines={1}
+              >
+                {statusLabel(resolved.status)}
+                {resolved.assigneeName
+                  ? ` · @${resolved.assigneeName}`
+                  : ""}
+                {resolved.latestComment
+                  ? ` · ${resolved.latestComment}`
+                  : ""}
+              </Text>
+            )}
+
+            {/* Children */}
             {resolved && hasChildren && (
-              <View className="mt-1.5 ml-5 pl-3">
+              <View className={`mt-2 ${resolved.emoji ? "ml-9" : ""}`}>
                 {resolved.children.map((child) => (
                   <ChildRow key={child.id} child={child} isDark={isDark} />
                 ))}
