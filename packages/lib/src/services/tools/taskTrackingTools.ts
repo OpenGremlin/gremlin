@@ -44,6 +44,10 @@ export function buildTaskTrackingTools(
           .string()
           .optional()
           .describe("Parent task ID (e.g. an epic) to nest under"),
+        emoji: z
+          .string()
+          .optional()
+          .describe("A single emoji that represents the task"),
         blockedBy: z
           .array(z.string())
           .optional()
@@ -57,6 +61,7 @@ export function buildTaskTrackingTools(
         issueType,
         priority,
         assignee,
+        emoji,
         parentId,
         blockedBy,
       }) => {
@@ -67,6 +72,7 @@ export function buildTaskTrackingTools(
           issueType,
           priority,
           parentId,
+          emoji,
         });
 
         if (blockedBy && blockedBy.length > 0) {

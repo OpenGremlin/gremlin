@@ -136,14 +136,17 @@ export const AgentLogFields = graphql(`
       priority
       parentId
       issueType
+      emoji
       assigneeName
       latestComment
+      attachments { ...AttachmentFields }
       children {
         id
         title
         status
         assigneeName
         latestComment
+        attachments { ...AttachmentFields }
         agent { id }
       }
       agent { id }
@@ -161,21 +164,20 @@ export const TaskTrackingSubscription = graphql(`
       id
       title
       status
+      emoji
       assigneeName
-      agent {
-        id
-      }
+      agent { id }
       parentId
       latestComment
+      attachments { ...AttachmentFields }
       children {
         id
         title
         status
         assigneeName
-        agent {
-          id
-        }
+        agent { id }
         latestComment
+        attachments { ...AttachmentFields }
       }
     }
   }

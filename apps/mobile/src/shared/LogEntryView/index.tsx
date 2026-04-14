@@ -470,6 +470,8 @@ export const LogEntryView = React.memo(function LogEntryView({
               assigneeName: t.assigneeName ?? null,
               parentId: t.parentId ?? null,
               latestComment: t.latestComment ?? null,
+              emoji: t.emoji ?? null,
+              attachments: t.attachments,
               children: (t.children ?? []).map((c) => ({
                 id: c.id,
                 title: c.title,
@@ -477,6 +479,7 @@ export const LogEntryView = React.memo(function LogEntryView({
                 agentId: c.agent?.id ?? null,
                 assigneeName: c.assigneeName ?? null,
                 latestComment: c.latestComment ?? null,
+                attachments: c.attachments,
               })),
             }}
           />

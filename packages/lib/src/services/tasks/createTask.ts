@@ -23,6 +23,7 @@ export async function createTask(
     issueType?: string;
     deferUntil?: string;
     description?: string;
+    emoji?: string;
   },
 ): Promise<TaskItem> {
   const now = new Date().toISOString();
@@ -51,6 +52,7 @@ export async function createTask(
     ...(input.parentId ? { parentId: input.parentId } : {}),
     ...(input.deferUntil ? { deferUntil: input.deferUntil } : {}),
     ...(input.description ? { description: input.description } : {}),
+    ...(input.emoji ? { emoji: input.emoji } : {}),
   };
 
   // Write directly via document client so we can include GSI attributes.
