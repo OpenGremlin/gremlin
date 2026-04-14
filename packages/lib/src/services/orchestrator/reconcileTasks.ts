@@ -31,6 +31,15 @@ export async function reconcile(
   const needsAssignment: TaskItem[] = [];
 
   for (const task of ready) {
+    // Tasks with children are containers — they don't get dispatched as
+    // task lanes. They're auto-closed by closeCompletedParents when all
+    // children finish.
+    const children = await ctx.services.tasks.getChildren(ctx, task.id);
+    if (children.length > 0) {
+      await ctx.services.tasks.updateTaskStatus(ctx, task.id, "in_progress");
+      continue;
+    }
+
     const assignee = task.agentId;
 
     if (!assignee || assignee === "unassigned") {
@@ -107,48 +116,58 @@ export async function reconcile(
     );
   }
 
-  await closeCompletedEpics(ctx, triggerAgentId);
+  await closeCompletedParents(ctx, triggerAgentId);
 }
 
-// ── Epic closure ────────────────────────────────────────────────────
+// ── Parent auto-closure ────────────────────────────────────────────
 
 /**
- * Auto-close epics whose children are all closed, and notify the
+ * Auto-close parent tasks whose children are all closed, and notify the
  * triggering agent so it can deliver results to the user.
+ *
+ * Scans in-progress tasks that have children. When all children of a
+ * parent are closed, the parent is auto-closed and the main lane is
+ * notified via `epic_complete`.
  */
-export async function closeCompletedEpics(
+export async function closeCompletedParents(
   ctx: ServiceContext,
   triggerAgentId: string,
 ): Promise<void> {
-  const openEpics = await ctx.services.tasks.listTasks(ctx, {
-    issueType: "epic",
-    status: "open",
+  // Check in-progress tasks — parents are marked in_progress by the
+  // reconciler when they have children.
+  const inProgress = await ctx.services.tasks.listTasks(ctx, {
+    status: "in_progress",
   });
 
-  for (const epic of openEpics) {
-    const children = await ctx.services.tasks.getChildren(ctx, epic.id);
+  for (const parent of inProgress) {
+    const children = await ctx.services.tasks.getChildren(ctx, parent.id);
 
-    // Skip epics with no children or with any non-closed child.
+    // Not a parent — skip.
     if (children.length === 0) continue;
+
     const allClosed = children.every((c) => c.status === "closed");
     if (!allClosed) continue;
 
-    await ctx.services.tasks.closeTask(ctx, epic.id, "All children completed");
+    await ctx.services.tasks.closeTask(
+      ctx,
+      parent.id,
+      "All children completed",
+    );
 
-    const epicInput: EnqueueInput = {
+    const notification: EnqueueInput = {
       type: "epic_complete",
-      payload: { taskId: epic.id, title: epic.title },
+      payload: { taskId: parent.id, title: parent.title },
     };
     await ctx.services.inbox.enqueueWork(
       ctx,
       triggerAgentId,
       "main",
-      epicInput,
+      notification,
     );
 
     ctx.log.info(
-      { epicId: epic.id, component: "reconciler" },
-      "Auto-closed completed epic and notified manager",
+      { parentId: parent.id, component: "reconciler" },
+      "Auto-closed completed parent and notified manager",
     );
   }
 }

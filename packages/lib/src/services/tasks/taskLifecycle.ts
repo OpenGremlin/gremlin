@@ -29,14 +29,13 @@ function assertValidStatus(status: string): asserts status is TaskStatus {
 }
 
 /**
- * Check that all children of an epic are closed before allowing it to close.
+ * Check that all children of a task are closed before allowing it to close.
  * Returns an error message if any children are still open, or null if OK.
  */
 async function checkChildrenClosed(
   ctx: ServiceContext,
   task: TaskItem,
 ): Promise<string | null> {
-  if (task.issueType !== "epic") return null;
   const children = await ctx.services.tasks.getChildren(ctx, task.id);
   if (children.length === 0) return null;
   const openChildren = children.filter((c) => c.status !== "closed");
@@ -45,9 +44,9 @@ async function checkChildrenClosed(
     .map((c) => `  - ${c.id}: "${c.title}" (${c.status})`)
     .join("\n");
   return (
-    `Cannot close epic "${task.title}" (${task.id}) because ${openChildren.length} ` +
+    `Cannot close "${task.title}" (${task.id}) because ${openChildren.length} ` +
     `child task(s) are still open:\n${openList}\n\n` +
-    `Close all child tasks first, then close the epic.`
+    `Close all child tasks first, then close the parent.`
   );
 }
 

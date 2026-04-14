@@ -173,7 +173,6 @@ export interface ReadyWorkFilter {
   assignee?: string;
   parentId?: string;
   priority?: number;
-  issueType?: string;
 }
 
 export async function getReadyWork(
@@ -206,10 +205,6 @@ export async function getReadyWork(
   if (filters?.priority != null) {
     tasks = tasks.filter((t) => t.priority === filters.priority);
   }
-  if (filters?.issueType) {
-    tasks = tasks.filter((t) => t.issueType === filters.issueType);
-  }
-
   // Filter out deferred tasks
   const now = new Date().toISOString();
   tasks = tasks.filter((t) => !t.deferUntil || t.deferUntil <= now);

@@ -6,13 +6,6 @@ export const taskTypeDefs = /* GraphQL */ `
     CLOSED
   }
 
-  enum TaskType {
-    TASK
-    EPIC
-    BUG
-    FEATURE
-  }
-
   type Task {
     id: ID!
     agent: Agent
@@ -25,7 +18,6 @@ export const taskTypeDefs = /* GraphQL */ `
     status: TaskStatus!
     priority: Int
     parentId: ID
-    issueType: TaskType!
     closedAt: String
     closeReason: String
     deferUntil: String

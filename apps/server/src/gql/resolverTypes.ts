@@ -1226,7 +1226,6 @@ export type Task = {
   description?: Maybe<Scalars['String']['output']>;
   emoji?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  issueType: TaskType;
   latestComment?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
@@ -1271,13 +1270,6 @@ export enum TaskStatus {
   Closed = 'CLOSED',
   InProgress = 'IN_PROGRESS',
   Open = 'OPEN'
-}
-
-export enum TaskType {
-  Bug = 'BUG',
-  Epic = 'EPIC',
-  Feature = 'FEATURE',
-  Task = 'TASK'
 }
 
 export { ToolName };
@@ -1556,7 +1548,6 @@ export type ResolversTypes = {
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
   TaskStatus: TaskStatus;
-  TaskType: TaskType;
   ToolName: ToolName;
   UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
@@ -2219,7 +2210,6 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  issueType?: Resolver<ResolversTypes['TaskType'], ParentType, ContextType>;
   latestComment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

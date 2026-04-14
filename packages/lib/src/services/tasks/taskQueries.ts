@@ -13,7 +13,6 @@ import { getLatestComment } from "./taskComments.js";
 
 export interface ListTasksFilters {
   status?: string;
-  issueType?: string;
   assignee?: string;
   priority?: number;
   parentId?: string;
@@ -39,7 +38,6 @@ export async function listTasks(
   // Apply remaining filters in-memory.
   return items.filter((t) => {
     if (filters.status && t.status !== filters.status) return false;
-    if (filters.issueType && t.issueType !== filters.issueType) return false;
     if (filters.assignee && t.agentId !== filters.assignee) return false;
     if (filters.priority != null && t.priority !== filters.priority)
       return false;
@@ -83,9 +81,7 @@ export async function showTask(
     await Promise.all([
       getDependencies(table, taskId),
       getDependents(table, taskId),
-      task.issueType === "epic"
-        ? ctx.services.tasks.getTasksByParent(ctx, taskId)
-        : ([] as TaskItem[]),
+      ctx.services.tasks.getTasksByParent(ctx, taskId),
       getLatestComment(ctx, taskId),
       ctx.services.tasks.getTaskAttachments(ctx, taskId),
     ]);

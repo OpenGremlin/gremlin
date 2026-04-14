@@ -16,7 +16,6 @@ import {
   type SkillTemplate,
   type Task,
   TaskStatus,
-  TaskType,
   type UserInputRequest,
   UserInputRequestStatus,
 } from "../graphql/generated/graphql";
@@ -97,7 +96,6 @@ export function buildTask(overrides?: Partial<Task>): Task {
     emoji: null,
     originJobId: null,
     status: TaskStatus.Open,
-    issueType: TaskType.Task,
     priority: null,
     parentId: null,
     closedAt: null,

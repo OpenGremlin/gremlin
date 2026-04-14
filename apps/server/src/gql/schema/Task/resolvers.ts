@@ -3,10 +3,7 @@ import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLo
 import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
 import type { SandboxOutputEvent } from "@opengremlin/lib/resources/pubsub.js";
 import type { GremlinContext } from "../../context.js";
-import {
-  TaskStatus,
-  TaskType,
-} from "../../resolverTypes.js";
+import { TaskStatus } from "../../resolverTypes.js";
 import type {
   MutationResolvers,
   QueryResolvers,
@@ -28,19 +25,6 @@ const toTaskStatus = (raw?: string): TaskStatus => {
       return TaskStatus.Closed;
     default:
       return TaskStatus.Open;
-  }
-};
-
-const toTaskType = (raw?: string): TaskType => {
-  switch (raw) {
-    case "epic":
-      return TaskType.Epic;
-    case "bug":
-      return TaskType.Bug;
-    case "feature":
-      return TaskType.Feature;
-    default:
-      return TaskType.Task;
   }
 };
 
@@ -92,11 +76,7 @@ const logs: TaskResolvers["logs"] = (
 const status: TaskResolvers["status"] = (parent) =>
   toTaskStatus(parent.status);
 
-const issueType: TaskResolvers["issueType"] = (parent) =>
-  toTaskType(parent.issueType);
-
 const children: TaskResolvers["children"] = async (parent, _args, ctx) => {
-  if (parent.issueType !== "epic") return null;
   const kids = await ctx.services.tasks.getChildren(ctx, parent.id);
   return kids.length > 0 ? kids : null;
 };
@@ -216,7 +196,6 @@ export const taskResolvers = {
     agent,
     emoji,
     status,
-    issueType,
     children,
     latestComment,
     assigneeName,

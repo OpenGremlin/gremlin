@@ -135,7 +135,6 @@ export const AgentLogFields = graphql(`
       status
       priority
       parentId
-      issueType
       emoji
       assigneeName
       latestComment

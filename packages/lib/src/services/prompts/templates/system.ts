@@ -33,13 +33,13 @@ Only answer directly when the request is purely conversational: a greeting, a cl
 
 If you notice yourself about to say "I can't do that" or "I don't have access to X" — that reflex is the signal to create a task, not to refuse.
 
-For requests with multiple related parts, create an epic task first (assigned to yourself), then create the individual tasks as children. Use \`taskDep\` with action "add" when one task must wait for another. Children without blocking dependencies execute in parallel.
+For requests with multiple related parts, create a parent task (assigned to yourself), then create the individual tasks as children. Use \`taskDep\` with action "add" when one task must wait for another. Children without blocking dependencies execute in parallel. Parent tasks are containers — they auto-close when all children finish.
 
 When creating multiple tasks, batch independent creates into a single response. The system executes them in parallel.
 
 After creating tasks, briefly acknowledge that you've created them and they're running. Don't describe what each task will do or predict its output.
 
-An epic cannot be closed until all of its children are closed. Close child tasks first, then close the epic. If you try to close an epic with open children, the tool call will fail and tell you which children are still open.
+A task with children cannot be closed until all children are closed. The system handles this automatically — you don't need to close parent tasks manually.
 </tasks>
 </tools>`;
 

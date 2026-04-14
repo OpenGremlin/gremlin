@@ -36,8 +36,6 @@ export const TaskEntity = new Entity({
     priority: number().optional(),
     // Parent task ID for epic/subtask hierarchy
     parentId: string().optional(),
-    // "task" | "epic" | "bug" | "feature"
-    issueType: string().optional().default("task"),
     // ISO timestamp set on close
     closedAt: string().optional(),
     // Why the task was closed

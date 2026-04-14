@@ -28,10 +28,6 @@ export function buildTaskLaneTools(
           .string()
           .optional()
           .describe("Longer description of what needs to be done"),
-        issueType: z
-          .enum(["task", "epic", "bug", "feature"])
-          .default("task")
-          .describe("Issue type"),
         priority: z
           .number()
           .int()
@@ -46,7 +42,7 @@ export function buildTaskLaneTools(
         parentId: z
           .string()
           .optional()
-          .describe("Parent task ID (e.g. an epic) to nest under"),
+          .describe("Parent task ID to nest under"),
         emoji: z
           .string()
           .describe("A single emoji that best fits the task"),
@@ -60,7 +56,6 @@ export function buildTaskLaneTools(
       execute: async ({
         title,
         description,
-        issueType,
         priority,
         assignee,
         emoji,
@@ -71,7 +66,6 @@ export function buildTaskLaneTools(
           agentId: assignee ?? "",
           title,
           description,
-          issueType,
           priority,
           parentId,
           emoji,
@@ -89,16 +83,12 @@ export function buildTaskLaneTools(
 
     taskList: tool({
       description:
-        "List tasks, optionally filtered by status, type, assignee, priority, or parent.",
+        "List tasks, optionally filtered by status, assignee, priority, or parent.",
       inputSchema: z.object({
         status: z
           .enum(["open", "in_progress", "blocked", "closed"])
           .optional()
           .describe("Filter by status"),
-        issueType: z
-          .enum(["task", "epic", "bug", "feature"])
-          .optional()
-          .describe("Filter by issue type"),
         assignee: z
           .string()
           .optional()
@@ -122,10 +112,9 @@ export function buildTaskLaneTools(
           .default(20)
           .describe("Max results to return"),
       }),
-      execute: async ({ status, issueType, assignee, priority, parentId, limit }) => {
+      execute: async ({ status, assignee, priority, parentId, limit }) => {
         const tasks = await ctx.services.tasks.listTasks(ctx, {
           status,
-          issueType,
           assignee,
           priority,
           parentId,
@@ -153,10 +142,6 @@ export function buildTaskLaneTools(
           .max(4)
           .optional()
           .describe("Filter by priority level"),
-        issueType: z
-          .enum(["task", "epic", "bug", "feature"])
-          .optional()
-          .describe("Filter by issue type"),
         limit: z
           .number()
           .int()
@@ -165,12 +150,11 @@ export function buildTaskLaneTools(
           .default(20)
           .describe("Max results to return"),
       }),
-      execute: async ({ assignee, parentId, priority, issueType, limit }) => {
+      execute: async ({ assignee, parentId, priority, limit }) => {
         const tasks = await ctx.services.tasks.getReadyWork(ctx, {
           assignee,
           parentId,
           priority,
-          issueType,
         });
         return tasks.slice(0, limit);
       },
@@ -191,7 +175,7 @@ export function buildTaskLaneTools(
 
     taskUpdate: tool({
       description:
-        "Update fields on an existing task. To close a task, use taskClose instead. Note: you cannot set status to 'closed' here — use taskClose, which enforces that all children must be closed first for epics.",
+        "Update fields on an existing task. To close a task, use taskClose instead.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to update"),
         status: z
@@ -269,7 +253,7 @@ export function buildTaskLaneTools(
 
     taskClose: tool({
       description:
-        "Mark a task as complete/closed. Use this instead of taskUpdate for closing tasks. IMPORTANT: An epic (parent task) cannot be closed until ALL of its child tasks are closed first — close children before closing the epic.",
+        "Mark a task as complete/closed. A task with children cannot be closed until all children are closed first.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to close"),
         reason: z

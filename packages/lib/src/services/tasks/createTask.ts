@@ -20,7 +20,6 @@ export async function createTask(
     status?: string;
     priority?: number;
     parentId?: string;
-    issueType?: string;
     deferUntil?: string;
     description?: string;
     emoji?: string;
@@ -29,7 +28,6 @@ export async function createTask(
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
   const status = input.status ?? "open";
-  const issueType = input.issueType ?? "task";
 
   const item: TaskItem = {
     id,
@@ -40,7 +38,6 @@ export async function createTask(
     updatedAt: now,
     originJobId: input.originJobId ?? null,
     status,
-    issueType,
     ...(input.assignerAgentId
       ? { assignerAgentId: input.assignerAgentId }
       : {}),

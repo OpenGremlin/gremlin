@@ -738,13 +738,6 @@ enum TaskStatus {
   CLOSED
 }
 
-enum TaskType {
-  TASK
-  EPIC
-  BUG
-  FEATURE
-}
-
 type Task {
   id: ID!
   agent: Agent
@@ -757,7 +750,6 @@ type Task {
   status: TaskStatus!
   priority: Int
   parentId: ID
-  issueType: TaskType!
   closedAt: String
   closeReason: String
   deferUntil: String

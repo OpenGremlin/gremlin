@@ -17,8 +17,7 @@ const makeTask = (overrides = {}) => ({
   title: "Test Task",
   message: null,
   status: "open",
-  issueType: "task",
-  createdAt: "2026-01-01T00:00:00.000Z",
+    createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   originJobId: null,
   ...overrides,
@@ -59,6 +58,7 @@ describe("taskLifecycle", () => {
 
     it("sets closedAt when closing", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+      ctx.services.tasks.getChildren.mockResolvedValue([] as any);
 
       const result = await updateTaskStatus(ctx, "task-1", "closed");
 
@@ -83,7 +83,7 @@ describe("taskLifecycle", () => {
     });
 
     it("publishes to task and parent channels with correct data", async () => {
-      const parentTask = makeTask({ id: "epic-1", issueType: "epic" });
+      const parentTask = makeTask({ id: "epic-1",  });
       ctx.services.tasks.getTask
         .mockResolvedValueOnce(makeTask({ parentId: "epic-1" }) as any) // initial load
         .mockResolvedValueOnce(parentTask as any); // notifyParent re-fetch
@@ -97,7 +97,7 @@ describe("taskLifecycle", () => {
       // Parent receives its own data, not the child's
       expect(ctx.resources.pubsub.publish).toHaveBeenCalledWith(
         "taskUpdated:epic-1",
-        expect.objectContaining({ id: "epic-1", issueType: "epic" }),
+        expect.objectContaining({ id: "epic-1",  }),
       );
     });
 
@@ -119,6 +119,7 @@ describe("taskLifecycle", () => {
   describe("closeTask", () => {
     it("sets status to closed with closedAt", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+      ctx.services.tasks.getChildren.mockResolvedValue([] as any);
 
       const result = await closeTask(ctx, "task-1");
 
@@ -128,6 +129,7 @@ describe("taskLifecycle", () => {
 
     it("sets closeReason when provided", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+      ctx.services.tasks.getChildren.mockResolvedValue([] as any);
 
       const result = await closeTask(ctx, "task-1", "completed");
 
@@ -138,6 +140,7 @@ describe("taskLifecycle", () => {
 
     it("omits closeReason from DDB when not provided", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+      ctx.services.tasks.getChildren.mockResolvedValue([] as any);
 
       await closeTask(ctx, "task-1");
 
@@ -145,25 +148,21 @@ describe("taskLifecycle", () => {
       expect(cmd.input.UpdateExpression).not.toContain("closeReason");
     });
 
-    it("rejects closing an epic with open children", async () => {
-      ctx.services.tasks.getTask.mockResolvedValue(
-        makeTask({ issueType: "epic" }) as any,
-      );
+    it("rejects closing a task with open children", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
       ctx.services.tasks.getChildren.mockResolvedValue([
         makeTask({ id: "child-1", status: "open" }),
         makeTask({ id: "child-2", status: "closed" }),
       ] as any);
 
       await expect(closeTask(ctx, "task-1")).rejects.toThrow(
-        "Cannot close epic",
+        "Cannot close",
       );
       await expect(closeTask(ctx, "task-1")).rejects.toThrow("child-1");
     });
 
-    it("allows closing an epic when all children are closed", async () => {
-      ctx.services.tasks.getTask.mockResolvedValue(
-        makeTask({ issueType: "epic" }) as any,
-      );
+    it("allows closing a task when all children are closed", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
       ctx.services.tasks.getChildren.mockResolvedValue([
         makeTask({ id: "child-1", status: "closed" }),
         makeTask({ id: "child-2", status: "closed" }),
@@ -174,13 +173,13 @@ describe("taskLifecycle", () => {
       expect(result.status).toBe("closed");
     });
 
-    it("allows closing a non-epic task regardless of children", async () => {
+    it("allows closing a task with no children", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+      ctx.services.tasks.getChildren.mockResolvedValue([] as any);
 
       const result = await closeTask(ctx, "task-1");
 
       expect(result.status).toBe("closed");
-      expect(ctx.services.tasks.getChildren).not.toHaveBeenCalled();
     });
   });
 
