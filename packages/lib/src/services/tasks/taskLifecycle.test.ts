@@ -82,20 +82,22 @@ describe("taskLifecycle", () => {
       ).rejects.toThrow("Task nonexistent not found");
     });
 
-    it("publishes to task and parent channels", async () => {
-      ctx.services.tasks.getTask.mockResolvedValue(
-        makeTask({ parentId: "epic-1" }) as any,
-      );
+    it("publishes to task and parent channels with correct data", async () => {
+      const parentTask = makeTask({ id: "epic-1", issueType: "epic" });
+      ctx.services.tasks.getTask
+        .mockResolvedValueOnce(makeTask({ parentId: "epic-1" }) as any) // initial load
+        .mockResolvedValueOnce(parentTask as any); // notifyParent re-fetch
 
       await updateTaskStatus(ctx, "task-1", "in_progress");
 
       expect(ctx.resources.pubsub.publish).toHaveBeenCalledWith(
         "taskUpdated:task-1",
-        expect.objectContaining({ status: "in_progress" }),
+        expect.objectContaining({ id: "task-1", status: "in_progress" }),
       );
+      // Parent receives its own data, not the child's
       expect(ctx.resources.pubsub.publish).toHaveBeenCalledWith(
         "taskUpdated:epic-1",
-        expect.objectContaining({ status: "in_progress" }),
+        expect.objectContaining({ id: "epic-1", issueType: "epic" }),
       );
     });
 

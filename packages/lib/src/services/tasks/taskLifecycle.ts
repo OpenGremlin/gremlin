@@ -2,6 +2,21 @@ import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
+/**
+ * Notify the parent task's subscribers by fetching the parent's current data.
+ * This ensures the parent TaskCard receives the parent's own TaskItem — not the
+ * child's — preventing the UI from flashing between epic and child views.
+ */
+async function notifyParent(
+  ctx: ServiceContext,
+  parentId: string,
+): Promise<void> {
+  const parent = await ctx.services.tasks.getTask(ctx, parentId);
+  if (parent) {
+    ctx.resources.pubsub.publish(`taskUpdated:${parentId}`, parent);
+  }
+}
+
 const VALID_STATUSES = ["open", "in_progress", "blocked", "closed"] as const;
 type TaskStatus = (typeof VALID_STATUSES)[number];
 
@@ -59,7 +74,7 @@ export async function updateTaskStatus(
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, updated);
   if (task.parentId) {
-    ctx.resources.pubsub.publish(`taskUpdated:${task.parentId}`, updated);
+    await notifyParent(ctx, task.parentId);
   }
 
   return updated;
@@ -108,7 +123,7 @@ export async function closeTask(
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, updated);
   if (task.parentId) {
-    ctx.resources.pubsub.publish(`taskUpdated:${task.parentId}`, updated);
+    await notifyParent(ctx, task.parentId);
   }
 
   return updated;
@@ -153,7 +168,7 @@ export async function reopenTask(
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, updated);
   if (task.parentId) {
-    ctx.resources.pubsub.publish(`taskUpdated:${task.parentId}`, updated);
+    await notifyParent(ctx, task.parentId);
   }
 
   return updated;
@@ -228,7 +243,7 @@ export async function updateTaskFields(
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, updated);
   if (task.parentId) {
-    ctx.resources.pubsub.publish(`taskUpdated:${task.parentId}`, updated);
+    await notifyParent(ctx, task.parentId);
   }
 
   return updated;
