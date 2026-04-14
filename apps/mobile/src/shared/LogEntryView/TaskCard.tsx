@@ -27,6 +27,19 @@ export interface TaskInfo {
   children: TaskChild[];
 }
 
+function statusLabel(status: string): string {
+  switch (status) {
+    case "CLOSED":
+      return "Done";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "BLOCKED":
+      return "Blocked";
+    default:
+      return "Open";
+  }
+}
+
 function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   switch (status) {
     case "CLOSED":
@@ -70,6 +83,13 @@ function ChildRow({
         >
           {child.assigneeName ? `@${child.assigneeName} ` : ""}
           {child.title}
+        </Text>
+        <Text
+          className={`text-xs ${isDark ? "text-indigo-300/60" : "text-indigo-500/60"}`}
+          numberOfLines={1}
+        >
+          {statusLabel(child.status)}
+          {child.latestComment ? ` · ${child.latestComment}` : ""}
         </Text>
       </View>
     </Pressable>
@@ -163,18 +183,12 @@ export function TaskCard({
               )}
             </View>
 
-            {resolved && !hasChildren && (
+            {resolved && (
               <Text
                 className="text-xs mt-0.5 text-text-muted"
                 numberOfLines={1}
               >
-                {resolved.status === "CLOSED"
-                  ? "✓ Done"
-                  : resolved.status === "IN_PROGRESS"
-                    ? "◐ In progress"
-                    : resolved.status === "BLOCKED"
-                      ? "● Blocked"
-                      : "○ Open"}
+                {statusLabel(resolved.status)}
                 {resolved.assigneeName ? ` · @${resolved.assigneeName}` : ""}
                 {resolved.latestComment ? ` · ${resolved.latestComment}` : ""}
               </Text>
