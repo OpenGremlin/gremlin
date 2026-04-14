@@ -189,7 +189,7 @@ export function buildTaskTrackingTools(
 
     taskUpdate: tool({
       description:
-        "Update fields on an existing task. To close a task, use taskClose instead.",
+        "Update fields on an existing task. To close a task, use taskClose instead. Note: you cannot set status to 'closed' here — use taskClose, which enforces that all children must be closed first for epics.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to update"),
         status: z
@@ -266,7 +266,7 @@ export function buildTaskTrackingTools(
 
     taskClose: tool({
       description:
-        "Mark a task as complete/closed. Use this instead of taskUpdate for closing tasks.",
+        "Mark a task as complete/closed. Use this instead of taskUpdate for closing tasks. IMPORTANT: An epic (parent task) cannot be closed until ALL of its child tasks are closed first — close children before closing the epic.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to close"),
         reason: z

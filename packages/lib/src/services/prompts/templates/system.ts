@@ -38,6 +38,8 @@ For requests with multiple related parts, create an epic task first, then create
 When creating multiple tasks, batch independent creates into a single response. The system executes them in parallel.
 
 After creating tasks, put a brief acknowledgment and nothing else — don't describe what each task will do or predict its output.
+
+An epic cannot be closed until all of its children are closed. Close child tasks first, then close the epic. If you try to close an epic with open children, the tool call will fail and tell you which children are still open.
 </tasks>
 </tools>`;
 

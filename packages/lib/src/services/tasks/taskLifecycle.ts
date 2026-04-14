@@ -29,6 +29,29 @@ function assertValidStatus(status: string): asserts status is TaskStatus {
 }
 
 /**
+ * Check that all children of an epic are closed before allowing it to close.
+ * Returns an error message if any children are still open, or null if OK.
+ */
+async function checkChildrenClosed(
+  ctx: ServiceContext,
+  task: TaskItem,
+): Promise<string | null> {
+  if (task.issueType !== "epic") return null;
+  const children = await ctx.services.tasks.getChildren(ctx, task.id);
+  if (children.length === 0) return null;
+  const openChildren = children.filter((c) => c.status !== "closed");
+  if (openChildren.length === 0) return null;
+  const openList = openChildren
+    .map((c) => `  - ${c.id}: "${c.title}" (${c.status})`)
+    .join("\n");
+  return (
+    `Cannot close epic "${task.title}" (${task.id}) because ${openChildren.length} ` +
+    `child task(s) are still open:\n${openList}\n\n` +
+    `Close all child tasks first, then close the epic.`
+  );
+}
+
+/**
  * Update a task's status and its GSI4 index key.
  * Publishes `taskUpdated:${taskId}` (and `taskUpdated:${parentId}` if the
  * task has a parent) so subscribers can react to status changes.
@@ -42,6 +65,11 @@ export async function updateTaskStatus(
 
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
+
+  if (status === "closed") {
+    const err = await checkChildrenClosed(ctx, task);
+    if (err) throw new Error(err);
+  }
 
   const now = new Date().toISOString();
   const isClosing = status === "closed";
@@ -90,6 +118,9 @@ export async function closeTask(
 ): Promise<TaskItem> {
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
+
+  const err = await checkChildrenClosed(ctx, task);
+  if (err) throw new Error(err);
 
   const now = new Date().toISOString();
 

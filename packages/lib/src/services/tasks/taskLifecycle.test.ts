@@ -144,6 +144,44 @@ describe("taskLifecycle", () => {
       const cmd = mockDocSend.mock.calls[0][0];
       expect(cmd.input.UpdateExpression).not.toContain("closeReason");
     });
+
+    it("rejects closing an epic with open children", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ issueType: "epic" }) as any,
+      );
+      ctx.services.tasks.getChildren.mockResolvedValue([
+        makeTask({ id: "child-1", status: "open" }),
+        makeTask({ id: "child-2", status: "closed" }),
+      ] as any);
+
+      await expect(closeTask(ctx, "task-1")).rejects.toThrow(
+        "Cannot close epic",
+      );
+      await expect(closeTask(ctx, "task-1")).rejects.toThrow("child-1");
+    });
+
+    it("allows closing an epic when all children are closed", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ issueType: "epic" }) as any,
+      );
+      ctx.services.tasks.getChildren.mockResolvedValue([
+        makeTask({ id: "child-1", status: "closed" }),
+        makeTask({ id: "child-2", status: "closed" }),
+      ] as any);
+
+      const result = await closeTask(ctx, "task-1");
+
+      expect(result.status).toBe("closed");
+    });
+
+    it("allows closing a non-epic task regardless of children", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+
+      const result = await closeTask(ctx, "task-1");
+
+      expect(result.status).toBe("closed");
+      expect(ctx.services.tasks.getChildren).not.toHaveBeenCalled();
+    });
   });
 
   // ── reopenTask ────────────────────────────────────────────────
