@@ -1,9 +1,9 @@
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import { tool } from "ai";
 import sharp from "sharp";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { resolveAndValidate } from "./fileEditor/pathUtils.js";
 
 const IMAGE_EXTENSIONS = new Set([
   ".png",
@@ -38,10 +38,6 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 function getExtension(filePath: string): string {
   const dot = filePath.lastIndexOf(".");
   return dot >= 0 ? filePath.slice(dot).toLowerCase() : "";
-}
-
-function getWorkspacePath(): string {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
 }
 
 type ViewImageResult =
@@ -82,12 +78,10 @@ export function viewImageTool(_ctx: ServiceContext) {
         };
       }
 
-      const workspacePath = getWorkspacePath();
-      const resolved = filePath.startsWith("/")
-        ? filePath
-        : path.join(workspacePath, filePath);
-
-      if (!resolved.startsWith(workspacePath)) {
+      let resolved: string;
+      try {
+        resolved = resolveAndValidate(filePath);
+      } catch {
         return { type: "error", message: "Path is outside the workspace." };
       }
 

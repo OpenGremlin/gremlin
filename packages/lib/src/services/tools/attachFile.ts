@@ -1,9 +1,8 @@
 import * as fs from "node:fs/promises";
-import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
-import { getWorkspacePath } from "./fileEditor/index.js";
+import { resolveAndValidate } from "./fileEditor/pathUtils.js";
 
 export function attachFileTool(ctx: ServiceContext, taskId: string) {
   return tool({
@@ -17,11 +16,7 @@ export function attachFileTool(ctx: ServiceContext, taskId: string) {
         ),
     }),
     execute: async ({ path: filePath }) => {
-      const workspace = getWorkspacePath();
-      const resolved = path.resolve(workspace, filePath);
-      if (!resolved.startsWith(workspace)) {
-        throw new Error("Path traversal not allowed");
-      }
+      const resolved = resolveAndValidate(filePath);
 
       try {
         await fs.access(resolved);
