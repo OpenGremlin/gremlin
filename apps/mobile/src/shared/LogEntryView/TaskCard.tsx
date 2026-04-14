@@ -72,15 +72,17 @@ function ChildRow({
   return (
     <Pressable
       onPress={() => router.push(`/tasks/${child.id}`)}
-      className="py-1.5"
+      className="py-1.5 flex-row gap-2.5"
     >
-      <View className="flex-row items-center gap-2">
+      <View className="w-8 items-center pt-0.5">
         {child.agentId ? (
-          <AgentAvatar id={child.agentId} size={28} />
+          <AgentAvatar id={child.agentId} size={32} />
         ) : (
-          <View className="w-7 h-7" />
+          <View className="w-8 h-8" />
         )}
-        <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
+      </View>
+      <View className="flex-1 min-w-0">
+        <View className="flex-row items-center gap-1.5">
           <Text
             className={`text-sm shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
             numberOfLines={1}
@@ -89,8 +91,6 @@ function ChildRow({
           </Text>
           <StatusIcon status={child.status} isDark={isDark} />
         </View>
-      </View>
-      <View className="ml-9">
         <Text
           className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
           numberOfLines={1}
@@ -173,13 +173,17 @@ export function TaskCard({
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 12 }}
         >
-          <View className="px-3 py-2.5">
-            {/* Header: {emoji} {title} {status} */}
-            <View className="flex-row items-center gap-2">
-              {resolved?.emoji ? (
-                <Text className="text-2xl leading-7">{resolved.emoji}</Text>
-              ) : null}
-              <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
+          <View className="px-3 py-2.5 flex-row gap-2.5">
+            {/* Left column: emoji */}
+            {resolved?.emoji ? (
+              <View className="w-8 items-center pt-0.5">
+                <Text className="text-3xl leading-9">{resolved.emoji}</Text>
+              </View>
+            ) : null}
+
+            {/* Right column: title, status, children */}
+            <View className="flex-1 min-w-0">
+              <View className="flex-row items-center gap-1.5">
                 <Text
                   className={`text-sm font-medium shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
                   numberOfLines={1}
@@ -198,32 +202,30 @@ export function TaskCard({
                   </Text>
                 ) : null}
               </View>
+
+              {resolved && (
+                <Text
+                  className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
+                  numberOfLines={1}
+                >
+                  {statusLabel(resolved.status)}
+                  {resolved.assigneeName
+                    ? ` · @${resolved.assigneeName}`
+                    : ""}
+                  {resolved.latestComment
+                    ? ` · ${resolved.latestComment}`
+                    : ""}
+                </Text>
+              )}
+
+              {resolved && hasChildren && (
+                <View className="mt-2">
+                  {resolved.children.map((child) => (
+                    <ChildRow key={child.id} child={child} isDark={isDark} />
+                  ))}
+                </View>
+              )}
             </View>
-
-            {/* Update line */}
-            {resolved && (
-              <Text
-                className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"} ${resolved.emoji ? "ml-9" : ""}`}
-                numberOfLines={1}
-              >
-                {statusLabel(resolved.status)}
-                {resolved.assigneeName
-                  ? ` · @${resolved.assigneeName}`
-                  : ""}
-                {resolved.latestComment
-                  ? ` · ${resolved.latestComment}`
-                  : ""}
-              </Text>
-            )}
-
-            {/* Children */}
-            {resolved && hasChildren && (
-              <View className={`mt-2 ${resolved.emoji ? "ml-9" : ""}`}>
-                {resolved.children.map((child) => (
-                  <ChildRow key={child.id} child={child} isDark={isDark} />
-                ))}
-              </View>
-            )}
           </View>
         </LinearGradient>
       </Pressable>
