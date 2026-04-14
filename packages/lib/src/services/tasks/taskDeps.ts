@@ -186,17 +186,11 @@ export async function getReadyWork(
   } else if (filters?.assignee) {
     tasks = await ctx.services.tasks.getTasksByAgent(ctx, filters.assignee);
   } else {
-    const [open, inProgress] = await Promise.all([
-      ctx.services.tasks.getTasksByStatus(ctx, "open"),
-      ctx.services.tasks.getTasksByStatus(ctx, "in_progress"),
-    ]);
-    tasks = [...open, ...inProgress];
+    tasks = await ctx.services.tasks.getTasksByStatus(ctx, "open");
   }
 
-  // Keep only open/in_progress tasks
-  tasks = tasks.filter(
-    (t) => t.status === "open" || t.status === "in_progress",
-  );
+  // Keep only open tasks — in_progress means already dispatched
+  tasks = tasks.filter((t) => t.status === "open");
 
   // Apply filters
   if (filters?.parentId && filters?.assignee) {
