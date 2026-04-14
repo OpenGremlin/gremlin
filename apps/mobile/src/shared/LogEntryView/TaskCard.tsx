@@ -221,7 +221,7 @@ export function TaskCard({
                 </Text>
               )}
 
-              {resolved && topFiles.length > 0 && !hasChildren && (
+              {resolved && topFiles.length > 0 && (
                 <View className="mt-1.5 gap-1">
                   {topFiles.map((file) => (
                     <FileCard key={file.path} file={file} />
