@@ -1,7 +1,7 @@
 import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Check, Circle, ExternalLink } from "lucide-react-native";
+import { Check, ExternalLink, Hourglass, RefreshCw } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
@@ -51,15 +51,9 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
     case "CLOSED":
       return <Check size={14} color={isDark ? "#86efac" : "#16a34a"} />;
     case "IN_PROGRESS":
-      return (
-        <Circle
-          size={14}
-          fill={isDark ? "#818cf8" : "#4f46e5"}
-          color={isDark ? "#818cf8" : "#4f46e5"}
-        />
-      );
+      return <RefreshCw size={14} color={isDark ? "#818cf8" : "#4f46e5"} />;
     default:
-      return <Circle size={14} color={isDark ? "#6b7280" : "#9ca3af"} />;
+      return <Hourglass size={14} color={isDark ? "#6b7280" : "#9ca3af"} />;
   }
 }
 
