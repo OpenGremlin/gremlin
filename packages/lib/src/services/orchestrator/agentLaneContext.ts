@@ -4,7 +4,7 @@ import type { EnabledModel } from "../integrations/getEnabledModels.js";
 import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
-import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
+import { buildTaskLaneTools } from "../tools/taskTrackingTools.js";
 import {
   attachFileTool,
   attachLinkTool,
@@ -369,7 +369,7 @@ export function buildTaskTools(
           [ToolName.WebFetch]: webFetch,
         }
       : {}),
-    ...buildTaskTrackingTools(ctx),
+    ...buildTaskLaneTools(ctx),
     ...buildFileEditorTools(ctx, taskId),
     [ToolName.AttachFile]: attachFileTool(ctx, taskId),
     [ToolName.AttachLink]: attachLinkTool(ctx, taskId),

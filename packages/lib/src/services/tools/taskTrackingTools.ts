@@ -12,7 +12,10 @@ import type { ServiceContext } from "../context.js";
  * calls, giving LLM agents the ability to create, query, and manage
  * tasks natively.
  */
-export function buildTaskTrackingTools(
+/**
+ * Worker-safe tools for task lanes — no dependency management.
+ */
+export function buildTaskLaneTools(
   ctx: ServiceContext,
 ): Record<string, Tool> {
   return {
@@ -291,6 +294,19 @@ export function buildTaskTrackingTools(
         return task;
       },
     }),
+
+  };
+}
+
+/**
+ * Full tool set for the main lane — includes dependency management tools
+ * that workers don't need (deps are resolved automatically by the reconciler).
+ */
+export function buildTaskTrackingTools(
+  ctx: ServiceContext,
+): Record<string, Tool> {
+  return {
+    ...buildTaskLaneTools(ctx),
 
     taskDep: tool({
       description:
