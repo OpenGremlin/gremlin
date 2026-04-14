@@ -96,7 +96,7 @@ function ChildRow({
             {child.title}
           </Text>
           <Text
-            className={`text-xs ${isDark ? "text-indigo-300/60" : "text-indigo-500/60"}`}
+            className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
             numberOfLines={1}
           >
             {statusLabel(child.status)}
