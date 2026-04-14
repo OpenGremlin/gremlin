@@ -160,6 +160,9 @@ export function TaskCard({
   const closedCount =
     resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
   const totalCount = resolved?.children.length ?? 0;
+  const topFiles = filesFromAttachments(
+    ((resolved?.attachments ?? []) as AttachmentFieldsFragment[]),
+  );
 
   return (
     <View className="py-2 max-w-[85%]">
@@ -216,6 +219,14 @@ export function TaskCard({
                     ? ` · ${resolved.latestComment}`
                     : ""}
                 </Text>
+              )}
+
+              {resolved && topFiles.length > 0 && !hasChildren && (
+                <View className="mt-1.5 gap-1">
+                  {topFiles.map((file) => (
+                    <FileCard key={file.path} file={file} />
+                  ))}
+                </View>
               )}
 
               {resolved && hasChildren && (
