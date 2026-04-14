@@ -220,7 +220,7 @@ export function TaskCard({
                 </View>
                 {resolved && (
                   <Text
-                    className="text-xs mt-0.5 text-text-muted"
+                    className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
                     numberOfLines={1}
                   >
                     {statusLabel(resolved.status)}
