@@ -52,25 +52,33 @@ function computeDisplayHintInner(
   result: Record<string, unknown> | null,
 ): DisplayHint | null {
   // Native task tracking tools
+  // Prefer the task title from the result (which contains the full task object)
+  // over the raw ID from the input.
+  const taskTitle =
+    (result?.title as string) ??
+    (input?.title as string) ??
+    (input?.taskId as string) ??
+    "task";
+
   if (toolName === "taskCreate") {
     return { text: `Created task: ${(input?.title as string) ?? "task"}` };
   }
   if (toolName === "taskShow") {
-    return { text: `Viewing task: ${(input?.taskId as string) ?? "task"}` };
+    return { text: `Viewing task: ${taskTitle}` };
   }
   if (toolName === "taskUpdate") {
-    const parts = [(input?.taskId as string) ?? "task"];
+    const parts = [taskTitle];
     if (input?.status) parts.push(`→ ${input.status}`);
     return { text: `Updated task: ${parts.join(" ")}` };
   }
   if (toolName === "taskClose") {
     return {
-      text: `Closed task: ${(input?.taskId as string) ?? "task"}`,
+      text: `Closed task: ${taskTitle}`,
       variant: "success",
     };
   }
   if (toolName === "taskReopen") {
-    return { text: `Reopened task: ${(input?.taskId as string) ?? "task"}` };
+    return { text: `Reopened task: ${taskTitle}` };
   }
   if (toolName === "taskList") {
     return { text: "Listed tasks" };
@@ -80,11 +88,11 @@ function computeDisplayHintInner(
   }
   if (toolName === "taskDep") {
     return {
-      text: `${(input?.action as string) === "remove" ? "Removed" : "Added"} dependency: ${(input?.taskId as string) ?? ""} → ${(input?.dependsOnId as string) ?? ""}`,
+      text: `${(input?.action as string) === "remove" ? "Removed" : "Added"} dependency`,
     };
   }
   if (toolName === "taskDepTree") {
-    return { text: `Dependency tree: ${(input?.taskId as string) ?? "task"}` };
+    return { text: `Dependency tree: ${taskTitle}` };
   }
   if (toolName === "taskBlocked") {
     return { text: "Checked blocked tasks" };

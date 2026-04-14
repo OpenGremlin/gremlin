@@ -259,7 +259,8 @@ export function buildTaskTrackingTools(
           });
         }
 
-        return { success: true, taskId };
+        const updated = await ctx.services.tasks.getTask(ctx, taskId);
+        return updated ?? { success: true, taskId };
       },
     }),
 
