@@ -10,6 +10,52 @@ import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 /**
+ * Build a context summary of related tasks and their outputs.
+ * For child tasks: shows sibling tasks and their attached files.
+ * For epic tasks: shows children and their attached files.
+ */
+async function buildRelatedTaskContext(
+  ctx: ServiceContext,
+  task: { id: string; parentId?: string; issueType?: string },
+): Promise<string | null> {
+  let relatedTasks: Awaited<ReturnType<typeof ctx.services.tasks.getChildren>>;
+
+  if (task.issueType === "epic") {
+    // Epic: show all children
+    relatedTasks = await ctx.services.tasks.getChildren(ctx, task.id);
+  } else if (task.parentId) {
+    // Child: show siblings (exclude self)
+    const siblings = await ctx.services.tasks.getChildren(ctx, task.parentId);
+    relatedTasks = siblings.filter((s) => s.id !== task.id);
+  } else {
+    return null;
+  }
+
+  if (relatedTasks.length === 0) return null;
+
+  const lines: string[] = ["[Related tasks and their outputs]\n"];
+
+  for (const related of relatedTasks) {
+    const attachments = await ctx.services.tasks
+      .getTaskAttachments(ctx, related.id)
+      .catch(() => []);
+    const statusStr = related.status === "closed" ? "done" : related.status;
+    lines.push(`• "${related.title}" (${statusStr})`);
+    if (attachments.length > 0) {
+      for (const att of attachments) {
+        if (att.type === "file") {
+          lines.push(`  - ${att.path}`);
+        } else if (att.type === "link") {
+          lines.push(`  - ${att.url}`);
+        }
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
+/**
  * Run an agent turn on a task's lane.
  * Receives a pre-built AgentLaneContext so agent/profile/skills
  * are never re-fetched within the same drain loop.
@@ -39,6 +85,19 @@ export async function runTaskLane(
   const isCrossAgentDelegation = task
     ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
     : !!(opts?.role === "SYSTEM"); // reconciler-dispatched cross-agent work
+
+  // Inject related task outputs so this task can see what sibling/child tasks produced.
+  if (isInitialDelegation && task) {
+    const relatedContext = await buildRelatedTaskContext(ctx, task);
+    if (relatedContext) {
+      await writeAgentLog(ctx, {
+        agentId,
+        taskId,
+        role: "SYSTEM",
+        content: relatedContext,
+      });
+    }
+  }
 
   // Log the prompt — SYSTEM for backgrounded tasks, USER for follow-up messages
   if (prompt) {

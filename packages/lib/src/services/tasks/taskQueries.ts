@@ -6,6 +6,7 @@ import {
   getDependents,
 } from "../../resources/ddb/taskDependency.js";
 import type { ServiceContext } from "../context.js";
+import type { Attachment } from "./attachment.js";
 import { getLatestComment } from "./taskComments.js";
 
 // ── listTasks ───────────────────────────────────────────────────
@@ -64,6 +65,9 @@ export interface TaskDetails {
   dependents: TaskDependencyItem[];
   children: TaskItem[];
   latestComment: TaskCommentItem | undefined;
+  attachments: Attachment[];
+  /** For epics: each child's attachments keyed by child task ID */
+  childAttachments?: Record<string, Attachment[]>;
 }
 
 export async function showTask(
@@ -75,7 +79,7 @@ export async function showTask(
 
   const table = ctx.resources.ddb.table;
 
-  const [dependencies, dependents, children, latestCommentResult] =
+  const [dependencies, dependents, children, latestCommentResult, attachments] =
     await Promise.all([
       getDependencies(table, taskId),
       getDependents(table, taskId),
@@ -83,7 +87,27 @@ export async function showTask(
         ? ctx.services.tasks.getTasksByParent(ctx, taskId)
         : ([] as TaskItem[]),
       getLatestComment(ctx, taskId),
+      ctx.services.tasks.getTaskAttachments(ctx, taskId),
     ]);
+
+  // For epics, also fetch each child's attachments
+  let childAttachments: Record<string, Attachment[]> | undefined;
+  if (children.length > 0) {
+    const entries = await Promise.all(
+      children.map(async (child) => {
+        const atts = await ctx.services.tasks
+          .getTaskAttachments(ctx, child.id)
+          .catch(() => []);
+        return [child.id, atts] as const;
+      }),
+    );
+    childAttachments = Object.fromEntries(
+      entries.filter(([, atts]) => atts.length > 0),
+    );
+    if (Object.keys(childAttachments).length === 0) {
+      childAttachments = undefined;
+    }
+  }
 
   return {
     task,
@@ -91,5 +115,7 @@ export async function showTask(
     dependents,
     children,
     latestComment: latestCommentResult,
+    attachments,
+    childAttachments,
   };
 }
