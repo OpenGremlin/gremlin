@@ -20,7 +20,7 @@ export function buildTaskTrackingTools(
       description:
         "Create a new task in the project tracker. The UI renders a rich card automatically — do NOT repeat the task structure or IDs in your text response.",
       inputSchema: z.object({
-        title: z.string().describe("Short title for the task"),
+        title: z.string().describe("Brief title, 3-5 words"),
         description: z
           .string()
           .optional()
