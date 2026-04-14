@@ -235,35 +235,24 @@ async function processMainLaneItems(
         await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
         shouldRunInference = true;
         break;
-      case "tasks_need_assignment": {
-        const taskIds = payload.taskIds as string[];
-        const tasks = await Promise.all(
-          taskIds.map((id) => ctx.services.tasks.getTask(ctx, id)),
-        );
-        const lines = tasks
-          .filter(Boolean)
-          .map((t) => `- "${t!.title}" (${t!.id})`)
-          .join("\n");
+      case "tasks_need_assignment":
         await ctx.services.orchestrator.writeAgentLog(ctx, {
           agentId,
           taskId: null,
           role: "SYSTEM",
-          content: `These tasks are ready but have no assignee:\n${lines}\n\nAssign them to the appropriate agent.`,
+          content: `The following tasks are ready but need assignment: ${(payload.taskIds as string[]).join(", ")}. Review and assign them.`,
         });
         shouldRunInference = true;
         break;
-      }
-      case "epic_complete": {
-        const epicTitle = (payload.title as string) ?? "";
+      case "epic_complete":
         await ctx.services.orchestrator.writeAgentLog(ctx, {
           agentId,
           taskId: null,
           role: "SYSTEM",
-          content: `All tasks in "${epicTitle}" are complete. Review the results and report back to the user.`,
+          content: `Epic ${payload.taskId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
         });
         shouldRunInference = true;
         break;
-      }
     }
   }
 
