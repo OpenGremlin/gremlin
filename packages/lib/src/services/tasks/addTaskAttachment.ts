@@ -80,9 +80,15 @@ export async function addTaskAttachment(
   );
 
   if (Attributes) {
-    ctx.resources.pubsub.publish(
-      `taskUpdated:${taskId}`,
-      Attributes as unknown as TaskItem,
-    );
+    const task = Attributes as unknown as TaskItem;
+    ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, task);
+
+    // Notify parent so the epic TaskCard re-renders with the new attachment
+    if (task.parentId) {
+      const parent = await ctx.services.tasks.getTask(ctx, task.parentId);
+      if (parent) {
+        ctx.resources.pubsub.publish(`taskUpdated:${task.parentId}`, parent);
+      }
+    }
   }
 }
