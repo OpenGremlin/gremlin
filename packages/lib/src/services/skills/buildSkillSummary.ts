@@ -168,7 +168,7 @@ function formatMainLaneSection(skills: ResolvedSkill[]): string {
 
   return `# Available Skills
 
-These skills are available inside your beads (tasks). You cannot call them directly from this conversation — to use one, create a bead (assign to yourself or a teammate with the right skill) and describe what you need done. Use this list to decide which requests need a bead.
+These skills are available inside your tasks. You cannot call them directly from this conversation — to use one, create a task (assign to yourself or a teammate with the right skill) and describe what you need done. Use this list to decide which requests need a task.
 
 ${entries.join("\n")}`;
 }

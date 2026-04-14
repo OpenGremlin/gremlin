@@ -31,7 +31,7 @@ import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
-import { BeadCard } from "./BeadCard";
+import { TaskCard } from "./TaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
@@ -95,17 +95,18 @@ function FileUploadCard({
   );
 }
 
-/** Icons for beads MCP tools (string names, not in ToolName enum). */
-const BEADS_TOOL_ICON: Record<string, LucideIcon> = {
-  beads_create_issue: Flag,
-  beads_show_issue: Eye,
-  beads_update_issue: PencilLine,
-  beads_close_issue: CheckCircle,
-  beads_list_issues: List,
-  beads_ready_work: List,
-  beads_add_dependency: Link,
-  beads_blocked: CircleAlert,
-  beads_stats: List,
+/** Icons for native task tracking tools (string names, not in ToolName enum). */
+const TASK_TOOL_ICON: Record<string, LucideIcon> = {
+  taskCreate: Flag,
+  taskList: List,
+  taskReady: List,
+  taskShow: Eye,
+  taskUpdate: PencilLine,
+  taskClose: CheckCircle,
+  taskReopen: Flag,
+  taskDep: Link,
+  taskDepTree: List,
+  taskBlocked: CircleAlert,
 };
 
 /** Static map from ToolName → Lucide icon. The backend owns the message; the frontend owns the icon. */
@@ -452,23 +453,28 @@ export const LogEntryView = React.memo(function LogEntryView({
   if (message.role === AgentLogRole.Tool) {
     const tool = resolveToolFields(message);
 
-    // beads_create_issue is an MCP tool name (not in the ToolName enum), so it's
-    // handled here before the isKnownTool guard rather than in renderCustomWidget.
-    if (tool.name === "beads_create_issue") {
-      const parentId = tool.input?.parent as string | undefined;
-      if (!parentId && message.bead) {
-        const b = message.bead;
+    // taskCreate renders a rich card for top-level tasks.
+    // Child tasks are hidden — the parent TaskCard shows the tree.
+    if (tool.name === "taskCreate") {
+      const parentId = tool.input?.parentId as string | undefined;
+      if (parentId) return null;
+      if (message.trackedTask) {
+        const t = message.trackedTask;
         return (
-          <BeadCard
-            bead={{
-              ...b,
-              assignee: b.assignee ?? null,
-              assigneeName: b.assigneeName ?? null,
-              parentId: b.parentId ?? null,
-              latestComment: b.latestComment ?? null,
-              children: (b.children ?? []).map((c) => ({
-                ...c,
-                assignee: c.assignee ?? null,
+          <TaskCard
+            task={{
+              id: t.id,
+              title: t.title,
+              status: t.status as string,
+              agentId: t.agent?.id ?? null,
+              assigneeName: t.assigneeName ?? null,
+              parentId: t.parentId ?? null,
+              latestComment: t.latestComment ?? null,
+              children: (t.children ?? []).map((c) => ({
+                id: c.id,
+                title: c.title,
+                status: c.status as string,
+                agentId: c.agent?.id ?? null,
                 assigneeName: c.assigneeName ?? null,
                 latestComment: c.latestComment ?? null,
               })),
@@ -476,10 +482,6 @@ export const LogEntryView = React.memo(function LogEntryView({
             agentId={agentId}
           />
         );
-      }
-      // Child bead — parent BeadCard already shows the tree, so hide these
-      if (parentId) {
-        return null;
       }
     }
 
@@ -497,14 +499,14 @@ export const LogEntryView = React.memo(function LogEntryView({
     }
 
     // If the backend provided a display hint, render a nice status line
-    // (covers beads MCP tools and any future string-named tools with hints).
-    const beadsIcon = BEADS_TOOL_ICON[tool.name];
-    if (message.displayHint && beadsIcon) {
+    // (covers task tracking tools and any future string-named tools with hints).
+    const taskIcon = TASK_TOOL_ICON[tool.name];
+    if (message.displayHint && taskIcon) {
       const files = filesFromAttachments(message.attachments ?? []);
       return (
         <View>
           <ToolStatus
-            icon={beadsIcon}
+            icon={taskIcon}
             text={message.displayHint}
             variant={
               (message.displayVariant as "success" | "warning" | "error") ??

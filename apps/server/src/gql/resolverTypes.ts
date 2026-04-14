@@ -124,6 +124,8 @@ export type AgentLog = {
   toolInput?: Maybe<Scalars['String']['output']>;
   toolName?: Maybe<Scalars['String']['output']>;
   toolResult?: Maybe<Scalars['String']['output']>;
+  /** Resolved task for taskCreate tool calls (avoids separate query) */
+  trackedTask?: Maybe<Task>;
 };
 
 export type AgentLogConnection = {
@@ -316,25 +318,6 @@ export type AwsSetupInfo = {
   __typename?: 'AwsSetupInfo';
   trustPolicy: Scalars['String']['output'];
 };
-
-export type Bead = {
-  __typename?: 'Bead';
-  assignee?: Maybe<Scalars['String']['output']>;
-  assigneeName?: Maybe<Scalars['String']['output']>;
-  children?: Maybe<Array<Bead>>;
-  id: Scalars['ID']['output'];
-  latestComment?: Maybe<Scalars['String']['output']>;
-  parentId?: Maybe<Scalars['ID']['output']>;
-  status: BeadStatus;
-  title: Scalars['String']['output'];
-};
-
-export enum BeadStatus {
-  Blocked = 'BLOCKED',
-  Closed = 'CLOSED',
-  InProgress = 'IN_PROGRESS',
-  Open = 'OPEN'
-}
 
 export type ClearAgentLogResult = {
   __typename?: 'ClearAgentLogResult';
@@ -581,6 +564,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   addCommandAllowlistEntry: Array<AllowlistEntry>;
+  addTaskComment?: Maybe<Task>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   attachFileReference: Scalars['Boolean']['output'];
@@ -588,6 +572,7 @@ export type Mutation = {
   bindAgentSkillConnection: AgentSkill;
   /** Clear visible log history for an agent's main lane or a specific task lane */
   clearAgentLog: ClearAgentLogResult;
+  closeTask?: Maybe<Task>;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
   connectAwsIamRole: IntegrationConnection;
@@ -624,12 +609,19 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+  updateTaskStatus?: Maybe<Task>;
 };
 
 
 export type MutationAddCommandAllowlistEntryArgs = {
   agentId: Scalars['ID']['input'];
   pattern: Scalars['String']['input'];
+};
+
+
+export type MutationAddTaskCommentArgs = {
+  taskId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 
@@ -655,6 +647,12 @@ export type MutationBindAgentSkillConnectionArgs = {
 export type MutationClearAgentLogArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationCloseTaskArgs = {
+  reason?: InputMaybe<Scalars['String']['input']>;
+  taskId: Scalars['ID']['input'];
 };
 
 
@@ -841,6 +839,12 @@ export type MutationUpdateProfileArgs = {
   input: ProfileInput;
 };
 
+
+export type MutationUpdateTaskStatusArgs = {
+  status: TaskStatus;
+  taskId: Scalars['ID']['input'];
+};
+
 export type OAuthConnectionMeta = {
   __typename?: 'OAuthConnectionMeta';
   accountId?: Maybe<Scalars['String']['output']>;
@@ -902,7 +906,6 @@ export type Query = {
   avatars: Array<Avatar>;
   awsPresetRoles: Array<AwsPresetRole>;
   awsSetupInfo: AwsSetupInfo;
-  bead?: Maybe<Bead>;
   commandAllowlist: Array<AllowlistEntry>;
   defaultImageModel?: Maybe<DefaultModel>;
   defaultModel?: Maybe<DefaultModel>;
@@ -958,11 +961,6 @@ export type QueryAgentLogsArgs = {
 
 export type QueryAgentSkillsArgs = {
   agentId: Scalars['ID']['input'];
-};
-
-
-export type QueryBeadArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1145,7 +1143,6 @@ export type Subscription = {
   agentStream: AgentStreamDelta;
   agentUpdated: Agent;
   agentsUpdated: Agent;
-  beadUpdated?: Maybe<Bead>;
   jobCreated: AgentJob;
   jobTaskCreated: Task;
   /** Subscribe to log entries by agentId or taskId */
@@ -1177,11 +1174,6 @@ export type SubscriptionAgentUpdatedArgs = {
 
 export type SubscriptionAgentsUpdatedArgs = {
   agentIds: Array<Scalars['ID']['input']>;
-};
-
-
-export type SubscriptionBeadUpdatedArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1224,13 +1216,24 @@ export type SubscriptionTasksUpdatedArgs = {
 export type Task = {
   __typename?: 'Task';
   agent: Agent;
+  assigneeName?: Maybe<Scalars['String']['output']>;
   attachments: Array<Attachment>;
+  children?: Maybe<Array<Task>>;
+  closeReason?: Maybe<Scalars['String']['output']>;
+  closedAt?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
+  deferUntil?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
   emoji?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  issueType: TaskType;
+  latestComment?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
   originJobId?: Maybe<Scalars['String']['output']>;
+  parentId?: Maybe<Scalars['ID']['output']>;
+  priority?: Maybe<Scalars['Int']['output']>;
+  status: TaskStatus;
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -1262,6 +1265,20 @@ export type TaskPageInfo = {
   hasPreviousPage: Scalars['Boolean']['output'];
   startCursor?: Maybe<Scalars['String']['output']>;
 };
+
+export enum TaskStatus {
+  Blocked = 'BLOCKED',
+  Closed = 'CLOSED',
+  InProgress = 'IN_PROGRESS',
+  Open = 'OPEN'
+}
+
+export enum TaskType {
+  Bug = 'BUG',
+  Epic = 'EPIC',
+  Feature = 'FEATURE',
+  Task = 'TASK'
+}
 
 export { ToolName };
 
@@ -1484,8 +1501,6 @@ export type ResolversTypes = {
   AwsIamRoleConnectionMeta: ResolverTypeWrapper<AwsIamRoleConnectionMeta>;
   AwsPresetRole: ResolverTypeWrapper<AwsPresetRole>;
   AwsSetupInfo: ResolverTypeWrapper<AwsSetupInfo>;
-  Bead: ResolverTypeWrapper<Bead>;
-  BeadStatus: BeadStatus;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ClearAgentLogResult: ResolverTypeWrapper<ClearAgentLogResult>;
   CodeRender: ResolverTypeWrapper<CodeRender>;
@@ -1540,6 +1555,8 @@ export type ResolversTypes = {
   TaskConnection: ResolverTypeWrapper<TaskConnectionModel>;
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
+  TaskStatus: TaskStatus;
+  TaskType: TaskType;
   ToolName: ToolName;
   UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
@@ -1591,7 +1608,6 @@ export type ResolversParentTypes = {
   AwsIamRoleConnectionMeta: AwsIamRoleConnectionMeta;
   AwsPresetRole: AwsPresetRole;
   AwsSetupInfo: AwsSetupInfo;
-  Bead: Bead;
   Boolean: Scalars['Boolean']['output'];
   ClearAgentLogResult: ClearAgentLogResult;
   CodeRender: CodeRender;
@@ -1714,6 +1730,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   toolInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  trackedTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType>;
 };
 
 export type AgentLogConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AgentLogConnection'] = ResolversParentTypes['AgentLogConnection']> = {
@@ -1833,17 +1850,6 @@ export type AwsPresetRoleResolvers<ContextType = GremlinContext, ParentType exte
 
 export type AwsSetupInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AwsSetupInfo'] = ResolversParentTypes['AwsSetupInfo']> = {
   trustPolicy?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type BeadResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Bead'] = ResolversParentTypes['Bead']> = {
-  assignee?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  assigneeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  children?: Resolver<Maybe<Array<ResolversTypes['Bead']>>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  latestComment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  parentId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['BeadStatus'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type ClearAgentLogResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ClearAgentLogResult'] = ResolversParentTypes['ClearAgentLogResult']> = {
@@ -2003,10 +2009,12 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   addCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationAddCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
+  addTaskComment?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationAddTaskCommentArgs, 'taskId' | 'text'>>;
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   attachFileReference?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAttachFileReferenceArgs, 'input'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   clearAgentLog?: Resolver<ResolversTypes['ClearAgentLogResult'], ParentType, ContextType, RequireFields<MutationClearAgentLogArgs, 'agentId'>>;
+  closeTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCloseTaskArgs, 'taskId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
@@ -2038,6 +2046,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
+  updateTaskStatus?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationUpdateTaskStatusArgs, 'status' | 'taskId'>>;
 };
 
 export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthConnectionMeta'] = ResolversParentTypes['OAuthConnectionMeta']> = {
@@ -2088,7 +2097,6 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatars?: Resolver<Array<ResolversTypes['Avatar']>, ParentType, ContextType>;
   awsPresetRoles?: Resolver<Array<ResolversTypes['AwsPresetRole']>, ParentType, ContextType>;
   awsSetupInfo?: Resolver<ResolversTypes['AwsSetupInfo'], ParentType, ContextType>;
-  bead?: Resolver<Maybe<ResolversTypes['Bead']>, ParentType, ContextType, RequireFields<QueryBeadArgs, 'id'>>;
   commandAllowlist?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<QueryCommandAllowlistArgs, 'agentId'>>;
   defaultImageModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
   defaultModel?: Resolver<Maybe<ResolversTypes['DefaultModel']>, ParentType, ContextType>;
@@ -2188,7 +2196,6 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   agentStream?: SubscriptionResolver<ResolversTypes['AgentStreamDelta'], "agentStream", ParentType, ContextType, RequireFields<SubscriptionAgentStreamArgs, 'agentId'>>;
   agentUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentUpdatedArgs, 'agentId'>>;
   agentsUpdated?: SubscriptionResolver<ResolversTypes['Agent'], "agentsUpdated", ParentType, ContextType, RequireFields<SubscriptionAgentsUpdatedArgs, 'agentIds'>>;
-  beadUpdated?: SubscriptionResolver<Maybe<ResolversTypes['Bead']>, "beadUpdated", ParentType, ContextType, RequireFields<SubscriptionBeadUpdatedArgs, 'id'>>;
   jobCreated?: SubscriptionResolver<ResolversTypes['AgentJob'], "jobCreated", ParentType, ContextType>;
   jobTaskCreated?: SubscriptionResolver<ResolversTypes['Task'], "jobTaskCreated", ParentType, ContextType, RequireFields<SubscriptionJobTaskCreatedArgs, 'jobId'>>;
   logCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "logCreated", ParentType, ContextType, Partial<SubscriptionLogCreatedArgs>>;
@@ -2202,13 +2209,24 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
 
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  assigneeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
+  children?: Resolver<Maybe<Array<ResolversTypes['Task']>>, ParentType, ContextType>;
+  closeReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  closedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  deferUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  issueType?: Resolver<ResolversTypes['TaskType'], ParentType, ContextType>;
+  latestComment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   originJobId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  parentId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  priority?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['TaskStatus'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -2316,7 +2334,6 @@ export type Resolvers<ContextType = GremlinContext> = {
   AwsIamRoleConnectionMeta?: AwsIamRoleConnectionMetaResolvers<ContextType>;
   AwsPresetRole?: AwsPresetRoleResolvers<ContextType>;
   AwsSetupInfo?: AwsSetupInfoResolvers<ContextType>;
-  Bead?: BeadResolvers<ContextType>;
   ClearAgentLogResult?: ClearAgentLogResultResolvers<ContextType>;
   CodeRender?: CodeRenderResolvers<ContextType>;
   CommandApproval?: CommandApprovalResolvers<ContextType>;

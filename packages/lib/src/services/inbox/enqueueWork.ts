@@ -10,8 +10,8 @@ export type InboxItemType =
   | "user_input_request_reply"
   | "core_memory_review"
   | "resume_task"
-  // Reconciler: unassigned bead became ready, manager must route it.
-  | "beads_need_assignment"
+  // Reconciler: unassigned task became ready, manager must route it.
+  | "tasks_need_assignment"
   // Reconciler: all children of an epic closed, manager should report results.
   | "epic_complete";
 

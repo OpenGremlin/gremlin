@@ -2,7 +2,7 @@ import { CommandApprovalDecision, type ToolName } from "../../enums.js";
 import type { InboxItemItem } from "../../resources/ddb/schema/inboxItem.js";
 import type { ServiceContext } from "../context.js";
 import type { AgentLaneContext } from "../orchestrator/agentLaneContext.js";
-import { reconcile } from "../orchestrator/reconcileBeads.js";
+import { reconcile } from "../orchestrator/reconcileTasks.js";
 import { activeSessions } from "../orchestrator/sandboxTools.js";
 import { updateAgentLogResult } from "../orchestrator/writeAgentLog.js";
 import type { Attachment } from "../tasks/attachment.js";
@@ -65,9 +65,7 @@ export async function ringDoorbell(
 
       if (lane === "main") {
         await processMainLaneItems(ctx, agentLaneCtx, agentId, items);
-        // TODO: Optimize to only reconcile when beads tools were actually used.
-        // TODO: Resolve workspaceId from agent config instead of "default".
-        await reconcile(ctx, ctx.services.beads, "default", agentId);
+        await reconcile(ctx, agentId);
       } else if (lane.startsWith("task:")) {
         const taskId = lane.slice(5);
 
@@ -118,10 +116,9 @@ export async function ringDoorbell(
           );
         }
 
-        // Reconcile after task lane completes — the worker may have closed a bead,
+        // Reconcile after task lane completes — the worker may have closed a task,
         // unblocking downstream work or completing an epic.
-        // TODO: Resolve workspaceId from agent config instead of "default".
-        await reconcile(ctx, ctx.services.beads, "default", agentId);
+        await reconcile(ctx, agentId);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }
@@ -218,7 +215,7 @@ async function processMainLaneItems(
 ): Promise<void> {
   let recallHint: string | undefined;
   // Only run inference for items that need an agent response (user messages,
-  // beads needing assignment, epic completions). Informational items skip it.
+  // tasks needing assignment, epic completions). Informational items skip it.
   let shouldRunInference = false;
 
   for (const item of items) {
@@ -238,12 +235,12 @@ async function processMainLaneItems(
         await formatAndWriteInputRequestReply(ctx, agentId, null, payload);
         shouldRunInference = true;
         break;
-      case "beads_need_assignment":
+      case "tasks_need_assignment":
         await ctx.services.orchestrator.writeAgentLog(ctx, {
           agentId,
           taskId: null,
           role: "SYSTEM",
-          content: `The following beads are ready but need assignment: ${(payload.beadIds as string[]).join(", ")}. Review and assign them.`,
+          content: `The following tasks are ready but need assignment: ${(payload.taskIds as string[]).join(", ")}. Review and assign them.`,
         });
         shouldRunInference = true;
         break;
@@ -252,7 +249,7 @@ async function processMainLaneItems(
           agentId,
           taskId: null,
           role: "SYSTEM",
-          content: `Epic ${payload.beadId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
+          content: `Epic ${payload.taskId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
         });
         shouldRunInference = true;
         break;
@@ -398,7 +395,7 @@ async function handleScheduledJob(
     taskId: null,
     role: "TOOL",
     // Legacy tool name for scheduled job log entries — the BackgroundTask
-    // enum value was removed when beads replaced the task tools, but old
+    // enum value is deprecated but kept for backward compat — old
     // UI clients still render cards based on this string.
     toolName: "backgroundTask" as ToolName,
     toolInput: { title: job.name, prompt },

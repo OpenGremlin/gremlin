@@ -17,10 +17,18 @@ export async function createTask(
     /** Explicit, self-contained brief passed via the `delegate` tool. */
     brief?: string;
     successCriteria?: string;
+    status?: string;
+    priority?: number;
+    parentId?: string;
+    issueType?: string;
+    deferUntil?: string;
+    description?: string;
   },
 ): Promise<TaskItem> {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
+  const status = input.status ?? "open";
+  const issueType = input.issueType ?? "task";
 
   const item: TaskItem = {
     id,
@@ -30,6 +38,8 @@ export async function createTask(
     createdAt: now,
     updatedAt: now,
     originJobId: input.originJobId ?? null,
+    status,
+    issueType,
     ...(input.assignerAgentId
       ? { assignerAgentId: input.assignerAgentId }
       : {}),
@@ -37,6 +47,10 @@ export async function createTask(
     ...(input.successCriteria
       ? { successCriteria: input.successCriteria }
       : {}),
+    ...(input.priority != null ? { priority: input.priority } : {}),
+    ...(input.parentId ? { parentId: input.parentId } : {}),
+    ...(input.deferUntil ? { deferUntil: input.deferUntil } : {}),
+    ...(input.description ? { description: input.description } : {}),
   };
 
   // Write directly via document client so we can include GSI attributes.
@@ -54,6 +68,16 @@ export async function createTask(
         gsi1sk: now,
         gsi2pk: "TASK_ALL",
         gsi2sk: `${now}#${id}`,
+        // GSI3: query children by parent
+        ...(input.parentId
+          ? {
+              gsi3pk: `TASK_PARENT#${input.parentId}`,
+              gsi3sk: `${now}#${id}`,
+            }
+          : {}),
+        // GSI4: query by status
+        gsi4pk: `TASK_STATUS#${status}`,
+        gsi4sk: `${now}#${id}`,
       },
     }),
   );

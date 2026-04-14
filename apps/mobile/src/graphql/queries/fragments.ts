@@ -129,46 +129,52 @@ export const AgentLogFields = graphql(`
     attachments {
       ...AttachmentFields
     }
-    bead {
+    trackedTask {
       id
       title
       status
-      assignee
-      assigneeName
+      priority
       parentId
+      issueType
+      assigneeName
       latestComment
       children {
         id
         title
         status
-        assignee
         assigneeName
         latestComment
+        agent { id }
       }
+      agent { id }
     }
     taskId
     createdAt
   }
 `);
 
-// ── Bead ───────────────────────────────────────────────────────
+// ── Task tracking subscription ─────────────────────────────────
 
-export const BeadUpdatedSubscription = graphql(`
-  subscription BeadUpdated($id: ID!) {
-    beadUpdated(id: $id) {
+export const TaskTrackingSubscription = graphql(`
+  subscription TaskTracking($taskId: ID!) {
+    taskUpdated(taskId: $taskId) {
       id
       title
       status
-      assignee
       assigneeName
+      agent {
+        id
+      }
       parentId
       latestComment
       children {
         id
         title
         status
-        assignee
         assigneeName
+        agent {
+          id
+        }
         latestComment
       }
     }

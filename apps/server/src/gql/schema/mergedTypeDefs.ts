@@ -5,7 +5,7 @@ import { agentLogTypeDefs } from "./AgentLog/typeDefs.js";
 import { allowlistTypeDefs } from "./Allowlist/typeDefs.js";
 import { attachmentTypeDefs } from "./Attachment/typeDefs.js";
 import { avatarTypeDefs } from "./Avatar/typeDefs.js";
-import { beadTypeDefs } from "./Bead/typeDefs.js";
+
 import { baseTypeDefs } from "./base.js";
 import { commandApprovalTypeDefs } from "./CommandApproval/typeDefs.js";
 import { fileTypeDefs } from "./File/typeDefs.js";
@@ -21,7 +21,7 @@ import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
   baseTypeDefs,
-  beadTypeDefs,
+
   allowlistTypeDefs,
   attachmentTypeDefs,
   fileTypeDefs,

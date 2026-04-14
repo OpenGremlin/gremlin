@@ -51,40 +51,43 @@ function computeDisplayHintInner(
   input: Record<string, unknown> | null,
   result: Record<string, unknown> | null,
 ): DisplayHint | null {
-  // Beads MCP tools — string names, not in ToolName enum
-  if (toolName === "beads_create_issue") {
-    return { text: `Created bead: ${(input?.title as string) ?? "bead"}` };
+  // Native task tracking tools
+  if (toolName === "taskCreate") {
+    return { text: `Created task: ${(input?.title as string) ?? "task"}` };
   }
-  if (toolName === "beads_show_issue") {
-    return { text: `Viewing bead: ${(input?.issue_id as string) ?? "bead"}` };
+  if (toolName === "taskShow") {
+    return { text: `Viewing task: ${(input?.taskId as string) ?? "task"}` };
   }
-  if (toolName === "beads_update_issue") {
-    const parts = [(input?.issue_id as string) ?? "bead"];
+  if (toolName === "taskUpdate") {
+    const parts = [(input?.taskId as string) ?? "task"];
     if (input?.status) parts.push(`→ ${input.status}`);
-    return { text: `Updated bead: ${parts.join(" ")}` };
+    return { text: `Updated task: ${parts.join(" ")}` };
   }
-  if (toolName === "beads_close_issue") {
+  if (toolName === "taskClose") {
     return {
-      text: `Closed bead: ${(input?.issue_id as string) ?? "bead"}`,
+      text: `Closed task: ${(input?.taskId as string) ?? "task"}`,
       variant: "success",
     };
   }
-  if (toolName === "beads_list_issues") {
-    return { text: "Listed beads" };
+  if (toolName === "taskReopen") {
+    return { text: `Reopened task: ${(input?.taskId as string) ?? "task"}` };
   }
-  if (toolName === "beads_ready_work") {
+  if (toolName === "taskList") {
+    return { text: "Listed tasks" };
+  }
+  if (toolName === "taskReady") {
     return { text: "Checked ready work" };
   }
-  if (toolName === "beads_add_dependency") {
+  if (toolName === "taskDep") {
     return {
-      text: `Added dependency: ${(input?.issue_id as string) ?? ""} → ${(input?.depends_on_id as string) ?? ""}`,
+      text: `${(input?.action as string) === "remove" ? "Removed" : "Added"} dependency: ${(input?.taskId as string) ?? ""} → ${(input?.dependsOnId as string) ?? ""}`,
     };
   }
-  if (toolName === "beads_blocked") {
-    return { text: "Checked blocked beads" };
+  if (toolName === "taskDepTree") {
+    return { text: `Dependency tree: ${(input?.taskId as string) ?? "task"}` };
   }
-  if (toolName === "beads_stats") {
-    return { text: "Bead statistics" };
+  if (toolName === "taskBlocked") {
+    return { text: "Checked blocked tasks" };
   }
 
   switch (toolName) {

@@ -19,6 +19,16 @@ export const GremlinTable = new Table({
       partitionKey: { name: "gsi2pk", type: "string" },
       sortKey: { name: "gsi2sk", type: "string" },
     },
+    gsi3: {
+      type: "global",
+      partitionKey: { name: "gsi3pk", type: "string" },
+      sortKey: { name: "gsi3sk", type: "string" },
+    },
+    gsi4: {
+      type: "global",
+      partitionKey: { name: "gsi4pk", type: "string" },
+      sortKey: { name: "gsi4sk", type: "string" },
+    },
   },
   documentClient,
 });

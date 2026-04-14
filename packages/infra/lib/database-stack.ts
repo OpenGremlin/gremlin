@@ -55,6 +55,20 @@ export class DatabaseStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    table.addGlobalSecondaryIndex({
+      indexName: "gsi3",
+      partitionKey: { name: "gsi3pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi3sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    table.addGlobalSecondaryIndex({
+      indexName: "gsi4",
+      partitionKey: { name: "gsi4pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi4sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     this.table = table;
 
     this.secretsTableName = "gremlin-secrets";

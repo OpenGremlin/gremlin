@@ -38,8 +38,9 @@ describe("createTask", () => {
       message: null,
       createdAt: "2026-01-15T12:00:00.000Z",
       updatedAt: "2026-01-15T12:00:00.000Z",
-
       originJobId: null,
+      status: "open",
+      issueType: "task",
     });
   });
 
@@ -59,6 +60,8 @@ describe("createTask", () => {
         gsi1sk: "2026-01-15T12:00:00.000Z",
         gsi2pk: "TASK_ALL",
         gsi2sk: "2026-01-15T12:00:00.000Z#test-uuid",
+        gsi4pk: "TASK_STATUS#open",
+        gsi4sk: "2026-01-15T12:00:00.000Z#test-uuid",
       }),
     });
   });

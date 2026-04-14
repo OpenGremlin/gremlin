@@ -1,6 +1,6 @@
 import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
-import { buildBeadsMcpTools } from "../tools/beadsMcpTools.js";
+import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
 import {
   FileStateTracker,
   listFilesTool,
@@ -55,7 +55,7 @@ export async function runMainLane(
   );
 
   // Tell the main lane about its own skills using the instruction-free
-  // variant — the model only has beads MCP tools here, NOT
+  // variant — the model only has task tracking tools here, NOT
   // readSkill/runCommand/authenticate, so the verbose task-lane format
   // would tempt it to hallucinate tool calls into thin air.
   if (agentLaneCtx.skillSummary.mainLaneSection) {
@@ -67,7 +67,7 @@ export async function runMainLane(
     taskId: null,
     systemPrompt,
     tools: {
-      ...buildBeadsMcpTools(ctx),
+      ...buildTaskTrackingTools(ctx),
       readFile: readFileTool(new FileStateTracker()),
       listFiles: listFilesTool(),
       saveMemory: saveMemoryTool(ctx, agentId),

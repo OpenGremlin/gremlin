@@ -1,6 +1,5 @@
 import { filter, pipe } from "@graphql-yoga/subscription";
 import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLog.js";
-import { toBeadStatus } from "../Bead/resolvers.js";
 import type {
   AgentStreamEvent,
   SpeechAudioEvent,
@@ -38,8 +37,7 @@ const taskLogs: QueryResolvers["taskLogs"] = async (
   { taskId, first, after, last, before },
   ctx,
 ) => {
-  // For bead-dispatched work, taskId is a bead ID (e.g. "gremlin-3m2").
-  // The Task entity may not exist — tolerate null.
+  // The Task entity may not exist for old log entries — tolerate null.
   const task = await ctx.loaders.taskLoader.load(taskId).catch(() => null);
   return ctx.services.agentLogs.getTaskLogs(
     ctx,
@@ -270,28 +268,19 @@ export const agentLogResolvers = {
       };
     })(),
     attachments,
-    bead: async (parent: AgentLogItem, _args: unknown, ctx: GremlinContext) => {
-      if (parent.toolName !== "beads_create_issue" || !parent.toolResult)
-        return null;
+    trackedTask: async (
+      parent: AgentLogItem,
+      _args: unknown,
+      ctx: GremlinContext,
+    ) => {
+      if (parent.toolName !== "taskCreate" || !parent.toolResult) return null;
       try {
         const result = JSON.parse(parent.toolResult);
-        const beadId = result?.id as string | undefined;
-        if (!beadId) return null;
-        // Skip child beads — the parent BeadCard resolves the tree
+        const taskId = result?.id as string | undefined;
+        if (!taskId) return null;
         const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
-        if (input?.parent) return null;
-
-        const summary = await ctx.services.beads.showIssue({
-          issue_id: beadId,
-        });
-        return {
-          id: summary.id,
-          title: summary.title,
-          status: toBeadStatus(summary.status),
-          assignee: summary.assignee ?? null,
-          parentId: summary.parentId ?? null,
-          _children: null,
-        };
+        if (input?.parentId) return null;
+        return ctx.services.tasks.getTask(ctx, taskId);
       } catch {
         return null;
       }

@@ -4,27 +4,27 @@ import { router } from "expo-router";
 import { Check, Circle, ExternalLink } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { BeadUpdatedSubscription } from "../../graphql/queries";
+import { TaskTrackingSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
 
-export interface BeadChild {
+export interface TaskChild {
   id: string;
   title: string;
   status: string;
-  assignee: string | null;
+  agentId: string | null;
   assigneeName: string | null;
   latestComment: string | null;
 }
 
-export interface BeadInfo {
+export interface TaskInfo {
   id: string;
   title: string;
   status: string;
-  assignee: string | null;
+  agentId: string | null;
   assigneeName: string | null;
   parentId: string | null;
   latestComment: string | null;
-  children: BeadChild[];
+  children: TaskChild[];
 }
 
 function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
@@ -40,7 +40,6 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
         />
       );
     default:
-      // OPEN, BLOCKED
       return <Circle size={14} color={isDark ? "#6b7280" : "#9ca3af"} />;
   }
 }
@@ -50,12 +49,13 @@ function ChildRow({
   agentId,
   isDark,
 }: {
-  child: BeadChild;
+  child: TaskChild;
   agentId: string;
   isDark: boolean;
 }) {
   const handlePress = () => {
-    router.push(`/agents/${agentId}/tasks/${child.id}`);
+    const targetAgent = child.agentId ?? agentId;
+    router.push(`/agents/${targetAgent}/tasks/${child.id}`);
   };
 
   return (
@@ -79,30 +79,30 @@ function ChildRow({
   );
 }
 
-export function BeadCard({
-  bead,
+export function TaskCard({
+  task,
   agentId,
 }: {
-  bead: BeadInfo | null;
+  task: TaskInfo | null;
   agentId: string;
 }) {
   const { isDark } = useTheme();
 
-  // Subscribe to real-time bead updates (child adds, status changes)
-  const [liveBead, setLiveBead] = useState<BeadInfo | null>(null);
-  const beadId = bead?.id;
-  useEffect(() => setLiveBead(null), [beadId]);
-  useSubscription(BeadUpdatedSubscription, {
-    variables: { id: bead?.id ?? "" },
-    skip: !bead,
+  const [liveTask, setLiveTask] = useState<TaskInfo | null>(null);
+  const taskId = task?.id;
+  useEffect(() => setLiveTask(null), [taskId]);
+
+  useSubscription(TaskTrackingSubscription, {
+    variables: { taskId: task?.id ?? "" },
+    skip: !task,
     onData: ({ data: { data } }) => {
-      if (!data?.beadUpdated) return;
-      const u = data.beadUpdated;
-      setLiveBead({
+      if (!data?.taskUpdated) return;
+      const u = data.taskUpdated;
+      setLiveTask({
         id: u.id,
         title: u.title,
         status: u.status as string,
-        assignee: u.assignee ?? null,
+        agentId: u.agent?.id ?? null,
         assigneeName: u.assigneeName ?? null,
         parentId: u.parentId ?? null,
         latestComment: u.latestComment ?? null,
@@ -110,7 +110,7 @@ export function BeadCard({
           id: c.id,
           title: c.title,
           status: c.status as string,
-          assignee: c.assignee ?? null,
+          agentId: c.agent?.id ?? null,
           assigneeName: c.assigneeName ?? null,
           latestComment: c.latestComment ?? null,
         })),
@@ -118,13 +118,12 @@ export function BeadCard({
     },
   });
 
-  const resolved = liveBead ?? bead;
+  const resolved = liveTask ?? task;
 
   const handlePress = () => {
     if (!resolved) return;
-    // Navigate to the task lane view — the bead ID is the task lane key,
-    // so the task detail page shows the full work log (tool calls, etc.)
-    router.push(`/agents/${agentId}/tasks/${resolved.id}`);
+    const targetAgent = resolved.agentId ?? agentId;
+    router.push(`/agents/${targetAgent}/tasks/${resolved.id}`);
   };
 
   const gradientColors: [string, string, string] = isDark
@@ -149,7 +148,6 @@ export function BeadCard({
           style={{ borderRadius: 12 }}
         >
           <View className="px-3 py-2.5">
-            {/* Header row */}
             <View className="flex-row items-center gap-1.5">
               <Text
                 className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
@@ -171,7 +169,6 @@ export function BeadCard({
               )}
             </View>
 
-            {/* Simple task: status + assignee */}
             {resolved && !hasChildren && (
               <Text
                 className="text-xs mt-0.5 text-text-muted"
@@ -189,7 +186,6 @@ export function BeadCard({
               </Text>
             )}
 
-            {/* Epic: child rows */}
             {resolved && hasChildren && (
               <View className="mt-2">
                 {resolved.children.map((child) => (

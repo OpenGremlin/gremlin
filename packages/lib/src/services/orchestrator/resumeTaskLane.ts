@@ -35,7 +35,7 @@ export async function resumeTaskLane(
       userDisplayName: displayName,
       userAbout: profile?.about,
       taskTitle: task.title,
-      beadId: taskId,
+      taskId,
     },
     flags,
   );

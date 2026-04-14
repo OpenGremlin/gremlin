@@ -1,6 +1,5 @@
 type Query {
   _empty: String
-  bead(id: ID!): Bead
   commandAllowlist(agentId: ID!): [AllowlistEntry!]!
   file(path: String!): File
   agentJobs: [AgentJob!]!
@@ -85,6 +84,9 @@ type Mutation {
   bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   "Unbind a connection from an agent's skill"
   unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
+  updateTaskStatus(taskId: ID!, status: TaskStatus!): Task
+  closeTask(taskId: ID!, reason: String): Task
+  addTaskComment(taskId: ID!, text: String!): Task
   """Delete one or more workspace files or directories"""
   deleteWorkspaceEntries(paths: [String!]!): WorkspaceMutationResult!
   """Move one or more workspace entries to a destination directory"""
@@ -95,7 +97,6 @@ type Mutation {
 
 type Subscription {
   _empty: String
-  beadUpdated(id: ID!): Bead
   jobCreated: AgentJob!
   agentLogCreated(agentId: ID!): AgentLog!
   "Subscribe to log entries by agentId or taskId"
@@ -111,24 +112,6 @@ type Subscription {
   jobTaskCreated(jobId: ID!): Task!
   taskLogCreated(taskId: ID!): AgentLog!
   sandboxOutput(taskId: ID!): SandboxOutput!
-}
-
-enum BeadStatus {
-  OPEN
-  IN_PROGRESS
-  BLOCKED
-  CLOSED
-}
-
-type Bead {
-  id: ID!
-  title: String!
-  status: BeadStatus!
-  assignee: String
-  assigneeName: String
-  parentId: ID
-  latestComment: String
-  children: [Bead!]
 }
 
 type AllowlistEntry {
@@ -316,8 +299,8 @@ type AgentLog {
   displayError: String
   commandApprovalId: String
   attachments: [Attachment!]!
-  "Resolved bead for beads_create_issue tool calls (avoids separate query)"
-  bead: Bead
+  "Resolved task for taskCreate tool calls (avoids separate query)"
+  trackedTask: Task
   createdAt: String!
 }
 
@@ -748,6 +731,20 @@ type SkillConnectionStatus {
   connected: Boolean!
 }
 
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  CLOSED
+}
+
+enum TaskType {
+  TASK
+  EPIC
+  BUG
+  FEATURE
+}
+
 type Task {
   id: ID!
   agent: Agent!
@@ -757,6 +754,17 @@ type Task {
   updatedAt: String!
   originJobId: String
   emoji: String
+  status: TaskStatus!
+  priority: Int
+  parentId: ID
+  issueType: TaskType!
+  closedAt: String
+  closeReason: String
+  deferUntil: String
+  description: String
+  children: [Task!]
+  latestComment: String
+  assigneeName: String
   attachments: [Attachment!]!
   logs(first: Int, after: String, last: Int, before: String): AgentLogConnection!
 }

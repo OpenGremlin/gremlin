@@ -1,16 +1,14 @@
 # Local development infrastructure
 #
 # Setup:
-#   1. docker compose up -d                            # DynamoDB, SQS, Scheduler, Dolt auto-created via init hooks
+#   1. docker compose up -d                            # DynamoDB, SQS, Scheduler
 #   2. pnpm --filter @gremlin/server run db:seed       # Seed agent data
 #   3. Uncomment LOCALSTACK_ENDPOINT and DOORBELL_SQS_URL in .env
 #   4. Set SANDBOX_LOCAL=true in .env                    # Routes sandbox to local container
 #   5. pnpm --filter @gremlin/server dev
 #
 # LocalStack provides local DynamoDB, SQS, and EventBridge Scheduler.
-# Dolt provides a MySQL-compatible SQL database for Beads (issue tracker).
 # Bedrock and S3 Vectors remain cloud-connected.
-# Dolt data persists in a named volume; LocalStack data resets when the container stops.
 
 services:
   localstack:
@@ -25,15 +23,6 @@ services:
       - SERVICES=dynamodb,sqs,scheduler
       - PERSISTENCE=1
 
-  dolt:
-    image: dolthub/dolt-sql-server:latest
-    ports:
-      - "3307:3306"
-    volumes:
-      - dolt-data:/var/lib/dolt
-      - ./dolt/init/init-db.sh:/init-db.sh
-    entrypoint: ["/bin/bash", "/init-db.sh"]
-
   sandbox:
     build:
       context: .
@@ -46,9 +35,6 @@ services:
       - ./workspace:/workspace
     environment:
       - SANDBOX_LOCAL=true
-      - BEADS_DOLT_SERVER_HOST=dolt
-      - BEADS_DOLT_SERVER_PORT=3306
 
 volumes:
   localstack-data:
-  dolt-data:

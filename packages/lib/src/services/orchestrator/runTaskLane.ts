@@ -23,15 +23,12 @@ export async function runTaskLane(
   opts?: {
     role?: "SYSTEM" | "USER";
     attachments?: Attachment[];
-    /** Beads bead ID — when provided, this task lane is executing a bead. */
-    beadId?: string;
+    /** When provided, overrides the task ID used in prompt templates. */
+    taskId?: string;
   },
 ): Promise<string> {
-  // Task lookup: for bead-dispatched work the lane key is a bead ID, not a
-  // Task UUID. The migration bridge may have created a Task projection, but
-  // it uses a different ID. Tolerate null — beads carry their own context.
   const task = await ctx.services.tasks.getTask(ctx, taskId).catch(() => null);
-  const beadId = opts?.beadId ?? taskId;
+  const resolvedTaskId = opts?.taskId ?? taskId;
   const agentId = task?.agentId ?? agentLaneCtx.agent.id;
 
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
@@ -42,9 +39,9 @@ export async function runTaskLane(
   // and we render the delegated-task system prompt section instead.
   const isCrossAgentDelegation = task
     ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
-    : !!(opts?.role === "SYSTEM"); // bead-dispatched cross-agent work
+    : !!(opts?.role === "SYSTEM"); // reconciler-dispatched cross-agent work
 
-  // For initial background tasks (self-assigned beads), inherit the main
+  // For initial background tasks (self-assigned tasks), inherit the main
   // lane conversation so the task has full context without needing it
   // re-described. Skip for delegated/cross-agent work — the brief is
   // self-contained.
@@ -128,7 +125,7 @@ export async function runTaskLane(
       userDisplayName: displayName,
       userAbout: profile?.about,
       taskTitle: taskTitle,
-      beadId,
+      taskId: resolvedTaskId,
       ...(isCrossAgentDelegation && task?.brief && assignerName
         ? {
             delegated: {
@@ -149,7 +146,7 @@ export async function runTaskLane(
   }
 
   ctx.log.info(
-    { agentId, taskId, beadId, systemPromptLength: systemPrompt.length },
+    { agentId, taskId, resolvedTaskId, systemPromptLength: systemPrompt.length },
     "Task lane system prompt: %s",
     systemPrompt,
   );

@@ -28,8 +28,8 @@ export const agentLogTypeDefs = /* GraphQL */ `
     displayError: String
     commandApprovalId: String
     attachments: [Attachment!]!
-    "Resolved bead for beads_create_issue tool calls (avoids separate query)"
-    bead: Bead
+    "Resolved task for taskCreate tool calls (avoids separate query)"
+    trackedTask: Task
     createdAt: String!
   }
 

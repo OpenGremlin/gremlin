@@ -68,7 +68,7 @@ describe("buildSkillSummary / buildSkillBlurb", () => {
     expect(summary.mainLaneSection).not.toContain("readSkill");
     expect(summary.mainLaneSection).not.toContain("runCommand");
     expect(summary.mainLaneSection).not.toContain("authenticate");
-    expect(summary.mainLaneSection).toContain("create a bead");
+    expect(summary.mainLaneSection).toContain("create a task");
     expect(blurb).toBe("pdf-toolkit");
   });
 
@@ -248,6 +248,6 @@ describe("buildSkillSummary / buildSkillBlurb", () => {
     // But it should still convey the routing-relevant info
     expect(summary.mainLaneSection).toContain("Slack");
     expect(summary.mainLaneSection).toContain("Acme");
-    expect(summary.mainLaneSection).toContain("create a bead");
+    expect(summary.mainLaneSection).toContain("create a task");
   });
 });

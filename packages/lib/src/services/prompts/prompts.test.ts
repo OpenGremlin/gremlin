@@ -119,21 +119,21 @@ describe("renderSystemPrompt", () => {
     expect(result).toContain("viewImage");
   });
 
-  it("uses beads framing instead of legacy backgrounding/delegation", () => {
+  it("uses task framing instead of legacy backgrounding/delegation", () => {
     const result = renderSystemPrompt(baseData, allOff);
-    expect(result).toContain("create beads");
-    expect(result).toContain("<beads>");
+    expect(result).toContain("create tasks");
+    expect(result).toContain("<tasks>");
     expect(result).not.toContain("delegateTask");
     expect(result).not.toContain("backgroundTask");
   });
 
-  it("includes the clear beads-first rule", () => {
+  it("includes the clear tasks-first rule", () => {
     const result = renderSystemPrompt(baseData, allOff);
     expect(result).toContain("answer directly");
-    expect(result).toContain("creating a bead");
+    expect(result).toContain("creating a task");
   });
 
-  it("mentions beads dispatch", () => {
+  it("mentions task dispatch", () => {
     const result = renderSystemPrompt(baseData, allOff);
     expect(result).toContain("dispatches ready work automatically");
   });
@@ -185,7 +185,7 @@ describe("renderSystemPrompt", () => {
 });
 
 describe("renderTaskSystemPrompt", () => {
-  const taskData = { ...baseData, taskTitle: "Do the thing", beadId: "bd-t1" };
+  const taskData = { ...baseData, taskTitle: "Do the thing", taskId: "t-1" };
   const allOff = {
     viewImage: false,
     sandbox: false,
@@ -195,7 +195,7 @@ describe("renderTaskSystemPrompt", () => {
   it("includes task preamble with interpolated values", () => {
     const result = renderTaskSystemPrompt(taskData, allOff);
     expect(result).toContain("Do the thing");
-    expect(result).toContain("bd-t1");
+    expect(result).toContain("t-1");
   });
 
   it("omits sandbox section when disabled", () => {

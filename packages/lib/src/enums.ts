@@ -16,16 +16,15 @@ export enum CommandApprovalDecision {
 }
 
 export enum ToolName {
-  // Legacy task tools — removed in beads upgrade but kept in the enum so old
-  // AgentLog entries (which store toolName as a string) still parse through
+  // Legacy task tools — kept so old AgentLog entries still parse through
   // GraphQL without crashing the client. Do not use in new code.
-  /** @deprecated Use beads_create_issue instead */
+  /** @deprecated Use taskCreate instead */
   BackgroundTask = "backgroundTask",
-  /** @deprecated Use beads_create_issue instead */
+  /** @deprecated Use taskCreate instead */
   Delegate = "delegate",
-  /** @deprecated Use beads_close_issue instead */
+  /** @deprecated Use taskClose instead */
   CompleteTask = "completeTask",
-  /** @deprecated Use beads_update_issue instead */
+  /** @deprecated Use taskUpdate instead */
   UpdateTask = "updateTask",
 
   // Task & messaging
