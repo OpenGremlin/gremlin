@@ -186,16 +186,19 @@ export function TaskCard({
           style={{ borderRadius: 12 }}
         >
           <View className="px-3 py-2.5">
-            {/* Header: emoji + title + counter */}
-            <View className="flex-row items-center gap-2">
+            {/* Epic/task header row */}
+            <View className="flex-row items-start gap-2">
               {resolved?.emoji ? (
-                <Text className="text-2xl">{resolved.emoji}</Text>
+                <Text className="text-2xl leading-7">{resolved.emoji}</Text>
               ) : null}
+              <View className="mt-0.5">
+                <StatusIcon
+                  status={resolved?.status ?? "OPEN"}
+                  isDark={isDark}
+                />
+              </View>
               <View className="flex-1 min-w-0">
                 <View className="flex-row items-center gap-1.5">
-                  {isEpicDone ? (
-                    <Check size={14} color={isDark ? "#86efac" : "#16a34a"} />
-                  ) : null}
                   <Text
                     className={`text-sm font-medium flex-1 ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
                     numberOfLines={1}
@@ -215,7 +218,6 @@ export function TaskCard({
                     />
                   )}
                 </View>
-
                 {resolved && (
                   <Text
                     className="text-xs mt-0.5 text-text-muted"
@@ -233,9 +235,9 @@ export function TaskCard({
               </View>
             </View>
 
-            {/* Children (indented) */}
+            {/* Children — indented with subtle tree line */}
             {resolved && hasChildren && (
-              <View className="mt-2 ml-3 pl-2 border-l border-indigo-500/20">
+              <View className="mt-1.5 ml-5 pl-3" style={{ borderLeftWidth: 1, borderLeftColor: isDark ? "rgba(129,140,248,0.15)" : "rgba(99,102,241,0.15)" }}>
                 {resolved.children.map((child) => (
                   <ChildRow key={child.id} child={child} isDark={isDark} />
                 ))}
