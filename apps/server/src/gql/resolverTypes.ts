@@ -1215,7 +1215,7 @@ export type SubscriptionTasksUpdatedArgs = {
 
 export type Task = {
   __typename?: 'Task';
-  agent: Agent;
+  agent?: Maybe<Agent>;
   assigneeName?: Maybe<Scalars['String']['output']>;
   attachments: Array<Attachment>;
   children?: Maybe<Array<Task>>;
@@ -2208,7 +2208,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
 };
 
 export type TaskResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
-  agent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType>;
+  agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType>;
   assigneeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
   children?: Resolver<Maybe<Array<ResolversTypes['Task']>>, ParentType, ContextType>;

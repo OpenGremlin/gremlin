@@ -34,7 +34,7 @@ type TaskItem = {
   id: string;
   title: string;
   createdAt: string;
-  agent: { id: string; name?: string };
+  agent?: { id: string; name?: string } | null;
   message?: string | null;
   emoji?: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
@@ -72,16 +72,16 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/agents/${agent.id}/tasks/${task.id}`)}
+      onPress={() => router.push(`/agents/${agent?.id ?? "unknown"}/tasks/${task.id}`)}
       className="px-4 py-4 active:bg-surface/50"
     >
       <View className="flex-row items-start gap-3">
-        <Pressable onPress={() => router.push(`/agents/${agent.id}`)}>
-          <AgentAvatar id={agent.id} />
+        <Pressable onPress={() => agent && router.push(`/agents/${agent.id}`)}>
+          <AgentAvatar id={agent?.id ?? ""} />
         </Pressable>
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-2 min-w-0">
-            {agent.name ? (
+            {agent?.name ? (
               <Text className="text-sm text-text-muted" numberOfLines={1}>
                 {agent.name}
               </Text>
@@ -150,6 +150,7 @@ export default function HomeScreen() {
     () =>
       (connection?.edges ?? [])
         .map((e) => e.node)
+        .filter((n) => n.agent)
         .slice()
         .reverse(),
     [connection?.edges],

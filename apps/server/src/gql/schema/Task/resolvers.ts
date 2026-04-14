@@ -65,9 +65,8 @@ const task: QueryResolvers["task"] = (_parent, { id }, ctx) =>
   ctx.services.tasks.getTask(ctx, id);
 
 const agent: TaskResolvers["agent"] = async (parent, _args, ctx) => {
-  const a = await ctx.loaders.agentLoader.load(parent.agentId);
-  if (!a) throw new Error(`Agent ${parent.agentId} not found`);
-  return a;
+  if (!parent.agentId) return null;
+  return ctx.loaders.agentLoader.load(parent.agentId).catch(() => null);
 };
 
 const emoji: TaskResolvers["emoji"] = (parent) => parent.emoji ?? null;

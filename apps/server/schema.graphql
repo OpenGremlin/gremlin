@@ -747,7 +747,7 @@ enum TaskType {
 
 type Task {
   id: ID!
-  agent: Agent!
+  agent: Agent
   title: String!
   message: String
   createdAt: String!

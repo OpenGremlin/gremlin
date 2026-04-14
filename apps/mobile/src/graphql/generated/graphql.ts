@@ -1195,7 +1195,7 @@ export type SubscriptionTasksUpdatedArgs = {
 
 export type Task = {
   __typename?: 'Task';
-  agent: Agent;
+  agent?: Maybe<Agent>;
   assigneeName?: Maybe<Scalars['String']['output']>;
   attachments: Array<Attachment>;
   children?: Maybe<Array<Task>>;
@@ -1404,7 +1404,7 @@ export type AgentLogsQuery = { __typename?: 'Query', agentLogs: { __typename?: '
                 | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
                } | null }
           | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-        >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+        >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type SendMessageMutationVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1470,7 +1470,7 @@ export type AgentLogCreatedSubscription = { __typename?: 'Subscription', agentLo
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
            } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null } };
+    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null } };
 
 export type LogCreatedSubscriptionVariables = Exact<{
   agentId?: InputMaybe<Scalars['ID']['input']>;
@@ -1489,7 +1489,7 @@ export type LogCreatedSubscription = { __typename?: 'Subscription', logCreated: 
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
            } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null } };
+    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null } };
 
 export type AgentStreamSubscriptionVariables = Exact<{
   agentId: Scalars['ID']['input'];
@@ -1647,16 +1647,16 @@ export type AgentLogFieldsFragment = { __typename?: 'AgentLog', id: string, role
           | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
          } | null }
     | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-  >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null };
+  >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null };
 
 export type TaskTrackingSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
 }>;
 
 
-export type TaskTrackingSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, parentId?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string }, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null } };
+export type TaskTrackingSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, parentId?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null } };
 
-export type TaskSummaryFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean }, attachments: Array<
+export type TaskSummaryFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent?: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean } | null, attachments: Array<
     | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
@@ -1669,7 +1669,7 @@ export type TaskSummaryFragment = { __typename?: 'Task', id: string, title: stri
     | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
   > };
 
-export type TaskDetailFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
+export type TaskDetailFragment = { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent?: { __typename?: 'Agent', id: string } | null, attachments: Array<
     | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
           | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
           | { __typename: 'CodeRender', content: string, language: string }
@@ -1684,7 +1684,7 @@ export type TaskDetailFragment = { __typename?: 'Task', id: string, title: strin
 
 export type AgentJobSummaryFragment = { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, paused: boolean, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string, retired: boolean } };
 
-export type AgentJobDetailFragment = { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, paused: boolean, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string, retired: boolean }, tasks: Array<{ __typename?: 'Task', id: string, title: string, createdAt: string, agent: { __typename?: 'Agent', id: string } }> };
+export type AgentJobDetailFragment = { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, paused: boolean, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string, retired: boolean }, tasks: Array<{ __typename?: 'Task', id: string, title: string, createdAt: string, agent?: { __typename?: 'Agent', id: string } | null }> };
 
 export type CommandApprovalFieldsFragment = { __typename?: 'CommandApproval', id: string, taskId: string, command: string, reason: string, status: CommandApprovalStatus, decision?: string | null, createdAt: string, agent: { __typename?: 'Agent', id: string, name: string } };
 
@@ -1852,7 +1852,7 @@ export type AgentJobQueryVariables = Exact<{
 }>;
 
 
-export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, paused: boolean, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string, retired: boolean }, tasks: Array<{ __typename?: 'Task', id: string, title: string, createdAt: string, agent: { __typename?: 'Agent', id: string } }> } | null };
+export type AgentJobQuery = { __typename?: 'Query', agentJob?: { __typename?: 'AgentJob', id: string, name: string, description: string, recurrence: string, cronExpression?: string | null, timezone: string, paused: boolean, lastRun?: string | null, nextRun?: string | null, agent: { __typename?: 'Agent', id: string, name: string, retired: boolean }, tasks: Array<{ __typename?: 'Task', id: string, title: string, createdAt: string, agent?: { __typename?: 'Agent', id: string } | null }> } | null };
 
 export type DeleteAgentJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1874,7 +1874,7 @@ export type JobTaskCreatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type JobTaskCreatedSubscription = { __typename?: 'Subscription', jobTaskCreated: { __typename?: 'Task', id: string, title: string, createdAt: string, agent: { __typename?: 'Agent', id: string } } };
+export type JobTaskCreatedSubscription = { __typename?: 'Subscription', jobTaskCreated: { __typename?: 'Task', id: string, title: string, createdAt: string, agent?: { __typename?: 'Agent', id: string } | null } };
 
 export type TriggerJobMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1987,7 +1987,7 @@ export type TasksQueryVariables = Exact<{
 }>;
 
 
-export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean }, attachments: Array<
+export type TasksQuery = { __typename?: 'Query', tasks: { __typename?: 'TaskConnection', edges: Array<{ __typename?: 'TaskEdge', cursor: string, node: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, emoji?: string | null, agent?: { __typename?: 'Agent', id: string, name: string, role?: string | null, delegationHint?: string | null, retired: boolean, voiceEnabled: boolean } | null, attachments: Array<
           | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
                 | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
                 | { __typename: 'CodeRender', content: string, language: string }
@@ -2005,7 +2005,7 @@ export type TaskQueryVariables = Exact<{
 }>;
 
 
-export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
+export type TaskQuery = { __typename?: 'Query', task?: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent?: { __typename?: 'Agent', id: string } | null, attachments: Array<
       | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }
@@ -2038,7 +2038,7 @@ export type TaskLogsQuery = { __typename?: 'Query', taskLogs: { __typename?: 'Ag
                 | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
                } | null }
           | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-        >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+        >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null } }>, pageInfo: { __typename?: 'AgentLogPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type TaskLogCreatedSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
@@ -2056,14 +2056,14 @@ export type TaskLogCreatedSubscription = { __typename?: 'Subscription', taskLogC
             | { __typename: 'VideoRender', url: string, thumbnailUrl?: string | null, durationSeconds?: number | null }
            } | null }
       | { __typename?: 'LinkAttachment', url: string, title?: string | null, description?: string | null }
-    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent: { __typename?: 'Agent', id: string } }> | null, agent: { __typename?: 'Agent', id: string } } | null } };
+    >, trackedTask?: { __typename?: 'Task', id: string, title: string, status: TaskStatus, priority?: number | null, parentId?: string | null, issueType: TaskType, assigneeName?: string | null, latestComment?: string | null, children?: Array<{ __typename?: 'Task', id: string, title: string, status: TaskStatus, assigneeName?: string | null, latestComment?: string | null, agent?: { __typename?: 'Agent', id: string } | null }> | null, agent?: { __typename?: 'Agent', id: string } | null } | null } };
 
 export type TaskUpdatedSubscriptionVariables = Exact<{
   taskId: Scalars['ID']['input'];
 }>;
 
 
-export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent: { __typename?: 'Agent', id: string }, attachments: Array<
+export type TaskUpdatedSubscription = { __typename?: 'Subscription', taskUpdated: { __typename?: 'Task', id: string, title: string, message?: string | null, createdAt: string, updatedAt: string, emoji?: string | null, agent?: { __typename?: 'Agent', id: string } | null, attachments: Array<
       | { __typename?: 'FileAttachment', file?: { __typename?: 'File', path: string, name: string, sizeBytes: number, mimeType?: string | null, modifiedAt: string, fileType: FileType, render:
             | { __typename: 'AudioRender', url: string, durationSeconds?: number | null }
             | { __typename: 'CodeRender', content: string, language: string }

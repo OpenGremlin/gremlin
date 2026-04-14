@@ -61,7 +61,7 @@ export function buildTaskTrackingTools(
         blockedBy,
       }) => {
         const task = await ctx.services.tasks.createTask(ctx, {
-          agentId: assignee ?? "unassigned",
+          agentId: assignee ?? "",
           title,
           description,
           issueType,
