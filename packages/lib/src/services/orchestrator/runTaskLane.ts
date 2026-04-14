@@ -5,7 +5,6 @@ import {
 } from "../prompts/index.js";
 import type { Attachment } from "../tasks/attachment.js";
 import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
-import { buildMainLaneContext } from "./compaction.js";
 import { formatPlan, generatePlan } from "./generatePlan.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -40,29 +39,6 @@ export async function runTaskLane(
   const isCrossAgentDelegation = task
     ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
     : !!(opts?.role === "SYSTEM"); // reconciler-dispatched cross-agent work
-
-  // For initial background tasks (self-assigned tasks), inherit the main
-  // lane conversation so the task has full context without needing it
-  // re-described. Skip for delegated/cross-agent work — the brief is
-  // self-contained.
-  if (isInitialDelegation && !isCrossAgentDelegation) {
-    const mainLaneMessages = await buildMainLaneContext(ctx, agentId);
-    if (mainLaneMessages.length > 0) {
-      const contextLines = mainLaneMessages
-        .map(
-          (m) =>
-            `[${m.role === "user" ? "User" : "You"}]: ${typeof m.content === "string" ? m.content : ""}`,
-        )
-        .join("\n\n");
-
-      await writeAgentLog(ctx, {
-        agentId,
-        taskId,
-        role: "SYSTEM",
-        content: `[Conversation context]\n\n${contextLines}`,
-      });
-    }
-  }
 
   // Log the prompt — SYSTEM for backgrounded tasks, USER for follow-up messages
   if (prompt) {
