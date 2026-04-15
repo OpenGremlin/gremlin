@@ -2,7 +2,7 @@ import { useQuery } from "@apollo/client";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, RefreshControl, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,6 +14,8 @@ import {
   IntegrationConnectionsQuery,
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
+import { useListRefresh } from "../../../../src/hooks/useListRefresh";
+import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Card } from "../../../../src/shared/Card";
 import { groupByCategory } from "../../../../src/shared/categories";
 import { formatDate } from "../../../../src/shared/formatDate";
@@ -97,6 +99,12 @@ export default function IntegrationsScreen() {
   );
   const processedParam = useRef<string | null>(null);
 
+  const colors = useNavigationTheme();
+  const refetch = useCallback(async () => {
+    await Promise.all([providers.refetch(), connections.refetch()]);
+  }, [providers.refetch, connections.refetch]);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
+
   const loading = providers.loading || connections.loading;
   const error = providers.error || connections.error;
 
@@ -157,7 +165,16 @@ export default function IntegrationsScreen() {
           visible={toastVisible}
           onDismiss={() => setToastVisible(false)}
         />
-        <TabScrollView contentContainerClassName="px-4 pt-4 gap-5">
+        <TabScrollView
+          contentContainerClassName="px-4 pt-4 gap-5"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.loadingIndicator}
+            />
+          }
+        >
           {connectionList.length > 0 && (
             <View className="gap-2">
               <Card className="overflow-hidden">

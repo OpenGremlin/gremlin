@@ -7,11 +7,12 @@ import {
   Paintbrush,
 } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, RefreshControl, Text, View } from "react-native";
 import {
   AllEnabledModelsQuery,
   IntegrationProvidersQuery,
 } from "../../../../src/graphql/queries";
+import { useListRefresh } from "../../../../src/hooks/useListRefresh";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { Card } from "../../../../src/shared/Card";
 import { Chip } from "../../../../src/shared/Chip";
@@ -31,6 +32,11 @@ export default function ModelsScreen() {
   const providers = useQuery(IntegrationProvidersQuery);
   const allEnabled = useQuery(AllEnabledModelsQuery);
   const [search, setSearch] = useState("");
+
+  const refetch = useCallback(async () => {
+    await Promise.all([providers.refetch(), allEnabled.refetch()]);
+  }, [providers.refetch, allEnabled.refetch]);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
 
   const loading = providers.loading || allEnabled.loading;
   const error = providers.error || allEnabled.error;
@@ -99,7 +105,16 @@ export default function ModelsScreen() {
       data={providers.data && allEnabled.data}
     >
       <View className="flex-1">
-        <TabScrollView contentContainerClassName="px-4 pt-4 gap-5">
+        <TabScrollView
+          contentContainerClassName="px-4 pt-4 gap-5"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.loadingIndicator}
+            />
+          }
+        >
           {grouped.length > 0 && (
             <View className="gap-2">
               <Card className="overflow-hidden">

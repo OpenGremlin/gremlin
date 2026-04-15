@@ -1,9 +1,10 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, RefreshControl, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
+import { useListRefresh } from "../../../../src/hooks/useListRefresh";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { groupSkillsByCategory } from "../../../../src/shared/categories";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
@@ -14,7 +15,8 @@ import { TabScrollView } from "../../../../src/shared/TabScrollView";
 export default function SkillsScreen() {
   const [query, setQuery] = useState("");
   const colors = useNavigationTheme();
-  const { data, loading, error } = useQuery(SkillTemplatesQuery);
+  const { data, loading, error, refetch } = useQuery(SkillTemplatesQuery);
+  const { refreshing, onRefresh } = useListRefresh(refetch);
 
   const templates = data?.skillTemplates ?? [];
 
@@ -35,6 +37,13 @@ export default function SkillsScreen() {
       <TabScrollView
         contentContainerClassName="px-4 pt-4 gap-5"
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.loadingIndicator}
+          />
+        }
       >
         <SearchInput
           placeholder="Search skills..."
