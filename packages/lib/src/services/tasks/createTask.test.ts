@@ -12,7 +12,11 @@ describe("createTask", () => {
     ctx = createMockContext();
 
     vi.stubGlobal("crypto", {
-      randomUUID: vi.fn().mockReturnValue("test-uuid"),
+      randomUUID: vi.fn().mockReturnValue("ABCDEFGH"),
+      getRandomValues: vi.fn((arr: Uint8Array) => {
+        for (let i = 0; i < arr.length; i++) arr[i] = i;
+        return arr;
+      }),
     });
 
     vi.useFakeTimers();
@@ -32,7 +36,7 @@ describe("createTask", () => {
     });
 
     expect(result).toEqual({
-      id: "test-uuid",
+      id: "ABCDEFGH",
       agentId: "agent-1",
       title: "My Task",
       message: null,
@@ -51,16 +55,16 @@ describe("createTask", () => {
     expect(command.input).toEqual({
       TableName: "test-table",
       Item: expect.objectContaining({
-        id: "test-uuid",
+        id: "ABCDEFGH",
         _et: "Task",
-        pk: "TASK",
-        sk: "TASK#test-uuid",
+        pk: "TASK#ABCDEFGH",
+        sk: "TASK",
         gsi1pk: "TASK_AGENT#agent-1",
         gsi1sk: "2026-01-15T12:00:00.000Z",
         gsi2pk: "TASK_ALL",
-        gsi2sk: "2026-01-15T12:00:00.000Z#test-uuid",
+        gsi2sk: "2026-01-15T12:00:00.000Z#ABCDEFGH",
         gsi4pk: "TASK_STATUS#open",
-        gsi4sk: "2026-01-15T12:00:00.000Z#test-uuid",
+        gsi4sk: "2026-01-15T12:00:00.000Z#ABCDEFGH",
       }),
     });
   });
@@ -72,6 +76,60 @@ describe("createTask", () => {
     });
 
     expect(result.originJobId).toBeNull();
+  });
+
+  it("rejects child when parent does not exist", async () => {
+    ctx.services.tasks.getTask.mockResolvedValue(undefined);
+
+    await expect(
+      createTask(ctx, {
+        agentId: "agent-1",
+        title: "Orphan child",
+        parentId: "missing-parent",
+      }),
+    ).rejects.toThrow("Parent task missing-parent not found");
+  });
+
+  it("rejects child when parent is unassigned", async () => {
+    ctx.services.tasks.getTask.mockResolvedValue({
+      id: "epic-1",
+      agentId: "unassigned",
+      title: "Unowned epic",
+      message: null,
+      createdAt: "2026-01-15T12:00:00.000Z",
+      updatedAt: "2026-01-15T12:00:00.000Z",
+      originJobId: null,
+      status: "open",
+    });
+
+    await expect(
+      createTask(ctx, {
+        agentId: "agent-1",
+        title: "Child of unowned epic",
+        parentId: "epic-1",
+      }),
+    ).rejects.toThrow("Cannot add children to unassigned task");
+  });
+
+  it("allows child when parent has a real agent", async () => {
+    ctx.services.tasks.getTask.mockResolvedValue({
+      id: "epic-1",
+      agentId: "agent-manager",
+      title: "Owned epic",
+      message: null,
+      createdAt: "2026-01-15T12:00:00.000Z",
+      updatedAt: "2026-01-15T12:00:00.000Z",
+      originJobId: null,
+      status: "open",
+    });
+
+    const result = await createTask(ctx, {
+      agentId: "agent-1",
+      title: "Child of owned epic",
+      parentId: "epic-1",
+    });
+
+    expect(result.parentId).toBe("epic-1");
   });
 
   it("preserves originJobId when provided", async () => {

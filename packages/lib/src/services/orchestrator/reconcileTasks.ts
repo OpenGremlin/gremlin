@@ -12,6 +12,28 @@ function resolveAssignee(assignee: string, triggerAgentId: string): string {
   return assignee === "self" ? triggerAgentId : assignee;
 }
 
+/**
+ * Determine which agent should receive assignment notifications for a
+ * set of unassigned tasks. Looks up the parent (epic) of the first
+ * task that has one and returns its agentId. Falls back to
+ * triggerAgentId when no epic owner can be inferred.
+ */
+async function findEpicOwner(
+  ctx: ServiceContext,
+  tasks: TaskItem[],
+  triggerAgentId: string,
+): Promise<string> {
+  for (const t of tasks) {
+    if (t.parentId) {
+      const parent = await ctx.services.tasks.getTask(ctx, t.parentId);
+      if (parent?.agentId && parent.agentId !== "unassigned") {
+        return parent.agentId;
+      }
+    }
+  }
+  return triggerAgentId;
+}
+
 // ── Reconciler ──────────────────────────────────────────────────────
 
 /**
@@ -105,13 +127,17 @@ export async function reconcile(
     );
   }
 
-  // Wake the manager for any ready tasks that have no assignee.
+  // Wake the epic owner (or trigger agent) for any ready tasks that have
+  // no assignee. Unassigned tasks typically arise under an epic whose owner
+  // should decide how to route them — not the worker that happened to
+  // finish the last child.
   if (needsAssignment.length > 0) {
     const input: EnqueueInput = {
       type: "tasks_need_assignment",
       payload: { taskIds: needsAssignment.map((t) => t.id) },
     };
-    await ctx.services.inbox.enqueueWork(ctx, triggerAgentId, "main", input);
+    const ownerId = await findEpicOwner(ctx, needsAssignment, triggerAgentId);
+    await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", input);
 
     ctx.log.info(
       { count: needsAssignment.length, component: "reconciler" },
@@ -165,13 +191,20 @@ export async function closeCompletedParents(
 
     // Only notify for top-level tasks (no parent).
     if (!parent.parentId) {
+      // Notify the epic's own agent — not the worker that happened to
+      // complete the last child task.
+      const epicOwnerId =
+        parent.agentId && parent.agentId !== "unassigned"
+          ? parent.agentId
+          : triggerAgentId;
+
       const notification: EnqueueInput = {
         type: "top_level_task_complete",
         payload: { taskId: parent.id, title: parent.title },
       };
       await ctx.services.inbox.enqueueWork(
         ctx,
-        triggerAgentId,
+        epicOwnerId,
         "main",
         notification,
       );

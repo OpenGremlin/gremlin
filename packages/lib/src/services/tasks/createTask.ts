@@ -37,6 +37,24 @@ export async function createTask(
     emoji?: string;
   },
 ): Promise<TaskItem> {
+  // Validate that the parent (epic) has a real owner before allowing
+  // children. This guarantees that completion notifications always have
+  // a valid agent to route to.
+  if (input.parentId) {
+    const parent = await ctx.services.tasks.getTask(ctx, input.parentId);
+    if (!parent) {
+      throw new Error(
+        `Parent task ${input.parentId} not found`,
+      );
+    }
+    if (!parent.agentId || parent.agentId === "unassigned") {
+      throw new Error(
+        `Cannot add children to unassigned task "${parent.title}" (${parent.id}). ` +
+          `Assign the parent to an agent first.`,
+      );
+    }
+  }
+
   const now = new Date().toISOString();
   const id = generateTaskId();
   const status = input.status ?? "open";
