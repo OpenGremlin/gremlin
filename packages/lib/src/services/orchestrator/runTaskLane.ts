@@ -37,9 +37,14 @@ async function buildRelatedTaskContext(
   const lines: string[] = ["[Related tasks and their outputs]\n"];
 
   for (const related of relatedTasks) {
-    const attachments = await ctx.services.tasks
-      .getTaskAttachments(ctx, related.id)
-      .catch(() => []);
+    const [attachments, comments] = await Promise.all([
+      ctx.services.tasks
+        .getTaskAttachments(ctx, related.id)
+        .catch(() => []),
+      ctx.services.tasks
+        .getComments(ctx, related.id)
+        .catch(() => []),
+    ]);
     const statusStr = related.status === "closed" ? "done" : related.status;
     lines.push(`• "${related.title}" (${statusStr})`);
     if (attachments.length > 0) {
@@ -49,6 +54,11 @@ async function buildRelatedTaskContext(
         } else if (att.type === "link") {
           lines.push(`  - ${att.url}`);
         }
+      }
+    }
+    if (comments.length > 0) {
+      for (const c of comments) {
+        lines.push(`  > ${c.text}`);
       }
     }
   }
