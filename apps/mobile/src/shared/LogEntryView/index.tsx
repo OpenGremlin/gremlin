@@ -136,6 +136,7 @@ const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.ReadSkill]: BookOpen,
   [ToolName.ReadSkillReference]: Search,
   [ToolName.Authenticate]: KeyRound,
+  [ToolName.CreatePost]: Send,
   [ToolName.SaveMemory]: Save,
   [ToolName.RecallMemory]: Brain,
   [ToolName.ListJobs]: List,

@@ -182,6 +182,24 @@ export const TaskTrackingSubscription = graphql(`
   }
 `);
 
+// ── Post ────────────────────────────────────────────────────────────
+
+export const PostSummary = graphql(`
+  fragment PostSummary on Post {
+    id
+    agent {
+      ...AgentSummary
+    }
+    taskId
+    title
+    message
+    createdAt
+    attachments {
+      ...AttachmentFields
+    }
+  }
+`);
+
 // ── Task ────────────────────────────────────────────────────────────
 
 export const TaskSummary = graphql(`

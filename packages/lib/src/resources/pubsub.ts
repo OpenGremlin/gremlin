@@ -3,6 +3,7 @@ import type { AgentItem } from "./ddb/schema/agent.js";
 import type { AgentJobItem } from "./ddb/schema/agentJob.js";
 import type { AgentLogItem } from "./ddb/schema/agentLog.js";
 import type { InboxItemItem } from "./ddb/schema/inboxItem.js";
+import type { PostItem } from "./ddb/schema/post.js";
 import type { TaskItem } from "./ddb/schema/task.js";
 
 export interface SandboxOutputEvent {
@@ -44,6 +45,7 @@ export type PubSubEvents = {
   [key: `agentStream:${string}`]: [AgentStreamEvent];
   [key: `speechAudio:${string}`]: [SpeechAudioEvent];
   [key: `speechAudio:task:${string}`]: [SpeechAudioEvent];
+  postCreated: [PostItem];
   pendingItemsUpdated: [];
 };
 

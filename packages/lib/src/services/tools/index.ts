@@ -1,4 +1,5 @@
 export { attachFileTool } from "./attachFile.js";
+export { createPostTool } from "./createPost.js";
 export { attachLinkTool } from "./attachLink.js";
 export { createBraveSearchTool } from "./braveSearch.js";
 export {

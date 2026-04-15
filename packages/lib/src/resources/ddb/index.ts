@@ -11,6 +11,7 @@ import { GlobalSettingsEntity } from "./schema/globalSettings.js";
 import { InboxItemEntity } from "./schema/inboxItem.js";
 import { IntegrationConnectionEntity } from "./schema/integrationConnection.js";
 import { ModelProviderKeyEntity } from "./schema/modelProviderKey.js";
+import { PostEntity } from "./schema/post.js";
 import { ProfileEntity } from "./schema/profile.js";
 import { SettingEntity } from "./schema/setting.js";
 import { SkillEntity } from "./schema/skill.js";
@@ -40,6 +41,7 @@ export const ddb = {
     ChatLane: ChatLaneEntity,
 
     CommandApproval: CommandApprovalEntity,
+    Post: PostEntity,
     UserInputRequest: UserInputRequestEntity,
     Profile: ProfileEntity,
     Setting: SettingEntity,

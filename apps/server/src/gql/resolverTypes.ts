@@ -870,6 +870,37 @@ export type PendingInboxMessage = {
   id: Scalars['ID']['output'];
 };
 
+export type Post = {
+  __typename?: 'Post';
+  agent?: Maybe<Agent>;
+  attachments: Array<Attachment>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  taskId: Scalars['ID']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type PostConnection = {
+  __typename?: 'PostConnection';
+  edges: Array<PostEdge>;
+  pageInfo: PostPageInfo;
+};
+
+export type PostEdge = {
+  __typename?: 'PostEdge';
+  cursor: Scalars['String']['output'];
+  node: Post;
+};
+
+export type PostPageInfo = {
+  __typename?: 'PostPageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
 export type Profile = {
   __typename?: 'Profile';
   about: Scalars['String']['output'];
@@ -921,6 +952,7 @@ export type Query = {
   logos: Array<Logo>;
   pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
+  posts: PostConnection;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
   /** Single skill template by ID */
@@ -998,6 +1030,14 @@ export type QueryIntegrationConnectionsArgs = {
 export type QueryPendingInboxMessagesArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPostsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1148,6 +1188,7 @@ export type Subscription = {
   /** Subscribe to log entries by agentId or taskId */
   logCreated: AgentLog;
   pendingItemsUpdated: Scalars['Boolean']['output'];
+  postCreated: Post;
   sandboxOutput: SandboxOutput;
   /** Subscribe to sentence-level TTS audio URLs by agentId or taskId */
   speechStream: SpeechAudioChunk;
@@ -1529,6 +1570,10 @@ export type ResolversTypes = {
   OAuthPlatformOverride: ResolverTypeWrapper<OAuthPlatformOverride>;
   PdfRender: ResolverTypeWrapper<PdfRender>;
   PendingInboxMessage: ResolverTypeWrapper<PendingInboxMessage>;
+  Post: ResolverTypeWrapper<Omit<Post, 'agent' | 'attachments'> & { agent?: Maybe<ResolversTypes['Agent']>, attachments: Array<ResolversTypes['Attachment']> }>;
+  PostConnection: ResolverTypeWrapper<Omit<PostConnection, 'edges'> & { edges: Array<ResolversTypes['PostEdge']> }>;
+  PostEdge: ResolverTypeWrapper<Omit<PostEdge, 'node'> & { node: ResolversTypes['Post'] }>;
+  PostPageInfo: ResolverTypeWrapper<PostPageInfo>;
   Profile: ResolverTypeWrapper<ProfileItem>;
   ProfileInput: ProfileInput;
   ProviderModelInfo: ResolverTypeWrapper<ProviderModelInfo>;
@@ -1632,6 +1677,10 @@ export type ResolversParentTypes = {
   OAuthPlatformOverride: OAuthPlatformOverride;
   PdfRender: PdfRender;
   PendingInboxMessage: PendingInboxMessage;
+  Post: Omit<Post, 'agent' | 'attachments'> & { agent?: Maybe<ResolversParentTypes['Agent']>, attachments: Array<ResolversParentTypes['Attachment']> };
+  PostConnection: Omit<PostConnection, 'edges'> & { edges: Array<ResolversParentTypes['PostEdge']> };
+  PostEdge: Omit<PostEdge, 'node'> & { node: ResolversParentTypes['Post'] };
+  PostPageInfo: PostPageInfo;
   Profile: ProfileItem;
   ProfileInput: ProfileInput;
   ProviderModelInfo: ProviderModelInfo;
@@ -2063,6 +2112,33 @@ export type PendingInboxMessageResolvers<ContextType = GremlinContext, ParentTyp
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
+export type PostResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = {
+  agent?: Resolver<Maybe<ResolversTypes['Agent']>, ParentType, ContextType>;
+  attachments?: Resolver<Array<ResolversTypes['Attachment']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  taskId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type PostConnectionResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PostConnection'] = ResolversParentTypes['PostConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['PostEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PostPageInfo'], ParentType, ContextType>;
+};
+
+export type PostEdgeResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PostEdge'] = ResolversParentTypes['PostEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+};
+
+export type PostPageInfoResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['PostPageInfo'] = ResolversParentTypes['PostPageInfo']> = {
+  endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type ProfileResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Profile'] = ResolversParentTypes['Profile']> = {
   about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2102,6 +2178,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   logos?: Resolver<Array<ResolversTypes['Logo']>, ParentType, ContextType>;
   pendingCommandApprovals?: Resolver<Array<ResolversTypes['CommandApproval']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
+  posts?: Resolver<ResolversTypes['PostConnection'], ParentType, ContextType, Partial<QueryPostsArgs>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
   skillTemplate?: Resolver<Maybe<ResolversTypes['SkillTemplate']>, ParentType, ContextType, RequireFields<QuerySkillTemplateArgs, 'id'>>;
@@ -2191,6 +2268,7 @@ export type SubscriptionResolvers<ContextType = GremlinContext, ParentType exten
   jobTaskCreated?: SubscriptionResolver<ResolversTypes['Task'], "jobTaskCreated", ParentType, ContextType, RequireFields<SubscriptionJobTaskCreatedArgs, 'jobId'>>;
   logCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "logCreated", ParentType, ContextType, Partial<SubscriptionLogCreatedArgs>>;
   pendingItemsUpdated?: SubscriptionResolver<ResolversTypes['Boolean'], "pendingItemsUpdated", ParentType, ContextType>;
+  postCreated?: SubscriptionResolver<ResolversTypes['Post'], "postCreated", ParentType, ContextType>;
   sandboxOutput?: SubscriptionResolver<ResolversTypes['SandboxOutput'], "sandboxOutput", ParentType, ContextType, RequireFields<SubscriptionSandboxOutputArgs, 'taskId'>>;
   speechStream?: SubscriptionResolver<ResolversTypes['SpeechAudioChunk'], "speechStream", ParentType, ContextType, Partial<SubscriptionSpeechStreamArgs>>;
   taskLogCreated?: SubscriptionResolver<ResolversTypes['AgentLog'], "taskLogCreated", ParentType, ContextType, RequireFields<SubscriptionTaskLogCreatedArgs, 'taskId'>>;
@@ -2238,7 +2316,7 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, completeTask?: any, delegate?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, readCommandOutput?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateJob?: any, updateTask?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
+export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, completeTask?: any, createPost?: any, delegate?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, readCommandOutput?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateJob?: any, updateTask?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
 
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
   mimeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2349,6 +2427,10 @@ export type Resolvers<ContextType = GremlinContext> = {
   OAuthPlatformOverride?: OAuthPlatformOverrideResolvers<ContextType>;
   PdfRender?: PdfRenderResolvers<ContextType>;
   PendingInboxMessage?: PendingInboxMessageResolvers<ContextType>;
+  Post?: PostResolvers<ContextType>;
+  PostConnection?: PostConnectionResolvers<ContextType>;
+  PostEdge?: PostEdgeResolvers<ContextType>;
+  PostPageInfo?: PostPageInfoResolvers<ContextType>;
   Profile?: ProfileResolvers<ContextType>;
   ProviderModelInfo?: ProviderModelInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

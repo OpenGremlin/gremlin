@@ -61,6 +61,9 @@ export enum ToolName {
   ReadSkillReference = "readSkillReference",
   Authenticate = "authenticate",
 
+  // Posts
+  CreatePost = "createPost",
+
   // Memory & jobs
   SaveMemory = "saveMemory",
   RecallMemory = "recallMemory",

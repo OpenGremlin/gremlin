@@ -28,6 +28,7 @@ type Query {
   enabledModelDetails(providerId: String!): [ModelInfo!]!
   speechVoices(connectionId: String!): [SpeechVoice!]!
   logos: [Logo!]!
+  posts(first: Int, after: String, last: Int, before: String): PostConnection!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
   globalSettings: GlobalSettings!
@@ -106,6 +107,7 @@ type Subscription {
   speechStream(agentId: ID, taskId: ID): SpeechAudioChunk!
   agentUpdated(agentId: ID!): Agent!
   agentsUpdated(agentIds: [ID!]!): Agent!
+  postCreated: Post!
   pendingItemsUpdated: Boolean!
   taskUpdated(taskId: ID!): Task!
   tasksUpdated(taskIds: [ID!]!): Task!
@@ -278,6 +280,7 @@ enum ToolName {
   readSkill
   readSkillReference
   authenticate
+  createPost
   saveMemory
   recallMemory
   listJobs
@@ -644,6 +647,33 @@ type Logo {
   id: ID!
   darkUrl(width: Int): String!
   lightUrl(width: Int): String!
+}
+
+type Post {
+  id: ID!
+  agent: Agent
+  taskId: ID!
+  title: String!
+  message: String!
+  attachments: [Attachment!]!
+  createdAt: String!
+}
+
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
+type PostPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PostPageInfo!
 }
 
 enum UserInputRequestStatus {

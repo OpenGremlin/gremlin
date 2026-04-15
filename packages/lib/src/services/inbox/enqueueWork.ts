@@ -13,7 +13,9 @@ export type InboxItemType =
   // Reconciler: unassigned task became ready, manager must route it.
   | "tasks_need_assignment"
   // Reconciler: all children of an epic closed, manager should report results.
-  | "epic_complete";
+  | "epic_complete"
+  // Reconciler: a top-level task (epic or standalone) completed.
+  | "top_level_task_complete";
 
 export interface EnqueueInput {
   type: InboxItemType;

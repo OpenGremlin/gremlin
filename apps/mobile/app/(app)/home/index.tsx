@@ -12,9 +12,9 @@ import {
 } from "react-native";
 import type { AttachmentFieldsFragment } from "../../../src/graphql/generated/graphql";
 import {
-  TasksQuery,
-  TaskUpdatedSubscription,
-} from "../../../src/graphql/queries";
+  PostsQuery,
+  PostCreatedSubscription,
+} from "../../../src/graphql/queries/posts";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
@@ -30,49 +30,36 @@ import { PendingApprovals } from "../../../src/shared/PendingApprovals";
 import { PendingInputRequests } from "../../../src/shared/PendingInputRequests";
 import { QueryResult } from "../../../src/shared/QueryResult";
 
-type TaskItem = {
+type PostItem = {
   id: string;
+  taskId: string;
   title: string;
+  message: string;
   createdAt: string;
   agent?: { id: string; name?: string } | null;
-  message?: string | null;
-  emoji?: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
 };
 
-const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
-  const [override, setOverride] = useState<Partial<TaskItem>>({});
-  const task = { ...item, ...override };
-  const { agent } = task;
+const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
+  const { agent } = item;
   const openPager = (initialIndex: number) => {
     const file = files[initialIndex];
     if (file)
       router.push({
         pathname: "/file/[...path]",
-        params: { path: file.path.split("/"), task: item.id },
+        params: { path: file.path.split("/"), task: item.taskId },
       });
   };
 
-  useSubscription(TaskUpdatedSubscription, {
-    variables: { taskId: item.id },
-    onData: ({ data: { data } }) => {
-      if (data) {
-        setOverride(
-          (prev) => ({ ...prev, ...data.taskUpdated }) as Partial<TaskItem>,
-        );
-      }
-    },
-  });
-
   const files = useMemo(
-    () => filesFromAttachments(task.attachments ?? []),
-    [task.attachments],
+    () => filesFromAttachments(item.attachments ?? []),
+    [item.attachments],
   );
   const groups = useMemo(() => groupFiles(files), [files]);
 
   return (
     <Pressable
-      onPress={() => router.push(`/tasks/${task.id}`)}
+      onPress={() => router.push(`/tasks/${item.taskId}`)}
       className="px-4 py-4 active:bg-surface/50"
     >
       <View className="flex-row items-start gap-3">
@@ -87,15 +74,15 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
               </Text>
             ) : null}
             <Text className="text-xs text-text-faint shrink-0">
-              {timeAgo(task.createdAt)}
+              {timeAgo(item.createdAt)}
             </Text>
           </View>
           <Text className="text-base font-medium text-text-primary mt-0.5">
-            {task.title}
+            {item.title}
           </Text>
-          {task.message ? (
-            <Text className="text-sm text-text-muted mt-0.5" numberOfLines={1}>
-              {task.message}
+          {item.message ? (
+            <Text className="text-sm text-text-muted mt-0.5" numberOfLines={3}>
+              {item.message}
             </Text>
           ) : null}
           {files.length > 0 ? (
@@ -126,10 +113,10 @@ const TaskCard = memo(function TaskCard({ item }: { item: TaskItem }) {
   );
 });
 
-const renderTaskItem = ({ item }: { item: TaskItem }) => (
-  <TaskCard item={item} />
+const renderPostItem = ({ item }: { item: PostItem }) => (
+  <PostCard item={item} />
 );
-const keyExtractor = (item: TaskItem) => item.id;
+const keyExtractor = (item: PostItem) => item.id;
 
 const PAGE_SIZE = 20;
 
@@ -140,13 +127,42 @@ export default function HomeScreen() {
     () => ({ paddingBottom: tabBarHeight }),
     [tabBarHeight],
   );
-  const { data, loading, error, refetch, fetchMore } = useQuery(TasksQuery, {
-    variables: { last: PAGE_SIZE },
-  });
+  const { data, loading, error, refetch, fetchMore, updateQuery } = useQuery(
+    PostsQuery,
+    {
+      variables: { last: PAGE_SIZE },
+    },
+  );
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const connection = data?.tasks;
-  const nodes: TaskItem[] = useMemo(
+  // Listen for new posts and prepend them to the feed
+  useSubscription(PostCreatedSubscription, {
+    onData: ({ data: { data: subData } }) => {
+      if (!subData?.postCreated) return;
+      const newPost = subData.postCreated;
+      updateQuery((prev) => {
+        if (!prev?.posts) return prev;
+        // Avoid duplicates
+        const exists = prev.posts.edges.some(
+          (e) => e.node.id === newPost.id,
+        );
+        if (exists) return prev;
+        return {
+          ...prev,
+          posts: {
+            ...prev.posts,
+            edges: [
+              ...prev.posts.edges,
+              { __typename: "PostEdge" as const, cursor: "", node: newPost },
+            ],
+          },
+        };
+      });
+    },
+  });
+
+  const connection = data?.posts;
+  const nodes: PostItem[] = useMemo(
     () =>
       (connection?.edges ?? [])
         .map((e) => e.node)
@@ -194,7 +210,7 @@ export default function HomeScreen() {
       contentContainerStyle={contentContainerStyle}
       data={nodes}
       keyExtractor={keyExtractor}
-      renderItem={renderTaskItem}
+      renderItem={renderPostItem}
       ListHeaderComponent={
         approvals.length > 0 || pendingInputRequests.length > 0 ? (
           <View>
@@ -230,8 +246,8 @@ export default function HomeScreen() {
       ListEmptyComponent={
         !loading ? (
           <EmptyState
-            message="No tasks yet"
-            description="Start a conversation with an agent to see tasks here."
+            message="No posts yet"
+            description="Posts appear here when tasks are completed."
             icon={<Home size={32} color={colors.iconMuted} />}
           />
         ) : null

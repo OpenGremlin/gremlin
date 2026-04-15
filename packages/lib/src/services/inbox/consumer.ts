@@ -118,7 +118,7 @@ export async function ringDoorbell(
 
         // Reconcile after task lane completes — the worker may have closed a task,
         // unblocking downstream work or completing an epic.
-        await reconcile(ctx, agentId);
+        await reconcile(ctx, agentId, taskId);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }
@@ -250,6 +250,20 @@ async function processMainLaneItems(
           taskId: null,
           role: "SYSTEM",
           content: `Epic ${payload.taskId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
+        });
+        shouldRunInference = true;
+        break;
+      case "top_level_task_complete":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "SYSTEM",
+          content:
+            `Task ${payload.taskId} ("${payload.title ?? ""}") is complete. ` +
+            `Create a post to the home feed summarizing the work. ` +
+            `Use the createPost tool with this taskId. Write a concise title and a message ` +
+            `of a few sentences summarizing what was accomplished. ` +
+            `Attachments are collected automatically from the task and its subtasks.`,
         });
         shouldRunInference = true;
         break;

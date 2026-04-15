@@ -2,6 +2,7 @@ import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
 import {
+  createPostTool,
   FileStateTracker,
   listFilesTool,
   listJobsTool,
@@ -76,6 +77,7 @@ export async function runMainLane(
       listJobs: listJobsTool(ctx, agentId),
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
+      createPost: createPostTool(ctx, agentId),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
     },
     recallHint,

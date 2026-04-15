@@ -13,6 +13,7 @@ import {
   type OrchestratorService,
   orchestratorService,
 } from "./orchestrator/index.js";
+import { type PostService, postService } from "./posts/index.js";
 import { type ProfileService, profileService } from "./profile/index.js";
 import { type SandboxService, sandboxService } from "./sandbox/index.js";
 import {
@@ -36,6 +37,7 @@ export interface Services {
   userInputRequests: UserInputRequestService;
   oauth: OAuthService;
 
+  posts: PostService;
   profile: ProfileService;
   skills: SkillService;
   media: MediaService;
@@ -57,6 +59,7 @@ export function createServices(): Services {
     userInputRequests: userInputRequestService,
     oauth: oauthService,
 
+    posts: postService,
     profile: profileService,
     skills: skillService,
     media: mediaService,

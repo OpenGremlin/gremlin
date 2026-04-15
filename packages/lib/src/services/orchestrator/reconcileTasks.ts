@@ -22,10 +22,13 @@ function resolveAssignee(assignee: string, triggerAgentId: string): string {
  *
  * @param ctx              Service context (provides inbox, agents, logger)
  * @param triggerAgentId   Agent whose lane just finished (used to resolve "self")
+ * @param completedTaskId  Task ID that just finished its lane turn (if any).
+ *                         Used to detect standalone task completions.
  */
 export async function reconcile(
   ctx: ServiceContext,
   triggerAgentId: string,
+  completedTaskId?: string,
 ): Promise<void> {
   const ready = await ctx.services.tasks.getReadyWork(ctx);
   const needsAssignment: TaskItem[] = [];
@@ -117,17 +120,23 @@ export async function reconcile(
   }
 
   await closeCompletedParents(ctx, triggerAgentId);
+
+  // Check if the task that just completed its lane is a standalone
+  // top-level task (no parent, no children) that closed itself.
+  if (completedTaskId) {
+    await notifyStandaloneTaskComplete(ctx, triggerAgentId, completedTaskId);
+  }
 }
 
 // ── Parent auto-closure ────────────────────────────────────────────
 
 /**
  * Auto-close parent tasks whose children are all closed, and notify the
- * triggering agent so it can deliver results to the user.
+ * triggering agent so it can create a post summarizing the work.
  *
  * Scans in-progress tasks that have children. When all children of a
- * parent are closed, the parent is auto-closed and the main lane is
- * notified via `epic_complete`.
+ * parent are closed, the parent is auto-closed and — if it's top-level —
+ * the main lane is notified via `top_level_task_complete`.
  */
 export async function closeCompletedParents(
   ctx: ServiceContext,
@@ -154,20 +163,70 @@ export async function closeCompletedParents(
       "All children completed",
     );
 
-    const notification: EnqueueInput = {
-      type: "epic_complete",
-      payload: { taskId: parent.id, title: parent.title },
-    };
-    await ctx.services.inbox.enqueueWork(
-      ctx,
-      triggerAgentId,
-      "main",
-      notification,
-    );
+    // Only notify for top-level tasks (no parent).
+    if (!parent.parentId) {
+      const notification: EnqueueInput = {
+        type: "top_level_task_complete",
+        payload: { taskId: parent.id, title: parent.title },
+      };
+      await ctx.services.inbox.enqueueWork(
+        ctx,
+        triggerAgentId,
+        "main",
+        notification,
+      );
 
-    ctx.log.info(
-      { parentId: parent.id, component: "reconciler" },
-      "Auto-closed completed parent and notified manager",
-    );
+      ctx.log.info(
+        { parentId: parent.id, component: "reconciler" },
+        "Auto-closed completed epic and notified main lane",
+      );
+    } else {
+      ctx.log.info(
+        { parentId: parent.id, component: "reconciler" },
+        "Auto-closed completed parent (non-top-level)",
+      );
+    }
   }
+}
+
+// ── Standalone task completion ─────────────────────────────────────
+
+/**
+ * If the task that just finished its lane is a closed, top-level,
+ * standalone task (no parent, no children), notify the main lane
+ * so the agent can create a post.
+ */
+async function notifyStandaloneTaskComplete(
+  ctx: ServiceContext,
+  triggerAgentId: string,
+  taskId: string,
+): Promise<void> {
+  const task = await ctx.services.tasks.getTask(ctx, taskId);
+  if (!task) return;
+
+  // Must be closed.
+  if (task.status !== "closed") return;
+
+  // Must be top-level (no parent).
+  if (task.parentId) return;
+
+  // Must be standalone (no children) — epics are handled by closeCompletedParents.
+  const children = await ctx.services.tasks.getChildren(ctx, task.id);
+  if (children.length > 0) return;
+
+  const notification: EnqueueInput = {
+    type: "top_level_task_complete",
+    payload: { taskId: task.id, title: task.title },
+  };
+  await ctx.services.inbox.enqueueWork(
+    ctx,
+    triggerAgentId,
+    "main",
+    notification,
+  );
+
+  ctx.log.info(
+    { taskId: task.id, component: "reconciler" },
+    "Notified main lane of standalone task completion",
+  );
 }
