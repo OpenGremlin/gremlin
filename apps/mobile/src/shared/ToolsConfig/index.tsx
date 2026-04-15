@@ -1,8 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useRouter } from "expo-router";
-import { Cpu, Globe, Info, Terminal, Volume2 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import type { AgentQuery as AgentQueryType } from "../../graphql/generated/graphql";
 import {
   AllEnabledModelsQuery,
@@ -12,162 +11,24 @@ import {
   UpdateAgentMutation as UpdateAgentDoc,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
-import { useNavigationTheme } from "../../lib/useNavigationTheme";
-import { AllowlistConfig } from "../AllowlistConfig";
-import { Card } from "../Card";
 import { ModelPicker } from "../ModelPicker";
-import { Toggle } from "../Toggle";
 import { VoicePicker } from "../VoicePicker";
+import {
+  type PlainConfig,
+  getModelLabel,
+  resolveModelIds,
+  toModelRef,
+  toPlainConfig,
+} from "./helpers";
+import { ModelToolCard } from "./ModelToolCard";
+import { SandboxToolCard } from "./SandboxToolCard";
+import { WebSearchToolCard } from "./WebSearchToolCard";
+
+export { toPlainConfig, type PlainConfig } from "./helpers";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;
 
-export interface PlainConfig {
-  model?: { type: string; modelId?: string; connectionId?: string };
-  imageModel?: { type: string; modelId?: string; connectionId?: string };
-  speechModel?: { type: string; modelId?: string; connectionId?: string };
-  sandbox?: {
-    enabled: boolean;
-    idleTimeoutMinutes?: number;
-    alwaysOn?: boolean;
-    commandApproval: string;
-  };
-  webSearch?: { enabled: boolean; provider?: string };
-  reasoning?: { enabled: boolean };
-  viewImage?: { enabled: boolean };
-  imageGeneration?: { enabled: boolean };
-  speech?: { enabled: boolean; voice?: string };
-  manager?: { enabled: boolean; team: string[] };
-}
-
-export function toPlainConfig(config: Agent["config"]): PlainConfig {
-  return {
-    model: config?.model
-      ? {
-          type: config.model.type,
-          modelId: config.model.modelId ?? undefined,
-          connectionId: config.model.connectionId ?? undefined,
-        }
-      : undefined,
-    imageModel: config?.imageModel
-      ? {
-          type: config.imageModel.type,
-          modelId: config.imageModel.modelId ?? undefined,
-          connectionId: config.imageModel.connectionId ?? undefined,
-        }
-      : undefined,
-    speechModel: config?.speechModel
-      ? {
-          type: config.speechModel.type,
-          modelId: config.speechModel.modelId ?? undefined,
-          connectionId: config.speechModel.connectionId ?? undefined,
-        }
-      : undefined,
-    sandbox: config?.sandbox
-      ? {
-          enabled: config.sandbox.enabled,
-          idleTimeoutMinutes: config.sandbox.idleTimeoutMinutes ?? undefined,
-          alwaysOn: config.sandbox.alwaysOn ?? undefined,
-          commandApproval: config.sandbox.commandApproval,
-        }
-      : undefined,
-    webSearch: config?.webSearch
-      ? {
-          enabled: config.webSearch.enabled,
-          provider: config.webSearch.provider ?? undefined,
-        }
-      : undefined,
-    reasoning: config?.reasoning
-      ? { enabled: config.reasoning.enabled }
-      : undefined,
-    viewImage: config?.viewImage
-      ? { enabled: config.viewImage.enabled }
-      : undefined,
-    imageGeneration: config?.imageGeneration
-      ? { enabled: config.imageGeneration.enabled }
-      : undefined,
-    speech: config?.speech
-      ? {
-          enabled: config.speech.enabled,
-          voice: config.speech.voice ?? undefined,
-        }
-      : undefined,
-    manager: config?.manager
-      ? {
-          enabled: config.manager.enabled,
-          team: config.manager.team ?? [],
-        }
-      : undefined,
-  };
-}
-
-type ProvidersData = {
-  integrationProviders: Array<{
-    id: string;
-    service: string;
-  }>;
-} | null;
-
-type EnabledEntry = {
-  providerId: string;
-  modelId: string;
-  modelName?: string | null;
-};
-type BedrockModel = { id: string; name: string };
-
-function getModelLabel(
-  model: PlainConfig["model"],
-  providers: ProvidersData | undefined,
-  allEnabled: EnabledEntry[],
-  bedrockModels: BedrockModel[],
-): string {
-  if (!model) return "Select a model";
-  if (model.type === "bedrock" && model.modelId) {
-    const bm = bedrockModels.find((m) => m.id === model.modelId);
-    return bm ? `Bedrock / ${bm.name}` : `Bedrock / ${model.modelId}`;
-  }
-  if (model.type === "connection" && model.connectionId) {
-    const [providerId, modelId] = model.connectionId.split(":", 2);
-    const provider = providers?.integrationProviders?.find(
-      (p) => p.id === providerId,
-    );
-    const entry = allEnabled.find(
-      (e) => e.providerId === providerId && e.modelId === modelId,
-    );
-    const name = entry?.modelName ?? modelId;
-    return `${provider?.service ?? providerId} / ${name}`;
-  }
-  return "Select a model";
-}
-
-function resolveModelIds(
-  model: PlainConfig["model"],
-): { providerId: string; modelId: string } | null {
-  if (!model) return null;
-  if (model.type === "bedrock" && model.modelId) {
-    return { providerId: "bedrock", modelId: model.modelId };
-  }
-  if (model.type === "connection" && model.connectionId) {
-    const [providerId, modelId] = model.connectionId.split(":", 2);
-    return { providerId, modelId };
-  }
-  return null;
-}
-
-/** Convert a {providerId, modelId} default into the PlainConfig model shape. */
-function toModelRef(
-  dm: { providerId: string; modelId: string } | null,
-): PlainConfig["model"] | undefined {
-  if (!dm) return undefined;
-  const isBedrock = dm.providerId === "bedrock";
-  return {
-    type: isBedrock ? "bedrock" : "connection",
-    modelId: isBedrock ? dm.modelId : undefined,
-    connectionId: isBedrock ? undefined : `${dm.providerId}:${dm.modelId}`,
-  };
-}
-
 export function ToolsConfig({ agent }: { agent: Agent }) {
-  const colors = useNavigationTheme();
   const router = useRouter();
   const { data: providersData } = useQuery(IntegrationProvidersQuery);
   const { data: enabledData } = useQuery(AllEnabledModelsQuery);
@@ -183,17 +44,11 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const webSearchProviders = providers.filter(
     (p) => p.category === "web" && p.hasConnection,
   );
-  const hasWebSearch = webSearchProviders.length > 0;
 
   const [localConfig, setLocalConfig] = useState(() =>
     toPlainConfig(agent.config),
   );
   const [saving, setSaving] = useState(false);
-  const presentModelDetail = (providerId: string, modelId: string) => {
-    router.push(
-      `/model?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
-    );
-  };
   const [modelPickerMode, setModelPickerMode] = useState<
     "chat" | "image_generation" | "audio_speech" | null
   >(null);
@@ -215,13 +70,6 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   const localConfigRef = useRef(localConfig);
   localConfigRef.current = localConfig;
 
-  // Whether using defaults
-  const usingDefaultChatModel = !config.model;
-  const usingDefaultImageModel = !config.imageModel;
-  const usingDefaultSpeechModel = !config.speechModel;
-  const generateImagesEnabled = config.imageGeneration?.enabled ?? false;
-  const speechEnabled = config.speech?.enabled ?? false;
-
   const updateConfig = useCallback(
     (patch: Partial<PlainConfig>) => {
       const merged = { ...localConfigRef.current, ...patch };
@@ -235,26 +83,23 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     [agent.id],
   );
 
-  // Resolve model for display — use explicit or fall back to default
+  // Resolve effective models (explicit or default)
   const effectiveChatModel = useMemo(
     () => config.model ?? toModelRef(defaultModel),
     [config.model, defaultModel],
   );
-
   const effectiveImageModel = useMemo(
     () => config.imageModel ?? toModelRef(defaultImageModel),
     [config.imageModel, defaultImageModel],
   );
-
   const effectiveSpeechModel = useMemo(
     () => config.speechModel ?? toModelRef(defaultSpeechModel),
     [config.speechModel, defaultSpeechModel],
   );
 
-  // Fetch modalities for the selected model
-  const configModel = effectiveChatModel;
+  // Fetch modalities for the selected chat model
   useEffect(() => {
-    const ids = resolveModelIds(configModel);
+    const ids = resolveModelIds(effectiveChatModel);
     if (!ids) {
       setModelModalities(null);
       setModelSupportsReasoning(null);
@@ -274,46 +119,21 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     return () => {
       cancelled = true;
     };
-  }, [configModel]);
+  }, [effectiveChatModel]);
 
-  const supportsReasoning = modelSupportsReasoning ?? false;
-  const supportsImages = modelModalities?.includes("image") ?? true;
-
-  const chatModelLabel = getModelLabel(
-    effectiveChatModel,
-    providersData,
-    allEnabled,
-    bedrockModels,
-  );
-
-  const imageModelLabel = getModelLabel(
-    effectiveImageModel,
-    providersData,
-    allEnabled,
-    bedrockModels,
-  );
-
-  const speechModelLabel = getModelLabel(
-    effectiveSpeechModel,
-    providersData,
-    allEnabled,
-    bedrockModels,
-  );
+  // Labels
+  const label = (model: PlainConfig["model"]) =>
+    getModelLabel(model, providersData, allEnabled, bedrockModels);
 
   const defaultChatModelRef = toModelRef(defaultModel);
-  const defaultChatModelLabel = defaultChatModelRef
-    ? getModelLabel(defaultChatModelRef, providersData, allEnabled, bedrockModels)
-    : null;
-
   const defaultImageModelRef = toModelRef(defaultImageModel);
-  const defaultImageModelLabel = defaultImageModelRef
-    ? getModelLabel(defaultImageModelRef, providersData, allEnabled, bedrockModels)
-    : null;
-
   const defaultSpeechModelRef = toModelRef(defaultSpeechModel);
-  const defaultSpeechModelLabel = defaultSpeechModelRef
-    ? getModelLabel(defaultSpeechModelRef, providersData, allEnabled, bedrockModels)
-    : null;
+
+  const presentModelDetail = (providerId: string, modelId: string) => {
+    router.push(
+      `/model?provider=${encodeURIComponent(providerId)}&model=${encodeURIComponent(modelId)}`,
+    );
+  };
 
   return (
     <View className="gap-3">
@@ -324,478 +144,36 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         {saving && <Text className="text-xs text-text-faint">saving...</Text>}
       </View>
 
-      {/* Models */}
-      <Card className="overflow-hidden">
-        <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[22px] pt-0.5">
-            <Cpu size={22} color={colors.iconDefault} />
-          </View>
-          <View className="flex-1 gap-2">
-            <Text className="text-base font-bold text-text-secondary">
-              Models
-            </Text>
+      <ModelToolCard
+        config={config}
+        updateConfig={updateConfig}
+        chatModelLabel={label(effectiveChatModel)}
+        imageModelLabel={label(effectiveImageModel)}
+        speechModelLabel={label(effectiveSpeechModel)}
+        defaultChatModelLabel={defaultChatModelRef ? label(defaultChatModelRef) : null}
+        defaultImageModelLabel={defaultImageModelRef ? label(defaultImageModelRef) : null}
+        defaultSpeechModelLabel={defaultSpeechModelRef ? label(defaultSpeechModelRef) : null}
+        hasDefaultModel={!!defaultModel}
+        hasDefaultImageModel={!!defaultImageModel}
+        hasDefaultSpeechModel={!!defaultSpeechModel}
+        supportsReasoning={modelSupportsReasoning ?? false}
+        supportsImages={modelModalities?.includes("image") ?? true}
+        onPickModel={setModelPickerMode}
+        onPickVoice={() => setVoicePickerVisible(true)}
+        onPresentModelDetail={presentModelDetail}
+      />
 
-            {/* Chat Model */}
-            <Text className="text-sm text-text-secondary">Chat Model</Text>
-            {!defaultModel && usingDefaultChatModel && (
-              <View className="gap-1">
-                <Text className="text-xs text-error">
-                  No default model configured.
-                </Text>
-                <Pressable onPress={() => router.push("/settings/models")}>
-                  <Text className="text-xs text-accent-primary">
-                    Go to Models settings
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-            <View className="flex-row items-center gap-2">
-              <Pressable
-                onPress={() => setModelPickerMode("chat")}
-                className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultChatModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-              >
-                <Text
-                  className={`text-sm ${!usingDefaultChatModel ? "text-text-primary" : "text-text-secondary"}`}
-                >
-                  {usingDefaultChatModel
-                    ? defaultChatModelLabel
-                      ? `Use default (${defaultChatModelLabel})`
-                      : "Use default"
-                    : chatModelLabel}
-                </Text>
-              </Pressable>
-              {!usingDefaultChatModel && (
-                <Pressable
-                  onPress={() => {
-                    const ids = resolveModelIds(config.model);
-                    if (ids) presentModelDetail(ids.providerId, ids.modelId);
-                  }}
-                  className="p-2"
-                >
-                  <Info size={18} color={colors.iconDefault} />
-                </Pressable>
-              )}
-            </View>
+      <SandboxToolCard
+        agentId={agent.id}
+        config={config}
+        updateConfig={updateConfig}
+      />
 
-            {/* Reasoning */}
-            <View className="flex-row items-center justify-between mt-1 gap-3">
-              <View className="flex-1">
-                <Text className="text-sm text-text-secondary">Reasoning</Text>
-                <Text className="text-xs text-text-muted">
-                  {!supportsReasoning
-                    ? "Selected model does not support reasoning"
-                    : "Extended thinking for complex tasks"}
-                </Text>
-              </View>
-              <Toggle
-                enabled={
-                  supportsReasoning && (config.reasoning?.enabled ?? false)
-                }
-                disabled={!supportsReasoning}
-                onChange={() => {
-                  const wasEnabled = config.reasoning?.enabled ?? false;
-                  updateConfig({ reasoning: { enabled: !wasEnabled } });
-                }}
-              />
-            </View>
-
-            {/* View Images */}
-            <View className="flex-row items-center justify-between mt-1 gap-3">
-              <View className="flex-1">
-                <Text className="text-sm text-text-secondary">View Images</Text>
-                <Text className="text-xs text-text-muted">
-                  {!supportsImages
-                    ? "Selected model does not support images"
-                    : "See image files in conversations"}
-                </Text>
-              </View>
-              <Toggle
-                enabled={supportsImages && (config.viewImage?.enabled ?? false)}
-                disabled={!supportsImages}
-                onChange={() => {
-                  const wasEnabled = config.viewImage?.enabled ?? false;
-                  updateConfig({ viewImage: { enabled: !wasEnabled } });
-                }}
-              />
-            </View>
-
-            {/* Image Generation */}
-            <View className="flex-row items-center justify-between mt-1 gap-3">
-              <View className="flex-1">
-                <Text className="text-sm text-text-secondary">
-                  Image Generation
-                </Text>
-                <Text className="text-xs text-text-muted">
-                  Create images in responses
-                </Text>
-              </View>
-              <Toggle
-                enabled={generateImagesEnabled}
-                onChange={() => {
-                  updateConfig({
-                    imageGeneration: { enabled: !generateImagesEnabled },
-                  });
-                }}
-              />
-            </View>
-            {generateImagesEnabled && (
-              <>
-                {!defaultImageModel && usingDefaultImageModel && (
-                  <View className="gap-1">
-                    <Text className="text-xs text-error">
-                      No default image model configured.
-                    </Text>
-                    <Pressable onPress={() => router.push("/settings/models")}>
-                      <Text className="text-xs text-accent-primary">
-                        Go to Models settings
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
-                <View className="flex-row items-center gap-2">
-                  <Pressable
-                    onPress={() => setModelPickerMode("image_generation")}
-                    className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultImageModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                  >
-                    <Text
-                      className={`text-sm ${!usingDefaultImageModel ? "text-text-primary" : "text-text-secondary"}`}
-                    >
-                      {usingDefaultImageModel
-                        ? defaultImageModelLabel
-                          ? `Use default (${defaultImageModelLabel})`
-                          : "Use default"
-                        : imageModelLabel}
-                    </Text>
-                  </Pressable>
-                  {!usingDefaultImageModel && (
-                    <Pressable
-                      onPress={() => {
-                        const ids = resolveModelIds(config.imageModel);
-                        if (ids)
-                          presentModelDetail(ids.providerId, ids.modelId);
-                      }}
-                      className="p-2"
-                    >
-                      <Info size={18} color={colors.iconDefault} />
-                    </Pressable>
-                  )}
-                </View>
-              </>
-            )}
-
-            {/* Speech */}
-            <View className="flex-row items-center justify-between mt-1 gap-3">
-              <View className="flex-1">
-                <Text className="text-sm text-text-secondary">Speech</Text>
-                <Text className="text-xs text-text-muted">
-                  Speak responses aloud and generate audio files
-                </Text>
-              </View>
-              <Toggle
-                enabled={speechEnabled}
-                onChange={() => {
-                  updateConfig({ speech: { enabled: !speechEnabled } });
-                }}
-              />
-            </View>
-            {speechEnabled && (
-              <>
-                {!defaultSpeechModel && usingDefaultSpeechModel && (
-                  <View className="gap-1">
-                    <Text className="text-xs text-error">
-                      No default speech model configured.
-                    </Text>
-                    <Pressable onPress={() => router.push("/settings/models")}>
-                      <Text className="text-xs text-accent-primary">
-                        Go to Models settings
-                      </Text>
-                    </Pressable>
-                  </View>
-                )}
-                <View className="flex-row items-center gap-2">
-                  <Pressable
-                    onPress={() => setModelPickerMode("audio_speech")}
-                    className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefaultSpeechModel ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                  >
-                    <Text
-                      className={`text-sm ${!usingDefaultSpeechModel ? "text-text-primary" : "text-text-secondary"}`}
-                    >
-                      {usingDefaultSpeechModel
-                        ? defaultSpeechModelLabel
-                          ? `Use default (${defaultSpeechModelLabel})`
-                          : "Use default"
-                        : speechModelLabel}
-                    </Text>
-                  </Pressable>
-                  {!usingDefaultSpeechModel && (
-                    <Pressable
-                      onPress={() => {
-                        const ids = resolveModelIds(config.speechModel);
-                        if (ids)
-                          presentModelDetail(ids.providerId, ids.modelId);
-                      }}
-                      className="p-2"
-                    >
-                      <Info size={18} color={colors.iconDefault} />
-                    </Pressable>
-                  )}
-                </View>
-
-                {/* Voice */}
-                <Pressable
-                  onPress={() => setVoicePickerVisible(true)}
-                  className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg border ${config.speech?.voice ? "bg-surface-alt border-app-border" : "bg-surface-alt border-warning"}`}
-                >
-                  <Volume2
-                    size={14}
-                    color={
-                      config.speech?.voice ? colors.iconDefault : colors.warning
-                    }
-                  />
-                  <Text
-                    className={`text-sm flex-1 ${config.speech?.voice ? "text-text-secondary" : "text-warning"}`}
-                  >
-                    {config.speech?.voice ?? "Select a voice"}
-                  </Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-        </View>
-      </Card>
-
-      {/* Sandbox */}
-      <Card className="overflow-hidden">
-        <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[22px] pt-0.5">
-            <Terminal size={22} color={colors.iconDefault} />
-          </View>
-          <View className="flex-1 gap-3">
-            <View className="flex-row items-center justify-between gap-3">
-              <View className="flex-1">
-                <Text className="text-base font-bold text-text-secondary">
-                  Sandbox
-                </Text>
-                <Text className="text-xs text-text-muted">
-                  A shell for running commands and scripts
-                </Text>
-              </View>
-              <Toggle
-                enabled={config.sandbox?.enabled ?? false}
-                onChange={() => {
-                  const wasEnabled = config.sandbox?.enabled ?? false;
-                  updateConfig({
-                    sandbox: wasEnabled
-                      ? { enabled: false, commandApproval: "ask" }
-                      : {
-                          enabled: true,
-                          idleTimeoutMinutes:
-                            config.sandbox?.idleTimeoutMinutes ?? 20,
-                          alwaysOn: config.sandbox?.alwaysOn ?? false,
-                          commandApproval:
-                            config.sandbox?.commandApproval ?? "ask",
-                        },
-                  });
-                }}
-              />
-            </View>
-            {config.sandbox?.enabled && (
-              <View className="gap-3">
-                <View className="flex-row items-center justify-between gap-3">
-                  <View className="flex-1">
-                    <Text className="text-sm text-text-secondary">
-                      Always On
-                    </Text>
-                    <Text className="text-xs text-text-muted">
-                      Keep running between tasks. Cold starts take ~2 minutes.
-                    </Text>
-                  </View>
-                  <Toggle
-                    enabled={config.sandbox.alwaysOn ?? false}
-                    onChange={() => {
-                      const sandbox = config.sandbox ?? {
-                        enabled: true,
-                        commandApproval: "ask",
-                      };
-                      updateConfig({
-                        sandbox: {
-                          ...sandbox,
-                          alwaysOn: !(sandbox.alwaysOn ?? false),
-                        },
-                      });
-                    }}
-                  />
-                </View>
-                {!config.sandbox.alwaysOn && (
-                  <View>
-                    <View className="flex-row items-center justify-between mb-1">
-                      <View className="flex-1">
-                        <Text className="text-sm text-text-secondary">
-                          Idle Shutdown
-                        </Text>
-                        <Text className="text-xs text-text-muted">
-                          Shut down after this long without activity
-                        </Text>
-                      </View>
-                      <Text className="text-sm text-text-muted">
-                        {config.sandbox.idleTimeoutMinutes ?? 20} min
-                      </Text>
-                    </View>
-                    <View className="flex-row flex-wrap gap-1.5">
-                      {[10, 20, 30, 60, 120].map((mins) => {
-                        const sandbox = config.sandbox ?? {
-                          enabled: true,
-                          commandApproval: "ask",
-                        };
-                        const selected =
-                          (sandbox.idleTimeoutMinutes ?? 20) === mins;
-                        return (
-                          <Pressable
-                            key={mins}
-                            onPress={() =>
-                              updateConfig({
-                                sandbox: {
-                                  ...sandbox,
-                                  idleTimeoutMinutes: mins,
-                                },
-                              })
-                            }
-                            className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                          >
-                            <Text
-                              className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
-                            >
-                              {mins} min
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  </View>
-                )}
-                <View>
-                  <View className="mb-1">
-                    <Text className="text-sm text-text-secondary">
-                      Command Approval
-                    </Text>
-                    <Text className="text-xs text-text-muted">
-                      Whether to ask before the agent runs a command
-                    </Text>
-                  </View>
-                  <View className="flex-row flex-wrap gap-1.5">
-                    {(["ask", "skip"] as const).map((mode) => {
-                      const sandbox = config.sandbox ?? {
-                        enabled: true,
-                        commandApproval: "ask",
-                      };
-                      const current = sandbox.commandApproval ?? "ask";
-                      const selected = current === mode;
-                      const label =
-                        mode === "ask" ? "Ask first" : "Skip (dangerous)";
-                      return (
-                        <Pressable
-                          key={mode}
-                          onPress={() =>
-                            updateConfig({
-                              sandbox: { ...sandbox, commandApproval: mode },
-                            })
-                          }
-                          className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
-                        >
-                          <Text
-                            className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
-                          >
-                            {label}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-                {config.sandbox?.commandApproval === "ask" && (
-                  <AllowlistConfig agentId={agent.id} />
-                )}
-              </View>
-            )}
-          </View>
-        </View>
-      </Card>
-
-      {/* Web Search */}
-      <Card className="overflow-hidden">
-        <View className="flex-row px-4 py-3 gap-3">
-          <View className="w-[22px] pt-0.5">
-            <Globe size={22} color={colors.iconDefault} />
-          </View>
-          <View className="flex-1 gap-3">
-            <View className="flex-row items-center justify-between gap-3">
-              <View className="flex-1">
-                <Text className="text-base font-bold text-text-secondary">
-                  Web Search
-                </Text>
-                <Text className="text-xs text-text-muted">
-                  {hasWebSearch
-                    ? "Search the web for information"
-                    : "Connect Brave Search or Tavily to enable"}
-                </Text>
-              </View>
-              <Toggle
-                enabled={config.webSearch?.enabled ?? false}
-                disabled={!hasWebSearch}
-                onChange={() => {
-                  if (!hasWebSearch) return;
-                  const wasEnabled = config.webSearch?.enabled ?? false;
-                  updateConfig({
-                    webSearch: {
-                      enabled: !wasEnabled,
-                      provider:
-                        config.webSearch?.provider ??
-                        webSearchProviders[0]?.id ??
-                        "brave",
-                    },
-                  });
-                }}
-              />
-            </View>
-            {config.webSearch?.enabled && hasWebSearch && (
-              <View className="gap-1.5">
-                {webSearchProviders.map((p) => {
-                  const selected =
-                    (config.webSearch?.provider ??
-                      webSearchProviders[0]?.id) === p.id;
-                  return (
-                    <Pressable
-                      key={p.id}
-                      onPress={() =>
-                        updateConfig({
-                          webSearch: { enabled: true, provider: p.id },
-                        })
-                      }
-                      className={`px-3 py-2.5 rounded-lg border ${
-                        selected
-                          ? "bg-accent-surface border-accent-border"
-                          : "bg-surface-alt border-app-border"
-                      }`}
-                    >
-                      <Text
-                        className={`text-sm ${selected ? "text-text-primary" : "text-text-muted"}`}
-                      >
-                        {p.service}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-            {config.webSearch?.enabled && !hasWebSearch && (
-              <Text className="text-xs text-warning">
-                No search provider connected. Add a Brave Search or Tavily API
-                key in Connections.
-              </Text>
-            )}
-          </View>
-        </View>
-      </Card>
+      <WebSearchToolCard
+        config={config}
+        updateConfig={updateConfig}
+        webSearchProviders={webSearchProviders}
+      />
 
       <ModelPicker
         visible={modelPickerMode !== null}
@@ -822,23 +200,23 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         }}
         defaultLabel={
           modelPickerMode === "chat"
-            ? defaultChatModelLabel
-              ? `Use default (${defaultChatModelLabel})`
+            ? defaultChatModelRef
+              ? `Use default (${label(defaultChatModelRef)})`
               : "Use default"
             : modelPickerMode === "image_generation"
-              ? defaultImageModelLabel
-                ? `Use default (${defaultImageModelLabel})`
+              ? defaultImageModelRef
+                ? `Use default (${label(defaultImageModelRef)})`
                 : "Use default"
-              : defaultSpeechModelLabel
-                ? `Use default (${defaultSpeechModelLabel})`
+              : defaultSpeechModelRef
+                ? `Use default (${label(defaultSpeechModelRef)})`
                 : "Use default"
         }
         isUsingDefault={
           modelPickerMode === "chat"
-            ? usingDefaultChatModel
+            ? !config.model
             : modelPickerMode === "image_generation"
-              ? usingDefaultImageModel
-              : usingDefaultSpeechModel
+              ? !config.imageModel
+              : !config.speechModel
         }
         onDismiss={() => setModelPickerMode(null)}
       />

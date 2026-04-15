@@ -13,6 +13,7 @@ import {
   TriggerJobMutation,
   UpdateAgentJobMutation as UpdateAgentJobDoc,
 } from "../../../src/graphql/queries";
+import { useFormOverlay } from "../../../src/hooks/useFormOverlay";
 import { execute } from "../../../src/lib/apolloClient";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Card } from "../../../src/shared/Card";
@@ -48,11 +49,6 @@ export default function JobDetailScreen() {
     [agentsData],
   );
 
-  const [name, setName] = useState<string | null>(null);
-  const [agentId, setAgentId] = useState<string | null>(null);
-  const [recurrence, setRecurrence] = useState<string | null>(null);
-  const [description, setDescription] = useState<string | null>(null);
-  const [timezone, setTimezone] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -73,28 +69,23 @@ export default function JobDetailScreen() {
     },
   });
 
+  const job = savedJob ?? data?.agentJob ?? null;
+
+  const form = useFormOverlay({
+    name: job?.name ?? "",
+    recurrence: job?.recurrence ?? "",
+    description: job?.description ?? "",
+    timezone: job?.timezone ?? "",
+    agentId: job?.agent.id ?? "",
+  });
+
   if (loading || error) {
     return <QueryResult loading={loading} error={error} />;
   }
 
-  const job = savedJob ?? data?.agentJob ?? null;
-
   if (!job) {
     return <NotFound label="Job not found." />;
   }
-
-  const currentName = name ?? job.name;
-  const currentRecurrence = recurrence ?? job.recurrence;
-  const currentDescription = description ?? job.description;
-  const currentTimezone = timezone ?? job.timezone;
-  const currentAgentId = agentId ?? job.agent.id;
-
-  const isDirty =
-    name !== null ||
-    recurrence !== null ||
-    description !== null ||
-    timezone !== null ||
-    agentId !== null;
 
   let cronHuman: string | null = null;
   if (job.cronExpression) {
@@ -108,16 +99,9 @@ export default function JobDetailScreen() {
     setSaving(true);
     setSaveError(null);
     try {
-      const input: Record<string, string> = {};
-      if (name !== null) input.name = name;
-      if (recurrence !== null) input.recurrence = recurrence;
-      if (description !== null) input.description = description;
-      if (timezone !== null) input.timezone = timezone;
-      if (agentId !== null) input.agentId = agentId;
-
       const result = await execute(UpdateAgentJobDoc, {
         id: id ?? "",
-        input,
+        input: form.dirtyFields(),
       });
       if (result.updateAgentJob) {
         setSavedJob({
@@ -126,11 +110,7 @@ export default function JobDetailScreen() {
           tasks: job.tasks,
         } as Job);
       }
-      setName(null);
-      setAgentId(null);
-      setRecurrence(null);
-      setDescription(null);
-      setTimezone(null);
+      form.discard();
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -232,7 +212,7 @@ export default function JobDetailScreen() {
           <Text className="text-sm text-text-secondary">
             {job.paused
               ? "Paused"
-              : formatDate(job.nextRun, "Not scheduled", currentTimezone)}
+              : formatDate(job.nextRun, "Not scheduled", form.current.timezone)}
           </Text>
         </View>
         {job.cronExpression ? (
@@ -285,15 +265,14 @@ export default function JobDetailScreen() {
                 presentPicker({
                   title: "Select Agent",
                   options: agentOptions,
-                  selected: currentAgentId,
-                  onSelect: (val) =>
-                    setAgentId(val === job.agent.id ? null : val),
+                  selected: form.current.agentId,
+                  onSelect: (val) => form.update("agentId", val),
                 })
               }
             >
               <View className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5">
                 <Text className="text-sm text-text-primary">
-                  {agentOptions.find((a) => a.value === currentAgentId)
+                  {agentOptions.find((a) => a.value === form.current.agentId)
                     ?.label ?? job.agent.name}
                 </Text>
               </View>
@@ -302,35 +281,31 @@ export default function JobDetailScreen() {
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Name</Text>
             <Input
-              value={currentName}
-              onChangeText={(val) => setName(val === job.name ? null : val)}
+              value={form.current.name}
+              onChangeText={(val) => form.update("name", val)}
             />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Recurrence</Text>
             <Input
-              value={currentRecurrence}
-              onChangeText={(val) =>
-                setRecurrence(val === job.recurrence ? null : val)
-              }
+              value={form.current.recurrence}
+              onChangeText={(val) => form.update("recurrence", val)}
               autoCapitalize="none"
             />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Timezone</Text>
             <TimezonePicker
-              value={currentTimezone}
-              onChange={(val) => setTimezone(val === job.timezone ? null : val)}
+              value={form.current.timezone}
+              onChange={(val) => form.update("timezone", val)}
               className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5 text-sm leading-[18px] text-text-primary"
             />
           </View>
           <View className="gap-2">
             <Text className="text-xs text-text-muted">Description</Text>
             <Input
-              value={currentDescription ?? ""}
-              onChangeText={(val) =>
-                setDescription(val === job.description ? null : val)
-              }
+              value={form.current.description}
+              onChangeText={(val) => form.update("description", val)}
               multiline
               textAlignVertical="top"
               style={{ minHeight: 80 }}
@@ -340,22 +315,13 @@ export default function JobDetailScreen() {
           <View className="gap-3 pt-2">
             <SaveButton
               onPress={handleSave}
-              disabled={!isDirty}
+              disabled={!form.isDirty}
               saving={saving}
               label="Save changes"
               size="lg"
             />
-            {isDirty && (
-              <Pressable
-                onPress={() => {
-                  setName(null);
-                  setAgentId(null);
-                  setRecurrence(null);
-                  setDescription(null);
-                  setTimezone(null);
-                }}
-                className="items-center"
-              >
+            {form.isDirty && (
+              <Pressable onPress={form.discard} className="items-center">
                 <Text className="text-sm text-text-muted">Discard</Text>
               </Pressable>
             )}
