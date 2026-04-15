@@ -16,7 +16,6 @@ import {
   FlatList,
   Keyboard,
   Pressable,
-  RefreshControl,
   StyleSheet,
   View,
 } from "react-native";
@@ -440,6 +439,9 @@ export function ChatScreen({
 
   const [showScrollDown, setShowScrollDown] = useState(false);
 
+  // Trigger hard reload when the user overscrolls past the newest end.
+  // In inverted mode, contentOffset.y < 0 means pulling past index 0.
+  const refreshTriggered = useRef(false);
   const handleScroll = useCallback(
     (e: {
       nativeEvent: {
@@ -461,9 +463,15 @@ export function ChatScreen({
         }
       } else {
         setShowScrollDown(contentOffset.y > 300);
+        if (contentOffset.y < -80 && !refreshTriggered.current && !refreshing) {
+          refreshTriggered.current = true;
+          onRefresh().finally(() => {
+            refreshTriggered.current = false;
+          });
+        }
       }
     },
-    [hasMore, loadMore],
+    [hasMore, loadMore, refreshing, onRefresh],
   );
 
   const scrollToBottom = useCallback(() => {
@@ -484,16 +492,21 @@ export function ChatScreen({
     return <NotFound label={notFoundLabel ?? "Not found"} />;
   }
 
-  // Pending messages and streaming bubble — shown at the "newest" end of the list.
-  const pendingBubbles =
-    pendingMessages.length > 0 || streamingMessage ? (
-      <View>
-        {pendingMessages.map((content) => (
-          <PendingMessageBubble key={content} content={content} />
-        ))}
-        {streamingMessage && <StreamingBubble message={streamingMessage} />}
-      </View>
-    ) : null;
+  // Pending messages, streaming bubble, and refresh spinner — shown at the
+  // "newest" end of the list (ListHeaderComponent in inverted mode).
+  const pendingBubbles = (
+    <View>
+      {refreshing && (
+        <View className="items-center py-3">
+          <ActivityIndicator size="small" color={colors.loadingIndicator} />
+        </View>
+      )}
+      {pendingMessages.map((content) => (
+        <PendingMessageBubble key={content} content={content} />
+      ))}
+      {streamingMessage && <StreamingBubble message={streamingMessage} />}
+    </View>
+  );
 
   const loadingSpinner = loadingMore ? (
     <View className="items-center py-3">
@@ -514,7 +527,7 @@ export function ChatScreen({
         onEndReachedThreshold={0.2}
         onScroll={handleScroll}
         onContentSizeChange={isWeb ? onContentSizeChange : undefined}
-        scrollEventThrottle={100}
+        scrollEventThrottle={16}
         contentContainerStyle={flatListContentStyle}
         maintainVisibleContentPosition={
           !isWeb
@@ -524,13 +537,6 @@ export function ChatScreen({
         // On web, disable windowing so all items stay mounted (the list is
         // small enough that this is fine).
         {...(isWeb && { windowSize: 100 })}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.loadingIndicator}
-          />
-        }
         keyboardShouldPersistTaps="handled"
         // Inverted (iOS): header=bottom (newest), footer=top (oldest).
         // Non-inverted (web): header=top (oldest), footer=bottom (newest).
