@@ -173,11 +173,11 @@ export function ChatScreen({
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchNewer();
+      await refetch();
     } finally {
       setRefreshing(false);
     }
-  }, [fetchNewer]);
+  }, [refetch]);
 
   // On web, don't use inverted FlatList (react-native-web's scaleY(-1) hack is
   // buggy and keeps regressing). Instead reverse the data so oldest is first and
