@@ -44,14 +44,14 @@ export function LocalSettingsProvider({
   >(null);
 
   useEffect(() => {
-    storage.getItem(VOICE_MODE_KEY).then((voice) => {
+    Promise.all([
+      storage.getItem(VOICE_MODE_KEY),
+      storage.getItem(DOC_READER_KEY),
+      storage.getItem(DOC_DISCUSS_KEY),
+    ]).then(([voice, readerId, discussId]) => {
       if (voice === "true") setVoiceEnabled(true);
-    });
-    storage.getItem(DOC_READER_KEY).then((id) => {
-      if (id) setDocumentReaderIdState(id);
-    });
-    storage.getItem(DOC_DISCUSS_KEY).then((id) => {
-      if (id) setDocumentDiscussAgentIdState(id);
+      if (readerId) setDocumentReaderIdState(readerId);
+      if (discussId) setDocumentDiscussAgentIdState(discussId);
     });
   }, []);
 

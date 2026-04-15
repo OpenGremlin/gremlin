@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
 import ReanimatedModule, {
   useAnimatedStyle,
@@ -100,7 +100,11 @@ function StreamingCursor() {
   );
 }
 
-export function StreamingBubble({ message }: { message: StreamingMessage }) {
+export const StreamingBubble = React.memo(function StreamingBubble({
+  message,
+}: {
+  message: StreamingMessage;
+}) {
   const hasContent = message.content.length > 0;
   const hasReasoning = message.reasoning.length > 0;
   const isReasoningStreaming = hasReasoning && !hasContent;
@@ -133,4 +137,4 @@ export function StreamingBubble({ message }: { message: StreamingMessage }) {
       </View>
     </View>
   );
-}
+});

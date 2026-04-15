@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router, useFocusEffect } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Pressable, RefreshControl, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
@@ -15,7 +15,7 @@ import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 type Agent = AgentsQueryType["agents"][number];
 
-function AgentCard({ agent }: { agent: Agent }) {
+const AgentCard = React.memo(function AgentCard({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
   return (
     <ListCard
@@ -45,7 +45,7 @@ function AgentCard({ agent }: { agent: Agent }) {
       }
     />
   );
-}
+});
 
 export default function AgentsScreen() {
   const colors = useNavigationTheme();

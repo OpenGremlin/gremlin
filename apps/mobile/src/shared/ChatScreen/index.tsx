@@ -140,7 +140,10 @@ export function ChatScreen({
     dismiss: dismissStream,
   } = useAgentStream(agentId, taskId ?? null);
 
-  const scope = taskId ? { taskId } : { agentId };
+  const scope = useMemo(
+    () => (taskId ? { taskId } : { agentId }),
+    [taskId, agentId],
+  );
 
   // Sentence-streaming TTS — subscribes to speech events for this lane.
   // Reads voiceEnabled internally to avoid re-rendering the chat tree on toggle.
@@ -269,12 +272,6 @@ export function ChatScreen({
     return () => clearTimeout(timer);
   }, [uploads, clearUploads]);
 
-  // Track whether a drawing draft exists for this agent
-  const [, setDraftExists] = useState(false);
-  useEffect(() => {
-    setDraftExists(hasDraft(agentId));
-  }, [agentId]);
-
   // Drawing feature: subscribe to drawing-complete events for upload
   useEffect(() => {
     const handler = (file: {
@@ -284,7 +281,6 @@ export function ChatScreen({
       type: string;
     }) => {
       uploadFiles([file]);
-      setDraftExists(false);
     };
     drawingEvents.on(handler);
     return () => drawingEvents.off(handler);
@@ -360,9 +356,7 @@ export function ChatScreen({
       return;
     }
 
-    // Refresh draft status before showing sheet
     const hasDraftNow = hasDraft(agentId);
-    setDraftExists(hasDraftNow);
 
     const options = [
       "Photo Library",

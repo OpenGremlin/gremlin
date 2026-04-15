@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { clearToken } from "./auth";
@@ -94,10 +95,13 @@ export function ServerConfigProvider({
 
   if (!state.loaded) return null;
 
+  const value = useMemo(
+    () => ({ config: state.config, loaded: state.loaded, setConfig }),
+    [state.config, state.loaded, setConfig],
+  );
+
   return (
-    <ServerConfigContext.Provider
-      value={{ config: state.config, loaded: state.loaded, setConfig }}
-    >
+    <ServerConfigContext.Provider value={value}>
       {children}
     </ServerConfigContext.Provider>
   );

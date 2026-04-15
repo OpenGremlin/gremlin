@@ -2,7 +2,7 @@ import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Check, ExternalLink, Hourglass, RefreshCw } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
 import { TaskTrackingSubscription } from "../../graphql/queries";
@@ -60,7 +60,7 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   }
 }
 
-function ChildRow({ child, isDark }: { child: TaskChild; isDark: boolean }) {
+const ChildRow = React.memo(function ChildRow({ child, isDark }: { child: TaskChild; isDark: boolean }) {
   const files = filesFromAttachments(
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
@@ -129,7 +129,7 @@ function ChildRow({ child, isDark }: { child: TaskChild; isDark: boolean }) {
       </View>
     </Pressable>
   );
-}
+});
 
 export function TaskCard({ task }: { task: TaskInfo | null }) {
   const { isDark } = useTheme();

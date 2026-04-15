@@ -153,6 +153,19 @@ function resolveModelIds(
   return null;
 }
 
+/** Convert a {providerId, modelId} default into the PlainConfig model shape. */
+function toModelRef(
+  dm: { providerId: string; modelId: string } | null,
+): PlainConfig["model"] | undefined {
+  if (!dm) return undefined;
+  const isBedrock = dm.providerId === "bedrock";
+  return {
+    type: isBedrock ? "bedrock" : "connection",
+    modelId: isBedrock ? dm.modelId : undefined,
+    connectionId: isBedrock ? undefined : `${dm.providerId}:${dm.modelId}`,
+  };
+}
+
 export function ToolsConfig({ agent }: { agent: Agent }) {
   const colors = useNavigationTheme();
   const router = useRouter();
@@ -224,66 +237,17 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
 
   // Resolve model for display — use explicit or fall back to default
   const effectiveChatModel = useMemo(
-    () =>
-      config.model ??
-      (defaultModel
-        ? {
-            type:
-              defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
-            modelId:
-              defaultModel.providerId === "bedrock"
-                ? defaultModel.modelId
-                : undefined,
-            connectionId:
-              defaultModel.providerId !== "bedrock"
-                ? `${defaultModel.providerId}:${defaultModel.modelId}`
-                : undefined,
-          }
-        : undefined),
+    () => config.model ?? toModelRef(defaultModel),
     [config.model, defaultModel],
   );
 
   const effectiveImageModel = useMemo(
-    () =>
-      config.imageModel ??
-      (defaultImageModel
-        ? {
-            type:
-              defaultImageModel.providerId === "bedrock"
-                ? "bedrock"
-                : "connection",
-            modelId:
-              defaultImageModel.providerId === "bedrock"
-                ? defaultImageModel.modelId
-                : undefined,
-            connectionId:
-              defaultImageModel.providerId !== "bedrock"
-                ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
-                : undefined,
-          }
-        : undefined),
+    () => config.imageModel ?? toModelRef(defaultImageModel),
     [config.imageModel, defaultImageModel],
   );
 
   const effectiveSpeechModel = useMemo(
-    () =>
-      config.speechModel ??
-      (defaultSpeechModel
-        ? {
-            type:
-              defaultSpeechModel.providerId === "bedrock"
-                ? "bedrock"
-                : "connection",
-            modelId:
-              defaultSpeechModel.providerId === "bedrock"
-                ? defaultSpeechModel.modelId
-                : undefined,
-            connectionId:
-              defaultSpeechModel.providerId !== "bedrock"
-                ? `${defaultSpeechModel.providerId}:${defaultSpeechModel.modelId}`
-                : undefined,
-          }
-        : undefined),
+    () => config.speechModel ?? toModelRef(defaultSpeechModel),
     [config.speechModel, defaultSpeechModel],
   );
 
@@ -336,68 +300,19 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
     bedrockModels,
   );
 
-  const defaultChatModelLabel = defaultModel
-    ? getModelLabel(
-        {
-          type:
-            defaultModel.providerId === "bedrock" ? "bedrock" : "connection",
-          modelId:
-            defaultModel.providerId === "bedrock"
-              ? defaultModel.modelId
-              : undefined,
-          connectionId:
-            defaultModel.providerId !== "bedrock"
-              ? `${defaultModel.providerId}:${defaultModel.modelId}`
-              : undefined,
-        },
-        providersData,
-        allEnabled,
-        bedrockModels,
-      )
+  const defaultChatModelRef = toModelRef(defaultModel);
+  const defaultChatModelLabel = defaultChatModelRef
+    ? getModelLabel(defaultChatModelRef, providersData, allEnabled, bedrockModels)
     : null;
 
-  const defaultImageModelLabel = defaultImageModel
-    ? getModelLabel(
-        {
-          type:
-            defaultImageModel.providerId === "bedrock"
-              ? "bedrock"
-              : "connection",
-          modelId:
-            defaultImageModel.providerId === "bedrock"
-              ? defaultImageModel.modelId
-              : undefined,
-          connectionId:
-            defaultImageModel.providerId !== "bedrock"
-              ? `${defaultImageModel.providerId}:${defaultImageModel.modelId}`
-              : undefined,
-        },
-        providersData,
-        allEnabled,
-        bedrockModels,
-      )
+  const defaultImageModelRef = toModelRef(defaultImageModel);
+  const defaultImageModelLabel = defaultImageModelRef
+    ? getModelLabel(defaultImageModelRef, providersData, allEnabled, bedrockModels)
     : null;
 
-  const defaultSpeechModelLabel = defaultSpeechModel
-    ? getModelLabel(
-        {
-          type:
-            defaultSpeechModel.providerId === "bedrock"
-              ? "bedrock"
-              : "connection",
-          modelId:
-            defaultSpeechModel.providerId === "bedrock"
-              ? defaultSpeechModel.modelId
-              : undefined,
-          connectionId:
-            defaultSpeechModel.providerId !== "bedrock"
-              ? `${defaultSpeechModel.providerId}:${defaultSpeechModel.modelId}`
-              : undefined,
-        },
-        providersData,
-        allEnabled,
-        bedrockModels,
-      )
+  const defaultSpeechModelRef = toModelRef(defaultSpeechModel);
+  const defaultSpeechModelLabel = defaultSpeechModelRef
+    ? getModelLabel(defaultSpeechModelRef, providersData, allEnabled, bedrockModels)
     : null;
 
   return (

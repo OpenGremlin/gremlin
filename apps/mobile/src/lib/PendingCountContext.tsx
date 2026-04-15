@@ -53,10 +53,22 @@ export function PendingCountProvider({
     },
   });
 
-  const allApprovals = approvalsData?.pendingCommandApprovals ?? [];
-  const approvals = allApprovals.filter((a) => a.status === "PENDING");
-  const allInputRequests = inputRequestsData?.userInputRequests ?? [];
-  const inputRequests = allInputRequests.filter((r) => r.status === "PENDING");
+  const allApprovals = useMemo(
+    () => approvalsData?.pendingCommandApprovals ?? [],
+    [approvalsData],
+  );
+  const approvals = useMemo(
+    () => allApprovals.filter((a) => a.status === "PENDING"),
+    [allApprovals],
+  );
+  const allInputRequests = useMemo(
+    () => inputRequestsData?.userInputRequests ?? [],
+    [inputRequestsData],
+  );
+  const inputRequests = useMemo(
+    () => allInputRequests.filter((r) => r.status === "PENDING"),
+    [allInputRequests],
+  );
   const pendingCount = approvals.length + inputRequests.length;
 
   const value = useMemo(

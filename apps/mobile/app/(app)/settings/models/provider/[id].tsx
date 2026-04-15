@@ -19,6 +19,7 @@ import { execute } from "../../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../../src/lib/useNavigationTheme";
 import { Button } from "../../../../../src/shared/Button";
 import { Card } from "../../../../../src/shared/Card";
+import { ErrorBanner } from "../../../../../src/shared/ErrorBanner";
 import { Chip } from "../../../../../src/shared/Chip";
 import { Input } from "../../../../../src/shared/Input";
 import { IntegrationLogo } from "../../../../../src/shared/IntegrationLogo";
@@ -385,11 +386,7 @@ function ConnectionCard({
       >
         Test & Connect
       </Button>
-      {error ? (
-        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
-          <Text className="text-sm text-red-300">{error}</Text>
-        </View>
-      ) : null}
+      <ErrorBanner message={error} />
     </View>
   );
 }

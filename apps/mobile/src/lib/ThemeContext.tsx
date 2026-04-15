@@ -73,8 +73,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     storage.setItem(STORAGE_KEY, newMode);
   }, []);
 
+  const themeValue = useMemo(
+    () => ({ mode, isDark, setMode }),
+    [mode, isDark, setMode],
+  );
+
   return (
-    <ThemeContext.Provider value={{ mode, isDark, setMode }}>
+    <ThemeContext.Provider value={themeValue}>
       <View style={[{ flex: 1 }, themeStyle]}>{children}</View>
     </ThemeContext.Provider>
   );

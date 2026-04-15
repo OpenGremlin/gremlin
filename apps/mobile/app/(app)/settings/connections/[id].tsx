@@ -8,6 +8,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { execute } from "../../../../src/lib/apolloClient";
 import { Card } from "../../../../src/shared/Card";
+import { ErrorBanner } from "../../../../src/shared/ErrorBanner";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
 import { formatDate } from "../../../../src/shared/formatDate";
@@ -53,11 +54,7 @@ export default function ConnectionDetailScreen() {
 
   return (
     <TabScrollView contentContainerClassName="px-4 pt-6 gap-5">
-      {revokeError ? (
-        <View className="bg-red-900/30 border border-red-800/50 rounded-xl p-3">
-          <Text className="text-sm text-red-300">{revokeError}</Text>
-        </View>
-      ) : null}
+      <ErrorBanner message={revokeError} />
 
       <View className="flex-row items-center gap-4">
         <IntegrationLogo id={connection.providerId} size={48} />

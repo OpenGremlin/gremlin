@@ -5,6 +5,7 @@ export * from "./commandApproval";
 export * from "./fragments";
 export * from "./integrations";
 export * from "./jobs";
+export * from "./posts";
 export * from "./profile";
 export * from "./settings";
 export * from "./skills";

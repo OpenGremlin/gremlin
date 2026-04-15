@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { apolloClient, setApolloOnUnauthorized } from "./apolloClient";
@@ -91,10 +92,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTokenState(t);
   }, []);
 
+  const value = useMemo(
+    () => ({ token, loading, signupDisabled, login, logout }),
+    [token, loading, signupDisabled, login, logout],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{ token, loading, signupDisabled, login, logout }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
