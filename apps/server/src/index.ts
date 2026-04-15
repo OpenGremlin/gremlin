@@ -12,9 +12,9 @@ import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
-import { createLoaders } from "./gql/loaders.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
+import { buildContext } from "./shared/buildContext.js";
 
 import { pubsub } from "./pubsub.js";
 import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
@@ -148,20 +148,13 @@ const yoga = createYoga({
       ? ({ sub: "local", email: "local@dev" } as AuthUser)
       : (userByRequest.get(request) as AuthUser);
     const serverBaseUrl = await getServerBaseUrl();
-    return {
+    return buildContext({
       user,
       serverBaseUrl,
-
-      mediaBaseUrl: `${serverBaseUrl}/media`,
       resources,
       services,
-      loaders: createLoaders(resources),
-      log: logger.child({
-        requestId: crypto.randomUUID(),
-        userId: user?.sub,
-        component: "graphql",
-      }),
-    };
+      component: "graphql",
+    });
   },
   graphiql: SKIP_AUTH,
 });
@@ -189,20 +182,13 @@ useServer(
         user = await verifyToken(token);
       }
       const serverBaseUrl = await getServerBaseUrl();
-      return {
+      return buildContext({
         user,
         serverBaseUrl,
-
-        mediaBaseUrl: `${serverBaseUrl}/media`,
         resources,
         services,
-        loaders: createLoaders(resources),
-        log: logger.child({
-          requestId: crypto.randomUUID(),
-          userId: user.sub,
-          component: "ws",
-        }),
-      };
+        component: "ws",
+      });
     },
   },
   wsServer,

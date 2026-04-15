@@ -1,11 +1,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { getWorkspacePath } from "../../../shared/workspacePath.js";
 import type { GremlinContext } from "../../context.js";
 import { getS3Client, getUploadsBucketName } from "./s3.js";
-
-function getWorkspacePath() {
-  return path.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 

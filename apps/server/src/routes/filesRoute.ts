@@ -6,6 +6,7 @@ import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
 import { mimeByExtension } from "@opengremlin/lib/services/workspace/mime.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
+import { getWorkspacePath } from "../shared/workspacePath.js";
 
 const log = createLogger("files");
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
@@ -23,10 +24,6 @@ async function getOriginSecret(): Promise<string | undefined> {
     // SSM not available (local dev) — no secret to verify
   }
   return cachedOriginSecret;
-}
-
-function getWorkspacePath() {
-  return nodePath.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
 }
 
 const IMAGE_MIME_PREFIXES = [

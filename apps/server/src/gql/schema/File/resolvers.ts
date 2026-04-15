@@ -8,12 +8,9 @@ import {
 } from "@opengremlin/lib/services/workspace/mime.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import imageSize from "image-size";
+import { getWorkspacePath } from "../../../shared/workspacePath.js";
 import type { GremlinContext } from "../../context.js";
 import { parseFrontmatter } from "../shared/parseFrontmatter.js";
-
-function getWorkspacePath() {
-  return nodePath.resolve(process.env.WORKSPACE_PATH ?? "/workspace");
-}
 
 interface FileParent {
   path: string;
