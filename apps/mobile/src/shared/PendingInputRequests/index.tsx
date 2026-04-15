@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import { MessageCircleQuestion } from "lucide-react-native";
+import React from "react";
 import { Pressable, Text, View } from "react-native";
 import type { UserInputRequestsQuery as UserInputRequestsQueryType } from "../../graphql/generated/graphql";
 import {
@@ -12,7 +13,7 @@ import { timeAgo } from "../formatDate";
 
 type UserInputRequest = UserInputRequestsQueryType["userInputRequests"][number];
 
-function InputRequestCard({
+const InputRequestCard = React.memo(function InputRequestCard({
   request,
   onResolved,
 }: {
@@ -88,7 +89,7 @@ function InputRequestCard({
       </View>
     </Pressable>
   );
-}
+});
 
 export function PendingInputRequests({
   requests,

@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { CommandApprovalDecision } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
-import { usePendingCount } from "../../lib/PendingCountContext";
+import { useAllApprovals } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { FnLabel } from "./FnLabel";
@@ -25,7 +25,7 @@ export function CommandApprovalCard({
 }) {
   const { isDark } = useTheme();
   const colors = useNavigationTheme();
-  const { allApprovals, refetchApprovals } = usePendingCount();
+  const { allApprovals, refetchApprovals } = useAllApprovals();
   const serverApproval = allApprovals.find((a) => a.id === commandApprovalId);
   const isPending = serverApproval?.status === "PENDING";
   const [resolving, setResolving] = useState<string | null>(null);

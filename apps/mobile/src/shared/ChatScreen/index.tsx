@@ -272,10 +272,13 @@ export function ChatScreen({
 
   const displayRef = useRef(displayMessages);
   displayRef.current = displayMessages;
+  const lastReasoningRef = useRef(lastReasoning);
+  lastReasoningRef.current = lastReasoning;
 
   const renderItem = useCallback(
     ({ item, index }: { item: ChatMessage; index: number }) => {
       const data = displayRef.current;
+      const lr = lastReasoningRef.current;
       // Inverted (iOS): index-1 is the newer adjacent message (lower index = newer).
       // Non-inverted web: index+1 is the newer adjacent message (higher index = newer).
       const nextIdx = isWeb ? index + 1 : index - 1;
@@ -289,13 +292,11 @@ export function ChatScreen({
           showTimestamp={show}
           sandboxStreams={sandboxStreams}
           onBubbleLongPress={onBubbleLongPress}
-          reasoning={
-            lastReasoning?.logId === item.id ? lastReasoning : undefined
-          }
+          reasoning={lr?.logId === item.id ? lr : undefined}
         />
       );
     },
-    [agentId, sandboxStreams, onBubbleLongPress, lastReasoning],
+    [agentId, sandboxStreams, onBubbleLongPress],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
@@ -385,6 +386,7 @@ export function ChatScreen({
         data={displayMessages}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        extraData={lastReasoning?.logId}
         inverted={!isWeb}
         onEndReached={!isWeb && hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}

@@ -198,7 +198,14 @@ export default function HomeScreen() {
   }, [refetch, refetchApprovals, refetchInputRequests]);
 
   const { refreshing, onRefresh } = useListRefresh(refreshAll);
-  useFocusEffect(refreshAll);
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !loadingMore) loadMore();
+  }, [hasMore, loadingMore, loadMore]);
+  useFocusEffect(
+    useCallback(() => {
+      refreshAll();
+    }, [refreshAll]),
+  );
 
   if ((loading || error) && nodes.length === 0) {
     return <QueryResult loading={loading} error={error} onRetry={refetch} />;
@@ -232,9 +239,7 @@ export default function HomeScreen() {
           tintColor={colors.loadingIndicator}
         />
       }
-      onEndReached={() => {
-        if (hasMore && !loadingMore) loadMore();
-      }}
+      onEndReached={handleEndReached}
       onEndReachedThreshold={0.3}
       ListFooterComponent={
         loadingMore ? (

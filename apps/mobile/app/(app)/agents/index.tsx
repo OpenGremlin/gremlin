@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router, useFocusEffect } from "expo-router";
 import { Bot, Plus, Settings } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, RefreshControl, Text } from "react-native";
 import type { AgentsQuery as AgentsQueryType } from "../../../src/graphql/generated/graphql";
 import { AgentsQuery } from "../../../src/graphql/queries";
@@ -60,8 +60,8 @@ export default function AgentsScreen() {
   );
 
   const allAgents = data?.agents ?? [];
-  const activeAgents = allAgents.filter((a) => !a.retired);
-  const retiredAgents = allAgents.filter((a) => a.retired);
+  const activeAgents = useMemo(() => allAgents.filter((a) => !a.retired), [allAgents]);
+  const retiredAgents = useMemo(() => allAgents.filter((a) => a.retired), [allAgents]);
 
   return (
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>

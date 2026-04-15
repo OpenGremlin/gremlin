@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { ChevronRight } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -37,14 +37,24 @@ export function AddSkillPicker({
   const [query, setQuery] = useState("");
 
   const templates = data?.skillTemplates ?? [];
-  const available = templates.filter((t) => !assignedSkillIds.includes(t.id));
   const q = query.toLowerCase();
-  const filtered = available.filter(
-    (t) =>
-      t.name.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q),
+  const available = useMemo(
+    () => templates.filter((t) => !assignedSkillIds.includes(t.id)),
+    [templates, assignedSkillIds],
   );
-  const grouped = groupSkillsByCategory(filtered);
+  const filtered = useMemo(
+    () =>
+      available.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q),
+      ),
+    [available, q],
+  );
+  const grouped = useMemo(
+    () => groupSkillsByCategory(filtered),
+    [filtered],
+  );
 
   async function handleAssign(skillId: string) {
     setAssigning(skillId);

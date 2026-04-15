@@ -1,5 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
+import { useCallback } from "react";
 import { AgentQuery } from "../../../../src/graphql/queries";
 import { ChatScreen } from "../../../../src/shared/ChatScreen";
 import { VoiceModeButton } from "../../../../src/shared/VoiceModeButton";
@@ -16,6 +17,10 @@ export default function AgentChatScreen() {
   } = useQuery(AgentQuery, { variables: { id: id ?? "" } });
 
   const agent = agentData?.agent;
+  const headerTitlePress = useCallback(
+    () => router.push(`/agents/${id}/config`),
+    [id],
+  );
 
   return (
     <>
@@ -23,7 +28,7 @@ export default function AgentChatScreen() {
       <ChatScreen
         agentId={id}
         title={agent?.name ?? ""}
-        headerTitlePress={() => router.push(`/agents/${id}/config`)}
+        headerTitlePress={headerTitlePress}
         headerRight={<VoiceModeButton agentId={id} />}
         loading={loading}
         error={error}

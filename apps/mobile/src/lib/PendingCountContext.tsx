@@ -13,6 +13,29 @@ import {
 type Approval = ApprovalsQueryType["pendingCommandApprovals"][number];
 type InputRequest = InputRequestsQueryType["userInputRequests"][number];
 
+// ── Approval-specific context (for CommandApprovalCard in chat list) ──
+interface ApprovalsValue {
+  allApprovals: Approval[];
+  refetchApprovals: () => void;
+}
+
+const ApprovalsContext = createContext<ApprovalsValue>({
+  allApprovals: [],
+  refetchApprovals: () => {},
+});
+
+// ── InputRequest-specific context (for InputRequestCard in chat list) ──
+interface InputRequestsValue {
+  allInputRequests: InputRequest[];
+  refetchInputRequests: () => void;
+}
+
+const InputRequestsContext = createContext<InputRequestsValue>({
+  allInputRequests: [],
+  refetchInputRequests: () => {},
+});
+
+// ── Aggregate context (for home screen badge counts, pending lists) ──
 interface PendingCountValue {
   approvals: Approval[];
   allApprovals: Approval[];
@@ -45,7 +68,6 @@ export function PendingCountProvider({
     UserInputRequestsQuery,
   );
 
-  // Refetch both lists whenever the server signals a change
   useSubscription(PendingItemsUpdatedSubscription, {
     onData: () => {
       refetchApprovals();
@@ -71,6 +93,16 @@ export function PendingCountProvider({
   );
   const pendingCount = approvals.length + inputRequests.length;
 
+  const approvalsValue = useMemo(
+    () => ({ allApprovals, refetchApprovals }),
+    [allApprovals, refetchApprovals],
+  );
+
+  const inputRequestsValue = useMemo(
+    () => ({ allInputRequests, refetchInputRequests }),
+    [allInputRequests, refetchInputRequests],
+  );
+
   const value = useMemo(
     () => ({
       approvals,
@@ -93,12 +125,26 @@ export function PendingCountProvider({
   );
 
   return (
-    <PendingCountContext.Provider value={value}>
-      {children}
-    </PendingCountContext.Provider>
+    <ApprovalsContext.Provider value={approvalsValue}>
+      <InputRequestsContext.Provider value={inputRequestsValue}>
+        <PendingCountContext.Provider value={value}>
+          {children}
+        </PendingCountContext.Provider>
+      </InputRequestsContext.Provider>
+    </ApprovalsContext.Provider>
   );
 }
 
 export function usePendingCount() {
   return useContext(PendingCountContext);
+}
+
+/** For CommandApprovalCard — only re-renders when approvals data changes. */
+export function useAllApprovals() {
+  return useContext(ApprovalsContext);
+}
+
+/** For InputRequestCard — only re-renders when input requests data changes. */
+export function useAllInputRequests() {
+  return useContext(InputRequestsContext);
 }

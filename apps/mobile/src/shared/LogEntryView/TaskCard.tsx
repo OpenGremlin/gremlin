@@ -2,7 +2,7 @@ import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Check, ExternalLink, Hourglass, RefreshCw } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
 import { TaskTrackingSubscription } from "../../graphql/queries";
@@ -177,10 +177,12 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
   const closedCount =
     resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
   const totalCount = resolved?.children.length ?? 0;
-  const topFiles = filesFromAttachments(
-    (resolved?.attachments ?? []) as AttachmentFieldsFragment[],
-  );
-  const topGroups = groupFiles(topFiles);
+  const { topFiles, topGroups } = useMemo(() => {
+    const files = filesFromAttachments(
+      (resolved?.attachments ?? []) as AttachmentFieldsFragment[],
+    );
+    return { topFiles: files, topGroups: groupFiles(files) };
+  }, [resolved?.attachments]);
 
   const openTopPager = (index: number) => {
     const file = topFiles[index];

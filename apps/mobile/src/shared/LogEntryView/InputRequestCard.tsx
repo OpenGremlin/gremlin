@@ -6,7 +6,7 @@ import {
   ResolveUserInputRequestMutation,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
-import { usePendingCount } from "../../lib/PendingCountContext";
+import { useAllInputRequests } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { ToolBlock } from "./ToolBlock";
@@ -26,7 +26,7 @@ export function InputRequestCard({
 }) {
   const { isDark } = useTheme();
   const colors = useNavigationTheme();
-  const { allInputRequests, refetchInputRequests } = usePendingCount();
+  const { allInputRequests, refetchInputRequests } = useAllInputRequests();
   const serverRequest = allInputRequests.find((r) => r.id === inputRequestId);
   const isPending = serverRequest?.status === "PENDING";
   const [resolving, setResolving] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { ShieldAlert } from "lucide-react-native";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import {
   CommandApprovalDecision,
@@ -16,7 +16,7 @@ import { timeAgo } from "../formatDate";
 type Approval =
   PendingCommandApprovalsQueryType["pendingCommandApprovals"][number];
 
-function ApprovalCard({
+const ApprovalCard = React.memo(function ApprovalCard({
   approval,
   onResolved,
 }: {
@@ -155,7 +155,7 @@ function ApprovalCard({
       </View>
     </Pressable>
   );
-}
+});
 
 export function PendingApprovals({
   approvals,

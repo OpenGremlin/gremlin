@@ -49,7 +49,10 @@ export function AgentAvatar({
    */
   hideManagerBadge?: boolean;
 }) {
-  const { data } = useQuery(AgentQuery, { variables: { id } });
+  const { data } = useQuery(AgentQuery, {
+    variables: { id },
+    fetchPolicy: "cache-first",
+  });
   const agent = data?.agent;
   const name = agent?.name ?? "";
   const isRetired = agent?.retired ?? false;

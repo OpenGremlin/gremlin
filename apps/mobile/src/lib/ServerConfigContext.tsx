@@ -93,12 +93,12 @@ export function ServerConfigProvider({
     setState({ config: cfg, loaded: true });
   }, []);
 
-  if (!state.loaded) return null;
-
   const value = useMemo(
     () => ({ config: state.config, loaded: state.loaded, setConfig }),
     [state.config, state.loaded, setConfig],
   );
+
+  if (!state.loaded) return null;
 
   return (
     <ServerConfigContext.Provider value={value}>

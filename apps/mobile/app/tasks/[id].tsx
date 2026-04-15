@@ -1,5 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
+import { useCallback } from "react";
 import { TaskQuery } from "../../src/graphql/queries";
 import { useSandboxOutput } from "../../src/hooks/useSandboxOutput";
 import { ChatScreen } from "../../src/shared/ChatScreen";
@@ -26,6 +27,10 @@ export default function TaskScreen() {
     : "";
   const sandboxStreams = useSandboxOutput(id);
   const found = !!task;
+  const headerTitlePress = useCallback(
+    () => (agentId ? router.navigate(`/agents/${agentId}`) : undefined),
+    [agentId],
+  );
 
   return (
     <>
@@ -34,9 +39,7 @@ export default function TaskScreen() {
         agentId={agentId}
         taskId={id}
         title={title}
-        headerTitlePress={() =>
-          agentId ? router.navigate(`/agents/${agentId}`) : undefined
-        }
+        headerTitlePress={headerTitlePress}
         headerRight={agentId ? <VoiceModeButton agentId={agentId} /> : undefined}
         loading={loading && !found}
         error={found ? undefined : error}

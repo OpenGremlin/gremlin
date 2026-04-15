@@ -143,7 +143,7 @@ export default function IntegrationsScreen() {
     [nonAiProviders, query],
   );
 
-  const grouped = groupByCategory(filteredProviders);
+  const grouped = useMemo(() => groupByCategory(filteredProviders), [filteredProviders]);
 
   return (
     <QueryGate

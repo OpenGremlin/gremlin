@@ -28,6 +28,8 @@ export function useLogMessages(
   opts?: { onLogCreated?: (logId: string) => void },
 ) {
   const isTask = "taskId" in scope;
+  const scopeRef = useRef(scope);
+  scopeRef.current = scope;
 
   // ── Paginated query ───────────────────────────────────────────────
   // biome-ignore lint/suspicious/noExplicitAny: agent/task query union
@@ -65,7 +67,7 @@ export function useLogMessages(
     try {
       await fetchMore({
         variables: {
-          ...scope,
+          ...scopeRef.current,
           last: PAGE_SIZE,
           before: connection.pageInfo.startCursor,
         },
@@ -73,19 +75,19 @@ export function useLogMessages(
     } finally {
       loadingMoreRef.current = false;
     }
-  }, [connection?.pageInfo?.startCursor, fetchMore, scope]);
+  }, [connection?.pageInfo?.startCursor, fetchMore]);
 
   // ── Fetch newer messages (after reconnect) ────────────────────────
   const fetchNewer = useCallback(async () => {
     if (!connection?.pageInfo?.endCursor) return;
     await fetchMore({
       variables: {
-        ...scope,
+        ...scopeRef.current,
         first: PAGE_SIZE,
         after: connection.pageInfo.endCursor,
       },
     });
-  }, [connection?.pageInfo?.endCursor, fetchMore, scope]);
+  }, [connection?.pageInfo?.endCursor, fetchMore]);
 
   // ── Subscription (unified — works for both agent and task logs) ───
   const onLogCreatedRef = useRef(opts?.onLogCreated);

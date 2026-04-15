@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { ArrowUp, Paperclip } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -20,7 +20,7 @@ import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatFileSize } from "../formatFileSize";
 
-function UploadProgressItem({ upload }: { upload: FileUploadState }) {
+const UploadProgressItem = React.memo(function UploadProgressItem({ upload }: { upload: FileUploadState }) {
   const isDone = upload.status === "done";
   const isError = upload.status === "error";
   const isActive =
@@ -66,7 +66,7 @@ function UploadProgressItem({ upload }: { upload: FileUploadState }) {
       </View>
     </View>
   );
-}
+});
 
 interface ChatInputBarProps {
   input: string;

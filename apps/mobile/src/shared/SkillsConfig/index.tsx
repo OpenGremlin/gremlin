@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { CircleCheck, Info, Plus, Trash2 } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import {
   AgentSkillsQuery,
@@ -24,6 +24,10 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
     refetch,
   } = useQuery(AgentSkillsQuery, { variables: { agentId } });
   const agentSkills = skillsData?.agentSkills ?? [];
+  const assignedSkillIds = useMemo(
+    () => agentSkills.map((s) => s.skillId),
+    [agentSkills],
+  );
 
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
@@ -90,7 +94,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
       <AddSkillPicker
         visible={addSkillVisible}
         agentId={agentId}
-        assignedSkillIds={agentSkills.map((s) => s.skillId)}
+        assignedSkillIds={assignedSkillIds}
         onAssigned={refetch}
         onDismiss={() => setAddSkillVisible(false)}
       />

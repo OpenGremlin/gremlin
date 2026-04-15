@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
@@ -19,14 +19,16 @@ export default function SkillsScreen() {
   const templates = data?.skillTemplates ?? [];
 
   const q = query.toLowerCase();
-  const filteredTemplates = templates.filter(
-    (t) =>
-      t.name.toLowerCase().includes(q) ||
-      (t.displayName?.toLowerCase().includes(q) ?? false) ||
-      t.description.toLowerCase().includes(q) ||
-      (t.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false),
-  );
-  const grouped = groupSkillsByCategory(filteredTemplates);
+  const grouped = useMemo(() => {
+    const filtered = templates.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        (t.displayName?.toLowerCase().includes(q) ?? false) ||
+        t.description.toLowerCase().includes(q) ||
+        (t.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false),
+    );
+    return groupSkillsByCategory(filtered);
+  }, [templates, q]);
 
   return (
     <QueryGate loading={loading} error={error} data={data}>

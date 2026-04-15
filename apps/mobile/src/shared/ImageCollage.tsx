@@ -1,3 +1,4 @@
+import React from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { AuthImage } from "./AuthImage";
@@ -83,7 +84,7 @@ function Tile({
  *
  * All tiles call `onPressImage` with the image's index.
  */
-export function ImageCollage({ images, onPressImage }: ImageCollageProps) {
+export const ImageCollage = React.memo(function ImageCollage({ images, onPressImage }: ImageCollageProps) {
   if (images.length === 0) return null;
 
   if (images.length === 1) {
@@ -170,4 +171,4 @@ export function ImageCollage({ images, onPressImage }: ImageCollageProps) {
       </View>
     </View>
   );
-}
+});

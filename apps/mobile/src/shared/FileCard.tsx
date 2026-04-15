@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { AuthImage } from "./AuthImage";
 import type { FileNode } from "./FilePreview";
@@ -20,7 +21,7 @@ function cardSubtitle(file: FileNode): string {
   return parts.join("  ·  ");
 }
 
-export function FileCard({
+export const FileCard = React.memo(function FileCard({
   file,
   onPress,
   showInlineImage = false,
@@ -102,4 +103,4 @@ export function FileCard({
       </View>
     </Pressable>
   );
-}
+});
