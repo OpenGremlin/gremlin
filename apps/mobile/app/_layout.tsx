@@ -54,6 +54,7 @@ function RootStack() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(app)" />
+      <Stack.Screen name="tasks/[id]" />
       <Stack.Screen name="login" />
       <Stack.Screen name="connect/index" />
       <Stack.Screen name="connect/[payload]" />

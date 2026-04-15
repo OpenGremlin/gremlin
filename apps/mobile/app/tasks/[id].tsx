@@ -1,9 +1,9 @@
 import { useQuery } from "@apollo/client";
 import { router, Stack, useIsPreview, useLocalSearchParams } from "expo-router";
-import { TaskQuery } from "../../../src/graphql/queries";
-import { useSandboxOutput } from "../../../src/hooks/useSandboxOutput";
-import { ChatScreen } from "../../../src/shared/ChatScreen";
-import { VoiceModeButton } from "../../../src/shared/VoiceModeButton";
+import { TaskQuery } from "../../src/graphql/queries";
+import { useSandboxOutput } from "../../src/hooks/useSandboxOutput";
+import { ChatScreen } from "../../src/shared/ChatScreen";
+import { VoiceModeButton } from "../../src/shared/VoiceModeButton";
 
 export default function TaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
