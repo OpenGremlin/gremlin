@@ -2,13 +2,7 @@ import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { MutationResolvers, QueryResolvers } from "../../resolverTypes.js";
 
-interface GlobalSettingsData {
-  signupDisabled: boolean;
-}
-
-const DEFAULTS: GlobalSettingsData = {
-  signupDisabled: false,
-};
+const DEFAULTS = { signupDisabled: false };
 
 const globalSettings: QueryResolvers["globalSettings"] = async (
   _parent,
@@ -21,24 +15,7 @@ const globalSettings: QueryResolvers["globalSettings"] = async (
     .key({ id: "global" })
     .send();
 
-  if (Item) return { signupDisabled: Item.signupDisabled };
-
-  // Fallback: read from legacy Setting and lazy-migrate
-  const { Item: legacy } = await ctx.resources.ddb.entities.Setting.build(
-    GetItemCommand,
-  )
-    .key({ key: "globalSettings" })
-    .send();
-
-  if (legacy) {
-    const parsed = { ...DEFAULTS, ...JSON.parse(legacy.value) };
-    await ctx.resources.ddb.entities.GlobalSettings.build(PutItemCommand)
-      .item({ id: "global", signupDisabled: parsed.signupDisabled })
-      .send();
-    return parsed;
-  }
-
-  return { ...DEFAULTS };
+  return Item ? { signupDisabled: Item.signupDisabled } : { ...DEFAULTS };
 };
 
 const updateGlobalSettings: MutationResolvers["updateGlobalSettings"] = async (
@@ -52,7 +29,7 @@ const updateGlobalSettings: MutationResolvers["updateGlobalSettings"] = async (
     .key({ id: "global" })
     .send();
 
-  const current: GlobalSettingsData = Item
+  const current: { signupDisabled: boolean } = Item
     ? { signupDisabled: Item.signupDisabled }
     : { ...DEFAULTS };
 
