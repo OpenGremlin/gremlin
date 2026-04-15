@@ -17,6 +17,7 @@ import {
 } from "./taskDeps.js";
 import {
   closeTask,
+  incrementEscalationCount,
   reopenTask,
   updateTaskFields,
   updateTaskStatus,
@@ -42,6 +43,7 @@ export const taskService = {
   getAllTasks,
   getChildren,
   getComments,
+  incrementEscalationCount,
   getLatestComment,
   getTask,
   getTaskAttachments,

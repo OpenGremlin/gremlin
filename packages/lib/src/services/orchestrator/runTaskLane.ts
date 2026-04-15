@@ -38,12 +38,8 @@ async function buildRelatedTaskContext(
 
   for (const related of relatedTasks) {
     const [attachments, comments] = await Promise.all([
-      ctx.services.tasks
-        .getTaskAttachments(ctx, related.id)
-        .catch(() => []),
-      ctx.services.tasks
-        .getComments(ctx, related.id)
-        .catch(() => []),
+      ctx.services.tasks.getTaskAttachments(ctx, related.id).catch(() => []),
+      ctx.services.tasks.getComments(ctx, related.id).catch(() => []),
     ]);
     const statusStr = related.status === "closed" ? "done" : related.status;
     lines.push(`• "${related.title}" (${statusStr})`);
@@ -90,8 +86,8 @@ export async function runTaskLane(
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
   const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
   // Cross-agent delegation: this task was created by a manager and assigned
-  // to a different agent. The brief is the entire context — we must NOT
-  // inherit main-lane history (the recipient's main lane is unrelated)
+  // to a different agent. The instructions are the entire context — we must
+  // NOT inherit main-lane history (the recipient's main lane is unrelated)
   // and we render the delegated-task system prompt section instead.
   const isCrossAgentDelegation = task
     ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
@@ -173,12 +169,15 @@ export async function runTaskLane(
       userAbout: profile?.about,
       taskTitle: taskTitle,
       taskId: resolvedTaskId,
-      ...(isCrossAgentDelegation && task?.brief && assignerName
+      ...(isCrossAgentDelegation && task?.instructions && assignerName
         ? {
             delegated: {
-              brief: task.brief,
-              ...(task.successCriteria
-                ? { successCriteria: task.successCriteria }
+              instructions: task.instructions,
+              ...(task.expectedInput != null
+                ? { expectedInput: task.expectedInput }
+                : {}),
+              ...(task.expectedOutput != null
+                ? { expectedOutput: task.expectedOutput }
                 : {}),
               assignerName,
             },
@@ -193,7 +192,12 @@ export async function runTaskLane(
   }
 
   ctx.log.info(
-    { agentId, taskId, resolvedTaskId, systemPromptLength: systemPrompt.length },
+    {
+      agentId,
+      taskId,
+      resolvedTaskId,
+      systemPromptLength: systemPrompt.length,
+    },
     "Task lane system prompt: %s",
     systemPrompt,
   );

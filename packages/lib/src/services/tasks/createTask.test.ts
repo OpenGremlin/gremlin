@@ -78,6 +78,32 @@ describe("createTask", () => {
     expect(result.originJobId).toBeNull();
   });
 
+  it("rejects empty agentId", async () => {
+    await expect(
+      createTask(ctx, { agentId: "", title: "No owner" }),
+    ).rejects.toThrow("Tasks must be assigned to an agent");
+  });
+
+  it("rejects 'unassigned' agentId", async () => {
+    await expect(
+      createTask(ctx, { agentId: "unassigned", title: "Placeholder" }),
+    ).rejects.toThrow("Tasks must be assigned to an agent");
+  });
+
+  it("stores instructions, expectedInput, and expectedOutput", async () => {
+    const result = await createTask(ctx, {
+      agentId: "agent-1",
+      title: "Delegated work",
+      instructions: "Do the thing",
+      expectedInput: "A list of URLs",
+      expectedOutput: "JSON report attached",
+    });
+
+    expect(result.instructions).toBe("Do the thing");
+    expect(result.expectedInput).toBe("A list of URLs");
+    expect(result.expectedOutput).toBe("JSON report attached");
+  });
+
   it("rejects child when parent does not exist", async () => {
     ctx.services.tasks.getTask.mockResolvedValue(undefined);
 

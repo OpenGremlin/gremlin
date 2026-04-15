@@ -132,12 +132,12 @@ export async function getBlockedTasks(
     tasks = await ctx.services.tasks.getTasksByAgent(ctx, filters.assignee);
   } else {
     // Get non-closed tasks via status queries
-    const [open, inProgress, blocked] = await Promise.all([
+    const [open, inProgress, done] = await Promise.all([
       ctx.services.tasks.getTasksByStatus(ctx, "open"),
       ctx.services.tasks.getTasksByStatus(ctx, "in_progress"),
-      ctx.services.tasks.getTasksByStatus(ctx, "blocked"),
+      ctx.services.tasks.getTasksByStatus(ctx, "done"),
     ]);
-    tasks = [...open, ...inProgress, ...blocked];
+    tasks = [...open, ...inProgress, ...done];
   }
 
   // Apply cross-filters when primary query didn't cover both

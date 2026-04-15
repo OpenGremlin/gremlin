@@ -2,6 +2,9 @@ import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 import type { EnqueueInput } from "../inbox/enqueueWork.js";
 
+/** Max escalations before we stop dispatching and surface to the user. */
+const MAX_ESCALATIONS = 3;
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 /**
@@ -65,6 +68,38 @@ export async function reconcile(
       continue;
     }
 
+    // Circuit breaker: if a task has been escalated too many times,
+    // close it and notify the assigner (or epic owner).
+    if ((task.escalationCount ?? 0) >= MAX_ESCALATIONS) {
+      await ctx.services.tasks.closeTask(ctx, task.id, "escalation_limit");
+
+      const ownerId =
+        task.assignerAgentId ??
+        (task.parentId
+          ? (await ctx.services.tasks.getTask(ctx, task.parentId))?.agentId
+          : null) ??
+        triggerAgentId;
+
+      await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", {
+        type: "task_needs_attention",
+        payload: {
+          taskId: task.id,
+          title: task.title,
+          comment: `This task was escalated ${task.escalationCount} times and has been closed. Review it manually or create a new task.`,
+        },
+      });
+
+      ctx.log.warn(
+        {
+          taskId: task.id,
+          escalationCount: task.escalationCount,
+          component: "reconciler",
+        },
+        "Task exceeded max escalations — closed and notified owner",
+      );
+      continue;
+    }
+
     const assignee = task.agentId;
 
     if (!assignee || assignee === "unassigned") {
@@ -102,29 +137,57 @@ export async function reconcile(
 
     await ctx.services.tasks.updateTaskStatus(ctx, task.id, "in_progress");
 
-    await ctx.services.inbox.enqueueWork(
-      ctx,
-      targetAgentId,
-      `task:${task.id}`,
-      {
-        type: "run_task",
-        payload: {
-          taskId: task.id,
-          prompt: task.description ?? task.brief ?? task.title,
-          inheritContext: isSelfAssigned,
-        },
-      },
-    );
-
-    ctx.log.info(
-      {
+    // A task with escalationCount > 0 has been dispatched before (was
+    // blocked or rejected and is now open again). Resume the existing
+    // task lane with a nudge instead of starting a fresh lane.
+    if ((task.escalationCount ?? 0) > 0) {
+      await ctx.services.orchestrator.writeAgentLog(ctx, {
+        agentId: targetAgentId,
         taskId: task.id,
+        role: "SYSTEM",
+        content:
+          "This task has new updates from the assigner. Check the latest comments and attachments, then continue your work.",
+      });
+
+      await ctx.services.inbox.enqueueWork(
+        ctx,
         targetAgentId,
-        isSelfAssigned,
-        component: "reconciler",
-      },
-      "Dispatched task to task lane",
-    );
+        `task:${task.id}`,
+        {
+          type: "resume_task",
+          payload: { taskId: task.id },
+        },
+      );
+
+      ctx.log.info(
+        { taskId: task.id, targetAgentId, component: "reconciler" },
+        "Resumed task lane after unblock",
+      );
+    } else {
+      await ctx.services.inbox.enqueueWork(
+        ctx,
+        targetAgentId,
+        `task:${task.id}`,
+        {
+          type: "run_task",
+          payload: {
+            taskId: task.id,
+            prompt: task.instructions ?? task.description ?? task.title,
+            inheritContext: isSelfAssigned,
+          },
+        },
+      );
+
+      ctx.log.info(
+        {
+          taskId: task.id,
+          targetAgentId,
+          isSelfAssigned,
+          component: "reconciler",
+        },
+        "Dispatched task to task lane",
+      );
+    }
   }
 
   // Wake the epic owner (or trigger agent) for any ready tasks that have

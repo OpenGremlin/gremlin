@@ -244,6 +244,30 @@ async function processMainLaneItems(
         });
         shouldRunInference = true;
         break;
+      case "task_needs_attention":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "SYSTEM",
+          content:
+            `Task ${payload.taskId} ("${payload.title ?? ""}") has been escalated. ` +
+            `${payload.comment ? `Reason: "${payload.comment}". ` : ""}` +
+            `Use \`taskShow\` to inspect. Fix the issue (e.g. add missing input, clarify instructions) then set status to "open" so the worker can resume.`,
+        });
+        shouldRunInference = true;
+        break;
+      case "task_ready_for_review":
+        await ctx.services.orchestrator.writeAgentLog(ctx, {
+          agentId,
+          taskId: null,
+          role: "SYSTEM",
+          content:
+            `Task ${payload.taskId} ("${payload.title ?? ""}") is done. ` +
+            `${payload.comment ? `Summary: "${payload.comment}". ` : ""}` +
+            `Use \`taskShow\` to review. \`taskClose\` to accept, or add a comment and set status to "open" to send it back.`,
+        });
+        shouldRunInference = true;
+        break;
       case "top_level_task_complete":
         await ctx.services.orchestrator.writeAgentLog(ctx, {
           agentId,

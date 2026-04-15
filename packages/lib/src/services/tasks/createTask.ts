@@ -26,9 +26,12 @@ export async function createTask(
      * runtime code reads `task.assignerAgentId ?? task.agentId` as a fallback.
      */
     assignerAgentId?: string;
-    /** Explicit, self-contained brief passed via the `delegate` tool. */
-    brief?: string;
-    successCriteria?: string;
+    /** Pure instructions — what to do. */
+    instructions?: string;
+    /** What data the assignee needs to start (null = none). */
+    expectedInput?: string | null;
+    /** What the assignee should produce (null = none). */
+    expectedOutput?: string | null;
     status?: string;
     priority?: number;
     parentId?: string;
@@ -37,15 +40,22 @@ export async function createTask(
     emoji?: string;
   },
 ): Promise<TaskItem> {
+  // Assignment is required and immutable. Reject empty or placeholder
+  // values so every task has a real owner from creation.
+  if (!input.agentId || input.agentId === "unassigned") {
+    throw new Error(
+      "Tasks must be assigned to an agent at creation. " +
+        "Pass a valid agent ID as the assignee.",
+    );
+  }
+
   // Validate that the parent (epic) has a real owner before allowing
   // children. This guarantees that completion notifications always have
   // a valid agent to route to.
   if (input.parentId) {
     const parent = await ctx.services.tasks.getTask(ctx, input.parentId);
     if (!parent) {
-      throw new Error(
-        `Parent task ${input.parentId} not found`,
-      );
+      throw new Error(`Parent task ${input.parentId} not found`);
     }
     if (!parent.agentId || parent.agentId === "unassigned") {
       throw new Error(
@@ -71,9 +81,12 @@ export async function createTask(
     ...(input.assignerAgentId
       ? { assignerAgentId: input.assignerAgentId }
       : {}),
-    ...(input.brief ? { brief: input.brief } : {}),
-    ...(input.successCriteria
-      ? { successCriteria: input.successCriteria }
+    ...(input.instructions ? { instructions: input.instructions } : {}),
+    ...(input.expectedInput != null
+      ? { expectedInput: input.expectedInput }
+      : {}),
+    ...(input.expectedOutput != null
+      ? { expectedOutput: input.expectedOutput }
       : {}),
     ...(input.priority != null ? { priority: input.priority } : {}),
     ...(input.parentId ? { parentId: input.parentId } : {}),

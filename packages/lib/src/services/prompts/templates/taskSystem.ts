@@ -33,9 +33,9 @@ export function assembleTaskSystemTemplate(
     taskToolGuidanceSection,
   ];
 
-  // For delegated tasks the brief replaces the implicit "you have full
-  // conversation context" framing — slot the section in early so the
-  // model reads the brief before any other workflow guidance.
+  // For delegated tasks the instructions replace the implicit "you have
+  // full conversation context" framing — slot the section in early so
+  // the model reads the assignment before any other workflow guidance.
   if (flags.isDelegated) sections.push(delegatedTaskSection);
   if (flags.sandbox) sections.push(taskSandboxSection);
   if (flags.hasPlan) sections.push(taskPlanSection);

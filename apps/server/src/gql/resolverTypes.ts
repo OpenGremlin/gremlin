@@ -952,6 +952,7 @@ export type Query = {
   logos: Array<Logo>;
   pendingCommandApprovals: Array<CommandApproval>;
   pendingInboxMessages: Array<PendingInboxMessage>;
+  post?: Maybe<Post>;
   posts: PostConnection;
   profile: Profile;
   providerModels: Array<ProviderModelInfo>;
@@ -1030,6 +1031,11 @@ export type QueryIntegrationConnectionsArgs = {
 export type QueryPendingInboxMessagesArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPostArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1266,7 +1272,11 @@ export type Task = {
   deferUntil?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   emoji?: Maybe<Scalars['String']['output']>;
+  escalationCount?: Maybe<Scalars['Int']['output']>;
+  expectedInput?: Maybe<Scalars['String']['output']>;
+  expectedOutput?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  instructions?: Maybe<Scalars['String']['output']>;
   latestComment?: Maybe<Scalars['String']['output']>;
   logs: AgentLogConnection;
   message?: Maybe<Scalars['String']['output']>;
@@ -1307,8 +1317,8 @@ export type TaskPageInfo = {
 };
 
 export enum TaskStatus {
-  Blocked = 'BLOCKED',
   Closed = 'CLOSED',
+  Done = 'DONE',
   InProgress = 'IN_PROGRESS',
   Open = 'OPEN'
 }
@@ -2178,6 +2188,7 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   logos?: Resolver<Array<ResolversTypes['Logo']>, ParentType, ContextType>;
   pendingCommandApprovals?: Resolver<Array<ResolversTypes['CommandApproval']>, ParentType, ContextType>;
   pendingInboxMessages?: Resolver<Array<ResolversTypes['PendingInboxMessage']>, ParentType, ContextType, RequireFields<QueryPendingInboxMessagesArgs, 'agentId'>>;
+  post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   posts?: Resolver<ResolversTypes['PostConnection'], ParentType, ContextType, Partial<QueryPostsArgs>>;
   profile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType>;
   providerModels?: Resolver<Array<ResolversTypes['ProviderModelInfo']>, ParentType, ContextType, RequireFields<QueryProviderModelsArgs, 'providerId'>>;
@@ -2287,7 +2298,11 @@ export type TaskResolvers<ContextType = GremlinContext, ParentType extends Resol
   deferUntil?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  escalationCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  expectedInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  expectedOutput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  instructions?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   latestComment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   logs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, Partial<TaskLogsArgs>>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

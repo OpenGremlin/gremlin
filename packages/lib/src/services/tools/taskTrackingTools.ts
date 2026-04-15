@@ -15,19 +15,39 @@ import type { ServiceContext } from "../context.js";
 /**
  * Worker-safe tools for task lanes — no dependency management.
  */
-export function buildTaskLaneTools(
-  ctx: ServiceContext,
-): Record<string, Tool> {
+export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
   return {
     taskCreate: tool({
       description:
         "Create a new task in the project tracker. The UI renders a rich card automatically — do NOT repeat the task structure or IDs in your text response.",
       inputSchema: z.object({
         title: z.string().describe("Brief title, 3-5 words"),
+        instructions: z
+          .string()
+          .optional()
+          .describe(
+            "What to do. Must be self-contained when assigning to another agent (they can't see your conversation).",
+          ),
         description: z
           .string()
           .optional()
-          .describe("Longer description of what needs to be done"),
+          .describe(
+            "Additional context or background. Use instructions for the actual assignment.",
+          ),
+        expectedInput: z
+          .string()
+          .nullable()
+          .optional()
+          .describe(
+            "What data the assignee needs to start work. Describe what should be provided (e.g. 'list of file paths', 'customer error log'). Null means no specific input required.",
+          ),
+        expectedOutput: z
+          .string()
+          .nullable()
+          .optional()
+          .describe(
+            "What the assignee should produce. Be specific: should it be a comment, an attachment, or both? What file format (markdown, JSON, CSV)? Example: 'attach a JSON file with {passed: number, failed: number} and add a summary comment'. Null means no specific output contract.",
+          ),
         priority: z
           .number()
           .int()
@@ -37,25 +57,25 @@ export function buildTaskLaneTools(
           .describe("Priority 0 (critical) to 4 (backlog)"),
         assignee: z
           .string()
-          .optional()
-          .describe("Agent ID to assign this task to"),
+          .describe(
+            "Agent ID to assign this task to. Required — every task must have an owner.",
+          ),
         parentId: z
           .string()
           .optional()
           .describe("Parent task ID to nest under"),
-        emoji: z
-          .string()
-          .describe("A single emoji that best fits the task"),
+        emoji: z.string().describe("A single emoji that best fits the task"),
         blockedBy: z
           .array(z.string())
           .optional()
-          .describe(
-            "Task IDs that must complete before this task can start",
-          ),
+          .describe("Task IDs that must complete before this task can start"),
       }),
       execute: async ({
         title,
         description,
+        instructions,
+        expectedInput,
+        expectedOutput,
         priority,
         assignee,
         emoji,
@@ -63,9 +83,12 @@ export function buildTaskLaneTools(
         blockedBy,
       }) => {
         const task = await ctx.services.tasks.createTask(ctx, {
-          agentId: assignee ?? "",
+          agentId: assignee,
           title,
           description,
+          instructions,
+          expectedInput,
+          expectedOutput,
           priority,
           parentId,
           emoji,
@@ -86,13 +109,10 @@ export function buildTaskLaneTools(
         "List tasks, optionally filtered by status, assignee, priority, or parent.",
       inputSchema: z.object({
         status: z
-          .enum(["open", "in_progress", "blocked", "closed"])
+          .enum(["open", "in_progress", "done", "closed"])
           .optional()
           .describe("Filter by status"),
-        assignee: z
-          .string()
-          .optional()
-          .describe("Filter by assignee agent ID"),
+        assignee: z.string().optional().describe("Filter by assignee agent ID"),
         priority: z
           .number()
           .int()
@@ -127,10 +147,7 @@ export function buildTaskLaneTools(
       description:
         "List tasks ready to work on — unblocked, not deferred, and not closed. Use this to find the next actionable items.",
       inputSchema: z.object({
-        assignee: z
-          .string()
-          .optional()
-          .describe("Filter by assignee agent ID"),
+        assignee: z.string().optional().describe("Filter by assignee agent ID"),
         parentId: z
           .string()
           .optional()
@@ -175,19 +192,21 @@ export function buildTaskLaneTools(
 
     taskUpdate: tool({
       description:
-        "Update fields on an existing task. To close a task, use taskClose instead.",
+        "Update fields on an existing task, escalate to the assigner, or mark as done.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to update"),
         status: z
-          .enum(["open", "in_progress", "blocked"])
+          .enum(["open", "in_progress", "done"])
           .optional()
           .describe(
-            "New status. To close a task use taskClose instead.",
+            "New status. 'done' = work complete, pending assigner review. To close/abandon a task use taskClose.",
           ),
-        assignee: z
-          .string()
+        escalate: z
+          .boolean()
           .optional()
-          .describe("New assignee agent ID"),
+          .describe(
+            "Set to true to escalate this task to the assigner. Requires a notes comment explaining the issue. The task stays in_progress while the assigner resolves it.",
+          ),
         priority: z
           .number()
           .int()
@@ -195,10 +214,7 @@ export function buildTaskLaneTools(
           .max(4)
           .optional()
           .describe("New priority 0 (critical) to 4 (backlog)"),
-        description: z
-          .string()
-          .optional()
-          .describe("Updated description"),
+        description: z.string().optional().describe("Updated description"),
         deferUntil: z
           .string()
           .optional()
@@ -208,30 +224,36 @@ export function buildTaskLaneTools(
         notes: z
           .string()
           .optional()
-          .describe("A comment to add to the task's activity log"),
+          .describe(
+            "A comment to add to the task's activity log. Required when escalating or setting status to 'done'.",
+          ),
       }),
       execute: async ({
         taskId,
         status,
-        assignee,
+        escalate,
         priority,
         description,
         deferUntil,
         notes,
       }) => {
+        if ((escalate || status === "done") && !notes) {
+          return {
+            error: escalate
+              ? "Escalating requires a notes comment explaining what's missing or wrong."
+              : "Setting status to 'done' requires a notes comment summarizing what was produced.",
+          };
+        }
+
         if (status) {
           await ctx.services.tasks.updateTaskStatus(ctx, taskId, status);
         }
 
         const hasFieldUpdates =
-          assignee != null ||
-          priority != null ||
-          description != null ||
-          deferUntil != null;
+          priority != null || description != null || deferUntil != null;
 
         if (hasFieldUpdates) {
           await ctx.services.tasks.updateTaskFields(ctx, taskId, {
-            assignee,
             priority,
             description,
             deferUntil,
@@ -244,6 +266,28 @@ export function buildTaskLaneTools(
             author: "agent",
             text: notes,
           });
+        }
+
+        // Notify the main lane on escalation or completion. This applies
+        // to both cross-agent and self-assigned tasks — the task lane is
+        // an independent context and the main lane needs to know.
+        if (escalate || status === "done") {
+          const task = await ctx.services.tasks.getTask(ctx, taskId);
+          if (task) {
+            if (escalate) {
+              await ctx.services.tasks.incrementEscalationCount(ctx, taskId);
+            }
+
+            const ownerId = task.assignerAgentId ?? task.agentId;
+            await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", {
+              type: escalate ? "task_needs_attention" : "task_ready_for_review",
+              payload: {
+                taskId,
+                title: task.title,
+                comment: notes,
+              },
+            });
+          }
         }
 
         const updated = await ctx.services.tasks.getTask(ctx, taskId);
@@ -259,7 +303,9 @@ export function buildTaskLaneTools(
         reason: z
           .string()
           .optional()
-          .describe("Why the task was closed (e.g. 'done', 'duplicate', 'wontfix')"),
+          .describe(
+            "Why the task was closed (e.g. 'done', 'duplicate', 'wontfix')",
+          ),
       }),
       execute: async ({ taskId, reason }) => {
         const task = await ctx.services.tasks.closeTask(ctx, taskId, reason);
@@ -278,7 +324,6 @@ export function buildTaskLaneTools(
         return task;
       },
     }),
-
   };
 }
 
@@ -296,12 +341,8 @@ export function buildTaskTrackingTools(
       description:
         "Add or remove a dependency between tasks. A dependency means taskId is blocked by dependsOnId.",
       inputSchema: z.object({
-        taskId: z
-          .string()
-          .describe("The task that is (or will be) blocked"),
-        dependsOnId: z
-          .string()
-          .describe("The task that must complete first"),
+        taskId: z.string().describe("The task that is (or will be) blocked"),
+        dependsOnId: z.string().describe("The task that must complete first"),
         action: z
           .enum(["add", "remove"])
           .describe("Whether to add or remove the dependency"),
@@ -324,7 +365,9 @@ export function buildTaskTrackingTools(
       description:
         "Show the full transitive dependency tree for a task — all tasks it depends on, recursively.",
       inputSchema: z.object({
-        taskId: z.string().describe("The task ID to show the dependency tree for"),
+        taskId: z
+          .string()
+          .describe("The task ID to show the dependency tree for"),
       }),
       execute: async ({ taskId }) => {
         const tree = await ctx.services.tasks.getTaskDepTree(ctx, taskId);
@@ -340,10 +383,7 @@ export function buildTaskTrackingTools(
           .string()
           .optional()
           .describe("Filter to children of a specific parent task"),
-        assignee: z
-          .string()
-          .optional()
-          .describe("Filter by assignee agent ID"),
+        assignee: z.string().optional().describe("Filter by assignee agent ID"),
       }),
       execute: async ({ parentId, assignee }) => {
         const tasks = await ctx.services.tasks.getBlockedTasks(ctx, {

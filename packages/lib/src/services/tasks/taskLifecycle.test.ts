@@ -4,6 +4,7 @@ import { createMockContext } from "../__testing__/mockContext.js";
 import type { ServiceContext } from "../context.js";
 import {
   closeTask,
+  incrementEscalationCount,
   reopenTask,
   updateTaskFields,
   updateTaskStatus,
@@ -17,7 +18,7 @@ const makeTask = (overrides = {}) => ({
   title: "Test Task",
   message: null,
   status: "open",
-    createdAt: "2026-01-01T00:00:00.000Z",
+  createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   originJobId: null,
   ...overrides,
@@ -66,12 +67,20 @@ describe("taskLifecycle", () => {
       expect(result.closedAt).toBe(NOW);
     });
 
+    it("accepts done as a valid status", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+
+      const result = await updateTaskStatus(ctx, "task-1", "done");
+
+      expect(result.status).toBe("done");
+    });
+
     it("rejects invalid status values", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
 
-      await expect(
-        updateTaskStatus(ctx, "task-1", "done"),
-      ).rejects.toThrow('Invalid status "done"');
+      await expect(updateTaskStatus(ctx, "task-1", "bogus")).rejects.toThrow(
+        'Invalid status "bogus"',
+      );
     });
 
     it("throws when task not found", async () => {
@@ -83,7 +92,7 @@ describe("taskLifecycle", () => {
     });
 
     it("publishes to task and parent channels with correct data", async () => {
-      const parentTask = makeTask({ id: "epic-1",  });
+      const parentTask = makeTask({ id: "epic-1" });
       ctx.services.tasks.getTask
         .mockResolvedValueOnce(makeTask({ parentId: "epic-1" }) as any) // initial load
         .mockResolvedValueOnce(parentTask as any); // notifyParent re-fetch
@@ -97,7 +106,7 @@ describe("taskLifecycle", () => {
       // Parent receives its own data, not the child's
       expect(ctx.resources.pubsub.publish).toHaveBeenCalledWith(
         "taskUpdated:epic-1",
-        expect.objectContaining({ id: "epic-1",  }),
+        expect.objectContaining({ id: "epic-1" }),
       );
     });
 
@@ -155,9 +164,7 @@ describe("taskLifecycle", () => {
         makeTask({ id: "child-2", status: "closed" }),
       ] as any);
 
-      await expect(closeTask(ctx, "task-1")).rejects.toThrow(
-        "Cannot close",
-      );
+      await expect(closeTask(ctx, "task-1")).rejects.toThrow("Cannot close");
       await expect(closeTask(ctx, "task-1")).rejects.toThrow("child-1");
     });
 
@@ -210,7 +217,9 @@ describe("taskLifecycle", () => {
       await reopenTask(ctx, "task-1");
 
       const cmd = mockDocSend.mock.calls[0][0];
-      expect(cmd.input.UpdateExpression).toContain("REMOVE closedAt, closeReason");
+      expect(cmd.input.UpdateExpression).toContain(
+        "REMOVE closedAt, closeReason",
+      );
     });
   });
 
@@ -227,18 +236,14 @@ describe("taskLifecycle", () => {
       expect(cmd.input.ExpressionAttributeValues[":priority"]).toBe(0);
     });
 
-    it("updates assignee and GSI1 key", async () => {
+    it("updates deferUntil", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
 
       const result = await updateTaskFields(ctx, "task-1", {
-        assignee: "agent-2",
+        deferUntil: "2026-02-01T00:00:00.000Z",
       });
 
-      expect(result.agentId).toBe("agent-2");
-      const cmd = mockDocSend.mock.calls[0][0];
-      expect(cmd.input.ExpressionAttributeValues[":gsi1pk"]).toBe(
-        "TASK_AGENT#agent-2",
-      );
+      expect(result.deferUntil).toBe("2026-02-01T00:00:00.000Z");
     });
 
     it("updates description", async () => {
@@ -258,8 +263,56 @@ describe("taskLifecycle", () => {
 
       const cmd = mockDocSend.mock.calls[0][0];
       expect(cmd.input.UpdateExpression).toContain("priority");
-      expect(cmd.input.UpdateExpression).not.toContain("agentId");
       expect(cmd.input.UpdateExpression).not.toContain("deferUntil");
+    });
+
+    it("does not accept assignee changes (immutable assignment)", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
+
+      // updateTaskFields no longer has an assignee param — verify the
+      // function signature doesn't allow it at the type level. We can
+      // at least confirm agentId is never in the update expression.
+      await updateTaskFields(ctx, "task-1", { priority: 2 });
+
+      const cmd = mockDocSend.mock.calls[0][0];
+      expect(cmd.input.UpdateExpression).not.toContain("agentId");
+    });
+  });
+
+  // ── escalation ───────────────────────────────────────────────
+
+  describe("escalation", () => {
+    it("increments escalationCount on rejection (done → open)", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ status: "done", escalationCount: 1 }) as any,
+      );
+
+      const result = await updateTaskStatus(ctx, "task-1", "open");
+
+      expect(result.escalationCount).toBe(2);
+      // Should have called incrementEscalationCount (second DDB send)
+      expect(mockDocSend).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not increment escalationCount for non-rejection transitions", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ status: "open" }) as any,
+      );
+
+      const result = await updateTaskStatus(ctx, "task-1", "in_progress");
+
+      expect(result.escalationCount).toBeUndefined();
+      expect(mockDocSend).toHaveBeenCalledTimes(1);
+    });
+
+    it("incrementEscalationCount writes atomic increment", async () => {
+      await incrementEscalationCount(ctx, "task-1");
+
+      expect(mockDocSend).toHaveBeenCalledOnce();
+      const cmd = mockDocSend.mock.calls[0][0];
+      expect(cmd.input.UpdateExpression).toContain(
+        "escalationCount = if_not_exists(escalationCount, :zero) + :one",
+      );
     });
   });
 });

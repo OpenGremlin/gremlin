@@ -3,13 +3,13 @@ import type { AgentLogItem } from "@opengremlin/lib/resources/ddb/schema/agentLo
 import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
 import type { SandboxOutputEvent } from "@opengremlin/lib/resources/pubsub.js";
 import type { GremlinContext } from "../../context.js";
-import { TaskStatus } from "../../resolverTypes.js";
 import type {
   MutationResolvers,
   QueryResolvers,
   TaskEdgeResolvers,
   TaskResolvers,
 } from "../../resolverTypes.js";
+import { TaskStatus } from "../../resolverTypes.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -19,8 +19,8 @@ const toTaskStatus = (raw?: string): TaskStatus => {
   switch (raw) {
     case "in_progress":
       return TaskStatus.InProgress;
-    case "blocked":
-      return TaskStatus.Blocked;
+    case "done":
+      return TaskStatus.Done;
     case "closed":
       return TaskStatus.Closed;
     default:
@@ -31,7 +31,7 @@ const toTaskStatus = (raw?: string): TaskStatus => {
 const statusToRaw: Record<string, string> = {
   OPEN: "open",
   IN_PROGRESS: "in_progress",
-  BLOCKED: "blocked",
+  DONE: "done",
   CLOSED: "closed",
 };
 
@@ -73,8 +73,7 @@ const logs: TaskResolvers["logs"] = (
     before,
   });
 
-const status: TaskResolvers["status"] = (parent) =>
-  toTaskStatus(parent.status);
+const status: TaskResolvers["status"] = (parent) => toTaskStatus(parent.status);
 
 const children: TaskResolvers["children"] = async (parent, _args, ctx) => {
   const kids = await ctx.services.tasks.getChildren(ctx, parent.id);

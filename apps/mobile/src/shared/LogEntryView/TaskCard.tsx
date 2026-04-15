@@ -42,8 +42,8 @@ function statusLabel(status: string): string {
       return "Done";
     case "IN_PROGRESS":
       return "In progress";
-    case "BLOCKED":
-      return "Blocked";
+    case "DONE":
+      return "Review";
     default:
       return "Open";
   }
@@ -60,13 +60,7 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   }
 }
 
-function ChildRow({
-  child,
-  isDark,
-}: {
-  child: TaskChild;
-  isDark: boolean;
-}) {
+function ChildRow({ child, isDark }: { child: TaskChild; isDark: boolean }) {
   const files = filesFromAttachments(
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
@@ -137,11 +131,7 @@ function ChildRow({
   );
 }
 
-export function TaskCard({
-  task,
-}: {
-  task: TaskInfo | null;
-}) {
+export function TaskCard({ task }: { task: TaskInfo | null }) {
   const { isDark } = useTheme();
 
   const [liveTask, setLiveTask] = useState<TaskInfo | null>(null);
@@ -188,7 +178,7 @@ export function TaskCard({
     resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
   const totalCount = resolved?.children.length ?? 0;
   const topFiles = filesFromAttachments(
-    ((resolved?.attachments ?? []) as AttachmentFieldsFragment[]),
+    (resolved?.attachments ?? []) as AttachmentFieldsFragment[],
   );
   const topGroups = groupFiles(topFiles);
 
@@ -249,12 +239,8 @@ export function TaskCard({
                   numberOfLines={1}
                 >
                   {statusLabel(resolved.status)}
-                  {resolved.assigneeName
-                    ? ` · @${resolved.assigneeName}`
-                    : ""}
-                  {resolved.latestComment
-                    ? ` · ${resolved.latestComment}`
-                    : ""}
+                  {resolved.assigneeName ? ` · @${resolved.assigneeName}` : ""}
+                  {resolved.latestComment ? ` · ${resolved.latestComment}` : ""}
                 </Text>
               )}
 

@@ -2,7 +2,7 @@ export const taskTypeDefs = /* GraphQL */ `
   enum TaskStatus {
     OPEN
     IN_PROGRESS
-    BLOCKED
+    DONE
     CLOSED
   }
 
@@ -22,6 +22,10 @@ export const taskTypeDefs = /* GraphQL */ `
     closeReason: String
     deferUntil: String
     description: String
+    instructions: String
+    expectedInput: String
+    expectedOutput: String
+    escalationCount: Int
     children: [Task!]
     latestComment: String
     assigneeName: String

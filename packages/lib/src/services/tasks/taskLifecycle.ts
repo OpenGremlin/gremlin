@@ -18,7 +18,7 @@ async function notifyParent(
   }
 }
 
-const VALID_STATUSES = ["open", "in_progress", "blocked", "closed"] as const;
+const VALID_STATUSES = ["open", "in_progress", "done", "closed"] as const;
 type TaskStatus = (typeof VALID_STATUSES)[number];
 
 function assertValidStatus(status: string): asserts status is TaskStatus {
@@ -73,6 +73,8 @@ export async function updateTaskStatus(
 
   const now = new Date().toISOString();
   const isClosing = status === "closed";
+  // Rejection: assigner sends completed work back (done → open)
+  const isRejection = status === "open" && task.status === "done";
 
   const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
@@ -93,11 +95,18 @@ export async function updateTaskStatus(
     }),
   );
 
+  // Increment escalation count on rejection (done → open)
+  if (isRejection) {
+    await incrementEscalationCount(ctx, taskId);
+  }
+
+  const prevEscalation = task.escalationCount ?? 0;
   const updated: TaskItem = {
     ...task,
     status,
     updatedAt: now,
     ...(isClosing ? { closedAt: now } : {}),
+    ...(isRejection ? { escalationCount: prevEscalation + 1 } : {}),
   };
 
   ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, updated);
@@ -206,15 +215,35 @@ export async function reopenTask(
 }
 
 /**
- * Update mutable task fields (priority, assignee/agentId, description,
- * deferUntil). Only provided fields are written.
+ * Atomically increment the escalation counter on a task.
+ * Called when a worker escalates or an assigner rejects.
+ */
+export async function incrementEscalationCount(
+  ctx: ServiceContext,
+  taskId: string,
+): Promise<void> {
+  const table = ctx.resources.ddb.chatTable;
+  await table.getDocumentClient().send(
+    new UpdateCommand({
+      TableName: table.getName(),
+      Key: { pk: `TASK#${taskId}`, sk: "TASK" },
+      UpdateExpression:
+        "SET escalationCount = if_not_exists(escalationCount, :zero) + :one",
+      ExpressionAttributeValues: { ":zero": 0, ":one": 1 },
+    }),
+  );
+}
+
+/**
+ * Update mutable task fields (priority, description, deferUntil).
+ * Assignment is immutable — agentId cannot be changed after creation.
+ * Only provided fields are written.
  */
 export async function updateTaskFields(
   ctx: ServiceContext,
   taskId: string,
   fields: {
     priority?: number;
-    assignee?: string;
     description?: string;
     deferUntil?: string;
   },
@@ -232,13 +261,6 @@ export async function updateTaskFields(
     setParts.push("priority = :priority");
     values[":priority"] = fields.priority;
   }
-  if (fields.assignee != null) {
-    setParts.push("agentId = :agentId");
-    values[":agentId"] = fields.assignee;
-    // Also update gsi1pk so agent-based queries stay correct
-    setParts.push("gsi1pk = :gsi1pk");
-    values[":gsi1pk"] = `TASK_AGENT#${fields.assignee}`;
-  }
   if (fields.description != null) {
     // "description" is not a reserved word but we alias for safety
     setParts.push("#desc = :desc");
@@ -249,7 +271,6 @@ export async function updateTaskFields(
     setParts.push("deferUntil = :deferUntil");
     values[":deferUntil"] = fields.deferUntil;
   }
-
   const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new UpdateCommand({
@@ -267,7 +288,6 @@ export async function updateTaskFields(
     ...task,
     updatedAt: now,
     ...(fields.priority != null ? { priority: fields.priority } : {}),
-    ...(fields.assignee != null ? { agentId: fields.assignee } : {}),
     ...(fields.description != null ? { description: fields.description } : {}),
     ...(fields.deferUntil != null ? { deferUntil: fields.deferUntil } : {}),
   };

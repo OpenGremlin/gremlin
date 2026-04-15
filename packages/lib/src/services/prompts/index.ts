@@ -117,8 +117,9 @@ interface TaskPromptData extends PromptData {
   /** Task ID. Used in templates as {{taskId}}. */
   taskId: string;
   delegated?: {
-    brief: string;
-    successCriteria?: string;
+    instructions: string;
+    expectedInput?: string;
+    expectedOutput?: string;
     assignerName: string;
   };
 }

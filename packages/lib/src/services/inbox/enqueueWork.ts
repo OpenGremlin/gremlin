@@ -13,7 +13,12 @@ export type InboxItemType =
   // Reconciler: unassigned task became ready, manager must route it.
   | "tasks_need_assignment"
   // Reconciler: a top-level task (epic or standalone) completed.
-  | "top_level_task_complete";
+  | "top_level_task_complete"
+  // Worker escalation: task is blocked (e.g. missing input).
+  // The assigner should inspect and remedy the issue.
+  | "task_needs_attention"
+  // Worker completion: task is done, pending assigner review/acceptance.
+  | "task_ready_for_review";
 
 export interface EnqueueInput {
   type: InboxItemType;
