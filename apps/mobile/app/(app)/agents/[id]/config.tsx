@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { useLocalSearchParams } from "expo-router";
 import { Check, Crown, Pencil } from "lucide-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import {
   AgentQuery,
@@ -11,6 +11,7 @@ import {
   UnretireAgentMutation,
   UpdateAgentMutation,
 } from "../../../../src/graphql/queries";
+import { useAutosaveFields } from "../../../../src/hooks/useAutosaveFields";
 import { execute } from "../../../../src/lib/apolloClient";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
@@ -36,85 +37,31 @@ export default function AgentConfigScreen() {
   const agent = data?.agent;
   const avatarsResult = useQuery(AvatarsQuery);
 
-  const [name, setName] = useState("");
-  const [personality, setPersonality] = useState("");
-  const [role, setRole] = useState("");
-  const [delegationHint, setDelegationHint] = useState("");
   const [managerEnabled, setManagerEnabled] = useState(false);
   const [team, setTeam] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [retiring, setRetiring] = useState(false);
 
-  // Ref holds latest text field values so the debounced save always reads
-  // current state without needing to recreate callbacks on every keystroke.
-  const fieldsRef = useRef({ name, personality, role, delegationHint });
-  fieldsRef.current = { name, personality, role, delegationHint };
-
-  // Debounced auto-save for text fields
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flushSave = useCallback(() => {
-    const f = fieldsRef.current;
-    setSaving(true);
-    setSaveError("");
-    execute(UpdateAgentMutation, {
-      id: id ?? "",
-      input: {
-        name: f.name.trim(),
-        personality: f.personality.trim(),
-        role: f.role.trim() || null,
-        delegationHint: f.delegationHint.trim() || null,
-      },
-    })
-      .catch((err) =>
-        setSaveError(
-          err instanceof Error ? err.message : "Failed to save changes",
-        ),
-      )
-      .finally(() => setSaving(false));
-  }, [id]);
-
-  const scheduleSave = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(flushSave, 600);
-  }, [flushSave]);
-
-  // Cleanup debounce on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  // Wrapped setters that trigger debounced save
-  const updateName = useCallback(
-    (v: string) => {
-      setName(v);
-      scheduleSave();
+  const saveFields = useCallback(
+    (fields: { name: string; personality: string; role: string; delegationHint: string }) => {
+      setSaveError("");
+      return execute(UpdateAgentMutation, {
+        id: id ?? "",
+        input: {
+          name: fields.name,
+          personality: fields.personality,
+          role: fields.role || null,
+          delegationHint: fields.delegationHint || null,
+        },
+      }).catch((err) =>
+        setSaveError(err instanceof Error ? err.message : "Failed to save changes"),
+      );
     },
-    [scheduleSave],
+    [id],
   );
-  const updatePersonality = useCallback(
-    (v: string) => {
-      setPersonality(v);
-      scheduleSave();
-    },
-    [scheduleSave],
-  );
-  const updateRole = useCallback(
-    (v: string) => {
-      setRole(v);
-      scheduleSave();
-    },
-    [scheduleSave],
-  );
-  const updateDelegationHint = useCallback(
-    (v: string) => {
-      setDelegationHint(v);
-      scheduleSave();
-    },
-    [scheduleSave],
-  );
+
+  const { name, personality, role, delegationHint, update, syncFromServer } =
+    useAutosaveFields(saveFields);
 
   // Used by the team picker — fetched lazily once the user expands manager mode.
   const allAgentsResult = useQuery(AgentsQuery, { skip: !managerEnabled });
@@ -129,13 +76,15 @@ export default function AgentConfigScreen() {
 
   useEffect(() => {
     if (!agent) return;
-    setName(agent.name);
-    setPersonality(agent.personality ?? "");
-    setRole(agent.role ?? "");
-    setDelegationHint(agent.delegationHint ?? "");
+    syncFromServer({
+      name: agent.name,
+      personality: agent.personality ?? "",
+      role: agent.role ?? "",
+      delegationHint: agent.delegationHint ?? "",
+    });
     setManagerEnabled(agent.config?.manager?.enabled ?? false);
     setTeam(agent.config?.manager?.team ?? []);
-  }, [agent]);
+  }, [agent, syncFromServer]);
 
   // Immediately save manager config changes, merging with current server config
   // to avoid clobbering model/tools settings
@@ -149,18 +98,15 @@ export default function AgentConfigScreen() {
           : { enabled: false, team: [] as string[] },
       };
 
-      setSaving(true);
       setSaveError("");
       execute(UpdateAgentMutation, {
         id: id ?? "",
         input: { config: merged },
-      })
-        .catch((err) =>
-          setSaveError(
-            err instanceof Error ? err.message : "Failed to save changes",
-          ),
-        )
-        .finally(() => setSaving(false));
+      }).catch((err) =>
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save changes",
+        ),
+      );
     },
     [id, agent],
   );
@@ -251,16 +197,13 @@ export default function AgentConfigScreen() {
             </View>
           )}
         </Pressable>
-        {saving && (
-          <Text className="text-xs text-text-faint mt-1">saving...</Text>
-        )}
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-sm font-medium text-text-secondary">Name</Text>
         <Input
           value={name}
-          onChangeText={updateName}
+          onChangeText={(v) => update("name", v)}
           placeholder="Agent name"
           editable={!agent.retired}
         />
@@ -275,7 +218,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={personality}
-          onChangeText={updatePersonality}
+          onChangeText={(v) => update("personality", v)}
           placeholder="e.g. Warm and curious, explains things with analogies, asks clarifying questions before diving in."
           multiline
           numberOfLines={4}
@@ -292,7 +235,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={role}
-          onChangeText={updateRole}
+          onChangeText={(v) => update("role", v)}
           placeholder="e.g. A senior backend engineer who reviews PRs and helps debug production issues."
           multiline
           numberOfLines={4}
@@ -312,7 +255,7 @@ export default function AgentConfigScreen() {
         </Text>
         <Input
           value={delegationHint}
-          onChangeText={updateDelegationHint}
+          onChangeText={(v) => update("delegationHint", v)}
           placeholder="e.g. When the task needs access to AWS logs or CloudWatch metrics to diagnose production issues."
           multiline
           numberOfLines={4}
