@@ -1,5 +1,4 @@
 import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { pkShard } from "../../resources/ddb/shard.js";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "./attachment.js";
@@ -41,8 +40,8 @@ export async function addTaskAttachment(
       TableName: tableName,
       Item: {
         _et: "TaskAttachment",
-        pk: pkShard("ATTACHMENT", id),
-        sk: `ATTACHMENT#${id}`,
+        pk: `ATTACHMENT#${id}`,
+        sk: "ATTACHMENT",
         id,
         taskId,
         dedupKey,
@@ -69,7 +68,7 @@ export async function addTaskAttachment(
   );
 
   // Touch the parent task's updatedAt so subscriptions fire
-  const taskKey = { pk: pkShard("TASK", taskId), sk: `TASK#${taskId}` };
+  const taskKey = { pk: `TASK#${taskId}`, sk: "TASK" };
   const { Attributes } = await docClient.send(
     new UpdateCommand({
       TableName: tableName,

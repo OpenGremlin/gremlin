@@ -1,5 +1,5 @@
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { pkShard } from "../../resources/ddb/shard.js";
+
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
@@ -78,7 +78,7 @@ export async function updateTaskStatus(
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
-      Key: { pk: pkShard("TASK", taskId), sk: `TASK#${taskId}` },
+      Key: { pk: `TASK#${taskId}`, sk: "TASK" },
       UpdateExpression:
         "SET #status = :status, updatedAt = :now, gsi4pk = :gsi4pk, gsi4sk = :gsi4sk" +
         (isClosing ? ", closedAt = :closedAt" : ""),
@@ -128,7 +128,7 @@ export async function closeTask(
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
-      Key: { pk: pkShard("TASK", taskId), sk: `TASK#${taskId}` },
+      Key: { pk: `TASK#${taskId}`, sk: "TASK" },
       UpdateExpression:
         "SET #status = :status, updatedAt = :now, closedAt = :closedAt, gsi4pk = :gsi4pk, gsi4sk = :gsi4sk" +
         (reason ? ", closeReason = :closeReason" : ""),
@@ -177,7 +177,7 @@ export async function reopenTask(
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
-      Key: { pk: pkShard("TASK", taskId), sk: `TASK#${taskId}` },
+      Key: { pk: `TASK#${taskId}`, sk: "TASK" },
       UpdateExpression:
         "SET #status = :status, updatedAt = :now, gsi4pk = :gsi4pk, gsi4sk = :gsi4sk REMOVE closedAt, closeReason",
       ExpressionAttributeNames: { "#status": "status" },
@@ -254,7 +254,7 @@ export async function updateTaskFields(
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
-      Key: { pk: pkShard("TASK", taskId), sk: `TASK#${taskId}` },
+      Key: { pk: `TASK#${taskId}`, sk: "TASK" },
       UpdateExpression: `SET ${setParts.join(", ")}`,
       ...(Object.keys(names).length > 0
         ? { ExpressionAttributeNames: names }

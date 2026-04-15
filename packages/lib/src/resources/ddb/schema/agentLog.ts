@@ -6,7 +6,6 @@ import { list } from "dynamodb-toolbox/schema/list";
 import { map } from "dynamodb-toolbox/schema/map";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
-import { pkShard } from "../shard.js";
 import { GremlinTable } from "../table.js";
 
 export const AgentLogEntity = new Entity({
@@ -39,8 +38,8 @@ export const AgentLogEntity = new Entity({
   // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
   // PutCommand because dynamodb-toolbox v2 computeKey ignores them.
   computeKey: ({ id }) => ({
-    pk: pkShard("AGENT_LOG", id),
-    sk: `AGENT_LOG#${id}`,
+    pk: `AGENT_LOG#${id}`,
+    sk: "AGENT_LOG",
   }),
 });
 

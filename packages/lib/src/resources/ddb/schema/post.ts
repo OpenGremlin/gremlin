@@ -3,7 +3,6 @@ import { item } from "dynamodb-toolbox/schema/item";
 import { list } from "dynamodb-toolbox/schema/list";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { pkShard } from "../shard.js";
 import { GremlinTable } from "../table.js";
 
 export const PostEntity = new Entity({
@@ -23,8 +22,8 @@ export const PostEntity = new Entity({
   // NOTE: GSI keys (gsi1pk/gsi1sk, gsi2pk/gsi2sk) are written directly via
   // AWS SDK PutCommand because dynamodb-toolbox v2 computeKey ignores them.
   computeKey: ({ id }) => ({
-    pk: pkShard("POST", id),
-    sk: `POST#${id}`,
+    pk: `POST#${id}`,
+    sk: "POST",
   }),
 });
 

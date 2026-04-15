@@ -2,15 +2,14 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { pkShard } from "../shard.js";
 import { GremlinTable } from "../table.js";
 
 /**
  * Standalone attachment item with its own UUID primary key.
  *
  * Primary key:
- *   pk  = "ATTACHMENT"
- *   sk  = "ATTACHMENT#{id}"
+ *   pk  = "ATTACHMENT#{id}"
+ *   sk  = "ATTACHMENT"
  *
  * GSI1 — query by task:
  *   gsi1pk = "TASK_ATTACHMENT#{taskId}"
@@ -40,8 +39,8 @@ export const TaskAttachmentEntity = new Entity({
     createdAt: string(),
   }),
   computeKey: ({ id }) => ({
-    pk: pkShard("ATTACHMENT", id),
-    sk: `ATTACHMENT#${id}`,
+    pk: `ATTACHMENT#${id}`,
+    sk: "ATTACHMENT",
   }),
 });
 

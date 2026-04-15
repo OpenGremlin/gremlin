@@ -1,5 +1,4 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { pkShard } from "../../resources/ddb/shard.js";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
@@ -74,8 +73,8 @@ export async function createTask(
       Item: {
         ...item,
         _et: "Task",
-        pk: pkShard("TASK", id),
-        sk: `TASK#${id}`,
+        pk: `TASK#${id}`,
+        sk: "TASK",
         gsi1pk: `TASK_AGENT#${input.agentId}`,
         gsi1sk: now,
         gsi2pk: "TASK_ALL",

@@ -1,5 +1,4 @@
 import { BatchGetCommand } from "@aws-sdk/lib-dynamodb";
-import { pkShard } from "../../resources/ddb/shard.js";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
 
@@ -51,8 +50,8 @@ export async function getPostAttachments(
         RequestItems: {
           [tableName]: {
             Keys: chunk.map((id) => ({
-              pk: pkShard("ATTACHMENT", id),
-              sk: `ATTACHMENT#${id}`,
+              pk: `ATTACHMENT#${id}`,
+              sk: "ATTACHMENT",
             })),
           },
         },
