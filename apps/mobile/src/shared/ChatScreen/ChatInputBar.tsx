@@ -94,6 +94,7 @@ export function ChatInputBar({
   const inputRef = useRef<TextInput>(null);
   const isWeb = process.env.EXPO_OS === "web";
   const [webHeight, _setWebHeight] = useState(0);
+  const [inputKey, setInputKey] = useState(0);
   const hasText = input.trim().length > 0;
   const canSend = hasText && !sending;
   const hasUploads = uploads.length > 0;
@@ -108,6 +109,9 @@ export function ChatInputBar({
       sendScale.value = withSpring(1, { damping: 10, stiffness: 300 });
     });
     onSend();
+    setInputKey((k) => k + 1);
+    // Refocus after remount so keyboard stays up
+    setTimeout(() => inputRef.current?.focus(), 0);
   }, [onSend, sendScale]);
 
   if (disabled) {
@@ -168,6 +172,7 @@ export function ChatInputBar({
         <TextInput
           ref={inputRef}
           className="flex-1 text-text-primary text-base leading-[20px] px-1 outline-none relative z-10"
+          key={isWeb ? undefined : inputKey}
           style={{
             ...(!isWeb && { minHeight: 34 }),
             ...(isWeb && webHeight > 0 && { height: Math.min(140, webHeight) }),
