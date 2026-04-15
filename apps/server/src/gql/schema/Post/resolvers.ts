@@ -29,7 +29,7 @@ const attachments = (
   parent: PostItem,
   _args: unknown,
   ctx: GremlinContext,
-) => ctx.services.posts.getPostAttachments(ctx, parent.id);
+) => ctx.services.posts.getPostAttachments(ctx, parent.attachmentIds ?? []);
 
 const node = (parent: { node: PostItem }) => parent.node;
 

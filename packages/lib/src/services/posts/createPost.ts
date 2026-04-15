@@ -1,7 +1,6 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { PostItem } from "../../resources/ddb/schema/post.js";
 import type { ServiceContext } from "../context.js";
-import type { Attachment } from "../tasks/attachment.js";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -16,33 +15,82 @@ function generatePostId(): string {
 }
 
 /**
- * Collect all attachments from a task and its children (if any).
- * Returns a flat array of attachments, children first then parent.
+ * Collect attachment IDs from a task and its children.
+ * Queries TaskAttachment GSI1 for each task, deduplicates by ID.
  */
-async function collectTaskAttachments(
+async function collectAttachmentIds(
   ctx: ServiceContext,
   taskId: string,
-): Promise<Attachment[]> {
-  const children = await ctx.services.tasks.getChildren(ctx, taskId);
-  const allAttachments: Attachment[] = [];
+): Promise<string[]> {
+  const table = ctx.resources.ddb.table;
+  const tableName = table.getName();
+  const docClient = table.getDocumentClient();
 
-  // Collect from children first
+  const taskIds = [taskId];
+
+  // Gather children
+  const children = await ctx.services.tasks.getChildren(ctx, taskId);
   for (const child of children) {
-    const childAttachments = await ctx.services.tasks.getTaskAttachments(
-      ctx,
-      child.id,
-    );
-    allAttachments.push(...childAttachments);
+    taskIds.push(child.id);
   }
 
-  // Then from the parent/standalone task itself
-  const taskAttachments = await ctx.services.tasks.getTaskAttachments(
-    ctx,
-    taskId,
+  // Query attachment IDs for all tasks in parallel
+  const results = await Promise.all(
+    taskIds.map(async (tid) => {
+      const { Items } = await docClient.send(
+        new QueryCommand({
+          TableName: tableName,
+          IndexName: "gsi1",
+          KeyConditionExpression: "gsi1pk = :pk",
+          ExpressionAttributeValues: {
+            ":pk": `TASK_ATTACHMENT#${tid}`,
+          },
+          ProjectionExpression: "id",
+        }),
+      );
+      return (Items ?? []).map((i) => (i as { id: string }).id);
+    }),
   );
-  allAttachments.push(...taskAttachments);
 
-  return allAttachments;
+  // Flatten and deduplicate
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const batch of results) {
+    for (const id of batch) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        ids.push(id);
+      }
+    }
+  }
+
+  return ids;
+}
+
+/**
+ * Check if a post already exists for a given taskId.
+ * Uses GSI2 (POST_ALL) with a filter — acceptable because this is a
+ * guard against rare duplicates, not a hot path.
+ */
+async function postExistsForTask(
+  ctx: ServiceContext,
+  taskId: string,
+): Promise<boolean> {
+  const table = ctx.resources.ddb.table;
+  const { Items } = await table.getDocumentClient().send(
+    new QueryCommand({
+      TableName: table.getName(),
+      IndexName: "gsi2",
+      KeyConditionExpression: "gsi2pk = :pk",
+      FilterExpression: "taskId = :taskId",
+      ExpressionAttributeValues: {
+        ":pk": "POST_ALL",
+        ":taskId": taskId,
+      },
+      Limit: 1,
+    }),
+  );
+  return (Items ?? []).length > 0;
 }
 
 export async function createPost(
@@ -54,8 +102,29 @@ export async function createPost(
     message: string;
   },
 ): Promise<PostItem> {
+  // Guard: don't create duplicate posts for the same task
+  if (await postExistsForTask(ctx, input.taskId)) {
+    ctx.log.info(
+      { taskId: input.taskId },
+      "Post already exists for task, skipping",
+    );
+    // Return a stub so the tool call doesn't error
+    return {
+      id: "",
+      agentId: input.agentId,
+      taskId: input.taskId,
+      title: input.title,
+      message: input.message,
+      attachmentIds: [],
+      createdAt: new Date().toISOString(),
+    };
+  }
+
   const now = new Date().toISOString();
-  const id = `${now}#${generatePostId()}`;
+  const id = generatePostId();
+
+  // Collect attachment IDs from the task tree
+  const attachmentIds = await collectAttachmentIds(ctx, input.taskId);
 
   const item: PostItem = {
     id,
@@ -63,13 +132,10 @@ export async function createPost(
     taskId: input.taskId,
     title: input.title,
     message: input.message,
+    attachmentIds,
     createdAt: now,
   };
 
-  // Collect attachments from the task tree
-  const attachments = await collectTaskAttachments(ctx, input.taskId);
-
-  // Write post
   const table = ctx.resources.ddb.table;
   await table.getDocumentClient().send(
     new PutCommand({
@@ -89,40 +155,10 @@ export async function createPost(
     }),
   );
 
-  // Write attachments as PostAttachment records
-  for (const attachment of attachments) {
-    const attId = crypto.randomUUID();
-    await table.getDocumentClient().send(
-      new PutCommand({
-        TableName: table.getName(),
-        Item: {
-          _et: "PostAttachment",
-          pk: "POST_ATTACHMENT",
-          sk: `POST_ATTACHMENT#${attId}`,
-          id: attId,
-          postId: id,
-          type: attachment.type,
-          ...(attachment.type === "file" && { path: attachment.path }),
-          ...(attachment.type === "link" && {
-            url: attachment.url,
-            ...(attachment.title != null && { title: attachment.title }),
-            ...(attachment.description != null && {
-              description: attachment.description,
-            }),
-          }),
-          createdAt: now,
-          // GSI1: query by post
-          gsi1pk: `POST_ATTACHMENT#${id}`,
-          gsi1sk: now,
-        },
-      }),
-    );
-  }
-
   ctx.resources.pubsub.publish("postCreated", item);
 
   ctx.log.info(
-    { postId: id, taskId: input.taskId, attachmentCount: attachments.length },
+    { postId: id, taskId: input.taskId, attachmentCount: attachmentIds.length },
     "Created post from task completion",
   );
 

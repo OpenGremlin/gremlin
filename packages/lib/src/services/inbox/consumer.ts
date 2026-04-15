@@ -244,15 +244,6 @@ async function processMainLaneItems(
         });
         shouldRunInference = true;
         break;
-      case "epic_complete":
-        await ctx.services.orchestrator.writeAgentLog(ctx, {
-          agentId,
-          taskId: null,
-          role: "SYSTEM",
-          content: `Epic ${payload.taskId} ("${payload.title ?? ""}") is complete. All tasks finished. Review results and report to the user.`,
-        });
-        shouldRunInference = true;
-        break;
       case "top_level_task_complete":
         await ctx.services.orchestrator.writeAgentLog(ctx, {
           agentId,

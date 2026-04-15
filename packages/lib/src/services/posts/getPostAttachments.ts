@@ -1,4 +1,4 @@
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
 
@@ -22,22 +22,45 @@ function toAttachment(item: RawAttachmentItem): Attachment {
   };
 }
 
-/** Get all attachments for a post via GSI1. */
+/**
+ * Get attachments for a post by batch-getting TaskAttachment records
+ * using the attachment IDs stored on the post.
+ */
 export async function getPostAttachments(
   ctx: ServiceContext,
-  postId: string,
+  attachmentIds: string[],
 ): Promise<Attachment[]> {
-  const table = ctx.resources.ddb.table;
-  const { Items } = await table.getDocumentClient().send(
-    new QueryCommand({
-      TableName: table.getName(),
-      IndexName: "gsi1",
-      KeyConditionExpression: "gsi1pk = :pk",
-      ExpressionAttributeValues: {
-        ":pk": `POST_ATTACHMENT#${postId}`,
-      },
-    }),
-  );
+  if (attachmentIds.length === 0) return [];
 
-  return (Items ?? []).map((i) => toAttachment(i as RawAttachmentItem));
+  const table = ctx.resources.ddb.table;
+  const tableName = table.getName();
+  const docClient = table.getDocumentClient();
+
+  // BatchGetItem supports max 100 keys per request
+  const chunks: string[][] = [];
+  for (let i = 0; i < attachmentIds.length; i += 100) {
+    chunks.push(attachmentIds.slice(i, i + 100));
+  }
+
+  const allItems: RawAttachmentItem[] = [];
+
+  for (const chunk of chunks) {
+    const { Responses } = await docClient.send(
+      new BatchGetCommand({
+        RequestItems: {
+          [tableName]: {
+            Keys: chunk.map((id) => ({
+              pk: "ATTACHMENT",
+              sk: `ATTACHMENT#${id}`,
+            })),
+          },
+        },
+      }),
+    );
+
+    const items = Responses?.[tableName] ?? [];
+    allItems.push(...(items as RawAttachmentItem[]));
+  }
+
+  return allItems.map(toAttachment);
 }
