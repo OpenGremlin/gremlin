@@ -62,7 +62,7 @@ function computeDisplayHintInner(
     "task";
 
   if (toolName === "taskCreate") {
-    return { text: `Created task: ${(input?.title as string) ?? "task"}` };
+    return { text: `Creating task: ${(input?.title as string) ?? "task"}` };
   }
   if (toolName === "taskShow") {
     return { text: `Viewing task: ${taskTitle}` };
@@ -70,33 +70,33 @@ function computeDisplayHintInner(
   if (toolName === "taskUpdate") {
     const parts = [taskTitle];
     if (input?.status) parts.push(`→ ${input.status}`);
-    return { text: `Updated task: ${parts.join(" ")}` };
+    return { text: `Updating task: ${parts.join(" ")}` };
   }
   if (toolName === "taskClose") {
     return {
-      text: `Closed task: ${taskTitle}`,
+      text: `Closing task: ${taskTitle}`,
       variant: "success",
     };
   }
   if (toolName === "taskReopen") {
-    return { text: `Reopened task: ${taskTitle}` };
+    return { text: `Reopening task: ${taskTitle}` };
   }
   if (toolName === "taskList") {
-    return { text: "Listed tasks" };
+    return { text: "Listing tasks" };
   }
   if (toolName === "taskReady") {
-    return { text: "Checked ready work" };
+    return { text: "Checking ready work" };
   }
   if (toolName === "taskDep") {
     return {
-      text: `${(input?.action as string) === "remove" ? "Removed" : "Added"} dependency`,
+      text: `${(input?.action as string) === "remove" ? "Removing" : "Adding"} dependency`,
     };
   }
   if (toolName === "taskDepTree") {
-    return { text: `Dependency tree: ${taskTitle}` };
+    return { text: `Viewing dependency tree: ${taskTitle}` };
   }
   if (toolName === "taskBlocked") {
-    return { text: "Checked blocked tasks" };
+    return { text: "Checking blocked tasks" };
   }
 
   switch (toolName) {
@@ -127,19 +127,19 @@ function computeDisplayHintInner(
     // ── Attachments ────────────────────────────────────────────────
     case ToolName.AttachFile:
       return {
-        text: `Attached file: ${(input?.path as string) ?? "unknown"}`,
+        text: `Attaching file: ${(input?.path as string) ?? "unknown"}`,
       };
     case ToolName.AttachLink:
       return {
-        text: `Attached link: ${(input?.title as string) ?? (input?.url as string) ?? "unknown"}`,
+        text: `Attaching link: ${(input?.title as string) ?? (input?.url as string) ?? "unknown"}`,
       };
 
     // ── Sandbox ────────────────────────────────────────────────────
     case ToolName.EnsureSandbox: {
       const status = result?.status as string | undefined;
       if (status === "ready")
-        return { text: "Sandbox ready", variant: "success" };
-      return { text: "Connecting to sandbox…", variant: "warning" };
+        return { text: "Preparing sandbox", variant: "success" };
+      return { text: "Connecting to sandbox", variant: "warning" };
     }
 
     // ── Media ──────────────────────────────────────────────────────
@@ -173,40 +173,39 @@ function computeDisplayHintInner(
       };
     case ToolName.Authenticate: {
       const skillId = (input?.skillId as string) ?? "skill";
-      if (!result) return { text: `Authenticating ${skillId}…` };
       const connLabel = result?.connectionLabel as string | undefined;
       return {
-        text: `Authenticated ${skillId}${connLabel ? ` (${connLabel})` : ""}`,
+        text: `Authenticating ${skillId}${connLabel ? ` (${connLabel})` : ""}`,
       };
     }
 
     // ── Memory & jobs ───────────────────────────────────────────��──
     case ToolName.SaveMemory:
       return {
-        text: `Saved memory: ${(input?.key as string) ?? (input?.topic as string) ?? "memory"}`,
+        text: `Saving memory: ${(input?.key as string) ?? (input?.topic as string) ?? "memory"}`,
       };
     case ToolName.RecallMemory:
       return {
-        text: `Recalled: ${(input?.query as string) ?? "memories"}`,
+        text: `Recalling: ${(input?.query as string) ?? "memories"}`,
       };
     case ToolName.ListJobs:
-      return { text: "Listed jobs" };
+      return { text: "Listing jobs" };
     case ToolName.ScheduleJob:
       return {
-        text: `Scheduled job: ${(input?.schedule as string) ?? "job"}`,
+        text: `Scheduling job: ${(input?.schedule as string) ?? "job"}`,
       };
     case ToolName.UpdateJob:
-      return { text: "Updated job" };
+      return { text: "Updating job" };
 
     // ── Legacy task tools — render a basic hint for old log entries ─
     case ToolName.BackgroundTask:
-      return { text: `Task: ${(input?.title as string) ?? "background task"}` };
+      return { text: `Starting task: ${(input?.title as string) ?? "background task"}` };
     case ToolName.Delegate:
-      return { text: `Delegated: ${(input?.title as string) ?? "task"}` };
+      return { text: `Delegating: ${(input?.title as string) ?? "task"}` };
     case ToolName.CompleteTask:
-      return { text: "Task completed", variant: "success" };
+      return { text: "Completing task", variant: "success" };
     case ToolName.UpdateTask:
-      return { text: `Progress: ${(input?.message as string) ?? "updated"}` };
+      return { text: `Updating: ${(input?.message as string) ?? "task"}` };
 
     // ── Custom widget tools — no hint, frontend renders its own UI ─
     case ToolName.RequestUserInput:
