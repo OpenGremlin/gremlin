@@ -16,11 +16,11 @@ const MEDIA_ASSETS_DIR = path.resolve(
 const ALLOWED_FORMATS = ["jpeg", "png", "webp", "avif"] as const;
 type ImageFormat = (typeof ALLOWED_FORMATS)[number];
 
-function clamp(value: number, min: number, max: number): number {
+export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function parseImageParams(query: Record<string, unknown>) {
+export function parseImageParams(query: Record<string, unknown>) {
   const width =
     typeof query.width === "string"
       ? clamp(Number.parseInt(query.width, 10), 1, 3000)

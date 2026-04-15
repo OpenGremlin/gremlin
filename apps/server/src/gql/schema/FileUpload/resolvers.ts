@@ -7,7 +7,7 @@ import { getS3Client, getUploadsBucketName } from "./s3.js";
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
 /** Strip path separators and limit length for safe filesystem use. */
-function sanitizeFilename(name: string): string {
+export function sanitizeFilename(name: string): string {
   return name.replace(/[/\\]/g, "_").replace(/\0/g, "").slice(0, 255);
 }
 

@@ -15,7 +15,7 @@ import { TaskStatus } from "../../resolverTypes.js";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const toTaskStatus = (raw?: string): TaskStatus => {
+export const toTaskStatus = (raw?: string): TaskStatus => {
   switch (raw) {
     case "in_progress":
       return TaskStatus.InProgress;
@@ -28,7 +28,7 @@ const toTaskStatus = (raw?: string): TaskStatus => {
   }
 };
 
-const statusToRaw: Record<string, string> = {
+export const statusToRaw: Record<string, string> = {
   OPEN: "open",
   IN_PROGRESS: "in_progress",
   DONE: "done",
