@@ -1,82 +1,33 @@
 import "./env.js";
 import { createServer } from "node:http";
-import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { createLogger, logger } from "@opengremlin/lib/logger.js";
+import { logger } from "@opengremlin/lib/logger.js";
 import { createResources } from "@opengremlin/lib/resources/index.js";
 import type { PubSub } from "@opengremlin/lib/resources/pubsub.js";
 import { createServices } from "@opengremlin/lib/services/index.js";
-import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
 import express from "express";
 import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
+import { getServerBaseUrl, loadSchedulerConfig } from "./config.js";
 import { type AuthUser, verifyToken } from "./gql/auth.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
-import { buildContext } from "./shared/buildContext.js";
-
 import { pubsub } from "./pubsub.js";
+import { createAuthConfigRoute } from "./routes/authConfigRoute.js";
+import {
+  clientLogsPreflight,
+  clientLogsRoute,
+} from "./routes/clientLogsRoute.js";
 import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
+import { healthRoute } from "./routes/healthRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
 import { createSpeechSentenceRoute } from "./routes/speechSentenceRoute.js";
+import { buildContext } from "./shared/buildContext.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
 const SKIP_AUTH = process.env.SKIP_AUTH === "true";
-// Server base URL — used for media and signed file URLs.
-// In prod, resolved from SSM (admin CloudFront URL) since media is served
-// through the same CloudFront. In dev, falls back to localhost.
-let cachedServerBaseUrl: string | undefined;
-async function getServerBaseUrl(): Promise<string> {
-  if (cachedServerBaseUrl) return cachedServerBaseUrl;
-  if (process.env.SERVER_URL) {
-    cachedServerBaseUrl = process.env.SERVER_URL.replace(/\/$/, "");
-    return cachedServerBaseUrl;
-  }
-  if (!SKIP_AUTH) {
-    try {
-      const ssm = await getSsmClient();
-      const res = await ssm.send(
-        new GetParameterCommand({ Name: "/gremlin/admin-url" }),
-      );
-      if (res.Parameter?.Value) {
-        cachedServerBaseUrl = res.Parameter.Value.replace(/\/$/, "");
-        return cachedServerBaseUrl;
-      }
-    } catch {
-      // SSM not available — fall through
-    }
-  }
-  cachedServerBaseUrl = `http://localhost:${process.env.PORT || 3001}`;
-  return cachedServerBaseUrl;
-}
-
-// Load scheduler config from SSM (set by MessagingStack)
-async function loadSchedulerConfig() {
-  if (process.env.LOCALSTACK_ENDPOINT) return; // local dev — no SSM
-  try {
-    const ssm = await getSsmClient();
-    const params = [
-      "/gremlin/schedule-target-queue-arn",
-      "/gremlin/scheduler-role-arn",
-      "/gremlin/doorbell-queue-url",
-    ];
-    const envKeys = [
-      "SCHEDULE_TARGET_QUEUE_ARN",
-      "SCHEDULER_ROLE_ARN",
-      "DOORBELL_SQS_URL",
-    ];
-    await Promise.all(
-      params.map(async (name, i) => {
-        const res = await ssm.send(new GetParameterCommand({ Name: name }));
-        if (res.Parameter?.Value) process.env[envKeys[i]] = res.Parameter.Value;
-      }),
-    );
-  } catch {
-    // SSM not available — scheduler features disabled
-  }
-}
 
 const app = express();
 app.use(express.json());
@@ -204,84 +155,26 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
-// Media assets: S3 in prod, local disk in dev — both support resizing/format conversion
-app.get("/media/*", mediaRoute);
+// --- Routes ---
 
-// Workspace file serving (auth at CloudFront edge + origin verification)
+app.get("/media/*", mediaRoute);
 app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
-
-// Stateless per-sentence TTS via signed URL
 app.get("/api/speech/sentence", createSpeechSentenceRoute(resources, services));
+app.options("/api/client-logs", clientLogsPreflight);
+app.post(
+  "/api/client-logs",
+  express.json({ limit: "64kb" }),
+  clientLogsRoute,
+);
+app.get("/api/auth-config", createAuthConfigRoute(resources));
+app.get("/api/health", healthRoute);
 
-// Client-side log ingestion
-const clientLog = createLogger("admin-client");
-app.options("/api/client-logs", (_req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.status(204).end();
-});
-app.post("/api/client-logs", express.json({ limit: "64kb" }), (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  const { entries } = req.body ?? {};
-  if (!Array.isArray(entries)) {
-    res.status(400).json({ error: "entries must be an array" });
-    return;
-  }
-  for (const entry of entries.slice(0, 50)) {
-    const meta = {
-      url: entry.url,
-      data: entry.data,
-      clientTimestamp: entry.timestamp,
-    };
-    const msg: string = entry.message ?? "client log";
-    if (entry.level === "error") clientLog.error(meta, msg);
-    else if (entry.level === "warn") clientLog.warn(meta, msg);
-    else if (entry.level === "debug") clientLog.debug(meta, msg);
-    else clientLog.info(meta, msg);
-  }
-  res.status(204).end();
-});
-
-// Auth config (unauthenticated — needed by apps before login)
-app.get("/api/auth-config", async (_req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  const cognitoDomain = process.env.COGNITO_DOMAIN;
-  const clientId = process.env.COGNITO_CLIENT_ID;
-  if (!cognitoDomain || !clientId) {
-    res.json({ skipAuth: true });
-    return;
-  }
-  // Check if signup is disabled
-  let signupDisabled = false;
-  try {
-    const { GetItemCommand } = await import(
-      "dynamodb-toolbox/entity/actions/get"
-    );
-    const { Item } = await resources.ddb.entities.GlobalSettings.build(
-      GetItemCommand,
-    )
-      .key({ id: "global" })
-      .send();
-    if (Item) {
-      signupDisabled = Item.signupDisabled === true;
-    }
-  } catch {
-    // Settings not available yet — default to allowing signup
-  }
-  res.json({ cognitoDomain, clientId, signupDisabled });
-});
-
-// Health check
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
+// --- Startup ---
 
 let stopSqsWorker: (() => void) | undefined;
 
 loadSchedulerConfig().then(async () => {
-  // Start SQS worker if queue URL is available (deployed environment)
   const { startSqsWorker } = await import(
     "@opengremlin/lib/services/inbox/sqsWorker.js"
   );
@@ -300,24 +193,29 @@ loadSchedulerConfig().then(async () => {
       logger.info({ port: PORT }, "Gremlin server started");
     })
     .on("error", (err: NodeJS.ErrnoException) => {
-      if (err.code === "EADDRINUSE") {
+      // Only auto-reclaim port in local dev — never kill processes in prod
+      if (err.code === "EADDRINUSE" && SKIP_AUTH) {
         logger.warn({ port: PORT }, "Port in use, killing existing process…");
-        import("node:child_process").then(({ execSync }) => {
-          try {
-            execSync(`lsof -ti tcp:${PORT} | xargs kill -9`, {
-              stdio: "ignore",
-            });
-          } catch {
-            // No process found or already dead
-          }
-          setTimeout(() => {
-            server.listen(PORT, () => {
-              logger.info(
-                { port: PORT },
-                "Gremlin server started (reclaimed port)",
-              );
-            });
-          }, 500);
+        import("node:child_process").then(({ execFile }) => {
+          execFile("lsof", ["-ti", `tcp:${PORT}`], (_err, stdout) => {
+            if (stdout?.trim()) {
+              for (const pid of stdout.trim().split("\n")) {
+                try {
+                  process.kill(Number(pid), "SIGKILL");
+                } catch {
+                  // Process already dead
+                }
+              }
+            }
+            setTimeout(() => {
+              server.listen(PORT, () => {
+                logger.info(
+                  { port: PORT },
+                  "Gremlin server started (reclaimed port)",
+                );
+              });
+            }, 500);
+          });
         });
       } else {
         throw err;
