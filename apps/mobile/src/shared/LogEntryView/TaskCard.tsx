@@ -10,6 +10,8 @@ import { useTheme } from "../../lib/ThemeContext";
 import { AgentAvatar } from "../AgentAvatar";
 import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
+import { groupFiles } from "../groupFiles";
+import { ImageCollage } from "../ImageCollage";
 
 export interface TaskChild {
   id: string;
@@ -68,12 +70,15 @@ function ChildRow({
   const files = filesFromAttachments(
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
+  const groups = groupFiles(files);
 
-  const openFile = (file: { path: string }) => {
-    router.push({
-      pathname: "/file/[...path]",
-      params: { path: file.path.split("/"), task: child.id },
-    });
+  const openPager = (index: number) => {
+    const file = files[index];
+    if (file)
+      router.push({
+        pathname: "/file/[...path]",
+        params: { path: file.path.split("/"), task: child.id },
+      });
   };
 
   return (
@@ -105,11 +110,26 @@ function ChildRow({
           {statusLabel(child.status)}
           {child.latestComment ? ` · ${child.latestComment}` : ""}
         </Text>
-        {files.length > 0 && (
+        {groups.length > 0 && (
           <View className="mt-1 gap-1">
-            {files.map((file) => (
-              <FileCard key={file.path} file={file} onPress={() => openFile(file)} />
-            ))}
+            {groups.map((group) => {
+              if (group.kind === "images") {
+                return (
+                  <ImageCollage
+                    key={`images-${group.indices[0]}`}
+                    images={group.files}
+                    onPressImage={(i) => openPager(group.indices[i])}
+                  />
+                );
+              }
+              return (
+                <FileCard
+                  key={`${group.file.path}-${group.index}`}
+                  file={group.file}
+                  onPress={() => openPager(group.index)}
+                />
+              );
+            })}
           </View>
         )}
       </View>
@@ -170,6 +190,16 @@ export function TaskCard({
   const topFiles = filesFromAttachments(
     ((resolved?.attachments ?? []) as AttachmentFieldsFragment[]),
   );
+  const topGroups = groupFiles(topFiles);
+
+  const openTopPager = (index: number) => {
+    const file = topFiles[index];
+    if (file && resolved)
+      router.push({
+        pathname: "/file/[...path]",
+        params: { path: file.path.split("/"), task: resolved.id },
+      });
+  };
 
   return (
     <View className="py-2 max-w-[85%]">
@@ -228,20 +258,26 @@ export function TaskCard({
                 </Text>
               )}
 
-              {resolved && topFiles.length > 0 && (
+              {resolved && topGroups.length > 0 && (
                 <View className="mt-1.5 gap-1">
-                  {topFiles.map((file) => (
-                    <FileCard
-                      key={file.path}
-                      file={file}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/file/[...path]",
-                          params: { path: file.path.split("/"), task: resolved.id },
-                        })
-                      }
-                    />
-                  ))}
+                  {topGroups.map((group) => {
+                    if (group.kind === "images") {
+                      return (
+                        <ImageCollage
+                          key={`images-${group.indices[0]}`}
+                          images={group.files}
+                          onPressImage={(i) => openTopPager(group.indices[i])}
+                        />
+                      );
+                    }
+                    return (
+                      <FileCard
+                        key={`${group.file.path}-${group.index}`}
+                        file={group.file}
+                        onPress={() => openTopPager(group.index)}
+                      />
+                    );
+                  })}
                 </View>
               )}
 
