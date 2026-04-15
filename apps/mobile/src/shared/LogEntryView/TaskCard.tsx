@@ -69,6 +69,13 @@ function ChildRow({
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
 
+  const openFile = (file: { path: string }) => {
+    router.push({
+      pathname: "/file/[...path]",
+      params: { path: file.path.split("/"), task: child.id },
+    });
+  };
+
   return (
     <Pressable
       onPress={() => router.push(`/tasks/${child.id}`)}
@@ -101,7 +108,7 @@ function ChildRow({
         {files.length > 0 && (
           <View className="mt-1 gap-1">
             {files.map((file) => (
-              <FileCard key={file.path} file={file} />
+              <FileCard key={file.path} file={file} onPress={() => openFile(file)} />
             ))}
           </View>
         )}
@@ -224,7 +231,16 @@ export function TaskCard({
               {resolved && topFiles.length > 0 && (
                 <View className="mt-1.5 gap-1">
                   {topFiles.map((file) => (
-                    <FileCard key={file.path} file={file} />
+                    <FileCard
+                      key={file.path}
+                      file={file}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/file/[...path]",
+                          params: { path: file.path.split("/"), task: resolved.id },
+                        })
+                      }
+                    />
                   ))}
                 </View>
               )}
