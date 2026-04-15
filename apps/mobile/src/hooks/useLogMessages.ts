@@ -135,30 +135,16 @@ export function useLogMessages(
           }
         }
 
-        // Insert new edge in sorted position by createdAt.
-        // The final agent-text log entry is written with createdAt set to
-        // the first text-chunk timestamp (before tool calls), but arrives
-        // via subscription after tool-call entries. Inserting in order
-        // keeps the client consistent with the server's GSI sort.
-        const newEdge = {
-          __typename: "AgentLogEdge" as const,
-          cursor: msg.id,
-          node: msg,
-        };
-        const newEdges = [...conn.edges];
-        let insertIdx = newEdges.length;
-        for (let i = newEdges.length - 1; i >= 0; i--) {
-          if (newEdges[i].node.createdAt <= msg.createdAt) break;
-          insertIdx = i;
-        }
-        newEdges.splice(insertIdx, 0, newEdge);
-        const endCursor = newEdges[newEdges.length - 1]?.cursor ?? msg.id;
+        // Append new edge
         return {
           ...prev,
           [key]: {
             ...conn,
-            edges: newEdges,
-            pageInfo: { ...conn.pageInfo, endCursor },
+            edges: [
+              ...conn.edges,
+              { __typename: "AgentLogEdge", cursor: msg.id, node: msg },
+            ],
+            pageInfo: { ...conn.pageInfo, endCursor: msg.id },
           },
         };
       });
