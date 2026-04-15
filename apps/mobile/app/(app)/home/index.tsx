@@ -47,7 +47,7 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
     if (file)
       router.push({
         pathname: "/file/[...path]",
-        params: { path: file.path.split("/"), task: item.taskId },
+        params: { path: file.path.split("/"), post: item.id },
       });
   };
 

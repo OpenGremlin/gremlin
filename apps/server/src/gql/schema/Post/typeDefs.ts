@@ -27,6 +27,7 @@ export const postTypeDefs = /* GraphQL */ `
   }
 
   extend type Query {
+    post(id: ID!): Post
     posts(first: Int, after: String, last: Int, before: String): PostConnection!
   }
 

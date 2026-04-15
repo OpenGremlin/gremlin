@@ -7,6 +7,7 @@ import {
   TaskQuery,
   WorkspaceEntriesQuery,
 } from "../../src/graphql/queries";
+import { PostQuery } from "../../src/graphql/queries/posts";
 import { FileNotFoundState } from "../../src/shared/FileNotFoundState";
 import {
   FilePagerSheet,
@@ -25,21 +26,23 @@ import { Sheet } from "../../src/shared/Sheet";
  * Unified file route:
  *  /file/{path}              — single file preview
  *  /file/{path}?task={id}    — pager through task's files, starting at this file
+ *  /file/{path}?post={id}    — pager through post's files, starting at this file
  *  /file/{path}?dir={path}   — pager through directory siblings, starting at this file
  */
 export default function FileScreen() {
-  const { path, task, dir } = useLocalSearchParams<{
+  const { path, task, post, dir } = useLocalSearchParams<{
     path: string[];
     task?: string;
+    post?: string;
     dir?: string;
   }>();
   const filePath = Array.isArray(path) ? path.join("/") : (path ?? "");
-  const isPager = !!task || dir != null;
+  const isPager = !!task || !!post || dir != null;
 
   return (
     <>
       {isPager ? (
-        <PagerMode filePath={filePath} taskId={task} dirPath={dir} />
+        <PagerMode filePath={filePath} taskId={task} postId={post} dirPath={dir} />
       ) : (
         <SingleMode filePath={filePath} />
       )}
@@ -78,16 +81,24 @@ function SingleMode({ filePath }: { filePath: string }) {
 function PagerMode({
   filePath,
   taskId,
+  postId,
   dirPath,
 }: {
   filePath: string;
   taskId?: string;
+  postId?: string;
   dirPath?: string;
 }) {
   // Task files
   const { data: taskData, loading: taskLoading } = useQuery(TaskQuery, {
     variables: { id: taskId ?? "" },
     skip: !taskId,
+  });
+
+  // Post files
+  const { data: postData, loading: postLoading } = useQuery(PostQuery, {
+    variables: { id: postId ?? "" },
+    skip: !postId,
   });
 
   // Directory files
@@ -107,6 +118,13 @@ function PagerMode({
       const idx = taskFiles.findIndex((f) => f.path === filePath);
       return { files: taskFiles, initialIndex: Math.max(0, idx) };
     }
+    if (postId && postData?.post) {
+      const postFiles: (FileNode | PagerFileEntry)[] = filesFromAttachments(
+        postData.post.attachments ?? [],
+      );
+      const idx = postFiles.findIndex((f) => f.path === filePath);
+      return { files: postFiles, initialIndex: Math.max(0, idx) };
+    }
     if (dirPath != null && dirData?.workspaceEntries) {
       const entries = dirData.workspaceEntries
         .filter((e) => !e.isDirectory)
@@ -118,9 +136,9 @@ function PagerMode({
       files: [{ path: filePath, name: filePath.split("/").pop() ?? "" }],
       initialIndex: 0,
     };
-  }, [taskId, taskData, dirPath, dirData, filePath]);
+  }, [taskId, taskData, postId, postData, dirPath, dirData, filePath]);
 
-  const loading = taskLoading || dirLoading;
+  const loading = taskLoading || postLoading || dirLoading;
 
   if (loading) {
     return (

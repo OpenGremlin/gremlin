@@ -5,6 +5,9 @@ import type { GremlinContext } from "../../context.js";
 // Query resolvers
 // ---------------------------------------------------------------------------
 
+const post = (_parent: unknown, { id }: { id: string }, ctx: GremlinContext) =>
+  ctx.services.posts.getPost(ctx, id);
+
 const posts = (
   _parent: unknown,
   {
@@ -44,7 +47,7 @@ const postCreated = {
 };
 
 export const postResolvers = {
-  Query: { posts },
+  Query: { post, posts },
   Post: { agent, attachments },
   PostEdge: { node },
   Subscription: { postCreated },

@@ -80,6 +80,7 @@ type Documents = {
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id) {\n      ...AgentJobSummary\n    }\n  }\n": typeof types.TriggerJobDocument,
     "\n  subscription JobCreated {\n    jobCreated {\n      ...AgentJobSummary\n    }\n  }\n": typeof types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      ...AgentJobSummary\n    }\n  }\n": typeof types.CreateAgentJobDocument,
+    "\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n": typeof types.PostDocument,
     "\n  query Posts($first: Int, $after: String, $last: Int, $before: String) {\n    posts(first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          ...PostSummary\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": typeof types.PostsDocument,
     "\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n": typeof types.PostCreatedDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.ProfileDocument,
@@ -179,6 +180,7 @@ const documents: Documents = {
     "\n  mutation TriggerJob($id: ID!) {\n    triggerJob(id: $id) {\n      ...AgentJobSummary\n    }\n  }\n": types.TriggerJobDocument,
     "\n  subscription JobCreated {\n    jobCreated {\n      ...AgentJobSummary\n    }\n  }\n": types.JobCreatedDocument,
     "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      ...AgentJobSummary\n    }\n  }\n": types.CreateAgentJobDocument,
+    "\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n": types.PostDocument,
     "\n  query Posts($first: Int, $after: String, $last: Int, $before: String) {\n    posts(first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          ...PostSummary\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.PostsDocument,
     "\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n": types.PostCreatedDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.ProfileDocument,
@@ -490,6 +492,10 @@ export function graphql(source: "\n  subscription JobCreated {\n    jobCreated {
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      ...AgentJobSummary\n    }\n  }\n"): (typeof documents)["\n  mutation CreateAgentJob($input: CreateAgentJobInput!) {\n    createAgentJob(input: $input) {\n      ...AgentJobSummary\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n"): (typeof documents)["\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

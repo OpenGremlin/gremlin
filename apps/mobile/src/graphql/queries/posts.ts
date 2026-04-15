@@ -1,5 +1,13 @@
 import { graphql } from "../generated/gql";
 
+export const PostQuery = graphql(`
+  query Post($id: ID!) {
+    post(id: $id) {
+      ...PostSummary
+    }
+  }
+`);
+
 export const PostsQuery = graphql(`
   query Posts($first: Int, $after: String, $last: Int, $before: String) {
     posts(first: $first, after: $after, last: $last, before: $before) {

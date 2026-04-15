@@ -28,6 +28,7 @@ type Query {
   enabledModelDetails(providerId: String!): [ModelInfo!]!
   speechVoices(connectionId: String!): [SpeechVoice!]!
   logos: [Logo!]!
+  post(id: ID!): Post
   posts(first: Int, after: String, last: Int, before: String): PostConnection!
   userInputRequests: [UserInputRequest!]!
   profile: Profile!
