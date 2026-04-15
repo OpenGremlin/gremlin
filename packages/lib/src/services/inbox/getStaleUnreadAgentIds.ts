@@ -11,7 +11,7 @@ export async function getStaleUnreadTargets(
   ctx: ServiceContext,
 ): Promise<Array<{ agentId: string; lane: string }>> {
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MS).toISOString();
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const seen = new Set<string>();
   const targets: Array<{ agentId: string; lane: string }> = [];
 

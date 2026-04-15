@@ -23,10 +23,10 @@ describe("createTask", () => {
     vi.setSystemTime(new Date("2026-01-15T12:00:00.000Z"));
 
     mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
   });
 
   it("returns a task with generated id and timestamps", async () => {

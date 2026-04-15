@@ -7,7 +7,7 @@ export async function getUnreadItems(
   agentId: string,
   lane: string,
 ): Promise<InboxItemItem[]> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const { Items } = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),

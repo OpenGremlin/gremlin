@@ -23,7 +23,7 @@ export async function resolveUserInputRequest(
     resolvedAction: action,
   };
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new PutCommand({
       TableName: table.getName(),

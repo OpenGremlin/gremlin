@@ -3,11 +3,11 @@ import { anyOf } from "dynamodb-toolbox/schema/anyOf";
 import { item } from "dynamodb-toolbox/schema/item";
 import { nul } from "dynamodb-toolbox/schema/nul";
 import { string } from "dynamodb-toolbox/schema/string";
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 export const CommandApprovalEntity = new Entity({
   name: "CommandApproval",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

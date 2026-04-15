@@ -9,7 +9,7 @@ const client = new DynamoDBClient({
   region: process.env.AWS_REGION,
 });
 const docClient = DynamoDBDocumentClient.from(client);
-const TableName = process.env.MAIN_TABLE_NAME || "gremlin";
+const TableName = process.env.CHAT_TABLE_NAME || "gremlin-chat";
 
 async function clearPartition(pk: string) {
   let deleted = 0;

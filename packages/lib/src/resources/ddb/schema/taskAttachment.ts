@@ -2,7 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 /**
  * Standalone attachment item with its own UUID primary key.
@@ -23,7 +23,7 @@ import { GremlinTable } from "../table.js";
  */
 export const TaskAttachmentEntity = new Entity({
   name: "TaskAttachment",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

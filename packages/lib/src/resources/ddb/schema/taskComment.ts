@@ -2,7 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 /**
  * A comment / activity entry on a task.
@@ -15,7 +15,7 @@ import { GremlinTable } from "../table.js";
  */
 export const TaskCommentEntity = new Entity({
   name: "TaskComment",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

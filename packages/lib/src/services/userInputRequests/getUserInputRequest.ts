@@ -6,7 +6,7 @@ export async function getUserInputRequest(
   ctx: ServiceContext,
   id: string,
 ): Promise<UserInputRequestItem | null> {
-  const { Items } = await ctx.resources.ddb.table
+  const { Items } = await ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.UserInputRequest)
     .query({

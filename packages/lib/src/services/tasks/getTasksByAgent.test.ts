@@ -37,7 +37,7 @@ describe("getTasksByAgent", () => {
       },
     ];
 
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: tasks }),
@@ -51,7 +51,7 @@ describe("getTasksByAgent", () => {
   });
 
   it("returns empty array when Items is undefined", async () => {
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: undefined }),

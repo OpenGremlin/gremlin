@@ -19,10 +19,10 @@ describe("addTaskAttachment", () => {
     vi.setSystemTime(new Date("2026-01-15T12:00:00.000Z"));
 
     mockDocSend = vi.fn();
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
   });
 
   it("writes a file attachment with UUID pk, GSI1 for task, GSI2 for path", async () => {

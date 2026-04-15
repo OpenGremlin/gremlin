@@ -1,7 +1,7 @@
 import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 /**
  * Per-lane chat settings. The primary key is derived from agentId + lane
@@ -12,7 +12,7 @@ import { GremlinTable } from "../table.js";
  */
 export const ChatLaneEntity = new Entity({
   name: "ChatLane",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

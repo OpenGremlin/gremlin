@@ -34,7 +34,7 @@ export async function addTaskDep(
     }
     if (visited.has(current)) continue;
     visited.add(current);
-    const deps = await getDependencies(ctx.resources.ddb.table, current);
+    const deps = await getDependencies(ctx.resources.ddb.chatTable, current);
     for (const dep of deps) {
       if (!visited.has(dep.dependsOnId)) {
         queue.push(dep.dependsOnId);
@@ -42,7 +42,7 @@ export async function addTaskDep(
     }
   }
 
-  const item = await addDependency(ctx.resources.ddb.table, {
+  const item = await addDependency(ctx.resources.ddb.chatTable, {
     taskId,
     dependsOnId,
     depType,
@@ -64,7 +64,7 @@ export async function removeTaskDep(
   taskId: string,
   dependsOnId: string,
 ): Promise<void> {
-  await removeDependency(ctx.resources.ddb.table, { taskId, dependsOnId });
+  await removeDependency(ctx.resources.ddb.chatTable, { taskId, dependsOnId });
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (task) {
     ctx.resources.pubsub.publish(`taskUpdated:${taskId}`, task);
@@ -87,7 +87,7 @@ export async function getTaskDepTree(
   const queue: { id: string; depth: number }[] = [];
 
   // Seed with direct dependencies
-  const directDeps = await getDependencies(ctx.resources.ddb.table, taskId);
+  const directDeps = await getDependencies(ctx.resources.ddb.chatTable, taskId);
   for (const dep of directDeps) {
     queue.push({ id: dep.dependsOnId, depth: 1 });
   }
@@ -102,7 +102,7 @@ export async function getTaskDepTree(
 
     result.push({ task, depth });
 
-    const deps = await getDependencies(ctx.resources.ddb.table, id);
+    const deps = await getDependencies(ctx.resources.ddb.chatTable, id);
     for (const dep of deps) {
       if (!visited.has(dep.dependsOnId)) {
         queue.push({ id: dep.dependsOnId, depth: depth + 1 });
@@ -151,7 +151,7 @@ export async function getBlockedTasks(
   const blocked: TaskItem[] = [];
 
   for (const task of tasks) {
-    const deps = await getDependencies(ctx.resources.ddb.table, task.id);
+    const deps = await getDependencies(ctx.resources.ddb.chatTable, task.id);
     if (deps.length === 0) continue;
 
     // Check if any blocker is not yet closed
@@ -206,7 +206,7 @@ export async function getReadyWork(
   // Filter out blocked tasks (those with at least one unclosed dependency)
   const ready: TaskItem[] = [];
   for (const task of tasks) {
-    const deps = await getDependencies(ctx.resources.ddb.table, task.id);
+    const deps = await getDependencies(ctx.resources.ddb.chatTable, task.id);
     if (deps.length === 0) {
       ready.push(task);
       continue;

@@ -1,8 +1,5 @@
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { Table } from "dynamodb-toolbox/table";
-import { ddbClient } from "./client.js";
-
-const documentClient = DynamoDBDocumentClient.from(ddbClient);
+import { documentClient } from "./client.js";
 
 export const SecretsTable = new Table({
   name: process.env.SECRETS_TABLE_NAME || "gremlin-secrets",

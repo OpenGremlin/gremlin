@@ -8,7 +8,7 @@ import {
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 const docClient = DynamoDBDocumentClient.from(client);
-const TableName = process.env.MAIN_TABLE_NAME || "gremlin";
+const TableName = process.env.GREMLIN_TABLE_NAME || "gremlin";
 
 async function migrate() {
   console.log("Migrating GoogleOAuthToken → OAuthToken (provider-keyed)...\n");

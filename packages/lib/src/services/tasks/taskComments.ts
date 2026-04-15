@@ -17,7 +17,7 @@ export async function addComment(
     createdAt: now,
   };
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new PutCommand({
       TableName: table.getName(),
@@ -38,7 +38,7 @@ export async function getComments(
   ctx: ServiceContext,
   taskId: string,
 ): Promise<TaskCommentItem[]> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const { Items } = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),
@@ -59,7 +59,7 @@ export async function getLatestComment(
   ctx: ServiceContext,
   taskId: string,
 ): Promise<TaskCommentItem | undefined> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const { Items } = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),

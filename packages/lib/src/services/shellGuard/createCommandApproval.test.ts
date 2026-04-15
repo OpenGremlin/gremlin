@@ -14,10 +14,10 @@ describe("createCommandApproval", () => {
 
   it("writes a PENDING approval to DynamoDB", async () => {
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
 
     const result = await createCommandApproval(ctx, {
       agentId: "agent-1",
@@ -39,10 +39,10 @@ describe("createCommandApproval", () => {
 
   it("publishes pendingItemsUpdated to pubsub", async () => {
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
 
     await createCommandApproval(ctx, {
       agentId: "agent-1",

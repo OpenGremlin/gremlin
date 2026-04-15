@@ -74,7 +74,7 @@ export async function updateTaskStatus(
   const now = new Date().toISOString();
   const isClosing = status === "closed";
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
@@ -124,7 +124,7 @@ export async function closeTask(
 
   const now = new Date().toISOString();
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
@@ -173,7 +173,7 @@ export async function reopenTask(
 
   const now = new Date().toISOString();
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
@@ -250,7 +250,7 @@ export async function updateTaskFields(
     values[":deferUntil"] = fields.deferUntil;
   }
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),

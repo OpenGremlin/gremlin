@@ -14,7 +14,7 @@ export async function hasPendingApproval(
   agentId: string,
   taskId: string,
 ): Promise<boolean> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const result = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),

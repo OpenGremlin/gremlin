@@ -1,8 +1,8 @@
 import { Table } from "dynamodb-toolbox/table";
 import { documentClient } from "./client.js";
 
-export const GremlinTable = new Table({
-  name: process.env.GREMLIN_TABLE_NAME || "gremlin",
+export const ChatTable = new Table({
+  name: process.env.CHAT_TABLE_NAME || "gremlin-chat",
   partitionKey: { name: "pk", type: "string" },
   sortKey: { name: "sk", type: "string" },
   indexes: {

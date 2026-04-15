@@ -14,10 +14,10 @@ describe("requestUserInputTool", () => {
 
   it("returns inputRequestId and pending status", async () => {
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
 
     const tool = requestUserInputTool(ctx, "agent-1", "main");
     const result = await tool.execute(
@@ -45,10 +45,10 @@ describe("requestUserInputTool", () => {
 
   it("publishes pendingItemsUpdated to pubsub", async () => {
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
 
     const tool = requestUserInputTool(ctx, "agent-1", "main");
     await tool.execute(
@@ -73,10 +73,10 @@ describe("requestUserInputTool", () => {
 
   it("writes a PENDING UserInputRequest to DynamoDB", async () => {
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
 
     const tool = requestUserInputTool(ctx, "agent-1", "task:task-1");
     await tool.execute(

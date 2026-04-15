@@ -154,7 +154,7 @@ export async function runAgentTurn(
         // CommandApproval entity so resolveCommandApproval can update this
         // log entry later.
         if (commandApprovalId) {
-          const table = ctx.resources.ddb.table;
+          const table = ctx.resources.ddb.chatTable;
           await table
             .getDocumentClient()
             .send(

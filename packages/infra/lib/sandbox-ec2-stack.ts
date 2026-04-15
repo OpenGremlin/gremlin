@@ -269,7 +269,7 @@ export class SandboxEc2Stack extends cdk.Stack {
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(60),
         environment: {
-          MAIN_TABLE_NAME: props.tableName,
+          GREMLIN_TABLE_NAME: props.tableName,
           NODE_ENV: "production",
         },
         bundling: {

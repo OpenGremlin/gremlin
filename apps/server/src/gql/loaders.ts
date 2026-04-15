@@ -27,6 +27,7 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 function createEntityBatchLoader<E extends Entity>(
   resources: Resources,
   entity: E,
+  table: Resources["ddb"]["table"],
 ): DataLoader<string, FormattedItem<E> | null> {
   return new DataLoader<string, FormattedItem<E> | null>(async (ids) => {
     const chunks = chunkArray([...ids], 100);
@@ -38,9 +39,7 @@ function createEntityBatchLoader<E extends Entity>(
         entity.build(BatchGetRequest).key({ id } as any),
       );
 
-      const cmd = resources.ddb.table
-        .build(BatchGetCommand)
-        .requests(...requests);
+      const cmd = table.build(BatchGetCommand).requests(...requests);
       const { Responses } = await execute(cmd);
 
       const items = Responses[0] as (FormattedItem<E> | undefined)[];
@@ -60,18 +59,20 @@ export function createLoaders(resources: Resources): Loaders {
   const agentLoader = createEntityBatchLoader(
     resources,
     resources.ddb.entities.Agent,
+    resources.ddb.table,
   ) as DataLoader<string, AgentItem | null>;
 
   const taskLoader = createEntityBatchLoader(
     resources,
     resources.ddb.entities.Task,
+    resources.ddb.chatTable,
   ) as DataLoader<string, TaskItem | null>;
 
   const tasksByAgentLoader = new DataLoader<string, TaskItem[]>(
     async (agentIds) => {
       const results = await Promise.all(
         agentIds.map(async (agentId) => {
-          const { Items } = await resources.ddb.table
+          const { Items } = await resources.ddb.chatTable
             .build(QueryCommand)
             .entities(resources.ddb.entities.Task)
             .query({ index: "gsi1", partition: `TASK_AGENT#${agentId}` })

@@ -12,10 +12,10 @@ describe("getPendingCommandApprovals", () => {
   beforeEach(() => {
     ctx = createMockContext();
     mockDocSend = vi.fn();
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
   });
 
   it("returns pending command approvals", async () => {

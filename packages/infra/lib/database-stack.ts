@@ -17,6 +17,8 @@ export interface DatabaseStackProps extends cdk.StackProps {
 export class DatabaseStack extends cdk.Stack {
   readonly table: dynamodb.ITable;
   readonly tableName: string;
+  readonly chatTable: dynamodb.ITable;
+  readonly chatTableName: string;
   readonly secretsTable: dynamodb.ITable;
   readonly secretsTableName: string;
   readonly fileSystem: efs.IFileSystem;
@@ -82,6 +84,48 @@ export class DatabaseStack extends cdk.Stack {
     });
 
     this.secretsTable = secretsTable;
+
+    // ── Chat DynamoDB table ─────────────────────────────────
+    this.chatTableName = "gremlin-chat";
+
+    const chatTable = new dynamodb.Table(this, "ChatTable", {
+      tableName: this.chatTableName,
+      partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: "ttl",
+    });
+
+    chatTable.addGlobalSecondaryIndex({
+      indexName: "gsi1",
+      partitionKey: { name: "gsi1pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi1sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    chatTable.addGlobalSecondaryIndex({
+      indexName: "gsi2",
+      partitionKey: { name: "gsi2pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi2sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    chatTable.addGlobalSecondaryIndex({
+      indexName: "gsi3",
+      partitionKey: { name: "gsi3pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi3sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    chatTable.addGlobalSecondaryIndex({
+      indexName: "gsi4",
+      partitionKey: { name: "gsi4pk", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "gsi4sk", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.chatTable = chatTable;
 
     // ── EFS for shared /workspace ────────────────────────────
     const efsSg = new ec2.SecurityGroup(this, "EfsSg", {

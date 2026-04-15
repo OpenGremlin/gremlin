@@ -6,7 +6,7 @@ export async function getTasksByAgent(
   ctx: ServiceContext,
   agentId: string,
 ): Promise<TaskItem[]> {
-  const { Items } = await ctx.resources.ddb.table
+  const { Items } = await ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.Task)
     .query({ index: "gsi1", partition: `TASK_AGENT#${agentId}` })

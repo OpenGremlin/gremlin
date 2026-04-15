@@ -75,7 +75,7 @@ export async function showTask(
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) return null;
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
 
   const [dependencies, dependents, children, latestCommentResult, attachments] =
     await Promise.all([

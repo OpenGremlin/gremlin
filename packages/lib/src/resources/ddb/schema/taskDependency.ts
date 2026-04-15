@@ -2,7 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 /**
  * Dependency edge between two tasks.
@@ -17,7 +17,7 @@ import { GremlinTable } from "../table.js";
  */
 export const TaskDependencyEntity = new Entity({
   name: "TaskDependency",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     taskId: string().key(),

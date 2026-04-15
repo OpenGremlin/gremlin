@@ -2,11 +2,11 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { boolean } from "dynamodb-toolbox/schema/boolean";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 export const InboxItemEntity = new Entity({
   name: "InboxItem",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

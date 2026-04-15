@@ -12,7 +12,7 @@ export async function addTaskAttachment(
   taskId: string,
   attachment: Attachment,
 ) {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const tableName = table.getName();
   const docClient = table.getDocumentClient();
   const now = new Date().toISOString();

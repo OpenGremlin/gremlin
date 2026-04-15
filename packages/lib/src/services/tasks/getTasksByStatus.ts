@@ -6,7 +6,7 @@ export async function getTasksByStatus(
   ctx: ServiceContext,
   status: string,
 ): Promise<TaskItem[]> {
-  const { Items } = await ctx.resources.ddb.table
+  const { Items } = await ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.Task)
     .query({ index: "gsi4", partition: `TASK_STATUS#${status}` })

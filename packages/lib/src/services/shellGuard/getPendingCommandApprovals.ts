@@ -6,7 +6,7 @@ import type { ServiceContext } from "../context.js";
  * The client filters to pending where needed.
  */
 export async function getPendingCommandApprovals(ctx: ServiceContext) {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const result = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),

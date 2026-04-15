@@ -84,7 +84,7 @@ export async function createTask(
 
   // Write directly via document client so we can include GSI attributes.
   // DynamoDB Toolbox v2's computeKey doesn't project GSI keys into the item.
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new PutCommand({
       TableName: table.getName(),

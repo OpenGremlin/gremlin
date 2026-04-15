@@ -27,7 +27,7 @@ export async function getTaskAttachments(
   ctx: ServiceContext,
   taskId: string,
 ): Promise<Attachment[]> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const { Items } = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),

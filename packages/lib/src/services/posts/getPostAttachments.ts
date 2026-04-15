@@ -32,7 +32,7 @@ export async function getPostAttachments(
 ): Promise<Attachment[]> {
   if (attachmentIds.length === 0) return [];
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const tableName = table.getName();
   const docClient = table.getDocumentClient();
 

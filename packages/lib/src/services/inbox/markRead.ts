@@ -8,7 +8,7 @@ export async function markRead(
   ctx: ServiceContext,
   items: InboxItemItem[],
 ): Promise<void> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const ttl = Math.floor(Date.now() / 1000) + INBOX_READ_TTL_SECONDS;
 
   await Promise.all(

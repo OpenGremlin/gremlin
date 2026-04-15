@@ -3,11 +3,11 @@ import { item } from "dynamodb-toolbox/schema/item";
 import { list } from "dynamodb-toolbox/schema/list";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 export const PostEntity = new Entity({
   name: "Post",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

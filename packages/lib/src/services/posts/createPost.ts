@@ -22,7 +22,7 @@ async function collectAttachmentIds(
   ctx: ServiceContext,
   taskId: string,
 ): Promise<string[]> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const tableName = table.getName();
   const docClient = table.getDocumentClient();
 
@@ -76,7 +76,7 @@ async function postExistsForTask(
   ctx: ServiceContext,
   taskId: string,
 ): Promise<boolean> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const { Items } = await table.getDocumentClient().send(
     new QueryCommand({
       TableName: table.getName(),
@@ -136,7 +136,7 @@ export async function createPost(
     createdAt: now,
   };
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new PutCommand({
       TableName: table.getName(),

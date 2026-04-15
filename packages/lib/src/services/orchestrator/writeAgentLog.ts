@@ -67,7 +67,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     createdAt: now,
   };
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
     new PutCommand({
       TableName: table.getName(),
@@ -120,7 +120,7 @@ export async function updateAgentLogResult(
     commandApprovalId?: string | null;
   },
 ) {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const attachments = extractFileAttachment(entry.toolResult);
 
   const updateParts = ["toolResult = :result", "toolInput = :input"];

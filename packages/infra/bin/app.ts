@@ -45,6 +45,8 @@ const server = new ServerStack(app, "GremlinServerStack", {
   vpc: network.vpc,
   table: db.table,
   tableName: db.tableName,
+  chatTable: db.chatTable,
+  chatTableName: db.chatTableName,
   secretsTable: db.secretsTable,
   secretsTableName: db.secretsTableName,
   fileSystem: db.fileSystem,
@@ -84,7 +86,7 @@ new SandboxEc2Stack(app, "GremlinSandboxEc2Stack", {
 new PresetIamRolesStack(app, "GremlinPresetIamRolesStack", {
   env,
   serverRole: server.serverRole,
-  internalTables: [db.table, db.secretsTable],
+  internalTables: [db.table, db.chatTable, db.secretsTable],
 });
 
 // 6. Web app — depends on Auth, Media, Server (for ALB)

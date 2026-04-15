@@ -18,6 +18,8 @@ export interface ServerStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   table: dynamodb.ITable;
   tableName: string;
+  chatTable: dynamodb.ITable;
+  chatTableName: string;
   secretsTable: dynamodb.ITable;
   secretsTableName: string;
   fileSystem: efs.IFileSystem;
@@ -66,6 +68,7 @@ export class ServerStack extends cdk.Stack {
     });
 
     props.table.grantReadWriteData(serverRole);
+    props.chatTable.grantReadWriteData(serverRole);
     props.secretsTable.grantReadWriteData(serverRole);
 
     serverRole.addToPrincipalPolicy(
@@ -226,7 +229,8 @@ export class ServerStack extends cdk.Stack {
         `-p 3001:3001`,
         `-v /workspace:/workspace`,
         `-e PORT=3001`,
-        `-e TABLE_NAME=${props.tableName}`,
+        `-e GREMLIN_TABLE_NAME=${props.tableName}`,
+        `-e CHAT_TABLE_NAME=${props.chatTableName}`,
         `-e SECRETS_TABLE_NAME=${props.secretsTableName}`,
         `-e NODE_ENV=production`,
         `-e AWS_REGION=${this.region}`,

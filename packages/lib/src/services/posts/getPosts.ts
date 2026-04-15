@@ -24,7 +24,7 @@ export async function getPosts(
       ? { lt: decodeCursor(args.before) }
       : undefined;
 
-  const query = ctx.resources.ddb.table
+  const query = ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.Post)
     .query({

@@ -5,7 +5,7 @@ import type { ServiceContext } from "../context.js";
 export async function getUserInputRequests(
   ctx: ServiceContext,
 ): Promise<UserInputRequestItem[]> {
-  const { Items } = await ctx.resources.ddb.table
+  const { Items } = await ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.UserInputRequest)
     .query({ partition: "USER_INPUT_REQUEST" })

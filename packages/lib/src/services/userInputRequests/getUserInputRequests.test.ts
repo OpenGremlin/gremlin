@@ -17,7 +17,7 @@ describe("getUserInputRequests", () => {
       { id: "req-2", title: "Second" },
     ];
 
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: requests }),
@@ -31,7 +31,7 @@ describe("getUserInputRequests", () => {
   });
 
   it("returns empty array when no user input requests exist", async () => {
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: [] }),
@@ -45,7 +45,7 @@ describe("getUserInputRequests", () => {
   });
 
   it("returns empty array when Items is undefined", async () => {
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: undefined }),

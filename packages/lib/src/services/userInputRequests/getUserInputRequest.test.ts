@@ -18,7 +18,7 @@ describe("getUserInputRequest", () => {
       createdAt: "2024-01-01T00:00:00Z",
     };
 
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: [request] }),
@@ -32,7 +32,7 @@ describe("getUserInputRequest", () => {
   });
 
   it("returns null when Items is empty", async () => {
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: [] }),
@@ -46,7 +46,7 @@ describe("getUserInputRequest", () => {
   });
 
   it("returns null when Items is undefined", async () => {
-    ctx.resources.ddb.table.build.mockReturnValue({
+    ctx.resources.ddb.chatTable.build.mockReturnValue({
       entities: vi.fn().mockReturnValue({
         query: vi.fn().mockReturnValue({
           send: vi.fn().mockResolvedValue({ Items: undefined }),

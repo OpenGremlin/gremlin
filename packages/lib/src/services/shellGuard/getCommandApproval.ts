@@ -6,7 +6,7 @@ export async function getCommandApproval(
   ctx: ServiceContext,
   id: string,
 ): Promise<CommandApprovalItem | null> {
-  const { Items } = await ctx.resources.ddb.table
+  const { Items } = await ctx.resources.ddb.chatTable
     .build(QueryCommand)
     .entities(ctx.resources.ddb.entities.CommandApproval)
     .query({

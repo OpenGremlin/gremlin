@@ -11,7 +11,7 @@ const client = new DynamoDBClient({
   ...(endpoint ? { endpoint } : {}),
 });
 const docClient = DynamoDBDocumentClient.from(client);
-const TableName = process.env.MAIN_TABLE_NAME || "gremlin";
+const TableName = process.env.GREMLIN_TABLE_NAME || "gremlin";
 
 async function migrate() {
   console.log("Migrating AgentJob: adding paused=false to existing jobs...");

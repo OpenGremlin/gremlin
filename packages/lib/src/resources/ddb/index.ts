@@ -20,11 +20,14 @@ import { TaskAttachmentEntity } from "./schema/taskAttachment.js";
 import { TaskCommentEntity } from "./schema/taskComment.js";
 import { TaskDependencyEntity } from "./schema/taskDependency.js";
 import { UserInputRequestEntity } from "./schema/userInputRequest.js";
-import { SecretsTable } from "./secretsTable.js";
+
+import { ChatTable } from "./chatTable.js";
 import { GremlinTable } from "./table.js";
+import { SecretsTable } from "./secretsTable.js";
 
 export const ddb = {
   table: GremlinTable,
+  chatTable: ChatTable,
   secretsTable: SecretsTable,
   entities: {
     CronJobTrigger: CronJobTriggerEntity,

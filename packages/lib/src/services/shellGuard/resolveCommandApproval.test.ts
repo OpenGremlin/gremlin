@@ -50,10 +50,10 @@ describe("resolveCommandApproval", () => {
     mockedGetCommandApproval.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
     await resolveCommandApproval(ctx, "appr-1", "ALLOW_ONCE");

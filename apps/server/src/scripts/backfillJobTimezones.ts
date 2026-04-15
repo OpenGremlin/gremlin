@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 const docClient = DynamoDBDocumentClient.from(client);
-const TableName = process.env.MAIN_TABLE_NAME || "gremlin";
+const TableName = process.env.GREMLIN_TABLE_NAME || "gremlin";
 const DEFAULT_TZ = "America/New_York";
 
 const jobIds = ["1", "2", "3"];

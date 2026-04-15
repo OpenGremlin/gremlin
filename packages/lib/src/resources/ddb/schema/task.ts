@@ -5,11 +5,11 @@ import { nul } from "dynamodb-toolbox/schema/nul";
 import { number } from "dynamodb-toolbox/schema/number";
 import { string } from "dynamodb-toolbox/schema/string";
 
-import { GremlinTable } from "../table.js";
+import { ChatTable } from "../chatTable.js";
 
 export const TaskEntity = new Entity({
   name: "Task",
-  table: GremlinTable,
+  table: ChatTable,
   timestamps: false,
   schema: item({
     id: string().key(),

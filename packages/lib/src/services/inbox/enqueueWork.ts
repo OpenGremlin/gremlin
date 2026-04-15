@@ -31,7 +31,7 @@ export async function enqueueWork(
   const createdAt = new Date().toISOString();
   const payloadStr = JSON.stringify(input.payload);
 
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const item = {
     _et: "InboxItem",
     pk: `AGENT_INBOX#${agentId}#${lane}`,

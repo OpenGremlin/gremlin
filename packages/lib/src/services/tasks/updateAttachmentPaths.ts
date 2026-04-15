@@ -18,7 +18,7 @@ export async function updateAttachmentPaths(
   oldPath: string,
   newPath: string,
 ): Promise<number> {
-  const table = ctx.resources.ddb.table;
+  const table = ctx.resources.ddb.chatTable;
   const tableName = table.getName();
   const docClient = table.getDocumentClient();
 

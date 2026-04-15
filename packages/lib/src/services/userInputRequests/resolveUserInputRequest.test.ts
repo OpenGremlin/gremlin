@@ -37,10 +37,10 @@ describe("resolveUserInputRequest", () => {
     mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
     const result = await resolveUserInputRequest(ctx, "req-1", "Approve");
@@ -81,10 +81,10 @@ describe("resolveUserInputRequest", () => {
     mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
     await resolveUserInputRequest(ctx, "req-1", "Approve");
@@ -113,10 +113,10 @@ describe("resolveUserInputRequest", () => {
     mockedGetUserInputRequest.mockResolvedValue(existing as any);
 
     const mockDocSend = vi.fn().mockResolvedValue({});
-    ctx.resources.ddb.table.getDocumentClient.mockReturnValue({
+    ctx.resources.ddb.chatTable.getDocumentClient.mockReturnValue({
       send: mockDocSend,
     } as any);
-    ctx.resources.ddb.table.getName.mockReturnValue("test-table");
+    ctx.resources.ddb.chatTable.getName.mockReturnValue("test-table");
     ctx.services.inbox.enqueueWork.mockResolvedValue(undefined as any);
 
     await resolveUserInputRequest(ctx, "req-1", "Approve");
