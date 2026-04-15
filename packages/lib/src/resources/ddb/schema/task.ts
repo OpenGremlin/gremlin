@@ -5,6 +5,7 @@ import { nul } from "dynamodb-toolbox/schema/nul";
 import { number } from "dynamodb-toolbox/schema/number";
 import { string } from "dynamodb-toolbox/schema/string";
 
+import { pkShard } from "../shard.js";
 import { GremlinTable } from "../table.js";
 
 export const TaskEntity = new Entity({
@@ -48,7 +49,7 @@ export const TaskEntity = new Entity({
   // NOTE: GSI keys (gsi1pk/gsi1sk) are written directly via AWS SDK
   // PutCommand because dynamodb-toolbox v2 computeKey ignores them.
   computeKey: ({ id }) => ({
-    pk: "TASK",
+    pk: pkShard("TASK", id),
     sk: `TASK#${id}`,
   }),
 });

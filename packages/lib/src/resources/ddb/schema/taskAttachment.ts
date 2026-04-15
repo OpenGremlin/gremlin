@@ -2,6 +2,7 @@ import { Entity, type FormattedItem } from "dynamodb-toolbox/entity";
 import { item } from "dynamodb-toolbox/schema/item";
 import { string } from "dynamodb-toolbox/schema/string";
 
+import { pkShard } from "../shard.js";
 import { GremlinTable } from "../table.js";
 
 /**
@@ -39,7 +40,7 @@ export const TaskAttachmentEntity = new Entity({
     createdAt: string(),
   }),
   computeKey: ({ id }) => ({
-    pk: "ATTACHMENT",
+    pk: pkShard("ATTACHMENT", id),
     sk: `ATTACHMENT#${id}`,
   }),
 });

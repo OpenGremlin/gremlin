@@ -1,6 +1,7 @@
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { ToolName } from "../../enums.js";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
+import { pkShard } from "../../resources/ddb/shard.js";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
 
@@ -74,7 +75,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
       Item: {
         ...item,
         _et: "AgentLog",
-        pk: "AGENT_LOG",
+        pk: pkShard("AGENT_LOG", id),
         sk: `AGENT_LOG#${id}`,
         gsi1pk: entry.taskId
           ? `LOG_TASK#${entry.taskId}`
@@ -142,7 +143,7 @@ export async function updateAgentLogResult(
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
-      Key: { pk: "AGENT_LOG", sk: `AGENT_LOG#${logId}` },
+      Key: { pk: pkShard("AGENT_LOG", logId), sk: `AGENT_LOG#${logId}` },
       UpdateExpression: `SET ${updateParts.join(", ")}`,
       ExpressionAttributeValues: exprValues,
     }),

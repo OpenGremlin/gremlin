@@ -1,5 +1,6 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { PostItem } from "../../resources/ddb/schema/post.js";
+import { pkShard } from "../../resources/ddb/shard.js";
 import type { ServiceContext } from "../context.js";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -143,7 +144,7 @@ export async function createPost(
       Item: {
         ...item,
         _et: "Post",
-        pk: "POST",
+        pk: pkShard("POST", id),
         sk: `POST#${id}`,
         // GSI1: query posts by agent
         gsi1pk: `POST_AGENT#${input.agentId}`,
