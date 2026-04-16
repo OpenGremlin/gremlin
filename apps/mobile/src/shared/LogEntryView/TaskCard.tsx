@@ -21,6 +21,7 @@ export interface TaskChild {
   assigneeName: string | null;
   latestComment: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
+  children?: TaskChild[];
 }
 
 export interface TaskInfo {
@@ -60,7 +61,7 @@ function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   }
 }
 
-const ChildRow = React.memo(function ChildRow({ child, isDark }: { child: TaskChild; isDark: boolean }) {
+const ChildRow = React.memo(function ChildRow({ child, isDark, depth = 0 }: { child: TaskChild; isDark: boolean; depth?: number }) {
   const files = filesFromAttachments(
     (child.attachments ?? []) as AttachmentFieldsFragment[],
   );
@@ -76,60 +77,80 @@ const ChildRow = React.memo(function ChildRow({ child, isDark }: { child: TaskCh
   };
 
   return (
-    <Pressable
-      onPress={() => router.push(`/tasks/${child.id}`)}
-      className="py-1.5 flex-row gap-2.5"
-    >
-      <View className="w-8 items-center pt-0.5">
-        {child.agentId ? (
-          <AgentAvatar id={child.agentId} size={32} />
-        ) : (
-          <View className="w-8 h-8" />
-        )}
-      </View>
-      <View className="flex-1 min-w-0">
-        <View className="flex-row items-center gap-1.5">
+    <>
+      <Pressable
+        onPress={() => router.push(`/tasks/${child.id}`)}
+        className="py-1.5 flex-row gap-2.5"
+        style={depth > 0 ? { marginLeft: depth * 16 } : undefined}
+      >
+        <View className="w-8 items-center pt-0.5">
+          {child.agentId ? (
+            <AgentAvatar id={child.agentId} size={32} />
+          ) : (
+            <View className="w-8 h-8" />
+          )}
+        </View>
+        <View className="flex-1 min-w-0">
+          <View className="flex-row items-center gap-1.5">
+            <Text
+              className={`text-sm shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+              numberOfLines={1}
+            >
+              {child.title}
+            </Text>
+            <StatusIcon status={child.status} isDark={isDark} />
+          </View>
           <Text
-            className={`text-sm shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+            className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
             numberOfLines={1}
           >
-            {child.title}
+            {statusLabel(child.status)}
+            {child.latestComment ? ` · ${child.latestComment}` : ""}
           </Text>
-          <StatusIcon status={child.status} isDark={isDark} />
-        </View>
-        <Text
-          className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-          numberOfLines={1}
-        >
-          {statusLabel(child.status)}
-          {child.latestComment ? ` · ${child.latestComment}` : ""}
-        </Text>
-        {groups.length > 0 && (
-          <View className="mt-1 gap-1">
-            {groups.map((group) => {
-              if (group.kind === "images") {
+          {groups.length > 0 && (
+            <View className="mt-1 gap-1">
+              {groups.map((group) => {
+                if (group.kind === "images") {
+                  return (
+                    <ImageCollage
+                      key={`images-${group.indices[0]}`}
+                      images={group.files}
+                      onPressImage={(i) => openPager(group.indices[i])}
+                    />
+                  );
+                }
                 return (
-                  <ImageCollage
-                    key={`images-${group.indices[0]}`}
-                    images={group.files}
-                    onPressImage={(i) => openPager(group.indices[i])}
+                  <FileCard
+                    key={`${group.file.path}-${group.index}`}
+                    file={group.file}
+                    onPress={() => openPager(group.index)}
                   />
                 );
-              }
-              return (
-                <FileCard
-                  key={`${group.file.path}-${group.index}`}
-                  file={group.file}
-                  onPress={() => openPager(group.index)}
-                />
-              );
-            })}
-          </View>
-        )}
-      </View>
-    </Pressable>
+              })}
+            </View>
+          )}
+        </View>
+      </Pressable>
+      {child.children?.map((grandchild) => (
+        <ChildRow key={grandchild.id} child={grandchild} isDark={isDark} depth={depth + 1} />
+      ))}
+    </>
   );
 });
+
+// biome-ignore lint/suspicious/noExplicitAny: subscription child type varies by query depth
+export function mapChild(c: any): TaskChild {
+  return {
+    id: c.id,
+    title: c.title,
+    status: c.status as string,
+    agentId: c.agent?.id ?? null,
+    assigneeName: c.assigneeName ?? null,
+    latestComment: c.latestComment ?? null,
+    attachments: c.attachments,
+    children: c.children?.map((gc: any) => mapChild(gc)),
+  };
+}
 
 export function TaskCard({ task }: { task: TaskInfo | null }) {
   const { isDark } = useTheme();
@@ -154,15 +175,7 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
         latestComment: u.latestComment ?? null,
         emoji: u.emoji ?? null,
         attachments: u.attachments,
-        children: (u.children ?? []).map((c) => ({
-          id: c.id,
-          title: c.title,
-          status: c.status as string,
-          agentId: c.agent?.id ?? null,
-          assigneeName: c.assigneeName ?? null,
-          latestComment: c.latestComment ?? null,
-          attachments: c.attachments,
-        })),
+        children: (u.children ?? []).map((c) => mapChild(c)),
       });
     },
   });

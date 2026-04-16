@@ -31,7 +31,7 @@ import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
-import { TaskCard } from "./TaskCard";
+import { TaskCard, mapChild } from "./TaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
@@ -473,15 +473,7 @@ export const LogEntryView = React.memo(function LogEntryView({
               latestComment: t.latestComment ?? null,
               emoji: t.emoji ?? null,
               attachments: t.attachments,
-              children: (t.children ?? []).map((c) => ({
-                id: c.id,
-                title: c.title,
-                status: c.status as string,
-                agentId: c.agent?.id ?? null,
-                assigneeName: c.assigneeName ?? null,
-                latestComment: c.latestComment ?? null,
-                attachments: c.attachments,
-              })),
+              children: (t.children ?? []).map((c) => mapChild(c)),
             }}
           />
         );

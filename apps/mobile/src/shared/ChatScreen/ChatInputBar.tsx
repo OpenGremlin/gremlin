@@ -137,7 +137,7 @@ export function ChatInputBar({
       )}
 
       <View
-        className={`flex-row items-end gap-1.5 rounded-3xl pl-1.5 pr-1.5 py-1 overflow-hidden ${isDark ? "border border-white/15" : ""}`}
+        className="flex-row items-end gap-1.5 rounded-3xl pl-1.5 pr-1.5 py-1 overflow-hidden"
         style={{ borderCurve: "continuous" }}
       >
         {!isWeb ? (

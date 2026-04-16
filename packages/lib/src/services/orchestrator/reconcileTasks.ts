@@ -59,15 +59,6 @@ export async function reconcile(
   const needsAssignment: TaskItem[] = [];
 
   for (const task of ready) {
-    // Tasks with children are containers — they don't get dispatched as
-    // task lanes. They're auto-closed by closeCompletedParents when all
-    // children finish.
-    const children = await ctx.services.tasks.getChildren(ctx, task.id);
-    if (children.length > 0) {
-      await ctx.services.tasks.updateTaskStatus(ctx, task.id, "in_progress");
-      continue;
-    }
-
     // Circuit breaker: if a task has been escalated too many times,
     // close it and notify the assigner (or epic owner).
     if ((task.escalationCount ?? 0) >= MAX_ESCALATIONS) {
@@ -80,7 +71,10 @@ export async function reconcile(
           : null) ??
         triggerAgentId;
 
-      await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", {
+      const escalationLane = task.parentId
+        ? `task:${task.parentId}`
+        : "main";
+      await ctx.services.inbox.enqueueWork(ctx, ownerId, escalationLane, {
         type: "task_needs_attention",
         payload: {
           taskId: task.id,
@@ -191,108 +185,48 @@ export async function reconcile(
   }
 
   // Wake the epic owner (or trigger agent) for any ready tasks that have
-  // no assignee. Unassigned tasks typically arise under an epic whose owner
-  // should decide how to route them — not the worker that happened to
-  // finish the last child.
+  // no assignee. Route to the parent's task lane when the unassigned
+  // tasks belong to an epic, otherwise to the main lane.
   if (needsAssignment.length > 0) {
-    const input: EnqueueInput = {
-      type: "tasks_need_assignment",
-      payload: { taskIds: needsAssignment.map((t) => t.id) },
-    };
-    const ownerId = await findEpicOwner(ctx, needsAssignment, triggerAgentId);
-    await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", input);
+    const byParent = new Map<string | undefined, TaskItem[]>();
+    for (const t of needsAssignment) {
+      const key = t.parentId ?? undefined;
+      const group = byParent.get(key) ?? [];
+      group.push(t);
+      byParent.set(key, group);
+    }
+
+    for (const [parentId, tasks] of byParent) {
+      const lane = parentId ? `task:${parentId}` : "main";
+      const ownerId = await findEpicOwner(ctx, tasks, triggerAgentId);
+      await ctx.services.inbox.enqueueWork(ctx, ownerId, lane, {
+        type: "tasks_need_assignment",
+        payload: { taskIds: tasks.map((t) => t.id) },
+      });
+    }
 
     ctx.log.info(
       { count: needsAssignment.length, component: "reconciler" },
-      "Enqueued tasks_need_assignment to manager",
+      "Enqueued tasks_need_assignment to manager(s)",
     );
   }
 
-  await closeCompletedParents(ctx, triggerAgentId);
-
-  // Check if the task that just completed its lane is a standalone
-  // top-level task (no parent, no children) that closed itself.
+  // Check if the task that just completed its lane is a top-level
+  // task (no parent) that closed itself.
   if (completedTaskId) {
-    await notifyStandaloneTaskComplete(ctx, triggerAgentId, completedTaskId);
+    await notifyTopLevelTaskComplete(ctx, triggerAgentId, completedTaskId);
   }
 }
 
-// ── Parent auto-closure ────────────────────────────────────────────
+// ── Top-level task completion ──────────────────────────────────────
 
 /**
- * Auto-close parent tasks whose children are all closed, and notify the
- * triggering agent so it can create a post summarizing the work.
- *
- * Scans in-progress tasks that have children. When all children of a
- * parent are closed, the parent is auto-closed and — if it's top-level —
- * the main lane is notified via `top_level_task_complete`.
+ * If the task that just finished its lane is a closed, top-level task
+ * (no parent), notify the main lane so the agent can create a post.
+ * Applies to both standalone tasks and epics that closed themselves
+ * after all children completed.
  */
-export async function closeCompletedParents(
-  ctx: ServiceContext,
-  triggerAgentId: string,
-): Promise<void> {
-  // Check in-progress tasks — parents are marked in_progress by the
-  // reconciler when they have children.
-  const inProgress = await ctx.services.tasks.listTasks(ctx, {
-    status: "in_progress",
-  });
-
-  for (const parent of inProgress) {
-    const children = await ctx.services.tasks.getChildren(ctx, parent.id);
-
-    // Not a parent — skip.
-    if (children.length === 0) continue;
-
-    const allClosed = children.every((c) => c.status === "closed");
-    if (!allClosed) continue;
-
-    await ctx.services.tasks.closeTask(
-      ctx,
-      parent.id,
-      "All children completed",
-    );
-
-    // Only notify for top-level tasks (no parent).
-    if (!parent.parentId) {
-      // Notify the epic's own agent — not the worker that happened to
-      // complete the last child task.
-      const epicOwnerId =
-        parent.agentId && parent.agentId !== "unassigned"
-          ? parent.agentId
-          : triggerAgentId;
-
-      const notification: EnqueueInput = {
-        type: "top_level_task_complete",
-        payload: { taskId: parent.id, title: parent.title },
-      };
-      await ctx.services.inbox.enqueueWork(
-        ctx,
-        epicOwnerId,
-        "main",
-        notification,
-      );
-
-      ctx.log.info(
-        { parentId: parent.id, component: "reconciler" },
-        "Auto-closed completed epic and notified main lane",
-      );
-    } else {
-      ctx.log.info(
-        { parentId: parent.id, component: "reconciler" },
-        "Auto-closed completed parent (non-top-level)",
-      );
-    }
-  }
-}
-
-// ── Standalone task completion ─────────────────────────────────────
-
-/**
- * If the task that just finished its lane is a closed, top-level,
- * standalone task (no parent, no children), notify the main lane
- * so the agent can create a post.
- */
-async function notifyStandaloneTaskComplete(
+async function notifyTopLevelTaskComplete(
   ctx: ServiceContext,
   triggerAgentId: string,
   taskId: string,
@@ -305,10 +239,6 @@ async function notifyStandaloneTaskComplete(
 
   // Must be top-level (no parent).
   if (task.parentId) return;
-
-  // Must be standalone (no children) — epics are handled by closeCompletedParents.
-  const children = await ctx.services.tasks.getChildren(ctx, task.id);
-  if (children.length > 0) return;
 
   const notification: EnqueueInput = {
     type: "top_level_task_complete",
@@ -323,6 +253,6 @@ async function notifyStandaloneTaskComplete(
 
   ctx.log.info(
     { taskId: task.id, component: "reconciler" },
-    "Notified main lane of standalone task completion",
+    "Notified main lane of top-level task completion",
   );
 }

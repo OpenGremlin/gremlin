@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockContext } from "../__testing__/mockContext.js";
-import { closeCompletedParents, reconcile } from "./reconcileTasks.js";
+import { reconcile } from "./reconcileTasks.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -39,134 +39,10 @@ describe("reconcileTasks", () => {
     });
   });
 
-  // ── closeCompletedParents ─────────────────────────────────────────
-
-  describe("closeCompletedParents", () => {
-    it("notifies the epic owner, not the trigger agent", async () => {
-      const epic = makeTask({
-        id: "epic-1",
-        agentId: "agent-manager",
-        status: "in_progress",
-        parentId: undefined,
-      });
-
-      ctx.services.tasks.listTasks.mockResolvedValue([epic]);
-      ctx.services.tasks.getChildren.mockResolvedValue([
-        makeTask({ id: "child-1", status: "closed", parentId: "epic-1" }),
-        makeTask({ id: "child-2", status: "closed", parentId: "epic-1" }),
-      ]);
-
-      await closeCompletedParents(ctx, "agent-worker");
-
-      // Should close the epic.
-      expect(ctx.services.tasks.closeTask).toHaveBeenCalledWith(
-        ctx,
-        "epic-1",
-        "All children completed",
-      );
-
-      // Notification goes to the epic's own agent, NOT the trigger agent.
-      expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
-        ctx,
-        "agent-manager",
-        "main",
-        expect.objectContaining({ type: "top_level_task_complete" }),
-      );
-    });
-
-    it("falls back to triggerAgentId when epic has no agentId", async () => {
-      const epic = makeTask({
-        id: "epic-1",
-        agentId: undefined,
-        status: "in_progress",
-        parentId: undefined,
-      });
-
-      ctx.services.tasks.listTasks.mockResolvedValue([epic]);
-      ctx.services.tasks.getChildren.mockResolvedValue([
-        makeTask({ id: "child-1", status: "closed", parentId: "epic-1" }),
-      ]);
-
-      await closeCompletedParents(ctx, "agent-worker");
-
-      expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
-        ctx,
-        "agent-worker",
-        "main",
-        expect.objectContaining({ type: "top_level_task_complete" }),
-      );
-    });
-
-    it("falls back to triggerAgentId when epic agentId is 'unassigned'", async () => {
-      const epic = makeTask({
-        id: "epic-1",
-        agentId: "unassigned",
-        status: "in_progress",
-        parentId: undefined,
-      });
-
-      ctx.services.tasks.listTasks.mockResolvedValue([epic]);
-      ctx.services.tasks.getChildren.mockResolvedValue([
-        makeTask({ id: "child-1", status: "closed", parentId: "epic-1" }),
-      ]);
-
-      await closeCompletedParents(ctx, "agent-worker");
-
-      expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
-        ctx,
-        "agent-worker",
-        "main",
-        expect.objectContaining({ type: "top_level_task_complete" }),
-      );
-    });
-
-    it("does not notify when a non-top-level parent closes", async () => {
-      const midLevel = makeTask({
-        id: "mid-1",
-        agentId: "agent-manager",
-        status: "in_progress",
-        parentId: "epic-1", // has a parent → not top-level
-      });
-
-      ctx.services.tasks.listTasks.mockResolvedValue([midLevel]);
-      ctx.services.tasks.getChildren.mockResolvedValue([
-        makeTask({ id: "child-1", status: "closed", parentId: "mid-1" }),
-      ]);
-
-      await closeCompletedParents(ctx, "agent-worker");
-
-      expect(ctx.services.tasks.closeTask).toHaveBeenCalled();
-      expect(ctx.services.inbox.enqueueWork).not.toHaveBeenCalled();
-    });
-
-    it("skips parents whose children are not all closed", async () => {
-      const epic = makeTask({
-        id: "epic-1",
-        agentId: "agent-manager",
-        status: "in_progress",
-      });
-
-      ctx.services.tasks.listTasks.mockResolvedValue([epic]);
-      ctx.services.tasks.getChildren.mockResolvedValue([
-        makeTask({ id: "child-1", status: "closed", parentId: "epic-1" }),
-        makeTask({
-          id: "child-2",
-          status: "in_progress",
-          parentId: "epic-1",
-        }),
-      ]);
-
-      await closeCompletedParents(ctx, "agent-worker");
-
-      expect(ctx.services.tasks.closeTask).not.toHaveBeenCalled();
-      expect(ctx.services.inbox.enqueueWork).not.toHaveBeenCalled();
-    });
-  });
-
   // ── tasks_need_assignment ─────────────────────────────────────────
 
   describe("tasks_need_assignment routing", () => {
-    it("routes to epic owner when unassigned tasks have a parent", async () => {
+    it("routes to epic lane when unassigned tasks have a parent", async () => {
       const unassignedChild = makeTask({
         id: "child-1",
         agentId: "unassigned",
@@ -174,7 +50,6 @@ describe("reconcileTasks", () => {
       });
 
       ctx.services.tasks.getReadyWork.mockResolvedValue([unassignedChild]);
-      ctx.services.tasks.getChildren.mockResolvedValue([]);
       // The parent lookup for findEpicOwner.
       ctx.services.tasks.getTask.mockResolvedValue(
         makeTask({ id: "epic-1", agentId: "agent-manager" }),
@@ -185,7 +60,7 @@ describe("reconcileTasks", () => {
       expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
         ctx,
         "agent-manager",
-        "main",
+        "task:epic-1",
         expect.objectContaining({ type: "tasks_need_assignment" }),
       );
     });
@@ -198,7 +73,6 @@ describe("reconcileTasks", () => {
       });
 
       ctx.services.tasks.getReadyWork.mockResolvedValue([orphanTask]);
-      ctx.services.tasks.getChildren.mockResolvedValue([]);
 
       await reconcile(ctx, "agent-worker");
 
@@ -218,7 +92,6 @@ describe("reconcileTasks", () => {
       });
 
       ctx.services.tasks.getReadyWork.mockResolvedValue([child]);
-      ctx.services.tasks.getChildren.mockResolvedValue([]);
       ctx.services.tasks.getTask.mockResolvedValue(
         makeTask({ id: "epic-1", agentId: "unassigned" }),
       );
@@ -228,7 +101,7 @@ describe("reconcileTasks", () => {
       expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
         ctx,
         "agent-trigger",
-        "main",
+        "task:epic-1",
         expect.objectContaining({ type: "tasks_need_assignment" }),
       );
     });
@@ -236,7 +109,7 @@ describe("reconcileTasks", () => {
 
   // ── Standalone task completion ────────────────────────────────────
 
-  describe("standalone task completion", () => {
+  describe("top-level task completion", () => {
     it("notifies the trigger agent for standalone tasks", async () => {
       const task = makeTask({
         id: "task-1",
@@ -247,13 +120,33 @@ describe("reconcileTasks", () => {
 
       ctx.services.tasks.getReadyWork.mockResolvedValue([]);
       ctx.services.tasks.getTask.mockResolvedValue(task);
-      ctx.services.tasks.getChildren.mockResolvedValue([]);
 
       await reconcile(ctx, "agent-worker", "task-1");
 
       expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
         ctx,
         "agent-worker",
+        "main",
+        expect.objectContaining({ type: "top_level_task_complete" }),
+      );
+    });
+
+    it("notifies when an epic self-closes", async () => {
+      const epic = makeTask({
+        id: "epic-1",
+        agentId: "agent-manager",
+        status: "closed",
+        parentId: undefined,
+      });
+
+      ctx.services.tasks.getReadyWork.mockResolvedValue([]);
+      ctx.services.tasks.getTask.mockResolvedValue(epic);
+
+      await reconcile(ctx, "agent-manager", "epic-1");
+
+      expect(ctx.services.inbox.enqueueWork).toHaveBeenCalledWith(
+        ctx,
+        "agent-manager",
         "main",
         expect.objectContaining({ type: "top_level_task_complete" }),
       );

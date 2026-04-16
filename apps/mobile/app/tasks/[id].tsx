@@ -47,6 +47,7 @@ export default function TaskScreen() {
         notFound={!loading && !error && !found}
         notFoundLabel="Task not found"
         sandboxStreams={sandboxStreams}
+        standalone
       />
     </>
   );

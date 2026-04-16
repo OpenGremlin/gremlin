@@ -268,9 +268,10 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           });
         }
 
-        // Notify the main lane on escalation or completion. This applies
-        // to both cross-agent and self-assigned tasks — the task lane is
-        // an independent context and the main lane needs to know.
+        // Notify the parent lane (or main lane for top-level tasks) on
+        // escalation or completion. Child tasks route to their parent's
+        // task lane so the epic can coordinate; standalone tasks route to
+        // the main lane as before.
         if (escalate || status === "done") {
           const task = await ctx.services.tasks.getTask(ctx, taskId);
           if (task) {
@@ -278,8 +279,25 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
               await ctx.services.tasks.incrementEscalationCount(ctx, taskId);
             }
 
-            const ownerId = task.assignerAgentId ?? task.agentId;
-            await ctx.services.inbox.enqueueWork(ctx, ownerId, "main", {
+            let targetLane: string;
+            let ownerId: string;
+
+            if (task.parentId) {
+              // Route to the parent epic's task lane.
+              targetLane = `task:${task.parentId}`;
+              const parent = await ctx.services.tasks.getTask(
+                ctx,
+                task.parentId,
+              );
+              ownerId =
+                parent?.agentId ?? task.assignerAgentId ?? task.agentId;
+            } else {
+              // Standalone / top-level task → main lane.
+              targetLane = "main";
+              ownerId = task.assignerAgentId ?? task.agentId;
+            }
+
+            await ctx.services.inbox.enqueueWork(ctx, ownerId, targetLane, {
               type: escalate ? "task_needs_attention" : "task_ready_for_review",
               payload: {
                 taskId,

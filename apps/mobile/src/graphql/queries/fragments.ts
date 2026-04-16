@@ -147,6 +147,15 @@ export const AgentLogFields = graphql(`
         latestComment
         attachments { ...AttachmentFields }
         agent { id }
+        children {
+          id
+          title
+          status
+          assigneeName
+          latestComment
+          attachments { ...AttachmentFields }
+          agent { id }
+        }
       }
       agent { id }
     }
@@ -177,6 +186,15 @@ export const TaskTrackingSubscription = graphql(`
         agent { id }
         latestComment
         attachments { ...AttachmentFields }
+        children {
+          id
+          title
+          status
+          assigneeName
+          agent { id }
+          latestComment
+          attachments { ...AttachmentFields }
+        }
       }
     }
   }

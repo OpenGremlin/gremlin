@@ -76,6 +76,9 @@ interface ChatScreenProps {
   notFoundLabel?: string;
   disabled?: boolean;
   sandboxStreams?: Map<string, CommandStream>;
+  /** When true, the screen is outside the tab navigator — use safe-area
+   *  bottom inset instead of tab-bar height for input positioning. */
+  standalone?: boolean;
 }
 
 export function ChatScreen({
@@ -91,11 +94,15 @@ export function ChatScreen({
   notFoundLabel,
   disabled,
   sandboxStreams,
+  standalone,
 }: ChatScreenProps) {
   const colors = useNavigationTheme();
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
-  const tabBarHeight = useTabBarHeight();
+  const rawTabBarHeight = useTabBarHeight();
+  // Outside the tab navigator (e.g. /tasks/[id]), use the safe-area bottom
+  // inset so the input bar sits flush above the home indicator.
+  const tabBarHeight = standalone ? insets.bottom : rawTabBarHeight;
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const keyboardVisible = keyboardHeight > 0;
   const inputBottom = useSharedValue(tabBarHeight);
@@ -462,7 +469,7 @@ export function ChatScreen({
         <View
           style={{
             paddingTop: process.env.EXPO_OS === "ios" ? insets.top + 8 : 12,
-            paddingBottom: 32,
+            paddingBottom: 64,
           }}
         >
           {process.env.EXPO_OS !== "web" ? (
@@ -472,7 +479,7 @@ export function ChatScreen({
               maskElement={
                 <LinearGradient
                   colors={["black", "black", "transparent"]}
-                  locations={[0, 0.4, 1]}
+                  locations={[0, 0.2, 1]}
                   style={StyleSheet.absoluteFill}
                 />
               }
@@ -557,6 +564,20 @@ export function ChatScreen({
             onPickFiles={handlePickFiles}
           />
         </Animated.View>
+      )}
+
+      {/* Fill the safe-area gap below the input bar when there's no tab bar */}
+      {standalone && insets.bottom > 0 && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: insets.bottom,
+            backgroundColor: colors.background,
+          }}
+        />
       )}
     </View>
   );

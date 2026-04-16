@@ -2,6 +2,9 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
 
+/** Maximum parent→child nesting depth. Prevents runaway hierarchies. */
+export const MAX_TASK_DEPTH = 3;
+
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 function generateTaskId(): string {
@@ -62,6 +65,23 @@ export async function createTask(
         `Cannot add children to unassigned task "${parent.title}" (${parent.id}). ` +
           `Assign the parent to an agent first.`,
       );
+    }
+
+    // Enforce max nesting depth to prevent runaway hierarchies.
+    // depth counts total levels: the new task is level 1, its parent is
+    // level 2, etc. MAX_TASK_DEPTH = 3 means 3 total levels allowed.
+    let depth = 1;
+    let current: typeof parent | null = parent;
+    while (current) {
+      depth++;
+      if (depth > MAX_TASK_DEPTH) {
+        throw new Error(
+          `Task nesting depth exceeds maximum of ${MAX_TASK_DEPTH}. ` +
+            `Flatten your task hierarchy or use dependencies instead.`,
+        );
+      }
+      if (!current.parentId) break;
+      current = await ctx.services.tasks.getTask(ctx, current.parentId);
     }
   }
 
