@@ -108,11 +108,13 @@ export function ChatInputBar({
     sendScale.value = withSpring(0.85, { damping: 12, stiffness: 400 }, () => {
       sendScale.value = withSpring(1, { damping: 10, stiffness: 300 });
     });
+    // Clear text eagerly so the remounted TextInput starts at minimum height
+    setInput("");
     onSend();
     setInputKey((k) => k + 1);
     // Refocus after remount so keyboard stays up
     setTimeout(() => inputRef.current?.focus(), 0);
-  }, [onSend, sendScale]);
+  }, [onSend, sendScale, setInput]);
 
   if (disabled) {
     return (

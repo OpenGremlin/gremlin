@@ -67,11 +67,16 @@ export function useChatSend({
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
+  const inputRef = useRef(input);
+  inputRef.current = input;
+
   const handleSend = useCallback(async () => {
-    const content = input.trim();
+    // Read from ref so this works even if input state was eagerly cleared
+    const content = inputRef.current.trim();
     if (!content || !agentId || sending) return;
     setSending(true);
     setSendError(null);
+    setInput("");
     clientLogger.info("Sending message", { agentId, taskId });
     try {
       const timeout = new Promise<never>((_, reject) =>
@@ -86,7 +91,6 @@ export function useChatSend({
         timeout,
       ]);
       clientLogger.debug("Message sent successfully", { agentId, taskId });
-      setInput("");
       setPendingMessages((prev) => [...prev, content]);
       scrollToBottom();
     } catch (err) {
@@ -97,10 +101,12 @@ export function useChatSend({
         error: msg,
       });
       setSendError(msg);
+      // Restore input on failure so user doesn't lose their message
+      setInput(content);
     } finally {
       setSending(false);
     }
-  }, [input, agentId, taskId, sending, scrollToBottom]);
+  }, [agentId, taskId, sending, scrollToBottom]);
 
   return {
     input,
