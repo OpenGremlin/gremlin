@@ -246,16 +246,19 @@ export function ChatScreen({
     }
   }, [agentId, taskId, clearAgentLog, refetch]);
 
-  // On web (non-inverted list), keep the scroll pinned to the bottom.
-  // We track whether the user is "at the bottom" and auto-scroll on every
-  // content size change and new message until they scroll away.
+  // Track whether the user is "at the bottom" and snap new content there
+  // without animation. On native the list is inverted, so offset 0 = bottom;
+  // on web the bottom is (contentHeight - viewportHeight), so we pass the
+  // raw height and let FlatList clamp it.
   const atBottom = useRef(true);
   // Timestamp of the last programmatic scroll so the scroll handler can
   // distinguish our scrolls from user-initiated ones (no timers needed).
   const lastAutoScrollAt = useRef(0);
   const streamingLength = streamingMessage?.content.length ?? 0;
 
-  // When new messages arrive or streaming updates, re-pin to bottom.
+  // Web only: re-pin to bottom when new messages/streaming arrive. Native
+  // relies on onContentSizeChange — the inverted list's offset 0 = bottom,
+  // so content growth just needs a no-animation snap there.
   const prevMessageCount = useRef(0);
   useEffect(() => {
     if (!isWeb) return;
@@ -271,15 +274,18 @@ export function ChatScreen({
     }
   }, [messages.length, streamingLength, listRef]);
 
-  // Scroll to end on every content size change while pinned to bottom.
-  // This catches async markdown layout passes that grow content height after
-  // the initial scrollToEnd. We pass the raw height as offset — FlatList
-  // clamps it to (contentHeight - layoutHeight), which is the true end.
+  // Snap to the bottom on every content size change while pinned to bottom.
+  // Replaces FlatList's `autoscrollToTopThreshold`, which animates — that
+  // animation caused the streaming bubble to visibly bounce each time a
+  // tool call landed or streaming text grew.
   const onContentSizeChange = useCallback(
     (_w: number, h: number) => {
-      if (!isWeb || !atBottom.current) return;
+      if (!atBottom.current) return;
       lastAutoScrollAt.current = Date.now();
-      listRef.current?.scrollToOffset({ offset: h, animated: false });
+      listRef.current?.scrollToOffset({
+        offset: isWeb ? h : 0,
+        animated: false,
+      });
     },
     [listRef],
   );
@@ -358,6 +364,12 @@ export function ChatScreen({
         }
       } else {
         setShowScrollDown(contentOffset.y > 300);
+        // Inverted: offset 0 = visual bottom. Ignore our own programmatic
+        // scrolls (within 200ms of scrollToOffset) so they don't mark us
+        // as not-at-bottom when we snap on content growth.
+        if (Date.now() - lastAutoScrollAt.current > 200) {
+          atBottom.current = contentOffset.y < 100;
+        }
         if (contentOffset.y < -80 && !refreshTriggered.current && !refreshing) {
           refreshTriggered.current = true;
           onRefresh().finally(() => {
@@ -422,13 +434,11 @@ export function ChatScreen({
         onEndReached={!isWeb && hasMore ? loadMore : undefined}
         onEndReachedThreshold={0.2}
         onScroll={handleScroll}
-        onContentSizeChange={isWeb ? onContentSizeChange : undefined}
+        onContentSizeChange={onContentSizeChange}
         scrollEventThrottle={16}
         contentContainerStyle={flatListContentStyle}
         maintainVisibleContentPosition={
-          !isWeb
-            ? { minIndexForVisible: 0, autoscrollToTopThreshold: 200 }
-            : undefined
+          !isWeb ? { minIndexForVisible: 0 } : undefined
         }
         // On web, disable windowing so all items stay mounted (the list is
         // small enough that this is fine).
