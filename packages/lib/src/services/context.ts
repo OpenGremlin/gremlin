@@ -1,3 +1,4 @@
+import type { LanguageModel } from "ai";
 import { createLogger, type Logger } from "../logger.js";
 import { createResources, type Resources } from "../resources/index.js";
 import type { PubSub } from "../resources/pubsub.js";
@@ -16,6 +17,17 @@ export interface ServiceContext {
   /** Base URL of this server instance (e.g. "https://api.example.com"). */
   serverBaseUrl?: string;
   log: Logger;
+  /**
+   * Test-only. When set, every language-model resolution call (getModel,
+   * getModelForAgent, getModelResult) returns this, bypassing Bedrock/
+   * provider-API lookups. Never set in production code paths.
+   * `maxInputTokens` is optional; when absent, callers fall through to their
+   * default limit (e.g. runLane's DEFAULT_MAX_TOKENS).
+   */
+  modelOverride?: {
+    model: LanguageModel;
+    maxInputTokens?: number;
+  };
 }
 
 /**

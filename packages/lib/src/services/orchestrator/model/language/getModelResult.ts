@@ -7,6 +7,13 @@ import { createProviderModel } from "./createProviderModel.js";
 export async function getModelResult(
   ctx: ServiceContext,
 ): Promise<ModelResult> {
+  if (ctx.modelOverride) {
+    return {
+      model: ctx.modelOverride.model,
+      maxInputTokens: ctx.modelOverride.maxInputTokens,
+    };
+  }
+
   const cached = getCached();
   if (cached) return cached;
 

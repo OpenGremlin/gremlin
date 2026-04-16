@@ -13,6 +13,13 @@ export async function getModelForAgent(
   ctx: ServiceContext,
   agentId: string,
 ): Promise<ModelResult> {
+  if (ctx.modelOverride) {
+    return {
+      model: ctx.modelOverride.model,
+      maxInputTokens: ctx.modelOverride.maxInputTokens,
+    };
+  }
+
   const agent = await ctx.services.agents.getAgent(ctx, agentId);
   const agentModel = agent?.config?.model;
 
