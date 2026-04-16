@@ -32,7 +32,7 @@ describe("taskUpdate tool", () => {
       ctx.services.tasks.getTask.mockResolvedValue(alreadyClosed as any);
 
       const tools = buildTaskLaneTools(ctx);
-      const result = await tools.taskUpdate.execute!(
+      const result = await tools.taskUpdate.execute?.(
         {
           taskId: "task-1",
           status: "closed",
@@ -66,7 +66,7 @@ describe("taskUpdate tool", () => {
         .mockResolvedValueOnce(closedTask as any);
 
       const tools = buildTaskLaneTools(ctx);
-      await tools.taskUpdate.execute!(
+      await tools.taskUpdate.execute?.(
         { taskId: "task-1", status: "closed", notes: "done" },
         {} as any,
       );

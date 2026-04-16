@@ -204,7 +204,7 @@ export function mapChild(c: any): TaskChild {
     latestComment: c.latestComment ?? null,
     emoji: c.emoji ?? null,
     attachments: c.attachments,
-    children: c.children?.map((gc: any) => mapChild(gc)),
+    children: c.children?.map((gc: unknown) => mapChild(gc)),
   };
 }
 
@@ -213,6 +213,7 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
 
   const [liveTask, setLiveTask] = useState<TaskInfo | null>(null);
   const taskId = task?.id;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: taskId is a re-run trigger — we clear liveTask whenever the card switches to a different task
   useEffect(() => setLiveTask(null), [taskId]);
 
   useSubscription(TaskTrackingSubscription, {

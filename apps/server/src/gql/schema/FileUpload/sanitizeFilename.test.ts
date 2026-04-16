@@ -19,7 +19,7 @@ describe("sanitizeFilename", () => {
   });
 
   it("truncates to 255 characters", () => {
-    const long = "a".repeat(300) + ".txt";
+    const long = `${"a".repeat(300)}.txt`;
     expect(sanitizeFilename(long).length).toBe(255);
   });
 

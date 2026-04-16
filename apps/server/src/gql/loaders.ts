@@ -25,7 +25,7 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 }
 
 function createEntityBatchLoader<E extends Entity>(
-  resources: Resources,
+  _resources: Resources,
   entity: E,
   table: Resources["ddb"]["table"],
 ): DataLoader<string, FormattedItem<E> | null> {

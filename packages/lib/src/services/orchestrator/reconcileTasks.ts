@@ -1,6 +1,5 @@
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
-import type { EnqueueInput } from "../inbox/enqueueWork.js";
 
 /** Max escalations before we stop dispatching and surface to the user. */
 const MAX_ESCALATIONS = 3;

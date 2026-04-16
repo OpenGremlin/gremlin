@@ -8,7 +8,7 @@ let stateIdx = 0;
 const stateKeys = ["name", "personality", "role", "delegationHint"];
 
 const effectCleanups: (() => void)[] = [];
-const callbackStore = new Map<string, Function>();
+const callbackStore = new Map<string, (...args: any[]) => any>();
 let cbIdx = 0;
 
 vi.mock("react", () => ({
@@ -21,12 +21,12 @@ vi.mock("react", () => ({
     stateIdx++;
     return [state[key], setters[key]];
   },
-  useCallback: (fn: Function, _deps: unknown[]) => {
+  useCallback: (fn: (...args: any[]) => any, _deps: unknown[]) => {
     const key = `cb-${cbIdx++}`;
     callbackStore.set(key, fn);
     return fn;
   },
-  useEffect: (fn: () => (() => void) | void) => {
+  useEffect: (fn: () => (() => void) | undefined) => {
     const cleanup = fn();
     if (typeof cleanup === "function") effectCleanups.push(cleanup);
   },
@@ -38,12 +38,13 @@ vi.mock("react", () => ({
 
 import { useAutosaveFields } from "./useAutosaveFields";
 
-function setup(saveFn?: vi.Mock) {
+function setup(saveFn?: (fields: unknown) => Promise<unknown>) {
   stateIdx = 0;
   cbIdx = 0;
   effectCleanups.length = 0;
   callbackStore.clear();
   const save = saveFn ?? vi.fn(() => Promise.resolve());
+  // biome-ignore lint/correctness/useHookAtTopLevel: this is a test harness with a mocked React — the hook rules don't apply
   const result = useAutosaveFields(save);
   return { save, ...result };
 }

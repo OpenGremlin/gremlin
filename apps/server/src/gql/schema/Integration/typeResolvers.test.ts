@@ -3,7 +3,12 @@ import { meta } from "./typeResolvers.js";
 
 // meta is a resolver function: (parent, args, ctx) => result
 // We only need the parent argument for this pure logic.
-const resolve = (parent: unknown) => (meta as Function)(parent, {}, {} as any);
+const resolve = (parent: unknown) =>
+  (meta as (parent: unknown, args: unknown, ctx: unknown) => unknown)(
+    parent,
+    {},
+    {} as any,
+  );
 
 describe("meta resolver", () => {
   it("resolves OAuth connection meta", () => {

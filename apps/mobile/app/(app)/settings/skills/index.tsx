@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { router } from "expo-router";
 import { ChevronRight } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, Text, View } from "react-native";
 import { SkillTemplatesQuery } from "../../../../src/graphql/queries";
 import { useListRefresh } from "../../../../src/hooks/useListRefresh";

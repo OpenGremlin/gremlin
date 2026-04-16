@@ -2,7 +2,7 @@ import { DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { Table } from "dynamodb-toolbox/table";
 import type { TaskDependencyItem } from "./schema/taskDependency.js";
 
-function getTableHelpers(table: Table<any, any, any>) {
+function getTableHelpers(table: Table) {
   return {
     tableName: table.getName(),
     docClient: table.getDocumentClient(),
@@ -10,7 +10,7 @@ function getTableHelpers(table: Table<any, any, any>) {
 }
 
 export async function addDependency(
-  table: Table<any, any, any>,
+  table: Table,
   input: {
     taskId: string;
     dependsOnId: string;
@@ -48,7 +48,7 @@ export async function addDependency(
 }
 
 export async function removeDependency(
-  table: Table<any, any, any>,
+  table: Table,
   input: { taskId: string; dependsOnId: string },
 ): Promise<void> {
   const { tableName, docClient } = getTableHelpers(table);
@@ -66,7 +66,7 @@ export async function removeDependency(
 
 /** Returns all tasks that `taskId` depends on (its blockers). */
 export async function getDependencies(
-  table: Table<any, any, any>,
+  table: Table,
   taskId: string,
 ): Promise<TaskDependencyItem[]> {
   const { tableName, docClient } = getTableHelpers(table);
@@ -87,7 +87,7 @@ export async function getDependencies(
 
 /** Returns all tasks that depend on `dependsOnId` (its dependents). */
 export async function getDependents(
-  table: Table<any, any, any>,
+  table: Table,
   dependsOnId: string,
 ): Promise<TaskDependencyItem[]> {
   const { tableName, docClient } = getTableHelpers(table);

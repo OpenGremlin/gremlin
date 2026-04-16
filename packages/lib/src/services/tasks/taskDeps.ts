@@ -3,7 +3,6 @@ import type { TaskDependencyItem } from "../../resources/ddb/schema/taskDependen
 import {
   addDependency,
   getDependencies,
-  getDependents,
   removeDependency,
 } from "../../resources/ddb/taskDependency.js";
 import type { ServiceContext } from "../context.js";
@@ -26,7 +25,8 @@ export async function addTaskDep(
   const visited = new Set<string>();
   const queue = [dependsOnId];
   while (queue.length > 0) {
-    const current = queue.shift()!;
+    const current = queue.shift();
+    if (current === undefined) break;
     if (current === taskId) {
       throw new Error(
         `Adding dependency would create a cycle: ${taskId} -> ${dependsOnId} -> ... -> ${taskId}`,
@@ -93,7 +93,9 @@ export async function getTaskDepTree(
   }
 
   while (queue.length > 0) {
-    const { id, depth } = queue.shift()!;
+    const next = queue.shift();
+    if (next === undefined) break;
+    const { id, depth } = next;
     if (visited.has(id)) continue;
     visited.add(id);
 

@@ -193,7 +193,6 @@ export function ChatScreen({
     loadMore,
     loadingMore,
     refetch,
-    fetchNewer,
   } = useLogMessages(scope, {
     onLogCreated,
   });
