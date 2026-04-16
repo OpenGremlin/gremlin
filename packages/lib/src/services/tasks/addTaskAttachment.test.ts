@@ -42,8 +42,8 @@ describe("addTaskAttachment", () => {
     const putCommand = mockDocSend.mock.calls[1][0];
     expect(putCommand.input.Item).toMatchObject({
       _et: "TaskAttachment",
-      pk: "ATTACHMENT",
-      sk: "ATTACHMENT#att-uuid-1",
+      pk: "ATTACHMENT#att-uuid-1",
+      sk: "ATTACHMENT",
       id: "att-uuid-1",
       taskId: "task-1",
       dedupKey: "file:/output/report.pdf",
