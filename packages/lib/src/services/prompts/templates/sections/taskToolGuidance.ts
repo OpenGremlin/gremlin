@@ -1,5 +1,5 @@
 export const taskToolGuidanceSection = `<tool_guidance>
-Use \`taskClose\` when you're done — it marks the task complete and triggers any downstream work. Any files or links you attached are included automatically.
+Close the task with \`taskUpdate(status: "closed")\` when you're done — it marks the task complete and triggers any downstream work. Any files or links you attached are included automatically.
 
 Whenever you save a file that the user might find interesting — even intermediate results like screenshots, downloaded data, or debug output — call attachFile so it appears on the task.
 

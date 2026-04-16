@@ -47,13 +47,10 @@ async function findEpicOwner(
  *
  * @param ctx              Service context (provides inbox, agents, logger)
  * @param triggerAgentId   Agent whose lane just finished (used to resolve "self")
- * @param completedTaskId  Task ID that just finished its lane turn (if any).
- *                         Used to detect standalone task completions.
  */
 export async function reconcile(
   ctx: ServiceContext,
   triggerAgentId: string,
-  completedTaskId?: string,
 ): Promise<void> {
   const ready = await ctx.services.tasks.getReadyWork(ctx);
   const needsAssignment: TaskItem[] = [];
@@ -211,48 +208,4 @@ export async function reconcile(
     );
   }
 
-  // Check if the task that just completed its lane is a top-level
-  // task (no parent) that closed itself.
-  if (completedTaskId) {
-    await notifyTopLevelTaskComplete(ctx, triggerAgentId, completedTaskId);
-  }
-}
-
-// ── Top-level task completion ──────────────────────────────────────
-
-/**
- * If the task that just finished its lane is a closed, top-level task
- * (no parent), notify the main lane so the agent can create a post.
- * Applies to both standalone tasks and epics that closed themselves
- * after all children completed.
- */
-async function notifyTopLevelTaskComplete(
-  ctx: ServiceContext,
-  triggerAgentId: string,
-  taskId: string,
-): Promise<void> {
-  const task = await ctx.services.tasks.getTask(ctx, taskId);
-  if (!task) return;
-
-  // Must be closed.
-  if (task.status !== "closed") return;
-
-  // Must be top-level (no parent).
-  if (task.parentId) return;
-
-  const notification: EnqueueInput = {
-    type: "top_level_task_complete",
-    payload: { taskId: task.id, title: task.title },
-  };
-  await ctx.services.inbox.enqueueWork(
-    ctx,
-    triggerAgentId,
-    "main",
-    notification,
-  );
-
-  ctx.log.info(
-    { taskId: task.id, component: "reconciler" },
-    "Notified main lane of top-level task completion",
-  );
 }

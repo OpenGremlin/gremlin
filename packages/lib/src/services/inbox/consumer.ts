@@ -118,7 +118,7 @@ export async function ringDoorbell(
 
         // Reconcile after task lane completes — the worker may have closed a task,
         // unblocking downstream work or completing an epic.
-        await reconcile(ctx, agentId, taskId);
+        await reconcile(ctx, agentId);
       } else if (lane === "system") {
         await processSystemItems(ctx, agentId, items);
       }
@@ -262,9 +262,10 @@ async function processMainLaneItems(
           taskId: null,
           role: "SYSTEM",
           content:
-            `Task ${payload.taskId} ("${payload.title ?? ""}") is done. ` +
+            `Task ${payload.taskId} ("${payload.title ?? ""}") is closed. ` +
             `${payload.comment ? `Summary: "${payload.comment}". ` : ""}` +
-            `Use \`taskShow\` to review. \`taskClose\` to accept, or add a comment and set status to "open" to send it back.`,
+            `Use \`taskShow\` to review. If the work needs revision, set status to "open" with feedback. ` +
+            `If you're satisfied, create a post to the home feed summarizing it with the createPost tool.`,
         });
         shouldRunInference = true;
         break;
@@ -330,9 +331,9 @@ async function processTaskGroup(
       case "task_ready_for_review":
         prompts.push({
           content:
-            `Task ${payload.taskId} ("${payload.title ?? ""}") is done. ` +
+            `Task ${payload.taskId} ("${payload.title ?? ""}") is closed. ` +
             `${payload.comment ? `Summary: "${payload.comment}". ` : ""}` +
-            `Use \`taskShow\` to review. \`taskClose\` to accept, or add a comment and set status to "open" to send it back.`,
+            `Use \`taskShow\` to review. If the work needs revision, set status to "open" with feedback.`,
           role: "SYSTEM",
         });
         break;

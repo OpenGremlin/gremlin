@@ -8,7 +8,9 @@ You are working on task \`{{taskId}}\`. Use \`taskShow\` to read the full assign
 
 **Before starting:** If the task has \`expectedInput\`, verify the data is available in attachments, comments, or related task outputs. If it's missing, escalate: \`taskUpdate\` with \`escalate: true\` and a comment explaining what's needed. Do not attempt the work without required input.
 
-**Doing the work:** Produce exactly what \`expectedOutput\` specifies — format matters (comment, attachment, file type). Use \`taskShow\` on dependency tasks to see outputs you can build on. For unspecified details, use your best judgement. If the work is larger than expected, decompose with \`taskCreate\`.
+**Doing the work:** Produce exactly what \`expectedOutput\` specifies — format matters (comment, attachment, file type). Use \`taskShow\` on dependency tasks to see outputs you can build on. For unspecified details, use your best judgement.
 
-**When done:** Set status to \`done\` with a comment summarizing what you produced. Do not use \`taskClose\` — the assigner reviews and accepts. If the task returns to \`open\` (escalation resolved or work rejected), check the latest comments and continue.
+**Decomposing:** If the work has multiple independent parts, create subtasks with \`taskCreate\` (set \`parentId\` to \`{{taskId}}\`). Once you create subtasks, your role shifts to **coordinator** — do NOT do the work yourself. Wait for subtask notifications, review each result with \`taskShow\`, and either accept it or set its status back to \`open\` with feedback. When all subtasks are closed and you are satisfied, close yourself.
+
+**When done:** Close the task: \`taskUpdate\` with \`status: "closed"\` and a \`notes\` comment summarizing what you produced. If the task returns to \`open\` (work sent back for revision), check the latest comments and continue.
 </task_assignment>`;

@@ -70,8 +70,14 @@ function computeDisplayHintInner(
   if (toolName === "taskUpdate") {
     const parts = [taskTitle];
     if (input?.status) parts.push(`→ ${input.status}`);
+    if (input?.status === "closed") {
+      return { text: `Closing task: ${parts.join(" ")}`, variant: "success" };
+    }
     return { text: `Updating task: ${parts.join(" ")}` };
   }
+  // Legacy display hints — taskClose and taskReopen are now handled by
+  // taskUpdate with status: "closed" / "open", but old log entries may
+  // still reference these tool names.
   if (toolName === "taskClose") {
     return {
       text: `Closing task: ${taskTitle}`,

@@ -192,14 +192,14 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
 
     taskUpdate: tool({
       description:
-        "Update fields on an existing task, escalate to the assigner, or mark as done.",
+        "Update a task's status, fields, or escalate it.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to update"),
         status: z
-          .enum(["open", "in_progress", "done"])
+          .enum(["open", "in_progress", "closed"])
           .optional()
           .describe(
-            "New status. 'done' = work complete, pending assigner review. To close/abandon a task use taskClose.",
+            "New status. 'closed' = work complete. 'open' = reopen a closed task (e.g. to send work back for revision).",
           ),
         escalate: z
           .boolean()
@@ -225,7 +225,7 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           .string()
           .optional()
           .describe(
-            "A comment to add to the task's activity log. Required when escalating or setting status to 'done'.",
+            "A comment to add to the task's activity log. Required when closing or escalating.",
           ),
       }),
       execute: async ({
@@ -237,15 +237,17 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
         deferUntil,
         notes,
       }) => {
-        if ((escalate || status === "done") && !notes) {
+        if ((escalate || status === "closed") && !notes) {
           return {
             error: escalate
               ? "Escalating requires a notes comment explaining what's missing or wrong."
-              : "Setting status to 'done' requires a notes comment summarizing what was produced.",
+              : "Closing a task requires a notes comment summarizing what was produced.",
           };
         }
 
-        if (status) {
+        if (status === "closed") {
+          await ctx.services.tasks.closeTask(ctx, taskId, notes);
+        } else if (status) {
           await ctx.services.tasks.updateTaskStatus(ctx, taskId, status);
         }
 
@@ -269,10 +271,10 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
         }
 
         // Notify the parent lane (or main lane for top-level tasks) on
-        // escalation or completion. Child tasks route to their parent's
+        // escalation or closure. Child tasks route to their parent's
         // task lane so the epic can coordinate; standalone tasks route to
         // the main lane as before.
-        if (escalate || status === "done") {
+        if (escalate || status === "closed") {
           const task = await ctx.services.tasks.getTask(ctx, taskId);
           if (task) {
             if (escalate) {
@@ -310,36 +312,6 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
 
         const updated = await ctx.services.tasks.getTask(ctx, taskId);
         return updated ?? { success: true, taskId };
-      },
-    }),
-
-    taskClose: tool({
-      description:
-        "Mark a task as complete/closed. A task with children cannot be closed until all children are closed first.",
-      inputSchema: z.object({
-        taskId: z.string().describe("The task ID to close"),
-        reason: z
-          .string()
-          .optional()
-          .describe(
-            "Why the task was closed (e.g. 'done', 'duplicate', 'wontfix')",
-          ),
-      }),
-      execute: async ({ taskId, reason }) => {
-        const task = await ctx.services.tasks.closeTask(ctx, taskId, reason);
-        return task;
-      },
-    }),
-
-    taskReopen: tool({
-      description:
-        "Reopen a previously closed task, returning it to open status.",
-      inputSchema: z.object({
-        taskId: z.string().describe("The task ID to reopen"),
-      }),
-      execute: async ({ taskId }) => {
-        const task = await ctx.services.tasks.reopenTask(ctx, taskId);
-        return task;
       },
     }),
   };
