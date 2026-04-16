@@ -1,5 +1,5 @@
 export const lightVars = {
-  "--color-bg": "#f5f2ed",
+  "--color-bg": "#ece8e0",
   "--color-surface": "#fdfcf9",
   "--color-surface-alt": "#ece8e1",
   "--color-border": "#ddd8d0",

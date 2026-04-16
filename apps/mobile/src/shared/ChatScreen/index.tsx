@@ -16,7 +16,13 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ClearAgentLogMutation } from "../../graphql/queries";
 import { useAgentStream } from "../../hooks/useAgentStream";
@@ -92,6 +98,14 @@ export function ChatScreen({
   const tabBarHeight = useTabBarHeight();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const keyboardVisible = keyboardHeight > 0;
+  const inputBottom = useSharedValue(tabBarHeight);
+  const inputBarAnimStyle = useAnimatedStyle(() => ({
+    position: "absolute" as const,
+    left: 0,
+    right: 0,
+    bottom: inputBottom.value,
+    zIndex: 1,
+  }));
   // When the keyboard is up the tab bar is hidden behind it; only reserve
   // space for the input bar in that case.
   const bottomChromeHeight =
@@ -118,17 +132,27 @@ export function ChatScreen({
   useEffect(() => {
     const show = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      (e) => setKeyboardHeight(e.endCoordinates.height),
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        inputBottom.value = withTiming(e.endCoordinates.height, {
+          duration: e.duration ?? 250,
+        });
+      },
     );
     const hide = Keyboard.addListener(
       process.env.EXPO_OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardHeight(0),
+      (e) => {
+        setKeyboardHeight(0);
+        inputBottom.value = withTiming(tabBarHeight, {
+          duration: e.duration ?? 250,
+        });
+      },
     );
     return () => {
       show.remove();
       hide.remove();
     };
-  }, []);
+  }, [tabBarHeight, inputBottom]);
 
   const {
     streaming: streamingMessage,
@@ -521,15 +545,7 @@ export function ChatScreen({
           onPickFiles={handlePickFiles}
         />
       ) : (
-        <View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: keyboardVisible ? keyboardHeight : tabBarHeight,
-            zIndex: 1,
-          }}
-        >
+        <Animated.View style={inputBarAnimStyle}>
           <ChatInputBar
             input={input}
             setInput={setInput}
@@ -540,7 +556,7 @@ export function ChatScreen({
             isUploading={isUploading}
             onPickFiles={handlePickFiles}
           />
-        </View>
+        </Animated.View>
       )}
     </View>
   );

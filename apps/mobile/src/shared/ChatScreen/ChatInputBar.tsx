@@ -137,7 +137,7 @@ export function ChatInputBar({
       )}
 
       <View
-        className="flex-row items-end gap-1.5 border border-app-border rounded-3xl pl-1.5 pr-1.5 py-1 overflow-hidden"
+        className={`flex-row items-end gap-1.5 rounded-3xl pl-1.5 pr-1.5 py-1 overflow-hidden ${isDark ? "border border-white/15" : ""}`}
         style={{ borderCurve: "continuous" }}
       >
         {!isWeb ? (
@@ -145,7 +145,7 @@ export function ChatInputBar({
             tint={
               isDark ? "systemChromeMaterialDark" : "systemChromeMaterialLight"
             }
-            intensity={70}
+            intensity={85}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
