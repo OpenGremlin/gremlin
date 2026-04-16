@@ -24,5 +24,16 @@ export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { requestUserInputTool } from "./requestUserInput.js";
 export { buildTaskTrackingTools } from "./taskTrackingTools.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
+export {
+  extractToolError,
+  type GremlinToolError,
+  type GremlinToolResult,
+  isToolOk,
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  unwrapToolData,
+  wrapExecute,
+} from "./toolResult.js";
 export { viewImageTool } from "./viewImage.js";
 export { webFetch } from "./webFetch.js";

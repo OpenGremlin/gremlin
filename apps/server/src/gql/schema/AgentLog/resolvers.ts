@@ -12,6 +12,7 @@ import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/mo
 import { SentenceAccumulator } from "@opengremlin/lib/services/speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import { stripMarkdownForSpeech } from "@opengremlin/lib/services/speech/stripMarkdownForSpeech.js";
+import { unwrapToolData } from "@opengremlin/lib/services/tools/toolResult.js";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import type { GremlinContext } from "../../context.js";
 import type {
@@ -265,6 +266,8 @@ export const agentLogResolvers = {
         displayVariant: (parent: AgentLogItem) =>
           resolve(parent)?.variant ?? null,
         displayError: (parent: AgentLogItem) => resolve(parent)?.error ?? null,
+        // biome-ignore lint/suspicious/noExplicitAny: toolError not yet in generated types
+        toolError: (parent: any) => parent.toolError ?? null,
       };
     })(),
     attachments,
@@ -275,8 +278,13 @@ export const agentLogResolvers = {
     ) => {
       if (parent.toolName !== "taskCreate" || !parent.toolResult) return null;
       try {
-        const result = JSON.parse(parent.toolResult);
-        const taskId = result?.id as string | undefined;
+        const parsed = JSON.parse(parent.toolResult);
+        // taskCreate returns GremlinToolResult<Task>; unwrap the data payload.
+        // Fall back to the raw result for legacy log entries predating the
+        // unified shape.
+        const data =
+          (unwrapToolData(parsed) as Record<string, unknown> | null) ?? parsed;
+        const taskId = data?.id as string | undefined;
         if (!taskId) return null;
         const input = parent.toolInput ? JSON.parse(parent.toolInput) : null;
         if (input?.parentId) return null;

@@ -21,6 +21,14 @@ export const AgentLogEntity = new Entity({
     toolName: anyOf(string(), nul()).optional(),
     toolInput: anyOf(string(), nul()).optional(),
     toolResult: anyOf(string(), nul()).optional(),
+    // Typed error extracted from a failed GremlinToolResult. Denormalized here
+    // (also available inside `toolResult`) so the GraphQL layer can expose it
+    // without parsing JSON on every resolve.
+    toolError: map({
+      code: string(),
+      message: string(),
+      hint: string().optional(),
+    }).optional(),
     attachments: list(
       map({
         type: string(),

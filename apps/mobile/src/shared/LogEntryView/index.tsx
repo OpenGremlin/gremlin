@@ -355,7 +355,15 @@ function renderToolCall(
           undefined
         }
       />
-      {message.displayError ? (
+      {message.toolError ? (
+        <Text className="text-sm text-error italic px-1 pb-1">
+          <Text className="font-semibold not-italic">
+            {message.toolError.code}
+          </Text>
+          {`: ${message.toolError.message}`}
+          {message.toolError.hint ? ` ${message.toolError.hint}` : ""}
+        </Text>
+      ) : message.displayError ? (
         <Text className="text-sm text-error italic px-1 pb-1">
           {message.displayError}
         </Text>

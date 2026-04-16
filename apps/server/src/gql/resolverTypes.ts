@@ -115,12 +115,15 @@ export type AgentLog = {
   commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
+  /** Pre-formatted '{code}: {message} {hint}' string for the status line. Derived from toolError. */
   displayError?: Maybe<Scalars['String']['output']>;
   displayHint?: Maybe<Scalars['String']['output']>;
   displayVariant?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   role: AgentLogRole;
   taskId?: Maybe<Scalars['String']['output']>;
+  /** Typed tool error — populated when a tool returned GremlinToolResult.ok === false. */
+  toolError?: Maybe<ToolError>;
   toolInput?: Maybe<Scalars['String']['output']>;
   toolName?: Maybe<Scalars['String']['output']>;
   toolResult?: Maybe<Scalars['String']['output']>;
@@ -1323,6 +1326,17 @@ export enum TaskStatus {
   Open = 'OPEN'
 }
 
+/** Structured error returned by a tool when GremlinToolResult.ok === false. */
+export type ToolError = {
+  __typename?: 'ToolError';
+  /** Stable machine-readable code, e.g. FILE_NOT_FOUND. */
+  code: Scalars['String']['output'];
+  /** Optional actionable remediation hint. */
+  hint?: Maybe<Scalars['String']['output']>;
+  /** One-line human-readable summary. */
+  message: Scalars['String']['output'];
+};
+
 export { ToolName };
 
 export type UnknownRender = {
@@ -1603,6 +1617,7 @@ export type ResolversTypes = {
   TaskEdge: ResolverTypeWrapper<TaskEdgeModel>;
   TaskPageInfo: ResolverTypeWrapper<TaskPageInfoModel>;
   TaskStatus: TaskStatus;
+  ToolError: ResolverTypeWrapper<ToolError>;
   ToolName: ToolName;
   UnknownRender: ResolverTypeWrapper<UnknownRender>;
   UpdateAgentInput: UpdateAgentInput;
@@ -1708,6 +1723,7 @@ export type ResolversParentTypes = {
   TaskConnection: TaskConnectionModel;
   TaskEdge: TaskEdgeModel;
   TaskPageInfo: TaskPageInfoModel;
+  ToolError: ToolError;
   UnknownRender: UnknownRender;
   UpdateAgentInput: UpdateAgentInput;
   UpdateAgentJobInput: UpdateAgentJobInput;
@@ -1777,6 +1793,7 @@ export type AgentLogResolvers<ContextType = GremlinContext, ParentType extends R
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   role?: Resolver<ResolversTypes['AgentLogRole'], ParentType, ContextType>;
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  toolError?: Resolver<Maybe<ResolversTypes['ToolError']>, ParentType, ContextType>;
   toolInput?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   toolResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2331,6 +2348,12 @@ export type TaskPageInfoResolvers<ContextType = GremlinContext, ParentType exten
   startCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type ToolErrorResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['ToolError'] = ResolversParentTypes['ToolError']> = {
+  code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type ToolNameResolvers = EnumResolverSignature<{ attachFile?: any, attachLink?: any, authenticate?: any, backgroundTask?: any, completeTask?: any, createPost?: any, delegate?: any, editFile?: any, ensureSandbox?: any, generateImage?: any, generateSpeech?: any, glob?: any, grep?: any, listFiles?: any, listJobs?: any, readCommandOutput?: any, readFile?: any, readSkill?: any, readSkillReference?: any, recallMemory?: any, requestUserInput?: any, runCommand?: any, saveMemory?: any, scheduleJob?: any, updateJob?: any, updateTask?: any, viewImage?: any, webFetch?: any, webSearch?: any, writeFile?: any }, ResolversTypes['ToolName']>;
 
 export type UnknownRenderResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['UnknownRender'] = ResolversParentTypes['UnknownRender']> = {
@@ -2461,6 +2484,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   TaskConnection?: TaskConnectionResolvers<ContextType>;
   TaskEdge?: TaskEdgeResolvers<ContextType>;
   TaskPageInfo?: TaskPageInfoResolvers<ContextType>;
+  ToolError?: ToolErrorResolvers<ContextType>;
   ToolName?: ToolNameResolvers;
   UnknownRender?: UnknownRenderResolvers<ContextType>;
   UserInputRequest?: UserInputRequestResolvers<ContextType>;

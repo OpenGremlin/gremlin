@@ -3,6 +3,11 @@ import type { ToolName } from "../../enums.js";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
 import type { Attachment } from "../tasks/attachment.js";
+import {
+  extractToolError,
+  type GremlinToolError,
+  unwrapToolData,
+} from "../tools/toolResult.js";
 
 type TextLogEntry = {
   id?: string;
@@ -46,6 +51,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   const id = entry.id ?? crypto.randomUUID();
 
   const isToolEntry = entry.role === "TOOL";
+  const toolError = isToolEntry ? extractToolError(entry.toolResult) : null;
 
   const item = {
     id,
@@ -56,6 +62,7 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
     toolName: isToolEntry ? entry.toolName : null,
     toolInput: isToolEntry ? JSON.stringify(entry.toolInput) : null,
     toolResult: isToolEntry ? JSON.stringify(entry.toolResult) : null,
+    ...(toolError ? { toolError } : {}),
     ...(!isToolEntry && entry.attachments?.length
       ? { attachments: entry.attachments }
       : {}),
@@ -88,18 +95,23 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   return { id, createdAt: now };
 }
 
-/** Extract a file attachment from a tool result, if it contains a `path`. */
+/**
+ * Extract a file attachment from a successful tool result that contains a
+ * `path` field. Reads from the unwrapped `data` payload of a
+ * `GremlinToolResult<R>`; older unwrapped shapes fall through and return [].
+ */
 function extractFileAttachment(toolResult: unknown): Attachment[] {
+  const data = unwrapToolData(toolResult);
   if (
-    toolResult &&
-    typeof toolResult === "object" &&
-    "path" in toolResult &&
-    typeof (toolResult as Record<string, unknown>).path === "string"
+    data &&
+    typeof data === "object" &&
+    "path" in data &&
+    typeof (data as Record<string, unknown>).path === "string"
   ) {
     return [
       {
         type: "file",
-        path: (toolResult as Record<string, unknown>).path as string,
+        path: (data as Record<string, unknown>).path as string,
       },
     ];
   }
@@ -122,6 +134,7 @@ export async function updateAgentLogResult(
 ) {
   const table = ctx.resources.ddb.chatTable;
   const attachments = extractFileAttachment(entry.toolResult);
+  const toolError: GremlinToolError | null = extractToolError(entry.toolResult);
 
   const updateParts = ["toolResult = :result", "toolInput = :input"];
   const exprValues: Record<string, unknown> = {
@@ -139,11 +152,28 @@ export async function updateAgentLogResult(
     exprValues[":caid"] = entry.commandApprovalId;
   }
 
+  const removeParts: string[] = [];
+  if (toolError) {
+    updateParts.push("toolError = :terr");
+    exprValues[":terr"] = toolError;
+  } else {
+    // Clear any stale error from a previous attempt (shouldn't happen in
+    // practice — results are written once — but kept explicit for safety).
+    removeParts.push("toolError");
+  }
+
+  const updateExpression = [
+    `SET ${updateParts.join(", ")}`,
+    removeParts.length > 0 ? `REMOVE ${removeParts.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   await table.getDocumentClient().send(
     new UpdateCommand({
       TableName: table.getName(),
       Key: { pk: `AGENT_LOG#${logId}`, sk: "AGENT_LOG" },
-      UpdateExpression: `SET ${updateParts.join(", ")}`,
+      UpdateExpression: updateExpression,
       ExpressionAttributeValues: exprValues,
     }),
   );
@@ -157,6 +187,7 @@ export async function updateAgentLogResult(
     toolName: entry.toolName,
     toolInput: JSON.stringify(entry.toolInput),
     toolResult: JSON.stringify(entry.toolResult),
+    ...(toolError ? { toolError } : {}),
     ...(attachments.length > 0 ? { attachments } : {}),
     ...(entry.commandApprovalId
       ? { commandApprovalId: entry.commandApprovalId }

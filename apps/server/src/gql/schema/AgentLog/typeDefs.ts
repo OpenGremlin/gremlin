@@ -14,6 +14,16 @@ export const agentLogTypeDefs = /* GraphQL */ `
 
   ${toolNameEnum}
 
+  "Structured error returned by a tool when GremlinToolResult.ok === false."
+  type ToolError {
+    "Stable machine-readable code, e.g. FILE_NOT_FOUND."
+    code: String!
+    "One-line human-readable summary."
+    message: String!
+    "Optional actionable remediation hint."
+    hint: String
+  }
+
   type AgentLog {
     id: ID!
     agent: Agent!
@@ -25,7 +35,10 @@ export const agentLogTypeDefs = /* GraphQL */ `
     toolResult: String
     displayHint: String
     displayVariant: String
+    "Pre-formatted '{code}: {message} {hint}' string for the status line. Derived from toolError."
     displayError: String
+    "Typed tool error — populated when a tool returned GremlinToolResult.ok === false."
+    toolError: ToolError
     commandApprovalId: String
     attachments: [Attachment!]!
     "Resolved task for taskCreate tool calls (avoids separate query)"

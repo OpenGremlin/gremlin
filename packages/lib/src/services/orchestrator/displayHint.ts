@@ -1,4 +1,5 @@
 import { ToolName } from "../../enums.js";
+import { extractToolError, unwrapToolData } from "../tools/toolResult.js";
 
 export type DisplayHint = {
   text: string;
@@ -8,42 +9,78 @@ export type DisplayHint = {
 };
 
 /**
- * Extract an error message from a tool result, if present.
- * Handles the common patterns tools use to report errors.
- */
-function extractToolError(
-  result: Record<string, unknown> | null,
-): string | undefined {
-  if (!result) return undefined;
-  if (typeof result.error === "string") return result.error;
-  if (result.type === "error" && typeof result.message === "string")
-    return result.message;
-  return undefined;
-}
-
-/**
  * Compute a short, human-readable display hint for a tool call.
  * Returns `null` for tools that should not render a status line
  * (e.g. hidden internal tools, or tools with custom UI widgets).
  *
  * The backend owns the message text and semantic variant;
  * the frontend owns the icon.
+ *
+ * Tool results may be either a structured `GremlinToolResult<R>` (the current
+ * contract) or an unwrapped legacy shape (older log entries predate the
+ * unification). Both paths are tolerated.
  */
 export function computeDisplayHint(
   toolName: string,
   input: Record<string, unknown> | null,
   result: Record<string, unknown> | null,
 ): DisplayHint | null {
-  const hint = computeDisplayHintInner(toolName, input, result);
+  // Unwrap structured result so tool-specific field lookups (title, path, etc.)
+  // work the same whether the raw value is `{ ok, data }` or a legacy payload.
+  const payload = toolResultPayload(result);
+  const hint = computeDisplayHintInner(toolName, input, payload);
   if (!hint) return null;
 
-  // Layer on a generic error from the tool result.
-  // Sets variant to "error" so the status icon reflects the failure too.
-  const error = extractToolError(result);
+  const error = extractDisplayError(result);
   if (error) {
     return { ...hint, error, variant: "error" };
   }
   return hint;
+}
+
+/**
+ * Normalise the success payload we pass into field-lookup logic.
+ * - `{ ok: true, data }` → `data`
+ * - `{ ok: false, error }` → `null` (errors handled separately)
+ * - legacy unwrapped object → returned as-is
+ */
+function toolResultPayload(
+  result: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!result) return null;
+  if (typeof result.ok === "boolean") {
+    if (result.ok === true) {
+      const data = unwrapToolData(result);
+      return data && typeof data === "object"
+        ? (data as Record<string, unknown>)
+        : null;
+    }
+    return null;
+  }
+  return result;
+}
+
+/**
+ * Produce the one-line error summary rendered under a failed tool status.
+ * Prefers the typed `GremlinToolError` shape, falls back to common legacy
+ * patterns so historical log entries still render sensibly.
+ */
+function extractDisplayError(
+  result: Record<string, unknown> | null,
+): string | undefined {
+  if (!result) return undefined;
+  const typed = extractToolError(result);
+  if (typed) {
+    return typed.hint
+      ? `${typed.code}: ${typed.message} ${typed.hint}`
+      : `${typed.code}: ${typed.message}`;
+  }
+  // Legacy shapes from pre-GremlinToolResult log entries.
+  if (typeof result.error === "string") return result.error;
+  if (result.type === "error" && typeof result.message === "string") {
+    return result.message;
+  }
+  return undefined;
 }
 
 function computeDisplayHintInner(
@@ -185,7 +222,7 @@ function computeDisplayHintInner(
       };
     }
 
-    // ── Memory & jobs ───────────────────────────────────────────��──
+    // ── Memory & jobs ──────────────────────────────────────────────
     case ToolName.SaveMemory:
       return {
         text: `Saving memory: ${(input?.key as string) ?? (input?.topic as string) ?? "memory"}`,

@@ -7,6 +7,7 @@ import { SentenceAccumulator } from "../speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "../speech/signedSpeechUrl.js";
 import { stripMarkdownForSpeech } from "../speech/stripMarkdownForSpeech.js";
 import { requestUserInputTool } from "../tools/index.js";
+import { unwrapToolData } from "../tools/toolResult.js";
 import { getModelForAgent } from "./model.js";
 import { updateAgentLogResult, writeAgentLog } from "./writeAgentLog.js";
 
@@ -136,13 +137,15 @@ export async function runAgentTurn(
         "toolCallId" in toolCall ? (toolCall.toolCallId as string) : undefined;
       const existing = toolCallId ? callLogIds.get(toolCallId) : undefined;
 
-      // Extract commandApprovalId from runCommand results
-      const resultOutput = toolResult?.output as
-        | Record<string, unknown>
-        | undefined;
+      // Extract commandApprovalId from runCommand results. The result is a
+      // GremlinToolResult<R>, so unwrap the `data` payload first.
+      const unwrapped = unwrapToolData(toolResult?.output) as Record<
+        string,
+        unknown
+      > | null;
       const commandApprovalId =
-        toolCall.toolName === "runCommand" && resultOutput?.commandApprovalId
-          ? (resultOutput.commandApprovalId as string)
+        toolCall.toolName === "runCommand" && unwrapped?.commandApprovalId
+          ? (unwrapped.commandApprovalId as string)
           : undefined;
 
       if (commandApprovalId) {
