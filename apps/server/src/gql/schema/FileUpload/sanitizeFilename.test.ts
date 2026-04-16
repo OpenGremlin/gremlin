@@ -23,7 +23,7 @@ describe("sanitizeFilename", () => {
     expect(sanitizeFilename(long).length).toBe(255);
   });
 
-  it("returns empty string for path-only input", () => {
+  it("replaces all slashes in path-only input", () => {
     expect(sanitizeFilename("///")).toBe("___");
   });
 
