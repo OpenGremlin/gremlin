@@ -62,5 +62,15 @@ export async function getPostAttachments(
     allItems.push(...(items as RawAttachmentItem[]));
   }
 
-  return allItems.map(toAttachment);
+  const byKey = new Map<string, Attachment>();
+  for (const raw of allItems) {
+    const a = toAttachment(raw);
+    const key = a.type === "file" ? `file:${a.path}` : `link:${a.url}`;
+    if (!byKey.has(key)) byKey.set(key, a);
+  }
+  // Sort by key so files (prefix "file:") come before links ("link:"),
+  // each group ordered alphabetically by path / url.
+  return [...byKey.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([, a]) => a);
 }
