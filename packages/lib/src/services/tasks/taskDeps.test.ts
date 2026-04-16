@@ -26,7 +26,7 @@ const makeTask = (id: string, overrides = {}) => ({
   title: `Task ${id}`,
   message: null,
   status: "open",
-    createdAt: "2026-01-01T00:00:00.000Z",
+  createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   originJobId: null,
   ...overrides,
@@ -153,8 +153,14 @@ describe("taskDeps", () => {
       const result = await getTaskDepTree(ctx, "t-1");
 
       expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({ task: expect.objectContaining({ id: "t-2" }), depth: 1 });
-      expect(result[1]).toEqual({ task: expect.objectContaining({ id: "t-3" }), depth: 2 });
+      expect(result[0]).toEqual({
+        task: expect.objectContaining({ id: "t-2" }),
+        depth: 1,
+      });
+      expect(result[1]).toEqual({
+        task: expect.objectContaining({ id: "t-3" }),
+        depth: 2,
+      });
     });
 
     it("handles diamond dependencies without duplication", async () => {

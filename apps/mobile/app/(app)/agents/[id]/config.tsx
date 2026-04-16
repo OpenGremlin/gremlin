@@ -43,7 +43,12 @@ export default function AgentConfigScreen() {
   const [retiring, setRetiring] = useState(false);
 
   const saveFields = useCallback(
-    (fields: { name: string; personality: string; role: string; delegationHint: string }) => {
+    (fields: {
+      name: string;
+      personality: string;
+      role: string;
+      delegationHint: string;
+    }) => {
       setSaveError("");
       return execute(UpdateAgentMutation, {
         id: id ?? "",
@@ -54,7 +59,9 @@ export default function AgentConfigScreen() {
           delegationHint: fields.delegationHint || null,
         },
       }).catch((err) =>
-        setSaveError(err instanceof Error ? err.message : "Failed to save changes"),
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save changes",
+        ),
       );
     },
     [id],

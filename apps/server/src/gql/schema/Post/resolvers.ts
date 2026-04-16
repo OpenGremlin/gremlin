@@ -28,11 +28,8 @@ const agent = async (parent: PostItem, _args: unknown, ctx: GremlinContext) => {
   return ctx.loaders.agentLoader.load(parent.agentId).catch(() => null);
 };
 
-const attachments = (
-  parent: PostItem,
-  _args: unknown,
-  ctx: GremlinContext,
-) => ctx.services.posts.getPostAttachments(ctx, parent.attachmentIds ?? []);
+const attachments = (parent: PostItem, _args: unknown, ctx: GremlinContext) =>
+  ctx.services.posts.getPostAttachments(ctx, parent.attachmentIds ?? []);
 
 const node = (parent: { node: PostItem }) => parent.node;
 

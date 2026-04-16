@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type Fields = { name: string; personality: string; role: string; delegationHint: string };
+export type Fields = {
+  name: string;
+  personality: string;
+  role: string;
+  delegationHint: string;
+};
 
-const EMPTY: Fields = { name: "", personality: "", role: "", delegationHint: "" };
+const EMPTY: Fields = {
+  name: "",
+  personality: "",
+  role: "",
+  delegationHint: "",
+};
 const KEYS = Object.keys(EMPTY) as (keyof Fields)[];
 const DEBOUNCE_MS = 600;
 
@@ -69,7 +79,12 @@ export function useAutosaveFields(save: (fields: Fields) => Promise<unknown>) {
     (field: keyof Fields, value: string) => {
       dirtyRef.current = true;
       fieldsRef.current = { ...fieldsRef.current, [field]: value };
-      const s = { name: setName, personality: setPersonality, role: setRole, delegationHint: setDelegationHint };
+      const s = {
+        name: setName,
+        personality: setPersonality,
+        role: setRole,
+        delegationHint: setDelegationHint,
+      };
       s[field](value);
       scheduleSave();
     },

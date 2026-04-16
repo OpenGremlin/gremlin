@@ -3,9 +3,9 @@ import type { PostItem } from "../../resources/ddb/schema/post.js";
 import type { ServiceContext } from "../context.js";
 import {
   buildConnection,
+  type Connection,
   decodeCursor,
   type PaginationArgs,
-  type Connection,
 } from "../pagination.js";
 
 export type PostConnectionModel = Connection<PostItem>;

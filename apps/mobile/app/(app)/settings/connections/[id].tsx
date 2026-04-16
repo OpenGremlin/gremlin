@@ -8,9 +8,9 @@ import {
 } from "../../../../src/graphql/queries";
 import { execute } from "../../../../src/lib/apolloClient";
 import { Card } from "../../../../src/shared/Card";
-import { ErrorBanner } from "../../../../src/shared/ErrorBanner";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
+import { ErrorBanner } from "../../../../src/shared/ErrorBanner";
 import { formatDate } from "../../../../src/shared/formatDate";
 import { IntegrationLogo } from "../../../../src/shared/IntegrationLogo";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";

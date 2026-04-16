@@ -212,10 +212,7 @@ const BASENAME_EXTENSION_ALIASES: Record<string, string> = {
  * Accepts either a basename or a full path.
  */
 export function effectiveExtension(filename: string): string {
-  const slash = Math.max(
-    filename.lastIndexOf("/"),
-    filename.lastIndexOf("\\"),
-  );
+  const slash = Math.max(filename.lastIndexOf("/"), filename.lastIndexOf("\\"));
   const base = slash >= 0 ? filename.slice(slash + 1) : filename;
   const dot = base.lastIndexOf(".");
   // Match `path.extname` semantics: only dots past index 0 count as an

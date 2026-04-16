@@ -118,7 +118,6 @@ export function ModelToolCard({
 
           <ModelSelector
             label="Chat Model"
-
             modelLabel={chatModelLabel}
             defaultLabel={defaultChatModelLabel}
             usingDefault={usingDefaultChat}
@@ -141,7 +140,9 @@ export function ModelToolCard({
               </Text>
             </View>
             <Toggle
-              enabled={supportsReasoning && (config.reasoning?.enabled ?? false)}
+              enabled={
+                supportsReasoning && (config.reasoning?.enabled ?? false)
+              }
               disabled={!supportsReasoning}
               onChange={() => {
                 const wasEnabled = config.reasoning?.enabled ?? false;
@@ -192,7 +193,6 @@ export function ModelToolCard({
           {generateImagesEnabled && (
             <ModelSelector
               label="Image Model"
-
               modelLabel={imageModelLabel}
               defaultLabel={defaultImageModelLabel}
               usingDefault={usingDefaultImage}
@@ -224,7 +224,6 @@ export function ModelToolCard({
             <>
               <ModelSelector
                 label="Speech Model"
-
                 modelLabel={speechModelLabel}
                 defaultLabel={defaultSpeechModelLabel}
                 usingDefault={usingDefaultSpeech}

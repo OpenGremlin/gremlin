@@ -4,7 +4,6 @@ import type { EnabledModel } from "../integrations/getEnabledModels.js";
 import { buildSkillSummary } from "../skills/buildSkillSummary.js";
 import type { SkillToolsResult } from "../skills/buildSkillTools.js";
 import { buildSkillTools } from "../skills/buildSkillTools.js";
-import { buildTaskLaneTools } from "../tools/taskTrackingTools.js";
 import {
   attachFileTool,
   attachLinkTool,
@@ -27,6 +26,7 @@ import {
   webFetch,
   writeFileTool,
 } from "../tools/index.js";
+import { buildTaskLaneTools } from "../tools/taskTrackingTools.js";
 import { loadAgentContext } from "./loadAgentContext.js";
 import {
   getImageModelFromConfig,

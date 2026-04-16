@@ -15,7 +15,7 @@ export function createPostTool(ctx: ServiceContext, agentId: string) {
         .string()
         .describe(
           "Brief summary of what was done, about 25 words. " +
-          "Be direct and specific — state the outcome, not the process.",
+            "Be direct and specific — state the outcome, not the process.",
         ),
     }),
     execute: async ({ taskId, title, message }) => {

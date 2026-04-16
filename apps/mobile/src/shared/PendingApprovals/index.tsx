@@ -43,9 +43,7 @@ const ApprovalCard = React.memo(function ApprovalCard({
 
   return (
     <Pressable
-      onPress={() =>
-        router.push(`/tasks/${approval.taskId}`)
-      }
+      onPress={() => router.push(`/tasks/${approval.taskId}`)}
       className="bg-surface border border-app-border rounded-xl p-4"
     >
       <View className="flex-row items-start gap-3">

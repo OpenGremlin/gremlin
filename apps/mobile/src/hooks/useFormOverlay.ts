@@ -36,15 +36,12 @@ export function useFormOverlay<T extends Record<string, unknown>>(
     [overlay],
   );
 
-  const update = useCallback(
-    <K extends keyof T>(key: K, value: T[K]) => {
-      setOverlay((prev) => ({
-        ...prev,
-        [key]: value === serverRef.current[key] ? null : value,
-      }));
-    },
-    [],
-  );
+  const update = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
+    setOverlay((prev) => ({
+      ...prev,
+      [key]: value === serverRef.current[key] ? null : value,
+    }));
+  }, []);
 
   const discard = useCallback(() => {
     setOverlay((prev) => {

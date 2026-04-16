@@ -45,8 +45,7 @@ export function SandboxToolCard({
                     ? { enabled: false, commandApproval: "ask" }
                     : {
                         enabled: true,
-                        idleTimeoutMinutes:
-                          sandbox?.idleTimeoutMinutes ?? 20,
+                        idleTimeoutMinutes: sandbox?.idleTimeoutMinutes ?? 20,
                         alwaysOn: sandbox?.alwaysOn ?? false,
                         commandApproval: sandbox?.commandApproval ?? "ask",
                       },

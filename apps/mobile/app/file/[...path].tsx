@@ -42,7 +42,12 @@ export default function FileScreen() {
   return (
     <>
       {isPager ? (
-        <PagerMode filePath={filePath} taskId={task} postId={post} dirPath={dir} />
+        <PagerMode
+          filePath={filePath}
+          taskId={task}
+          postId={post}
+          dirPath={dir}
+        />
       ) : (
         <SingleMode filePath={filePath} />
       )}

@@ -22,9 +22,7 @@ export default function TaskScreen() {
 
   const task = taskData?.task;
   const agentId = task?.agent?.id ?? "";
-  const title = task
-    ? `Task: ${task.title ?? task.message ?? "Untitled"}`
-    : "";
+  const title = task ? `Task: ${task.title ?? task.message ?? "Untitled"}` : "";
   const sandboxStreams = useSandboxOutput(id);
   const found = !!task;
   const headerTitlePress = useCallback(
@@ -40,7 +38,9 @@ export default function TaskScreen() {
         taskId={id}
         title={title}
         headerTitlePress={headerTitlePress}
-        headerRight={agentId ? <VoiceModeButton agentId={agentId} /> : undefined}
+        headerRight={
+          agentId ? <VoiceModeButton agentId={agentId} /> : undefined
+        }
         loading={loading && !found}
         error={found ? undefined : error}
         onRetry={refetch}

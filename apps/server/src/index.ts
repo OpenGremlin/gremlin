@@ -162,11 +162,7 @@ app.options("/api/files/*", filesCorsPreflight);
 app.get("/api/files/*", filesRoute);
 app.get("/api/speech/sentence", createSpeechSentenceRoute(resources, services));
 app.options("/api/client-logs", clientLogsPreflight);
-app.post(
-  "/api/client-logs",
-  express.json({ limit: "64kb" }),
-  clientLogsRoute,
-);
+app.post("/api/client-logs", express.json({ limit: "64kb" }), clientLogsRoute);
 app.get("/api/auth-config", createAuthConfigRoute(resources));
 app.get("/api/health", healthRoute);
 

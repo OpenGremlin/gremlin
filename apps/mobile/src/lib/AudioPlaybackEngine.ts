@@ -186,7 +186,10 @@ export class AudioPlaybackEngine {
   }
 
   /** Called when a playback status update fires on a player. */
-  onPlayerStatus(player: AudioPlayer, status: { didJustFinish?: boolean; playing?: boolean }) {
+  onPlayerStatus(
+    player: AudioPlayer,
+    status: { didJustFinish?: boolean; playing?: boolean },
+  ) {
     if (this.active !== player) return;
     if (status.playing) this.disarmLoading();
     if (status.didJustFinish && this.isPlaying) {

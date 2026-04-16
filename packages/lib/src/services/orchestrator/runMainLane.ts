@@ -1,6 +1,5 @@
 import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
-import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
 import {
   createPostTool,
   FileStateTracker,
@@ -13,6 +12,7 @@ import {
   updateJobTool,
   viewImageTool,
 } from "../tools/index.js";
+import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
 import type { AgentLaneContext } from "./agentLaneContext.js";
 import { runLane } from "./runLane.js";
 

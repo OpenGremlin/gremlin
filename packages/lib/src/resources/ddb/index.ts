@@ -1,3 +1,4 @@
+import { ChatTable } from "./chatTable.js";
 import { AgentEntity } from "./schema/agent.js";
 import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
@@ -20,10 +21,8 @@ import { TaskAttachmentEntity } from "./schema/taskAttachment.js";
 import { TaskCommentEntity } from "./schema/taskComment.js";
 import { TaskDependencyEntity } from "./schema/taskDependency.js";
 import { UserInputRequestEntity } from "./schema/userInputRequest.js";
-
-import { ChatTable } from "./chatTable.js";
-import { GremlinTable } from "./table.js";
 import { SecretsTable } from "./secretsTable.js";
+import { GremlinTable } from "./table.js";
 
 export const ddb = {
   table: GremlinTable,

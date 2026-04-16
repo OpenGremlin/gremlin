@@ -51,10 +51,7 @@ export function AddSkillPicker({
       ),
     [available, q],
   );
-  const grouped = useMemo(
-    () => groupSkillsByCategory(filtered),
-    [filtered],
-  );
+  const grouped = useMemo(() => groupSkillsByCategory(filtered), [filtered]);
 
   async function handleAssign(skillId: string) {
     setAssigning(skillId);

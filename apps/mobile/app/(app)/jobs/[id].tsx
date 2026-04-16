@@ -348,9 +348,7 @@ export default function JobDetailScreen() {
             {allTasks.map((t, i) => (
               <Pressable
                 key={t.id}
-                onPress={() =>
-                  router.push(`/tasks/${t.id}`)
-                }
+                onPress={() => router.push(`/tasks/${t.id}`)}
                 className={`px-4 py-3 ${i > 0 ? "border-t border-app-border" : ""}`}
               >
                 <Text className="text-sm text-text-primary" numberOfLines={1}>

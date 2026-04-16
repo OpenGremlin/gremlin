@@ -84,7 +84,10 @@ function Tile({
  *
  * All tiles call `onPressImage` with the image's index.
  */
-export const ImageCollage = React.memo(function ImageCollage({ images, onPressImage }: ImageCollageProps) {
+export const ImageCollage = React.memo(function ImageCollage({
+  images,
+  onPressImage,
+}: ImageCollageProps) {
   if (images.length === 0) return null;
 
   if (images.length === 1) {

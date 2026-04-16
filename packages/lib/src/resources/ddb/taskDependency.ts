@@ -1,10 +1,6 @@
-import {
-  DeleteCommand,
-  PutCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
-import type { TaskDependencyItem } from "./schema/taskDependency.js";
+import { DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { Table } from "dynamodb-toolbox/table";
+import type { TaskDependencyItem } from "./schema/taskDependency.js";
 
 function getTableHelpers(table: Table<any, any, any>) {
   return {
@@ -100,8 +96,7 @@ export async function getDependents(
     new QueryCommand({
       TableName: tableName,
       IndexName: "gsi1",
-      KeyConditionExpression:
-        "gsi1pk = :pk AND begins_with(gsi1sk, :skPrefix)",
+      KeyConditionExpression: "gsi1pk = :pk AND begins_with(gsi1sk, :skPrefix)",
       ExpressionAttributeValues: {
         ":pk": `TASK_DEPREV#${dependsOnId}`,
         ":skPrefix": "DEP#",

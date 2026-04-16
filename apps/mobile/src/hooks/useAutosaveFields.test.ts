@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── React mock ──────────────────────────────────────────────────────────
 type SetterMap = Record<string, (v: string) => void>;
@@ -93,9 +93,7 @@ describe("useAutosaveFields", () => {
     expect(save).not.toHaveBeenCalled();
     vi.advanceTimersByTime(200);
     expect(save).toHaveBeenCalledTimes(1);
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Da" }),
-    );
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ name: "Da" }));
   });
 
   it("skips save when values match server state (no-op)", () => {

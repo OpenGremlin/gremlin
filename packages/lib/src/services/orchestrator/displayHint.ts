@@ -205,7 +205,9 @@ function computeDisplayHintInner(
 
     // ── Legacy task tools — render a basic hint for old log entries ─
     case ToolName.BackgroundTask:
-      return { text: `Starting task: ${(input?.title as string) ?? "background task"}` };
+      return {
+        text: `Starting task: ${(input?.title as string) ?? "background task"}`,
+      };
     case ToolName.Delegate:
       return { text: `Delegating: ${(input?.title as string) ?? "task"}` };
     case ToolName.CompleteTask:

@@ -14,8 +14,8 @@ import { execute } from "../../lib/apolloClient";
 import { ModelPicker } from "../ModelPicker";
 import { VoicePicker } from "../VoicePicker";
 import {
-  type PlainConfig,
   getModelLabel,
+  type PlainConfig,
   resolveModelIds,
   toModelRef,
   toPlainConfig,
@@ -24,7 +24,7 @@ import { ModelToolCard } from "./ModelToolCard";
 import { SandboxToolCard } from "./SandboxToolCard";
 import { WebSearchToolCard } from "./WebSearchToolCard";
 
-export { toPlainConfig, type PlainConfig } from "./helpers";
+export { type PlainConfig, toPlainConfig } from "./helpers";
 
 type Agent = NonNullable<AgentQueryType["agent"]>;
 
@@ -150,9 +150,15 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
         chatModelLabel={label(effectiveChatModel)}
         imageModelLabel={label(effectiveImageModel)}
         speechModelLabel={label(effectiveSpeechModel)}
-        defaultChatModelLabel={defaultChatModelRef ? label(defaultChatModelRef) : null}
-        defaultImageModelLabel={defaultImageModelRef ? label(defaultImageModelRef) : null}
-        defaultSpeechModelLabel={defaultSpeechModelRef ? label(defaultSpeechModelRef) : null}
+        defaultChatModelLabel={
+          defaultChatModelRef ? label(defaultChatModelRef) : null
+        }
+        defaultImageModelLabel={
+          defaultImageModelRef ? label(defaultImageModelRef) : null
+        }
+        defaultSpeechModelLabel={
+          defaultSpeechModelRef ? label(defaultSpeechModelRef) : null
+        }
         hasDefaultModel={!!defaultModel}
         hasDefaultImageModel={!!defaultImageModel}
         hasDefaultSpeechModel={!!defaultSpeechModel}

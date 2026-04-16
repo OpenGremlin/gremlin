@@ -12,8 +12,8 @@ import {
 } from "react-native";
 import type { AttachmentFieldsFragment } from "../../../src/graphql/generated/graphql";
 import {
-  PostsQuery,
   PostCreatedSubscription,
+  PostsQuery,
 } from "../../../src/graphql/queries/posts";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
@@ -143,9 +143,7 @@ export default function HomeScreen() {
       updateQuery((prev) => {
         if (!prev?.posts) return prev;
         // Avoid duplicates
-        const exists = prev.posts.edges.some(
-          (e) => e.node.id === newPost.id,
-        );
+        const exists = prev.posts.edges.some((e) => e.node.id === newPost.id);
         if (exists) return prev;
         return {
           ...prev,

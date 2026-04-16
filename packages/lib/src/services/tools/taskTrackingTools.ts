@@ -191,8 +191,7 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
     }),
 
     taskUpdate: tool({
-      description:
-        "Update a task's status, fields, or escalate it.",
+      description: "Update a task's status, fields, or escalate it.",
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to update"),
         status: z
@@ -299,8 +298,7 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
                 ctx,
                 task.parentId,
               );
-              ownerId =
-                parent?.agentId ?? task.assignerAgentId ?? task.agentId;
+              ownerId = parent?.agentId ?? task.assignerAgentId ?? task.agentId;
             } else {
               // Standalone / top-level task → main lane.
               targetLane = "main";

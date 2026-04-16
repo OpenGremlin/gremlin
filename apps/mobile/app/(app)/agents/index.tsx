@@ -60,8 +60,14 @@ export default function AgentsScreen() {
   );
 
   const allAgents = data?.agents ?? [];
-  const activeAgents = useMemo(() => allAgents.filter((a) => !a.retired), [allAgents]);
-  const retiredAgents = useMemo(() => allAgents.filter((a) => a.retired), [allAgents]);
+  const activeAgents = useMemo(
+    () => allAgents.filter((a) => !a.retired),
+    [allAgents],
+  );
+  const retiredAgents = useMemo(
+    () => allAgents.filter((a) => a.retired),
+    [allAgents],
+  );
 
   return (
     <QueryGate loading={loading} error={error} data={data} onRetry={refetch}>

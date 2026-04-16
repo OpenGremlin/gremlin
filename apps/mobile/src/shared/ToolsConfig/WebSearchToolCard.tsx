@@ -59,8 +59,8 @@ export function WebSearchToolCard({
             <View className="gap-1.5">
               {webSearchProviders.map((p) => {
                 const selected =
-                  (config.webSearch?.provider ??
-                    webSearchProviders[0]?.id) === p.id;
+                  (config.webSearch?.provider ?? webSearchProviders[0]?.id) ===
+                  p.id;
                 return (
                   <Pressable
                     key={p.id}

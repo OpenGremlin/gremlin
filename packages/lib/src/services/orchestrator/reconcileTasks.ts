@@ -68,9 +68,7 @@ export async function reconcile(
           : null) ??
         triggerAgentId;
 
-      const escalationLane = task.parentId
-        ? `task:${task.parentId}`
-        : "main";
+      const escalationLane = task.parentId ? `task:${task.parentId}` : "main";
       await ctx.services.inbox.enqueueWork(ctx, ownerId, escalationLane, {
         type: "task_needs_attention",
         payload: {
@@ -207,5 +205,4 @@ export async function reconcile(
       "Enqueued tasks_need_assignment to manager(s)",
     );
   }
-
 }

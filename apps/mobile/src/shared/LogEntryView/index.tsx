@@ -31,7 +31,6 @@ import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
 import { formatTime } from "../formatDate";
 import { formatFileSize } from "../formatFileSize";
-import { TaskCard, mapChild } from "./TaskCard";
 import { CommandApprovalCard } from "./CommandApprovalCard";
 import { FnLabel } from "./FnLabel";
 import { InputRequestCard } from "./InputRequestCard";
@@ -43,6 +42,7 @@ import {
   safeParseJson,
   ToolName,
 } from "./resolveToolFields";
+import { mapChild, TaskCard } from "./TaskCard";
 import { ToolBlock } from "./ToolBlock";
 import { ToolStatus } from "./ToolStatus";
 

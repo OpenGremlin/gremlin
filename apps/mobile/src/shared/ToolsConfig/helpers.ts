@@ -20,7 +20,11 @@ export interface PlainConfig {
   manager?: { enabled: boolean; team: string[] };
 }
 
-export type ModelRef = { type: string; modelId?: string; connectionId?: string };
+export type ModelRef = {
+  type: string;
+  modelId?: string;
+  connectionId?: string;
+};
 
 export function toPlainConfig(config: Agent["config"]): PlainConfig {
   return {

@@ -71,8 +71,18 @@ describe("taskComments", () => {
     it("queries with correct pk and ascending order", async () => {
       mockDocSend.mockResolvedValueOnce({
         Items: [
-          { id: "c1", taskId: "task-1", text: "first", createdAt: "2026-01-01" },
-          { id: "c2", taskId: "task-1", text: "second", createdAt: "2026-01-02" },
+          {
+            id: "c1",
+            taskId: "task-1",
+            text: "first",
+            createdAt: "2026-01-01",
+          },
+          {
+            id: "c2",
+            taskId: "task-1",
+            text: "second",
+            createdAt: "2026-01-02",
+          },
         ],
       });
 

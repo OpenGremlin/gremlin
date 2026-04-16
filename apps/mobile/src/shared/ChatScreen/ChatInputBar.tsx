@@ -20,7 +20,11 @@ import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { formatFileSize } from "../formatFileSize";
 
-const UploadProgressItem = React.memo(function UploadProgressItem({ upload }: { upload: FileUploadState }) {
+const UploadProgressItem = React.memo(function UploadProgressItem({
+  upload,
+}: {
+  upload: FileUploadState;
+}) {
   const isDone = upload.status === "done";
   const isError = upload.status === "error";
   const isActive =
