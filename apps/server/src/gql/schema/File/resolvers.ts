@@ -4,6 +4,7 @@ import { buildWorkspaceFileUrl } from "@opengremlin/lib/services/workspace/build
 import {
   detectFileType,
   detectRenderKind,
+  effectiveExtension,
   languageByExtension,
 } from "@opengremlin/lib/services/workspace/mime.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
@@ -57,7 +58,7 @@ const file = async (
 };
 
 const render = async (parent: FileParent) => {
-  const ext = nodePath.extname(parent.name);
+  const ext = effectiveExtension(parent.name);
   const kind = detectRenderKind(parent.mimeType, ext);
   const serverBase = parent._serverBase;
 
@@ -146,7 +147,7 @@ export const fileResolvers = {
   File: {
     render,
     fileType: (parent: FileParent) =>
-      detectFileType(nodePath.extname(parent.name)),
+      detectFileType(effectiveExtension(parent.name)),
   },
   FileRender: {
     __resolveType: (obj: { __typename: string }) => obj.__typename,

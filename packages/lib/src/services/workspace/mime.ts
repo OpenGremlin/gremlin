@@ -94,7 +94,73 @@ const MIME_MAP: Record<string, string> = {
   ".svelte": "text/x-svelte",
   ".dockerfile": "text/x-dockerfile",
   ".tf": "text/x-terraform",
+  ".tfvars": "text/x-terraform",
   ".proto": "text/x-protobuf",
+  ".mmd": "text/vnd.mermaid",
+  ".mermaid": "text/vnd.mermaid",
+
+  // CSS preprocessors
+  ".scss": "text/x-scss",
+  ".sass": "text/x-sass",
+  ".less": "text/x-less",
+  ".styl": "text/x-stylus",
+
+  // Templates
+  ".hbs": "text/x-handlebars-template",
+  ".handlebars": "text/x-handlebars-template",
+  ".ejs": "text/x-ejs",
+  ".pug": "text/x-pug",
+  ".liquid": "text/x-liquid",
+  ".twig": "text/x-twig",
+
+  // JSON variants / tabular
+  ".jsonc": "application/json",
+  ".json5": "application/json",
+  ".ndjson": "application/x-ndjson",
+  ".tsv": "text/tab-separated-values",
+
+  // Documentation
+  ".mdx": "text/mdx",
+  ".rst": "text/x-rst",
+  ".adoc": "text/x-asciidoc",
+  ".asciidoc": "text/x-asciidoc",
+
+  // Patches
+  ".diff": "text/x-diff",
+  ".patch": "text/x-diff",
+
+  // Other languages
+  ".nix": "text/x-nix",
+  ".zig": "text/x-zig",
+  ".jl": "text/x-julia",
+  ".ml": "text/x-ocaml",
+  ".mli": "text/x-ocaml",
+  ".groovy": "text/x-groovy",
+  ".gradle": "text/x-groovy",
+  ".astro": "text/x-astro",
+  ".rkt": "text/x-racket",
+  ".lisp": "text/x-lisp",
+  ".scm": "text/x-scheme",
+  ".fs": "text/x-fsharp",
+  ".fsx": "text/x-fsharp",
+  ".v": "text/x-verilog",
+  ".sv": "text/x-verilog",
+  ".nim": "text/x-nim",
+  ".cr": "text/x-crystal",
+  ".d": "text/x-d",
+
+  // Build tooling
+  ".cmake": "text/x-cmake",
+  ".mk": "text/x-makefile",
+  ".makefile": "text/x-makefile",
+
+  // Misc plaintext-ish
+  ".log": "text/plain",
+  ".procfile": "text/plain",
+  ".gitignore": "text/plain",
+  ".gitattributes": "text/plain",
+  ".dockerignore": "text/plain",
+  ".editorconfig": "text/plain",
 
   // Archives
   ".zip": "application/zip",
@@ -109,6 +175,53 @@ const MIME_MAP: Record<string, string> = {
 
 export function mimeByExtension(ext: string): string | null {
   return MIME_MAP[ext.toLowerCase()] ?? null;
+}
+
+// Common extensionless files (and dot-prefixed basenames, which look
+// extensionless to `path.extname`). Keys are lowercased basenames; values
+// are the synthetic extension to use downstream so the same map lookups
+// work for both cases.
+const BASENAME_EXTENSION_ALIASES: Record<string, string> = {
+  dockerfile: ".dockerfile",
+  makefile: ".makefile",
+  gnumakefile: ".makefile",
+  rakefile: ".rb",
+  gemfile: ".rb",
+  podfile: ".rb",
+  brewfile: ".rb",
+  vagrantfile: ".rb",
+  jenkinsfile: ".groovy",
+  procfile: ".procfile",
+  ".gitignore": ".gitignore",
+  ".gitattributes": ".gitattributes",
+  ".dockerignore": ".dockerignore",
+  // Sibling ignore files share the gitignore grammar.
+  ".npmignore": ".gitignore",
+  ".eslintignore": ".gitignore",
+  ".prettierignore": ".gitignore",
+  ".editorconfig": ".editorconfig",
+};
+
+/**
+ * Returns the extension to use for lookups in MIME / language / render
+ * maps. For files with an extension this behaves like `path.extname`; for
+ * extensionless files with a well-known basename (Dockerfile, Makefile,
+ * .gitignore, …) it returns a synthetic alias extension so a single lookup
+ * covers both cases.
+ *
+ * Accepts either a basename or a full path.
+ */
+export function effectiveExtension(filename: string): string {
+  const slash = Math.max(
+    filename.lastIndexOf("/"),
+    filename.lastIndexOf("\\"),
+  );
+  const base = slash >= 0 ? filename.slice(slash + 1) : filename;
+  const dot = base.lastIndexOf(".");
+  // Match `path.extname` semantics: only dots past index 0 count as an
+  // extension separator (so ".gitignore" is treated as extensionless).
+  if (dot > 0) return base.slice(dot).toLowerCase();
+  return BASENAME_EXTENSION_ALIASES[base.toLowerCase()] ?? "";
 }
 
 export type RenderKind =
@@ -174,9 +287,60 @@ const CODE_EXTENSIONS = new Set([
   ".tf",
   ".proto",
   ".csv",
+  ".mmd",
+  ".mermaid",
+  ".scss",
+  ".sass",
+  ".less",
+  ".styl",
+  ".hbs",
+  ".handlebars",
+  ".ejs",
+  ".pug",
+  ".liquid",
+  ".twig",
+  ".jsonc",
+  ".json5",
+  ".ndjson",
+  ".tsv",
+  ".diff",
+  ".patch",
+  ".nix",
+  ".zig",
+  ".jl",
+  ".ml",
+  ".mli",
+  ".groovy",
+  ".gradle",
+  ".astro",
+  ".rkt",
+  ".lisp",
+  ".scm",
+  ".fs",
+  ".fsx",
+  ".v",
+  ".sv",
+  ".nim",
+  ".cr",
+  ".d",
+  ".cmake",
+  ".mk",
+  ".makefile",
+  ".tfvars",
+  ".log",
+  ".procfile",
+  ".gitignore",
+  ".gitattributes",
+  ".dockerignore",
+  ".editorconfig",
+  ".rst",
+  ".adoc",
+  ".asciidoc",
 ]);
 
-const DOCUMENT_EXTENSIONS = new Set([".md", ".markdown", ".txt"]);
+// `.mdx` is MDX — valid markdown with optional JSX. Route it through the
+// document renderer; any JSX will surface as inline text.
+const DOCUMENT_EXTENSIONS = new Set([".md", ".markdown", ".txt", ".mdx"]);
 
 export function detectRenderKind(mime: string | null, ext: string): RenderKind {
   const lower = ext.toLowerCase();
@@ -248,6 +412,56 @@ const LANGUAGE_MAP: Record<string, string> = {
   ".tf": "hcl",
   ".proto": "protobuf",
   ".csv": "csv",
+  ".mmd": "mermaid",
+  ".mermaid": "mermaid",
+  ".scss": "scss",
+  ".sass": "sass",
+  ".less": "less",
+  ".styl": "stylus",
+  ".hbs": "handlebars",
+  ".handlebars": "handlebars",
+  ".ejs": "ejs",
+  ".pug": "pug",
+  ".liquid": "liquid",
+  ".twig": "twig",
+  ".jsonc": "jsonc",
+  ".json5": "json5",
+  ".ndjson": "json",
+  ".tsv": "tsv",
+  ".diff": "diff",
+  ".patch": "diff",
+  ".nix": "nix",
+  ".zig": "zig",
+  ".jl": "julia",
+  ".ml": "ocaml",
+  ".mli": "ocaml",
+  ".groovy": "groovy",
+  ".gradle": "groovy",
+  ".astro": "astro",
+  ".rkt": "racket",
+  ".lisp": "lisp",
+  ".scm": "scheme",
+  ".fs": "fsharp",
+  ".fsx": "fsharp",
+  ".v": "verilog",
+  ".sv": "systemverilog",
+  ".nim": "nim",
+  ".cr": "crystal",
+  ".d": "d",
+  ".cmake": "cmake",
+  ".mk": "makefile",
+  ".makefile": "makefile",
+  ".tfvars": "hcl",
+  ".log": "log",
+  ".procfile": "procfile",
+  ".gitignore": "gitignore",
+  ".gitattributes": "gitattributes",
+  ".dockerignore": "gitignore",
+  ".editorconfig": "editorconfig",
+  ".mdx": "mdx",
+  ".rst": "rst",
+  ".adoc": "asciidoc",
+  ".asciidoc": "asciidoc",
 };
 
 export function languageByExtension(ext: string): string {
@@ -315,10 +529,18 @@ const FILE_TYPE_MAP: Record<string, FileType> = {
   ".css": "WEB",
   ".vue": "WEB",
   ".svelte": "WEB",
+  ".scss": "WEB",
+  ".sass": "WEB",
+  ".less": "WEB",
+  ".styl": "WEB",
+  ".astro": "WEB",
 
   // Config
   ".json": "CONFIG",
   ".jsonl": "CONFIG",
+  ".jsonc": "CONFIG",
+  ".json5": "CONFIG",
+  ".ndjson": "CONFIG",
   ".yaml": "CONFIG",
   ".yml": "CONFIG",
   ".toml": "CONFIG",
@@ -329,8 +551,15 @@ const FILE_TYPE_MAP: Record<string, FileType> = {
   ".gql": "CONFIG",
   ".proto": "CONFIG",
   ".tf": "CONFIG",
+  ".tfvars": "CONFIG",
   ".dockerfile": "CONFIG",
   ".csv": "CONFIG",
+  ".tsv": "CONFIG",
+  ".procfile": "CONFIG",
+  ".gitignore": "CONFIG",
+  ".gitattributes": "CONFIG",
+  ".dockerignore": "CONFIG",
+  ".editorconfig": "CONFIG",
 
   // Code (other)
   ".rb": "CODE_OTHER",
@@ -350,14 +579,49 @@ const FILE_TYPE_MAP: Record<string, FileType> = {
   ".hpp": "CODE_OTHER",
   ".cs": "CODE_OTHER",
   ".wasm": "CODE_OTHER",
+  ".mmd": "CODE_OTHER",
+  ".mermaid": "CODE_OTHER",
+  ".hbs": "CODE_OTHER",
+  ".handlebars": "CODE_OTHER",
+  ".ejs": "CODE_OTHER",
+  ".pug": "CODE_OTHER",
+  ".liquid": "CODE_OTHER",
+  ".twig": "CODE_OTHER",
+  ".nix": "CODE_OTHER",
+  ".zig": "CODE_OTHER",
+  ".jl": "CODE_OTHER",
+  ".ml": "CODE_OTHER",
+  ".mli": "CODE_OTHER",
+  ".groovy": "CODE_OTHER",
+  ".gradle": "CODE_OTHER",
+  ".rkt": "CODE_OTHER",
+  ".lisp": "CODE_OTHER",
+  ".scm": "CODE_OTHER",
+  ".fs": "CODE_OTHER",
+  ".fsx": "CODE_OTHER",
+  ".v": "CODE_OTHER",
+  ".sv": "CODE_OTHER",
+  ".nim": "CODE_OTHER",
+  ".cr": "CODE_OTHER",
+  ".d": "CODE_OTHER",
+  ".cmake": "CODE_OTHER",
+  ".mk": "CODE_OTHER",
+  ".makefile": "CODE_OTHER",
+  ".diff": "CODE_OTHER",
+  ".patch": "CODE_OTHER",
+  ".log": "CODE_OTHER",
 
   // Documents
   ".md": "DOCUMENT",
   ".markdown": "DOCUMENT",
+  ".mdx": "DOCUMENT",
   ".txt": "DOCUMENT",
   ".doc": "DOCUMENT",
   ".docx": "DOCUMENT",
   ".rtf": "DOCUMENT",
+  ".rst": "DOCUMENT",
+  ".adoc": "DOCUMENT",
+  ".asciidoc": "DOCUMENT",
 
   // PDF
   ".pdf": "PDF",

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { mimeByExtension } from "./mime.js";
+import { effectiveExtension, mimeByExtension } from "./mime.js";
 import { getWorkspacePath } from "./workspacePath.js";
 
 export interface FileInfo {
@@ -21,12 +21,12 @@ export async function getFileInfo(filePath: string): Promise<FileInfo | null> {
   try {
     const stat = await fs.stat(resolved);
     if (!stat.isFile()) return null;
-    const ext = path.extname(resolved);
+    const name = path.basename(resolved);
     return {
       path: filePath,
-      name: path.basename(resolved),
+      name,
       sizeBytes: stat.size,
-      mimeType: mimeByExtension(ext),
+      mimeType: mimeByExtension(effectiveExtension(name)),
       modifiedAt: stat.mtime.toISOString(),
     };
   } catch {

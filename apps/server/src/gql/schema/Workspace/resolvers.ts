@@ -1,6 +1,9 @@
 import * as path from "node:path";
 import type { WorkspaceEntry } from "@opengremlin/lib/services/workspace/listEntries.js";
-import { detectFileType } from "@opengremlin/lib/services/workspace/mime.js";
+import {
+  detectFileType,
+  effectiveExtension,
+} from "@opengremlin/lib/services/workspace/mime.js";
 import type { SearchMode } from "@opengremlin/lib/services/workspace/searchFiles.js";
 import type { GremlinContext } from "../../context.js";
 
@@ -88,12 +91,12 @@ export const workspaceResolvers = {
     },
     fileType: (entry: WorkspaceEntry) => {
       if (entry.isDirectory) return null;
-      return detectFileType(path.extname(entry.name));
+      return detectFileType(effectiveExtension(entry.name));
     },
   },
   WorkspaceSearchResult: {
     fileType: (result: { name: string }) => {
-      return detectFileType(path.extname(result.name));
+      return detectFileType(effectiveExtension(result.name));
     },
   },
 };

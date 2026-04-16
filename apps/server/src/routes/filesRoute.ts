@@ -3,7 +3,10 @@ import * as nodePath from "node:path";
 import { GetParameterCommand } from "@aws-sdk/client-ssm";
 import { createLogger } from "@opengremlin/lib/logger.js";
 import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
-import { mimeByExtension } from "@opengremlin/lib/services/workspace/mime.js";
+import {
+  effectiveExtension,
+  mimeByExtension,
+} from "@opengremlin/lib/services/workspace/mime.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
 import { getWorkspacePath } from "../shared/workspacePath.js";
@@ -108,7 +111,7 @@ export async function filesRoute(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const ext = nodePath.extname(resolved);
+    const ext = effectiveExtension(resolved);
     const mime = mimeByExtension(ext) ?? "application/octet-stream";
     const isResizableImage = IMAGE_MIME_PREFIXES.some((p) =>
       mime.startsWith(p),

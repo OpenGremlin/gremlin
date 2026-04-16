@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   detectRenderKind,
+  effectiveExtension,
   languageByExtension,
   mimeByExtension,
 } from "./mime.js";
@@ -79,5 +80,38 @@ describe("languageByExtension", () => {
 
   it("returns plaintext for unknown extensions", () => {
     expect(languageByExtension(".xyz")).toBe("plaintext");
+  });
+});
+
+describe("effectiveExtension", () => {
+  it("behaves like path.extname for files with extensions", () => {
+    expect(effectiveExtension("foo.ts")).toBe(".ts");
+    expect(effectiveExtension("/a/b/foo.ts")).toBe(".ts");
+    expect(effectiveExtension("foo.tar.gz")).toBe(".gz");
+  });
+
+  it("is case-insensitive", () => {
+    expect(effectiveExtension("foo.TS")).toBe(".ts");
+    expect(effectiveExtension("Dockerfile")).toBe(".dockerfile");
+  });
+
+  it("resolves well-known extensionless basenames", () => {
+    expect(effectiveExtension("Dockerfile")).toBe(".dockerfile");
+    expect(effectiveExtension("Makefile")).toBe(".makefile");
+    expect(effectiveExtension("Rakefile")).toBe(".rb");
+    expect(effectiveExtension("Gemfile")).toBe(".rb");
+    expect(effectiveExtension("Jenkinsfile")).toBe(".groovy");
+    expect(effectiveExtension("/path/to/Dockerfile")).toBe(".dockerfile");
+  });
+
+  it("resolves dot-prefixed basenames", () => {
+    expect(effectiveExtension(".gitignore")).toBe(".gitignore");
+    expect(effectiveExtension(".editorconfig")).toBe(".editorconfig");
+    expect(effectiveExtension(".npmignore")).toBe(".gitignore");
+  });
+
+  it("returns empty for truly unknown extensionless files", () => {
+    expect(effectiveExtension("LICENSE")).toBe("");
+    expect(effectiveExtension("README")).toBe("");
   });
 });
