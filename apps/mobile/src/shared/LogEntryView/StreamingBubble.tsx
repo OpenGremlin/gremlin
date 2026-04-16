@@ -1,12 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
-import ReanimatedModule, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
 import type { StreamingMessage } from "../../hooks/useAgentStream";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
 import { Markdown } from "./Markdown";
@@ -68,38 +61,6 @@ function TypingDots() {
   );
 }
 
-function StreamingCursor() {
-  const colors = useNavigationTheme();
-  const opacity = useSharedValue(1);
-
-  useEffect(() => {
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(0.15, { duration: 500 }),
-        withTiming(1, { duration: 500 }),
-      ),
-      -1,
-    );
-  }, [opacity]);
-
-  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
-
-  return (
-    <ReanimatedModule.View
-      style={[
-        {
-          width: 2,
-          height: 14,
-          borderRadius: 1,
-          backgroundColor: colors.accent,
-          marginBottom: 2,
-        },
-        animStyle,
-      ]}
-    />
-  );
-}
-
 export const StreamingBubble = React.memo(function StreamingBubble({
   message,
 }: {
@@ -125,14 +86,8 @@ export const StreamingBubble = React.memo(function StreamingBubble({
               elapsedMs={elapsedMs}
             />
           )}
-          {hasContent ? (
-            <>
-              <Markdown variant="agent">{message.content}</Markdown>
-              <StreamingCursor />
-            </>
-          ) : (
-            !hasReasoning && <TypingDots />
-          )}
+          {hasContent && <Markdown variant="agent">{message.content}</Markdown>}
+          {!isReasoningStreaming && <TypingDots />}
         </View>
       </View>
     </View>
