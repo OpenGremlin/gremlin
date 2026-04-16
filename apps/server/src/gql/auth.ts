@@ -39,3 +39,9 @@ export async function verifyToken(token: string): Promise<AuthUser> {
   const email = (payload.email as string | undefined)?.toLowerCase() ?? "";
   return { sub: payload.sub as string, email };
 }
+
+export function __resetAuthConfigForTests() {
+  jwks = null;
+  cachedIssuer = null;
+  cachedClientId = null;
+}

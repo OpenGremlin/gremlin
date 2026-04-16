@@ -10,9 +10,12 @@ import { useServer } from "graphql-ws/use/ws";
 import { createYoga } from "graphql-yoga";
 import { WebSocketServer } from "ws";
 import { getServerBaseUrl, loadSchedulerConfig } from "./config.js";
-import { type AuthUser, verifyToken } from "./gql/auth.js";
+import type { AuthUser } from "./gql/auth.js";
+import { createAuthPlugin } from "./gql/authPlugin.js";
+import { createHttpContext } from "./gql/httpContext.js";
 import { mergedResolvers } from "./gql/schema/mergedResolvers.js";
 import { mergedTypeDefs } from "./gql/schema/mergedTypeDefs.js";
+import { createWsContext } from "./gql/wsContext.js";
 import { pubsub } from "./pubsub.js";
 import { createAuthConfigRoute } from "./routes/authConfigRoute.js";
 import {
@@ -23,7 +26,6 @@ import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
 import { healthRoute } from "./routes/healthRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
 import { createSpeechSentenceRoute } from "./routes/speechSentenceRoute.js";
-import { buildContext } from "./shared/buildContext.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -54,59 +56,14 @@ const yoga = createYoga({
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
-  plugins: [
-    {
-      async onRequest({ request, fetchAPI, endResponse }) {
-        logger.info(
-          { method: request.method, url: request.url, component: "http" },
-          "Incoming request",
-        );
-
-        if (SKIP_AUTH || request.method === "OPTIONS") return;
-
-        const header = request.headers.get("authorization");
-        if (!header?.startsWith("Bearer ")) {
-          logger.warn(
-            { url: request.url, component: "auth" },
-            "Missing auth header",
-          );
-          endResponse(
-            fetchAPI.Response.json(
-              { errors: [{ message: "Unauthorized" }] },
-              { status: 401 },
-            ),
-          );
-          return;
-        }
-
-        try {
-          const user = await verifyToken(header.slice(7));
-          userByRequest.set(request, user);
-        } catch (err) {
-          logger.error({ err, component: "auth" }, "Auth failed");
-          endResponse(
-            fetchAPI.Response.json(
-              { errors: [{ message: "Unauthorized" }] },
-              { status: 401 },
-            ),
-          );
-        }
-      },
-    },
-  ],
-  context: async ({ request }: { request: Request }) => {
-    const user = SKIP_AUTH
-      ? ({ sub: "local", email: "local@dev" } as AuthUser)
-      : (userByRequest.get(request) as AuthUser);
-    const serverBaseUrl = await getServerBaseUrl();
-    return buildContext({
-      user,
-      serverBaseUrl,
-      resources,
-      services,
-      component: "graphql",
-    });
-  },
+  plugins: [createAuthPlugin({ skipAuth: SKIP_AUTH, userByRequest })],
+  context: createHttpContext({
+    skipAuth: SKIP_AUTH,
+    userByRequest,
+    getServerBaseUrl,
+    resources,
+    services,
+  }),
   graphiql: SKIP_AUTH,
 });
 
@@ -123,24 +80,12 @@ const wsServer = new WebSocketServer({ noServer: true });
 useServer(
   {
     schema,
-    context: async (ctx: { connectionParams?: Record<string, unknown> }) => {
-      const token = ctx.connectionParams?.token as string | undefined;
-      let user: AuthUser;
-      if (SKIP_AUTH) {
-        user = { sub: "local", email: "local@dev" } as AuthUser;
-      } else {
-        if (!token) throw new Error("Unauthorized");
-        user = await verifyToken(token);
-      }
-      const serverBaseUrl = await getServerBaseUrl();
-      return buildContext({
-        user,
-        serverBaseUrl,
-        resources,
-        services,
-        component: "ws",
-      });
-    },
+    context: createWsContext({
+      skipAuth: SKIP_AUTH,
+      getServerBaseUrl,
+      resources,
+      services,
+    }),
   },
   wsServer,
 );
