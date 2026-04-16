@@ -351,7 +351,7 @@ export default function AgentConfigScreen() {
                                   {member.delegationHint ? (
                                     <Text
                                       className="text-xs text-text-muted mt-0.5"
-                                      numberOfLines={2}
+                                      numberOfLines={1}
                                     >
                                       {member.delegationHint}
                                     </Text>
