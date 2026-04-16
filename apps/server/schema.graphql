@@ -310,8 +310,14 @@ type AgentLog {
   toolResult: String
   displayHint: String
   displayVariant: String
-  "Pre-formatted '{code}: {message} {hint}' string for the status line. Derived from toolError."
-  displayError: String
+  """
+  Legacy fallback: pre-formatted '{code}: {message} {hint}' string for the
+  status line, derived from toolError or from pre-unification shapes
+  ({ error: string } / { type: "error", message }) on historical log
+  entries. New UI code should render toolError directly and keep
+  displayError only as a fallback for old log entries.
+  """
+  displayError: String @deprecated(reason: "Use toolError for current log entries; displayError only covers pre-unification shapes.")
   "Typed tool error — populated when a tool returned GremlinToolResult.ok === false."
   toolError: ToolError
   commandApprovalId: String

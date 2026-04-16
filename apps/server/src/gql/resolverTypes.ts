@@ -115,7 +115,14 @@ export type AgentLog = {
   commandApprovalId?: Maybe<Scalars['String']['output']>;
   content: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
-  /** Pre-formatted '{code}: {message} {hint}' string for the status line. Derived from toolError. */
+  /**
+   * Legacy fallback: pre-formatted '{code}: {message} {hint}' string for the
+   * status line, derived from toolError or from pre-unification shapes
+   * ({ error: string } / { type: "error", message }) on historical log
+   * entries. New UI code should render toolError directly and keep
+   * displayError only as a fallback for old log entries.
+   * @deprecated Use toolError for current log entries; displayError only covers pre-unification shapes.
+   */
   displayError?: Maybe<Scalars['String']['output']>;
   displayHint?: Maybe<Scalars['String']['output']>;
   displayVariant?: Maybe<Scalars['String']['output']>;

@@ -157,8 +157,11 @@ export async function updateAgentLogResult(
     updateParts.push("toolError = :terr");
     exprValues[":terr"] = toolError;
   } else {
-    // Clear any stale error from a previous attempt (shouldn't happen in
-    // practice — results are written once — but kept explicit for safety).
+    // Successful tool result: drop any toolError attribute on the row.
+    // Eager writes (toolResult: null) don't set this attribute, so for most
+    // updates the REMOVE is a DDB no-op. We still issue it unconditionally
+    // to guarantee a clean row after tool-approval retries where an earlier
+    // attempt wrote an error and the follow-up succeeded.
     removeParts.push("toolError");
   }
 

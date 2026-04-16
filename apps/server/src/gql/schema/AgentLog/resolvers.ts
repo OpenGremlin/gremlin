@@ -266,8 +266,7 @@ export const agentLogResolvers = {
         displayVariant: (parent: AgentLogItem) =>
           resolve(parent)?.variant ?? null,
         displayError: (parent: AgentLogItem) => resolve(parent)?.error ?? null,
-        // biome-ignore lint/suspicious/noExplicitAny: toolError not yet in generated types
-        toolError: (parent: any) => parent.toolError ?? null,
+        toolError: (parent: AgentLogItem) => parent.toolError ?? null,
       };
     })(),
     attachments,

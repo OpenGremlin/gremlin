@@ -1,3 +1,5 @@
+import { createLogger, type Logger } from "../../logger.js";
+
 /**
  * Unified result shape that every AI-SDK tool in this repo must return.
  *
@@ -74,7 +76,13 @@ export function toolOk<R>(data: R): GremlinToolResult<R> {
   return { ok: true, data };
 }
 
-/** Construct a failed tool result. */
+/**
+ * Construct a failed tool result.
+ *
+ * An empty-string `hint` is dropped rather than stored — the `hint` field is
+ * omitted from the returned error, not kept as `""`. This keeps the JSON
+ * payload (and the resulting "{code}: {message} {hint}" render) clean.
+ */
 export function toolErr(
   code: string,
   message: string,
@@ -97,6 +105,13 @@ export function isToolOk<R>(
 }
 
 /**
+ * Default logger used by `wrapExecute` when the caller doesn't pass one.
+ * Call sites that want correlation (agentId, taskId, …) should pass a child
+ * logger bound to those fields as the third argument.
+ */
+const defaultWrapExecuteLogger = createLogger("tool:wrapExecute");
+
+/**
  * Wrap a tool's execute function so any unexpected throw is converted to an
  * `INTERNAL_ERROR` result instead of surfacing as an AI-SDK `tool-error`
  * content part. The inner function must return a `GremlinToolResult<R>`
@@ -107,20 +122,23 @@ export function isToolOk<R>(
  *     // ... return toolOk(...) or toolErr(...)
  *   }),
  *
+ * For richer observability, pass a pre-bound logger as the third argument:
+ *   wrapExecute("runCommand", fn, ctx.log.child({ agentId, taskId }))
+ *
  * The inner fn's signature matches the AI SDK's tool `execute` signature
  * `(args, options) => Promise<R>`; `options` is passed through untouched.
  */
 export function wrapExecute<Args, R>(
   toolName: string,
   fn: (args: Args, options: unknown) => Promise<GremlinToolResult<R>>,
+  logger: Logger = defaultWrapExecuteLogger,
 ): (args: Args, options: unknown) => Promise<GremlinToolResult<R>> {
   return async (args, options) => {
     try {
       return await fn(args, options);
     } catch (err) {
       const raw = err instanceof Error ? err.message : String(err);
-      // biome-ignore lint/suspicious/noConsole: observability — unexpected tool throws should always be logged
-      console.error(`[tool:${toolName}] unhandled error`, err);
+      logger.error({ toolName, err }, "unhandled error in tool execute");
       return toolErr(
         ToolErrorCode.InternalError,
         `${toolName} failed: ${raw}`,
