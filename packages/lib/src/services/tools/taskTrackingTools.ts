@@ -245,6 +245,14 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           };
         }
 
+        // Redundant-close short-circuit: if the task is already closed, bail
+        // before side effects to avoid duplicate comments and cascading
+        // `task_ready_for_review` notifications to the parent epic.
+        if (status === "closed") {
+          const existing = await ctx.services.tasks.getTask(ctx, taskId);
+          if (existing?.status === "closed") return existing;
+        }
+
         if (status === "closed") {
           await ctx.services.tasks.closeTask(ctx, taskId, notes);
         } else if (status) {

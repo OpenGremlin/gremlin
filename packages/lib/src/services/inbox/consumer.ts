@@ -333,7 +333,8 @@ async function processTaskGroup(
           content:
             `Task ${payload.taskId} ("${payload.title ?? ""}") is closed. ` +
             `${payload.comment ? `Summary: "${payload.comment}". ` : ""}` +
-            `Use \`taskShow\` to review. If the work needs revision, set status to "open" with feedback.`,
+            `Use \`taskShow\` to review. If the work needs revision, set status to "open" with feedback. ` +
+            `Otherwise, no action is needed — the task is already closed.`,
           role: "SYSTEM",
         });
         break;

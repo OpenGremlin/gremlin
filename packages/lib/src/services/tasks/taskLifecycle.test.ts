@@ -188,6 +188,27 @@ describe("taskLifecycle", () => {
 
       expect(result.status).toBe("closed");
     });
+
+    it("is a no-op when the task is already closed", async () => {
+      const alreadyClosed = makeTask({
+        status: "closed",
+        parentId: "epic-1",
+        closedAt: "2026-01-10T00:00:00.000Z",
+        closeReason: "done earlier",
+      });
+      ctx.services.tasks.getTask.mockResolvedValue(alreadyClosed as any);
+
+      const result = await closeTask(ctx, "task-1", "redundant reason");
+
+      // Returns the existing task untouched; closeReason is NOT overwritten.
+      expect(result).toBe(alreadyClosed);
+      expect(result.closeReason).toBe("done earlier");
+      // No DDB write, no pubsub (including no parent notification despite
+      // parentId being set), no children lookup.
+      expect(mockDocSend).not.toHaveBeenCalled();
+      expect(ctx.resources.pubsub.publish).not.toHaveBeenCalled();
+      expect(ctx.services.tasks.getChildren).not.toHaveBeenCalled();
+    });
   });
 
   // ── reopenTask ────────────────────────────────────────────────

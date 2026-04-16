@@ -128,6 +128,11 @@ export async function closeTask(
   const task = await ctx.services.tasks.getTask(ctx, taskId);
   if (!task) throw new Error(`Task ${taskId} not found`);
 
+  // Idempotent: closing an already-closed task is a no-op. Prevents duplicate
+  // pubsub emissions and parent "task_ready_for_review" cascades when an
+  // orchestrator redundantly re-closes a child.
+  if (task.status === "closed") return task;
+
   const err = await checkChildrenClosed(ctx, task);
   if (err) throw new Error(err);
 
