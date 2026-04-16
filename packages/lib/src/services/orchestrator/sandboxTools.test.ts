@@ -165,17 +165,14 @@ describe("sandboxTools", () => {
   });
 
   describe("runCommandTool", () => {
-    it("returns error when no session exists for the task", async () => {
+    it("throws when no session exists for the task", async () => {
       const t = runCommandTool(ctx, "agent-1", "task-1");
-      const result = await t.execute({ command: "echo hi" }, {
-        toolCallId: "tc1",
-        messages: [],
-      } as any);
-
-      expect(result).toMatchObject({
-        status: "error",
-        error: expect.stringContaining("not online"),
-      });
+      await expect(
+        t.execute({ command: "echo hi" }, {
+          toolCallId: "tc1",
+          messages: [],
+        } as any),
+      ).rejects.toThrow(/not online/);
     });
 
     it("executes command on the task's session", async () => {

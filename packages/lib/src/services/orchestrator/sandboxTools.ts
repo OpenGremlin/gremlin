@@ -233,11 +233,9 @@ export function runCommandTool(
       // Check for an active session — don't implicitly boot
       const session = activeSessions.get(taskId);
       if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
-        return {
-          status: "error",
-          error:
-            "Sandbox is not online. Call ensureSandbox first to boot it up.",
-        };
+        throw new Error(
+          "Sandbox is not online. Call ensureSandbox first to boot it up.",
+        );
       }
 
       // Shell guard: evaluate command against allowlist and safe bins
