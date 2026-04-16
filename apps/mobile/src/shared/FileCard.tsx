@@ -87,8 +87,8 @@ export const FileCard = React.memo(function FileCard({
       className="bg-surface border border-app-border rounded-lg overflow-hidden"
       style={!canPreview ? { opacity: 0.7 } : undefined}
     >
-      <View className="flex-row items-center gap-2 px-3 py-2">
-        <FileTypeIcon fileType={file.fileType} size={14} />
+      <View className="flex-row items-center gap-2 px-2 py-1.5">
+        <FileTypeIcon fileType={file.fileType} size={22} />
         <View className="flex-1 min-w-0">
           <Text
             className="text-sm font-medium text-text-secondary"

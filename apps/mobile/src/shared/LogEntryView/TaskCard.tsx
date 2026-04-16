@@ -1,9 +1,17 @@
 import { useSubscription } from "@apollo/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Check, ExternalLink, Hourglass, RefreshCw } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import { Check, Hourglass, RefreshCw } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
 import { TaskTrackingSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
@@ -20,21 +28,13 @@ export interface TaskChild {
   agentId: string | null;
   assigneeName: string | null;
   latestComment: string | null;
+  emoji?: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
   children?: TaskChild[];
 }
 
-export interface TaskInfo {
-  id: string;
-  title: string;
-  status: string;
-  agentId: string | null;
-  assigneeName: string | null;
+export interface TaskInfo extends TaskChild {
   parentId: string | null;
-  latestComment: string | null;
-  emoji?: string | null;
-  children: TaskChild[];
-  attachments?: readonly AttachmentFieldsFragment[];
 }
 
 function statusLabel(status: string): string {
@@ -50,42 +50,76 @@ function statusLabel(status: string): string {
   }
 }
 
+function SpinningRefresh({ color }: { color: string }) {
+  const rotation = useSharedValue(0);
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 1600, easing: Easing.linear }),
+      -1,
+      false,
+    );
+  }, [rotation]);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+  return (
+    <Animated.View style={animatedStyle}>
+      <RefreshCw size={14} color={color} />
+    </Animated.View>
+  );
+}
+
 function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
   switch (status) {
     case "CLOSED":
       return <Check size={14} color={isDark ? "#86efac" : "#16a34a"} />;
     case "IN_PROGRESS":
-      return <RefreshCw size={14} color={isDark ? "#818cf8" : "#4f46e5"} />;
+      return <SpinningRefresh color={isDark ? "#818cf8" : "#4f46e5"} />;
     default:
       return <Hourglass size={14} color={isDark ? "#6b7280" : "#9ca3af"} />;
   }
 }
 
-const ChildRow = React.memo(function ChildRow({ child, isDark, depth = 0 }: { child: TaskChild; isDark: boolean; depth?: number }) {
+const TaskRow = React.memo(function TaskRow({
+  task,
+  isDark,
+  depth = 0,
+}: {
+  task: TaskChild;
+  isDark: boolean;
+  depth?: number;
+}) {
   const files = filesFromAttachments(
-    (child.attachments ?? []) as AttachmentFieldsFragment[],
+    (task.attachments ?? []) as AttachmentFieldsFragment[],
   );
   const groups = groupFiles(files);
+  const rowIndent = { marginLeft: depth * 16 };
+  const children = task.children ?? [];
+  const hasChildren = children.length > 0;
+  const closedCount = children.filter((c) => c.status === "CLOSED").length;
+  const totalCount = children.length;
 
   const openPager = (index: number) => {
     const file = files[index];
     if (file)
       router.push({
         pathname: "/file/[...path]",
-        params: { path: file.path.split("/"), task: child.id },
+        params: { path: file.path.split("/"), task: task.id },
       });
   };
 
   return (
     <>
       <Pressable
-        onPress={() => router.push(`/tasks/${child.id}`)}
+        onPress={() => router.push(`/tasks/${task.id}`)}
         className="py-1.5 flex-row gap-2.5"
-        style={depth > 0 ? { marginLeft: depth * 16 } : undefined}
+        style={rowIndent}
       >
         <View className="w-8 items-center pt-0.5">
-          {child.agentId ? (
-            <AgentAvatar id={child.agentId} size={32} />
+          {task.emoji ? (
+            <Text className="text-3xl leading-9">{task.emoji}</Text>
+          ) : task.agentId ? (
+            <AgentAvatar id={task.agentId} size={32} />
           ) : (
             <View className="w-8 h-8" />
           )}
@@ -93,46 +127,67 @@ const ChildRow = React.memo(function ChildRow({ child, isDark, depth = 0 }: { ch
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-1.5">
             <Text
-              className={`text-sm shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+              className={`text-sm shrink ${depth === 0 ? "font-medium" : ""} ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
               numberOfLines={1}
             >
-              {child.title}
+              {task.title}
             </Text>
-            <StatusIcon status={child.status} isDark={isDark} />
+            <StatusIcon status={task.status} isDark={isDark} />
+            {hasChildren ? (
+              <Text
+                className={`text-xs font-medium ml-auto ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
+              >
+                {closedCount}/{totalCount}
+              </Text>
+            ) : null}
           </View>
-          <Text
-            className={`text-xs ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-            numberOfLines={1}
-          >
-            {statusLabel(child.status)}
-            {child.latestComment ? ` · ${child.latestComment}` : ""}
-          </Text>
-          {groups.length > 0 && (
-            <View className="mt-1 gap-1">
-              {groups.map((group) => {
-                if (group.kind === "images") {
-                  return (
-                    <ImageCollage
-                      key={`images-${group.indices[0]}`}
-                      images={group.files}
-                      onPressImage={(i) => openPager(group.indices[i])}
-                    />
-                  );
-                }
-                return (
-                  <FileCard
-                    key={`${group.file.path}-${group.index}`}
-                    file={group.file}
-                    onPress={() => openPager(group.index)}
-                  />
-                );
-              })}
-            </View>
-          )}
+          {(() => {
+            const subtitle = `${statusLabel(task.status)}${task.assigneeName ? ` · @${task.assigneeName}` : ""}${task.latestComment ? ` · ${task.latestComment}` : ""}`;
+            return (
+              <Animated.Text
+                key={subtitle}
+                entering={FadeIn.duration(250)}
+                className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Animated.Text>
+            );
+          })()}
         </View>
       </Pressable>
-      {child.children?.map((grandchild) => (
-        <ChildRow key={grandchild.id} child={grandchild} isDark={isDark} depth={depth + 1} />
+      {groups.length > 0 ? (
+        <View className="mb-1 flex-row gap-2.5" style={rowIndent}>
+          <View className="w-8" />
+          <View className="flex-1 min-w-0 gap-1">
+            {groups.map((group) => {
+              if (group.kind === "images") {
+                return (
+                  <ImageCollage
+                    key={`images-${group.indices[0]}`}
+                    images={group.files}
+                    onPressImage={(i) => openPager(group.indices[i])}
+                  />
+                );
+              }
+              return (
+                <FileCard
+                  key={`${group.file.path}-${group.index}`}
+                  file={group.file}
+                  onPress={() => openPager(group.index)}
+                />
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+      {children.map((child) => (
+        <TaskRow
+          key={child.id}
+          task={child}
+          isDark={isDark}
+          depth={depth + 1}
+        />
       ))}
     </>
   );
@@ -147,6 +202,7 @@ export function mapChild(c: any): TaskChild {
     agentId: c.agent?.id ?? null,
     assigneeName: c.assigneeName ?? null,
     latestComment: c.latestComment ?? null,
+    emoji: c.emoji ?? null,
     attachments: c.attachments,
     children: c.children?.map((gc: any) => mapChild(gc)),
   };
@@ -186,26 +242,6 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
     ? ["#080a1c", "#190837", "#280830"]
     : ["#eef2ff", "#e8e0f7", "#f0e8f5"];
 
-  const hasChildren = resolved && resolved.children.length > 0;
-  const closedCount =
-    resolved?.children.filter((c) => c.status === "CLOSED").length ?? 0;
-  const totalCount = resolved?.children.length ?? 0;
-  const { topFiles, topGroups } = useMemo(() => {
-    const files = filesFromAttachments(
-      (resolved?.attachments ?? []) as AttachmentFieldsFragment[],
-    );
-    return { topFiles: files, topGroups: groupFiles(files) };
-  }, [resolved?.attachments]);
-
-  const openTopPager = (index: number) => {
-    const file = topFiles[index];
-    if (file && resolved)
-      router.push({
-        pathname: "/file/[...path]",
-        params: { path: file.path.split("/"), task: resolved.id },
-      });
-  };
-
   return (
     <View className="py-2 max-w-[85%]">
       <Pressable
@@ -218,78 +254,19 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
           end={{ x: 1, y: 1 }}
           style={{ borderRadius: 12 }}
         >
-          <View className="px-3 py-2.5 flex-row gap-2.5">
-            {/* Left column: emoji */}
-            {resolved?.emoji ? (
-              <View className="w-8 items-center pt-0.5">
-                <Text className="text-3xl leading-9">{resolved.emoji}</Text>
-              </View>
-            ) : null}
-
-            {/* Right column: title, status, children */}
-            <View className="flex-1 min-w-0">
-              <View className="flex-row items-center gap-1.5">
+          <View className="px-3 py-1">
+            {resolved ? (
+              <TaskRow task={resolved} isDark={isDark} depth={0} />
+            ) : (
+              <View className="py-1.5 flex-row gap-2.5">
+                <View className="w-8 h-8" />
                 <Text
-                  className={`text-sm font-medium shrink ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
-                  numberOfLines={1}
+                  className={`text-sm font-medium ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
                 >
-                  {resolved?.title ?? "Loading..."}
+                  Loading...
                 </Text>
-                <StatusIcon
-                  status={resolved?.status ?? "OPEN"}
-                  isDark={isDark}
-                />
-                {hasChildren ? (
-                  <Text
-                    className={`text-xs font-medium ml-auto ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
-                  >
-                    {closedCount}/{totalCount}
-                  </Text>
-                ) : null}
               </View>
-
-              {resolved && (
-                <Text
-                  className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-                  numberOfLines={1}
-                >
-                  {statusLabel(resolved.status)}
-                  {resolved.assigneeName ? ` · @${resolved.assigneeName}` : ""}
-                  {resolved.latestComment ? ` · ${resolved.latestComment}` : ""}
-                </Text>
-              )}
-
-              {resolved && topGroups.length > 0 && (
-                <View className="mt-1.5 gap-1">
-                  {topGroups.map((group) => {
-                    if (group.kind === "images") {
-                      return (
-                        <ImageCollage
-                          key={`images-${group.indices[0]}`}
-                          images={group.files}
-                          onPressImage={(i) => openTopPager(group.indices[i])}
-                        />
-                      );
-                    }
-                    return (
-                      <FileCard
-                        key={`${group.file.path}-${group.index}`}
-                        file={group.file}
-                        onPress={() => openTopPager(group.index)}
-                      />
-                    );
-                  })}
-                </View>
-              )}
-
-              {resolved && hasChildren && (
-                <View className="mt-2">
-                  {resolved.children.map((child) => (
-                    <ChildRow key={child.id} child={child} isDark={isDark} />
-                  ))}
-                </View>
-              )}
-            </View>
+            )}
           </View>
         </LinearGradient>
       </Pressable>
