@@ -2,7 +2,7 @@ import { DeleteItemCommand } from "dynamodb-toolbox/entity/actions/delete";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { Resources } from "../../resources/index.js";
-import { invalidateModelCache } from "../orchestrator/model.js";
+import { invalidateModelCache } from "../orchestrator/model/index.js";
 import { providers } from "./providers.js";
 
 export async function revokeConnection(

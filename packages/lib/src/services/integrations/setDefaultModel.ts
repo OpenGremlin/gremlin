@@ -1,6 +1,6 @@
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
 import type { ServiceContext } from "../context.js";
-import { invalidateModelCache } from "../orchestrator/model.js";
+import { invalidateModelCache } from "../orchestrator/model/index.js";
 import { getEnabledModels } from "./getEnabledModels.js";
 import { providers } from "./providers.js";
 

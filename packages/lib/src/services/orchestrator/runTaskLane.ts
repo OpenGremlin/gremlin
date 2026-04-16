@@ -4,7 +4,10 @@ import {
   resolvePromptFlags,
 } from "../prompts/index.js";
 import type { Attachment } from "../tasks/attachment.js";
-import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
+import {
+  type AgentLaneContext,
+  buildTaskTools,
+} from "./agentLaneContext/index.js";
 import { formatPlan, generatePlan } from "./generatePlan.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";

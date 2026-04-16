@@ -1,7 +1,7 @@
 import { createLogger } from "@opengremlin/lib/logger.js";
 import type { Resources } from "@opengremlin/lib/resources/index.js";
 import type { Services } from "@opengremlin/lib/services/index.js";
-import { getSpeechModelFromConfig } from "@opengremlin/lib/services/orchestrator/model.js";
+import { getSpeechModelFromConfig } from "@opengremlin/lib/services/orchestrator/model/index.js";
 import { generateSpeechAudio } from "@opengremlin/lib/services/speech/generateSpeechAudio.js";
 import type { Request, Response } from "express";
 

@@ -3,7 +3,7 @@ import type { WorkspaceEntry } from "@opengremlin/lib/services/workspace/listEnt
 import {
   detectFileType,
   effectiveExtension,
-} from "@opengremlin/lib/services/workspace/mime.js";
+} from "@opengremlin/lib/services/workspace/mime/index.js";
 import type { SearchMode } from "@opengremlin/lib/services/workspace/searchFiles.js";
 import type { GremlinContext } from "../../context.js";
 

@@ -8,9 +8,9 @@ import {
   estimateContextTokens,
   maybeCompact,
   PRE_PROMPT_COMPACTION_RATIO,
-} from "./compaction.js";
-import { getModelForAgent } from "./model.js";
-import { runAgentTurn, type SpeechConfig } from "./runAgentTurn.js";
+} from "./compaction/index.js";
+import { getModelForAgent } from "./model/index.js";
+import { runAgentTurn, type SpeechConfig } from "./runAgentTurn/index.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
 export interface LaneConfig {

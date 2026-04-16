@@ -1,6 +1,6 @@
 import { createLogger } from "../../logger.js";
 import { DANGEROUS_PATTERNS, PRESETS, type PresetName } from "./presets.js";
-import { analyzeCommand } from "./shellParse.js";
+import { analyzeCommand } from "./shellParse/index.js";
 import type { AllowlistEntry, AllowlistProvider } from "./types.js";
 
 const log = createLogger("shellGuard");

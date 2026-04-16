@@ -22,7 +22,7 @@ export {
 } from "./jobs.js";
 export { recallMemoryTool, saveMemoryTool } from "./memory.js";
 export { requestUserInputTool } from "./requestUserInput.js";
-export { buildTaskTrackingTools } from "./taskTrackingTools.js";
+export { buildTaskTrackingTools } from "./taskTracking/index.js";
 export { createTavilySearchTool } from "./tavilySearch.js";
 export {
   extractToolError,

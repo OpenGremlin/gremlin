@@ -1,4 +1,4 @@
-import { ringDoorbell } from "./consumer.js";
+import { ringDoorbell } from "./consumer/index.js";
 import { createCronSchedule } from "./createCronSchedule.js";
 import { deleteCronSchedule } from "./deleteCronSchedule.js";
 import { enqueueWork } from "./enqueueWork.js";

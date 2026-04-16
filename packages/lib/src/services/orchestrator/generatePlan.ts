@@ -2,7 +2,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import { getModelForAgent } from "./model.js";
+import { getModelForAgent } from "./model/index.js";
 
 const log = createLogger("planner");
 

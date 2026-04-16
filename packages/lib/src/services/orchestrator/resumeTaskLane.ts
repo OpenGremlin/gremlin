@@ -3,7 +3,10 @@ import {
   renderTaskSystemPrompt,
   resolvePromptFlags,
 } from "../prompts/index.js";
-import { type AgentLaneContext, buildTaskTools } from "./agentLaneContext.js";
+import {
+  type AgentLaneContext,
+  buildTaskTools,
+} from "./agentLaneContext/index.js";
 import { runLane } from "./runLane.js";
 
 /**

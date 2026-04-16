@@ -11,7 +11,7 @@
  *
  * Usage: pnpm --filter @opengremlin/lib invoke testContextMessages [agentId]
  */
-import { ringDoorbell } from "../../../services/inbox/consumer.js";
+import { ringDoorbell } from "../../../services/inbox/consumer/index.js";
 import { writeAgentLog } from "../../../services/orchestrator/writeAgentLog.js";
 import type { InvokeContext } from "../index.js";
 

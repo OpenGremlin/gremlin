@@ -3,7 +3,7 @@ import { CommandApprovalDecision, CommandApprovalStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
 import { createAllowlistStore } from "./allowlistStore.js";
 import { getCommandApproval } from "./getCommandApproval.js";
-import { analyzeCommand } from "./shellParse.js";
+import { analyzeCommand } from "./shellParse/index.js";
 
 /**
  * Resolve a CommandApproval: update status, persist allowlist if needed,

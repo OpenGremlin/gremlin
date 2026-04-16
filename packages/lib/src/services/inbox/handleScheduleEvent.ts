@@ -1,6 +1,6 @@
 import { getAgents } from "../agents/getAgents.js";
 import type { ServiceContext } from "../context.js";
-import { ringDoorbell } from "./consumer.js";
+import { ringDoorbell } from "./consumer/index.js";
 import type { InboxItemType } from "./enqueueWork.js";
 import { enqueueWork } from "./enqueueWork.js";
 import { getStaleUnreadTargets } from "./getStaleUnreadAgentIds.js";

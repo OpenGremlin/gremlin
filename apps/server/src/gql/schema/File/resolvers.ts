@@ -6,7 +6,7 @@ import {
   detectRenderKind,
   effectiveExtension,
   languageByExtension,
-} from "@opengremlin/lib/services/workspace/mime.js";
+} from "@opengremlin/lib/services/workspace/mime/index.js";
 import { readFile } from "@opengremlin/lib/services/workspace/readFile.js";
 import imageSize from "image-size";
 import { getWorkspacePath } from "../../../shared/workspacePath.js";

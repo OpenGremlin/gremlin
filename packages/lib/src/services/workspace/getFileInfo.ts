@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { effectiveExtension, mimeByExtension } from "./mime.js";
+import { effectiveExtension, mimeByExtension } from "./mime/index.js";
 import { getWorkspacePath } from "./workspacePath.js";
 
 export interface FileInfo {

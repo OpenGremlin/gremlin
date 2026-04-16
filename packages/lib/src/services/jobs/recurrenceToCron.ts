@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 import type { ServiceContext } from "../context.js";
-import { getModel } from "../orchestrator/model.js";
+import { getModel } from "../orchestrator/model/index.js";
 import { renderPrompt } from "../prompts/index.js";
 
 /** Use an LLM to convert natural-language recurrence to a cron expression. */

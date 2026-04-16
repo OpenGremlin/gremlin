@@ -1,4 +1,4 @@
-import { buildAgentLaneContext } from "./agentLaneContext.js";
+import { buildAgentLaneContext } from "./agentLaneContext/index.js";
 import { resumeTaskLane } from "./resumeTaskLane.js";
 import { runMainLane } from "./runMainLane.js";
 import { runTaskLane } from "./runTaskLane.js";

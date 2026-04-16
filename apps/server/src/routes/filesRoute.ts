@@ -6,7 +6,7 @@ import { getSsmClient } from "@opengremlin/lib/services/sandbox/ssmClient.js";
 import {
   effectiveExtension,
   mimeByExtension,
-} from "@opengremlin/lib/services/workspace/mime.js";
+} from "@opengremlin/lib/services/workspace/mime/index.js";
 import type { Request, Response } from "express";
 import sharp from "sharp";
 import { getWorkspacePath } from "../shared/workspacePath.js";

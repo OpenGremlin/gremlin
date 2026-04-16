@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { createMockContext } from "../__testing__/mockContext.js";
 import { runLane } from "./runLane.js";
 
-vi.mock("./compaction.js", () => ({
+vi.mock("./compaction/index.js", () => ({
   buildContextMessages: vi.fn(),
   estimateContextTokens: vi.fn().mockReturnValue(1000),
   maybeCompact: vi.fn().mockResolvedValue(undefined),
@@ -10,14 +10,14 @@ vi.mock("./compaction.js", () => ({
   PRE_PROMPT_COMPACTION_RATIO: 0.9,
 }));
 
-vi.mock("./model.js", () => ({
+vi.mock("./model/index.js", () => ({
   getModelForAgent: vi.fn().mockResolvedValue({
     model: {},
     maxInputTokens: 200_000,
   }),
 }));
 
-vi.mock("./runAgentTurn.js", () => ({
+vi.mock("./runAgentTurn/index.js", () => ({
   runAgentTurn: vi.fn(),
 }));
 
@@ -32,8 +32,8 @@ vi.mock("./buildMemoryContext.js", () => ({
 
 // Import mocked modules so we can configure them per-test
 const { buildContextMessages, estimateContextTokens, maybeCompact } =
-  await import("./compaction.js");
-const { runAgentTurn } = await import("./runAgentTurn.js");
+  await import("./compaction/index.js");
+const { runAgentTurn } = await import("./runAgentTurn/index.js");
 const { writeAgentLog } = await import("./writeAgentLog.js");
 
 function defaultConfig() {

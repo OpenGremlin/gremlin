@@ -9,12 +9,12 @@ import { searchFiles } from "./searchFiles.js";
 export { buildWorkspaceFileUrl } from "./buildFileUrl.js";
 export type { FileInfo } from "./getFileInfo.js";
 export type { WorkspaceEntry } from "./listEntries.js";
-export type { RenderKind } from "./mime.js";
+export type { RenderKind } from "./mime/index.js";
 export {
   detectRenderKind,
   languageByExtension,
   mimeByExtension,
-} from "./mime.js";
+} from "./mime/index.js";
 export type { SearchMode, SearchResult } from "./searchFiles.js";
 
 export interface WorkspaceService {

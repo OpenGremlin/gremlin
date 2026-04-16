@@ -2,7 +2,7 @@ import { GetVectorsCommand } from "@aws-sdk/client-s3vectors";
 import { generateText } from "ai";
 import { logger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
-import { getModel } from "../orchestrator/model.js";
+import { getModel } from "../orchestrator/model/index.js";
 import { ensureVectorIndex } from "./ensure.js";
 import type { CoreMemory } from "./getCoreMemories.js";
 import { getCoreMemories } from "./getCoreMemories.js";

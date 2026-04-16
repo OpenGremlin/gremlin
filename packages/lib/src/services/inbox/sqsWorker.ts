@@ -3,7 +3,7 @@ import {
   ReceiveMessageCommand,
 } from "@aws-sdk/client-sqs";
 import type { ServiceContext } from "../context.js";
-import { ringDoorbell } from "./consumer.js";
+import { ringDoorbell } from "./consumer/index.js";
 import { handleScheduleEvent } from "./handleScheduleEvent.js";
 import { getSqsClient } from "./sqsClient.js";
 

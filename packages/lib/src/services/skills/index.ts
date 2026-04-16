@@ -1,7 +1,7 @@
 import { assignSkill } from "./assignSkill.js";
 import { bindAgentSkillConnection } from "./bindAgentSkillConnection.js";
 import { buildSkillBlurb, buildSkillSummary } from "./buildSkillSummary.js";
-import { buildSkillTools } from "./buildSkillTools.js";
+import { buildSkillTools } from "./buildSkillTools/index.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
 import { removeSkill } from "./removeSkill.js";

@@ -2,7 +2,7 @@ import { generateText } from "ai";
 import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { TaskItem } from "../../resources/ddb/schema/task.js";
 import type { ServiceContext } from "../context.js";
-import { getModel } from "../orchestrator/model.js";
+import { getModel } from "../orchestrator/model/index.js";
 import { renderPrompt } from "../prompts/index.js";
 
 /**

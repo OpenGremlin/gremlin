@@ -20,7 +20,7 @@ import {
   type AgentLaneContext,
   buildAgentLaneContext,
   buildTaskTools,
-} from "../../services/orchestrator/agentLaneContext.js";
+} from "../../services/orchestrator/agentLaneContext/index.js";
 import { buildMemoryContext } from "../../services/orchestrator/buildMemoryContext.js";
 import {
   renderTaskSystemPrompt,

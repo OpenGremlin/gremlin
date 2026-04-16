@@ -7,8 +7,8 @@ import type {
 import {
   computeDisplayHint,
   type DisplayHint,
-} from "@opengremlin/lib/services/orchestrator/displayHint.js";
-import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/model.js";
+} from "@opengremlin/lib/services/orchestrator/displayHint/index.js";
+import { getSpeechConnectionId } from "@opengremlin/lib/services/orchestrator/model/index.js";
 import { SentenceAccumulator } from "@opengremlin/lib/services/speech/SentenceAccumulator.js";
 import { buildSpeechUrl } from "@opengremlin/lib/services/speech/signedSpeechUrl.js";
 import { stripMarkdownForSpeech } from "@opengremlin/lib/services/speech/stripMarkdownForSpeech.js";

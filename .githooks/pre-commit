@@ -21,6 +21,6 @@ if ! git diff --quiet -- apps/server/src/gql/ apps/mobile/src/graphql/generated/
 fi
 
 echo "→ Tests"
-pnpm --filter @opengremlin/server test
+pnpm test
 
 echo "All checks passed."

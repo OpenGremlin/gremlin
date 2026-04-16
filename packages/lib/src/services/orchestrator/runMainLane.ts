@@ -12,8 +12,8 @@ import {
   updateJobTool,
   viewImageTool,
 } from "../tools/index.js";
-import { buildTaskTrackingTools } from "../tools/taskTrackingTools.js";
-import type { AgentLaneContext } from "./agentLaneContext.js";
+import { buildTaskTrackingTools } from "../tools/taskTracking/index.js";
+import type { AgentLaneContext } from "./agentLaneContext/index.js";
 import { runLane } from "./runLane.js";
 
 /**
