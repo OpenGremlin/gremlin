@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "../toolResult.js";
 import type { FileStateTracker } from "./fileState.js";
 import { resolveAndValidate } from "./pathUtils.js";
 
@@ -43,62 +44,87 @@ export function editFileTool(
           "Replace all occurrences of old_string. Default is false (first match only, but rejects if ambiguous).",
         ),
     }),
-    execute: async ({ file_path, old_string, new_string, replace_all }) => {
-      // Validation uses two error strategies:
-      //  - throw: protocol violations (path traversal, unread file, stale file)
-      //    — these become tool-call errors the model must fix before retrying.
-      //  - return { error }: content-level issues (no match, ambiguous match, no-op)
-      //    — these are normal results the model can react to conversationally.
+    execute: wrapExecute(
+      "editFile",
+      async ({ file_path, old_string, new_string, replace_all }) => {
+        if (old_string === new_string) {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            "old_string and new_string are identical — nothing to change.",
+            "Provide a `new_string` that differs from `old_string`.",
+          );
+        }
 
-      if (old_string === new_string) {
-        return {
-          error: "old_string and new_string are identical — nothing to change.",
-        };
-      }
+        let resolved: string;
+        try {
+          resolved = resolveAndValidate(file_path);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return toolErr(
+            ToolErrorCode.PathInvalid,
+            `Path escapes the workspace: ${msg}`,
+            "Use paths under /workspace/ only.",
+          );
+        }
 
-      const resolved = resolveAndValidate(file_path);
+        let content: string;
+        try {
+          content = await fs.readFile(resolved, "utf-8");
+        } catch {
+          return toolErr(
+            ToolErrorCode.FileNotFound,
+            `File not found: ${resolved}`,
+            "Use `listFiles` or `glob` to find the correct path, and make sure to prefix with `/workspace/`.",
+          );
+        }
 
-      let content: string;
-      try {
-        content = await fs.readFile(resolved, "utf-8");
-      } catch {
-        return { error: `File not found: ${resolved}` };
-      }
+        try {
+          tracker.validateForWrite(resolved, true);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return toolErr(
+            ToolErrorCode.ProtocolViolation,
+            msg,
+            "Call `readFile` on this path first to see the current contents before writing.",
+          );
+        }
 
-      tracker.validateForWrite(resolved, true);
+        // --- find matches ---
+        const matchCount = countOccurrences(content, old_string);
+        if (matchCount === 0) {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            `old_string not found in ${resolved}. Make sure the text matches exactly, including whitespace and indentation.`,
+            "Use `grep` or `readFile` to locate the exact text, preserving whitespace and indentation, and try again.",
+          );
+        }
 
-      // --- find matches ---
-      const matchCount = countOccurrences(content, old_string);
-      if (matchCount === 0) {
-        return {
-          error: `old_string not found in ${resolved}. Make sure the text matches exactly, including whitespace and indentation.`,
-        };
-      }
-
-      if (matchCount > 1 && !replace_all) {
-        return {
-          error:
+        if (matchCount > 1 && !replace_all) {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
             `old_string appears ${matchCount} times in ${resolved}. ` +
-            "Either set replace_all to true, or include more surrounding " +
-            "context in old_string to make the match unique.",
-        };
-      }
+              "Either set replace_all to true, or include more surrounding " +
+              "context in old_string to make the match unique.",
+            "Use `grep` or `readFile` to find a uniquely-matching snippet, or pass `replaceAll: true`.",
+          );
+        }
 
-      // --- apply replacement ---
-      const updated = replace_all
-        ? content.replaceAll(old_string, new_string)
-        : content.replace(old_string, new_string);
+        // --- apply replacement ---
+        const updated = replace_all
+          ? content.replaceAll(old_string, new_string)
+          : content.replace(old_string, new_string);
 
-      await fs.writeFile(resolved, updated, "utf-8");
+        await fs.writeFile(resolved, updated, "utf-8");
 
-      // Clear staleness so a fresh read is needed before the next edit.
-      tracker.clear(resolved);
+        // Clear staleness so a fresh read is needed before the next edit.
+        tracker.clear(resolved);
 
-      return {
-        path: resolved,
-        replacements: replace_all ? matchCount : 1,
-      };
-    },
+        return toolOk({
+          path: resolved,
+          replacements: replace_all ? matchCount : 1,
+        });
+      },
+    ),
   });
 }
 

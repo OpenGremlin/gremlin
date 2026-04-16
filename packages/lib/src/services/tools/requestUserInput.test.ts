@@ -37,10 +37,13 @@ describe("requestUserInputTool", () => {
 
     expect(result).toMatchObject({
       ok: true,
-      status: "pending",
+      data: {
+        status: "pending",
+      },
     });
-    expect(result.inputRequestId).toBeDefined();
-    expect(typeof result.inputRequestId).toBe("string");
+    if (!result.ok) throw new Error("expected ok result");
+    expect(result.data.inputRequestId).toBeDefined();
+    expect(typeof result.data.inputRequestId).toBe("string");
   });
 
   it("publishes pendingItemsUpdated to pubsub", async () => {

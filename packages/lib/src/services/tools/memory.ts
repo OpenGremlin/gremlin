@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { toolOk, wrapExecute } from "./toolResult.js";
 
 export function saveMemoryTool(ctx: ServiceContext, agentId: string) {
   return tool({
@@ -25,9 +26,14 @@ Examples of good entries:
         .string()
         .describe("The information to remember — be specific and concise"),
     }),
-    execute: async ({ content }) => {
-      return ctx.services.memory.saveMemory(ctx, agentId, content);
-    },
+    execute: wrapExecute("saveMemory", async ({ content }) => {
+      const result = await ctx.services.memory.saveMemory(
+        ctx,
+        agentId,
+        content,
+      );
+      return toolOk(result);
+    }),
   });
 }
 
@@ -38,18 +44,18 @@ export function recallMemoryTool(ctx: ServiceContext, agentId: string) {
     inputSchema: z.object({
       query: z.string().describe("What to search for in memory"),
     }),
-    execute: async ({ query }) => {
+    execute: wrapExecute("recallMemory", async ({ query }) => {
       const { recent, relevant } = await ctx.services.memory.recallMemories(
         ctx,
         agentId,
         query,
       );
       const all = [...recent, ...relevant];
-      if (all.length === 0) return { found: false, memories: [] };
-      return {
+      if (all.length === 0) return toolOk({ found: false, memories: [] });
+      return toolOk({
         found: true,
         memories: all.map((m) => ({ date: m.date, content: m.content })),
-      };
-    },
+      });
+    }),
   });
 }

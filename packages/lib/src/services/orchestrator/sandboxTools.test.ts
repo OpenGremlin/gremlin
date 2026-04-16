@@ -44,7 +44,7 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({ status: "ready" });
+      expect(result).toEqual({ ok: true, data: { status: "ready" } });
     });
 
     it("returns ready after quick-connecting to a running instance", async () => {
@@ -62,7 +62,7 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({ status: "ready" });
+      expect(result).toEqual({ ok: true, data: { status: "ready" } });
       expect(activeSessions.get("task-1")).toBe(session);
     });
 
@@ -88,7 +88,7 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({ status: "ready" });
+      expect(result).toEqual({ ok: true, data: { status: "ready" } });
       expect(activeSessions.get("task-1")).toBe(session);
       expect(pollCount).toBeGreaterThanOrEqual(2);
     }, 10_000);
@@ -139,7 +139,13 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({ status: "error", error: "db down" });
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "db down",
+        },
+      });
     });
 
     it("does not share sessions between tasks for the same agent", async () => {
@@ -158,21 +164,24 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toEqual({ status: "ready" });
+      expect(result).toEqual({ ok: true, data: { status: "ready" } });
       expect(activeSessions.get("task-2")).toBe(session2);
       expect(activeSessions.has("task-1")).toBe(true);
     });
   });
 
   describe("runCommandTool", () => {
-    it("throws when no session exists for the task", async () => {
+    it("returns INVALID_INPUT when no session exists for the task", async () => {
       const t = runCommandTool(ctx, "agent-1", "task-1");
-      await expect(
-        t.execute({ command: "echo hi" }, {
-          toolCallId: "tc1",
-          messages: [],
-        } as any),
-      ).rejects.toThrow(/not online/);
+      const result = await t.execute({ command: "echo hi" }, {
+        toolCallId: "tc1",
+        messages: [],
+      } as any);
+
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: "INVALID_INPUT" },
+      });
     });
 
     it("executes command on the task's session", async () => {
@@ -193,7 +202,10 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toMatchObject({ output: "hello", exitCode: 0 });
+      expect(result).toMatchObject({
+        ok: true,
+        data: { output: "hello", exitCode: 0 },
+      });
       expect(ctx.services.sandbox.execCommand).toHaveBeenCalledWith(
         session,
         "echo hello",
@@ -218,7 +230,10 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toMatchObject({ output: "out\n\n[stderr]\nwarn" });
+      expect(result).toMatchObject({
+        ok: true,
+        data: { output: "out\n\n[stderr]\nwarn" },
+      });
     });
 
     it("puts stderr first when exit code is non-zero", async () => {
@@ -240,8 +255,11 @@ describe("sandboxTools", () => {
       } as any);
 
       expect(result).toMatchObject({
-        output: "[stderr]\nerror: not found\n\n[stdout]\nbuild output",
-        exitCode: 1,
+        ok: true,
+        data: {
+          output: "[stderr]\nerror: not found\n\n[stdout]\nbuild output",
+          exitCode: 1,
+        },
       });
     });
 
@@ -264,8 +282,11 @@ describe("sandboxTools", () => {
       } as any);
 
       expect(result).toMatchObject({
-        output: "line1\nline2\n... [3 more lines, 5 total]",
-        linesLimited: true,
+        ok: true,
+        data: {
+          output: "line1\nline2\n... [3 more lines, 5 total]",
+          linesLimited: true,
+        },
       });
     });
 
@@ -288,8 +309,11 @@ describe("sandboxTools", () => {
       } as any);
 
       expect(result).toMatchObject({
-        output: "... [3 lines hidden, showing last 2]\nline4\nline5",
-        linesLimited: true,
+        ok: true,
+        data: {
+          output: "... [3 lines hidden, showing last 2]\nline4\nline5",
+          linesLimited: true,
+        },
       });
     });
 
@@ -305,7 +329,10 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toMatchObject({ exitCode: -1 });
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: "INTERNAL_ERROR", message: "ws closed" },
+      });
       expect(activeSessions.has("task-1")).toBe(false);
     });
 
@@ -336,7 +363,7 @@ describe("sandboxTools", () => {
   });
 
   describe("readCommandOutputTool", () => {
-    it("returns error when no session exists", async () => {
+    it("returns INVALID_INPUT when no session exists", async () => {
       const t = readCommandOutputTool(ctx, "agent-1", "task-1");
       const result = await t.execute({ commandId: "cmd-1" }, {
         toolCallId: "tc1",
@@ -344,8 +371,8 @@ describe("sandboxTools", () => {
       } as any);
 
       expect(result).toMatchObject({
-        status: "error",
-        error: expect.stringContaining("not online"),
+        ok: false,
+        error: { code: "INVALID_INPUT" },
       });
     });
 
@@ -367,10 +394,13 @@ describe("sandboxTools", () => {
       );
 
       expect(result).toMatchObject({
-        data: "line 5\nline 6\n",
-        offset: 500,
-        bytesRead: 14,
-        totalBytes: 10000,
+        ok: true,
+        data: {
+          data: "line 5\nline 6\n",
+          offset: 500,
+          bytesRead: 14,
+          totalBytes: 10000,
+        },
       });
 
       expect(ctx.services.sandbox.readOutput).toHaveBeenCalledWith(
@@ -397,7 +427,10 @@ describe("sandboxTools", () => {
         messages: [],
       } as any);
 
-      expect(result).toMatchObject({ data: "error msg", stream: "stderr" });
+      expect(result).toMatchObject({
+        ok: true,
+        data: { data: "error msg", stream: "stderr" },
+      });
     });
 
     it("returns error when readOutput throws", async () => {
@@ -414,8 +447,11 @@ describe("sandboxTools", () => {
       } as any);
 
       expect(result).toMatchObject({
-        status: "error",
-        error: "Output file not found",
+        ok: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Output file not found",
+        },
       });
     });
   });

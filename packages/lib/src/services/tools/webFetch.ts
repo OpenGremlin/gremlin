@@ -4,6 +4,7 @@ import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "./toolResult.js";
 
 const log = createLogger("tool:webFetch");
 const MAX_CHARS = 30_000;
@@ -41,70 +42,78 @@ export const webFetch = tool({
   inputSchema: z.object({
     url: z.string().url().describe("The URL to fetch"),
   }),
-  execute: async ({ url }) => {
+  execute: wrapExecute("webFetch", async ({ url }) => {
     log.info({ url }, "Fetching URL");
 
-    try {
-      const res = await fetch(url, {
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-        headers: {
-          "User-Agent": "Gremlin/1.0 (web fetch tool)",
-          Accept: "text/html, application/json, text/plain, */*",
-        },
-        redirect: "follow",
-      });
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      headers: {
+        "User-Agent": "Gremlin/1.0 (web fetch tool)",
+        Accept: "text/html, application/json, text/plain, */*",
+      },
+      redirect: "follow",
+    });
 
-      if (!res.ok) {
-        return { error: `HTTP ${res.status} ${res.statusText}` };
-      }
-
-      const contentType = res.headers.get("content-type") ?? "";
-
-      // JSON: return raw
-      if (contentType.includes("application/json")) {
-        const text = await res.text();
-        const truncated = text.length > MAX_CHARS;
-        return {
-          content: truncated ? text.slice(0, MAX_CHARS) : text,
-          contentType: "application/json",
-          ...(truncated && { truncated: true }),
-        };
-      }
-
-      // Plain text
-      if (
-        contentType.includes("text/plain") ||
-        contentType.includes("text/csv")
-      ) {
-        const text = await res.text();
-        const truncated = text.length > MAX_CHARS;
-        return {
-          content: truncated ? text.slice(0, MAX_CHARS) : text,
-          contentType: contentType.split(";")[0],
-          ...(truncated && { truncated: true }),
-        };
-      }
-
-      // HTML: extract with readability + turndown
-      if (contentType.includes("text/html") || contentType.includes("xhtml")) {
-        const html = await res.text();
-        const content = extractContent(html);
-        const truncated = content.length > MAX_CHARS;
-        return {
-          content: truncated ? content.slice(0, MAX_CHARS) : content,
-          contentType: "text/markdown",
-          ...(truncated && { truncated: true }),
-        };
-      }
-
-      // Binary / unsupported
-      return {
-        error: `Unsupported content type: ${contentType}`,
-        hint: "webFetch works with HTML, JSON, and plain text URLs.",
-      };
-    } catch (err) {
-      log.error({ url, error: (err as Error).message }, "Fetch failed");
-      return { error: err instanceof Error ? err.message : String(err) };
+    if (!res.ok) {
+      return toolErr(
+        ToolErrorCode.UpstreamError,
+        `HTTP ${res.status} ${res.statusText}`,
+        res.status >= 500
+          ? "The origin server is having trouble. Retry once; if it keeps failing, try a different URL or source."
+          : res.status === 404
+            ? "The page does not exist at that URL. Double-check the URL or search for the correct one."
+            : res.status === 401 || res.status === 403
+              ? "The page requires authentication or is blocked for bots. Try a different source or a cached/archive URL."
+              : res.status === 429
+                ? "The origin rate-limited the request. Wait before retrying, or use a different source."
+                : "The request was rejected. Double-check the URL or try a different source.",
+      );
     }
-  },
+
+    const contentType = res.headers.get("content-type") ?? "";
+
+    // JSON: return raw
+    if (contentType.includes("application/json")) {
+      const text = await res.text();
+      const truncated = text.length > MAX_CHARS;
+      return toolOk({
+        content: truncated ? text.slice(0, MAX_CHARS) : text,
+        contentType: "application/json",
+        ...(truncated && { truncated: true }),
+      });
+    }
+
+    // Plain text
+    if (
+      contentType.includes("text/plain") ||
+      contentType.includes("text/csv")
+    ) {
+      const text = await res.text();
+      const truncated = text.length > MAX_CHARS;
+      return toolOk({
+        content: truncated ? text.slice(0, MAX_CHARS) : text,
+        contentType: contentType.split(";")[0],
+        ...(truncated && { truncated: true }),
+      });
+    }
+
+    // HTML: extract with readability + turndown
+    if (contentType.includes("text/html") || contentType.includes("xhtml")) {
+      const html = await res.text();
+      const content = extractContent(html);
+      const truncated = content.length > MAX_CHARS;
+      return toolOk({
+        content: truncated ? content.slice(0, MAX_CHARS) : content,
+        contentType: "text/markdown",
+        ...(truncated && { truncated: true }),
+      });
+    }
+
+    // Binary / unsupported
+    return toolErr(
+      ToolErrorCode.InvalidInput,
+      `Unsupported content type: ${contentType}`,
+      "webFetch only handles HTML, JSON, and plain text. For PDFs or binary files, use a different tool or find an HTML version of the content.",
+    );
+  }),
 });

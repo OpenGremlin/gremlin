@@ -36,10 +36,11 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(2);
-      expect(result.files).toContain(path.join(tmpDir, "a.ts"));
-      expect(result.files).toContain(path.join(tmpDir, "c.ts"));
-      expect(result.files).not.toContain(path.join(tmpDir, "b.ts"));
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(2);
+      expect(result.data.files).toContain(path.join(tmpDir, "a.ts"));
+      expect(result.data.files).toContain(path.join(tmpDir, "c.ts"));
+      expect(result.data.files).not.toContain(path.join(tmpDir, "b.ts"));
     });
 
     it("returns empty for no matches", async () => {
@@ -51,8 +52,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(0);
-      expect(result.files).toEqual([]);
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(0);
+      expect(result.data.files).toEqual([]);
     });
   });
 
@@ -66,8 +68,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(1);
-      expect(result.content).toContain(
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(1);
+      expect(result.data.content).toContain(
         `${path.join(tmpDir, "src/app.ts")}:2:const x = 42;`,
       );
     });
@@ -85,13 +88,14 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.content).toContain(
+      expect(result.ok).toBe(true);
+      expect(result.data.content).toContain(
         `${path.join(tmpDir, "file.ts")}:2:line2`,
       );
-      expect(result.content).toContain(
+      expect(result.data.content).toContain(
         `${path.join(tmpDir, "file.ts")}:3:MATCH`,
       );
-      expect(result.content).toContain(
+      expect(result.data.content).toContain(
         `${path.join(tmpDir, "file.ts")}:4:line4`,
       );
     });
@@ -109,7 +113,8 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.content).toContain("Hello World");
+      expect(result.ok).toBe(true);
+      expect(result.data.content).toContain("Hello World");
     });
   });
 
@@ -124,10 +129,11 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(2);
-      expect(result.numMatches).toBe(3);
-      expect(result.counts).toContain(`${path.join(tmpDir, "a.ts")}:2`);
-      expect(result.counts).toContain(`${path.join(tmpDir, "b.ts")}:1`);
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(2);
+      expect(result.data.numMatches).toBe(3);
+      expect(result.data.counts).toContain(`${path.join(tmpDir, "a.ts")}:2`);
+      expect(result.data.counts).toContain(`${path.join(tmpDir, "b.ts")}:1`);
     });
   });
 
@@ -143,8 +149,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(1);
-      expect(result.files).toContain(path.join(tmpDir, "a.ts"));
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(1);
+      expect(result.data.files).toContain(path.join(tmpDir, "a.ts"));
     });
 
     it("scopes to a subdirectory", async () => {
@@ -157,8 +164,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numFiles).toBe(1);
-      expect(result.files).toContain(path.join(tmpDir, "src/a.ts"));
+      expect(result.ok).toBe(true);
+      expect(result.data.numFiles).toBe(1);
+      expect(result.data.files).toContain(path.join(tmpDir, "src/a.ts"));
     });
 
     it("searches a single file", async () => {
@@ -170,7 +178,8 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.content).toContain(
+      expect(result.ok).toBe(true);
+      expect(result.data.content).toContain(
         `${path.join(tmpDir, "file.ts")}:2:world`,
       );
     });
@@ -184,7 +193,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.error).toContain("Invalid regex");
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("INVALID_INPUT");
+      expect(result.error.message).toContain("Invalid regex");
     });
 
     it("returns error for missing path", async () => {
@@ -198,17 +209,20 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.error).toContain("Path not found");
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("FILE_NOT_FOUND");
+      expect(result.error.message).toContain("Path not found");
     });
 
     it("rejects path traversal", async () => {
       const t = grepTool();
-      await expect(
-        t.execute(
-          { pattern: "x", path: "../../", output_mode: "files_with_matches" },
-          {} as any,
-        ),
-      ).rejects.toThrow("Path traversal not allowed");
+      const result = (await t.execute(
+        { pattern: "x", path: "../../", output_mode: "files_with_matches" },
+        {} as any,
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("PATH_INVALID");
+      expect(result.error.message).toContain("Path traversal not allowed");
     });
   });
 
@@ -225,8 +239,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numLines).toBe(5);
-      expect(result.truncated).toBe(true);
+      expect(result.ok).toBe(true);
+      expect(result.data.numLines).toBe(5);
+      expect(result.data.truncated).toBe(true);
     });
 
     it("head_limit 0 means unlimited", async () => {
@@ -241,8 +256,9 @@ describe("grepTool", () => {
         {} as any,
       )) as any;
 
-      expect(result.numLines).toBe(300);
-      expect(result.truncated).toBeUndefined();
+      expect(result.ok).toBe(true);
+      expect(result.data.numLines).toBe(300);
+      expect(result.data.truncated).toBeUndefined();
     });
   });
 
@@ -255,6 +271,7 @@ describe("grepTool", () => {
       {} as any,
     )) as any;
 
-    expect(result.numLines).toBe(2);
+    expect(result.ok).toBe(true);
+    expect(result.data.numLines).toBe(2);
   });
 });

@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { toolOk, wrapExecute } from "./toolResult.js";
 
 export function attachLinkTool(ctx: ServiceContext, taskId: string) {
   return tool({
@@ -17,14 +18,14 @@ export function attachLinkTool(ctx: ServiceContext, taskId: string) {
         .optional()
         .describe("Optional one-line description of what the link contains"),
     }),
-    execute: async ({ url, title, description }) => {
+    execute: wrapExecute("attachLink", async ({ url, title, description }) => {
       await ctx.services.tasks.addTaskAttachment(ctx, taskId, {
         type: "link",
         url,
         title,
         description,
       });
-      return { attached: true, url };
-    },
+      return toolOk({ attached: true, url });
+    }),
   });
 }

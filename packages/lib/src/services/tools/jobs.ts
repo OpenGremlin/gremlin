@@ -1,17 +1,18 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "./toolResult.js";
 
 export function listJobsTool(ctx: ServiceContext, agentId: string) {
   return tool({
     description:
       "List all of your scheduled jobs. Returns each job's id, name, description, recurrence, timezone, and paused status.",
     inputSchema: z.object({}),
-    execute: async () => {
+    execute: wrapExecute("listJobs", async () => {
       const allJobs = await ctx.services.jobs.getJobs(ctx);
       const myJobs = allJobs.filter((j) => j.agentId === agentId);
 
-      return {
+      return toolOk({
         jobs: myJobs.map((j) => ({
           id: j.id,
           name: j.name,
@@ -20,8 +21,8 @@ export function listJobsTool(ctx: ServiceContext, agentId: string) {
           timezone: j.timezone,
           paused: j.paused,
         })),
-      };
-    },
+      });
+    }),
   });
 }
 
@@ -51,16 +52,27 @@ export function updateJobTool(ctx: ServiceContext, agentId: string) {
         .optional()
         .describe("Set to true to pause the job, false to resume it."),
     }),
-    execute: async ({ jobId, ...input }) => {
+    execute: wrapExecute("updateJob", async ({ jobId, ...input }) => {
       // Verify the job belongs to this agent
       const job = await ctx.services.jobs.getJob(ctx, jobId);
-      if (!job || job.agentId !== agentId) {
-        return { error: "Job not found or does not belong to you." };
+      if (!job) {
+        return toolErr(
+          ToolErrorCode.NotFound,
+          `Job ${jobId} not found.`,
+          "Use `listJobs` to see jobs you own.",
+        );
+      }
+      if (job.agentId !== agentId) {
+        return toolErr(
+          ToolErrorCode.Unauthorized,
+          `Job ${jobId} does not belong to you.`,
+          "You can only update jobs assigned to you. Use `listJobs` to see your jobs.",
+        );
       }
 
       const updated = await ctx.services.jobs.updateJob(ctx, jobId, input);
 
-      return {
+      return toolOk({
         jobId: updated.id,
         name: updated.name,
         description: updated.description,
@@ -68,8 +80,8 @@ export function updateJobTool(ctx: ServiceContext, agentId: string) {
         cronExpression: updated.cronExpression,
         timezone: updated.timezone,
         paused: updated.paused,
-      };
-    },
+      });
+    }),
   });
 }
 
@@ -99,23 +111,26 @@ export function scheduleJobTool(ctx: ServiceContext, agentId: string) {
           'IANA timezone for the schedule (e.g. "America/New_York", "Europe/London").',
         ),
     }),
-    execute: async ({ name, description, recurrence, timezone }) => {
-      const job = await ctx.services.jobs.createJob(ctx, {
-        name,
-        description,
-        recurrence,
-        timezone,
-        agentId,
-      });
+    execute: wrapExecute(
+      "scheduleJob",
+      async ({ name, description, recurrence, timezone }) => {
+        const job = await ctx.services.jobs.createJob(ctx, {
+          name,
+          description,
+          recurrence,
+          timezone,
+          agentId,
+        });
 
-      return {
-        jobId: job.id,
-        name: job.name,
-        recurrence: job.recurrence,
-        cronExpression: job.cronExpression,
-        timezone: job.timezone,
-        paused: job.paused,
-      };
-    },
+        return toolOk({
+          jobId: job.id,
+          name: job.name,
+          recurrence: job.recurrence,
+          cronExpression: job.cronExpression,
+          timezone: job.timezone,
+          paused: job.paused,
+        });
+      },
+    ),
   });
 }

@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import { tool } from "ai";
 import { z } from "zod";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "../toolResult.js";
 import type { FileStateTracker } from "./fileState.js";
 import { resolveAndValidate } from "./pathUtils.js";
 
@@ -39,14 +40,28 @@ export function readFileTool(tracker: FileStateTracker) {
           `Max number of lines to return. Defaults to ${DEFAULT_LINE_LIMIT}.`,
         ),
     }),
-    execute: async ({ file_path, offset, limit }) => {
-      const resolved = resolveAndValidate(file_path);
+    execute: wrapExecute("readFile", async ({ file_path, offset, limit }) => {
+      let resolved: string;
+      try {
+        resolved = resolveAndValidate(file_path);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return toolErr(
+          ToolErrorCode.PathInvalid,
+          `Path escapes the workspace: ${msg}`,
+          "Use paths under /workspace/ only.",
+        );
+      }
 
       let content: string;
       try {
         content = await fs.readFile(resolved, "utf-8");
       } catch {
-        return { error: `File not found: ${resolved}` };
+        return toolErr(
+          ToolErrorCode.FileNotFound,
+          `File not found: ${resolved}`,
+          "Use `listFiles` or `glob` to find the correct path, and make sure to prefix with `/workspace/`.",
+        );
       }
 
       const lines = content.split("\n");
@@ -64,14 +79,14 @@ export function readFileTool(tracker: FileStateTracker) {
       // whether we returned a partial slice to the model.
       tracker.recordRead(resolved, content, isPartialRead);
 
-      return {
+      return toolOk({
         file_path: resolved,
         totalLines,
         content: numbered,
         ...(isPartialRead
           ? { linesShown: `${start + 1}-${start + slice.length}` }
           : {}),
-      };
-    },
+      });
+    }),
   });
 }

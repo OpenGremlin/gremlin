@@ -30,18 +30,24 @@ describe("viewImageTool", () => {
     it("rejects unsupported file extensions", async () => {
       const t = createTool();
       const result = await t.execute({ path: "file.txt" }, {} as any);
-      expect(result).toEqual({
-        type: "error",
-        message: expect.stringContaining("Unsupported image format"),
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "INVALID_INPUT",
+          message: expect.stringContaining("Unsupported image format"),
+        },
       });
     });
 
     it("rejects paths outside the workspace", async () => {
       const t = createTool();
       const result = await t.execute({ path: "/etc/passwd.png" }, {} as any);
-      expect(result).toEqual({
-        type: "error",
-        message: "Path is outside the workspace.",
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "PATH_INVALID",
+          message: "Path is outside the workspace.",
+        },
       });
     });
 
@@ -51,18 +57,24 @@ describe("viewImageTool", () => {
         { path: "../../etc/passwd.png" },
         {} as any,
       );
-      expect(result).toEqual({
-        type: "error",
-        message: "Path is outside the workspace.",
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "PATH_INVALID",
+          message: "Path is outside the workspace.",
+        },
       });
     });
 
     it("returns error when file does not exist", async () => {
       const t = createTool();
       const result = await t.execute({ path: "missing.png" }, {} as any);
-      expect(result).toEqual({
-        type: "error",
-        message: expect.stringContaining("File not found"),
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "FILE_NOT_FOUND",
+          message: expect.stringContaining("File not found"),
+        },
       });
     });
 
@@ -74,9 +86,12 @@ describe("viewImageTool", () => {
 
       const t = createTool();
       const result = await t.execute({ path: "large.png" }, {} as any);
-      expect(result).toEqual({
-        type: "error",
-        message: expect.stringContaining("Image too large"),
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "FILE_TOO_LARGE",
+          message: expect.stringContaining("Image too large"),
+        },
       });
     });
 
@@ -87,10 +102,13 @@ describe("viewImageTool", () => {
       const t = createTool();
       const result = await t.execute({ path: "photo.jpg" }, {} as any);
       expect(result).toEqual({
-        type: "image",
-        path: imgPath,
-        mediaType: "image/jpeg",
-        sizeKB: 0,
+        ok: true,
+        data: {
+          type: "image",
+          path: imgPath,
+          mediaType: "image/jpeg",
+          sizeKB: 0,
+        },
       });
     });
 
@@ -101,10 +119,13 @@ describe("viewImageTool", () => {
       const t = createTool();
       const result = await t.execute({ path: imgPath }, {} as any);
       expect(result).toEqual({
-        type: "image",
-        path: imgPath,
-        mediaType: "image/png",
-        sizeKB: 2,
+        ok: true,
+        data: {
+          type: "image",
+          path: imgPath,
+          mediaType: "image/png",
+          sizeKB: 2,
+        },
       });
     });
 
@@ -116,7 +137,10 @@ describe("viewImageTool", () => {
         const imgPath = path.join(tmpDir, `test${ext}`);
         await fs.writeFile(imgPath, Buffer.from("data"));
         const result = await t.execute({ path: `test${ext}` }, {} as any);
-        expect(result).toHaveProperty("type", "image");
+        expect(result).toMatchObject({
+          ok: true,
+          data: { type: "image" },
+        });
       }
     });
   });
@@ -125,11 +149,23 @@ describe("viewImageTool", () => {
     it("returns text content for error results", async () => {
       const t = createTool();
       const output = await t.toModelOutput?.({
-        output: { type: "error", message: "something went wrong" },
+        output: {
+          ok: false,
+          error: {
+            code: "INVALID_INPUT",
+            message: "something went wrong",
+            hint: "try again",
+          },
+        },
       } as any);
       expect(output).toEqual({
         type: "content",
-        value: [{ type: "text", text: "something went wrong" }],
+        value: [
+          {
+            type: "text",
+            text: "[INVALID_INPUT] something went wrong — try again",
+          },
+        ],
       });
     });
 
@@ -151,10 +187,13 @@ describe("viewImageTool", () => {
       const t = createTool();
       const output = await t.toModelOutput?.({
         output: {
-          type: "image",
-          path: imgPath,
-          mediaType: "image/png",
-          sizeKB: Math.round(pngBuffer.length / 1024),
+          ok: true,
+          data: {
+            type: "image",
+            path: imgPath,
+            mediaType: "image/png",
+            sizeKB: Math.round(pngBuffer.length / 1024),
+          },
         },
       } as any);
 

@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "../toolResult.js";
 import type { FileStateTracker } from "./fileState.js";
 import { resolveAndValidate } from "./pathUtils.js";
 
@@ -28,11 +29,31 @@ export function writeFileTool(
         ),
       content: z.string().describe("The full content to write to the file"),
     }),
-    execute: async ({ file_path, content }) => {
-      const resolved = resolveAndValidate(file_path);
+    execute: wrapExecute("writeFile", async ({ file_path, content }) => {
+      let resolved: string;
+      try {
+        resolved = resolveAndValidate(file_path);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return toolErr(
+          ToolErrorCode.PathInvalid,
+          `Path escapes the workspace: ${msg}`,
+          "Use paths under /workspace/ only.",
+        );
+      }
+
       const fileExists = await exists(resolved);
 
-      tracker.validateForWrite(resolved, fileExists);
+      try {
+        tracker.validateForWrite(resolved, fileExists);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return toolErr(
+          ToolErrorCode.ProtocolViolation,
+          msg,
+          "Call `readFile` on this path first to see the current contents before writing.",
+        );
+      }
 
       // Ensure parent directories exist.
       await fs.mkdir(path.dirname(resolved), { recursive: true });
@@ -41,11 +62,11 @@ export function writeFileTool(
       // Clear tracked state so a fresh read is required before the next edit.
       tracker.clear(resolved);
 
-      return {
+      return toolOk({
         type: fileExists ? ("update" as const) : ("create" as const),
         path: resolved,
-      };
-    },
+      });
+    }),
   });
 }
 

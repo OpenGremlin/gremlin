@@ -3,6 +3,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { UserInputRequestStatus } from "../../enums.js";
 import type { ServiceContext } from "../context.js";
+import { toolOk, wrapExecute } from "./toolResult.js";
 
 export function requestUserInputTool(
   ctx: ServiceContext,
@@ -32,7 +33,7 @@ export function requestUserInputTool(
         .min(2)
         .describe("The choices to present to the user"),
     }),
-    execute: async ({ message, actions }) => {
+    execute: wrapExecute("requestUserInput", async ({ message, actions }) => {
       const id = crypto.randomUUID();
       const createdAt = new Date().toISOString();
 
@@ -61,7 +62,7 @@ export function requestUserInputTool(
 
       ctx.resources.pubsub.publish("pendingItemsUpdated");
 
-      return { ok: true, inputRequestId: id, status: "pending" };
-    },
+      return toolOk({ inputRequestId: id, status: "pending" });
+    }),
   });
 }

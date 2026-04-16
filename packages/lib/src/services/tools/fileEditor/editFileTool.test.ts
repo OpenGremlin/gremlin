@@ -39,7 +39,7 @@ describe("editFileTool", () => {
     it("replaces a unique string", async () => {
       await writeAndRead("file.ts", "const x = 1;\nconst y = 2;\n");
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "file.ts",
           old_string: "const x = 1;",
@@ -47,8 +47,9 @@ describe("editFileTool", () => {
           replace_all: false,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({
+      )) as any;
+      expect(result.ok).toBe(true);
+      expect(result.data).toMatchObject({
         path: path.join(tmpDir, "file.ts"),
         replacements: 1,
       });
@@ -59,7 +60,7 @@ describe("editFileTool", () => {
     it("replaces all occurrences with replace_all", async () => {
       await writeAndRead("file.txt", "foo bar foo baz foo");
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "file.txt",
           old_string: "foo",
@@ -67,8 +68,9 @@ describe("editFileTool", () => {
           replace_all: true,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({ replacements: 3 });
+      )) as any;
+      expect(result.ok).toBe(true);
+      expect(result.data).toMatchObject({ replacements: 3 });
       const content = await fsp.readFile(
         path.join(tmpDir, "file.txt"),
         "utf-8",
@@ -81,7 +83,7 @@ describe("editFileTool", () => {
     it("rejects when old_string equals new_string", async () => {
       await writeAndRead("file.txt", "hello");
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "file.txt",
           old_string: "hello",
@@ -89,16 +91,16 @@ describe("editFileTool", () => {
           replace_all: false,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({
-        error: expect.stringContaining("identical"),
-      });
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("INVALID_INPUT");
+      expect(result.error.message).toContain("identical");
     });
 
     it("rejects when old_string is not found", async () => {
       await writeAndRead("file.txt", "hello world");
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "file.txt",
           old_string: "goodbye",
@@ -106,16 +108,16 @@ describe("editFileTool", () => {
           replace_all: false,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({
-        error: expect.stringContaining("not found"),
-      });
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("INVALID_INPUT");
+      expect(result.error.message).toContain("not found");
     });
 
     it("rejects ambiguous match without replace_all", async () => {
       await writeAndRead("file.txt", "aaa bbb aaa");
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "file.txt",
           old_string: "aaa",
@@ -123,32 +125,33 @@ describe("editFileTool", () => {
           replace_all: false,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({
-        error: expect.stringContaining("appears 2 times"),
-      });
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("INVALID_INPUT");
+      expect(result.error.message).toContain("appears 2 times");
     });
 
     it("rejects editing without prior read", async () => {
       const p = path.join(tmpDir, "file.txt");
       await fsp.writeFile(p, "content");
       const t = createTool();
-      await expect(
-        t.execute(
-          {
-            file_path: "file.txt",
-            old_string: "content",
-            new_string: "new",
-            replace_all: false,
-          },
-          {} as any,
-        ),
-      ).rejects.toThrow("has not been read yet");
+      const result = (await t.execute(
+        {
+          file_path: "file.txt",
+          old_string: "content",
+          new_string: "new",
+          replace_all: false,
+        },
+        {} as any,
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("PROTOCOL_VIOLATION");
+      expect(result.error.message).toContain("has not been read yet");
     });
 
     it("returns error for missing file", async () => {
       const t = createTool();
-      const result = await t.execute(
+      const result = (await t.execute(
         {
           file_path: "missing.txt",
           old_string: "x",
@@ -156,25 +159,26 @@ describe("editFileTool", () => {
           replace_all: false,
         },
         {} as any,
-      );
-      expect(result).toMatchObject({
-        error: expect.stringContaining("File not found"),
-      });
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("FILE_NOT_FOUND");
+      expect(result.error.message).toContain("File not found");
     });
 
     it("rejects path traversal", async () => {
       const t = createTool();
-      await expect(
-        t.execute(
-          {
-            file_path: "../escape.txt",
-            old_string: "x",
-            new_string: "y",
-            replace_all: false,
-          },
-          {} as any,
-        ),
-      ).rejects.toThrow("Path traversal not allowed");
+      const result = (await t.execute(
+        {
+          file_path: "../escape.txt",
+          old_string: "x",
+          new_string: "y",
+          replace_all: false,
+        },
+        {} as any,
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("PATH_INVALID");
+      expect(result.error.message).toContain("Path traversal not allowed");
     });
   });
 
@@ -193,17 +197,18 @@ describe("editFileTool", () => {
       );
 
       // Second edit without re-read should fail
-      await expect(
-        t.execute(
-          {
-            file_path: "file.txt",
-            old_string: "bbb",
-            new_string: "ddd",
-            replace_all: false,
-          },
-          {} as any,
-        ),
-      ).rejects.toThrow("has not been read yet");
+      const result = (await t.execute(
+        {
+          file_path: "file.txt",
+          old_string: "bbb",
+          new_string: "ddd",
+          replace_all: false,
+        },
+        {} as any,
+      )) as any;
+      expect(result.ok).toBe(false);
+      expect(result.error.code).toBe("PROTOCOL_VIOLATION");
+      expect(result.error.message).toContain("has not been read yet");
     });
   });
 });

@@ -2,6 +2,12 @@ import { tool } from "ai";
 import { z } from "zod";
 import { createLogger } from "../../logger.js";
 import type { ServiceContext } from "../context.js";
+import {
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  wrapExecute,
+} from "../tools/toolResult.js";
 import { getAgentSkills } from "./getAgentSkills.js";
 import { getSkillsBucket } from "./getSkillsBucket.js";
 import {
@@ -52,15 +58,23 @@ export async function buildSkillTools(
     inputSchema: z.object({
       skillId: z.string().describe("The skill ID to read"),
     }),
-    execute: async ({ skillId }) => {
+    execute: wrapExecute("readSkill", async ({ skillId }) => {
       const agentSkill = agentSkills.find((s) => s.skillId === skillId);
       if (!agentSkill) {
-        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+        return toolErr(
+          ToolErrorCode.Unauthorized,
+          `Skill "${skillId}" is not assigned to this agent.`,
+          "Ask the user to assign this skill in settings, or pick a skill that has been assigned to you.",
+        );
       }
 
       const template = await getSkillTemplateFromS3(bucketName, skillId);
       if (!template) {
-        return { error: `Skill "${skillId}" not found.` };
+        return toolErr(
+          ToolErrorCode.NotFound,
+          `Skill "${skillId}" not found.`,
+          "Double-check the skill ID. Only skills assigned to you are available.",
+        );
       }
 
       const references = await listSkillReferencesFromS3(bucketName, skillId);
@@ -88,8 +102,8 @@ export async function buildSkillTools(
           .join("\n");
       }
 
-      return result;
-    },
+      return toolOk(result);
+    }),
   });
 
   tools.readSkillReference = tool({
@@ -101,30 +115,39 @@ export async function buildSkillTools(
         .string()
         .describe('The reference name to read, e.g. "send", "triage", "read"'),
     }),
-    execute: async ({ skillId, reference }) => {
-      const agentSkill = agentSkills.find((s) => s.skillId === skillId);
-      if (!agentSkill) {
-        return { error: `Skill "${skillId}" is not assigned to this agent.` };
-      }
+    execute: wrapExecute(
+      "readSkillReference",
+      async ({ skillId, reference }) => {
+        const agentSkill = agentSkills.find((s) => s.skillId === skillId);
+        if (!agentSkill) {
+          return toolErr(
+            ToolErrorCode.Unauthorized,
+            `Skill "${skillId}" is not assigned to this agent.`,
+            "Ask the user to assign this skill in settings, or pick a skill that has been assigned to you.",
+          );
+        }
 
-      const content = await getSkillReferenceFromS3(
-        bucketName,
-        skillId,
-        reference,
-      );
-      if (!content) {
-        return {
-          error: `Reference "${reference}" not found for skill "${skillId}".`,
-        };
-      }
+        const content = await getSkillReferenceFromS3(
+          bucketName,
+          skillId,
+          reference,
+        );
+        if (!content) {
+          return toolErr(
+            ToolErrorCode.NotFound,
+            `Reference "${reference}" not found for skill "${skillId}".`,
+            "Call `readSkill` to see the list of available references for this skill.",
+          );
+        }
 
-      log.info(
-        { agentId, skillId, reference },
-        "readSkillReference: returning file",
-      );
+        log.info(
+          { agentId, skillId, reference },
+          "readSkillReference: returning file",
+        );
 
-      return { content };
-    },
+        return toolOk({ content });
+      },
+    ),
   });
 
   tools.authenticate = tool({
@@ -139,19 +162,37 @@ export async function buildSkillTools(
           "Specific connection ID to use. If omitted, the first available connection is used.",
         ),
     }),
-    execute: async ({ skillId, connectionId }) => {
+    execute: wrapExecute<
+      { skillId: string; connectionId?: string },
+      | { message: string }
+      | {
+          envDescriptions: string[];
+          activeConnection: string;
+          connectionLabel: string | undefined;
+        }
+    >("authenticate", async ({ skillId, connectionId }) => {
       const agentSkill = agentSkills.find((s) => s.skillId === skillId);
       if (!agentSkill) {
-        return { error: `Skill "${skillId}" is not assigned to this agent.` };
+        return toolErr(
+          ToolErrorCode.Unauthorized,
+          `Skill "${skillId}" is not assigned to this agent.`,
+          "Ask the user to assign this skill in settings, or pick a skill that has been assigned to you.",
+        );
       }
 
       const template = await getSkillTemplateFromS3(bucketName, skillId);
       if (!template) {
-        return { error: `Skill "${skillId}" not found.` };
+        return toolErr(
+          ToolErrorCode.NotFound,
+          `Skill "${skillId}" not found.`,
+          "Double-check the skill ID. Only skills assigned to you are available.",
+        );
       }
 
       if (!template.connections?.length) {
-        return { message: "This skill does not require authentication." };
+        return toolOk({
+          message: "This skill does not require authentication.",
+        });
       }
 
       const rawBindings = parseConnectionBindings(
@@ -166,9 +207,11 @@ export async function buildSkillTools(
 
       if (missingProviders.length > 0) {
         const list = missingProviders.map((p) => `- ${p}`).join("\n");
-        return {
-          error: `This skill requires connected accounts that are not set up. Ask the user to connect the following in their settings:\n${list}`,
-        };
+        return toolErr(
+          ToolErrorCode.ConfigMissing,
+          `This skill requires connected accounts that are not set up:\n${list}`,
+          "Ask the user to connect these providers in their settings, then call `authenticate` again.",
+        );
       }
 
       const envDescriptions: string[] = [];
@@ -182,9 +225,11 @@ export async function buildSkillTools(
         });
 
         if (!connReq) {
-          return {
-            error: `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
-          };
+          return toolErr(
+            ToolErrorCode.NotFound,
+            `Connection "${connectionId}" not found or not bound to skill "${skillId}".`,
+            "Omit `connectionId` to use the default connection, or verify the ID with `listConnections`.",
+          );
         }
 
         let resolved: Record<string, string>;
@@ -196,9 +241,11 @@ export async function buildSkillTools(
           );
         } catch (err) {
           const message = (err as Error).message ?? String(err);
-          return {
-            error: `Authentication failed for connection "${connectionId}": ${message}`,
-          };
+          return toolErr(
+            ToolErrorCode.UpstreamError,
+            `Authentication failed for connection "${connectionId}": ${message}`,
+            "The connection provider may be down or the credentials may be invalid. Ask the user to reconnect the account in settings.",
+          );
         }
 
         const accounts = await loadActiveConnectionLabels(ctx.resources, [
@@ -208,9 +255,11 @@ export async function buildSkillTools(
         connectionLabel = label;
 
         if (Object.keys(resolved).length === 0) {
-          return {
-            error: `No credentials were returned for connection "${label}". The connection may be misconfigured.`,
-          };
+          return toolErr(
+            ToolErrorCode.ConfigMissing,
+            `No credentials were returned for connection "${label}". The connection may be misconfigured.`,
+            "Ask the user to reconnect the account in settings, then call `authenticate` again.",
+          );
         }
 
         Object.assign(currentEnv, resolved);
@@ -239,9 +288,11 @@ export async function buildSkillTools(
         Object.assign(currentEnv, env);
 
         if (errors.length > 0) {
-          return {
-            error: `Authentication failed for skill "${skillId}":\n${errors.join("\n")}`,
-          };
+          return toolErr(
+            ToolErrorCode.UpstreamError,
+            `Authentication failed for skill "${skillId}":\n${errors.join("\n")}`,
+            "One or more connection providers rejected the credentials. Ask the user to reconnect affected accounts, then call `authenticate` again.",
+          );
         }
 
         // Build env descriptions
@@ -262,9 +313,11 @@ export async function buildSkillTools(
         }
 
         if (missing.length > 0) {
-          return {
-            error: `Failed to resolve credentials for: ${missing.join(", ")}. No environment variables were set. Check that the connection is properly configured.`,
-          };
+          return toolErr(
+            ToolErrorCode.ConfigMissing,
+            `Failed to resolve credentials for: ${missing.join(", ")}. No environment variables were set.`,
+            "Check that the connection is properly configured. Ask the user to reconnect these providers in settings.",
+          );
         }
 
         log.info(
@@ -277,12 +330,12 @@ export async function buildSkillTools(
         );
       }
 
-      return {
+      return toolOk({
         envDescriptions,
         activeConnection: connectionId ?? "default (first available)",
         connectionLabel,
-      };
-    },
+      });
+    }),
   });
 
   return { tools, getEnv: () => ({ ...currentEnv }) };

@@ -9,6 +9,13 @@ import {
   getWorkspacePath,
   resolveAndValidate,
 } from "./fileEditor/pathUtils.js";
+import {
+  type GremlinToolError,
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  wrapExecute,
+} from "./toolResult.js";
 
 const MAX_SOURCE_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -63,55 +70,64 @@ export function generateImageTool(
             "intentional filename rather than a generic one.",
         ),
     }),
-    execute: async ({ prompt, sourceImage, size, aspectRatio, outputPath }) => {
-      // Build the prompt — either a string or an object with source images
-      let imagePrompt: Parameters<typeof generateImage>[0]["prompt"];
-      if (sourceImage) {
-        const sourceData = await readSourceImage(sourceImage);
-        if ("error" in sourceData) return sourceData;
-        imagePrompt = { text: prompt, images: [sourceData.base64] };
-      } else {
-        imagePrompt = prompt;
-      }
+    execute: wrapExecute(
+      "generateImage",
+      async ({ prompt, sourceImage, size, aspectRatio, outputPath }) => {
+        // Build the prompt — either a string or an object with source images
+        let imagePrompt: Parameters<typeof generateImage>[0]["prompt"];
+        if (sourceImage) {
+          const sourceData = await readSourceImage(sourceImage);
+          if ("error" in sourceData) {
+            return { ok: false, error: sourceData.error };
+          }
+          imagePrompt = { text: prompt, images: [sourceData.base64] };
+        } else {
+          imagePrompt = prompt;
+        }
 
-      const result = await generateImage({
-        model: imageModel,
-        prompt: imagePrompt,
-        ...(size ? { size: size as `${number}x${number}` } : {}),
-        ...(aspectRatio
-          ? { aspectRatio: aspectRatio as `${number}:${number}` }
-          : {}),
-      });
+        const result = await generateImage({
+          model: imageModel,
+          prompt: imagePrompt,
+          ...(size ? { size: size as `${number}x${number}` } : {}),
+          ...(aspectRatio
+            ? { aspectRatio: aspectRatio as `${number}:${number}` }
+            : {}),
+        });
 
-      const image = result.images[0];
-      if (!image) {
-        return { error: "No image was generated" };
-      }
+        const image = result.images[0];
+        if (!image) {
+          return toolErr(
+            ToolErrorCode.UpstreamError,
+            "No image was generated",
+            "The model returned no media. Try again or simplify the prompt.",
+          );
+        }
 
-      // Save to workspace
-      const workspace = getWorkspacePath();
-      const filePath = resolveAndValidate(outputPath);
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
-      const relativePath = path.relative(workspace, filePath);
+        // Save to workspace
+        const workspace = getWorkspacePath();
+        const filePath = resolveAndValidate(outputPath);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        const relativePath = path.relative(workspace, filePath);
 
-      await fs.writeFile(filePath, image.uint8Array);
+        await fs.writeFile(filePath, image.uint8Array);
 
-      // Auto-attach to task so the user sees it in the UI
-      if (taskId) {
-        await ctx.services.tasks
-          .addTaskAttachment(ctx, taskId, {
-            type: "file",
-            path: relativePath,
-          })
-          .catch(() => {});
-      }
+        // Auto-attach to task so the user sees it in the UI
+        if (taskId) {
+          await ctx.services.tasks
+            .addTaskAttachment(ctx, taskId, {
+              type: "file",
+              path: relativePath,
+            })
+            .catch(() => {});
+        }
 
-      return {
-        path: relativePath,
-        prompt,
-        ...(sourceImage ? { sourceImage } : {}),
-      };
-    },
+        return toolOk({
+          path: relativePath,
+          prompt,
+          ...(sourceImage ? { sourceImage } : {}),
+        });
+      },
+    ),
   });
 }
 
@@ -121,19 +137,29 @@ export function generateImageTool(
  */
 async function readSourceImage(
   filePath: string,
-): Promise<{ base64: string } | { error: string }> {
+): Promise<{ base64: string } | { error: GremlinToolError }> {
   const resolved = resolveAndValidate(filePath);
 
   let stat: Awaited<ReturnType<typeof fs.stat>>;
   try {
     stat = await fs.stat(resolved);
   } catch {
-    return { error: `Source image not found: ${filePath}` };
+    return {
+      error: {
+        code: ToolErrorCode.FileNotFound,
+        message: `Source image not found: ${filePath}`,
+        hint: "Use `listFiles` or `glob` to find the correct path before generating.",
+      },
+    };
   }
 
   if (stat.size > MAX_SOURCE_IMAGE_SIZE) {
     return {
-      error: `Source image too large (${(stat.size / 1024 / 1024).toFixed(1)} MB). Maximum is ${MAX_SOURCE_IMAGE_SIZE / 1024 / 1024} MB.`,
+      error: {
+        code: ToolErrorCode.FileTooLarge,
+        message: `Source image too large (${(stat.size / 1024 / 1024).toFixed(1)} MB). Maximum is ${MAX_SOURCE_IMAGE_SIZE / 1024 / 1024} MB.`,
+        hint: "Resize or compress the source image before passing it as input.",
+      },
     };
   }
 

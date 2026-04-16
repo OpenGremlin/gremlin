@@ -35,55 +35,79 @@ describe("readFileTool", () => {
   it("reads a file and returns numbered lines", async () => {
     await writeFile("hello.txt", "line1\nline2\nline3");
     const t = createTool();
-    const result = await t.execute({ file_path: "hello.txt" }, {} as any);
-    expect(result).toMatchObject({
+    const result = (await t.execute(
+      { file_path: "hello.txt" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({
       file_path: path.join(tmpDir, "hello.txt"),
       totalLines: 3,
     });
-    expect((result as any).content).toContain("1\tline1");
-    expect((result as any).content).toContain("2\tline2");
-    expect((result as any).content).toContain("3\tline3");
+    expect(result.data.content).toContain("1\tline1");
+    expect(result.data.content).toContain("2\tline2");
+    expect(result.data.content).toContain("3\tline3");
   });
 
   it("returns error for missing file", async () => {
     const t = createTool();
-    const result = await t.execute({ file_path: "nope.txt" }, {} as any);
-    expect(result).toMatchObject({
-      error: `File not found: ${path.join(tmpDir, "nope.txt")}`,
-    });
+    const result = (await t.execute(
+      { file_path: "nope.txt" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("FILE_NOT_FOUND");
+    expect(result.error.message).toBe(
+      `File not found: ${path.join(tmpDir, "nope.txt")}`,
+    );
+    expect(result.error.hint).toBeDefined();
   });
 
   it("supports offset and limit for partial reads", async () => {
     const lines = Array.from({ length: 10 }, (_, i) => `line${i}`).join("\n");
     await writeFile("big.txt", lines);
     const t = createTool();
-    const result = await t.execute(
+    const result = (await t.execute(
       { file_path: "big.txt", offset: 2, limit: 3 },
       {} as any,
-    );
-    expect((result as any).content).toContain("3\tline2");
-    expect((result as any).content).toContain("5\tline4");
-    expect((result as any).linesShown).toBe("3-5");
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data.content).toContain("3\tline2");
+    expect(result.data.content).toContain("5\tline4");
+    expect(result.data.linesShown).toBe("3-5");
   });
 
   it("reads code files, not just markdown", async () => {
     await writeFile("src/app.ts", "const x = 1;\nconsole.log(x);");
     const t = createTool();
-    const result = await t.execute({ file_path: "src/app.ts" }, {} as any);
-    expect((result as any).content).toContain("const x = 1;");
+    const result = (await t.execute(
+      { file_path: "src/app.ts" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data.content).toContain("const x = 1;");
   });
 
   it("reads files in nested directories", async () => {
     await writeFile("a/b/c/deep.json", '{"key": "value"}');
     const t = createTool();
-    const result = await t.execute({ file_path: "a/b/c/deep.json" }, {} as any);
-    expect((result as any).content).toContain('"key": "value"');
+    const result = (await t.execute(
+      { file_path: "a/b/c/deep.json" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data.content).toContain('"key": "value"');
   });
 
   it("rejects paths outside workspace", async () => {
     const t = createTool();
-    await expect(
-      t.execute({ file_path: "../../../etc/passwd" }, {} as any),
-    ).rejects.toThrow("Path traversal not allowed");
+    const result = (await t.execute(
+      { file_path: "../../../etc/passwd" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("PATH_INVALID");
+    expect(result.error.message).toContain("Path traversal not allowed");
+    expect(result.error.hint).toBe("Use paths under /workspace/ only.");
   });
 });

@@ -9,6 +9,12 @@ import type {
   SandboxSession,
 } from "../sandbox/types.js";
 import { createAllowlistStore } from "../shellGuard/allowlistStore.js";
+import {
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  wrapExecute,
+} from "../tools/toolResult.js";
 
 const log = createLogger("sandbox:tools");
 
@@ -180,7 +186,7 @@ export function ensureSandboxTool(
     description:
       "Ensure the sandbox is online and ready for commands. Call this FIRST — before readSkill, authenticate, or runCommand. If the sandbox is already running, returns immediately. If it needs to boot, this call blocks until it's ready (may take a few minutes).",
     inputSchema: z.object({}),
-    execute: async () => {
+    execute: wrapExecute("ensureSandbox", async () => {
       try {
         await ensureSandbox(ctx, agentId, taskId);
       } catch (err) {
@@ -192,11 +198,15 @@ export function ensureSandboxTool(
           },
           "ensureSandbox failed",
         );
-        return { status: "error", error: (err as Error).message };
+        return toolErr(
+          ToolErrorCode.InternalError,
+          (err as Error).message,
+          "The sandbox infrastructure is unreachable. Try again in a moment.",
+        );
       }
 
-      return { status: "ready" };
-    },
+      return toolOk({ status: "ready" as const });
+    }),
   });
 }
 
@@ -229,12 +239,30 @@ export function runCommandTool(
           "Only return the last N lines of stdout. Useful for log files or build output where the end matters most.",
         ),
     }),
-    execute: async ({ command, maxLines, tail }) => {
+    execute: wrapExecute<
+      { command: string; maxLines?: number; tail?: number },
+      | {
+          status: "pending_approval";
+          commandApprovalId: string;
+          reason: string;
+        }
+      | {
+          output: string;
+          exitCode: number;
+          timedOut: boolean;
+          linesLimited?: true;
+          outputTruncated?: true;
+          totalOutputBytes?: number;
+          hint?: string;
+        }
+    >("runCommand", async ({ command, maxLines, tail }) => {
       // Check for an active session — don't implicitly boot
       const session = activeSessions.get(taskId);
       if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
-        throw new Error(
-          "Sandbox is not online. Call ensureSandbox first to boot it up.",
+        return toolErr(
+          ToolErrorCode.InvalidInput,
+          "Sandbox session not connected",
+          "Call `ensureSandbox` first to initialize the sandbox.",
         );
       }
 
@@ -249,10 +277,11 @@ export function runCommandTool(
         });
 
         if (verdict.status === "invalid") {
-          return {
-            output: verdict.error,
-            exitCode: 1,
-          };
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            verdict.error,
+            "The shell guard rejected this command. Rephrase or split it into simpler steps.",
+          );
         }
 
         if (verdict.status === "approval_required") {
@@ -278,11 +307,11 @@ export function runCommandTool(
             "Command requires approval — pausing turn",
           );
 
-          return {
-            status: "pending_approval",
+          return toolOk({
+            status: "pending_approval" as const,
             commandApprovalId: approval.id,
             reason: verdict.reason,
-          };
+          });
         }
       }
 
@@ -311,12 +340,11 @@ export function runCommandTool(
           "execCommand failed",
         );
         activeSessions.delete(taskId);
-        return {
-          error:
-            "Sandbox connection lost. Call ensureSandbox to reconnect, then retry.",
-          output: "",
-          exitCode: -1,
-        };
+        return toolErr(
+          ToolErrorCode.InternalError,
+          (err as Error).message,
+          "Sandbox connection lost. Call `ensureSandbox` to reconnect, then retry the command.",
+        );
       }
 
       log.info(
@@ -341,20 +369,20 @@ export function runCommandTool(
 
       const output = formatOutput(stdout, result.stderr, result.exitCode);
 
-      return {
+      return toolOk({
         output,
         exitCode: result.exitCode,
         timedOut: result.timedOut,
-        ...(linesLimited ? { linesLimited: true } : {}),
+        ...(linesLimited ? { linesLimited: true as const } : {}),
         ...(result.outputTruncated
           ? {
-              outputTruncated: true,
+              outputTruncated: true as const,
               totalOutputBytes: result.totalOutputBytes,
               hint: `Output was truncated. Use readCommandOutput with commandId "${result.commandId}" to page through the full output.`,
             }
           : {}),
-      };
-    },
+      });
+    }),
   });
 }
 
@@ -388,46 +416,50 @@ export function readCommandOutputTool(
         .optional()
         .describe("Maximum bytes to read (default: 8192, max: 65536)"),
     }),
-    execute: async ({ commandId, stream, offset, limit }) => {
-      const resolvedStream = stream ?? "stdout";
-      const resolvedOffset = offset ?? 0;
-      const resolvedLimit = limit ?? 8192;
-      const session = activeSessions.get(taskId);
-      if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
-        return {
-          status: "error",
-          error:
-            "Sandbox is not online. Call ensureSandbox first to boot it up.",
-        };
-      }
+    execute: wrapExecute(
+      "readCommandOutput",
+      async ({ commandId, stream, offset, limit }) => {
+        const resolvedStream = stream ?? "stdout";
+        const resolvedOffset = offset ?? 0;
+        const resolvedLimit = limit ?? 8192;
+        const session = activeSessions.get(taskId);
+        if (!session?.ws || session.ws.readyState !== session.ws.OPEN) {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            "Sandbox session not connected",
+            "Call `ensureSandbox` first to initialize the sandbox.",
+          );
+        }
 
-      session.lastActivityAt = Date.now();
+        session.lastActivityAt = Date.now();
 
-      let result: ReadOutputResult;
-      try {
-        result = await ctx.services.sandbox.readOutput(session, commandId, {
-          stream: resolvedStream,
-          offset: resolvedOffset,
-          limit: resolvedLimit,
+        let result: ReadOutputResult;
+        try {
+          result = await ctx.services.sandbox.readOutput(session, commandId, {
+            stream: resolvedStream,
+            offset: resolvedOffset,
+            limit: resolvedLimit,
+          });
+        } catch (err) {
+          log.error(
+            { agentId, taskId, commandId, error: (err as Error).message },
+            "readOutput failed",
+          );
+          return toolErr(
+            ToolErrorCode.InternalError,
+            (err as Error).message,
+            "The command output may no longer be available. Try running the command again.",
+          );
+        }
+
+        return toolOk({
+          data: result.data,
+          stream: result.stream,
+          offset: result.offset,
+          bytesRead: result.bytesRead,
+          totalBytes: result.totalBytes,
         });
-      } catch (err) {
-        log.error(
-          { agentId, taskId, commandId, error: (err as Error).message },
-          "readOutput failed",
-        );
-        return {
-          status: "error",
-          error: (err as Error).message,
-        };
-      }
-
-      return {
-        data: result.data,
-        stream: result.stream,
-        offset: result.offset,
-        bytesRead: result.bytesRead,
-        totalBytes: result.totalBytes,
-      };
-    },
+      },
+    ),
   });
 }

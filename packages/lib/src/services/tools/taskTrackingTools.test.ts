@@ -42,7 +42,7 @@ describe("taskUpdate tool", () => {
       );
 
       // Returns the existing task; no side effects fired.
-      expect(result).toBe(alreadyClosed);
+      expect(result).toEqual({ ok: true, data: alreadyClosed });
       expect(ctx.services.tasks.closeTask).not.toHaveBeenCalled();
       expect(ctx.services.tasks.addComment).not.toHaveBeenCalled();
       expect(ctx.services.inbox.enqueueWork).not.toHaveBeenCalled();

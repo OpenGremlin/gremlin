@@ -2,6 +2,13 @@ import { type Tool, tool } from "ai";
 import { z } from "zod";
 
 import type { ServiceContext } from "../context.js";
+import {
+  type GremlinToolResult,
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  wrapExecute,
+} from "./toolResult.js";
 
 // ── Tool definitions ──────────────────────────────────────────────
 
@@ -70,38 +77,41 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           .optional()
           .describe("Task IDs that must complete before this task can start"),
       }),
-      execute: async ({
-        title,
-        description,
-        instructions,
-        expectedInput,
-        expectedOutput,
-        priority,
-        assignee,
-        emoji,
-        parentId,
-        blockedBy,
-      }) => {
-        const task = await ctx.services.tasks.createTask(ctx, {
-          agentId: assignee,
+      execute: wrapExecute(
+        "taskCreate",
+        async ({
           title,
           description,
           instructions,
           expectedInput,
           expectedOutput,
           priority,
-          parentId,
+          assignee,
           emoji,
-        });
+          parentId,
+          blockedBy,
+        }) => {
+          const task = await ctx.services.tasks.createTask(ctx, {
+            agentId: assignee,
+            title,
+            description,
+            instructions,
+            expectedInput,
+            expectedOutput,
+            priority,
+            parentId,
+            emoji,
+          });
 
-        if (blockedBy && blockedBy.length > 0) {
-          for (const depId of blockedBy) {
-            await ctx.services.tasks.addTaskDep(ctx, task.id, depId);
+          if (blockedBy && blockedBy.length > 0) {
+            for (const depId of blockedBy) {
+              await ctx.services.tasks.addTaskDep(ctx, task.id, depId);
+            }
           }
-        }
 
-        return task;
-      },
+          return toolOk(task);
+        },
+      ),
     }),
 
     taskList: tool({
@@ -132,15 +142,18 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           .default(20)
           .describe("Max results to return"),
       }),
-      execute: async ({ status, assignee, priority, parentId, limit }) => {
-        const tasks = await ctx.services.tasks.listTasks(ctx, {
-          status,
-          assignee,
-          priority,
-          parentId,
-        });
-        return tasks.slice(0, limit);
-      },
+      execute: wrapExecute(
+        "taskList",
+        async ({ status, assignee, priority, parentId, limit }) => {
+          const tasks = await ctx.services.tasks.listTasks(ctx, {
+            status,
+            assignee,
+            priority,
+            parentId,
+          });
+          return toolOk(tasks.slice(0, limit));
+        },
+      ),
     }),
 
     taskReady: tool({
@@ -167,14 +180,17 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
           .default(20)
           .describe("Max results to return"),
       }),
-      execute: async ({ assignee, parentId, priority, limit }) => {
-        const tasks = await ctx.services.tasks.getReadyWork(ctx, {
-          assignee,
-          parentId,
-          priority,
-        });
-        return tasks.slice(0, limit);
-      },
+      execute: wrapExecute(
+        "taskReady",
+        async ({ assignee, parentId, priority, limit }) => {
+          const tasks = await ctx.services.tasks.getReadyWork(ctx, {
+            assignee,
+            parentId,
+            priority,
+          });
+          return toolOk(tasks.slice(0, limit));
+        },
+      ),
     }),
 
     taskShow: tool({
@@ -183,11 +199,17 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
       inputSchema: z.object({
         taskId: z.string().describe("The task ID to look up"),
       }),
-      execute: async ({ taskId }) => {
+      execute: wrapExecute("taskShow", async ({ taskId }) => {
         const details = await ctx.services.tasks.showTask(ctx, taskId);
-        if (!details) return { error: `Task ${taskId} not found` };
-        return details;
-      },
+        if (!details) {
+          return toolErr(
+            ToolErrorCode.NotFound,
+            `Task ${taskId} not found`,
+            "Use `taskList` to discover valid task IDs before calling `taskShow`.",
+          );
+        }
+        return toolOk(details);
+      }),
     }),
 
     taskUpdate: tool({
@@ -227,98 +249,110 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
             "A comment to add to the task's activity log. Required when closing or escalating.",
           ),
       }),
-      execute: async ({
-        taskId,
-        status,
-        escalate,
-        priority,
-        description,
-        deferUntil,
-        notes,
-      }) => {
-        if ((escalate || status === "closed") && !notes) {
-          return {
-            error: escalate
-              ? "Escalating requires a notes comment explaining what's missing or wrong."
-              : "Closing a task requires a notes comment summarizing what was produced.",
-          };
-        }
+      execute: wrapExecute(
+        "taskUpdate",
+        async ({
+          taskId,
+          status,
+          escalate,
+          priority,
+          description,
+          deferUntil,
+          notes,
+        }) => {
+          if ((escalate || status === "closed") && !notes) {
+            return escalate
+              ? toolErr(
+                  ToolErrorCode.InvalidInput,
+                  "Escalating requires a notes comment explaining what's missing or wrong.",
+                  "Add a `notes` field summarizing the issue before escalating.",
+                )
+              : toolErr(
+                  ToolErrorCode.InvalidInput,
+                  "Closing a task requires a notes comment summarizing what was produced.",
+                  "Add a `notes` field describing the work you completed before closing.",
+                );
+          }
 
-        // Redundant-close short-circuit: if the task is already closed, bail
-        // before side effects to avoid duplicate comments and cascading
-        // `task_ready_for_review` notifications to the parent epic.
-        if (status === "closed") {
-          const existing = await ctx.services.tasks.getTask(ctx, taskId);
-          if (existing?.status === "closed") return existing;
-        }
+          // Redundant-close short-circuit: if the task is already closed, bail
+          // before side effects to avoid duplicate comments and cascading
+          // `task_ready_for_review` notifications to the parent epic.
+          if (status === "closed") {
+            const existing = await ctx.services.tasks.getTask(ctx, taskId);
+            if (existing?.status === "closed") return toolOk(existing);
+          }
 
-        if (status === "closed") {
-          await ctx.services.tasks.closeTask(ctx, taskId, notes);
-        } else if (status) {
-          await ctx.services.tasks.updateTaskStatus(ctx, taskId, status);
-        }
+          if (status === "closed") {
+            await ctx.services.tasks.closeTask(ctx, taskId, notes);
+          } else if (status) {
+            await ctx.services.tasks.updateTaskStatus(ctx, taskId, status);
+          }
 
-        const hasFieldUpdates =
-          priority != null || description != null || deferUntil != null;
+          const hasFieldUpdates =
+            priority != null || description != null || deferUntil != null;
 
-        if (hasFieldUpdates) {
-          await ctx.services.tasks.updateTaskFields(ctx, taskId, {
-            priority,
-            description,
-            deferUntil,
-          });
-        }
-
-        if (notes) {
-          await ctx.services.tasks.addComment(ctx, {
-            taskId,
-            author: "agent",
-            text: notes,
-          });
-        }
-
-        // Notify the parent lane (or main lane for top-level tasks) on
-        // escalation or closure. Child tasks route to their parent's
-        // task lane so the epic can coordinate; standalone tasks route to
-        // the main lane as before.
-        if (escalate || status === "closed") {
-          const task = await ctx.services.tasks.getTask(ctx, taskId);
-          if (task) {
-            if (escalate) {
-              await ctx.services.tasks.incrementEscalationCount(ctx, taskId);
-            }
-
-            let targetLane: string;
-            let ownerId: string;
-
-            if (task.parentId) {
-              // Route to the parent epic's task lane.
-              targetLane = `task:${task.parentId}`;
-              const parent = await ctx.services.tasks.getTask(
-                ctx,
-                task.parentId,
-              );
-              ownerId = parent?.agentId ?? task.assignerAgentId ?? task.agentId;
-            } else {
-              // Standalone / top-level task → main lane.
-              targetLane = "main";
-              ownerId = task.assignerAgentId ?? task.agentId;
-            }
-
-            await ctx.services.inbox.enqueueWork(ctx, ownerId, targetLane, {
-              type: escalate ? "task_needs_attention" : "task_ready_for_review",
-              payload: {
-                taskId,
-                title: task.title,
-                comment: notes,
-              },
+          if (hasFieldUpdates) {
+            await ctx.services.tasks.updateTaskFields(ctx, taskId, {
+              priority,
+              description,
+              deferUntil,
             });
           }
-        }
 
-        const updated = await ctx.services.tasks.getTask(ctx, taskId);
-        return updated ?? { success: true, taskId };
-      },
+          if (notes) {
+            await ctx.services.tasks.addComment(ctx, {
+              taskId,
+              author: "agent",
+              text: notes,
+            });
+          }
+
+          // Notify the parent lane (or main lane for top-level tasks) on
+          // escalation or closure. Child tasks route to their parent's
+          // task lane so the epic can coordinate; standalone tasks route to
+          // the main lane as before.
+          if (escalate || status === "closed") {
+            const task = await ctx.services.tasks.getTask(ctx, taskId);
+            if (task) {
+              if (escalate) {
+                await ctx.services.tasks.incrementEscalationCount(ctx, taskId);
+              }
+
+              let targetLane: string;
+              let ownerId: string;
+
+              if (task.parentId) {
+                // Route to the parent epic's task lane.
+                targetLane = `task:${task.parentId}`;
+                const parent = await ctx.services.tasks.getTask(
+                  ctx,
+                  task.parentId,
+                );
+                ownerId =
+                  parent?.agentId ?? task.assignerAgentId ?? task.agentId;
+              } else {
+                // Standalone / top-level task → main lane.
+                targetLane = "main";
+                ownerId = task.assignerAgentId ?? task.agentId;
+              }
+
+              await ctx.services.inbox.enqueueWork(ctx, ownerId, targetLane, {
+                type: escalate
+                  ? "task_needs_attention"
+                  : "task_ready_for_review",
+                payload: {
+                  taskId,
+                  title: task.title,
+                  comment: notes,
+                },
+              });
+            }
+          }
+
+          const updated = await ctx.services.tasks.getTask(ctx, taskId);
+          return toolOk(updated ?? { taskId });
+        },
+      ),
     }),
   };
 }
@@ -343,18 +377,34 @@ export function buildTaskTrackingTools(
           .enum(["add", "remove"])
           .describe("Whether to add or remove the dependency"),
       }),
-      execute: async ({ taskId, dependsOnId, action }) => {
-        if (action === "add") {
-          const dep = await ctx.services.tasks.addTaskDep(
-            ctx,
-            taskId,
-            dependsOnId,
-          );
-          return { success: true, dependency: dep };
-        }
-        await ctx.services.tasks.removeTaskDep(ctx, taskId, dependsOnId);
-        return { success: true, removed: { taskId, dependsOnId } };
-      },
+      execute: wrapExecute(
+        "taskDep",
+        async ({
+          taskId,
+          dependsOnId,
+          action,
+        }): Promise<
+          GremlinToolResult<
+            | {
+                dependency: Awaited<
+                  ReturnType<typeof ctx.services.tasks.addTaskDep>
+                >;
+              }
+            | { removed: { taskId: string; dependsOnId: string } }
+          >
+        > => {
+          if (action === "add") {
+            const dep = await ctx.services.tasks.addTaskDep(
+              ctx,
+              taskId,
+              dependsOnId,
+            );
+            return toolOk({ dependency: dep });
+          }
+          await ctx.services.tasks.removeTaskDep(ctx, taskId, dependsOnId);
+          return toolOk({ removed: { taskId, dependsOnId } });
+        },
+      ),
     }),
 
     taskDepTree: tool({
@@ -365,10 +415,10 @@ export function buildTaskTrackingTools(
           .string()
           .describe("The task ID to show the dependency tree for"),
       }),
-      execute: async ({ taskId }) => {
+      execute: wrapExecute("taskDepTree", async ({ taskId }) => {
         const tree = await ctx.services.tasks.getTaskDepTree(ctx, taskId);
-        return { taskId, dependencies: tree };
-      },
+        return toolOk({ taskId, dependencies: tree });
+      }),
     }),
 
     taskBlocked: tool({
@@ -381,13 +431,13 @@ export function buildTaskTrackingTools(
           .describe("Filter to children of a specific parent task"),
         assignee: z.string().optional().describe("Filter by assignee agent ID"),
       }),
-      execute: async ({ parentId, assignee }) => {
+      execute: wrapExecute("taskBlocked", async ({ parentId, assignee }) => {
         const tasks = await ctx.services.tasks.getBlockedTasks(ctx, {
           parentId,
           assignee,
         });
-        return tasks;
-      },
+        return toolOk(tasks);
+      }),
     }),
   };
 }

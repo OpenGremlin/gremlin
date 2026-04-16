@@ -32,10 +32,11 @@ describe("globTool", () => {
     const t = globTool();
     const result = (await t.execute({ pattern: "**/*.ts" }, {} as any)) as any;
 
-    expect(result.numFiles).toBe(2);
-    expect(result.files).toContain(path.join(tmpDir, "src/index.ts"));
-    expect(result.files).toContain(path.join(tmpDir, "src/utils.ts"));
-    expect(result.files).not.toContain(path.join(tmpDir, "src/readme.md"));
+    expect(result.ok).toBe(true);
+    expect(result.data.numFiles).toBe(2);
+    expect(result.data.files).toContain(path.join(tmpDir, "src/index.ts"));
+    expect(result.data.files).toContain(path.join(tmpDir, "src/utils.ts"));
+    expect(result.data.files).not.toContain(path.join(tmpDir, "src/readme.md"));
   });
 
   it("scopes search to a subdirectory", async () => {
@@ -48,8 +49,9 @@ describe("globTool", () => {
       {} as any,
     )) as any;
 
-    expect(result.numFiles).toBe(1);
-    expect(result.files).toContain(path.join(tmpDir, "src/app.ts"));
+    expect(result.ok).toBe(true);
+    expect(result.data.numFiles).toBe(1);
+    expect(result.data.files).toContain(path.join(tmpDir, "src/app.ts"));
   });
 
   it("returns empty result for no matches", async () => {
@@ -58,15 +60,20 @@ describe("globTool", () => {
     const t = globTool();
     const result = (await t.execute({ pattern: "**/*.py" }, {} as any)) as any;
 
-    expect(result.numFiles).toBe(0);
-    expect(result.files).toEqual([]);
+    expect(result.ok).toBe(true);
+    expect(result.data.numFiles).toBe(0);
+    expect(result.data.files).toEqual([]);
   });
 
   it("rejects path traversal in search path", async () => {
     const t = globTool();
-    await expect(
-      t.execute({ pattern: "*", path: "../../" }, {} as any),
-    ).rejects.toThrow("Path traversal not allowed");
+    const result = (await t.execute(
+      { pattern: "*", path: "../../" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("PATH_INVALID");
+    expect(result.error.message).toContain("Path traversal not allowed");
   });
 
   it("handles brace patterns", async () => {
@@ -80,8 +87,9 @@ describe("globTool", () => {
       {} as any,
     )) as any;
 
-    expect(result.numFiles).toBe(2);
-    expect(result.files).toContain(path.join(tmpDir, "a.json"));
-    expect(result.files).toContain(path.join(tmpDir, "b.yaml"));
+    expect(result.ok).toBe(true);
+    expect(result.data.numFiles).toBe(2);
+    expect(result.data.files).toContain(path.join(tmpDir, "a.json"));
+    expect(result.data.files).toContain(path.join(tmpDir, "b.yaml"));
   });
 });

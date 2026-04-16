@@ -29,11 +29,12 @@ describe("writeFileTool", () => {
 
   it("creates a new file", async () => {
     const t = createTool();
-    const result = await t.execute(
+    const result = (await t.execute(
       { file_path: "new.txt", content: "hello world" },
       {} as any,
-    );
-    expect(result).toMatchObject({
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({
       type: "create",
       path: path.join(tmpDir, "new.txt"),
     });
@@ -62,11 +63,12 @@ describe("writeFileTool", () => {
     tracker.recordRead(filePath, "old content", false);
 
     const t = createTool();
-    const result = await t.execute(
+    const result = (await t.execute(
       { file_path: "exists.txt", content: "new content" },
       {} as any,
-    );
-    expect(result).toMatchObject({ type: "update" });
+    )) as any;
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({ type: "update" });
     const content = await fsp.readFile(filePath, "utf-8");
     expect(content).toBe("new content");
   });
@@ -76,16 +78,25 @@ describe("writeFileTool", () => {
     await fsp.writeFile(filePath, "old content");
 
     const t = createTool();
-    await expect(
-      t.execute({ file_path: "exists.txt", content: "new content" }, {} as any),
-    ).rejects.toThrow("has not been read yet");
+    const result = (await t.execute(
+      { file_path: "exists.txt", content: "new content" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("PROTOCOL_VIOLATION");
+    expect(result.error.message).toContain("has not been read yet");
+    expect(result.error.hint).toBeDefined();
   });
 
   it("rejects path traversal", async () => {
     const t = createTool();
-    await expect(
-      t.execute({ file_path: "../../escape.txt", content: "bad" }, {} as any),
-    ).rejects.toThrow("Path traversal not allowed");
+    const result = (await t.execute(
+      { file_path: "../../escape.txt", content: "bad" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("PATH_INVALID");
+    expect(result.error.message).toContain("Path traversal not allowed");
   });
 
   it("clears state after write so re-read is required", async () => {
@@ -93,8 +104,12 @@ describe("writeFileTool", () => {
     await t.execute({ file_path: "file.txt", content: "v1" }, {} as any);
 
     // File now exists, so a second write needs a fresh read
-    await expect(
-      t.execute({ file_path: "file.txt", content: "v2" }, {} as any),
-    ).rejects.toThrow("has not been read yet");
+    const result = (await t.execute(
+      { file_path: "file.txt", content: "v2" },
+      {} as any,
+    )) as any;
+    expect(result.ok).toBe(false);
+    expect(result.error.code).toBe("PROTOCOL_VIOLATION");
+    expect(result.error.message).toContain("has not been read yet");
   });
 });

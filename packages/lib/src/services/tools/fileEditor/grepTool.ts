@@ -1,6 +1,13 @@
 import * as fs from "node:fs/promises";
 import { tool } from "ai";
 import { z } from "zod";
+import {
+  type GremlinToolResult,
+  ToolErrorCode,
+  toolErr,
+  toolOk,
+  wrapExecute,
+} from "../toolResult.js";
 import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";
 
 const DEFAULT_HEAD_LIMIT = 250;
@@ -63,61 +70,82 @@ export function grepTool() {
           `Max entries to return. Defaults to ${DEFAULT_HEAD_LIMIT}. Pass 0 for unlimited.`,
         ),
     }),
-    execute: async ({
-      pattern,
-      path: searchPath,
-      glob: globPattern,
-      output_mode,
-      case_insensitive,
-      context_lines,
-      head_limit,
-    }) => {
-      let regex: RegExp;
-      try {
-        regex = new RegExp(pattern, case_insensitive ? "i" : "");
-      } catch {
-        return { error: `Invalid regex: ${pattern}` };
-      }
+    execute: wrapExecute(
+      "grep",
+      async ({
+        pattern,
+        path: searchPath,
+        glob: globPattern,
+        output_mode,
+        case_insensitive,
+        context_lines,
+        head_limit,
+      }): Promise<GremlinToolResult<unknown>> => {
+        let regex: RegExp;
+        try {
+          regex = new RegExp(pattern, case_insensitive ? "i" : "");
+        } catch {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            `Invalid regex: ${pattern}`,
+            "Escape regex metacharacters or wrap in `\\Q...\\E`.",
+          );
+        }
 
-      const workspace = getWorkspacePath();
-      const target = searchPath ? resolveAndValidate(searchPath) : workspace;
+        const workspace = getWorkspacePath();
+        let target: string;
+        try {
+          target = searchPath ? resolveAndValidate(searchPath) : workspace;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return toolErr(
+            ToolErrorCode.PathInvalid,
+            `Path escapes the workspace: ${msg}`,
+            "Use paths under /workspace/ only.",
+          );
+        }
 
-      // Determine if target is a file or directory.
-      let targetStat: Awaited<ReturnType<typeof fs.stat>>;
-      try {
-        targetStat = await fs.stat(target);
-      } catch {
-        return { error: `Path not found: ${searchPath ?? "/"}` };
-      }
+        // Determine if target is a file or directory.
+        let targetStat: Awaited<ReturnType<typeof fs.stat>>;
+        try {
+          targetStat = await fs.stat(target);
+        } catch {
+          return toolErr(
+            ToolErrorCode.FileNotFound,
+            `Path not found: ${searchPath ?? "/"}`,
+            "Use `listFiles` or `glob` to find the correct path, and make sure to prefix with `/workspace/`.",
+          );
+        }
 
-      let files: string[];
-      if (targetStat.isFile()) {
-        files = [target];
-      } else {
-        files = await collectFiles(target, workspace, globPattern);
-      }
+        let files: string[];
+        if (targetStat.isFile()) {
+          files = [target];
+        } else {
+          files = await collectFiles(target, workspace, globPattern);
+        }
 
-      // Search each file.
-      const matches: FileMatch[] = [];
-      for (const file of files) {
-        const fileMatch = await searchFile(file, regex, context_lines ?? 0);
-        if (fileMatch) matches.push(fileMatch);
-      }
+        // Search each file.
+        const matches: FileMatch[] = [];
+        for (const file of files) {
+          const fileMatch = await searchFile(file, regex, context_lines ?? 0);
+          if (fileMatch) matches.push(fileMatch);
+        }
 
-      // Apply head limit.
-      const limit =
-        head_limit === 0
-          ? Number.POSITIVE_INFINITY
-          : (head_limit ?? DEFAULT_HEAD_LIMIT);
+        // Apply head limit.
+        const limit =
+          head_limit === 0
+            ? Number.POSITIVE_INFINITY
+            : (head_limit ?? DEFAULT_HEAD_LIMIT);
 
-      if (output_mode === "content") {
-        return formatContentMode(matches, limit);
-      }
-      if (output_mode === "count") {
-        return formatCountMode(matches, limit);
-      }
-      return formatFilesMode(matches, limit);
-    },
+        if (output_mode === "content") {
+          return toolOk(formatContentMode(matches, limit));
+        }
+        if (output_mode === "count") {
+          return toolOk(formatCountMode(matches, limit));
+        }
+        return toolOk(formatFilesMode(matches, limit));
+      },
+    ),
   });
 }
 

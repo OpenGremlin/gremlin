@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import fg from "fast-glob";
 import { z } from "zod";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "../toolResult.js";
 import { getWorkspacePath, resolveAndValidate } from "./pathUtils.js";
 
 const MAX_RESULTS = 200;
@@ -29,10 +30,18 @@ export function globTool() {
           "Absolute directory path within the workspace (e.g. /workspace/src). Omit for workspace root.",
         ),
     }),
-    execute: async ({ pattern, path: searchPath }) => {
-      const cwd = searchPath
-        ? resolveAndValidate(searchPath)
-        : getWorkspacePath();
+    execute: wrapExecute("glob", async ({ pattern, path: searchPath }) => {
+      let cwd: string;
+      try {
+        cwd = searchPath ? resolveAndValidate(searchPath) : getWorkspacePath();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return toolErr(
+          ToolErrorCode.PathInvalid,
+          `Path escapes the workspace: ${msg}`,
+          "Use paths under /workspace/ only.",
+        );
+      }
 
       const workspace = getWorkspacePath();
 
@@ -47,7 +56,11 @@ export function globTool() {
           followSymbolicLinks: false,
         });
       } catch {
-        return { error: `Invalid glob pattern: ${pattern}` };
+        return toolErr(
+          ToolErrorCode.InvalidInput,
+          `Invalid glob pattern: ${pattern}`,
+          "Use forward-slash patterns like `src/**/*.ts`.",
+        );
       }
 
       // Filter to workspace boundary (safety net).
@@ -73,7 +86,7 @@ export function globTool() {
       const truncated = withStats.length > MAX_RESULTS;
       const results = withStats.slice(0, MAX_RESULTS);
 
-      return {
+      return toolOk({
         numFiles: results.length,
         files: results.map((r) => r.file),
         ...(truncated
@@ -83,7 +96,7 @@ export function globTool() {
               hint: "Results truncated. Use a more specific pattern or path.",
             }
           : {}),
-      };
-    },
+      });
+    }),
   });
 }

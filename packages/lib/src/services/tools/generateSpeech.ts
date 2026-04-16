@@ -8,6 +8,7 @@ import {
   getWorkspacePath,
   resolveAndValidate,
 } from "./fileEditor/pathUtils.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "./toolResult.js";
 
 /**
  * Tool that generates speech audio using the agent's configured speech model.
@@ -35,7 +36,7 @@ export function generateSpeechTool(
             "intentional filename rather than a generic one.",
         ),
     }),
-    execute: async ({ text, outputPath }) => {
+    execute: wrapExecute("generateSpeech", async ({ text, outputPath }) => {
       const result = await generateSpeech({
         model: speechModel,
         text,
@@ -43,7 +44,11 @@ export function generateSpeechTool(
       });
 
       if (!result.audio) {
-        return { error: "No audio was generated" };
+        return toolErr(
+          ToolErrorCode.UpstreamError,
+          "No audio was generated",
+          "The model returned no media. Try again or simplify the prompt.",
+        );
       }
 
       // Save to workspace
@@ -64,10 +69,10 @@ export function generateSpeechTool(
           .catch(() => {});
       }
 
-      return {
+      return toolOk({
         path: relativePath,
         text,
-      };
-    },
+      });
+    }),
   });
 }

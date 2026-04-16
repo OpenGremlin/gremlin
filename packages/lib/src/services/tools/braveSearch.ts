@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { ToolErrorCode, toolErr, toolOk, wrapExecute } from "./toolResult.js";
 
 export function createBraveSearchTool(ctx: ServiceContext) {
   return tool({
@@ -22,16 +23,17 @@ export function createBraveSearchTool(ctx: ServiceContext) {
           "Filter by freshness: pd = past day, pw = past week, pm = past month, py = past year",
         ),
     }),
-    execute: async ({ query, count, freshness }) => {
+    execute: wrapExecute("braveSearch", async ({ query, count, freshness }) => {
       const apiKey = await ctx.services.integrations.getProviderApiKey(
         ctx.resources,
         "brave",
       );
       if (!apiKey) {
-        return {
-          error:
-            "Brave Search is not configured. The user must add a Brave Search API key in Integrations. Do not retry.",
-        };
+        return toolErr(
+          ToolErrorCode.ConfigMissing,
+          "Brave Search is not configured.",
+          "Ask the user to add a Brave Search API key in Integrations. Do not retry this tool until they confirm it is configured; use a different search tool if one is available.",
+        );
       }
 
       const url = new URL("https://api.search.brave.com/res/v1/web/search");
@@ -48,10 +50,18 @@ export function createBraveSearchTool(ctx: ServiceContext) {
       });
 
       if (!res.ok) {
-        return { error: `Brave Search API error: ${res.status}` };
+        return toolErr(
+          ToolErrorCode.UpstreamError,
+          `Brave Search API error: ${res.status}`,
+          res.status >= 500
+            ? "Brave Search is having trouble. Retry once; if it keeps failing, try a different search tool or a simpler query."
+            : res.status === 429
+              ? "Brave Search rate-limited the request. Wait before retrying, or use a different search tool."
+              : "Brave Search rejected the request. Try a simpler or more specific query, or check that the API key is valid.",
+        );
       }
 
-      return res.json();
-    },
+      return toolOk(await res.json());
+    }),
   });
 }

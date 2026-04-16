@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ServiceContext } from "../context.js";
+import { toolOk, wrapExecute } from "./toolResult.js";
 
 export function createPostTool(ctx: ServiceContext, agentId: string) {
   return tool({
@@ -18,14 +19,14 @@ export function createPostTool(ctx: ServiceContext, agentId: string) {
             "Be direct and specific — state the outcome, not the process.",
         ),
     }),
-    execute: async ({ taskId, title, message }) => {
+    execute: wrapExecute("createPost", async ({ taskId, title, message }) => {
       const post = await ctx.services.posts.createPost(ctx, {
         agentId,
         taskId,
         title,
         message,
       });
-      return { postId: post.id, title: post.title };
-    },
+      return toolOk({ postId: post.id, title: post.title });
+    }),
   });
 }
