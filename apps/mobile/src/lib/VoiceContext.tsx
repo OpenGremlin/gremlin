@@ -156,12 +156,11 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
     subRef.current?.unsubscribe();
     subRef.current = null;
     scopeRef.current = null;
-    engine.fadeOutAndStop();
+    engine.stop();
   }, [engine]);
 
   const playUrls = useCallback(
     (urls: string[]) => {
-      engine.cancelFade();
       subRef.current?.unsubscribe();
       subRef.current = null;
       engine.playUrls(urls);

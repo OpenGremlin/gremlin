@@ -211,6 +211,7 @@ export function AudioPlayer({ url, title }: { url: string; title?: string }) {
     if (!status.isLoaded) return;
     player.setActiveForLockScreen(true, { title: title ?? "Audio" });
     return () => {
+      player.pause();
       player.clearLockScreenControls();
     };
   }, [player, status.isLoaded, title]);

@@ -26,7 +26,6 @@ export class AudioPlaybackEngine {
   private onDeck: AudioPlayer | null = null;
   private onDeckLoaded = false;
   private loadingWatchdog: ReturnType<typeof setTimeout> | null = null;
-  private fadeInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private playerA: AudioPlayer,
@@ -156,7 +155,6 @@ export class AudioPlaybackEngine {
 
   /** Play an ordered array of pre-built audio URLs (e.g. on-demand TTS). */
   playUrls(urls: string[]) {
-    this.cancelFade();
     this.reset();
     this.playerA.pause();
     this.playerB.pause();
@@ -210,46 +208,10 @@ export class AudioPlaybackEngine {
     this.emitStatus(false, false);
   }
 
-  /** Fade audio to zero over ~2s, then fully stop. */
-  fadeOutAndStop() {
-    if (this.isPlaying && this.active) {
-      const active = this.active;
-      const onDeck = this.onDeck;
-      const startVolume = active.volume;
-      const steps = 40;
-      const stepMs = 50;
-      let step = 0;
-
-      this.reset();
-
-      if (this.fadeInterval) clearInterval(this.fadeInterval);
-      this.fadeInterval = setInterval(() => {
-        step++;
-        const vol = startVolume * (1 - step / steps);
-        active.volume = Math.max(0, vol);
-        if (step >= steps) {
-          if (this.fadeInterval) clearInterval(this.fadeInterval);
-          this.fadeInterval = null;
-          active.pause();
-          active.volume = 1;
-          onDeck?.pause();
-          if (onDeck) onDeck.volume = 1;
-        }
-      }, stepMs);
-    } else {
-      this.reset();
-      this.playerA.pause();
-      this.playerB.pause();
-    }
-  }
-
-  cancelFade() {
-    if (this.fadeInterval) {
-      clearInterval(this.fadeInterval);
-      this.fadeInterval = null;
-      this.playerA.volume = 1;
-      this.playerB.volume = 1;
-    }
+  stop() {
+    this.reset();
+    this.playerA.pause();
+    this.playerB.pause();
   }
 
   /** Whether the active player is currently playing. */
@@ -263,7 +225,6 @@ export class AudioPlaybackEngine {
   }
 
   cleanup() {
-    if (this.fadeInterval) clearInterval(this.fadeInterval);
     if (this.loadingWatchdog) clearTimeout(this.loadingWatchdog);
   }
 }
