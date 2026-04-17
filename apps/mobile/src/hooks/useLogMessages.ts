@@ -100,7 +100,10 @@ export function useLogMessages(
       const msg = subData.logCreated;
 
       onLogCreatedRef.current?.(msg.id);
-      // Update the query cache with the new log entry
+      // Update the query cache with the new log entry.
+      // Avoid object spread on frozen Apollo cache results — it compiles to
+      // Object.assign which calls getOwnPropertyKeys, and Hermes' Hades GC
+      // can free string keys mid-enumeration causing EXC_BAD_ACCESS.
       // biome-ignore lint/suspicious/noExplicitAny: dynamic key access
       updateQuery((prev: any) => {
         if (!prev) return prev;
@@ -108,14 +111,37 @@ export function useLogMessages(
         const conn = prev[key];
         if (!conn) return prev;
 
+        const makeResult = (
+          edges: typeof conn.edges,
+          pageInfo?: typeof conn.pageInfo,
+        ) => ({
+          [key]: {
+            __typename: conn.__typename,
+            edges,
+            pageInfo: pageInfo ?? conn.pageInfo,
+          },
+        });
+
+        const replaceEdge = (
+          idx: number,
+          node: typeof msg,
+          cursor?: string,
+        ) => {
+          const edges = conn.edges.slice();
+          edges[idx] = {
+            __typename: edges[idx].__typename,
+            node,
+            cursor: cursor ?? edges[idx].cursor,
+          };
+          return makeResult(edges);
+        };
+
         // Duplicate — update in place
         const existingIdx = conn.edges.findIndex(
           (e: { node: { id: string } }) => e.node.id === msg.id,
         );
         if (existingIdx !== -1) {
-          const newEdges = [...conn.edges];
-          newEdges[existingIdx] = { ...newEdges[existingIdx], node: msg };
-          return { ...prev, [key]: { ...conn, edges: newEdges } };
+          return replaceEdge(existingIdx, msg);
         }
 
         // TOOL result — replace pending tool entry (same toolName, no result)
@@ -127,28 +153,25 @@ export function useLogMessages(
               !e.node.toolResult,
           );
           if (pendingIdx !== -1) {
-            const newEdges = [...conn.edges];
-            newEdges[pendingIdx] = {
-              ...newEdges[pendingIdx],
-              node: msg,
-              cursor: msg.id,
-            };
-            return { ...prev, [key]: { ...conn, edges: newEdges } };
+            return replaceEdge(pendingIdx, msg, msg.id);
           }
         }
 
         // Append new edge
-        return {
-          ...prev,
-          [key]: {
-            ...conn,
-            edges: [
-              ...conn.edges,
-              { __typename: "AgentLogEdge", cursor: msg.id, node: msg },
-            ],
-            pageInfo: { ...conn.pageInfo, endCursor: msg.id },
+        return makeResult(
+          conn.edges.concat({
+            __typename: "AgentLogEdge",
+            cursor: msg.id,
+            node: msg,
+          }),
+          {
+            __typename: conn.pageInfo.__typename,
+            startCursor: conn.pageInfo.startCursor,
+            endCursor: msg.id,
+            hasPreviousPage: conn.pageInfo.hasPreviousPage,
+            hasNextPage: conn.pageInfo.hasNextPage,
           },
-        };
+        );
       });
     },
   });
