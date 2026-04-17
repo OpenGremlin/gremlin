@@ -19,6 +19,7 @@ import { useAuth } from "../../../src/lib/AuthContext";
 import { useServerConfig } from "../../../src/lib/ServerConfigContext";
 import { type ThemeMode, useTheme } from "../../../src/lib/ThemeContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { Button } from "../../../src/shared/Button";
 import { Card } from "../../../src/shared/Card";
 import { TabScrollView } from "../../../src/shared/TabScrollView";
 
@@ -177,13 +178,14 @@ export default function SettingsScreen() {
         </Card>
       </View>
 
-      <Pressable
+      <Button
         onPress={logout}
-        className="flex-row items-center justify-center gap-2 py-3.5 rounded-lg border border-error-border bg-error-surface active:opacity-70"
+        variant="secondary"
+        size="lg"
+        icon={<LogOut size={18} color={colors.accent} />}
       >
-        <LogOut size={18} color={colors.error} />
-        <Text className="text-base font-medium text-error">Log Out</Text>
-      </Pressable>
+        Log Out
+      </Button>
     </TabScrollView>
   );
 }
