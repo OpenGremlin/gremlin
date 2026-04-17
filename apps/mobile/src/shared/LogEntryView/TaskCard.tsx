@@ -27,7 +27,6 @@ export interface TaskChild {
   title: string;
   status: string;
   agentId: string | null;
-  assigneeName: string | null;
   latestComment: string | null;
   emoji?: string | null;
   attachments?: readonly AttachmentFieldsFragment[];
@@ -36,19 +35,6 @@ export interface TaskChild {
 
 export interface TaskInfo extends TaskChild {
   parentId: string | null;
-}
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case "CLOSED":
-      return "Done";
-    case "IN_PROGRESS":
-      return "In progress";
-    case "DONE":
-      return "Review";
-    default:
-      return "Open";
-  }
 }
 
 function SpinningRefresh({ color }: { color: string }) {
@@ -146,20 +132,20 @@ const TaskRow = React.memo(function TaskRow({
               </Text>
             ) : null}
           </View>
-          {(() => {
-            const subtitle = `${statusLabel(task.status)}${task.assigneeName ? ` · @${task.assigneeName}` : ""}${task.latestComment ? ` · ${task.latestComment}` : ""}`;
-            return (
-              <Animated.View key={subtitle} entering={FadeIn.duration(250)}>
-                <Text
-                  className="text-xs mt-0.5"
-                  style={{ color: vars["--color-text-secondary"] }}
-                  numberOfLines={1}
-                >
-                  {subtitle}
-                </Text>
-              </Animated.View>
-            );
-          })()}
+          {task.latestComment ? (
+            <Animated.View
+              key={task.latestComment}
+              entering={FadeIn.duration(250)}
+            >
+              <Text
+                className="text-xs mt-0.5"
+                style={{ color: vars["--color-text-secondary"] }}
+                numberOfLines={1}
+              >
+                {task.latestComment}
+              </Text>
+            </Animated.View>
+          ) : null}
         </View>
       </Pressable>
       {groups.length > 0 ? (
@@ -206,7 +192,6 @@ export function mapChild(c: any): TaskChild {
     title: c.title,
     status: c.status as string,
     agentId: c.agent?.id ?? null,
-    assigneeName: c.assigneeName ?? null,
     latestComment: c.latestComment ?? null,
     emoji: c.emoji ?? null,
     attachments: c.attachments,
@@ -234,7 +219,6 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
         title: u.title,
         status: u.status as string,
         agentId: u.agent?.id ?? null,
-        assigneeName: u.assigneeName ?? null,
         parentId: u.parentId ?? null,
         latestComment: u.latestComment ?? null,
         emoji: u.emoji ?? null,

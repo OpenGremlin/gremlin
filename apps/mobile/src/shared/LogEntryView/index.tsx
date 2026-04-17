@@ -476,7 +476,6 @@ export const LogEntryView = React.memo(function LogEntryView({
               title: t.title,
               status: t.status as string,
               agentId: t.agent?.id ?? null,
-              assigneeName: t.assigneeName ?? null,
               parentId: t.parentId ?? null,
               latestComment: t.latestComment ?? null,
               emoji: t.emoji ?? null,
