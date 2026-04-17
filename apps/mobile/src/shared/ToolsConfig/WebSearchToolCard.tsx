@@ -69,10 +69,8 @@ export function WebSearchToolCard({
                         webSearch: { enabled: true, provider: p.id },
                       })
                     }
-                    className={`px-3 py-2.5 rounded-lg border ${
-                      selected
-                        ? "bg-accent-surface border-accent-border"
-                        : "bg-surface-alt border-app-border"
+                    className={`px-3 py-2.5 rounded-lg ${
+                      selected ? "bg-accent-surface" : "bg-surface-alt"
                     }`}
                   >
                     <Text

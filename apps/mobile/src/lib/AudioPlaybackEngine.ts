@@ -26,6 +26,10 @@ export class AudioPlaybackEngine {
   private onDeck: AudioPlayer | null = null;
   private onDeckLoaded = false;
   private loadingWatchdog: ReturnType<typeof setTimeout> | null = null;
+  /** Whether the active player has emitted `playing: true` since becoming active. */
+  private activeStarted = false;
+  private stallWatchdog: ReturnType<typeof setTimeout> | null = null;
+  private consecutiveStalls = 0;
 
   constructor(
     private playerA: AudioPlayer,
@@ -55,6 +59,37 @@ export class AudioPlaybackEngine {
     }
   }
 
+  private static readonly MAX_CONSECUTIVE_STALLS = 2;
+
+  private armStallWatchdog() {
+    this.clearStallWatchdog();
+    this.stallWatchdog = setTimeout(() => {
+      this.stallWatchdog = null;
+      if (!this.isPlaying || this.activeStarted) return;
+      this.consecutiveStalls++;
+      if (
+        this.consecutiveStalls >= AudioPlaybackEngine.MAX_CONSECUTIVE_STALLS
+      ) {
+        this.isPlaying = false;
+        this.active = null;
+        this.onDeck = null;
+        this.playerA.pause();
+        this.playerB.pause();
+        this.emitStatus(false, false);
+      } else {
+        this.onStatus({ playing: true, paused: false, loading: true });
+        this.advance();
+      }
+    }, 8_000);
+  }
+
+  private clearStallWatchdog() {
+    if (this.stallWatchdog) {
+      clearTimeout(this.stallWatchdog);
+      this.stallWatchdog = null;
+    }
+  }
+
   private emitStatus(playing: boolean, paused: boolean) {
     this.disarmLoading();
     this.onStatus({ playing, paused, loading: false });
@@ -78,7 +113,9 @@ export class AudioPlaybackEngine {
       this.active = this.onDeck;
       this.onDeck = prev;
       this.onDeckLoaded = false;
+      this.activeStarted = false;
       this.active.play();
+      this.armStallWatchdog();
       this.bufferNext();
     } else {
       const url = this.buffer.get(this.nextToPlay);
@@ -89,10 +126,12 @@ export class AudioPlaybackEngine {
         this.active = this.onDeck;
         this.onDeck = prev;
         this.onDeckLoaded = false;
+        this.activeStarted = false;
         if (this.active) {
           this.preload(this.active, this.makeSource(url));
           this.active.play();
           this.armLoading();
+          this.armStallWatchdog();
           this.bufferNext();
         }
       } else {
@@ -114,9 +153,11 @@ export class AudioPlaybackEngine {
     this.active = this.playerA;
     this.onDeck = this.playerB;
     this.onDeckLoaded = false;
+    this.activeStarted = false;
     this.preload(this.playerA, this.makeSource(url));
     this.playerA.play();
     this.armLoading();
+    this.armStallWatchdog();
     this.bufferNext();
   }
 
@@ -136,6 +177,8 @@ export class AudioPlaybackEngine {
       this.active = null;
       this.onDeck = null;
       this.onDeckLoaded = false;
+      this.activeStarted = false;
+      this.clearStallWatchdog();
       this.playerA.pause();
       this.playerB.pause();
     }
@@ -189,8 +232,13 @@ export class AudioPlaybackEngine {
     status: { didJustFinish?: boolean; playing?: boolean },
   ) {
     if (this.active !== player) return;
-    if (status.playing) this.disarmLoading();
-    if (status.didJustFinish && this.isPlaying) {
+    if (status.playing) {
+      this.activeStarted = true;
+      this.consecutiveStalls = 0;
+      this.disarmLoading();
+      this.clearStallWatchdog();
+    }
+    if (status.didJustFinish && this.isPlaying && this.activeStarted) {
       this.advance();
     }
   }
@@ -204,7 +252,10 @@ export class AudioPlaybackEngine {
     this.active = null;
     this.onDeck = null;
     this.onDeckLoaded = false;
+    this.activeStarted = false;
+    this.consecutiveStalls = 0;
     this.disarmLoading();
+    this.clearStallWatchdog();
     this.emitStatus(false, false);
   }
 
@@ -226,5 +277,6 @@ export class AudioPlaybackEngine {
 
   cleanup() {
     if (this.loadingWatchdog) clearTimeout(this.loadingWatchdog);
+    this.clearStallWatchdog();
   }
 }

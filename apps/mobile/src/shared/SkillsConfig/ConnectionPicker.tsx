@@ -73,10 +73,8 @@ export function ConnectionPicker({
                           onSelect(req.provider, conn.id);
                         }
                       }}
-                      className={`flex-row items-center gap-3 rounded-lg border p-3 ${
-                        isSelected
-                          ? "border-emerald-500 bg-surface-alt/50"
-                          : "border-app-border bg-surface-alt/30"
+                      className={`flex-row items-center gap-3 rounded-lg p-3 ${
+                        isSelected ? "bg-accent-surface" : "bg-surface-alt/30"
                       }`}
                     >
                       <IntegrationLogo id={req.provider} size={32} />

@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { ShieldAlert } from "lucide-react-native";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   CommandApprovalDecision,
   type PendingCommandApprovalsQuery as PendingCommandApprovalsQueryType,
@@ -9,7 +9,7 @@ import {
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
 import { useTheme } from "../../lib/ThemeContext";
-import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { ActionButton } from "../ActionButton";
 import { AgentAvatar } from "../AgentAvatar";
 import { timeAgo } from "../formatDate";
 
@@ -24,7 +24,6 @@ const ApprovalCard = React.memo(function ApprovalCard({
   onResolved: () => void;
 }) {
   const { isDark } = useTheme();
-  const colors = useNavigationTheme();
   const [resolving, setResolving] = useState<string | null>(null);
 
   const handleResolve = async (decision: CommandApprovalDecision) => {
@@ -80,74 +79,38 @@ const ApprovalCard = React.memo(function ApprovalCard({
           </View>
 
           <View className="flex-row items-center gap-2">
-            <Pressable
+            <ActionButton
               onPress={(e) => {
                 e.stopPropagation();
                 handleResolve(CommandApprovalDecision.AllowOnce);
               }}
+              label="Allow Once"
               disabled={!!resolving}
-              className="rounded-full px-3 py-1"
-              style={{
-                backgroundColor: isDark ? "#262626" : "#e5e5e5",
-                opacity: resolving ? 0.5 : 1,
-              }}
-            >
-              {resolving === CommandApprovalDecision.AllowOnce ? (
-                <ActivityIndicator size={12} color={colors.iconMuted} />
-              ) : (
-                <Text className="text-xs font-medium text-text-secondary">
-                  Allow Once
-                </Text>
-              )}
-            </Pressable>
-
-            <Pressable
+              loading={resolving === CommandApprovalDecision.AllowOnce}
+              pill
+            />
+            <ActionButton
               onPress={(e) => {
                 e.stopPropagation();
                 handleResolve(CommandApprovalDecision.AllowAlways);
               }}
+              label="Allow Always"
+              variant="primary"
               disabled={!!resolving}
-              className="rounded-full px-3 py-1"
-              style={{
-                backgroundColor: isDark ? "#4338ca" : "#4f46e5",
-                opacity: resolving ? 0.5 : 1,
-              }}
-            >
-              {resolving === CommandApprovalDecision.AllowAlways ? (
-                <ActivityIndicator size={12} color="#ffffff" />
-              ) : (
-                <Text
-                  className="text-xs font-medium"
-                  style={{ color: isDark ? "#e0e7ff" : "#ffffff" }}
-                >
-                  Allow Always
-                </Text>
-              )}
-            </Pressable>
-
-            <Pressable
+              loading={resolving === CommandApprovalDecision.AllowAlways}
+              pill
+            />
+            <ActionButton
               onPress={(e) => {
                 e.stopPropagation();
                 handleResolve(CommandApprovalDecision.Deny);
               }}
+              label="Deny"
+              variant="destructive"
               disabled={!!resolving}
-              className="rounded-full px-3 py-1"
-              style={{
-                backgroundColor: isDark ? "#2a1515" : "#fee2e2",
-                opacity: resolving ? 0.5 : 1,
-              }}
-            >
-              {resolving === CommandApprovalDecision.Deny ? (
-                <ActivityIndicator size={12} color={colors.error} />
-              ) : (
-                <Text
-                  className="text-xs font-medium"
-                  style={{ color: colors.error }}
-                >
-                  Deny
-                </Text>
-              )}
-            </Pressable>
+              loading={resolving === CommandApprovalDecision.Deny}
+              pill
+            />
           </View>
         </View>
       </View>
