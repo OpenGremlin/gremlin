@@ -35,7 +35,7 @@ const variantClasses: Record<ButtonVariant, { base: string; text: string }> = {
     text: "text-accent",
   },
   destructive: {
-    base: "bg-red-600 active:bg-red-700",
+    base: "bg-error active:bg-error/80",
     text: "text-white",
   },
   ghost: {

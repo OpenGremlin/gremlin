@@ -107,7 +107,7 @@ export function AllowlistConfig({ agentId }: { agentId: string }) {
           <Pressable
             onPress={addEntry}
             disabled={!newPattern.trim() || busy}
-            className="px-3 py-2 rounded-lg bg-accent-surface border border-accent-border"
+            className="px-3 py-2 rounded-lg bg-accent-surface"
           >
             <Text className="text-xs text-text-primary">Add</Text>
           </Pressable>

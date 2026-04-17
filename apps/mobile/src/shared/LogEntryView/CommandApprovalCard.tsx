@@ -1,12 +1,13 @@
 import { ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { CommandApprovalDecision } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
 import { useAllApprovals } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { ActionButton } from "../ActionButton";
 import { FnLabel } from "./FnLabel";
 import { ToolBlock } from "./ToolBlock";
 
@@ -133,71 +134,29 @@ export function CommandApprovalCard({
         </View>
 
         <View className="flex-row gap-2 pt-1">
-          <Pressable
+          <ActionButton
             onPress={() => handleResolve(CommandApprovalDecision.AllowOnce)}
+            label="Allow Once"
             disabled={!!resolving}
-            className="flex-1 rounded-lg py-2 items-center"
-            style={{
-              backgroundColor: isDark ? "#262626" : "#e5e5e5",
-              opacity: resolving ? 0.5 : 1,
-            }}
-          >
-            {resolving === CommandApprovalDecision.AllowOnce ? (
-              <ActivityIndicator size={14} color={colors.iconMuted} />
-            ) : (
-              <Text className="text-xs font-medium text-text-secondary">
-                Allow Once
-              </Text>
-            )}
-          </Pressable>
-
-          <Pressable
+            loading={resolving === CommandApprovalDecision.AllowOnce}
+            expand
+          />
+          <ActionButton
             onPress={() => handleResolve(CommandApprovalDecision.AllowAlways)}
+            label="Allow Always"
+            variant="primary"
             disabled={!!resolving}
-            className="flex-1 rounded-lg py-2 items-center"
-            style={{
-              backgroundColor: resolving
-                ? isDark
-                  ? "#3730a3"
-                  : "#c7d2fe"
-                : isDark
-                  ? "#4338ca"
-                  : "#4f46e5",
-              opacity: resolving ? 0.5 : 1,
-            }}
-          >
-            {resolving === CommandApprovalDecision.AllowAlways ? (
-              <ActivityIndicator size={14} color="#ffffff" />
-            ) : (
-              <Text
-                className="text-xs font-medium"
-                style={{ color: isDark ? "#e0e7ff" : "#ffffff" }}
-              >
-                Allow Always
-              </Text>
-            )}
-          </Pressable>
-
-          <Pressable
+            loading={resolving === CommandApprovalDecision.AllowAlways}
+            expand
+          />
+          <ActionButton
             onPress={() => handleResolve(CommandApprovalDecision.Deny)}
+            label="Deny"
+            variant="destructive"
             disabled={!!resolving}
-            className="flex-1 rounded-lg py-2 items-center"
-            style={{
-              backgroundColor: isDark ? "#2a1515" : "#fee2e2",
-              opacity: resolving ? 0.5 : 1,
-            }}
-          >
-            {resolving === CommandApprovalDecision.Deny ? (
-              <ActivityIndicator size={14} color={colors.error} />
-            ) : (
-              <Text
-                className="text-xs font-medium"
-                style={{ color: colors.error }}
-              >
-                Deny
-              </Text>
-            )}
-          </Pressable>
+            loading={resolving === CommandApprovalDecision.Deny}
+            expand
+          />
         </View>
       </View>
     </ToolBlock>

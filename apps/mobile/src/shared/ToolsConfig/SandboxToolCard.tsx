@@ -104,7 +104,7 @@ export function SandboxToolCard({
                               },
                             })
                           }
-                          className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                          className={`px-3 py-1.5 rounded-lg ${selected ? "bg-accent-surface" : "bg-surface-alt"}`}
                         >
                           <Text
                             className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}
@@ -140,7 +140,7 @@ export function SandboxToolCard({
                             sandbox: { ...sandbox, commandApproval: mode },
                           })
                         }
-                        className={`px-3 py-1.5 rounded-lg border ${selected ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+                        className={`px-3 py-1.5 rounded-lg ${selected ? "bg-accent-surface" : "bg-surface-alt"}`}
                       >
                         <Text
                           className={`text-xs ${selected ? "text-text-primary" : "text-text-muted"}`}

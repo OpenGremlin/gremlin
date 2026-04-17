@@ -8,6 +8,7 @@ import {
   ResolveUserInputRequestMutation,
 } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
+import { ActionButton } from "../ActionButton";
 import { AgentAvatar } from "../AgentAvatar";
 import { timeAgo } from "../formatDate";
 
@@ -54,26 +55,16 @@ const InputRequestCard = React.memo(function InputRequestCard({
 
           <View className="flex-row items-center gap-2 flex-wrap">
             {request.actions.map((action) => (
-              <Pressable
+              <ActionButton
                 key={action.label}
                 onPress={(e) => {
                   e.stopPropagation();
                   handleAction(action.label);
                 }}
-                className={`rounded-full px-3 py-1 ${
-                  action.style === "primary" ? "bg-accent" : "bg-surface-alt"
-                }`}
-              >
-                <Text
-                  className={`text-xs font-medium ${
-                    action.style === "primary"
-                      ? "text-white"
-                      : "text-text-secondary"
-                  }`}
-                >
-                  {action.label}
-                </Text>
-              </Pressable>
+                label={action.label}
+                variant={action.style === "primary" ? "primary" : "secondary"}
+                pill
+              />
             ))}
             <Pressable
               onPress={(e) => {

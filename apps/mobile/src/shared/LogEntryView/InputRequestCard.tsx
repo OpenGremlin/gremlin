@@ -9,6 +9,7 @@ import { execute } from "../../lib/apolloClient";
 import { useAllInputRequests } from "../../lib/PendingCountContext";
 import { useTheme } from "../../lib/ThemeContext";
 import { useNavigationTheme } from "../../lib/useNavigationTheme";
+import { ActionButton } from "../ActionButton";
 import { ToolBlock } from "./ToolBlock";
 
 export function InputRequestCard({
@@ -143,49 +144,16 @@ export function InputRequestCard({
         <Text className="text-sm text-text-secondary">{message}</Text>
 
         <View className="flex-row items-center gap-2 flex-wrap pt-1">
-          {actions.map((action) => {
-            const isPrimary = action.style === "primary";
-            return (
-              <Pressable
-                key={action.label}
-                onPress={() => handleAction(action.label)}
-                disabled={!!resolving}
-                className="rounded-lg py-2 px-4 items-center"
-                style={{
-                  backgroundColor: isPrimary
-                    ? isDark
-                      ? "#4338ca"
-                      : "#4f46e5"
-                    : isDark
-                      ? "#262626"
-                      : "#e5e5e5",
-                  opacity: resolving ? 0.5 : 1,
-                }}
-              >
-                {resolving === action.label ? (
-                  <ActivityIndicator
-                    size={14}
-                    color={isPrimary ? "#ffffff" : colors.iconMuted}
-                  />
-                ) : (
-                  <Text
-                    className="text-xs font-medium"
-                    style={{
-                      color: isPrimary
-                        ? isDark
-                          ? "#e0e7ff"
-                          : "#ffffff"
-                        : isDark
-                          ? "#a3a3a3"
-                          : "#525252",
-                    }}
-                  >
-                    {action.label}
-                  </Text>
-                )}
-              </Pressable>
-            );
-          })}
+          {actions.map((action) => (
+            <ActionButton
+              key={action.label}
+              onPress={() => handleAction(action.label)}
+              label={action.label}
+              variant={action.style === "primary" ? "primary" : "secondary"}
+              disabled={!!resolving}
+              loading={resolving === action.label}
+            />
+          ))}
 
           <Pressable
             onPress={handleDismiss}

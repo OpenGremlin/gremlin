@@ -39,7 +39,7 @@ function ModelSelector({
       <View className="flex-row items-center gap-2">
         <Pressable
           onPress={onPickModel}
-          className={`flex-1 px-3 py-2.5 rounded-lg border ${!usingDefault ? "bg-accent-surface border-accent-border" : "bg-surface-alt border-app-border"}`}
+          className={`flex-1 px-3 py-2.5 rounded-lg ${!usingDefault ? "bg-accent-surface" : "bg-surface-alt"}`}
         >
           <Text
             className={`text-sm ${!usingDefault ? "text-text-primary" : "text-text-secondary"}`}
@@ -238,7 +238,7 @@ export function ModelToolCard({
               {/* Voice */}
               <Pressable
                 onPress={onPickVoice}
-                className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg border ${config.speech?.voice ? "bg-surface-alt border-app-border" : "bg-surface-alt border-warning"}`}
+                className={`flex-row items-center gap-2 px-3 py-2.5 rounded-lg ${config.speech?.voice ? "bg-surface-alt" : "bg-warning-surface"}`}
               >
                 <Volume2
                   size={14}
