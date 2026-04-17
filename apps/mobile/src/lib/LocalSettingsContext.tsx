@@ -9,25 +9,25 @@ import {
 import { storage } from "./storage";
 
 const VOICE_MODE_KEY = "gremlin_voice_mode";
-const DOC_READER_KEY = "gremlin_document_reader";
-const DOC_DISCUSS_KEY = "gremlin_document_discuss";
+const DOC_AGENT_KEY = "gremlin_document_agent";
+const DOC_ACTIONS_COLLAPSED_KEY = "gremlin_document_actions_collapsed";
 
 interface LocalSettings {
   voiceEnabled: boolean;
   toggleVoice: () => void;
-  documentReaderId: string | null;
-  setDocumentReaderId: (id: string) => void;
-  documentDiscussAgentId: string | null;
-  setDocumentDiscussAgentId: (id: string) => void;
+  documentAgentId: string | null;
+  setDocumentAgentId: (id: string) => void;
+  documentActionsCollapsed: boolean;
+  setDocumentActionsCollapsed: (collapsed: boolean) => void;
 }
 
 const LocalSettingsContext = createContext<LocalSettings>({
   voiceEnabled: false,
   toggleVoice: () => {},
-  documentReaderId: null,
-  setDocumentReaderId: () => {},
-  documentDiscussAgentId: null,
-  setDocumentDiscussAgentId: () => {},
+  documentAgentId: null,
+  setDocumentAgentId: () => {},
+  documentActionsCollapsed: false,
+  setDocumentActionsCollapsed: () => {},
 });
 
 export function LocalSettingsProvider({
@@ -36,22 +36,21 @@ export function LocalSettingsProvider({
   children: React.ReactNode;
 }) {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [documentReaderId, setDocumentReaderIdState] = useState<string | null>(
+  const [documentAgentId, setDocumentAgentIdState] = useState<string | null>(
     null,
   );
-  const [documentDiscussAgentId, setDocumentDiscussAgentIdState] = useState<
-    string | null
-  >(null);
+  const [documentActionsCollapsed, setDocumentActionsCollapsedState] =
+    useState(false);
 
   useEffect(() => {
     Promise.all([
       storage.getItem(VOICE_MODE_KEY),
-      storage.getItem(DOC_READER_KEY),
-      storage.getItem(DOC_DISCUSS_KEY),
-    ]).then(([voice, readerId, discussId]) => {
+      storage.getItem(DOC_AGENT_KEY),
+      storage.getItem(DOC_ACTIONS_COLLAPSED_KEY),
+    ]).then(([voice, agentId, collapsed]) => {
       if (voice === "true") setVoiceEnabled(true);
-      if (readerId) setDocumentReaderIdState(readerId);
-      if (discussId) setDocumentDiscussAgentIdState(discussId);
+      if (agentId) setDocumentAgentIdState(agentId);
+      if (collapsed === "true") setDocumentActionsCollapsedState(true);
     });
   }, []);
 
@@ -63,32 +62,32 @@ export function LocalSettingsProvider({
     });
   }, []);
 
-  const setDocumentReaderId = useCallback((id: string) => {
-    setDocumentReaderIdState(id);
-    storage.setItem(DOC_READER_KEY, id);
+  const setDocumentAgentId = useCallback((id: string) => {
+    setDocumentAgentIdState(id);
+    storage.setItem(DOC_AGENT_KEY, id);
   }, []);
 
-  const setDocumentDiscussAgentId = useCallback((id: string) => {
-    setDocumentDiscussAgentIdState(id);
-    storage.setItem(DOC_DISCUSS_KEY, id);
+  const setDocumentActionsCollapsed = useCallback((collapsed: boolean) => {
+    setDocumentActionsCollapsedState(collapsed);
+    storage.setItem(DOC_ACTIONS_COLLAPSED_KEY, String(collapsed));
   }, []);
 
   const value = useMemo(
     () => ({
       voiceEnabled,
       toggleVoice,
-      documentReaderId,
-      setDocumentReaderId,
-      documentDiscussAgentId,
-      setDocumentDiscussAgentId,
+      documentAgentId,
+      setDocumentAgentId,
+      documentActionsCollapsed,
+      setDocumentActionsCollapsed,
     }),
     [
       voiceEnabled,
       toggleVoice,
-      documentReaderId,
-      setDocumentReaderId,
-      documentDiscussAgentId,
-      setDocumentDiscussAgentId,
+      documentAgentId,
+      setDocumentAgentId,
+      documentActionsCollapsed,
+      setDocumentActionsCollapsed,
     ],
   );
 

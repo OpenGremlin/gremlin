@@ -4,7 +4,7 @@ import { EmptyState } from "./EmptyState";
 
 export function FileNotFoundState({ fileName }: { fileName: string }) {
   // Dismiss the file sheet before navigating — otherwise the sheet stays
-  // stuck behind the new screen (same pattern as DocumentDiscussButton).
+  // stuck behind the new screen.
   const handleSearch = () => {
     router.dismiss();
     setTimeout(() => {

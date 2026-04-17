@@ -3,8 +3,7 @@ import type {
   AttachmentFieldsFragment,
   FileQuery,
 } from "../graphql/generated/graphql";
-import { DocumentDiscussButton } from "./DocumentDiscussButton";
-import { DocumentReadButton } from "./DocumentReadButton";
+import { FileActions } from "./FileActions";
 import { Markdown } from "./LogEntryView/Markdown";
 import { AudioPlayer, VideoPlayer } from "./MediaPlayer";
 import { PdfViewer } from "./PdfViewer";
@@ -47,29 +46,30 @@ export function FilePreview({
 }) {
   if (render.__typename === "DocumentRender") {
     return (
-      <ScrollView
-        className="flex-1 bg-bg px-5 py-4"
-        contentContainerClassName="pb-16"
-      >
-        <View className="flex-row gap-2 mt-2 mb-2">
-          <DocumentReadButton markdown={render.markdown} />
-          {filePath && <DocumentDiscussButton filePath={filePath} />}
-        </View>
-        <Markdown>{render.markdown}</Markdown>
-      </ScrollView>
+      <View className="flex-1 bg-bg">
+        <ScrollView
+          className="flex-1 px-5 py-4"
+          contentContainerClassName="pb-28"
+        >
+          <Markdown>{render.markdown}</Markdown>
+        </ScrollView>
+        {filePath && (
+          <FileActions
+            filePath={filePath}
+            markdown={render.markdown}
+            absolute
+          />
+        )}
+      </View>
     );
   }
 
   if (render.__typename === "CodeRender") {
     return (
       <View className="flex-1 bg-bg">
-        <View className="flex-row gap-2 mx-5 mt-4 mb-2">
-          <DocumentReadButton markdown={render.content} />
-          {filePath && <DocumentDiscussButton filePath={filePath} />}
-        </View>
         <ScrollView
-          className="flex-1 px-5"
-          contentContainerClassName="pb-16"
+          className="flex-1 px-5 pt-4"
+          contentContainerClassName="pb-28"
           horizontal={false}
         >
           <Text
@@ -86,6 +86,9 @@ export function FilePreview({
             {render.content}
           </Text>
         </ScrollView>
+        {filePath && (
+          <FileActions filePath={filePath} markdown={render.content} absolute />
+        )}
       </View>
     );
   }
@@ -105,6 +108,7 @@ export function FilePreview({
             nativeWidth={render.width}
             onZoomChange={onZoomChange}
           />
+          {filePath && <FileActions filePath={filePath} absolute />}
         </View>
       );
     }
