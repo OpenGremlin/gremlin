@@ -1,24 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client";
 import { File, Paths } from "expo-file-system";
-import {
-  router,
-  useFocusEffect,
-  useLocalSearchParams,
-  useNavigation,
-} from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { Check, Folder, Plus, X } from "lucide-react-native";
+import { Check, Folder, FolderPlus, FolderTree, X } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  ActionSheetIOS,
   Alert,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -64,6 +51,7 @@ function formatSize(bytes: number): string {
 }
 
 function Breadcrumbs({ segments }: { segments: string[] }) {
+  const colors = useNavigationTheme();
   return (
     <ScrollView
       horizontal
@@ -71,6 +59,9 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
       contentContainerClassName="flex-row items-center gap-1 px-4 py-3"
       className="border-b border-app-border shrink-0 grow-0"
     >
+      <View className="mr-2">
+        <FolderTree size={18} color={colors.accentIndicator} />
+      </View>
       <Pressable onPress={() => router.replace("/files")}>
         <Text className="text-base text-accent">/workspace</Text>
       </Pressable>
@@ -392,25 +383,8 @@ export default function FilesScreen() {
   );
 
   const colors = useNavigationTheme();
-  const navigation = useNavigation();
   const [createFolder] = useMutation(CreateWorkspaceFolderMutation);
   const [showNewFolder, setShowNewFolder] = useState(false);
-
-  const showAddMenu = useCallback(() => {
-    const options = ["New Folder", "Cancel"];
-    const cancelButtonIndex = 1;
-
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, cancelButtonIndex },
-        (index) => {
-          if (index === 0) setShowNewFolder(true);
-        },
-      );
-    } else {
-      setShowNewFolder(true);
-    }
-  }, []);
 
   const validateFolderName = useCallback((name: string) => {
     if (INVALID_FOLDER_NAME.test(name)) {
@@ -433,25 +407,25 @@ export default function FilesScreen() {
     [workspacePath, createFolder],
   );
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable onPress={showAddMenu} hitSlop={8} className="mr-2">
-          <Plus size={22} color={colors.accent} />
-        </Pressable>
-      ),
-    });
-  }, [navigation, showAddMenu, colors.accent]);
-
   return (
     <View className="flex-1">
       <Breadcrumbs segments={segments} />
-      <View className="px-4 pt-3 pb-2">
-        <SearchInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search files..."
-        />
+      <View className="px-4 pt-3 pb-2 flex-row items-center gap-2">
+        <View className="flex-1">
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search files..."
+          />
+        </View>
+        <Pressable
+          onPress={() => setShowNewFolder(true)}
+          hitSlop={8}
+          style={{ borderCurve: "continuous" }}
+          className="p-2 rounded-lg bg-accent-surface active:bg-accent-surface/80"
+        >
+          <FolderPlus size={20} color={colors.accent} />
+        </Pressable>
         {selection.isSelectionMode && (
           <SelectionHeaderOverlay
             count={selection.count}
