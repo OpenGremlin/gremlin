@@ -100,7 +100,7 @@ function ProgressBar({
           }}
           className="h-10 justify-center"
         >
-          <View className="h-1.5 rounded-full bg-surface-hover overflow-hidden">
+          <View className="h-1.5 rounded-full bg-app-border overflow-hidden">
             <Animated.View
               style={[fillStyle, { backgroundColor: colors.accentIndicator }]}
               className="h-full rounded-full"
