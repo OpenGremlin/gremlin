@@ -82,6 +82,15 @@ describe("Workspace resolvers", () => {
     );
 
     expect(result).toEqual({ succeeded: ["old/a.txt"], failed: [] });
+
+    // Fire-and-forget attachment path update for the moved file
+    await vi.waitFor(() =>
+      expect(ctx.services.tasks.updateAttachmentPaths).toHaveBeenCalledWith(
+        ctx,
+        "old/a.txt",
+        "new/a.txt",
+      ),
+    );
   });
 
   it("createWorkspaceFolder delegates to workspace.createFolder", async () => {
