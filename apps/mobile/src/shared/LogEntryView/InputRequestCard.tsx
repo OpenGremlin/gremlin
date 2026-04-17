@@ -63,7 +63,7 @@ export function InputRequestCard({
   const label = (
     <View className="flex-row items-center gap-1">
       <MessageCircleQuestion size={12} color="#3b82f6" />
-      <Text className="text-[11px] text-text-secondary font-bold font-mono">
+      <Text className="text-[13px] text-text-secondary font-bold font-mono">
         input request
       </Text>
     </View>

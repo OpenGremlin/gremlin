@@ -11,7 +11,7 @@ export function Chip({
     <View
       className={`rounded-full bg-accent-surface px-2 py-0.5 ${className ?? ""}`}
     >
-      <Text className="text-[10px] font-semibold text-accent">{label}</Text>
+      <Text className="text-[12px] font-semibold text-accent">{label}</Text>
     </View>
   );
 }

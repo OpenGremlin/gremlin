@@ -263,7 +263,7 @@ class CodeTextRenderer extends Renderer {
 export function Markdown({
   children,
   variant = "agent",
-  baseFontSize = 14,
+  baseFontSize = 16,
 }: {
   children: string;
   variant?: "agent" | "user";
@@ -280,7 +280,7 @@ export function Markdown({
     const codeColor = isDark ? "#a3e635" : "#15603a";
     return new CodeTextRenderer({
       fontFamily: MONO_FONT,
-      fontSize: 12,
+      fontSize: 14,
       color: codeColor,
     });
   }, [isDark]);

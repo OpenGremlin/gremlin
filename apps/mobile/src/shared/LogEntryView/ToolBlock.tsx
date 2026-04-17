@@ -167,7 +167,7 @@ export function ToolBlock({
           <View className="flex-row items-center flex-shrink">{label}</View>
         )}
         {showTimestamp && (
-          <Text className="text-[10px] text-text-faint">
+          <Text className="text-[12px] text-text-faint">
             {formatTime(createdAt)}
           </Text>
         )}

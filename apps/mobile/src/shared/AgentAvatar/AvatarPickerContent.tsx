@@ -51,7 +51,7 @@ export function AvatarPickerContent({
             />
           </View>
           <Text
-            className="text-[10px] text-text-muted text-center"
+            className="text-[12px] text-text-muted text-center"
             numberOfLines={1}
           >
             {item.name}

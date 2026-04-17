@@ -148,7 +148,7 @@ export function ModelPicker({
             return (
               <>
                 {showHeader && (
-                  <Text className="px-4 pt-3 pb-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                  <Text className="px-4 pt-3 pb-1.5 text-[12px] font-bold text-text-muted uppercase tracking-wider">
                     {item.section}
                   </Text>
                 )}

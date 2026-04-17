@@ -42,17 +42,17 @@ const UploadProgressItem = React.memo(function UploadProgressItem({
           >
             {upload.name}
           </Text>
-          <Text className="text-[10px] text-text-muted">
+          <Text className="text-[12px] text-text-muted">
             {formatFileSize(upload.size)}
           </Text>
-          {isDone && <Text className="text-[10px] text-success">Done</Text>}
+          {isDone && <Text className="text-[12px] text-success">Done</Text>}
           {isError && (
-            <Text className="text-[10px] text-error" numberOfLines={1}>
+            <Text className="text-[12px] text-error" numberOfLines={1}>
               {upload.error ?? "Error"}
             </Text>
           )}
           {isActive && (
-            <Text className="text-[10px] text-text-muted">
+            <Text className="text-[12px] text-text-muted">
               {upload.status === "completing"
                 ? "Finishing..."
                 : `${upload.progress}%`}

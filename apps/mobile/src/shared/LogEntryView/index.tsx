@@ -78,12 +78,12 @@ function FileUploadCard({
             </Text>
             <View className="flex-row items-center gap-2 mt-0.5">
               {file.sizeBytes != null && (
-                <Text className="text-[10px] text-text-muted">
+                <Text className="text-[12px] text-text-muted">
                   {formatFileSize(file.sizeBytes)}
                 </Text>
               )}
               {file.contentType && (
-                <Text className="text-[10px] text-text-muted">
+                <Text className="text-[12px] text-text-muted">
                   {file.contentType}
                 </Text>
               )}
@@ -231,7 +231,7 @@ function renderCustomWidget(
               {!stream.done && (
                 <View className="flex-row items-center gap-1.5 px-3 py-1 border-t border-border-subtle">
                   <ActivityIndicator size={10} color={colors.iconMuted} />
-                  <Text className="text-[10px] text-text-muted">
+                  <Text className="text-[12px] text-text-muted">
                     Running...
                   </Text>
                 </View>
@@ -240,7 +240,7 @@ function renderCustomWidget(
                 stream.exitCode !== undefined &&
                 stream.exitCode !== 0 && (
                   <View className="px-3 py-1 border-t border-border-subtle">
-                    <Text className="text-[10px] text-error/70">
+                    <Text className="text-[12px] text-error/70">
                       exit code {stream.exitCode}
                     </Text>
                   </View>
@@ -407,7 +407,7 @@ export const LogEntryView = React.memo(function LogEntryView({
       <View className="py-2">
         <UserBubble content={message.content} />
         {showTimestamp && (
-          <Text className="text-[10px] text-text-faint text-right mt-1 mr-1">
+          <Text className="text-[12px] text-text-faint text-right mt-1 mr-1">
             {formatTime(message.createdAt)}
           </Text>
         )}
@@ -451,7 +451,7 @@ export const LogEntryView = React.memo(function LogEntryView({
           </View>
         )}
         {showTimestamp && (
-          <Text className="text-[10px] text-text-faint mt-1 ml-1">
+          <Text className="text-[12px] text-text-faint mt-1 ml-1">
             {formatTime(message.createdAt)}
           </Text>
         )}

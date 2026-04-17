@@ -21,12 +21,12 @@ function HighlightedText({
 
   if (idx === -1) {
     return (
-      <Text className={`font-mono text-xs ${className ?? ""}`}>{text}</Text>
+      <Text className={`font-mono text-sm ${className ?? ""}`}>{text}</Text>
     );
   }
 
   return (
-    <Text className={`font-mono text-xs ${className ?? ""}`}>
+    <Text className={`font-mono text-sm ${className ?? ""}`}>
       {text.slice(0, idx)}
       <Text className="font-bold text-text-primary">
         {text.slice(idx, idx + query.length)}
@@ -56,16 +56,16 @@ function ContentSnippet({
           key={`before-${matchLine - (contextBefore.length - i)}`}
           className="flex-row"
         >
-          <Text className="font-mono text-xs text-text-faint w-8">
+          <Text className="font-mono text-sm text-text-faint w-8">
             {matchLine - (contextBefore.length - i)}
           </Text>
-          <Text className="font-mono text-xs text-text-faint flex-1">
+          <Text className="font-mono text-sm text-text-faint flex-1">
             {line}
           </Text>
         </View>
       ))}
       <View className="flex-row">
-        <Text className="font-mono text-xs text-text-muted w-8">
+        <Text className="font-mono text-base text-text-muted w-8">
           {matchLine}
         </Text>
         <HighlightedText
@@ -76,10 +76,10 @@ function ContentSnippet({
       </View>
       {contextAfter?.map((line, i) => (
         <View key={`after-${matchLine + 1 + i}`} className="flex-row">
-          <Text className="font-mono text-xs text-text-faint w-8">
+          <Text className="font-mono text-sm text-text-faint w-8">
             {matchLine + 1 + i}
           </Text>
-          <Text className="font-mono text-xs text-text-faint flex-1">
+          <Text className="font-mono text-sm text-text-faint flex-1">
             {line}
           </Text>
         </View>
@@ -123,7 +123,7 @@ export function SearchResults({
             <View className="flex-row items-center gap-3">
               <FileTypeIcon fileType={result.fileType} />
               <Text
-                className="text-sm text-text-secondary flex-1"
+                className="text-base text-text-secondary flex-1"
                 numberOfLines={1}
               >
                 {result.path}
@@ -148,7 +148,7 @@ export function SearchResults({
         ))}
 
         {!loading && results.length === 0 && (
-          <Text className="px-4 py-8 text-sm text-text-muted text-center">
+          <Text className="px-4 py-8 text-base text-text-muted text-center">
             No results found
           </Text>
         )}

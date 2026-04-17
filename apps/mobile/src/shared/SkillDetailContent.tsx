@@ -88,7 +88,7 @@ export function SkillDetailContent({ id }: { id: string }) {
       {/* Instructions (SKILL.md body) */}
       {template.instructions ? (
         <View className="bg-bg -mx-4 px-4 py-4 mt-1 border-t border-app-border">
-          <Markdown baseFontSize={12}>{template.instructions}</Markdown>
+          <Markdown baseFontSize={14}>{template.instructions}</Markdown>
         </View>
       ) : null}
     </View>

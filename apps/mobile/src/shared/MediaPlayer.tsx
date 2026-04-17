@@ -121,10 +121,10 @@ function ProgressBar({
         </Animated.View>
       </GestureDetector>
       <View className="flex-row justify-between mt-0.5">
-        <Text className="text-[10px] text-text-muted">
+        <Text className="text-[12px] text-text-muted">
           {formatTime(position)}
         </Text>
-        <Text className="text-[10px] text-text-muted">
+        <Text className="text-[12px] text-text-muted">
           {formatTime(duration)}
         </Text>
       </View>

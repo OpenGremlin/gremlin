@@ -74,19 +74,19 @@ function Breadcrumbs({ segments }: { segments: string[] }) {
       className="border-b border-app-border shrink-0 grow-0"
     >
       <Pressable onPress={() => router.replace("/files")}>
-        <Text className="text-sm text-accent">/workspace</Text>
+        <Text className="text-base text-accent">/workspace</Text>
       </Pressable>
       {segments.map((seg, i) => {
         const partial = segments.slice(0, i + 1).join("/");
         const isLast = i === segments.length - 1;
         return (
           <View key={partial} className="flex-row items-center gap-1">
-            <Text className="text-sm text-text-faint">/</Text>
+            <Text className="text-base text-text-faint">/</Text>
             {isLast ? (
-              <Text className="text-sm text-text-secondary">{seg}</Text>
+              <Text className="text-base text-text-secondary">{seg}</Text>
             ) : (
               <Pressable onPress={() => router.replace(`/files/${partial}`)}>
-                <Text className="text-sm text-accent">{seg}</Text>
+                <Text className="text-base text-accent">{seg}</Text>
               </Pressable>
             )}
           </View>
@@ -112,12 +112,12 @@ function SelectionHeaderOverlay({
       exiting={FadeOut.duration(120)}
       className="absolute inset-0 flex-row items-center justify-between px-4 bg-bg"
     >
-      <Text className="text-sm font-semibold text-text-primary">
+      <Text className="text-base font-semibold text-text-primary">
         {count} selected
       </Text>
       <View className="flex-row items-center gap-3">
         <Pressable onPress={onSelectAll} hitSlop={8}>
-          <Text className="text-sm text-accent">Select All</Text>
+          <Text className="text-base text-accent">Select All</Text>
         </Pressable>
         <Pressable
           onPress={onDone}
@@ -305,13 +305,13 @@ function DirectoryView({
                   <FileTypeIcon fileType={entry.fileType} />
                 )}
                 <Text
-                  className="text-sm text-text-secondary flex-1"
+                  className="text-base text-text-secondary flex-1"
                   numberOfLines={1}
                 >
                   {entry.name}
                 </Text>
                 {!entry.isDirectory && entry.size != null && (
-                  <Text className="text-xs text-text-faint shrink-0">
+                  <Text className="text-sm text-text-faint shrink-0">
                     {formatSize(entry.size)}
                   </Text>
                 )}
@@ -320,7 +320,7 @@ function DirectoryView({
           })}
 
           {!loading && entries.length === 0 && (
-            <Text className="px-4 py-8 text-sm text-text-muted text-center">
+            <Text className="px-4 py-8 text-base text-text-muted text-center">
               Empty directory
             </Text>
           )}

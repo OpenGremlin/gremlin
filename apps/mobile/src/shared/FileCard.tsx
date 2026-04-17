@@ -96,7 +96,7 @@ export const FileCard = React.memo(function FileCard({
           >
             {displayTitle}
           </Text>
-          <Text className="text-[10px] text-text-muted" numberOfLines={1}>
+          <Text className="text-[12px] text-text-muted" numberOfLines={1}>
             {cardSubtitle(file)}
           </Text>
         </View>

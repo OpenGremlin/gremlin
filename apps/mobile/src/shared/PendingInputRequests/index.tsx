@@ -45,7 +45,7 @@ const InputRequestCard = React.memo(function InputRequestCard({
             <Text className="text-sm font-medium text-text-primary">
               {request.agent.name}
             </Text>
-            <Text className="text-[11px] text-text-muted shrink ml-2">
+            <Text className="text-[13px] text-text-muted shrink ml-2">
               {timeAgo(request.createdAt)}
             </Text>
           </View>
@@ -99,7 +99,7 @@ export function PendingInputRequests({
           Waiting for Input
         </Text>
         <View className="bg-blue-500/20 rounded-full px-1.5 py-0.5">
-          <Text className="text-[10px] font-bold text-blue-500">
+          <Text className="text-[12px] font-bold text-blue-500">
             {requests.length}
           </Text>
         </View>

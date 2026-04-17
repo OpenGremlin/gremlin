@@ -54,7 +54,7 @@ const ApprovalCard = React.memo(function ApprovalCard({
             <Text className="text-sm font-medium text-text-primary">
               {approval.agent.name}
             </Text>
-            <Text className="text-[11px] text-text-muted shrink ml-2">
+            <Text className="text-[13px] text-text-muted shrink ml-2">
               {timeAgo(approval.createdAt)}
             </Text>
           </View>
@@ -135,7 +135,7 @@ export function PendingApprovals({
           Pending Approvals
         </Text>
         <View className="bg-warning/20 rounded-full px-1.5 py-0.5">
-          <Text className="text-[10px] font-bold text-warning">
+          <Text className="text-[12px] font-bold text-warning">
             {approvals.length}
           </Text>
         </View>

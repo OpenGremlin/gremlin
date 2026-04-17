@@ -9,8 +9,8 @@ type InputProps = {
 // Use text-[Npx] instead of text-sm/text-base to set fontSize without
 // NativeWind also setting a lineHeight that clips descenders on iOS.
 const SIZE_CLASSES = {
-  sm: "rounded-lg px-3 py-2.5 text-[14px]",
-  lg: "rounded-xl px-4 py-3.5 text-[16px]",
+  sm: "rounded-lg px-3 py-2.5 text-[16px]",
+  lg: "rounded-xl px-4 py-3.5 text-[18px]",
 };
 
 export const Input = forwardRef<TextInput, InputProps>(

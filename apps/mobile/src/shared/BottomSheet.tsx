@@ -94,7 +94,7 @@ export function BottomSheet({
             <Text
               numberOfLines={1}
               style={{
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: "600",
                 color: colors.headerText,
                 flex: 1,
