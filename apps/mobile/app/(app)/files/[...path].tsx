@@ -57,8 +57,6 @@ import { SearchResults } from "../../../src/shared/SearchResults";
 import { SelectionActionBar } from "../../../src/shared/SelectionActionBar";
 import { TabScrollView } from "../../../src/shared/TabScrollView";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -273,49 +271,52 @@ function DirectoryView({
           {entries.map((entry) => {
             const isSelected = selection.selectedPaths.has(entry.path);
             return (
-              <AnimatedPressable
+              <Animated.View
                 key={entry.path}
                 layout={LinearTransition.duration(200)}
-                onPress={() => handlePress(entry)}
-                onLongPress={() => handleLongPress(entry)}
-                delayLongPress={400}
-                className={`flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface ${
-                  isSelected ? "bg-accent-surface/40" : ""
-                }`}
               >
-                {selection.isSelectionMode && (
-                  <Animated.View
-                    entering={FadeIn.duration(150)}
-                    exiting={FadeOut.duration(100)}
-                  >
-                    <View
-                      className={`w-5 h-5 rounded-full border items-center justify-center ${
-                        isSelected
-                          ? "bg-accent border-accent"
-                          : "border-text-faint"
-                      }`}
-                    >
-                      {isSelected && <Check size={12} color="white" />}
-                    </View>
-                  </Animated.View>
-                )}
-                {entry.isDirectory ? (
-                  <Folder size={18} color={colors.accentIndicator} />
-                ) : (
-                  <FileTypeIcon fileType={entry.fileType} />
-                )}
-                <Text
-                  className="text-base text-text-secondary flex-1"
-                  numberOfLines={1}
+                <Pressable
+                  onPress={() => handlePress(entry)}
+                  onLongPress={() => handleLongPress(entry)}
+                  delayLongPress={400}
+                  className={`flex-row items-center gap-3 px-4 py-3 border-b border-border-subtle active:bg-surface ${
+                    isSelected ? "bg-accent-surface/40" : ""
+                  }`}
                 >
-                  {entry.name}
-                </Text>
-                {!entry.isDirectory && entry.size != null && (
-                  <Text className="text-sm text-text-faint shrink-0">
-                    {formatSize(entry.size)}
+                  {selection.isSelectionMode && (
+                    <Animated.View
+                      entering={FadeIn.duration(150)}
+                      exiting={FadeOut.duration(100)}
+                    >
+                      <View
+                        className={`w-5 h-5 rounded-full border items-center justify-center ${
+                          isSelected
+                            ? "bg-accent border-accent"
+                            : "border-text-faint"
+                        }`}
+                      >
+                        {isSelected && <Check size={12} color="white" />}
+                      </View>
+                    </Animated.View>
+                  )}
+                  {entry.isDirectory ? (
+                    <Folder size={18} color={colors.accentIndicator} />
+                  ) : (
+                    <FileTypeIcon fileType={entry.fileType} />
+                  )}
+                  <Text
+                    className="text-base text-text-secondary flex-1"
+                    numberOfLines={1}
+                  >
+                    {entry.name}
                   </Text>
-                )}
-              </AnimatedPressable>
+                  {!entry.isDirectory && entry.size != null && (
+                    <Text className="text-sm text-text-faint shrink-0">
+                      {formatSize(entry.size)}
+                    </Text>
+                  )}
+                </Pressable>
+              </Animated.View>
             );
           })}
 
