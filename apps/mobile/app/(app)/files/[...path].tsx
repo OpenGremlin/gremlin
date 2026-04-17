@@ -335,7 +335,7 @@ function DirectoryView({
                     <FileTypeIcon fileType={entry.fileType} />
                   )}
                   <Text
-                    className="text-base text-text-secondary flex-1"
+                    className="text-lg text-text-secondary flex-1"
                     numberOfLines={1}
                   >
                     {entry.name}

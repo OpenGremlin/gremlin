@@ -24,11 +24,11 @@ const AgentCard = React.memo(function AgentCard({ agent }: { agent: Agent }) {
       href={`/agents/${agent.id}`}
       badge={
         agent.retired ? (
-          <Text className="text-xs text-text-muted">Retired</Text>
+          <Text className="text-sm text-text-muted">Retired</Text>
         ) : null
       }
       subtitle={
-        <Text className="text-xs text-text-muted" numberOfLines={2}>
+        <Text className="text-sm text-text-muted" numberOfLines={2}>
           {agent.role}
         </Text>
       }
@@ -112,7 +112,7 @@ export default function AgentsScreen() {
               onPress={() => setShowRetired((v) => !v)}
               className="self-start py-1"
             >
-              <Text className="text-xs text-text-muted">
+              <Text className="text-sm text-text-muted">
                 {showRetired
                   ? "Hide retired agents"
                   : `Show retired agents (${retiredAgents.length})`}

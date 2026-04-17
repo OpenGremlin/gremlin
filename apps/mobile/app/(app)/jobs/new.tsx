@@ -70,12 +70,12 @@ export default function NewJobScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">Name</Text>
+        <Text className="text-base font-medium text-text-secondary">Name</Text>
         <Input value={name} onChangeText={setName} placeholder="Job name" />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">Agent</Text>
+        <Text className="text-base font-medium text-text-secondary">Agent</Text>
         <Pressable
           className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5"
           onPress={() =>
@@ -97,7 +97,7 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">
+        <Text className="text-base font-medium text-text-secondary">
           Recurrence
         </Text>
         <Input
@@ -108,7 +108,7 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">
+        <Text className="text-base font-medium text-text-secondary">
           Timezone
         </Text>
         <TimezonePicker
@@ -119,7 +119,7 @@ export default function NewJobScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">
+        <Text className="text-base font-medium text-text-secondary">
           Description
         </Text>
         <Input

@@ -15,7 +15,7 @@ function Section({
 }) {
   return (
     <View className="gap-1.5">
-      <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+      <Text className="text-sm font-medium text-text-muted uppercase tracking-wider">
         {label}
       </Text>
       {children}

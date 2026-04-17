@@ -95,7 +95,7 @@ export function AddSkillPicker({
             key={group.category}
             className="gap-0 bg-surface border border-app-border rounded-xl overflow-hidden"
           >
-            <Text className="text-xs font-medium text-text-muted uppercase tracking-wider px-3 pt-3 pb-1.5">
+            <Text className="text-sm font-medium text-text-muted uppercase tracking-wider px-3 pt-3 pb-1.5">
               {group.label}
             </Text>
             {group.items.map((template) => (

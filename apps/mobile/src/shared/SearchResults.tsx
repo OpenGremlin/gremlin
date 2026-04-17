@@ -123,7 +123,7 @@ export function SearchResults({
             <View className="flex-row items-center gap-3">
               <FileTypeIcon fileType={result.fileType} />
               <Text
-                className="text-base text-text-secondary flex-1"
+                className="text-lg text-text-secondary flex-1"
                 numberOfLines={1}
               >
                 {result.path}

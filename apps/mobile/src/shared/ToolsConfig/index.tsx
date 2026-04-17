@@ -138,7 +138,7 @@ export function ToolsConfig({ agent }: { agent: Agent }) {
   return (
     <View className="gap-3">
       <View className="flex-row items-center gap-2">
-        <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        <Text className="text-sm font-bold text-text-muted uppercase tracking-wider">
           Tools
         </Text>
         {saving && <Text className="text-xs text-text-faint">saving...</Text>}

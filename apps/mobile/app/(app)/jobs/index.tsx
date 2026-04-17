@@ -103,9 +103,9 @@ export default function JobsScreen() {
               dimmed={job.paused || retired}
               badge={
                 retired ? (
-                  <Text className="text-xs text-text-muted">Agent retired</Text>
+                  <Text className="text-sm text-text-muted">Agent retired</Text>
                 ) : job.paused ? (
-                  <Text className="text-xs text-warning">Paused</Text>
+                  <Text className="text-sm text-warning">Paused</Text>
                 ) : null
               }
               trailing={
@@ -115,17 +115,17 @@ export default function JobsScreen() {
               }
               subtitle={
                 <>
-                  <Text className="text-xs text-text-muted">
+                  <Text className="text-sm text-text-muted">
                     {job.cronExpression
                       ? cronstrue.toString(job.cronExpression)
                       : job.recurrence}
                   </Text>
                   {retired ? (
-                    <Text className="text-xs text-text-muted mt-0.5">
+                    <Text className="text-sm text-text-muted mt-0.5">
                       Will not run
                     </Text>
                   ) : !job.paused ? (
-                    <Text className="text-xs text-text-muted mt-0.5">
+                    <Text className="text-sm text-text-muted mt-0.5">
                       Next: {formatDate(job.nextRun, "Not scheduled")}
                     </Text>
                   ) : null}

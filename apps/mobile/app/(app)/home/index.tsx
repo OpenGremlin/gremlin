@@ -69,7 +69,10 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-2 min-w-0">
             {agent?.name ? (
-              <Text className="text-sm text-text-muted" numberOfLines={1}>
+              <Text
+                className="text-sm font-semibold text-text-primary"
+                numberOfLines={1}
+              >
                 {agent.name}
               </Text>
             ) : null}
@@ -77,11 +80,14 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
               {timeAgo(item.createdAt)}
             </Text>
           </View>
-          <Text className="text-base font-medium text-text-primary mt-0.5">
+          <Text className="text-lg font-medium text-text-secondary mt-0.5">
             {item.title}
           </Text>
           {item.message ? (
-            <Text className="text-sm text-text-muted mt-0.5" numberOfLines={3}>
+            <Text
+              className="text-base text-text-muted mt-0.5"
+              numberOfLines={3}
+            >
               {item.message}
             </Text>
           ) : null}

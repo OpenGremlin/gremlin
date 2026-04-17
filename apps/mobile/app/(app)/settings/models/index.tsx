@@ -131,7 +131,7 @@ export default function ModelsScreen() {
                         <IntegrationLogo id={group.providerId} size={28} />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+                        <Text className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-1">
                           {provider?.service ?? group.providerId}
                         </Text>
                         {group.models.map((model) => {
@@ -209,7 +209,7 @@ export default function ModelsScreen() {
               />
 
               <View className="gap-2">
-                <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+                <Text className="text-sm font-medium text-text-muted uppercase tracking-wider">
                   Model Providers
                 </Text>
                 <View className="flex-row flex-wrap gap-2">

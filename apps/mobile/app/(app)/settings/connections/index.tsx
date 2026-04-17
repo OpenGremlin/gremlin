@@ -240,7 +240,7 @@ export default function IntegrationsScreen() {
 
           {grouped.map((group) => (
             <View key={group.category} className="gap-2">
-              <Text className="text-xs font-medium text-text-muted uppercase tracking-wider">
+              <Text className="text-sm font-medium text-text-muted uppercase tracking-wider">
                 {group.label}
               </Text>
               <View className="flex-row flex-wrap gap-2">

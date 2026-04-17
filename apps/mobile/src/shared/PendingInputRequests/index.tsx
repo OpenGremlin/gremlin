@@ -95,7 +95,7 @@ export function PendingInputRequests({
     <View className="px-4 pt-4 pb-2 gap-3">
       <View className="flex-row items-center gap-2">
         <MessageCircleQuestion size={14} color="#3b82f6" />
-        <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        <Text className="text-sm font-bold text-text-muted uppercase tracking-wider">
           Waiting for Input
         </Text>
         <View className="bg-blue-500/20 rounded-full px-1.5 py-0.5">

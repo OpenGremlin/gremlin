@@ -11,7 +11,7 @@ export function createPostTool(ctx: ServiceContext, agentId: string) {
       "Attachments are collected automatically from the task and all subtasks.",
     inputSchema: z.object({
       taskId: z.string().describe("The completed task ID"),
-      title: z.string().describe("Short title for the post (under 10 words)"),
+      title: z.string().describe("Short title for the post (under 15 words)"),
       message: z
         .string()
         .describe(

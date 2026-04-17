@@ -39,7 +39,7 @@ export function ListCard({
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center justify-between mb-1">
           <Text
-            className="text-sm font-medium text-text-primary flex-1"
+            className="text-base font-medium text-text-primary flex-1"
             numberOfLines={1}
           >
             {title}

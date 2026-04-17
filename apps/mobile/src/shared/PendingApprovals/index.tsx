@@ -131,7 +131,7 @@ export function PendingApprovals({
     <View className="px-4 pt-4 pb-2 gap-3">
       <View className="flex-row items-center gap-2">
         <ShieldAlert size={14} color="#f59e0b" />
-        <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        <Text className="text-sm font-bold text-text-muted uppercase tracking-wider">
           Pending Approvals
         </Text>
         <View className="bg-warning/20 rounded-full px-1.5 py-0.5">

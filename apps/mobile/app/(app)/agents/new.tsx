@@ -35,7 +35,7 @@ export default function NewAgentScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">ID</Text>
+        <Text className="text-base font-medium text-text-secondary">ID</Text>
         <Input
           value={id}
           onChangeText={setId}
@@ -46,7 +46,7 @@ export default function NewAgentScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium text-text-secondary">Name</Text>
+        <Text className="text-base font-medium text-text-secondary">Name</Text>
         <Input value={name} onChangeText={setName} placeholder="Agent name" />
       </View>
 

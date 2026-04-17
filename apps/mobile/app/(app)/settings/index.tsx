@@ -97,7 +97,7 @@ export default function SettingsScreen() {
 
       {sections.map((section) => (
         <View key={section.title}>
-          <Text className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
+          <Text className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
             {section.title}
           </Text>
           <Card className="overflow-hidden">
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
       ))}
 
       <View>
-        <Text className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
+        <Text className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 px-3">
           Settings
         </Text>
         <Card className="overflow-hidden">

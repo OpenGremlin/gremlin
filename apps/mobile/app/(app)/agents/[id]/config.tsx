@@ -207,7 +207,7 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">Name</Text>
+        <Text className="text-base font-medium text-text-secondary">Name</Text>
         <Input
           value={name}
           onChangeText={(v) => update("name", v)}
@@ -217,10 +217,10 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">
+        <Text className="text-base font-medium text-text-secondary">
           Personality
         </Text>
-        <Text className="text-xs text-text-muted">
+        <Text className="text-sm text-text-muted">
           Mannerisms, tone, and voice
         </Text>
         <Input
@@ -236,8 +236,8 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">Role</Text>
-        <Text className="text-xs text-text-muted">
+        <Text className="text-base font-medium text-text-secondary">Role</Text>
+        <Text className="text-sm text-text-muted">
           Expertise and responsibilities
         </Text>
         <Input
@@ -253,10 +253,10 @@ export default function AgentConfigScreen() {
       </View>
 
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
-        <Text className="text-sm font-medium text-text-secondary">
+        <Text className="text-base font-medium text-text-secondary">
           When to Delegate?
         </Text>
-        <Text className="text-xs text-text-muted">
+        <Text className="text-sm text-text-muted">
           Managers with this agent on their team read this to decide whether to
           delegate. Be specific.
         </Text>
@@ -300,7 +300,7 @@ export default function AgentConfigScreen() {
 
               {managerEnabled && (
                 <View className="gap-2">
-                  <Text className="text-xs font-medium text-text-secondary uppercase tracking-wide">
+                  <Text className="text-sm font-medium text-text-secondary uppercase tracking-wide">
                     Team
                   </Text>
                   {allAgentsResult.loading && teamCandidates.length === 0 ? (

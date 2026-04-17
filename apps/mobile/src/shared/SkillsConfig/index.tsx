@@ -48,7 +48,7 @@ export function SkillsConfig({ agentId }: { agentId: string }) {
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        <Text className="text-sm font-bold text-text-muted uppercase tracking-wider">
           Skills
         </Text>
         <Pressable

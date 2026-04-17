@@ -150,7 +150,7 @@ function TypedModelList({
 
   return (
     <View className="gap-3">
-      <Text className="text-xs font-bold text-text-muted uppercase tracking-wider">
+      <Text className="text-sm font-bold text-text-muted uppercase tracking-wider">
         {label}
       </Text>
 

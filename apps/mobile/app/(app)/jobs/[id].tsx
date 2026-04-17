@@ -254,7 +254,7 @@ export default function JobDetailScreen() {
       </View>
 
       <View className="gap-4">
-        <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+        <Text className="text-sm font-semibold uppercase tracking-wide text-text-muted">
           Configuration
         </Text>
         <Card className="p-4 gap-4">
@@ -334,7 +334,7 @@ export default function JobDetailScreen() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+        <Text className="text-sm font-semibold uppercase tracking-wide text-text-muted">
           History
         </Text>
         {allTasks.length === 0 ? (
