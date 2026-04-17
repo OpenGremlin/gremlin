@@ -15,6 +15,7 @@ import Animated, {
 import type { AttachmentFieldsFragment } from "../../graphql/generated/graphql";
 import { TaskTrackingSubscription } from "../../graphql/queries";
 import { useTheme } from "../../lib/ThemeContext";
+import { darkVars, lightVars } from "../../lib/themeVars";
 import { AgentAvatar } from "../AgentAvatar";
 import { FileCard } from "../FileCard";
 import { filesFromAttachments } from "../FilePreview";
@@ -70,13 +71,14 @@ function SpinningRefresh({ color }: { color: string }) {
 }
 
 function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
+  const vars = isDark ? darkVars : lightVars;
   switch (status) {
     case "CLOSED":
-      return <Check size={14} color={isDark ? "#86efac" : "#16a34a"} />;
+      return <Check size={14} color={vars["--color-success"]} />;
     case "IN_PROGRESS":
-      return <SpinningRefresh color={isDark ? "#818cf8" : "#4f46e5"} />;
+      return <SpinningRefresh color={vars["--color-accent"]} />;
     default:
-      return <Hourglass size={14} color={isDark ? "#6b7280" : "#9ca3af"} />;
+      return <Hourglass size={14} color={vars["--color-text-faint"]} />;
   }
 }
 
@@ -89,6 +91,7 @@ const TaskRow = React.memo(function TaskRow({
   isDark: boolean;
   depth?: number;
 }) {
+  const vars = isDark ? darkVars : lightVars;
   const files = filesFromAttachments(
     (task.attachments ?? []) as AttachmentFieldsFragment[],
   );
@@ -127,7 +130,8 @@ const TaskRow = React.memo(function TaskRow({
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center gap-1.5">
             <Text
-              className={`text-sm shrink ${depth === 0 ? "font-medium" : ""} ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+              className={`text-sm shrink ${depth === 0 ? "font-medium" : ""}`}
+              style={{ color: vars["--color-text"] }}
               numberOfLines={1}
             >
               {task.title}
@@ -135,7 +139,8 @@ const TaskRow = React.memo(function TaskRow({
             <StatusIcon status={task.status} isDark={isDark} />
             {hasChildren ? (
               <Text
-                className={`text-xs font-medium ml-auto ${isDark ? "text-indigo-300" : "text-indigo-600"}`}
+                className="text-xs font-medium ml-auto"
+                style={{ color: vars["--color-text-muted"] }}
               >
                 {closedCount}/{totalCount}
               </Text>
@@ -144,14 +149,15 @@ const TaskRow = React.memo(function TaskRow({
           {(() => {
             const subtitle = `${statusLabel(task.status)}${task.assigneeName ? ` · @${task.assigneeName}` : ""}${task.latestComment ? ` · ${task.latestComment}` : ""}`;
             return (
-              <Animated.Text
-                key={subtitle}
-                entering={FadeIn.duration(250)}
-                className={`text-xs mt-0.5 ${isDark ? "text-indigo-300" : "text-indigo-500/60"}`}
-                numberOfLines={1}
-              >
-                {subtitle}
-              </Animated.Text>
+              <Animated.View key={subtitle} entering={FadeIn.duration(250)}>
+                <Text
+                  className="text-xs mt-0.5"
+                  style={{ color: vars["--color-text-secondary"] }}
+                  numberOfLines={1}
+                >
+                  {subtitle}
+                </Text>
+              </Animated.View>
             );
           })()}
         </View>
@@ -210,6 +216,7 @@ export function mapChild(c: any): TaskChild {
 
 export function TaskCard({ task }: { task: TaskInfo | null }) {
   const { isDark } = useTheme();
+  const vars = isDark ? darkVars : lightVars;
 
   const [liveTask, setLiveTask] = useState<TaskInfo | null>(null);
   const taskId = task?.id;
@@ -247,7 +254,8 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
     <View className="py-2 max-w-[85%]">
       <Pressable
         onPress={() => resolved && router.push(`/tasks/${resolved.id}`)}
-        className={`rounded-xl overflow-hidden ${isDark ? "border border-indigo-500/20" : "border border-indigo-300"}`}
+        className="rounded-xl overflow-hidden border"
+        style={{ borderColor: vars["--color-accent-border"] }}
       >
         <LinearGradient
           colors={gradientColors}
@@ -262,7 +270,8 @@ export function TaskCard({ task }: { task: TaskInfo | null }) {
               <View className="py-1.5 flex-row gap-2.5">
                 <View className="w-8 h-8" />
                 <Text
-                  className={`text-sm font-medium ${isDark ? "text-indigo-100" : "text-indigo-900"}`}
+                  className="text-sm font-medium"
+                  style={{ color: vars["--color-text"] }}
                 >
                   Loading...
                 </Text>
