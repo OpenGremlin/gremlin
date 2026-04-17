@@ -334,20 +334,16 @@ export default function AgentConfigScreen() {
                               }}
                             >
                               <View
-                                className="flex-row items-stretch"
+                                className="flex-row items-center"
                                 style={{ minHeight: 48 }}
                               >
-                                <AgentAvatar
-                                  id={member.id}
-                                  size={48}
-                                  hideManagerBadge
-                                  cornerStyle={{
-                                    borderTopLeftRadius: 11,
-                                    borderBottomLeftRadius: 11,
-                                    borderTopRightRadius: 0,
-                                    borderBottomRightRadius: 0,
-                                  }}
-                                />
+                                <View className="pl-2 py-2">
+                                  <AgentAvatar
+                                    id={member.id}
+                                    size={40}
+                                    hideManagerBadge
+                                  />
+                                </View>
                                 <View className="flex-1 min-w-0 justify-center px-3 py-2">
                                   <Text
                                     className="text-sm font-medium text-text-primary"
