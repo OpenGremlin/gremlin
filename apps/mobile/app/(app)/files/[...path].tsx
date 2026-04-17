@@ -19,7 +19,45 @@ import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
+  withTiming,
 } from "react-native-reanimated";
+
+const CHECKBOX_ANIM_IN_MS = 200;
+const CHECKBOX_ANIM_OUT_MS = 150;
+const CHECKBOX_SLIDE_DISTANCE = 16;
+
+const checkboxEnter = () => {
+  "worklet";
+  return {
+    initialValues: {
+      opacity: 0,
+      transform: [{ translateX: -CHECKBOX_SLIDE_DISTANCE }],
+    },
+    animations: {
+      opacity: withTiming(1, { duration: CHECKBOX_ANIM_IN_MS }),
+      transform: [
+        { translateX: withTiming(0, { duration: CHECKBOX_ANIM_IN_MS }) },
+      ],
+    },
+  };
+};
+
+const checkboxExit = () => {
+  "worklet";
+  return {
+    initialValues: { opacity: 1, transform: [{ translateX: 0 }] },
+    animations: {
+      opacity: withTiming(0, { duration: CHECKBOX_ANIM_OUT_MS }),
+      transform: [
+        {
+          translateX: withTiming(-CHECKBOX_SLIDE_DISTANCE, {
+            duration: CHECKBOX_ANIM_OUT_MS,
+          }),
+        },
+      ],
+    },
+  };
+};
 
 import {
   CreateWorkspaceFolderMutation,
@@ -276,8 +314,9 @@ function DirectoryView({
                 >
                   {selection.isSelectionMode && (
                     <Animated.View
-                      entering={FadeIn.duration(150)}
-                      exiting={FadeOut.duration(100)}
+                      key="checkbox"
+                      entering={checkboxEnter}
+                      exiting={checkboxExit}
                     >
                       <View
                         className={`w-5 h-5 rounded-full border items-center justify-center ${
