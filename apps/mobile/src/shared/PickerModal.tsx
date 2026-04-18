@@ -9,6 +9,8 @@ import { Input } from "./Input";
 export interface PickerOption {
   value: string;
   label: string;
+  /** If set, renders the label in this color (used for agent names). */
+  labelColor?: string;
   subtitle?: string;
   icon?: ReactNode;
   /** Extra text to match against when searching (not displayed) */
@@ -115,7 +117,13 @@ export function PickerOverlay() {
             <View className="flex-1 flex-row items-center gap-3">
               {item.icon}
               <View className="flex-1 min-w-0">
-                <Text className="text-sm text-text-primary" numberOfLines={1}>
+                <Text
+                  className={`text-sm ${item.labelColor ? "" : "text-text-primary"}`}
+                  style={
+                    item.labelColor ? { color: item.labelColor } : undefined
+                  }
+                  numberOfLines={1}
+                >
                   {item.label}
                 </Text>
                 {item.subtitle && (

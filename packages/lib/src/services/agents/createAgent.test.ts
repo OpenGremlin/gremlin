@@ -8,7 +8,9 @@ vi.mock("../skills/assignSkill.js", () => ({
 }));
 
 const { assignSkill } = await import("../skills/assignSkill.js");
-const { createAgent } = await import("./createAgent.js");
+const { createAgent, DEFAULT_AGENT_HEX_COLOR } = await import(
+  "./createAgent.js"
+);
 
 describe("createAgent", () => {
   let ctx: DeepMockProxy<ServiceContext>;
@@ -68,6 +70,7 @@ describe("createAgent", () => {
       personality: "kind",
       avatar: "default",
       portraitId: "default",
+      hexColor: DEFAULT_AGENT_HEX_COLOR,
     });
   });
 

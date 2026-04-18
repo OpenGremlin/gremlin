@@ -46,6 +46,7 @@ export const AgentSummary = graphql(`
   fragment AgentSummary on Agent {
     id
     name
+    hexColor
     role
     delegationHint
     retired
@@ -59,6 +60,7 @@ export const AgentDetailFragment = graphql(`
     name
     avatar
     portraitId
+    hexColor
     imageUrl(width: 200)
     personality
     role
@@ -271,6 +273,7 @@ export const AgentJobSummary = graphql(`
     agent {
       id
       name
+      hexColor
       retired
     }
     paused
@@ -290,6 +293,7 @@ export const AgentJobDetail = graphql(`
     agent {
       id
       name
+      hexColor
       retired
     }
     paused
@@ -314,6 +318,7 @@ export const CommandApprovalFields = graphql(`
     agent {
       id
       name
+      hexColor
     }
     taskId
     command
@@ -332,6 +337,7 @@ export const UserInputRequestFields = graphql(`
     agent {
       id
       name
+      hexColor
     }
     turnId
     message

@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
+import { agentNameColor } from "../lib/color";
 import { AgentAvatar } from "./AgentAvatar";
 import { Card } from "./Card";
 
@@ -9,6 +10,7 @@ const isWeb = process.env.EXPO_OS === "web";
 interface ListCardBaseProps {
   agentId: string;
   title: string;
+  titleHexColor?: string | null;
   subtitle?: ReactNode;
   badge?: ReactNode;
   trailing?: ReactNode;
@@ -23,6 +25,7 @@ type ListCardProps = ListCardBaseProps &
 export function ListCard({
   agentId,
   title,
+  titleHexColor,
   href,
   onPress,
   subtitle,
@@ -39,7 +42,12 @@ export function ListCard({
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center justify-between mb-1">
           <Text
-            className="text-base font-medium text-text-primary flex-1"
+            className={`text-base font-medium flex-1 ${titleHexColor ? "" : "text-text-primary"}`}
+            style={
+              titleHexColor
+                ? { color: agentNameColor(titleHexColor) }
+                : undefined
+            }
             numberOfLines={1}
           >
             {title}

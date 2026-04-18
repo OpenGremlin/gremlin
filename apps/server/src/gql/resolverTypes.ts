@@ -41,6 +41,7 @@ export type Agent = {
   avatar: Scalars['String']['output'];
   config?: Maybe<AgentConfig>;
   delegationHint?: Maybe<Scalars['String']['output']>;
+  hexColor: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   imageUrl: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -1334,6 +1335,7 @@ export type UpdateAgentInput = {
   avatar?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<AgentConfigInput>;
   delegationHint?: InputMaybe<Scalars['String']['input']>;
+  hexColor?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   personality?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
@@ -1724,6 +1726,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   avatar?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   config?: Resolver<Maybe<ResolversTypes['AgentConfig']>, ParentType, ContextType>;
   delegationHint?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  hexColor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

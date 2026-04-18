@@ -1,4 +1,7 @@
 import { createAgent } from "./createAgent.js";
+
+export { DEFAULT_AGENT_HEX_COLOR } from "./createAgent.js";
+
 import { getAgent } from "./getAgent.js";
 import { getAgents } from "./getAgents.js";
 import { retireAgent } from "./retireAgent.js";

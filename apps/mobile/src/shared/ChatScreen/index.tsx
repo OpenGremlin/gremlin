@@ -62,6 +62,7 @@ interface ChatScreenProps {
   agentId: string;
   taskId?: string;
   title: string;
+  titleHexColor?: string | null;
   headerTitlePress: () => void;
   headerRight?: ReactNode;
   loading: boolean;
@@ -80,6 +81,7 @@ export function ChatScreen({
   agentId,
   taskId,
   title,
+  titleHexColor,
   headerTitlePress,
   headerRight,
   loading: externalLoading,
@@ -531,6 +533,7 @@ export function ChatScreen({
             <ChatHeaderTitle
               agentId={agentId}
               title={title}
+              titleHexColor={titleHexColor}
               onPress={headerTitlePress}
             />
           </View>

@@ -1,5 +1,6 @@
 import { Repeater } from "@graphql-yoga/subscription";
 import type { AgentItem } from "@opengremlin/lib/resources/ddb/schema/agent.js";
+import { DEFAULT_AGENT_HEX_COLOR } from "@opengremlin/lib/services/agents/index.js";
 import type { GremlinContext } from "../../context.js";
 import type {
   AgentResolvers,
@@ -73,9 +74,12 @@ const retired: AgentResolvers["retired"] = (parent) => parent.retired ?? false;
 const voiceEnabled: AgentResolvers["voiceEnabled"] = (parent) =>
   !!parent.config?.speech?.enabled;
 
+const hexColor: AgentResolvers["hexColor"] = (parent) =>
+  parent.hexColor ?? DEFAULT_AGENT_HEX_COLOR;
+
 export const agentResolvers = {
   Query: { agents, agent },
   Mutation: { createAgent, updateAgent, retireAgent, unretireAgent },
-  Agent: { imageUrl, retired, voiceEnabled },
+  Agent: { imageUrl, retired, voiceEnabled, hexColor },
   Subscription: { agentUpdated, agentsUpdated },
 };

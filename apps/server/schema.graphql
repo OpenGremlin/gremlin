@@ -432,6 +432,7 @@ type Agent {
   name: String!
   avatar: String!
   portraitId: String!
+  hexColor: String!
   imageUrl(width: Int): String!
   personality: String
   role: String
@@ -501,6 +502,7 @@ input UpdateAgentInput {
   role: String
   delegationHint: String
   avatar: String
+  hexColor: String
   ttsVoice: String
   config: AgentConfigInput
 }

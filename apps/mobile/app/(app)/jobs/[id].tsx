@@ -15,6 +15,7 @@ import {
 } from "../../../src/graphql/queries";
 import { useFormOverlay } from "../../../src/hooks/useFormOverlay";
 import { execute } from "../../../src/lib/apolloClient";
+import { agentNameColor } from "../../../src/lib/color";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Card } from "../../../src/shared/Card";
 import { DestructiveButton } from "../../../src/shared/DestructiveButton";
@@ -44,6 +45,7 @@ export default function JobDetailScreen() {
         .map((a) => ({
           value: a.id,
           label: a.name,
+          labelColor: agentNameColor(a.hexColor),
           icon: <AgentAvatar id={a.id} size={28} />,
         })),
     [agentsData],
@@ -194,7 +196,10 @@ export default function JobDetailScreen() {
           >
             {job.name}
           </Text>
-          <Text className="text-sm text-text-muted mt-0.5">
+          <Text
+            className="text-sm mt-0.5"
+            style={{ color: agentNameColor(job.agent.hexColor) }}
+          >
             {job.agent.name}
           </Text>
         </View>
@@ -271,7 +276,14 @@ export default function JobDetailScreen() {
               }
             >
               <View className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5">
-                <Text className="text-sm text-text-primary">
+                <Text
+                  className="text-sm"
+                  style={{
+                    color:
+                      agentOptions.find((a) => a.value === form.current.agentId)
+                        ?.labelColor ?? agentNameColor(job.agent.hexColor),
+                  }}
+                >
                   {agentOptions.find((a) => a.value === form.current.agentId)
                     ?.label ?? job.agent.name}
                 </Text>

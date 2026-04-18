@@ -9,6 +9,7 @@ interface UpdateAgentInput {
   role?: string | null;
   delegationHint?: string | null;
   avatar?: string | null;
+  hexColor?: string | null;
   sandboxInstanceId?: string | null;
   ttsVoice?: string | null;
   config?: {

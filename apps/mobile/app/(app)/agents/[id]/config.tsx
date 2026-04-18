@@ -13,6 +13,7 @@ import {
 } from "../../../../src/graphql/queries";
 import { useAutosaveFields } from "../../../../src/hooks/useAutosaveFields";
 import { execute } from "../../../../src/lib/apolloClient";
+import { agentNameColor, hexToHue, hueToHex } from "../../../../src/lib/color";
 import { useNavigationTheme } from "../../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../../src/shared/AgentAvatar";
 import { AvatarPicker } from "../../../../src/shared/AgentAvatar/AvatarPicker";
@@ -20,6 +21,7 @@ import { Button } from "../../../../src/shared/Button";
 import { Card } from "../../../../src/shared/Card";
 import { ConfirmDialog } from "../../../../src/shared/ConfirmDialog";
 import { DestructiveButton } from "../../../../src/shared/DestructiveButton";
+import { HueSlider } from "../../../../src/shared/HueSlider";
 import { Input } from "../../../../src/shared/Input";
 import { NotFound, QueryResult } from "../../../../src/shared/QueryResult";
 import { SkillsConfig } from "../../../../src/shared/SkillsConfig";
@@ -80,6 +82,9 @@ export default function AgentConfigScreen() {
     [allAgentsResult.data, id],
   );
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [hue, setHue] = useState<number>(() =>
+    agent?.hexColor ? hexToHue(agent.hexColor) : 180,
+  );
 
   useEffect(() => {
     if (!agent) return;
@@ -91,7 +96,23 @@ export default function AgentConfigScreen() {
     });
     setManagerEnabled(agent.config?.manager?.enabled ?? false);
     setTeam(agent.config?.manager?.team ?? []);
+    if (agent.hexColor) setHue(hexToHue(agent.hexColor));
   }, [agent, syncFromServer]);
+
+  const saveHexColor = useCallback(
+    (nextHue: number) => {
+      setSaveError("");
+      execute(UpdateAgentMutation, {
+        id: id ?? "",
+        input: { hexColor: hueToHex(nextHue) },
+      }).catch((err) =>
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save color",
+        ),
+      );
+    },
+    [id],
+  );
 
   // Immediately save manager config changes, merging with current server config
   // to avoid clobbering model/tools settings
@@ -206,6 +227,15 @@ export default function AgentConfigScreen() {
         </Pressable>
       </View>
 
+      <View className="px-2">
+        <HueSlider
+          hue={hue}
+          onChange={setHue}
+          onChangeEnd={saveHexColor}
+          disabled={!!agent.retired}
+        />
+      </View>
+
       <View className={`gap-2 ${agent.retired ? "opacity-50" : ""}`}>
         <Text className="text-base font-medium text-text-secondary">Name</Text>
         <Input
@@ -213,6 +243,7 @@ export default function AgentConfigScreen() {
           onChangeText={(v) => update("name", v)}
           placeholder="Agent name"
           editable={!agent.retired}
+          style={{ color: hueToHex(hue) }}
         />
       </View>
 
@@ -346,7 +377,10 @@ export default function AgentConfigScreen() {
                                 </View>
                                 <View className="flex-1 min-w-0 justify-center px-3 py-2">
                                   <Text
-                                    className="text-sm font-medium text-text-primary"
+                                    className="text-sm font-medium"
+                                    style={{
+                                      color: agentNameColor(member.hexColor),
+                                    }}
                                     numberOfLines={1}
                                   >
                                     {member.name}

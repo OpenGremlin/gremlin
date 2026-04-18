@@ -28,6 +28,7 @@ export default function AgentChatScreen() {
       <ChatScreen
         agentId={id}
         title={agent?.name ?? ""}
+        titleHexColor={agent?.hexColor}
         headerTitlePress={headerTitlePress}
         headerRight={<VoiceModeButton agentId={id} />}
         loading={loading}

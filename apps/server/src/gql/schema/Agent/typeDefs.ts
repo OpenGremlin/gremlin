@@ -57,6 +57,7 @@ export const agentTypeDefs = /* GraphQL */ `
     name: String!
     avatar: String!
     portraitId: String!
+    hexColor: String!
     imageUrl(width: Int): String!
     personality: String
     role: String
@@ -131,6 +132,7 @@ export const agentTypeDefs = /* GraphQL */ `
     role: String
     delegationHint: String
     avatar: String
+    hexColor: String
     ttsVoice: String
     config: AgentConfigInput
   }

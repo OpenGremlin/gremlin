@@ -13,6 +13,13 @@ interface CreateAgentInput {
 /** Skills auto-assigned to every new agent. */
 const DEFAULT_SKILLS = ["basic-programming"];
 
+/**
+ * Middle of the agent hue slider's 0–360 range = cyan/teal at bright
+ * saturation, readable against both light and dark backgrounds. Also used
+ * as the fallback color for agents created before the hue picker shipped.
+ */
+export const DEFAULT_AGENT_HEX_COLOR = "#0BA6A6";
+
 export async function createAgent(
   ctx: ServiceContext,
   input: CreateAgentInput,
@@ -26,6 +33,7 @@ export async function createAgent(
       personality: input.personality ?? "",
       avatar: "default",
       portraitId: "default",
+      hexColor: DEFAULT_AGENT_HEX_COLOR,
       ...(input.delegationHint ? { delegationHint: input.delegationHint } : {}),
     })
     .options({ returnValues: "NONE" })
@@ -50,6 +58,7 @@ export async function createAgent(
     personality: input.personality ?? "",
     avatar: "default",
     portraitId: "default",
+    hexColor: DEFAULT_AGENT_HEX_COLOR,
     ...(input.delegationHint ? { delegationHint: input.delegationHint } : {}),
   };
 }

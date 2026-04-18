@@ -16,6 +16,7 @@ export const AgentEntity = new Entity({
     name: string(),
     avatar: string(),
     portraitId: string(),
+    hexColor: string().optional(),
     personality: string().optional(),
     role: string().optional(),
     // One-line hint shown to managers in their team roster when deciding

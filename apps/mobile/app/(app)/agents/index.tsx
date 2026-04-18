@@ -21,6 +21,7 @@ const AgentCard = React.memo(function AgentCard({ agent }: { agent: Agent }) {
     <ListCard
       agentId={agent.id}
       title={agent.name}
+      titleHexColor={agent.hexColor}
       href={`/agents/${agent.id}`}
       badge={
         agent.retired ? (

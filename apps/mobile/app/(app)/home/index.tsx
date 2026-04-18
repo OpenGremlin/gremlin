@@ -17,6 +17,7 @@ import {
 } from "../../../src/graphql/queries/posts";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
+import { agentNameColor } from "../../../src/lib/color";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -36,7 +37,7 @@ type PostItem = {
   title: string;
   message: string;
   createdAt: string;
-  agent?: { id: string; name?: string } | null;
+  agent?: { id: string; name?: string; hexColor?: string | null } | null;
   attachments?: readonly AttachmentFieldsFragment[];
 };
 
@@ -70,7 +71,8 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
           <View className="flex-row items-center gap-2 min-w-0">
             {agent?.name ? (
               <Text
-                className="text-sm font-semibold text-text-primary"
+                className="text-sm font-semibold"
+                style={{ color: agentNameColor(agent.hexColor) }}
                 numberOfLines={1}
               >
                 {agent.name}

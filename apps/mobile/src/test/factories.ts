@@ -56,6 +56,7 @@ export function buildAgent(overrides?: Partial<Agent>): Agent {
     name: "Test Agent",
     avatar: "default",
     portraitId: "portrait-1",
+    hexColor: "#0BA6A6",
     imageUrl: "https://example.com/agent.png",
     personality: "A helpful test agent",
     role: null,

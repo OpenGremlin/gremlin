@@ -8,6 +8,7 @@ import {
 } from "../../graphql/generated/graphql";
 import { ResolveCommandApprovalMutation } from "../../graphql/queries";
 import { execute } from "../../lib/apolloClient";
+import { agentNameColor } from "../../lib/color";
 import { useTheme } from "../../lib/ThemeContext";
 import { ActionButton } from "../ActionButton";
 import { AgentAvatar } from "../AgentAvatar";
@@ -51,7 +52,10 @@ const ApprovalCard = React.memo(function ApprovalCard({
         </View>
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
-            <Text className="text-sm font-medium text-text-primary">
+            <Text
+              className="text-sm font-medium"
+              style={{ color: agentNameColor(approval.agent.hexColor) }}
+            >
               {approval.agent.name}
             </Text>
             <Text className="text-[13px] text-text-muted shrink ml-2">
