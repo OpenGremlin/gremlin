@@ -248,6 +248,7 @@ export const TaskDetail = graphql(`
     id
     agent {
       id
+      hexColor
     }
     title
     message

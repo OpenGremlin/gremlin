@@ -37,6 +37,7 @@ export default function TaskScreen() {
         agentId={agentId}
         taskId={id}
         title={title}
+        titleHexColor={task?.agent?.hexColor}
         headerTitlePress={headerTitlePress}
         headerRight={
           agentId ? <VoiceModeButton agentId={agentId} /> : undefined
