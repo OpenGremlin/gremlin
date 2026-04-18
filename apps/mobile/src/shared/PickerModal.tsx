@@ -118,7 +118,7 @@ export function PickerOverlay() {
               {item.icon}
               <View className="flex-1 min-w-0">
                 <Text
-                  className={`text-sm ${item.labelColor ? "" : "text-text-primary"}`}
+                  className={`text-sm ${item.labelColor ? "font-bold" : "text-text-primary"}`}
                   style={
                     item.labelColor ? { color: item.labelColor } : undefined
                   }

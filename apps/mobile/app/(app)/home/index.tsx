@@ -71,7 +71,7 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
           <View className="flex-row items-center gap-2 min-w-0">
             {agent?.name ? (
               <Text
-                className="text-sm font-semibold"
+                className="text-sm font-bold"
                 style={{ color: agentNameColor(agent.hexColor) }}
                 numberOfLines={1}
               >

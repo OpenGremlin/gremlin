@@ -53,7 +53,7 @@ const ApprovalCard = React.memo(function ApprovalCard({
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
             <Text
-              className="text-sm font-medium"
+              className="text-sm font-bold"
               style={{ color: agentNameColor(approval.agent.hexColor) }}
             >
               {approval.agent.name}

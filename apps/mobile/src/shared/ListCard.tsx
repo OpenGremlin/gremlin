@@ -42,7 +42,7 @@ export function ListCard({
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center justify-between mb-1">
           <Text
-            className={`text-base font-medium flex-1 ${titleHexColor ? "" : "text-text-primary"}`}
+            className={`text-base font-bold flex-1 ${titleHexColor ? "" : "text-text-primary"}`}
             style={
               titleHexColor
                 ? { color: agentNameColor(titleHexColor) }

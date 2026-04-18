@@ -34,7 +34,7 @@ export function ChatHeaderTitle({
         }}
       >
         <Text
-          className="text-sm font-semibold text-center"
+          className="text-sm font-bold text-center"
           style={{ color: agentNameColor(titleHexColor) }}
           numberOfLines={1}
         >

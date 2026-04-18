@@ -7,6 +7,7 @@ import {
   CreateAgentJobMutation,
 } from "../../../src/graphql/queries";
 import { execute } from "../../../src/lib/apolloClient";
+import { agentNameColor } from "../../../src/lib/color";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { Button } from "../../../src/shared/Button";
 import { Input } from "../../../src/shared/Input";
@@ -24,10 +25,13 @@ export default function NewJobScreen() {
         .map((a) => ({
           value: a.id,
           label: a.name,
+          labelColor: agentNameColor(a.hexColor),
           icon: <AgentAvatar id={a.id} size={28} />,
         })),
     [agentsData],
   );
+
+  const selectedAgent = agentOptions.find((a) => a.value === agentId);
 
   const [name, setName] = useState("");
   const [agentId, setAgentId] = useState("");
@@ -88,10 +92,12 @@ export default function NewJobScreen() {
           }
         >
           <Text
-            className={`text-sm ${agentId ? "text-text-primary" : "text-text-muted"}`}
+            className={`text-sm ${selectedAgent ? "font-bold" : "text-text-muted"}`}
+            style={
+              selectedAgent ? { color: selectedAgent.labelColor } : undefined
+            }
           >
-            {agentOptions.find((a) => a.value === agentId)?.label ??
-              "Select agent"}
+            {selectedAgent?.label ?? "Select agent"}
           </Text>
         </Pressable>
       </View>

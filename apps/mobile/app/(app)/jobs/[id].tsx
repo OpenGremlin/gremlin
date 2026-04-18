@@ -197,7 +197,7 @@ export default function JobDetailScreen() {
             {job.name}
           </Text>
           <Text
-            className="text-sm mt-0.5"
+            className="text-sm font-bold mt-0.5"
             style={{ color: agentNameColor(job.agent.hexColor) }}
           >
             {job.agent.name}
@@ -277,7 +277,7 @@ export default function JobDetailScreen() {
             >
               <View className="bg-input-bg border border-input-border rounded-lg px-3 py-2.5">
                 <Text
-                  className="text-sm"
+                  className="text-sm font-bold"
                   style={{
                     color:
                       agentOptions.find((a) => a.value === form.current.agentId)

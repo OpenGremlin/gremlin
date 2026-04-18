@@ -44,7 +44,7 @@ const InputRequestCard = React.memo(function InputRequestCard({
         <View className="flex-1 min-w-0">
           <View className="flex-row items-center justify-between mb-1">
             <Text
-              className="text-sm font-medium"
+              className="text-sm font-bold"
               style={{ color: agentNameColor(request.agent.hexColor) }}
             >
               {request.agent.name}
