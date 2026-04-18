@@ -27,12 +27,12 @@ export const fileUploadTypeDefs = /* GraphQL */ `
     contentType: String!
   }
 
-  "Attach a reference to an existing workspace file in an agent's log (no upload needed)."
+  "Attach references to existing workspace files or folders in an agent's log (no upload needed)."
   input AttachFileReferenceInput {
     agentId: String!
     taskId: String
-    "Workspace-relative path, e.g. uploads/2026-04-10/notes.md"
-    filePath: String!
+    "Workspace-relative paths. Each may be a file or a folder, e.g. uploads/2026-04-10/notes.md or projects/alpha."
+    filePaths: [String!]!
   }
 
   type Mutation {

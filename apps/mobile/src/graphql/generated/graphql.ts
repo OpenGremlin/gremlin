@@ -254,11 +254,11 @@ export type ApiKeyConnectionMeta = {
   accountId?: Maybe<Scalars['String']['output']>;
 };
 
-/** Attach a reference to an existing workspace file in an agent's log (no upload needed). */
+/** Attach references to existing workspace files or folders in an agent's log (no upload needed). */
 export type AttachFileReferenceInput = {
   agentId: Scalars['String']['input'];
-  /** Workspace-relative path, e.g. uploads/2026-04-10/notes.md */
-  filePath: Scalars['String']['input'];
+  /** Workspace-relative paths. Each may be a file or a folder, e.g. uploads/2026-04-10/notes.md or projects/alpha. */
+  filePaths: Array<Scalars['String']['input']>;
   taskId?: InputMaybe<Scalars['String']['input']>;
 };
 

@@ -136,7 +136,7 @@ export function FileActions({
       router.push(`/agents/${agent.id}`);
     }, 0);
     execute(AttachFileReferenceMutation, {
-      input: { agentId: agent.id, filePath },
+      input: { agentId: agent.id, filePaths: [filePath] },
     }).catch((err) => {
       clientLogger.error("Failed to attach file reference", {
         error: err instanceof Error ? err.message : String(err),

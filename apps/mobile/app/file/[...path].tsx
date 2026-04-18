@@ -8,6 +8,7 @@ import {
   WorkspaceEntriesQuery,
 } from "../../src/graphql/queries";
 import { PostQuery } from "../../src/graphql/queries/posts";
+import { EmptyState } from "../../src/shared/EmptyState";
 import { FileNotFoundState } from "../../src/shared/FileNotFoundState";
 import {
   FilePagerSheet,
@@ -151,6 +152,21 @@ function PagerMode({
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator />
         </View>
+      </Sheet>
+    );
+  }
+
+  if (files.length === 0) {
+    return (
+      <Sheet title={filePath.split("/").pop() ?? "Folder"}>
+        <EmptyState
+          message="No files"
+          description={
+            dirPath != null
+              ? "This folder doesn't contain any previewable files."
+              : undefined
+          }
+        />
       </Sheet>
     );
   }

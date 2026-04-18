@@ -3,7 +3,7 @@ import { File, Paths } from "expo-file-system";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Check, Folder, FolderPlus, FolderTree, X } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -60,6 +60,8 @@ const checkboxExit = () => {
 };
 
 import {
+  AgentsQuery,
+  AttachFileReferenceMutation,
   CreateWorkspaceFolderMutation,
   DeleteWorkspaceEntriesMutation,
   MoveWorkspaceEntriesMutation,
@@ -71,10 +73,13 @@ import {
   useFileSelection,
 } from "../../../src/hooks/useFileSelection";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
+import { clientLogger } from "../../../src/lib/logger";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
+import { AgentAvatar } from "../../../src/shared/AgentAvatar";
 import { ConfirmDialog } from "../../../src/shared/ConfirmDialog";
 import { FolderPicker } from "../../../src/shared/FolderPicker";
 import { FileTypeIcon } from "../../../src/shared/fileTypeAppearance";
+import { presentPicker } from "../../../src/shared/PickerModal";
 import { PromptDialog } from "../../../src/shared/PromptDialog";
 import { QueryGate } from "../../../src/shared/QueryResult";
 import { SearchInput } from "../../../src/shared/SearchInput";
@@ -182,6 +187,12 @@ function DirectoryView({
 
   const [deleteEntries] = useMutation(DeleteWorkspaceEntriesMutation);
   const [moveEntries] = useMutation(MoveWorkspaceEntriesMutation);
+  const [attachFileReference] = useMutation(AttachFileReferenceMutation);
+  const { data: agentsData } = useQuery(AgentsQuery);
+  const agents = useMemo(
+    () => (agentsData?.agents ?? []).filter((a) => !a.retired),
+    [agentsData?.agents],
+  );
 
   const { selectAll } = selection;
   useEffect(() => {
@@ -263,6 +274,31 @@ function DirectoryView({
       dialogTitle: `${selectedFiles.length} files`,
     });
   }, [selectedFiles]);
+
+  const handleDiscuss = useCallback(() => {
+    const paths = [...selection.selectedPaths];
+    if (paths.length === 0 || agents.length === 0) return;
+    presentPicker({
+      title: "Discuss with",
+      options: agents.map((a) => ({
+        value: a.id,
+        label: a.name,
+        subtitle: a.role ?? undefined,
+        icon: <AgentAvatar id={a.id} size={28} />,
+      })),
+      onSelect: (agentId) => {
+        selection.clearSelection();
+        router.push(`/agents/${agentId}`);
+        attachFileReference({
+          variables: { input: { agentId, filePaths: paths } },
+        }).catch((err) => {
+          clientLogger.error("Failed to attach file references", {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+      },
+    });
+  }, [selection, agents, attachFileReference]);
 
   const handleMove = useCallback(
     async (destination: string) => {
@@ -359,6 +395,7 @@ function DirectoryView({
 
         {selection.isSelectionMode && selection.count > 0 && (
           <SelectionActionBar
+            onDiscuss={agents.length > 0 ? handleDiscuss : undefined}
             onDelete={() => setShowDeleteConfirm(true)}
             onShare={handleShare}
             onMove={() => setShowFolderPicker(true)}

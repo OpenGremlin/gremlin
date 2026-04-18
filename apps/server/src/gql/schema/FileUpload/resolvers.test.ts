@@ -115,10 +115,12 @@ describe("FileUpload resolvers", () => {
   });
 
   describe("attachFileReference", () => {
-    it("writes a file_upload SYSTEM log when the workspace file exists", async () => {
-      fsStatMock.mockResolvedValue({
-        isFile: () => true,
-        size: 123,
+    it("writes a single file_upload SYSTEM log with an entry per path", async () => {
+      fsStatMock.mockImplementation(async (p: string) => {
+        if (p.endsWith("projects/alpha")) {
+          return { isFile: () => false, isDirectory: () => true };
+        }
+        return { isFile: () => true, isDirectory: () => false, size: 123 };
       });
 
       const ctx = buildTestContext();
@@ -133,7 +135,7 @@ describe("FileUpload resolvers", () => {
             input: {
               agentId: "agent-1",
               taskId: null,
-              filePath: "docs/spec.md",
+              filePaths: ["docs/spec.md", "projects/alpha"],
             },
           },
           ctx,
@@ -147,7 +149,10 @@ describe("FileUpload resolvers", () => {
           agentId: "agent-1",
           taskId: null,
           role: "SYSTEM",
-          attachments: [{ type: "file", path: "docs/spec.md" }],
+          attachments: [
+            { type: "file", path: "docs/spec.md" },
+            { type: "file", path: "projects/alpha" },
+          ],
         }),
       );
       const logCall = (
@@ -158,9 +163,19 @@ describe("FileUpload resolvers", () => {
       const payload = JSON.parse(logCall[1].content);
       expect(payload).toEqual({
         type: "file_upload",
-        filename: "spec.md",
-        path: "docs/spec.md",
-        sizeBytes: 123,
+        files: [
+          {
+            filename: "spec.md",
+            path: "docs/spec.md",
+            isDirectory: false,
+            sizeBytes: 123,
+          },
+          {
+            filename: "alpha",
+            path: "projects/alpha",
+            isDirectory: true,
+          },
+        ],
       });
     });
   });

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import type { LucideIcon } from "lucide-react-native";
 import {
   BookOpen,
@@ -8,6 +9,7 @@ import {
   Eye,
   File,
   Flag,
+  Folder,
   KeyRound,
   Link,
   List,
@@ -46,6 +48,24 @@ import { mapChild, TaskCard } from "./TaskCard";
 import { ToolBlock } from "./ToolBlock";
 import { ToolStatus } from "./ToolStatus";
 
+function openFileOrFolder(entry: {
+  path?: string;
+  isDirectory?: boolean;
+}): void {
+  if (!entry.path) return;
+  const segments = entry.path.split("/");
+  if (entry.isDirectory) {
+    // Pager mode scoped to this folder. filePath won't match any sibling, so
+    // the pager falls back to index 0 (first file in the folder).
+    router.push({
+      pathname: "/file/[...path]",
+      params: { path: segments, dir: entry.path },
+    });
+  } else {
+    router.push({ pathname: "/file/[...path]", params: { path: segments } });
+  }
+}
+
 function FileUploadCard({
   data,
 }: {
@@ -54,11 +74,13 @@ function FileUploadCard({
     path?: string;
     sizeBytes?: number;
     contentType?: string;
+    isDirectory?: boolean;
     files?: Array<{
       filename?: string;
       path?: string;
       sizeBytes?: number;
       contentType?: string;
+      isDirectory?: boolean;
     }>;
   };
 }) {
@@ -67,29 +89,40 @@ function FileUploadCard({
   return (
     <View className="py-1 gap-1">
       {files.map((file, i) => (
-        <View
+        <Pressable
           key={file.path ?? i}
-          className="flex-row items-center gap-2.5 px-3 py-2 bg-surface border border-app-border rounded-lg"
+          onPress={file.path ? () => openFileOrFolder(file) : undefined}
+          className="flex-row items-center gap-2.5 px-3 py-2 bg-surface border border-app-border rounded-lg active:opacity-70"
         >
-          <File size={16} color="#818cf8" />
+          {file.isDirectory ? (
+            <Folder size={16} color="#818cf8" />
+          ) : (
+            <File size={16} color="#818cf8" />
+          )}
           <View className="flex-1 min-w-0">
             <Text className="text-sm text-text-secondary" numberOfLines={1}>
-              {file.filename ?? "Unknown file"}
+              {file.filename ?? file.path ?? "Unknown"}
             </Text>
             <View className="flex-row items-center gap-2 mt-0.5">
-              {file.sizeBytes != null && (
-                <Text className="text-[12px] text-text-muted">
-                  {formatFileSize(file.sizeBytes)}
-                </Text>
-              )}
-              {file.contentType && (
-                <Text className="text-[12px] text-text-muted">
-                  {file.contentType}
-                </Text>
+              {file.isDirectory ? (
+                <Text className="text-[12px] text-text-muted">folder</Text>
+              ) : (
+                <>
+                  {file.sizeBytes != null && (
+                    <Text className="text-[12px] text-text-muted">
+                      {formatFileSize(file.sizeBytes)}
+                    </Text>
+                  )}
+                  {file.contentType && (
+                    <Text className="text-[12px] text-text-muted">
+                      {file.contentType}
+                    </Text>
+                  )}
+                </>
               )}
             </View>
           </View>
-        </View>
+        </Pressable>
       ))}
     </View>
   );
@@ -571,10 +604,15 @@ export const LogEntryView = React.memo(function LogEntryView({
     const parsed = safeParseJson(message.content);
 
     // Handle file_upload entries — prefer FileCard (with preview modal)
-    // when resolved file data is available, fall back to static card
+    // when every attachment resolves to a file; if any entry is a folder
+    // (or is otherwise unresolved) fall back to the static card, which
+    // also renders folders.
     if (parsed?.type === "file_upload") {
       const files = filesFromAttachments(message.attachments ?? []);
-      if (files.length > 0) {
+      const attachmentCount = message.attachments?.length ?? 0;
+      const allResolvedAsFiles =
+        attachmentCount > 0 && files.length === attachmentCount;
+      if (allResolvedAsFiles) {
         return (
           <View className="py-1 items-end">
             <View className="gap-1 w-[80%]">

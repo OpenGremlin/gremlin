@@ -1,4 +1,9 @@
-import { FolderInput, Share2, Trash2 } from "lucide-react-native";
+import {
+  BotMessageSquare,
+  FolderInput,
+  Share2,
+  Trash2,
+} from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useTabBarHeight } from "../hooks/useTabBarHeight";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
@@ -7,6 +12,8 @@ interface SelectionActionBarProps {
   onDelete: () => void;
   onShare: () => void;
   onMove: () => void;
+  /** Omit to hide the Discuss button (e.g. when there are no agents to discuss with). */
+  onDiscuss?: () => void;
   disabled?: boolean;
 }
 
@@ -36,6 +43,7 @@ export function SelectionActionBar({
   onDelete,
   onShare,
   onMove,
+  onDiscuss,
   disabled,
 }: SelectionActionBarProps) {
   const colors = useNavigationTheme();
@@ -50,6 +58,14 @@ export function SelectionActionBar({
         className="flex-row justify-around py-2"
         style={disabled ? { opacity: 0.4, pointerEvents: "none" } : undefined}
       >
+        {onDiscuss && (
+          <ActionButton
+            icon={BotMessageSquare}
+            label="Discuss"
+            onPress={onDiscuss}
+            color={colors.accentIndicator}
+          />
+        )}
         <ActionButton
           icon={Share2}
           label="Share"

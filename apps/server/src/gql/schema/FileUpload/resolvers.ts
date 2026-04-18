@@ -186,38 +186,47 @@ const attachFileReference = async (
     input: {
       agentId: string;
       taskId?: string | null;
-      filePath: string;
+      filePaths: string[];
     };
   },
   ctx: GremlinContext,
 ) => {
   if (!ctx.user) throw new Error("Unauthorized");
 
+  if (input.filePaths.length === 0) {
+    throw new Error("filePaths cannot be empty");
+  }
+
   const workspace = getWorkspacePath();
-  // Normalise: accept both "/workspace/foo" and "foo" forms
-  const relativePath = input.filePath.startsWith("/workspace/")
-    ? input.filePath.slice("/workspace/".length)
-    : input.filePath;
-  const absPath = path.resolve(workspace, relativePath);
 
-  // Guard against path traversal
-  if (!absPath.startsWith(workspace + path.sep) && absPath !== workspace) {
-    throw new Error("Invalid file path");
-  }
+  const files = await Promise.all(
+    input.filePaths.map(async (raw) => {
+      // Normalise: accept both "/workspace/foo" and "foo" forms
+      const relativePath = raw.startsWith("/workspace/")
+        ? raw.slice("/workspace/".length)
+        : raw;
+      const absPath = path.resolve(workspace, relativePath);
 
-  // Verify the file exists
-  const stat = await fs.stat(absPath).catch(() => null);
-  if (!stat || !stat.isFile()) {
-    throw new Error(`File not found: ${relativePath}`);
-  }
+      // Guard against path traversal
+      if (!absPath.startsWith(workspace + path.sep) && absPath !== workspace) {
+        throw new Error(`Invalid path: ${raw}`);
+      }
 
-  const filename = path.basename(absPath);
+      const stat = await fs.stat(absPath).catch(() => null);
+      if (!stat) throw new Error(`Not found: ${relativePath}`);
+
+      return {
+        filename: path.basename(absPath),
+        path: relativePath,
+        isDirectory: stat.isDirectory(),
+        sizeBytes: stat.isFile() ? stat.size : undefined,
+      };
+    }),
+  );
 
   const content = JSON.stringify({
     type: "file_upload",
-    filename,
-    path: relativePath,
-    sizeBytes: stat.size,
+    files,
   });
 
   await ctx.services.orchestrator.writeAgentLog(ctx, {
@@ -225,11 +234,11 @@ const attachFileReference = async (
     taskId: input.taskId ?? null,
     role: "SYSTEM",
     content,
-    attachments: [{ type: "file", path: relativePath }],
+    attachments: files.map((f) => ({ type: "file", path: f.path })),
   });
 
   ctx.log.info(
-    { agentId: input.agentId, filePath: relativePath },
+    { agentId: input.agentId, paths: files.map((f) => f.path) },
     "File reference attached",
   );
 
