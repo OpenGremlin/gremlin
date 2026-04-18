@@ -12,7 +12,7 @@ export function taskUpdate(ctx: ServiceContext) {
         .enum(["open", "in_progress", "closed"])
         .optional()
         .describe(
-          "New status. 'closed' = work complete. 'open' = reopen a closed task (e.g. to send work back for revision).",
+          "New status. 'closed' = work complete (requires notes). 'open' on a closed task = reject and send back for revision (requires notes explaining what to change).",
         ),
       escalate: z
         .boolean()
@@ -38,7 +38,7 @@ export function taskUpdate(ctx: ServiceContext) {
         .string()
         .optional()
         .describe(
-          "A comment to add to the task's activity log. Required when closing or escalating.",
+          "A comment to add to the task's activity log. Required when closing, escalating, or reopening a closed task.",
         ),
     }),
     execute: wrapExecute(
@@ -66,18 +66,39 @@ export function taskUpdate(ctx: ServiceContext) {
               );
         }
 
+        // Single fetch covers both the reopen-rejection validation and the
+        // redundant-close short-circuit — they can't both fire for the same
+        // call (different `status` branches).
+        const existing =
+          status === "open" || status === "closed"
+            ? await ctx.services.tasks.getTask(ctx, taskId)
+            : null;
+
+        // Reopening a closed task is a rejection — the worker will wake up and
+        // try to address your feedback, so an explanation is required.
+        if (
+          status === "open" &&
+          existing?.status === "closed" &&
+          !notes?.trim()
+        ) {
+          return toolErr(
+            ToolErrorCode.InvalidInput,
+            "Reopening a closed task requires a notes comment explaining what needs to change.",
+            "Add a `notes` field describing what's wrong or what to redo before reopening.",
+          );
+        }
+
         // Redundant-close short-circuit: if the task is already closed, bail
         // before side effects to avoid duplicate comments and cascading
         // `task_ready_for_review` notifications to the parent epic.
-        if (status === "closed") {
-          const existing = await ctx.services.tasks.getTask(ctx, taskId);
-          if (existing?.status === "closed") return toolOk(existing);
+        if (status === "closed" && existing?.status === "closed") {
+          return toolOk(existing);
         }
 
         if (status === "closed") {
           await ctx.services.tasks.closeTask(ctx, taskId, notes);
         } else if (status) {
-          await ctx.services.tasks.updateTaskStatus(ctx, taskId, status);
+          await ctx.services.tasks.updateTaskStatus(ctx, taskId, status, notes);
         }
 
         const hasFieldUpdates =

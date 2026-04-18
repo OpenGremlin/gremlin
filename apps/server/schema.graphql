@@ -86,9 +86,6 @@ type Mutation {
   bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   "Unbind a connection from an agent's skill"
   unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
-  updateTaskStatus(taskId: ID!, status: TaskStatus!): Task
-  closeTask(taskId: ID!, reason: String): Task
-  addTaskComment(taskId: ID!, text: String!): Task
   """Delete one or more workspace files or directories"""
   deleteWorkspaceEntries(paths: [String!]!): WorkspaceMutationResult!
   """Move one or more workspace entries to a destination directory"""
@@ -784,7 +781,6 @@ type SkillConnectionStatus {
 enum TaskStatus {
   OPEN
   IN_PROGRESS
-  DONE
   CLOSED
 }
 

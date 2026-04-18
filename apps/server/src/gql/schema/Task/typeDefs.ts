@@ -2,7 +2,6 @@ export const taskTypeDefs = /* GraphQL */ `
   enum TaskStatus {
     OPEN
     IN_PROGRESS
-    DONE
     CLOSED
   }
 
@@ -61,12 +60,6 @@ export const taskTypeDefs = /* GraphQL */ `
     data: String!
     done: Boolean
     exitCode: Int
-  }
-
-  extend type Mutation {
-    updateTaskStatus(taskId: ID!, status: TaskStatus!): Task
-    closeTask(taskId: ID!, reason: String): Task
-    addTaskComment(taskId: ID!, text: String!): Task
   }
 
   extend type Subscription {

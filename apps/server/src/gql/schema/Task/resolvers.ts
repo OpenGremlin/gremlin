@@ -4,7 +4,6 @@ import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
 import type { SandboxOutputEvent } from "@opengremlin/lib/resources/pubsub.js";
 import type { GremlinContext } from "../../context.js";
 import type {
-  MutationResolvers,
   QueryResolvers,
   TaskEdgeResolvers,
   TaskResolvers,
@@ -19,20 +18,11 @@ export const toTaskStatus = (raw?: string): TaskStatus => {
   switch (raw) {
     case "in_progress":
       return TaskStatus.InProgress;
-    case "done":
-      return TaskStatus.Done;
     case "closed":
       return TaskStatus.Closed;
     default:
       return TaskStatus.Open;
   }
-};
-
-export const statusToRaw: Record<string, string> = {
-  OPEN: "open",
-  IN_PROGRESS: "in_progress",
-  DONE: "done",
-  CLOSED: "closed",
 };
 
 // ---------------------------------------------------------------------------
@@ -98,38 +88,6 @@ const assigneeName: TaskResolvers["assigneeName"] = async (
   return a?.name ?? null;
 };
 
-// ---------------------------------------------------------------------------
-// Mutation resolvers
-// ---------------------------------------------------------------------------
-
-const updateTaskStatusMutation: MutationResolvers["updateTaskStatus"] = async (
-  _parent,
-  { taskId, status: gqlStatus },
-  ctx,
-) => {
-  const rawStatus = statusToRaw[gqlStatus] ?? "open";
-  return ctx.services.tasks.updateTaskStatus(ctx, taskId, rawStatus);
-};
-
-const closeTaskMutation: MutationResolvers["closeTask"] = async (
-  _parent,
-  { taskId, reason },
-  ctx,
-) => ctx.services.tasks.closeTask(ctx, taskId, reason ?? undefined);
-
-const addTaskCommentMutation: MutationResolvers["addTaskComment"] = async (
-  _parent,
-  { taskId, text },
-  ctx,
-) => {
-  const author = ctx.user?.email ?? "unknown";
-  await ctx.services.tasks.addComment(ctx, { taskId, author, text });
-  // Return the updated task so the subscription fires with fresh data.
-  const task = await ctx.services.tasks.getTask(ctx, taskId);
-  if (!task) throw new Error(`Task ${taskId} not found`);
-  return task;
-};
-
 const node: TaskEdgeResolvers["node"] = (parent) => parent.node;
 
 const taskUpdated = {
@@ -186,11 +144,6 @@ const sandboxOutput = {
 
 export const taskResolvers = {
   Query: { tasks, task },
-  Mutation: {
-    updateTaskStatus: updateTaskStatusMutation,
-    closeTask: closeTaskMutation,
-    addTaskComment: addTaskCommentMutation,
-  },
   Task: {
     agent,
     emoji,

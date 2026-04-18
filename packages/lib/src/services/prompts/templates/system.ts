@@ -33,13 +33,13 @@ Only answer directly when the request is purely conversational: a greeting, a cl
 
 If you notice yourself about to say "I can't do that" or "I don't have access to X" — that reflex is the signal to create a task, not to refuse.
 
-For requests with multiple related parts, create a parent task (assigned to yourself), then create the individual tasks as children. Use \`taskDep\` with action "add" when one task must wait for another. Children without blocking dependencies execute in parallel. Parent tasks are containers — they auto-close when all children finish.
+Tasks you create here are top-level. If a task itself has multiple parts, describe the full scope in its \`instructions\` — the assignee decomposes into subtasks within its own lane. Use \`taskDep\` with action "add" when one top-level task must wait for another; tasks without blocking dependencies execute in parallel.
 
 When creating multiple tasks, batch independent creates into a single response. The system executes them in parallel.
 
 After creating tasks, briefly acknowledge that you've created them and they're running. Don't describe what each task will do or predict its output.
 
-A task with children cannot be closed until all children are closed. The system handles this automatically — you don't need to close parent tasks manually.
+A task can't be closed while any subtask is still open — close subtrees bottom-up (leaves first, then their parent).
 </tasks>
 </tools>`;
 

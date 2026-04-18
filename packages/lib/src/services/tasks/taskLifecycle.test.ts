@@ -67,14 +67,6 @@ describe("taskLifecycle", () => {
       expect(result.closedAt).toBe(NOW);
     });
 
-    it("accepts done as a valid status", async () => {
-      ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
-
-      const result = await updateTaskStatus(ctx, "task-1", "done");
-
-      expect(result.status).toBe("done");
-    });
-
     it("rejects invalid status values", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(makeTask() as any);
 
@@ -303,16 +295,43 @@ describe("taskLifecycle", () => {
   // ── escalation ───────────────────────────────────────────────
 
   describe("escalation", () => {
-    it("increments escalationCount on rejection (done → open)", async () => {
+    it("increments escalationCount on rejection (closed → open)", async () => {
       ctx.services.tasks.getTask.mockResolvedValue(
-        makeTask({ status: "done", escalationCount: 1 }) as any,
+        makeTask({ status: "closed", escalationCount: 1 }) as any,
       );
 
-      const result = await updateTaskStatus(ctx, "task-1", "open");
+      const result = await updateTaskStatus(
+        ctx,
+        "task-1",
+        "open",
+        "please fix the failing test",
+      );
 
       expect(result.escalationCount).toBe(2);
       // Should have called incrementEscalationCount (second DDB send)
       expect(mockDocSend).toHaveBeenCalledTimes(2);
+    });
+
+    it("rejects closed → open without a reason", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ status: "closed" }) as any,
+      );
+
+      await expect(updateTaskStatus(ctx, "task-1", "open")).rejects.toThrow(
+        /without a reason/,
+      );
+      // No DDB write should have happened before the validation failure.
+      expect(mockDocSend).not.toHaveBeenCalled();
+    });
+
+    it("rejects closed → open with a whitespace-only reason", async () => {
+      ctx.services.tasks.getTask.mockResolvedValue(
+        makeTask({ status: "closed" }) as any,
+      );
+
+      await expect(
+        updateTaskStatus(ctx, "task-1", "open", "   "),
+      ).rejects.toThrow(/without a reason/);
     });
 
     it("does not increment escalationCount for non-rejection transitions", async () => {

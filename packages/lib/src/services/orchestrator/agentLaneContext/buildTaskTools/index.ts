@@ -48,7 +48,7 @@ export function buildTaskTools(
           [ToolName.WebFetch]: webFetch,
         }
       : {}),
-    ...buildTaskLaneTools(ctx),
+    ...buildTaskLaneTools(ctx, taskId),
     ...buildFileEditorTools(ctx, taskId),
     [ToolName.AttachFile]: attachFileTool(ctx, taskId),
     [ToolName.AttachLink]: attachLinkTool(ctx, taskId),

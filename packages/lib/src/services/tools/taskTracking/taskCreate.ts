@@ -3,7 +3,12 @@ import { z } from "zod";
 import type { ServiceContext } from "../../context.js";
 import { toolOk, wrapExecute } from "../toolResult.js";
 
-export function taskCreate(ctx: ServiceContext) {
+/**
+ * @param currentTaskId  When set, new tasks are created as children of this
+ *                       task. Pass the caller's taskId in a task lane; omit
+ *                       in the main lane (tasks become top-level).
+ */
+export function taskCreate(ctx: ServiceContext, currentTaskId?: string) {
   return tool({
     description:
       "Create a new task in the project tracker. The UI renders a rich card automatically — do NOT repeat the task structure or IDs in your text response.",
@@ -47,7 +52,6 @@ export function taskCreate(ctx: ServiceContext) {
         .describe(
           "Agent ID to assign this task to. Required — every task must have an owner.",
         ),
-      parentId: z.string().optional().describe("Parent task ID to nest under"),
       emoji: z.string().describe("A single emoji that best fits the task"),
       blockedBy: z
         .array(z.string())
@@ -65,7 +69,6 @@ export function taskCreate(ctx: ServiceContext) {
         priority,
         assignee,
         emoji,
-        parentId,
         blockedBy,
       }) => {
         const task = await ctx.services.tasks.createTask(ctx, {
@@ -76,7 +79,7 @@ export function taskCreate(ctx: ServiceContext) {
           expectedInput,
           expectedOutput,
           priority,
-          parentId,
+          parentId: currentTaskId,
           emoji,
         });
 

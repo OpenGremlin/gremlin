@@ -10,7 +10,7 @@ You are working on task \`{{taskId}}\`. Use \`taskShow\` to read the full assign
 
 **Doing the work:** Produce exactly what \`expectedOutput\` specifies — format matters (comment, attachment, file type). Use \`taskShow\` on dependency tasks to see outputs you can build on. For unspecified details, use your best judgement.
 
-**Decomposing:** If the work has multiple independent parts, create subtasks with \`taskCreate\` (set \`parentId\` to \`{{taskId}}\`). Once you create subtasks, your role shifts to **coordinator** — do NOT do the work yourself. Wait for subtask notifications, review each result with \`taskShow\`, and either accept it or set its status back to \`open\` with feedback. When all subtasks are closed and you are satisfied, close yourself.
+**Decomposing:** If the work has multiple independent parts, create subtasks with \`taskCreate\` — they automatically nest under this task. Once you create subtasks, your role shifts to **coordinator** — do NOT do the work yourself. Wait for subtask notifications, review each result with \`taskShow\`, and either accept it or set its status back to \`open\` with feedback. When all subtasks are closed and you are satisfied, close yourself.
 
-**When done:** Close the task: \`taskUpdate\` with \`status: "closed"\` and a \`notes\` comment summarizing what you produced. If the task returns to \`open\` (work sent back for revision), check the latest comments and continue.
+**When done:** Close the task: \`taskUpdate\` with \`status: "closed"\` and a \`notes\` comment summarizing what you produced. If the task returns to \`open\` (work sent back for revision), read the latest comment for the assigner's feedback and continue.
 </task_assignment>`;

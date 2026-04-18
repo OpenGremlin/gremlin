@@ -18,7 +18,7 @@ async function notifyParent(
   }
 }
 
-const VALID_STATUSES = ["open", "in_progress", "done", "closed"] as const;
+const VALID_STATUSES = ["open", "in_progress", "closed"] as const;
 type TaskStatus = (typeof VALID_STATUSES)[number];
 
 function assertValidStatus(status: string): asserts status is TaskStatus {
@@ -55,11 +55,16 @@ async function checkChildrenClosed(
  * Update a task's status and its GSI4 index key.
  * Publishes `taskUpdated:${taskId}` (and `taskUpdated:${parentId}` if the
  * task has a parent) so subscribers can react to status changes.
+ *
+ * `reason` is required when reopening a closed task (rejection) — the worker
+ * reads it as a comment on resume, so callers must explain why the work was
+ * sent back.
  */
 export async function updateTaskStatus(
   ctx: ServiceContext,
   taskId: string,
   status: string,
+  reason?: string,
 ): Promise<TaskItem> {
   assertValidStatus(status);
 
@@ -71,10 +76,20 @@ export async function updateTaskStatus(
     if (err) throw new Error(err);
   }
 
-  const now = new Date().toISOString();
   const isClosing = status === "closed";
-  // Rejection: assigner sends completed work back (done → open)
-  const isRejection = status === "open" && task.status === "done";
+  // Rejection: assigner reopens a closed task to send work back for revision.
+  const isRejection = status === "open" && task.status === "closed";
+
+  if (isRejection && !reason?.trim()) {
+    throw new Error(
+      `Cannot reopen closed task ${taskId} without a reason. ` +
+        `Reopening sends the work back to the worker, and they need to know ` +
+        `what to change. Pass a non-empty \`reason\` explaining the issue ` +
+        `(for the agent tool this is the \`notes\` argument).`,
+    );
+  }
+
+  const now = new Date().toISOString();
 
   const table = ctx.resources.ddb.chatTable;
   await table.getDocumentClient().send(
@@ -95,7 +110,8 @@ export async function updateTaskStatus(
     }),
   );
 
-  // Increment escalation count on rejection (done → open)
+  // Rejection: increment escalation count. Comment recording is the caller's
+  // responsibility (the `taskUpdate` tool threads `notes` → `addComment`).
   if (isRejection) {
     await incrementEscalationCount(ctx, taskId);
   }

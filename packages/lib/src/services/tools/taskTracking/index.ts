@@ -13,10 +13,17 @@ import { taskUpdate } from "./taskUpdate.js";
  * Worker-safe tools for task lanes — no dependency management.
  * Native task-tracking tools backed by DynamoDB service calls, giving
  * LLM agents the ability to create, query, and manage tasks natively.
+ *
+ * @param currentTaskId  When set, `taskCreate` auto-parents new tasks to
+ *                       this task. Pass the caller's taskId inside a task
+ *                       lane so agents can only grow their own subtree.
  */
-export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
+export function buildTaskLaneTools(
+  ctx: ServiceContext,
+  currentTaskId?: string,
+): Record<string, Tool> {
   return {
-    taskCreate: taskCreate(ctx),
+    taskCreate: taskCreate(ctx, currentTaskId),
     taskList: taskList(ctx),
     taskReady: taskReady(ctx),
     taskShow: taskShow(ctx),
@@ -27,6 +34,7 @@ export function buildTaskLaneTools(ctx: ServiceContext): Record<string, Tool> {
 /**
  * Full tool set for the main lane — includes dependency management tools
  * that workers don't need (deps are resolved automatically by the reconciler).
+ * No `currentTaskId` means tasks created here are top-level.
  */
 export function buildTaskTrackingTools(
   ctx: ServiceContext,

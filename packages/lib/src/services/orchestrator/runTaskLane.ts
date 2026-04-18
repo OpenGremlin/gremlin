@@ -44,8 +44,7 @@ async function buildRelatedTaskContext(
       ctx.services.tasks.getTaskAttachments(ctx, related.id).catch(() => []),
       ctx.services.tasks.getComments(ctx, related.id).catch(() => []),
     ]);
-    const statusStr = related.status === "closed" ? "done" : related.status;
-    lines.push(`• "${related.title}" (${statusStr})`);
+    lines.push(`• "${related.title}" (${related.status})`);
     if (attachments.length > 0) {
       for (const att of attachments) {
         if (att.type === "file") {

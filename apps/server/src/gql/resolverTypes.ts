@@ -574,7 +574,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   addCommandAllowlistEntry: Array<AllowlistEntry>;
-  addTaskComment?: Maybe<Task>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   attachFileReference: Scalars['Boolean']['output'];
@@ -582,7 +581,6 @@ export type Mutation = {
   bindAgentSkillConnection: AgentSkill;
   /** Clear visible log history for an agent's main lane or a specific task lane */
   clearAgentLog: ClearAgentLogResult;
-  closeTask?: Maybe<Task>;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
   connectAwsIamRole: IntegrationConnection;
@@ -619,19 +617,12 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
-  updateTaskStatus?: Maybe<Task>;
 };
 
 
 export type MutationAddCommandAllowlistEntryArgs = {
   agentId: Scalars['ID']['input'];
   pattern: Scalars['String']['input'];
-};
-
-
-export type MutationAddTaskCommentArgs = {
-  taskId: Scalars['ID']['input'];
-  text: Scalars['String']['input'];
 };
 
 
@@ -657,12 +648,6 @@ export type MutationBindAgentSkillConnectionArgs = {
 export type MutationClearAgentLogArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type MutationCloseTaskArgs = {
-  reason?: InputMaybe<Scalars['String']['input']>;
-  taskId: Scalars['ID']['input'];
 };
 
 
@@ -847,12 +832,6 @@ export type MutationUpdateGlobalSettingsArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: ProfileInput;
-};
-
-
-export type MutationUpdateTaskStatusArgs = {
-  status: TaskStatus;
-  taskId: Scalars['ID']['input'];
 };
 
 export type OAuthConnectionMeta = {
@@ -1328,7 +1307,6 @@ export type TaskPageInfo = {
 
 export enum TaskStatus {
   Closed = 'CLOSED',
-  Done = 'DONE',
   InProgress = 'IN_PROGRESS',
   Open = 'OPEN'
 }
@@ -2083,12 +2061,10 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   addCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationAddCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
-  addTaskComment?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationAddTaskCommentArgs, 'taskId' | 'text'>>;
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   attachFileReference?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAttachFileReferenceArgs, 'input'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
   clearAgentLog?: Resolver<ResolversTypes['ClearAgentLogResult'], ParentType, ContextType, RequireFields<MutationClearAgentLogArgs, 'agentId'>>;
-  closeTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCloseTaskArgs, 'taskId'>>;
   completeFileUpload?: Resolver<ResolversTypes['CompletedFileUpload'], ParentType, ContextType, RequireFields<MutationCompleteFileUploadArgs, 'input'>>;
   connectApiKey?: Resolver<ResolversTypes['ConnectApiKeyResult'], ParentType, ContextType, RequireFields<MutationConnectApiKeyArgs, 'apiKey' | 'providerId'>>;
   connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
@@ -2120,7 +2096,6 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
-  updateTaskStatus?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationUpdateTaskStatusArgs, 'status' | 'taskId'>>;
 };
 
 export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthConnectionMeta'] = ResolversParentTypes['OAuthConnectionMeta']> = {

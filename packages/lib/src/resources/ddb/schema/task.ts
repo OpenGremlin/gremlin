@@ -40,7 +40,7 @@ export const TaskEntity = new Entity({
     escalationCount: number().optional().default(0),
 
     // ── Tracking fields ─────────────────────────────────────
-    // "open" | "in_progress" | "done" | "closed"
+    // "open" | "in_progress" | "closed"
     status: string().optional().default("open"),
     // 0=critical, 1=high, 2=medium, 3=low, 4=backlog
     priority: number().optional(),

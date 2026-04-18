@@ -9,7 +9,7 @@ export function taskList(ctx: ServiceContext) {
       "List tasks, optionally filtered by status, assignee, priority, or parent.",
     inputSchema: z.object({
       status: z
-        .enum(["open", "in_progress", "done", "closed"])
+        .enum(["open", "in_progress", "closed"])
         .optional()
         .describe("Filter by status"),
       assignee: z.string().optional().describe("Filter by assignee agent ID"),

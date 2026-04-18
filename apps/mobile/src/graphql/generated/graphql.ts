@@ -554,7 +554,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   addCommandAllowlistEntry: Array<AllowlistEntry>;
-  addTaskComment?: Maybe<Task>;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   attachFileReference: Scalars['Boolean']['output'];
@@ -562,7 +561,6 @@ export type Mutation = {
   bindAgentSkillConnection: AgentSkill;
   /** Clear visible log history for an agent's main lane or a specific task lane */
   clearAgentLog: ClearAgentLogResult;
-  closeTask?: Maybe<Task>;
   completeFileUpload: CompletedFileUpload;
   connectApiKey: ConnectApiKeyResult;
   connectAwsIamRole: IntegrationConnection;
@@ -599,19 +597,12 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
-  updateTaskStatus?: Maybe<Task>;
 };
 
 
 export type MutationAddCommandAllowlistEntryArgs = {
   agentId: Scalars['ID']['input'];
   pattern: Scalars['String']['input'];
-};
-
-
-export type MutationAddTaskCommentArgs = {
-  taskId: Scalars['ID']['input'];
-  text: Scalars['String']['input'];
 };
 
 
@@ -637,12 +628,6 @@ export type MutationBindAgentSkillConnectionArgs = {
 export type MutationClearAgentLogArgs = {
   agentId: Scalars['ID']['input'];
   taskId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type MutationCloseTaskArgs = {
-  reason?: InputMaybe<Scalars['String']['input']>;
-  taskId: Scalars['ID']['input'];
 };
 
 
@@ -827,12 +812,6 @@ export type MutationUpdateGlobalSettingsArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: ProfileInput;
-};
-
-
-export type MutationUpdateTaskStatusArgs = {
-  status: TaskStatus;
-  taskId: Scalars['ID']['input'];
 };
 
 export type OAuthConnectionMeta = {
@@ -1308,7 +1287,6 @@ export type TaskPageInfo = {
 
 export enum TaskStatus {
   Closed = 'CLOSED',
-  Done = 'DONE',
   InProgress = 'IN_PROGRESS',
   Open = 'OPEN'
 }
