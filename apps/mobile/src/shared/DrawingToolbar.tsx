@@ -4,14 +4,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type DrawingTool = "thin" | "thick" | "eraser";
 
+const WHITE = "#FFFFFF";
+
 const COLORS = [
   "#000000",
+  "#6B7280",
+  WHITE,
   "#EF4444",
+  "#F97316",
   "#F59E0B",
   "#22C55E",
   "#3B82F6",
-  "#F97316",
   "#8B5CF6",
+  "#EC4899",
 ];
 
 const TOOL_ICONS = {
@@ -131,11 +136,14 @@ export function DrawingToolbar({
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          gap: 12,
+          flexWrap: "wrap",
+          columnGap: 8,
+          rowGap: 8,
         }}
       >
         {COLORS.map((color) => {
           const isSelected = selectedColor === color;
+          const isWhite = color === WHITE;
           return (
             <Pressable
               key={color}
@@ -156,6 +164,8 @@ export function DrawingToolbar({
                   height: 26,
                   borderRadius: 13,
                   backgroundColor: color,
+                  borderWidth: isWhite ? 1 : 0,
+                  borderColor: isWhite ? "#D1D5DB" : "transparent",
                 }}
               />
             </Pressable>
