@@ -15,6 +15,8 @@ import { ProfileItem } from '@opengremlin/lib/resources/ddb/schema/profile.js';
 import { AgentSkillItem } from '@opengremlin/lib/resources/ddb/schema/agentSkill.js';
 import { SkillTemplate as SkillTemplateModel } from '@opengremlin/lib/services/skills/registry.js';
 import { TaskItem } from '@opengremlin/lib/resources/ddb/schema/task.js';
+import { WebhookItem } from '@opengremlin/lib/resources/ddb/schema/webhook.js';
+import { WebhookKeyItem } from '@opengremlin/lib/resources/ddb/schema/webhookKey.js';
 import { TaskConnectionModel, TaskEdgeModel, TaskPageInfoModel } from '@opengremlin/lib/services/tasks/pagination.js';
 import { GremlinContext } from './context.js';
 export type Maybe<T> = T | null;
@@ -34,6 +36,13 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+};
+
+export type AddWebhookKeyResult = {
+  __typename?: 'AddWebhookKeyResult';
+  key: Scalars['String']['output'];
+  keyId: Scalars['ID']['output'];
+  webhook: Webhook;
 };
 
 export type Agent = {
@@ -406,6 +415,14 @@ export type CreateAgentJobInput = {
   timezone: Scalars['String']['input'];
 };
 
+export type CreateWebhookResult = {
+  __typename?: 'CreateWebhookResult';
+  /** Plaintext key — shown exactly once. Store it now. */
+  key: Scalars['String']['output'];
+  keyId: Scalars['ID']['output'];
+  webhook: Webhook;
+};
+
 export type DefaultModel = {
   __typename?: 'DefaultModel';
   modelId: Scalars['String']['output'];
@@ -575,6 +592,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   addCommandAllowlistEntry: Array<AllowlistEntry>;
+  addWebhookKey: AddWebhookKeyResult;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   attachFileReference: Scalars['Boolean']['output'];
@@ -587,6 +605,7 @@ export type Mutation = {
   connectAwsIamRole: IntegrationConnection;
   createAgent: Agent;
   createAgentJob: AgentJob;
+  createWebhook: CreateWebhookResult;
   /** Create a new folder at the given path */
   createWorkspaceFolder: Scalars['String']['output'];
   deleteAgentJob?: Maybe<AgentJob>;
@@ -605,6 +624,8 @@ export type Mutation = {
   resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
   revokeIntegrationConnection: IntegrationConnection;
+  revokeWebhook: Webhook;
+  revokeWebhookKey: Webhook;
   sendMessage: SendMessageResult;
   setDefaultImageModel: DefaultModel;
   setDefaultModel: DefaultModel;
@@ -618,12 +639,18 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+  updateWebhookScopes: Webhook;
 };
 
 
 export type MutationAddCommandAllowlistEntryArgs = {
   agentId: Scalars['ID']['input'];
   pattern: Scalars['String']['input'];
+};
+
+
+export type MutationAddWebhookKeyArgs = {
+  webhookId: Scalars['ID']['input'];
 };
 
 
@@ -677,6 +704,12 @@ export type MutationCreateAgentArgs = {
 
 export type MutationCreateAgentJobArgs = {
   input: CreateAgentJobInput;
+};
+
+
+export type MutationCreateWebhookArgs = {
+  name: Scalars['String']['input'];
+  scopes: Array<Scalars['String']['input']>;
 };
 
 
@@ -760,6 +793,17 @@ export type MutationRevokeIntegrationConnectionArgs = {
 };
 
 
+export type MutationRevokeWebhookArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRevokeWebhookKeyArgs = {
+  keyId: Scalars['ID']['input'];
+  webhookId: Scalars['ID']['input'];
+};
+
+
 export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
@@ -833,6 +877,12 @@ export type MutationUpdateGlobalSettingsArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: ProfileInput;
+};
+
+
+export type MutationUpdateWebhookScopesArgs = {
+  id: Scalars['ID']['input'];
+  scopes: Array<Scalars['String']['input']>;
 };
 
 export type OAuthConnectionMeta = {
@@ -957,6 +1007,8 @@ export type Query = {
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
   userInputRequests: Array<UserInputRequest>;
+  webhook?: Maybe<Webhook>;
+  webhooks: Array<Webhook>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
   workspaceSearch: Array<WorkspaceSearchResult>;
@@ -1076,6 +1128,11 @@ export type QueryTasksArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryWebhookArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1383,6 +1440,30 @@ export type VideoRenderThumbnailUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type Webhook = {
+  __typename?: 'Webhook';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  keys: Array<WebhookKey>;
+  /** ISO timestamp of the most recent key use (max(key.lastUsedAt)). */
+  lastEventAt?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  revokedAt?: Maybe<Scalars['String']['output']>;
+  /** Topic patterns this webhook may publish to (exact strings or trailing-wildcard prefixes like 'gmail:*'). */
+  scopes: Array<Scalars['String']['output']>;
+};
+
+export type WebhookKey = {
+  __typename?: 'WebhookKey';
+  createdAt: Scalars['String']['output'];
+  /** Opaque identifier (sha256 of the plaintext key). Pass to revokeWebhookKey. */
+  id: Scalars['ID']['output'];
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  /** Truncated plaintext for UI display, e.g. 'grm_whk_aB3xK9…'. Never the full key. */
+  prefix: Scalars['String']['output'];
+  revokedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type WorkspaceEntry = {
   __typename?: 'WorkspaceEntry';
   fileType?: Maybe<FileType>;
@@ -1508,6 +1589,7 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AddWebhookKeyResult: ResolverTypeWrapper<Omit<AddWebhookKeyResult, 'webhook'> & { webhook: ResolversTypes['Webhook'] }>;
   Agent: ResolverTypeWrapper<AgentItem>;
   AgentConfig: ResolverTypeWrapper<AgentConfig>;
   AgentConfigInput: AgentConfigInput;
@@ -1557,6 +1639,7 @@ export type ResolversTypes = {
   ConnectionMeta: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['ConnectionMeta']>;
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
+  CreateWebhookResult: ResolverTypeWrapper<Omit<CreateWebhookResult, 'webhook'> & { webhook: ResolversTypes['Webhook'] }>;
   DefaultModel: ResolverTypeWrapper<DefaultModelResult>;
   DocumentRender: ResolverTypeWrapper<DocumentRender>;
   EnabledModelEntry: ResolverTypeWrapper<EnabledModelEntry>;
@@ -1613,6 +1696,8 @@ export type ResolversTypes = {
   UserInputRequestAction: ResolverTypeWrapper<UserInputRequestAction>;
   UserInputRequestStatus: UserInputRequestStatus;
   VideoRender: ResolverTypeWrapper<VideoRender>;
+  Webhook: ResolverTypeWrapper<WebhookItem>;
+  WebhookKey: ResolverTypeWrapper<WebhookKeyItem>;
   WorkspaceEntry: ResolverTypeWrapper<WorkspaceEntry>;
   WorkspaceMutationResult: ResolverTypeWrapper<WorkspaceMutationResult>;
   WorkspaceSearchResult: ResolverTypeWrapper<WorkspaceSearchResult>;
@@ -1620,6 +1705,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AddWebhookKeyResult: Omit<AddWebhookKeyResult, 'webhook'> & { webhook: ResolversParentTypes['Webhook'] };
   Agent: AgentItem;
   AgentConfig: AgentConfig;
   AgentConfigInput: AgentConfigInput;
@@ -1666,6 +1752,7 @@ export type ResolversParentTypes = {
   ConnectionMeta: ResolversUnionTypes<ResolversParentTypes>['ConnectionMeta'];
   CreateAgentInput: CreateAgentInput;
   CreateAgentJobInput: CreateAgentJobInput;
+  CreateWebhookResult: Omit<CreateWebhookResult, 'webhook'> & { webhook: ResolversParentTypes['Webhook'] };
   DefaultModel: DefaultModelResult;
   DocumentRender: DocumentRender;
   EnabledModelEntry: EnabledModelEntry;
@@ -1717,9 +1804,17 @@ export type ResolversParentTypes = {
   UserInputRequest: UserInputRequestItem;
   UserInputRequestAction: UserInputRequestAction;
   VideoRender: VideoRender;
+  Webhook: WebhookItem;
+  WebhookKey: WebhookKeyItem;
   WorkspaceEntry: WorkspaceEntry;
   WorkspaceMutationResult: WorkspaceMutationResult;
   WorkspaceSearchResult: WorkspaceSearchResult;
+};
+
+export type AddWebhookKeyResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['AddWebhookKeyResult'] = ResolversParentTypes['AddWebhookKeyResult']> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  keyId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  webhook?: Resolver<ResolversTypes['Webhook'], ParentType, ContextType>;
 };
 
 export type AgentResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Agent'] = ResolversParentTypes['Agent']> = {
@@ -1945,6 +2040,12 @@ export type ConnectionMetaResolvers<ContextType = GremlinContext, ParentType ext
   __resolveType: TypeResolveFn<'ApiKeyConnectionMeta' | 'AwsIamRoleConnectionMeta' | 'OAuthConnectionMeta', ParentType, ContextType>;
 };
 
+export type CreateWebhookResultResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['CreateWebhookResult'] = ResolversParentTypes['CreateWebhookResult']> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  keyId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  webhook?: Resolver<ResolversTypes['Webhook'], ParentType, ContextType>;
+};
+
 export type DefaultModelResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['DefaultModel'] = ResolversParentTypes['DefaultModel']> = {
   modelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   modelName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2064,6 +2165,7 @@ export type ModelInfoResolvers<ContextType = GremlinContext, ParentType extends 
 export type MutationResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   addCommandAllowlistEntry?: Resolver<Array<ResolversTypes['AllowlistEntry']>, ParentType, ContextType, RequireFields<MutationAddCommandAllowlistEntryArgs, 'agentId' | 'pattern'>>;
+  addWebhookKey?: Resolver<ResolversTypes['AddWebhookKeyResult'], ParentType, ContextType, RequireFields<MutationAddWebhookKeyArgs, 'webhookId'>>;
   assignSkill?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationAssignSkillArgs, 'agentId' | 'skillId'>>;
   attachFileReference?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAttachFileReferenceArgs, 'input'>>;
   bindAgentSkillConnection?: Resolver<ResolversTypes['AgentSkill'], ParentType, ContextType, RequireFields<MutationBindAgentSkillConnectionArgs, 'agentId' | 'connectionId' | 'provider' | 'skillId'>>;
@@ -2073,6 +2175,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   connectAwsIamRole?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationConnectAwsIamRoleArgs, 'roleArn'>>;
   createAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationCreateAgentArgs, 'input'>>;
   createAgentJob?: Resolver<ResolversTypes['AgentJob'], ParentType, ContextType, RequireFields<MutationCreateAgentJobArgs, 'input'>>;
+  createWebhook?: Resolver<ResolversTypes['CreateWebhookResult'], ParentType, ContextType, RequireFields<MutationCreateWebhookArgs, 'name' | 'scopes'>>;
   createWorkspaceFolder?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateWorkspaceFolderArgs, 'path'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
   deleteWorkspaceEntries?: Resolver<ResolversTypes['WorkspaceMutationResult'], ParentType, ContextType, RequireFields<MutationDeleteWorkspaceEntriesArgs, 'paths'>>;
@@ -2087,6 +2190,8 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   resolveUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationResolveUserInputRequestArgs, 'action' | 'id'>>;
   retireAgent?: Resolver<ResolversTypes['Agent'], ParentType, ContextType, RequireFields<MutationRetireAgentArgs, 'id'>>;
   revokeIntegrationConnection?: Resolver<ResolversTypes['IntegrationConnection'], ParentType, ContextType, RequireFields<MutationRevokeIntegrationConnectionArgs, 'id'>>;
+  revokeWebhook?: Resolver<ResolversTypes['Webhook'], ParentType, ContextType, RequireFields<MutationRevokeWebhookArgs, 'id'>>;
+  revokeWebhookKey?: Resolver<ResolversTypes['Webhook'], ParentType, ContextType, RequireFields<MutationRevokeWebhookKeyArgs, 'keyId' | 'webhookId'>>;
   sendMessage?: Resolver<ResolversTypes['SendMessageResult'], ParentType, ContextType, RequireFields<MutationSendMessageArgs, 'agentId' | 'content'>>;
   setDefaultImageModel?: Resolver<ResolversTypes['DefaultModel'], ParentType, ContextType, RequireFields<MutationSetDefaultImageModelArgs, 'modelId' | 'providerId'>>;
   setDefaultModel?: Resolver<ResolversTypes['DefaultModel'], ParentType, ContextType, RequireFields<MutationSetDefaultModelArgs, 'modelId' | 'providerId'>>;
@@ -2099,6 +2204,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   updateAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationUpdateAgentJobArgs, 'id' | 'input'>>;
   updateGlobalSettings?: Resolver<ResolversTypes['GlobalSettings'], ParentType, ContextType, Partial<MutationUpdateGlobalSettingsArgs>>;
   updateProfile?: Resolver<ResolversTypes['Profile'], ParentType, ContextType, RequireFields<MutationUpdateProfileArgs, 'input'>>;
+  updateWebhookScopes?: Resolver<ResolversTypes['Webhook'], ParentType, ContextType, RequireFields<MutationUpdateWebhookScopesArgs, 'id' | 'scopes'>>;
 };
 
 export type OAuthConnectionMetaResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['OAuthConnectionMeta'] = ResolversParentTypes['OAuthConnectionMeta']> = {
@@ -2202,6 +2308,8 @@ export type QueryResolvers<ContextType = GremlinContext, ParentType extends Reso
   taskLogs?: Resolver<ResolversTypes['AgentLogConnection'], ParentType, ContextType, RequireFields<QueryTaskLogsArgs, 'taskId'>>;
   tasks?: Resolver<ResolversTypes['TaskConnection'], ParentType, ContextType, Partial<QueryTasksArgs>>;
   userInputRequests?: Resolver<Array<ResolversTypes['UserInputRequest']>, ParentType, ContextType>;
+  webhook?: Resolver<Maybe<ResolversTypes['Webhook']>, ParentType, ContextType, RequireFields<QueryWebhookArgs, 'id'>>;
+  webhooks?: Resolver<Array<ResolversTypes['Webhook']>, ParentType, ContextType>;
   workspaceEntries?: Resolver<Array<ResolversTypes['WorkspaceEntry']>, ParentType, ContextType, RequireFields<QueryWorkspaceEntriesArgs, 'path'>>;
   workspaceFile?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryWorkspaceFileArgs, 'path'>>;
   workspaceSearch?: Resolver<Array<ResolversTypes['WorkspaceSearchResult']>, ParentType, ContextType, RequireFields<QueryWorkspaceSearchArgs, 'mode' | 'query'>>;
@@ -2372,6 +2480,24 @@ export type VideoRenderResolvers<ContextType = GremlinContext, ParentType extend
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type WebhookResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['Webhook'] = ResolversParentTypes['Webhook']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  keys?: Resolver<Array<ResolversTypes['WebhookKey']>, ParentType, ContextType>;
+  lastEventAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  revokedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  scopes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type WebhookKeyResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WebhookKey'] = ResolversParentTypes['WebhookKey']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastUsedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  prefix?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  revokedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type WorkspaceEntryResolvers<ContextType = GremlinContext, ParentType extends ResolversParentTypes['WorkspaceEntry'] = ResolversParentTypes['WorkspaceEntry']> = {
   fileType?: Resolver<Maybe<ResolversTypes['FileType']>, ParentType, ContextType>;
   isDirectory?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -2399,6 +2525,7 @@ export type WorkspaceSearchResultResolvers<ContextType = GremlinContext, ParentT
 };
 
 export type Resolvers<ContextType = GremlinContext> = {
+  AddWebhookKeyResult?: AddWebhookKeyResultResolvers<ContextType>;
   Agent?: AgentResolvers<ContextType>;
   AgentConfig?: AgentConfigResolvers<ContextType>;
   AgentImageGenerationConfig?: AgentImageGenerationConfigResolvers<ContextType>;
@@ -2431,6 +2558,7 @@ export type Resolvers<ContextType = GremlinContext> = {
   CompletedFileUpload?: CompletedFileUploadResolvers<ContextType>;
   ConnectApiKeyResult?: ConnectApiKeyResultResolvers<ContextType>;
   ConnectionMeta?: ConnectionMetaResolvers<ContextType>;
+  CreateWebhookResult?: CreateWebhookResultResolvers<ContextType>;
   DefaultModel?: DefaultModelResolvers<ContextType>;
   DocumentRender?: DocumentRenderResolvers<ContextType>;
   EnabledModelEntry?: EnabledModelEntryResolvers<ContextType>;
@@ -2476,6 +2604,8 @@ export type Resolvers<ContextType = GremlinContext> = {
   UserInputRequestAction?: UserInputRequestActionResolvers<ContextType>;
   UserInputRequestStatus?: UserInputRequestStatusResolvers;
   VideoRender?: VideoRenderResolvers<ContextType>;
+  Webhook?: WebhookResolvers<ContextType>;
+  WebhookKey?: WebhookKeyResolvers<ContextType>;
   WorkspaceEntry?: WorkspaceEntryResolvers<ContextType>;
   WorkspaceMutationResult?: WorkspaceMutationResultResolvers<ContextType>;
   WorkspaceSearchResult?: WorkspaceSearchResultResolvers<ContextType>;

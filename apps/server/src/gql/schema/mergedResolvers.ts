@@ -18,6 +18,7 @@ import { settingsResolvers } from "./Settings/resolvers.js";
 import { skillResolvers } from "./Skill/resolvers.js";
 import { taskResolvers } from "./Task/resolvers.js";
 import { userInputRequestResolvers } from "./UserInputRequest/resolvers.js";
+import { webhookResolvers } from "./Webhook/resolvers.js";
 import { workspaceResolvers } from "./Workspace/resolvers.js";
 
 export const mergedResolvers: IResolvers = mergeResolvers([
@@ -39,5 +40,6 @@ export const mergedResolvers: IResolvers = mergeResolvers([
   settingsResolvers,
   skillResolvers,
   taskResolvers,
+  webhookResolvers,
   workspaceResolvers,
 ]);

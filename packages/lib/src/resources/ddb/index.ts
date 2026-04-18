@@ -21,6 +21,9 @@ import { TaskAttachmentEntity } from "./schema/taskAttachment.js";
 import { TaskCommentEntity } from "./schema/taskComment.js";
 import { TaskDependencyEntity } from "./schema/taskDependency.js";
 import { UserInputRequestEntity } from "./schema/userInputRequest.js";
+import { WebhookEntity } from "./schema/webhook.js";
+import { WebhookEventEntity } from "./schema/webhookEvent.js";
+import { WebhookKeyEntity } from "./schema/webhookKey.js";
 import { SecretsTable } from "./secretsTable.js";
 import { GremlinTable } from "./table.js";
 
@@ -52,6 +55,9 @@ export const ddb = {
     TaskAttachment: TaskAttachmentEntity,
     TaskComment: TaskCommentEntity,
     TaskDependency: TaskDependencyEntity,
+    Webhook: WebhookEntity,
+    WebhookKey: WebhookKeyEntity,
+    WebhookEvent: WebhookEventEntity,
   },
 } as const;
 

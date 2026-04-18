@@ -26,6 +26,7 @@ import {
   type UserInputRequestService,
   userInputRequestService,
 } from "./userInputRequests/index.js";
+import { type WebhookService, webhookService } from "./webhook/index.js";
 import { type WorkspaceService, workspaceService } from "./workspace/index.js";
 
 export interface Services {
@@ -36,6 +37,7 @@ export interface Services {
   integrations: IntegrationService;
   userInputRequests: UserInputRequestService;
   oauth: OAuthService;
+  webhooks: WebhookService;
 
   posts: PostService;
   profile: ProfileService;
@@ -58,6 +60,7 @@ export function createServices(): Services {
     integrations: integrationService,
     userInputRequests: userInputRequestService,
     oauth: oauthService,
+    webhooks: webhookService,
 
     posts: postService,
     profile: profileService,

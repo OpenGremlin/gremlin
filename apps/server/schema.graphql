@@ -41,6 +41,8 @@ type Query {
   agentSkills(agentId: ID!): [AgentSkill!]!
   tasks(first: Int, after: String, last: Int, before: String): TaskConnection!
   task(id: ID!): Task
+  webhooks: [Webhook!]!
+  webhook(id: ID!): Webhook
   workspaceEntries(path: String!): [WorkspaceEntry!]!
   workspaceFile(path: String!): String
   workspaceSearch(query: String!, mode: SearchMode = ALL): [WorkspaceSearchResult!]!
@@ -86,6 +88,11 @@ type Mutation {
   bindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
   "Unbind a connection from an agent's skill"
   unbindAgentSkillConnection(agentId: ID!, skillId: ID!, provider: String!, connectionId: ID!): AgentSkill!
+  createWebhook(name: String!, scopes: [String!]!): CreateWebhookResult!
+  updateWebhookScopes(id: ID!, scopes: [String!]!): Webhook!
+  revokeWebhook(id: ID!): Webhook!
+  addWebhookKey(webhookId: ID!): AddWebhookKeyResult!
+  revokeWebhookKey(webhookId: ID!, keyId: ID!): Webhook!
   """Delete one or more workspace files or directories"""
   deleteWorkspaceEntries(paths: [String!]!): WorkspaceMutationResult!
   """Move one or more workspace entries to a destination directory"""
@@ -836,6 +843,41 @@ type SandboxOutput {
   data: String!
   done: Boolean
   exitCode: Int
+}
+
+type Webhook {
+  id: ID!
+  name: String!
+  "Topic patterns this webhook may publish to (exact strings or trailing-wildcard prefixes like 'gmail:*')."
+  scopes: [String!]!
+  createdAt: String!
+  revokedAt: String
+  keys: [WebhookKey!]!
+  "ISO timestamp of the most recent key use (max(key.lastUsedAt))."
+  lastEventAt: String
+}
+
+type WebhookKey {
+  "Opaque identifier (sha256 of the plaintext key). Pass to revokeWebhookKey."
+  id: ID!
+  "Truncated plaintext for UI display, e.g. 'grm_whk_aB3xK9…'. Never the full key."
+  prefix: String!
+  createdAt: String!
+  lastUsedAt: String
+  revokedAt: String
+}
+
+type CreateWebhookResult {
+  webhook: Webhook!
+  "Plaintext key — shown exactly once. Store it now."
+  key: String!
+  keyId: ID!
+}
+
+type AddWebhookKeyResult {
+  webhook: Webhook!
+  key: String!
+  keyId: ID!
 }
 
 enum FileType {

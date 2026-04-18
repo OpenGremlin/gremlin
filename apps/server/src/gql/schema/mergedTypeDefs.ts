@@ -18,6 +18,7 @@ import { settingsTypeDefs } from "./Settings/typeDefs.js";
 import { skillTypeDefs } from "./Skill/typeDefs.js";
 import { taskTypeDefs } from "./Task/typeDefs.js";
 import { userInputRequestTypeDefs } from "./UserInputRequest/typeDefs.js";
+import { webhookTypeDefs } from "./Webhook/typeDefs.js";
 import { workspaceTypeDefs } from "./Workspace/typeDefs.js";
 
 export const allTypeDefs = [
@@ -40,6 +41,7 @@ export const allTypeDefs = [
   settingsTypeDefs,
   skillTypeDefs,
   taskTypeDefs,
+  webhookTypeDefs,
   workspaceTypeDefs,
 ];
 

@@ -105,6 +105,13 @@ type Documents = {
     "\n  mutation ResolveUserInputRequest($id: ID!, $action: String!) {\n    resolveUserInputRequest(id: $id, action: $action) {\n      ...UserInputRequestFields\n    }\n  }\n": typeof types.ResolveUserInputRequestDocument,
     "\n  mutation DismissUserInputRequest($id: ID!) {\n    dismissUserInputRequest(id: $id) {\n      ...UserInputRequestFields\n    }\n  }\n": typeof types.DismissUserInputRequestDocument,
     "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": typeof types.PendingItemsUpdatedDocument,
+    "\n  query Webhooks {\n    webhooks {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": typeof types.WebhooksDocument,
+    "\n  query Webhook($id: ID!) {\n    webhook(id: $id) {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": typeof types.WebhookDocument,
+    "\n  mutation CreateWebhook($name: String!, $scopes: [String!]!) {\n    createWebhook(name: $name, scopes: $scopes) {\n      webhook {\n        id\n        name\n        scopes\n        createdAt\n      }\n      key\n      keyId\n    }\n  }\n": typeof types.CreateWebhookDocument,
+    "\n  mutation UpdateWebhookScopes($id: ID!, $scopes: [String!]!) {\n    updateWebhookScopes(id: $id, scopes: $scopes) {\n      id\n      scopes\n    }\n  }\n": typeof types.UpdateWebhookScopesDocument,
+    "\n  mutation RevokeWebhook($id: ID!) {\n    revokeWebhook(id: $id) {\n      id\n      revokedAt\n    }\n  }\n": typeof types.RevokeWebhookDocument,
+    "\n  mutation AddWebhookKey($webhookId: ID!) {\n    addWebhookKey(webhookId: $webhookId) {\n      webhook {\n        id\n        keys {\n          id\n          prefix\n          createdAt\n          lastUsedAt\n          revokedAt\n        }\n      }\n      key\n      keyId\n    }\n  }\n": typeof types.AddWebhookKeyDocument,
+    "\n  mutation RevokeWebhookKey($webhookId: ID!, $keyId: ID!) {\n    revokeWebhookKey(webhookId: $webhookId, keyId: $keyId) {\n      id\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": typeof types.RevokeWebhookKeyDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n      fileType\n    }\n  }\n": typeof types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": typeof types.WorkspaceFileDocument,
     "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n      fileType\n    }\n  }\n": typeof types.WorkspaceSearchDocument,
@@ -205,6 +212,13 @@ const documents: Documents = {
     "\n  mutation ResolveUserInputRequest($id: ID!, $action: String!) {\n    resolveUserInputRequest(id: $id, action: $action) {\n      ...UserInputRequestFields\n    }\n  }\n": types.ResolveUserInputRequestDocument,
     "\n  mutation DismissUserInputRequest($id: ID!) {\n    dismissUserInputRequest(id: $id) {\n      ...UserInputRequestFields\n    }\n  }\n": types.DismissUserInputRequestDocument,
     "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n": types.PendingItemsUpdatedDocument,
+    "\n  query Webhooks {\n    webhooks {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": types.WebhooksDocument,
+    "\n  query Webhook($id: ID!) {\n    webhook(id: $id) {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": types.WebhookDocument,
+    "\n  mutation CreateWebhook($name: String!, $scopes: [String!]!) {\n    createWebhook(name: $name, scopes: $scopes) {\n      webhook {\n        id\n        name\n        scopes\n        createdAt\n      }\n      key\n      keyId\n    }\n  }\n": types.CreateWebhookDocument,
+    "\n  mutation UpdateWebhookScopes($id: ID!, $scopes: [String!]!) {\n    updateWebhookScopes(id: $id, scopes: $scopes) {\n      id\n      scopes\n    }\n  }\n": types.UpdateWebhookScopesDocument,
+    "\n  mutation RevokeWebhook($id: ID!) {\n    revokeWebhook(id: $id) {\n      id\n      revokedAt\n    }\n  }\n": types.RevokeWebhookDocument,
+    "\n  mutation AddWebhookKey($webhookId: ID!) {\n    addWebhookKey(webhookId: $webhookId) {\n      webhook {\n        id\n        keys {\n          id\n          prefix\n          createdAt\n          lastUsedAt\n          revokedAt\n        }\n      }\n      key\n      keyId\n    }\n  }\n": types.AddWebhookKeyDocument,
+    "\n  mutation RevokeWebhookKey($webhookId: ID!, $keyId: ID!) {\n    revokeWebhookKey(webhookId: $webhookId, keyId: $keyId) {\n      id\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n": types.RevokeWebhookKeyDocument,
     "\n  query WorkspaceEntries($path: String!) {\n    workspaceEntries(path: $path) {\n      name\n      path\n      isDirectory\n      size\n      modifiedAt\n      fileType\n    }\n  }\n": types.WorkspaceEntriesDocument,
     "\n  query WorkspaceFile($path: String!) {\n    workspaceFile(path: $path)\n  }\n": types.WorkspaceFileDocument,
     "\n  query WorkspaceSearch($query: String!, $mode: SearchMode = ALL) {\n    workspaceSearch(query: $query, mode: $mode) {\n      path\n      name\n      matchType\n      matchLine\n      matchContent\n      matchContextBefore\n      matchContextAfter\n      fileType\n    }\n  }\n": types.WorkspaceSearchDocument,
@@ -592,6 +606,34 @@ export function graphql(source: "\n  mutation DismissUserInputRequest($id: ID!) 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n"): (typeof documents)["\n  subscription PendingItemsUpdated {\n    pendingItemsUpdated\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Webhooks {\n    webhooks {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  query Webhooks {\n    webhooks {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Webhook($id: ID!) {\n    webhook(id: $id) {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  query Webhook($id: ID!) {\n    webhook(id: $id) {\n      id\n      name\n      scopes\n      createdAt\n      revokedAt\n      lastEventAt\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateWebhook($name: String!, $scopes: [String!]!) {\n    createWebhook(name: $name, scopes: $scopes) {\n      webhook {\n        id\n        name\n        scopes\n        createdAt\n      }\n      key\n      keyId\n    }\n  }\n"): (typeof documents)["\n  mutation CreateWebhook($name: String!, $scopes: [String!]!) {\n    createWebhook(name: $name, scopes: $scopes) {\n      webhook {\n        id\n        name\n        scopes\n        createdAt\n      }\n      key\n      keyId\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateWebhookScopes($id: ID!, $scopes: [String!]!) {\n    updateWebhookScopes(id: $id, scopes: $scopes) {\n      id\n      scopes\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateWebhookScopes($id: ID!, $scopes: [String!]!) {\n    updateWebhookScopes(id: $id, scopes: $scopes) {\n      id\n      scopes\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RevokeWebhook($id: ID!) {\n    revokeWebhook(id: $id) {\n      id\n      revokedAt\n    }\n  }\n"): (typeof documents)["\n  mutation RevokeWebhook($id: ID!) {\n    revokeWebhook(id: $id) {\n      id\n      revokedAt\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddWebhookKey($webhookId: ID!) {\n    addWebhookKey(webhookId: $webhookId) {\n      webhook {\n        id\n        keys {\n          id\n          prefix\n          createdAt\n          lastUsedAt\n          revokedAt\n        }\n      }\n      key\n      keyId\n    }\n  }\n"): (typeof documents)["\n  mutation AddWebhookKey($webhookId: ID!) {\n    addWebhookKey(webhookId: $webhookId) {\n      webhook {\n        id\n        keys {\n          id\n          prefix\n          createdAt\n          lastUsedAt\n          revokedAt\n        }\n      }\n      key\n      keyId\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RevokeWebhookKey($webhookId: ID!, $keyId: ID!) {\n    revokeWebhookKey(webhookId: $webhookId, keyId: $keyId) {\n      id\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation RevokeWebhookKey($webhookId: ID!, $keyId: ID!) {\n    revokeWebhookKey(webhookId: $webhookId, keyId: $keyId) {\n      id\n      keys {\n        id\n        prefix\n        createdAt\n        lastUsedAt\n        revokedAt\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

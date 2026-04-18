@@ -16,6 +16,13 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type AddWebhookKeyResult = {
+  __typename?: 'AddWebhookKeyResult';
+  key: Scalars['String']['output'];
+  keyId: Scalars['ID']['output'];
+  webhook: Webhook;
+};
+
 export type Agent = {
   __typename?: 'Agent';
   avatar: Scalars['String']['output'];
@@ -386,6 +393,14 @@ export type CreateAgentJobInput = {
   timezone: Scalars['String']['input'];
 };
 
+export type CreateWebhookResult = {
+  __typename?: 'CreateWebhookResult';
+  /** Plaintext key — shown exactly once. Store it now. */
+  key: Scalars['String']['output'];
+  keyId: Scalars['ID']['output'];
+  webhook: Webhook;
+};
+
 export type DefaultModel = {
   __typename?: 'DefaultModel';
   modelId: Scalars['String']['output'];
@@ -555,6 +570,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   addCommandAllowlistEntry: Array<AllowlistEntry>;
+  addWebhookKey: AddWebhookKeyResult;
   /** Assign a skill to an agent */
   assignSkill: AgentSkill;
   attachFileReference: Scalars['Boolean']['output'];
@@ -567,6 +583,7 @@ export type Mutation = {
   connectAwsIamRole: IntegrationConnection;
   createAgent: Agent;
   createAgentJob: AgentJob;
+  createWebhook: CreateWebhookResult;
   /** Create a new folder at the given path */
   createWorkspaceFolder: Scalars['String']['output'];
   deleteAgentJob?: Maybe<AgentJob>;
@@ -585,6 +602,8 @@ export type Mutation = {
   resolveUserInputRequest?: Maybe<UserInputRequest>;
   retireAgent: Agent;
   revokeIntegrationConnection: IntegrationConnection;
+  revokeWebhook: Webhook;
+  revokeWebhookKey: Webhook;
   sendMessage: SendMessageResult;
   setDefaultImageModel: DefaultModel;
   setDefaultModel: DefaultModel;
@@ -598,12 +617,18 @@ export type Mutation = {
   updateAgentJob?: Maybe<AgentJob>;
   updateGlobalSettings: GlobalSettings;
   updateProfile: Profile;
+  updateWebhookScopes: Webhook;
 };
 
 
 export type MutationAddCommandAllowlistEntryArgs = {
   agentId: Scalars['ID']['input'];
   pattern: Scalars['String']['input'];
+};
+
+
+export type MutationAddWebhookKeyArgs = {
+  webhookId: Scalars['ID']['input'];
 };
 
 
@@ -657,6 +682,12 @@ export type MutationCreateAgentArgs = {
 
 export type MutationCreateAgentJobArgs = {
   input: CreateAgentJobInput;
+};
+
+
+export type MutationCreateWebhookArgs = {
+  name: Scalars['String']['input'];
+  scopes: Array<Scalars['String']['input']>;
 };
 
 
@@ -740,6 +771,17 @@ export type MutationRevokeIntegrationConnectionArgs = {
 };
 
 
+export type MutationRevokeWebhookArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRevokeWebhookKeyArgs = {
+  keyId: Scalars['ID']['input'];
+  webhookId: Scalars['ID']['input'];
+};
+
+
 export type MutationSendMessageArgs = {
   agentId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
@@ -813,6 +855,12 @@ export type MutationUpdateGlobalSettingsArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: ProfileInput;
+};
+
+
+export type MutationUpdateWebhookScopesArgs = {
+  id: Scalars['ID']['input'];
+  scopes: Array<Scalars['String']['input']>;
 };
 
 export type OAuthConnectionMeta = {
@@ -937,6 +985,8 @@ export type Query = {
   taskLogs: AgentLogConnection;
   tasks: TaskConnection;
   userInputRequests: Array<UserInputRequest>;
+  webhook?: Maybe<Webhook>;
+  webhooks: Array<Webhook>;
   workspaceEntries: Array<WorkspaceEntry>;
   workspaceFile?: Maybe<Scalars['String']['output']>;
   workspaceSearch: Array<WorkspaceSearchResult>;
@@ -1056,6 +1106,11 @@ export type QueryTasksArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryWebhookArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1396,6 +1451,30 @@ export type VideoRender = {
 
 export type VideoRenderThumbnailUrlArgs = {
   width?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type Webhook = {
+  __typename?: 'Webhook';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  keys: Array<WebhookKey>;
+  /** ISO timestamp of the most recent key use (max(key.lastUsedAt)). */
+  lastEventAt?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  revokedAt?: Maybe<Scalars['String']['output']>;
+  /** Topic patterns this webhook may publish to (exact strings or trailing-wildcard prefixes like 'gmail:*'). */
+  scopes: Array<Scalars['String']['output']>;
+};
+
+export type WebhookKey = {
+  __typename?: 'WebhookKey';
+  createdAt: Scalars['String']['output'];
+  /** Opaque identifier (sha256 of the plaintext key). Pass to revokeWebhookKey. */
+  id: Scalars['ID']['output'];
+  lastUsedAt?: Maybe<Scalars['String']['output']>;
+  /** Truncated plaintext for UI display, e.g. 'grm_whk_aB3xK9…'. Never the full key. */
+  prefix: Scalars['String']['output'];
+  revokedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type WorkspaceEntry = {
@@ -2452,6 +2531,56 @@ export type PendingItemsUpdatedSubscriptionVariables = Exact<{ [key: string]: ne
 
 export type PendingItemsUpdatedSubscription = { __typename?: 'Subscription', pendingItemsUpdated: boolean };
 
+export type WebhooksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WebhooksQuery = { __typename?: 'Query', webhooks: Array<{ __typename?: 'Webhook', id: string, name: string, scopes: Array<string>, createdAt: string, revokedAt?: string | null, lastEventAt?: string | null, keys: Array<{ __typename?: 'WebhookKey', id: string, prefix: string, createdAt: string, lastUsedAt?: string | null, revokedAt?: string | null }> }> };
+
+export type WebhookQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type WebhookQuery = { __typename?: 'Query', webhook?: { __typename?: 'Webhook', id: string, name: string, scopes: Array<string>, createdAt: string, revokedAt?: string | null, lastEventAt?: string | null, keys: Array<{ __typename?: 'WebhookKey', id: string, prefix: string, createdAt: string, lastUsedAt?: string | null, revokedAt?: string | null }> } | null };
+
+export type CreateWebhookMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type CreateWebhookMutation = { __typename?: 'Mutation', createWebhook: { __typename?: 'CreateWebhookResult', key: string, keyId: string, webhook: { __typename?: 'Webhook', id: string, name: string, scopes: Array<string>, createdAt: string } } };
+
+export type UpdateWebhookScopesMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  scopes: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type UpdateWebhookScopesMutation = { __typename?: 'Mutation', updateWebhookScopes: { __typename?: 'Webhook', id: string, scopes: Array<string> } };
+
+export type RevokeWebhookMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RevokeWebhookMutation = { __typename?: 'Mutation', revokeWebhook: { __typename?: 'Webhook', id: string, revokedAt?: string | null } };
+
+export type AddWebhookKeyMutationVariables = Exact<{
+  webhookId: Scalars['ID']['input'];
+}>;
+
+
+export type AddWebhookKeyMutation = { __typename?: 'Mutation', addWebhookKey: { __typename?: 'AddWebhookKeyResult', key: string, keyId: string, webhook: { __typename?: 'Webhook', id: string, keys: Array<{ __typename?: 'WebhookKey', id: string, prefix: string, createdAt: string, lastUsedAt?: string | null, revokedAt?: string | null }> } } };
+
+export type RevokeWebhookKeyMutationVariables = Exact<{
+  webhookId: Scalars['ID']['input'];
+  keyId: Scalars['ID']['input'];
+}>;
+
+
+export type RevokeWebhookKeyMutation = { __typename?: 'Mutation', revokeWebhookKey: { __typename?: 'Webhook', id: string, keys: Array<{ __typename?: 'WebhookKey', id: string, prefix: string, createdAt: string, lastUsedAt?: string | null, revokedAt?: string | null }> } };
+
 export type WorkspaceEntriesQueryVariables = Exact<{
   path: Scalars['String']['input'];
 }>;
@@ -2602,6 +2731,13 @@ export const UserInputRequestsDocument = {"kind":"Document","definitions":[{"kin
 export const ResolveUserInputRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ResolveUserInputRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"action"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resolveUserInputRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"action"},"value":{"kind":"Variable","name":{"kind":"Name","value":"action"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserInputRequestFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserInputRequestFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserInputRequest"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"agent"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"hexColor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"turnId"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"actions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"style"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedAction"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]} as unknown as DocumentNode<ResolveUserInputRequestMutation, ResolveUserInputRequestMutationVariables>;
 export const DismissUserInputRequestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DismissUserInputRequest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dismissUserInputRequest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"UserInputRequestFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"UserInputRequestFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"UserInputRequest"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"agent"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"hexColor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"turnId"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"actions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"style"}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"resolvedAction"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]} as unknown as DocumentNode<DismissUserInputRequestMutation, DismissUserInputRequestMutationVariables>;
 export const PendingItemsUpdatedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PendingItemsUpdated"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pendingItemsUpdated"}}]}}]} as unknown as DocumentNode<PendingItemsUpdatedSubscription, PendingItemsUpdatedSubscriptionVariables>;
+export const WebhooksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Webhooks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"webhooks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastEventAt"}},{"kind":"Field","name":{"kind":"Name","value":"keys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prefix"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastUsedAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}}]}}]}}]}}]} as unknown as DocumentNode<WebhooksQuery, WebhooksQueryVariables>;
+export const WebhookDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Webhook"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"webhook"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastEventAt"}},{"kind":"Field","name":{"kind":"Name","value":"keys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prefix"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastUsedAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}}]}}]}}]}}]} as unknown as DocumentNode<WebhookQuery, WebhookQueryVariables>;
+export const CreateWebhookDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateWebhook"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scopes"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createWebhook"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"scopes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scopes"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"webhook"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"keyId"}}]}}]}}]} as unknown as DocumentNode<CreateWebhookMutation, CreateWebhookMutationVariables>;
+export const UpdateWebhookScopesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateWebhookScopes"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"scopes"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateWebhookScopes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"scopes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"scopes"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}}]}}]}}]} as unknown as DocumentNode<UpdateWebhookScopesMutation, UpdateWebhookScopesMutationVariables>;
+export const RevokeWebhookDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RevokeWebhook"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"revokeWebhook"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}}]}}]}}]} as unknown as DocumentNode<RevokeWebhookMutation, RevokeWebhookMutationVariables>;
+export const AddWebhookKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddWebhookKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"webhookId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addWebhookKey"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"webhookId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"webhookId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"webhook"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"keys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prefix"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastUsedAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"keyId"}}]}}]}}]} as unknown as DocumentNode<AddWebhookKeyMutation, AddWebhookKeyMutationVariables>;
+export const RevokeWebhookKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RevokeWebhookKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"webhookId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"keyId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"revokeWebhookKey"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"webhookId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"webhookId"}}},{"kind":"Argument","name":{"kind":"Name","value":"keyId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"keyId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"keys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"prefix"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastUsedAt"}},{"kind":"Field","name":{"kind":"Name","value":"revokedAt"}}]}}]}}]}}]} as unknown as DocumentNode<RevokeWebhookKeyMutation, RevokeWebhookKeyMutationVariables>;
 export const WorkspaceEntriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceEntries"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceEntries"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"isDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}},{"kind":"Field","name":{"kind":"Name","value":"fileType"}}]}}]}}]} as unknown as DocumentNode<WorkspaceEntriesQuery, WorkspaceEntriesQueryVariables>;
 export const WorkspaceFileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceFile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}]}]}}]} as unknown as DocumentNode<WorkspaceFileQuery, WorkspaceFileQueryVariables>;
 export const WorkspaceSearchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WorkspaceSearch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"query"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mode"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SearchMode"}},"defaultValue":{"kind":"EnumValue","value":"ALL"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"workspaceSearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"query"},"value":{"kind":"Variable","name":{"kind":"Name","value":"query"}}},{"kind":"Argument","name":{"kind":"Name","value":"mode"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mode"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"matchType"}},{"kind":"Field","name":{"kind":"Name","value":"matchLine"}},{"kind":"Field","name":{"kind":"Name","value":"matchContent"}},{"kind":"Field","name":{"kind":"Name","value":"matchContextBefore"}},{"kind":"Field","name":{"kind":"Name","value":"matchContextAfter"}},{"kind":"Field","name":{"kind":"Name","value":"fileType"}}]}}]}}]} as unknown as DocumentNode<WorkspaceSearchQuery, WorkspaceSearchQueryVariables>;

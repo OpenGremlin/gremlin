@@ -42,6 +42,10 @@ const config: CodegenConfig = {
           SkillTemplate:
             "@opengremlin/lib/services/skills/registry.js#SkillTemplate as SkillTemplateModel",
           Task: "@opengremlin/lib/resources/ddb/schema/task.js#TaskItem",
+          Webhook:
+            "@opengremlin/lib/resources/ddb/schema/webhook.js#WebhookItem",
+          WebhookKey:
+            "@opengremlin/lib/resources/ddb/schema/webhookKey.js#WebhookKeyItem",
           TaskConnection:
             "@opengremlin/lib/services/tasks/pagination.js#TaskConnectionModel",
           TaskEdge:

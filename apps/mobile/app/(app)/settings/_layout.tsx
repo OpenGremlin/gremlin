@@ -35,6 +35,9 @@ export default function SettingsLayout() {
         options={{ title: "Connection" }}
       />
       <Stack.Screen name="connections/[id]" options={{ title: "Connection" }} />
+      <Stack.Screen name="webhooks/index" options={{ title: "Webhooks" }} />
+      <Stack.Screen name="webhooks/new" options={{ title: "New Webhook" }} />
+      <Stack.Screen name="webhooks/[id]" options={{ title: "Webhook" }} />
     </Stack>
   );
 }

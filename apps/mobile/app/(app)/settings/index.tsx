@@ -13,6 +13,7 @@ import {
   Sparkles,
   Sun,
   User,
+  Webhook,
 } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { useAuth } from "../../../src/lib/AuthContext";
@@ -46,6 +47,7 @@ const sections: Array<{ title: string; items: SettingsItem[] }> = [
     items: [
       { label: "Models", icon: Cpu, href: "/settings/models" },
       { label: "Connections", icon: Plug, href: "/settings/connections" },
+      { label: "Webhooks", icon: Webhook, href: "/settings/webhooks" },
       { label: "Skills", icon: Sparkles, href: "/settings/skills" },
     ],
   },

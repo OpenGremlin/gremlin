@@ -1,5 +1,6 @@
 import type { AgentItem } from "@opengremlin/lib/resources/ddb/schema/agent.js";
 import type { TaskItem } from "@opengremlin/lib/resources/ddb/schema/task.js";
+import type { WebhookKeyItem } from "@opengremlin/lib/resources/ddb/schema/webhookKey.js";
 import type { Resources } from "@opengremlin/lib/resources/index.js";
 import DataLoader from "dataloader";
 import type { Entity, FormattedItem } from "dynamodb-toolbox/entity";
@@ -14,6 +15,7 @@ export interface Loaders {
   agentLoader: DataLoader<string, AgentItem | null>;
   taskLoader: DataLoader<string, TaskItem | null>;
   tasksByAgentLoader: DataLoader<string, TaskItem[]>;
+  webhookKeysByWebhookIdLoader: DataLoader<string, WebhookKeyItem[]>;
 }
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
@@ -84,5 +86,29 @@ export function createLoaders(resources: Resources): Loaders {
     },
   );
 
-  return { agentLoader, taskLoader, tasksByAgentLoader };
+  const webhookKeysByWebhookIdLoader = new DataLoader<string, WebhookKeyItem[]>(
+    async (webhookIds) => {
+      const results = await Promise.all(
+        webhookIds.map(async (webhookId) => {
+          const { Items } = await resources.ddb.table
+            .build(QueryCommand)
+            .entities(resources.ddb.entities.WebhookKey)
+            .query({
+              index: "gsi1",
+              partition: `WEBHOOK_KEYS#${webhookId}`,
+            })
+            .send();
+          return (Items ?? []) as WebhookKeyItem[];
+        }),
+      );
+      return results;
+    },
+  );
+
+  return {
+    agentLoader,
+    taskLoader,
+    tasksByAgentLoader,
+    webhookKeysByWebhookIdLoader,
+  };
 }

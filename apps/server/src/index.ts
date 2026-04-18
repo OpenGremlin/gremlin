@@ -26,6 +26,7 @@ import { filesCorsPreflight, filesRoute } from "./routes/filesRoute.js";
 import { healthRoute } from "./routes/healthRoute.js";
 import { mediaRoute } from "./routes/mediaRoute.js";
 import { createSpeechSentenceRoute } from "./routes/speechSentenceRoute.js";
+import { createWebhookEventsRoute } from "./routes/webhookEventsRoute.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const userByRequest = new WeakMap<Request, AuthUser>();
@@ -110,6 +111,11 @@ app.options("/api/client-logs", clientLogsPreflight);
 app.post("/api/client-logs", express.json({ limit: "64kb" }), clientLogsRoute);
 app.get("/api/auth-config", createAuthConfigRoute(resources));
 app.get("/api/health", healthRoute);
+app.post(
+  "/api/webhooks/events",
+  express.json({ limit: "1mb" }),
+  createWebhookEventsRoute(resources, services),
+);
 
 // --- Startup ---
 
