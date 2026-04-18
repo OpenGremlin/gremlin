@@ -1,4 +1,5 @@
 import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateItemCommand } from "dynamodb-toolbox/entity/actions/update";
 import type { ToolName } from "../../enums.js";
 import type { AgentLogItem } from "../../resources/ddb/schema/agentLog.js";
 import type { ServiceContext } from "../context.js";
@@ -75,21 +76,31 @@ export async function writeAgentLog(ctx: ServiceContext, entry: LogEntry) {
   };
 
   const table = ctx.resources.ddb.chatTable;
-  await table.getDocumentClient().send(
-    new PutCommand({
-      TableName: table.getName(),
-      Item: {
-        ...item,
-        _et: "AgentLog",
-        pk: `AGENT_LOG#${id}`,
-        sk: "AGENT_LOG",
-        gsi1pk: entry.taskId
-          ? `LOG_TASK#${entry.taskId}`
-          : `LOG_AGENT#${entry.agentId}`,
-        gsi1sk: `${now}#${id}`,
-      },
-    }),
-  );
+  await Promise.all([
+    table.getDocumentClient().send(
+      new PutCommand({
+        TableName: table.getName(),
+        Item: {
+          ...item,
+          _et: "AgentLog",
+          pk: `AGENT_LOG#${id}`,
+          sk: "AGENT_LOG",
+          gsi1pk: entry.taskId
+            ? `LOG_TASK#${entry.taskId}`
+            : `LOG_AGENT#${entry.agentId}`,
+          gsi1sk: `${now}#${id}`,
+        },
+      }),
+    ),
+    // Best-effort denormalization: bump the Agent's last-activity timestamp
+    // so the agents list can be sorted by recency without an N+1 log query.
+    // Gated on `id` existing so a stale agentId can't spawn a phantom row.
+    ctx.resources.ddb.entities.Agent.build(UpdateItemCommand)
+      .item({ id: entry.agentId, lastLogAt: now })
+      .options({ condition: { attr: "id", exists: true } })
+      .send()
+      .catch(() => {}),
+  ]);
 
   publishLog(ctx, entry.agentId, entry.taskId, item);
   return { id, createdAt: now };

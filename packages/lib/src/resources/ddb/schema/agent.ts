@@ -23,6 +23,7 @@ export const AgentEntity = new Entity({
     // who to delegate a task to. Peer-LLM-readable — be specific.
     delegationHint: string().optional(),
     retired: boolean().optional().default(false),
+    lastLogAt: string().optional(),
     sandboxInstanceId: string().optional(),
     ttsVoice: string().optional(),
     config: map({

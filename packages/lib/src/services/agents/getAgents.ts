@@ -9,5 +9,11 @@ export async function getAgents(ctx: ServiceContext): Promise<AgentItem[]> {
     .query({ partition: "AGENT" })
     .send();
 
-  return Items ?? [];
+  return (Items ?? []).slice().sort((a, b) => {
+    if (a.lastLogAt && b.lastLogAt)
+      return b.lastLogAt.localeCompare(a.lastLogAt);
+    if (a.lastLogAt) return -1;
+    if (b.lastLogAt) return 1;
+    return a.id.localeCompare(b.id);
+  });
 }

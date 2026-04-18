@@ -63,6 +63,7 @@ export const agentTypeDefs = /* GraphQL */ `
     role: String
     delegationHint: String
     retired: Boolean!
+    lastLogAt: String
     voiceEnabled: Boolean!
     ttsVoice: String
     config: AgentConfig

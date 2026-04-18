@@ -50,6 +50,7 @@ export const AgentSummary = graphql(`
     role
     delegationHint
     retired
+    lastLogAt
     voiceEnabled
   }
 `);

@@ -53,6 +53,7 @@ export type Agent = {
   hexColor: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   imageUrl: Scalars['String']['output'];
+  lastLogAt?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   personality?: Maybe<Scalars['String']['output']>;
   portraitId: Scalars['String']['output'];
@@ -1824,6 +1825,7 @@ export type AgentResolvers<ContextType = GremlinContext, ParentType extends Reso
   hexColor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType, Partial<AgentImageUrlArgs>>;
+  lastLogAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   personality?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   portraitId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
