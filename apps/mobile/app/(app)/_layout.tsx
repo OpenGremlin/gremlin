@@ -2,7 +2,14 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, Tabs } from "expo-router";
-import { Bot, Calendar, FolderOpen, Home, Settings } from "lucide-react-native";
+import {
+  Bot,
+  Calendar,
+  Cast,
+  FolderOpen,
+  Home,
+  Settings,
+} from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTabBarHeight } from "../../src/hooks/useTabBarHeight";
@@ -139,6 +146,18 @@ function AppTabs() {
           tabBarIcon: ({ color, focused }) => (
             <TabIcon focused={focused}>
               <Calendar size={22} color={color} />
+            </TabIcon>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="canvas"
+        options={{
+          href: "/canvas",
+          title: "Canvas",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon focused={focused}>
+              <Cast size={22} color={color} />
             </TabIcon>
           ),
         }}

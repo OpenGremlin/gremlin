@@ -30,18 +30,6 @@ export default function AgentsLayout() {
       />
       <Stack.Screen name="[id]/config" options={{ title: "Configure Agent" }} />
       <Stack.Screen
-        name="[id]/canvas"
-        options={{
-          // Custom floating header lives in ChatScreen; keep the native stack
-          // header both hidden AND transparent so no residual chrome leaks
-          // through under the blurred overlay.
-          headerShown: false,
-          headerTransparent: true,
-          headerStyle: { backgroundColor: "transparent" },
-          animation: "fade",
-        }}
-      />
-      <Stack.Screen
         name="[id]/tasks/[taskId]"
         options={{
           headerTransparent: true,
