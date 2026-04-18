@@ -47,6 +47,16 @@ function makeAgent(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** Agent with sandbox enabled — required to load skills. */
+function makeSandboxedAgent(overrides: Record<string, unknown> = {}) {
+  const baseConfig =
+    (overrides.config as Record<string, unknown> | null | undefined) ?? {};
+  return makeAgent({
+    ...overrides,
+    config: { ...baseConfig, sandbox: { enabled: true } },
+  });
+}
+
 function makeProfile(overrides: Record<string, unknown> = {}) {
   return {
     displayName: "Alice",
@@ -119,7 +129,7 @@ describe("buildAgentLaneContext", () => {
 
   it("includes skillSummary and skillTools in the result", async () => {
     mockLoadAgentContext.mockResolvedValue({
-      agent: makeAgent() as any,
+      agent: makeSandboxedAgent() as any,
       profile: makeProfile() as any,
       displayName: "Alice",
       timezone: undefined,
@@ -147,7 +157,7 @@ describe("buildAgentLaneContext", () => {
     mockLoadAgentContext.mockImplementation(async () => {
       callOrder.push("loadAgentContext");
       return {
-        agent: makeAgent() as any,
+        agent: makeSandboxedAgent() as any,
         profile: null,
         displayName: "the user",
         timezone: undefined,
@@ -173,7 +183,7 @@ describe("buildAgentLaneContext", () => {
 
   it("gracefully handles buildSkillSummary failure", async () => {
     mockLoadAgentContext.mockResolvedValue({
-      agent: makeAgent() as any,
+      agent: makeSandboxedAgent() as any,
       profile: null,
       displayName: "the user",
       timezone: undefined,
@@ -192,7 +202,7 @@ describe("buildAgentLaneContext", () => {
 
   it("gracefully handles buildSkillTools failure", async () => {
     mockLoadAgentContext.mockResolvedValue({
-      agent: makeAgent() as any,
+      agent: makeSandboxedAgent() as any,
       profile: null,
       displayName: "the user",
       timezone: undefined,
@@ -208,6 +218,24 @@ describe("buildAgentLaneContext", () => {
     expect(result.skillTools.tools).toEqual({});
     expect(result.skillTools.getEnv()).toEqual({});
     expect(ctx.log.error).toHaveBeenCalled();
+  });
+
+  it("skips skills entirely when sandbox is disabled", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: makeAgent() as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+
+    const result = await buildAgentLaneContext(ctx, "agent-1");
+
+    expect(mockBuildSkillSummary).not.toHaveBeenCalled();
+    expect(mockBuildSkillTools).not.toHaveBeenCalled();
+    expect(result.skillSummary.promptSection).toBe("");
+    expect(result.skillSummary.mainLaneSection).toBe("");
+    expect(result.skillTools.tools).toEqual({});
+    expect(result.skillTools.getEnv()).toEqual({});
   });
 
   it("propagates loadAgentContext errors (agent not found)", async () => {
@@ -277,12 +305,14 @@ describe("buildAgentLaneContext — manager mode", () => {
         delegationHint: "Web research",
         role: "investigator",
         retired: false,
+        config: { sandbox: { enabled: true } },
       } as any)
       .mockResolvedValueOnce({
         id: "writer",
         name: "Writer",
         delegationHint: "Drafts briefs",
         retired: false,
+        config: { sandbox: { enabled: true } },
       } as any);
     ctx.services.skills.buildSkillBlurb
       .mockResolvedValueOnce("brave-search, linear (Eng)")
@@ -308,6 +338,38 @@ describe("buildAgentLaneContext — manager mode", () => {
     ]);
     expect(ctx.services.agents.getAgent).toHaveBeenCalledTimes(2);
     expect(ctx.services.skills.buildSkillBlurb).toHaveBeenCalledTimes(2);
+  });
+
+  it("blanks the skill blurb for teammates without sandbox", async () => {
+    mockLoadAgentContext.mockResolvedValue({
+      agent: managerAgent(["sandboxed", "unsandboxed"]) as any,
+      profile: null,
+      displayName: "the user",
+      timezone: undefined,
+    });
+    ctx.services.agents.getAgent
+      .mockResolvedValueOnce({
+        id: "sandboxed",
+        name: "S",
+        retired: false,
+        config: { sandbox: { enabled: true } },
+      } as any)
+      .mockResolvedValueOnce({
+        id: "unsandboxed",
+        name: "U",
+        retired: false,
+        config: null,
+      } as any);
+    ctx.services.skills.buildSkillBlurb
+      .mockResolvedValueOnce("gmail, linear")
+      .mockResolvedValueOnce("gmail, linear");
+
+    const result = await buildAgentLaneContext(ctx, "manager");
+
+    expect(result.team).toEqual([
+      expect.objectContaining({ id: "sandboxed", skillBlurb: "gmail, linear" }),
+      expect.objectContaining({ id: "unsandboxed", skillBlurb: "" }),
+    ]);
   });
 
   it("tolerates buildSkillBlurb failures per member", async () => {

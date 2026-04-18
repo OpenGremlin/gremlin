@@ -58,7 +58,9 @@ export async function loadTeamRoster(
       name: r.member.name,
       delegationHint: r.member.delegationHint,
       role: r.member.role,
-      skillBlurb: r.skillBlurb,
+      // Teammates without sandbox can't actually run their assigned skills,
+      // so hide the blurb from the manager's routing view.
+      skillBlurb: r.member.config?.sandbox?.enabled ? r.skillBlurb : "",
     }));
 
   setCachedTeam(agentId, team);

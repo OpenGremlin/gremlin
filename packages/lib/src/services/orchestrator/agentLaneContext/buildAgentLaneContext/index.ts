@@ -26,6 +26,13 @@ export async function buildAgentLaneContext(
     agentId,
   );
 
+  // Skills require the sandbox (every current skill ships `install` /
+  // `allowedCommands`). Without sandbox tools the model would see skill
+  // instructions telling it to run shell commands it can't actually call
+  // and get stuck. Suppress both the tools and the preamble when sandbox
+  // is off — revisit if/when non-sandbox skills exist.
+  const sandboxEnabled = !!agent.config?.sandbox?.enabled;
+
   const [
     skillSummary,
     skillTools,
@@ -34,20 +41,24 @@ export async function buildAgentLaneContext(
     speechModel,
     speechConnectionId,
   ] = await Promise.all([
-    buildSkillSummary(ctx, agentId).catch((err) => {
-      ctx.log.error(
-        { err, component: "skills" },
-        "Failed to build skill summary",
-      );
-      return { promptSection: "", mainLaneSection: "" };
-    }),
-    buildSkillTools(ctx, agentId).catch((err) => {
-      ctx.log.error(
-        { err, component: "skills" },
-        "Failed to build skill tools",
-      );
-      return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
-    }),
+    sandboxEnabled
+      ? buildSkillSummary(ctx, agentId).catch((err) => {
+          ctx.log.error(
+            { err, component: "skills" },
+            "Failed to build skill summary",
+          );
+          return { promptSection: "", mainLaneSection: "" };
+        })
+      : Promise.resolve({ promptSection: "", mainLaneSection: "" }),
+    sandboxEnabled
+      ? buildSkillTools(ctx, agentId).catch((err) => {
+          ctx.log.error(
+            { err, component: "skills" },
+            "Failed to build skill tools",
+          );
+          return { tools: {}, getEnv: () => ({}) } as SkillToolsResult;
+        })
+      : Promise.resolve<SkillToolsResult>({ tools: {}, getEnv: () => ({}) }),
     resolveModelCapabilities(ctx, agent.config?.model),
     agent.config?.imageGeneration?.enabled
       ? getImageModelFromConfig(ctx, agent.config?.imageModel).catch((err) => {
