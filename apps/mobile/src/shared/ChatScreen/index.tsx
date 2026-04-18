@@ -50,11 +50,6 @@ import { PendingMessageBubble } from "./PendingMessageBubble";
 
 const isWeb = process.env.EXPO_OS === "web";
 
-// Reserve space at the visual bottom of the message list for the floating
-// input capsule and the tab bar, so the newest message isn't hidden under
-// them while older messages can still scroll behind the blurred chrome.
-const INPUT_BAR_HEIGHT = 60;
-
 const overlayContainerStyle = {
   position: "absolute" as const,
   top: 0,
@@ -105,6 +100,15 @@ export function ChatScreen({
   const tabBarHeight = standalone ? insets.bottom : rawTabBarHeight;
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const keyboardVisible = keyboardHeight > 0;
+  // Measured via onLayout on the input bar wrapper. 60 is a reasonable
+  // first-paint fallback; it updates to the real height after mount and
+  // whenever the input grows (multi-line text).
+  const [inputBarHeight, setInputBarHeight] = useState(60);
+  const onInputBarLayout = useCallback(
+    (e: { nativeEvent: { layout: { height: number } } }) =>
+      setInputBarHeight(e.nativeEvent.layout.height),
+    [],
+  );
   const inputBottom = useSharedValue(tabBarHeight);
   const inputBarAnimStyle = useAnimatedStyle(() => ({
     position: "absolute" as const,
@@ -116,7 +120,7 @@ export function ChatScreen({
   // When the keyboard is up the tab bar is hidden behind it; only reserve
   // space for the input bar in that case.
   const bottomChromeHeight =
-    INPUT_BAR_HEIGHT + (keyboardVisible ? keyboardHeight : tabBarHeight);
+    inputBarHeight + (keyboardVisible ? keyboardHeight : tabBarHeight);
   // On native the list is inverted, so paddingTop is the *visual* bottom
   // (where newest messages sit). Reserve enough space for the floating
   // input capsule (and tab bar, when visible) so the newest message isn't
@@ -127,11 +131,11 @@ export function ChatScreen({
         ? {
             paddingHorizontal: 16,
             paddingTop: 200,
-            paddingBottom: 8 + bottomChromeHeight,
+            paddingBottom: bottomChromeHeight,
           }
         : {
             paddingHorizontal: 16,
-            paddingTop: 8 + bottomChromeHeight,
+            paddingTop: bottomChromeHeight,
             paddingBottom: 200,
           },
     [bottomChromeHeight],
@@ -550,18 +554,20 @@ export function ChatScreen({
       </View>
 
       {isWeb ? (
-        <ChatInputBar
-          input={input}
-          setInput={setInput}
-          onSend={handleSend}
-          sending={sending}
-          disabled={disabled}
-          uploads={uploads}
-          isUploading={isUploading}
-          onPickFiles={handlePickFiles}
-        />
+        <View onLayout={onInputBarLayout}>
+          <ChatInputBar
+            input={input}
+            setInput={setInput}
+            onSend={handleSend}
+            sending={sending}
+            disabled={disabled}
+            uploads={uploads}
+            isUploading={isUploading}
+            onPickFiles={handlePickFiles}
+          />
+        </View>
       ) : (
-        <Animated.View style={inputBarAnimStyle}>
+        <Animated.View style={inputBarAnimStyle} onLayout={onInputBarLayout}>
           <ChatInputBar
             input={input}
             setInput={setInput}
