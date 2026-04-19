@@ -128,3 +128,70 @@ describe("AgentLog resolvers", () => {
     expect(result).toBe(agent);
   });
 });
+
+/**
+ * These tests lock in the wire contract for `AgentLog.toolResult`:
+ *   - clients receive the unwrapped success `data` payload as JSON
+ *   - clients receive null on tool errors (errors are read via `toolError`)
+ *   - legacy rows without the envelope pass through untouched
+ *
+ * The `GremlinToolResult<R>` envelope is an internal concept — it must not
+ * leak over the wire. Regressions cause empty tool-call cards in clients that
+ * read `tool.result.X` directly (see LogEntryView for runCommand, readFile,
+ * etc.).
+ */
+describe("AgentLog.toolResult resolver (envelope unwrap)", () => {
+  const invoke = (parent: Record<string, unknown>) =>
+    invokeResolver(agentLogResolvers.AgentLog.toolResult, {
+      parent: parent as any,
+      ctx: buildTestContext(),
+    });
+
+  it("unwraps { ok: true, data } to the inner payload JSON", async () => {
+    expect(
+      await invoke({
+        toolResult: '{"ok":true,"data":{"output":"hello","exitCode":0}}',
+      }),
+    ).toBe('{"output":"hello","exitCode":0}');
+  });
+
+  it("returns null on { ok: false, error } — clients read errors via toolError", async () => {
+    expect(
+      await invoke({
+        toolResult:
+          '{"ok":false,"error":{"code":"FILE_NOT_FOUND","message":"x"}}',
+      }),
+    ).toBeNull();
+  });
+
+  it("passes through rows that predate the envelope shape", async () => {
+    const raw = '{"output":"legacy","exitCode":0}';
+    expect(await invoke({ toolResult: raw })).toBe(raw);
+  });
+
+  it("passes through non-JSON strings rather than throwing", async () => {
+    expect(await invoke({ toolResult: "not-json" })).toBe("not-json");
+  });
+
+  it("returns null when the column is missing", async () => {
+    expect(await invoke({})).toBeNull();
+    expect(await invoke({ toolResult: null })).toBeNull();
+    expect(await invoke({ toolResult: "" })).toBeNull();
+  });
+
+  it("warns and returns null on malformed ok=true without data", async () => {
+    const warn = vi.fn();
+    const ctx = buildTestContext({
+      log: { warn, info: vi.fn(), error: vi.fn(), debug: vi.fn() } as any,
+    });
+    const result = await invokeResolver(agentLogResolvers.AgentLog.toolResult, {
+      parent: { toolResult: '{"ok":true}' } as any,
+      ctx,
+    });
+    expect(result).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.stringContaining("contract violation"),
+    );
+  });
+});

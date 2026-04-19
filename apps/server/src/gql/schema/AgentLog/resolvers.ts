@@ -59,6 +59,45 @@ const attachments = (parent: any) => parent.attachments ?? [];
 
 const node: AgentLogEdgeResolvers["node"] = (parent) => parent.node;
 
+/**
+ * Unwrap the `GremlinToolResult` envelope before the `toolResult` field goes
+ * over the wire:
+ *   { ok: true, data: R } → JSON of R
+ *   { ok: false, error }  → null (clients read errors via `toolError`)
+ *   anything else         → passthrough (legacy rows predating the envelope)
+ *
+ * Keeps the wire contract simple — clients never need to know the envelope
+ * exists and can read `tool.result.<field>` directly.
+ */
+function unwrapToolResultField(
+  parent: AgentLogItem,
+  _args: unknown,
+  ctx: GremlinContext,
+): string | null {
+  if (!parent.toolResult) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(parent.toolResult);
+  } catch {
+    return parent.toolResult;
+  }
+  if (!parsed || typeof parsed !== "object" || !("ok" in parsed)) {
+    return parent.toolResult;
+  }
+  const envelope = parsed as { ok: unknown; data?: unknown };
+  if (envelope.ok !== true) return null;
+  if (!("data" in envelope)) {
+    // ok=true with no data is a tool-side contract violation. Surface it so
+    // we can notice and fix the offending tool rather than hiding silently.
+    ctx.log.warn(
+      { logId: parent.id, toolName: parent.toolName },
+      "Tool result has ok=true but no data payload — tool contract violation",
+    );
+    return null;
+  }
+  return envelope.data === null ? null : JSON.stringify(envelope.data);
+}
+
 /** Split text into sentences and build a TTS URL for each. */
 function textToSpeechUrls(
   text: string,
@@ -246,6 +285,7 @@ export const agentLogResolvers = {
   Subscription: { agentLogCreated, logCreated, agentStream, speechStream },
   AgentLog: {
     agent,
+    toolResult: unwrapToolResultField,
     ...(() => {
       const cache = new WeakMap<AgentLogItem, DisplayHint | null>();
       function resolve(parent: AgentLogItem): DisplayHint | null {

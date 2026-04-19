@@ -110,3 +110,83 @@ describe("resolveToolFields", () => {
     expect(result.result).toBeNull();
   });
 });
+
+/**
+ * Per-tool wire-contract tests.
+ *
+ * The server unwraps the `GremlinToolResult` envelope before sending
+ * `toolResult` to clients — see the `AgentLog.toolResult` resolver and its
+ * own tests in `apps/server/src/gql/schema/AgentLog/resolvers.test.ts`.
+ * These tests lock in the **post-unwrap** shape that each custom renderer
+ * in `LogEntryView/index.tsx` depends on. If a tool renames a field (e.g.
+ * `runCommand` `output` → `stdout`), the corresponding test here fails
+ * loudly rather than the renderer silently showing an empty card.
+ *
+ * Coverage scope: only tools with **custom widgets** that read
+ * `tool.result.<field>` directly. Tools rendered through the hint-based
+ * fallback (readFile, writeFile, taskCreate, attachFile, …) rely on
+ * server-computed `displayHint` / `toolError` fields — those are covered
+ * by `computeDisplayHint` tests in `@opengremlin/lib`, not here.
+ *
+ * Payloads below match exactly what each tool returns via `toolOk(...)`
+ * after the envelope is stripped.
+ */
+describe("per-tool wire-contract (post-unwrap shapes)", () => {
+  const resolve = (toolName: ToolName, toolResult: string) =>
+    resolveToolFields({
+      id: "1",
+      role: AgentLogRole.Tool,
+      content: "",
+      createdAt: "",
+      toolName,
+      toolInput: null,
+      toolResult,
+      attachments: [],
+    }).result;
+
+  it("runCommand completed: exposes output and exitCode", () => {
+    const result = resolve(
+      ToolName.RunCommand,
+      '{"output":"hello world","exitCode":0}',
+    );
+    expect(result?.output).toBe("hello world");
+    expect(result?.exitCode).toBe(0);
+  });
+
+  it("runCommand pending: exposes status, commandApprovalId, reason", () => {
+    const result = resolve(
+      ToolName.RunCommand,
+      '{"status":"pending_approval","commandApprovalId":"appr_42","reason":"sudo requires approval"}',
+    );
+    expect(result?.status).toBe("pending_approval");
+    expect(result?.commandApprovalId).toBe("appr_42");
+    expect(result?.reason).toBe("sudo requires approval");
+  });
+
+  it("requestUserInput: exposes inputRequestId and status", () => {
+    const result = resolve(
+      ToolName.RequestUserInput,
+      '{"inputRequestId":"req_7","status":"pending"}',
+    );
+    expect(result?.inputRequestId).toBe("req_7");
+    expect(result?.status).toBe("pending");
+  });
+
+  it("webSearch: result is non-null and JSON-stringifiable (renderer dumps it whole)", () => {
+    const result = resolve(
+      ToolName.WebSearch,
+      '{"results":[{"title":"Example","url":"https://example.com"}]}',
+    );
+    expect(result).not.toBeNull();
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+
+  it("webFetch: result is non-null and JSON-stringifiable (renderer dumps it whole)", () => {
+    const result = resolve(
+      ToolName.WebFetch,
+      '{"title":"Page","content":"..."}',
+    );
+    expect(result).not.toBeNull();
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+});
