@@ -46,6 +46,7 @@ import {
 } from "./resolveToolFields";
 import { mapChild, TaskCard } from "./TaskCard";
 import { ToolBlock } from "./ToolBlock";
+import { ToolErrorBlock, ToolErrorText } from "./ToolErrorDisplay";
 import { ToolStatus } from "./ToolStatus";
 
 function openFileOrFolder(entry: {
@@ -212,6 +213,19 @@ function renderCustomWidget(
           />
         );
       }
+      // No pending card to show. If the tool errored, render the error
+      // inline — requestUserInput has no hint builder so falling through
+      // would render nothing.
+      if (message.toolError) {
+        return (
+          <ToolErrorBlock
+            label={<FnLabel fn="ask" arg={question} />}
+            toolError={message.toolError}
+            createdAt={message.createdAt}
+            showTimestamp={showTimestamp}
+          />
+        );
+      }
       return undefined; // fall through to hint-based rendering
     }
 
@@ -230,6 +244,21 @@ function renderCustomWidget(
             commandApprovalId={approvalId}
             command={command}
             reason={reason}
+            createdAt={message.createdAt}
+            showTimestamp={showTimestamp}
+          />
+        );
+      }
+
+      // Tool error path: runCommand has no hint builder (short-circuited in
+      // computeDisplayHint), so we must render the error inline — falling
+      // through to the hint renderer would show nothing, leaving the user
+      // staring at a spinner forever.
+      if (message.toolError) {
+        return (
+          <ToolErrorBlock
+            label={<FnLabel fn="run" arg={command} />}
+            toolError={message.toolError}
             createdAt={message.createdAt}
             showTimestamp={showTimestamp}
           />
@@ -307,6 +336,10 @@ function renderCustomWidget(
     }
 
     case ToolName.WebSearch: {
+      // Errors fall through — the hint renderer shows "Searching: {query}" +
+      // the toolError line underneath (webSearch has a hint builder).
+      if (message.toolError) return undefined;
+
       const query = (tool.input?.query as string) ?? "...";
       const fnLabel = <FnLabel fn="search" arg={query} />;
       const resultText = tool.result
@@ -323,6 +356,10 @@ function renderCustomWidget(
     }
 
     case ToolName.WebFetch: {
+      // Errors fall through — the hint renderer shows "Fetching: {url}" +
+      // the toolError line underneath (webFetch has a hint builder).
+      if (message.toolError) return undefined;
+
       const url = (tool.input?.url as string) ?? "...";
       const fnLabel = <FnLabel fn="fetch" arg={url} />;
       const resultText = tool.result
@@ -373,7 +410,21 @@ function renderToolCall(
 
   // 2. Use displayHint for everything else
   const hint = message.displayHint;
-  if (!hint) return null;
+  if (!hint) {
+    // No hint was computed, but the tool errored — surface the error
+    // anyway so it doesn't vanish silently.
+    if (message.toolError) {
+      return (
+        <ToolErrorBlock
+          label={toolName}
+          toolError={message.toolError}
+          createdAt={message.createdAt}
+          showTimestamp={showTimestamp}
+        />
+      );
+    }
+    return null;
+  }
 
   const icon = TOOL_ICON[toolName];
   const files = filesFromAttachments(message.attachments ?? []);
@@ -389,13 +440,7 @@ function renderToolCall(
         }
       />
       {message.toolError ? (
-        <Text className="text-sm text-error italic px-1 pb-1">
-          <Text className="font-semibold not-italic">
-            {message.toolError.code}
-          </Text>
-          {`: ${message.toolError.message}`}
-          {message.toolError.hint ? ` ${message.toolError.hint}` : ""}
-        </Text>
+        <ToolErrorText toolError={message.toolError} />
       ) : message.displayError ? (
         <Text className="text-sm text-error italic px-1 pb-1">
           {message.displayError}
@@ -548,7 +593,11 @@ export const LogEntryView = React.memo(function LogEntryView({
               undefined
             }
           />
-          {message.displayError ? (
+          {/* Precedence matches the main fallback (index.tsx error block):
+              typed toolError first, then the legacy displayError string. */}
+          {message.toolError ? (
+            <ToolErrorText toolError={message.toolError} />
+          ) : message.displayError ? (
             <Text className="text-sm text-error italic px-1 pb-1">
               {message.displayError}
             </Text>
@@ -561,6 +610,20 @@ export const LogEntryView = React.memo(function LogEntryView({
             </View>
           )}
         </View>
+      );
+    }
+
+    // Unknown tool that errored: surface the error rather than fall through
+    // to a "Running..." spinner (which would happen when input is empty) or
+    // a raw JSON dump (which would include a null result block).
+    if (message.toolError) {
+      return (
+        <ToolErrorBlock
+          label={tool.name}
+          toolError={message.toolError}
+          createdAt={message.createdAt}
+          showTimestamp={showTimestamp}
+        />
       );
     }
 
