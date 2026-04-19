@@ -4,16 +4,13 @@
  * TypeScript assembles the relevant sections; Handlebars renders the final result.
  */
 
-export { delegatedTaskSection } from "./delegatedTaskSection.js";
 export { identitySection } from "./identity.js";
 export { jobsSection } from "./jobs.js";
 export { managerSection } from "./managerSection.js";
 export { memorySection } from "./memory.js";
-export { taskChatSection } from "./taskChat.js";
 export { taskFileEditorSection } from "./taskFileEditor.js";
 export { taskPlanSection } from "./taskPlan.js";
 export { taskPreambleSection } from "./taskPreamble.js";
 export { taskSandboxSection } from "./taskSandbox.js";
-export { taskToolGuidanceSection } from "./taskToolGuidance.js";
 export { taskWorkflowSection } from "./taskWorkflow.js";
 export { viewImageMainSection } from "./viewImageMain.js";

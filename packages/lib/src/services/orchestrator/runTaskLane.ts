@@ -86,17 +86,13 @@ export async function runTaskLane(
   const agentId = task?.agentId ?? agentLaneCtx.agent.id;
 
   const { agent, profile, displayName, timezone, skillSummary } = agentLaneCtx;
-  const isInitialDelegation = (opts?.role ?? "SYSTEM") === "SYSTEM";
-  // Cross-agent delegation: this task was created by a manager and assigned
-  // to a different agent. The instructions are the entire context — we must
-  // NOT inherit main-lane history (the recipient's main lane is unrelated)
-  // and we render the delegated-task system prompt section instead.
-  const isCrossAgentDelegation = task
-    ? !!task.assignerAgentId && task.assignerAgentId !== task.agentId
-    : !!(opts?.role === "SYSTEM"); // reconciler-dispatched cross-agent work
+  // SYSTEM-role prompts are background triggers (task dispatch, notifications,
+  // scheduled jobs) where we inject related-task context and generate a plan.
+  // USER-role prompts are follow-up chat messages where we skip both.
+  const isSystemTrigger = (opts?.role ?? "SYSTEM") === "SYSTEM";
 
   // Inject related task outputs so this task can see what sibling/child tasks produced.
-  if (isInitialDelegation && task) {
+  if (isSystemTrigger && task) {
     const relatedContext = await buildRelatedTaskContext(ctx, task);
     if (relatedContext) {
       await writeAgentLog(ctx, {
@@ -121,9 +117,9 @@ export async function runTaskLane(
 
   const taskTitle = task?.title ?? prompt.slice(0, 80);
 
-  // Generate an execution plan for new task delegations
+  // Generate an execution plan for new task runs (not for user follow-ups)
   let planText: string | undefined;
-  if (isInitialDelegation) {
+  if (isSystemTrigger) {
     try {
       const plan = await generatePlan(ctx, agentId, taskTitle, prompt);
       planText = formatPlan(plan);
@@ -146,20 +142,7 @@ export async function runTaskLane(
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
     hasPlan: !!planText,
-    isDelegated: isCrossAgentDelegation,
   });
-
-  // Resolve the assigner's display name once so the delegated-task
-  // section can address them by name. Falls back to the agentId if
-  // the assigner record can't be loaded (e.g., deleted between
-  // delegation and execution).
-  let assignerName: string | undefined;
-  if (isCrossAgentDelegation && task?.assignerAgentId) {
-    const assigner = await ctx.services.agents
-      .getAgent(ctx, task.assignerAgentId)
-      .catch(() => null);
-    assignerName = assigner?.name ?? task.assignerAgentId;
-  }
 
   let systemPrompt = renderTaskSystemPrompt(
     {
@@ -171,20 +154,6 @@ export async function runTaskLane(
       userAbout: profile?.about,
       taskTitle: taskTitle,
       taskId: resolvedTaskId,
-      ...(isCrossAgentDelegation && task?.instructions && assignerName
-        ? {
-            delegated: {
-              instructions: task.instructions,
-              ...(task.expectedInput != null
-                ? { expectedInput: task.expectedInput }
-                : {}),
-              ...(task.expectedOutput != null
-                ? { expectedOutput: task.expectedOutput }
-                : {}),
-              assignerName,
-            },
-          }
-        : {}),
     },
     flags,
   );

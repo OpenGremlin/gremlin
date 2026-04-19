@@ -67,32 +67,51 @@ The service layer (`packages/lib/src/services/tasks/createTask.ts`) then:
    (`taskCreate.ts:86-89`), which also runs cycle detection
    (`taskDeps.ts:24-43`).
 
-Newly-created tasks are **not dispatched synchronously**. They sit in `open`
-until the reconciler runs.
+After creation, the tool either **dispatches the task immediately** (no
+blockers) via `orchestrator.dispatchTask`, or leaves it in `open` for the
+reconciler to pick up (when `blockedBy` is non-empty). Immediate dispatch
+closes the race where a parent could close a child mid-turn before the next
+reconciler pass.
 
-## Dispatch: the reconciler
+## Dispatch: `dispatchTask` and the reconciler
+
+**Shared entry point:** `dispatchTask(ctx, task)` at
+`packages/lib/src/services/orchestrator/dispatchTask.ts` moves a task to
+`in_progress` and enqueues a `run_task` on its lane with a full brief
+(built by `buildTaskBrief`) as the prompt. Used by:
+
+- `taskCreate` tool (for unblocked children).
+- `handleScheduledJob` (scheduled-job start).
+- The reconciler (for work with cleared dependencies).
+
+The **brief** (`buildTaskBrief`) contains everything the agent needs to
+start: instructions, expectedInput, expectedOutput, existing attachments,
+latest comment, and a "From scheduled job X" prefix when `originJobId` is
+set. The agent never needs a `taskShow` to begin work.
+
+### The reconciler
 
 **Entry point:** `reconcile(ctx, triggerAgentId)` at
 `packages/lib/src/services/orchestrator/reconcileTasks.ts:50`.
 
 The reconciler is a **deterministic, non-LLM** pass that runs as a tail-call
-after any lane finishes (`inbox/consumer/index.ts`). It does three things:
+after any lane finishes (`inbox/consumer/index.ts`). It handles tasks that
+can't dispatch immediately — mostly tasks whose blockers just closed. It
+does three things:
 
-1. **Circuit-break over-escalated tasks** (`reconcileTasks.ts:60-88`) — if
-   `escalationCount >= 3`, close the task and enqueue `task_needs_attention` to
-   the assigner or epic owner. Prevents infinite escalation loops.
-2. **Dispatch ready work** (`reconcileTasks.ts:91-178`) — pull tasks via
-   `getReadyWork` (status=`open`, not deferred, no unclosed deps —
-   `taskDeps.ts:180-231`). For each:
-   - Validate the assignee is a real agent (`reconcileTasks.ts:103-124`).
-   - Transition `open` → `in_progress` (`reconcileTasks.ts:126`).
-   - If `escalationCount > 0` (previously worked, now retry), enqueue
-     `resume_task` with a nudge (`reconcileTasks.ts:131-152`).
-   - Otherwise enqueue `run_task` with the task's `instructions` as the
-     initial prompt (`reconcileTasks.ts:154-177`).
-3. **Route unassigned work** (`reconcileTasks.ts:184-206`) — group by parent
-   and enqueue `tasks_need_assignment` to the epic owner (or main lane) so a
-   manager can re-route.
+1. **Circuit-break over-escalated tasks** — if `escalationCount >= 3`, close
+   the task and enqueue `task_needs_attention` to the assigner or epic owner.
+   Prevents infinite escalation loops.
+2. **Dispatch ready work** — pull tasks via `getReadyWork` (status=`open`,
+   not deferred, no unclosed deps). For each:
+   - Validate the assignee is a real agent.
+   - If `escalationCount > 0` (previously worked, now retry), move to
+     `in_progress` and enqueue `resume_task` with a nudge.
+   - Otherwise call `dispatchTask` (same path as `taskCreate` and scheduled
+     jobs).
+3. **Route unassigned work** — group by parent and enqueue
+   `tasks_need_assignment` to the epic owner (or main lane) so a manager can
+   re-route.
 
 Dispatch hands off through the inbox, not a direct call — see
 `docs/agent-inbox-queue.md` for the durable-inbox + SQS mechanics.
@@ -105,25 +124,23 @@ Dispatch hands off through the inbox, not a direct call — see
 When the inbox consumer picks up a `run_task` or `resume_task` item, it calls
 `runTaskLane`, which:
 
-1. **Assembles related-task context** (`runTaskLane.ts:99-110, 20-66`) — if
-   this is a first dispatch, injects a SYSTEM message listing siblings (if
-   child) or children (if parent) with their attachments and comments.
-2. **Detects delegation** (`runTaskLane.ts:90-97`) — if
-   `assignerAgentId !== agentId`, this is work assigned from another agent;
-   the prompt includes the `delegatedTaskSection` so the assignee reads the
-   brief before anything else.
-3. **Generates a plan** on first dispatch (`runTaskLane.ts:125-143`) and
-   writes it as a SYSTEM message.
-4. **Renders the system prompt** (`runTaskLane.ts:146-191`) using sections:
-   `identity`, `taskPreamble` (which injects `{{taskId}}` and title),
-   optional `delegatedTaskSection`, `taskSandbox`, `taskPlan`, `taskWorkflow`,
-   `jobs`, `memory`, `taskChat`.
-5. **Binds task-scoped tools** (`runTaskLane.ts:212`, `buildTaskTools`) —
-   sandbox, file editor, `attachFile`/`attachLink`, `generateImage`,
-   `generateSpeech`, plus the task-lane tracking tools
-   (`taskCreate`, `taskList`, `taskReady`, `taskShow`, `taskUpdate`).
-6. **Runs the agent turn** (`runLane.ts:35-216`) — builds message history
-   (with compaction if near token limit), invokes the model, persists every
+1. **Assembles related-task context** — on a system trigger (initial dispatch
+   or notification, not a user follow-up), injects a SYSTEM message listing
+   siblings (if child) or children (if parent) with their attachments and
+   comments.
+2. **Generates a plan** on a system trigger and writes it as a SYSTEM message.
+3. **Renders the system prompt** using sections: `identity`, `taskPreamble`
+   (which injects `{{taskId}}` and title), `taskWorkflow`, `taskFileEditor`,
+   optional `taskSandbox`, optional `taskPlan`, `jobs`, `memory`. The prompt is
+   origin-agnostic — how the task was created (delegation, scheduled job,
+   subtask spawn) isn't in the prompt. Any origin context belongs in the
+   task's `instructions`.
+4. **Binds task-scoped tools** (`buildTaskTools`) — sandbox, file editor,
+   `attachFile`/`attachLink`, `generateImage`, `generateSpeech`, plus the
+   task-lane tracking tools (`taskCreate`, `taskList`, `taskReady`,
+   `taskShow`, `taskUpdate`).
+5. **Runs the agent turn** (`runLane.ts`) — builds message history (with
+   compaction if near token limit), invokes the model, persists every
    message/tool call to `AgentLog`.
 
 The task stays in `in_progress` throughout execution. Status moves only when

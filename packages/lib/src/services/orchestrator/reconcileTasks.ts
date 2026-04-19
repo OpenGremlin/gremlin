@@ -96,7 +96,6 @@ export async function reconcile(
     }
 
     const targetAgentId = resolveAssignee(assignee, triggerAgentId);
-    const isSelfAssigned = targetAgentId === triggerAgentId;
 
     // Validate that the assignee is a real agent. If not, treat as
     // unassigned so the manager can re-route.
@@ -123,12 +122,11 @@ export async function reconcile(
       continue;
     }
 
-    await ctx.services.tasks.updateTaskStatus(ctx, task.id, "in_progress");
-
     // A task with escalationCount > 0 has been dispatched before (was
     // blocked or rejected and is now open again). Resume the existing
     // task lane with a nudge instead of starting a fresh lane.
     if ((task.escalationCount ?? 0) > 0) {
+      await ctx.services.tasks.updateTaskStatus(ctx, task.id, "in_progress");
       await ctx.services.orchestrator.writeAgentLog(ctx, {
         agentId: targetAgentId,
         taskId: task.id,
@@ -152,25 +150,17 @@ export async function reconcile(
         "Resumed task lane after unblock",
       );
     } else {
-      await ctx.services.inbox.enqueueWork(
-        ctx,
-        targetAgentId,
-        `task:${task.id}`,
-        {
-          type: "run_task",
-          payload: {
-            taskId: task.id,
-            prompt: task.instructions ?? task.description ?? task.title,
-            inheritContext: isSelfAssigned,
-          },
-        },
-      );
+      // Resolve "self" assignee before handing off.
+      const taskForDispatch =
+        targetAgentId === task.agentId
+          ? task
+          : { ...task, agentId: targetAgentId };
+      await ctx.services.orchestrator.dispatchTask(ctx, taskForDispatch);
 
       ctx.log.info(
         {
           taskId: task.id,
           targetAgentId,
-          isSelfAssigned,
           component: "reconciler",
         },
         "Dispatched task to task lane",

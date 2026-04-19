@@ -83,10 +83,16 @@ export function taskCreate(ctx: ServiceContext, currentTaskId?: string) {
           emoji,
         });
 
-        if (blockedBy && blockedBy.length > 0) {
+        const hasBlockers = blockedBy && blockedBy.length > 0;
+        if (hasBlockers) {
           for (const depId of blockedBy) {
             await ctx.services.tasks.addTaskDep(ctx, task.id, depId);
           }
+        } else {
+          // No blockers — start the task lane immediately instead of waiting
+          // for the next reconciler pass. This closes a race where the caller
+          // could close the child mid-turn before reconcile runs.
+          await ctx.services.orchestrator.dispatchTask(ctx, task);
         }
 
         return toolOk(task);

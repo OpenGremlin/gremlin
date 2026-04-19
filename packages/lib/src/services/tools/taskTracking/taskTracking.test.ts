@@ -85,3 +85,56 @@ describe("taskUpdate tool", () => {
     });
   });
 });
+
+describe("taskCreate tool", () => {
+  let ctx: DeepMockProxy<ServiceContext>;
+  const newTask = makeTask({
+    id: "task-new",
+    agentId: "agent-1",
+    title: "New thing",
+    instructions: "Do it",
+  });
+
+  beforeEach(() => {
+    ctx = createMockContext();
+    ctx.services.tasks.createTask.mockResolvedValue(newTask as any);
+  });
+
+  it("dispatches the new task immediately when there are no blockers", async () => {
+    const tools = buildTaskLaneTools(ctx, "parent-task");
+    await tools.taskCreate.execute?.(
+      {
+        title: "New thing",
+        instructions: "Do it",
+        assignee: "agent-1",
+        emoji: "🆕",
+      },
+      {} as any,
+    );
+
+    // Dispatch should happen through the orchestrator helper, not reconciler.
+    expect(ctx.services.orchestrator.dispatchTask).toHaveBeenCalledWith(
+      ctx,
+      newTask,
+    );
+    expect(ctx.services.tasks.addTaskDep).not.toHaveBeenCalled();
+  });
+
+  it("does NOT dispatch when the task has blockers — reconciler handles it later", async () => {
+    const tools = buildTaskLaneTools(ctx, "parent-task");
+    await tools.taskCreate.execute?.(
+      {
+        title: "Blocked",
+        instructions: "Wait for upstream",
+        assignee: "agent-1",
+        emoji: "⏳",
+        blockedBy: ["dep-1", "dep-2"],
+      },
+      {} as any,
+    );
+
+    expect(ctx.services.orchestrator.dispatchTask).not.toHaveBeenCalled();
+    // Both deps should have been recorded.
+    expect(ctx.services.tasks.addTaskDep).toHaveBeenCalledTimes(2);
+  });
+});

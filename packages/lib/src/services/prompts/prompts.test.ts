@@ -20,7 +20,6 @@ describe("resolvePromptFlags", () => {
       manager: false,
       hasSkills: false,
       hasPlan: false,
-      isDelegated: false,
     });
   });
 
@@ -233,5 +232,32 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("NOT cat");
     expect(result).toContain("NOT sed");
     expect(result).toContain("NOT find");
+  });
+
+  // These guard the load-bearing instructions that fix the Pokédex-style
+  // "parent does subtasks' work" bug. Do not remove without explicitly
+  // re-verifying the workflow.
+  it("always includes the coordinator rule so delegation is safe", () => {
+    const result = renderTaskSystemPrompt(taskData, allOff);
+    expect(result).toContain("coordinator");
+    expect(result).toContain("do NOT do the subtasks' work yourself");
+  });
+
+  it("always includes the escalation instruction", () => {
+    const result = renderTaskSystemPrompt(taskData, allOff);
+    expect(result).toContain("escalate");
+    expect(result).toContain("escalate: true");
+  });
+
+  it("always includes the close instruction with required notes", () => {
+    const result = renderTaskSystemPrompt(taskData, allOff);
+    expect(result).toContain('status: "closed"');
+    expect(result).toContain("notes");
+  });
+
+  it("tells the agent output flows through attachments, not chat", () => {
+    const result = renderTaskSystemPrompt(taskData, allOff);
+    expect(result).toContain("attachFile");
+    expect(result).toContain("attachLink");
   });
 });

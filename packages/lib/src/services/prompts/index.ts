@@ -66,7 +66,6 @@ export function resolvePromptFlags(
     modelSupportsImages: boolean;
     hasSkills: boolean;
     hasPlan?: boolean;
-    isDelegated?: boolean;
   },
 ) {
   return {
@@ -78,7 +77,6 @@ export function resolvePromptFlags(
     manager: !!config?.manager?.enabled,
     hasSkills: opts.hasSkills,
     hasPlan: opts.hasPlan ?? false,
-    isDelegated: opts.isDelegated ?? false,
   };
 }
 
@@ -116,12 +114,6 @@ interface TaskPromptData extends PromptData {
   taskTitle: string;
   /** Task ID. Used in templates as {{taskId}}. */
   taskId: string;
-  delegated?: {
-    instructions: string;
-    expectedInput?: string;
-    expectedOutput?: string;
-    assignerName: string;
-  };
 }
 
 export function renderSystemPrompt(

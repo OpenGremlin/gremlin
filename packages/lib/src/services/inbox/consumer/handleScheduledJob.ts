@@ -3,7 +3,7 @@ import type { ServiceContext } from "../../context.js";
 
 /**
  * Process a scheduled job: create a task linked to the job, write a
- * delegation log entry to the main lane, and run on the task lane.
+ * delegation log entry to the main lane, and dispatch the task lane.
  */
 export async function handleScheduledJob(
   ctx: ServiceContext,
@@ -30,13 +30,12 @@ export async function handleScheduledJob(
     agentId,
     title: job.name,
     originJobId: job.id,
+    instructions: job.description,
   });
 
   void ctx.services.tasks.selectAndSetTaskEmoji(ctx, task);
 
-  const prompt = `[Scheduled Job] This task was triggered automatically by the scheduled job "${job.name}". Below are the user's instructions for this job:\n\n${job.description}`;
-
-  // Write a delegation log entry to the main lane so it's visible in chat
+  // Write a log entry to the main lane so the run appears in chat.
   await ctx.services.orchestrator.writeAgentLog(ctx, {
     agentId,
     taskId: null,
@@ -45,12 +44,9 @@ export async function handleScheduledJob(
     // enum value is deprecated but kept for backward compat — old
     // UI clients still render cards based on this string.
     toolName: "backgroundTask" as ToolName,
-    toolInput: { title: job.name, prompt },
+    toolInput: { title: job.name, prompt: job.description },
     toolResult: { taskId: task.id, title: job.name },
   });
 
-  await ctx.services.inbox.enqueueWork(ctx, agentId, `task:${task.id}`, {
-    type: "run_task",
-    payload: { taskId: task.id, prompt },
-  });
+  await ctx.services.orchestrator.dispatchTask(ctx, task);
 }

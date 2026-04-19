@@ -1,14 +1,11 @@
 import {
-  delegatedTaskSection,
   identitySection,
   jobsSection,
   memorySection,
-  taskChatSection,
   taskFileEditorSection,
   taskPlanSection,
   taskPreambleSection,
   taskSandboxSection,
-  taskToolGuidanceSection,
   taskWorkflowSection,
 } from "./sections/index.js";
 
@@ -16,12 +13,14 @@ export interface TaskSystemPromptFlags {
   viewImage: boolean;
   sandbox: boolean;
   hasPlan: boolean;
-  isDelegated?: boolean;
 }
 
 /**
  * Assemble the task-lane system prompt template from sections.
  * Returns a Handlebars template string — the caller renders it with data.
+ *
+ * Order: who (identity) → what (task context) → how (workflow) →
+ * with-what-tools (file editor, sandbox, plan) → auxiliary (jobs, memory).
  */
 export function assembleTaskSystemTemplate(
   flags: TaskSystemPromptFlags,
@@ -29,20 +28,14 @@ export function assembleTaskSystemTemplate(
   const sections = [
     identitySection,
     taskPreambleSection,
+    taskWorkflowSection,
     taskFileEditorSection,
-    taskToolGuidanceSection,
   ];
 
-  // For delegated tasks the instructions replace the implicit "you have
-  // full conversation context" framing — slot the section in early so
-  // the model reads the assignment before any other workflow guidance.
-  if (flags.isDelegated) sections.push(delegatedTaskSection);
   if (flags.sandbox) sections.push(taskSandboxSection);
   if (flags.hasPlan) sections.push(taskPlanSection);
-  sections.push(taskWorkflowSection);
   sections.push(jobsSection);
   sections.push(memorySection);
-  sections.push(taskChatSection);
 
   return sections.join("\n\n");
 }
