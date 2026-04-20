@@ -1,6 +1,6 @@
 # Canvas
 
-A live, agent-driven UI surface that runs in a browser tab or on a Chromecast. Agents push structured UI descriptions; the canvas renders them. The mobile app is the controller — it picks the cast device, holds auth, and brokers the session.
+A live, agent-driven UI surface that runs in a browser tab or on a Chromecast. Agents push structured UI descriptions; the canvas renders them. The mobile app picks the target device, holds auth, and owns the "currently showing" binding — but any browser can join a session by URL, so a canvas session isn't phone-gated once live.
 
 ## Motivation
 
@@ -12,49 +12,65 @@ Cast support is the headline delivery channel, but the canvas is also just a web
 
 - **No remote control surface.** The canvas displays agent output. Touch/gesture interaction passthrough is out of scope.
 - **No screen mirror.** The canvas is its own page rendering its own React tree from server-pushed state, not a video stream of the mobile app.
-- **No multi-viewer.** One phone driving one canvas. Cast technically supports multiple senders; deferred.
+- **No browser-initiated pairing.** A browser can join an existing session by URL, but it can't self-initiate one (no "open ogcaster cold, scan a QR to pair from phone"). Defer until telemetry justifies the pairing service.
 - **No audio.** Cast supports audio streams; the canvas doesn't use them.
-- **No offline mode.** Receiver requires a live AG-UI stream. If the connection drops past the reconnect budget, it shows an error state.
+- **No offline mode.** Canvas requires a live AG-UI stream. If the connection drops past the reconnect budget, it shows an error state.
 - **No per-deployment UX bundles.** All deployments share one canvas app (hosted at `ogcaster.com`). If the canvas doesn't support a component, agents can't emit it. Theming and server-side composition templates cover the real customization needs; true code-level customization is a Tier-3 escape hatch (deferred).
+
+### Explicitly supported
+
+- **Multi-viewer.** Anyone with a session URL can join and watch until the token expires or the session owner ends it. The token authorizes read-only viewing of one session, not account access — so sharing a link is more like sharing a Figma URL than handing over credentials. The mobile originator can "End cast" to invalidate the token immediately.
 
 ## Architecture
 
 ```
- Mobile               Cast device                  Gremlin backend
+ Mobile               Canvas                       Gremlin backend
  (sender)             ogcaster.com                 (per deployment)
  ──────               ────────────                 ──────────────
 
- user taps cast
+ user taps Cast tab → scan starts
        ↓
- Cast SDK discovers
+ user picks a device
        ↓
- launches App ID  →  loads ogcaster.com
-                     (self-contained canvas app)
-                          ↓
- sends {           →   canvas boots with session
-   backendUrl,
-   token,
-   agentId,
-   sessionId
+ mobile ──── POST /canvas/sessions ────────────→  creates session row
+       ←─── { sessionId, token, expiresAt } ────   (currentAgentId = null)
+       ↓
+ launches App ID → loads ogcaster.com
+                   (or user opens share URL in a browser)
+                       ↓
+ sends {         →   canvas boots with
+   backendUrl,        session + token
+   sessionId,
+   token
  }
-                        opens AG-UI SSE stream  ──────→  /canvas/sse
-                             ↑                               ↑
-                             │                     agent calls canvas.show()
-                             │                               ↓
-                             │                     UI subagent (Haiku)
-                             │                     emits A2UI tree
-                             └──── A2UI events ──────────────┘
+                       opens AG-UI SSE stream ──→ /canvas/sse?t=<token>
+                            ↑
+                            │                ┌── (no agent bound)
+                            │                │     canvas shows
+                            │                │     "Pick an agent"
+                            │                │
+ mobile picks agent ─── POST /canvas/sessions/:id/bind ─────→ update row
+       ↓                    │
+                            │← server-side event: agent bound
+                            ↓
+                       canvas renders
+                            ↑              agent calls canvas.show()
+                            │                       ↓
+                            │              UI subagent (Haiku)
+                            │              emits A2UI tree
+                            └── A2UI events ────────┘
 ```
 
-Three things in motion:
+Four things in motion:
 
 - **Cast** wires the mobile app to a TV-class browser running the canvas page.
-- **AG-UI** is the bi-directional event stream between the canvas and the deployment's Gremlin backend.
+- **Session** is a server-side row keyed by `sessionId` with mutable `currentAgentId`. Tokens are scoped to a session, not to an agent — binding is a separate control-plane call.
+- **AG-UI** is the bi-directional event stream between the canvas and the deployment's Gremlin backend, carrying A2UI events only for the currently-bound agent.
 - **A2UI** is the declarative UI schema agents emit, which AG-UI carries and the canvas renders.
 
 ## Hosting
 
-The canvas is a single app deployed once to **`ogcaster.com`** — a domain the opengremlin control plane owns. Every deployment (managed or self-hosted) uses the same canvas; the only per-deployment inputs are the `backendUrl`, `token`, and `agentId` passed in the Cast launch message.
+The canvas is a single app deployed once to **`ogcaster.com`** — a domain the opengremlin control plane owns. Every deployment (managed or self-hosted) uses the same canvas; the only per-deployment inputs are the `backendUrl`, `sessionId`, and `token` passed in the Cast launch message or URL params.
 
 ### Why a separate eTLD+1
 
@@ -94,32 +110,39 @@ Steps to register the canvas as a Custom Receiver in the Google Cast SDK Develop
 
 ## Auth and session bootstrap
 
-The canvas loads with no auth context. The mobile app, which is already authenticated to its deployment's Gremlin backend, brokers the session.
+The canvas loads with no auth context. The mobile app, which is already authenticated to its deployment's Gremlin backend, creates a session and hands the result to the target device.
 
 Sequence on cast start:
 
-1. Mobile asks its backend for a **scoped canvas session token** — short-lived (~5 min), refreshable, scoped to one `(agentId, sessionId)` pair. Not full account access.
-2. Mobile launches the receiver via Cast App ID. The canvas loads from `ogcaster.com`.
-3. Mobile sends `{ version, backendUrl, token, agentId, sessionId }` to the canvas as the first custom message on namespace `urn:x-cast:com.opengremlin.canvas`.
-4. Canvas opens an AG-UI stream to `${backendUrl}/canvas/sse` with the token in the `Authorization` header (or `?t=` query param, since SSE can't send custom headers from the browser — see Streaming semantics).
-5. On token expiry, canvas requests a refresh from the sender over the same custom-message channel.
+1. User taps a device (or "Open on a browser") in the mobile Canvas tab.
+2. Mobile `POST`s `/canvas/sessions` on its backend. Backend creates a row keyed by `sessionId`, mints a **scoped session token** (~5 min TTL, refreshable, scoped to that one `sessionId` — not an agent, not the account), and returns `{ sessionId, token, expiresAt }`. `currentAgentId` starts as `null`.
+3. Mobile delivers `{ version, backendUrl, sessionId, token }` to the target:
+   - **Cast**: launches receiver via Cast App ID, sends as a custom message on `urn:x-cast:com.opengremlin.canvas`.
+   - **Browser**: constructs `https://ogcaster.com/?backend=...&s=<sessionId>&t=<token>`; user opens anywhere.
+4. Canvas opens AG-UI SSE to `${backendUrl}/canvas/sse?t=<token>` (query param because `EventSource` can't set headers; token is short-lived and single-purpose).
+5. Canvas renders the **"Pick an agent"** splash. AG-UI connection is live but no agent is bound.
+6. Mobile picks an agent from its device detail screen and `POST`s `/canvas/sessions/:sessionId/bind { agentId }`. Backend updates the session row and pushes an `agentBound` event on the SSE stream.
+7. Canvas hydrates from last-persisted state for that agent, then renders live updates.
+8. User can rebind (same endpoint) or unbind (`{ agentId: null }`) without dropping the cast session.
+9. On token expiry, canvas requests a refresh from mobile over the Cast channel. In browser mode, the canvas redirects to a branded "Session expired" screen with instructions to restart from the phone.
+10. Mobile's **"End cast"** button invalidates the token server-side. All viewers get booted on next reconnect attempt.
 
-Why scoped tokens: the Cast device is in someone's home but it's still arbitrary hardware. A leaked token can only do canvas operations against one session, not impersonate the user.
+Why session-scoped (not agent-scoped) tokens: lets the user switch which agent is on-screen without re-handshaking the cast session. A leaked token can view one session (whatever's currently bound) for at most the TTL, not access the account or other agents.
 
 ### Browser-only mode
 
-The same canvas page works in a regular browser tab — no Cast involved. This is the dev path and a fallback for users without a Cast device.
+The same canvas page works in a regular browser tab — no Cast involved. This is the dev path and how "Open on a browser" / share-to-Slack delivery works.
 
-In browser mode, the canvas reads `backend`, `t`, `agent`, and optional `session` from URL query params instead of a Cast custom message:
+In browser mode, the canvas reads `backend`, `s` (sessionId), and `t` (token) from URL query params instead of a Cast custom message:
 
 ```
 https://ogcaster.com/?
   backend=https%3A%2F%2Fgremlin.acme.com&
-  agent=AGT_42&
+  s=<sessionId>&
   t=<scoped-token>
 ```
 
-Same auth model, same AG-UI stream, same renderer.
+Same auth model, same AG-UI stream, same renderer, same bind mechanism. Multiple browsers (and a Chromecast) can join the same session concurrently — all subscribe to the same SSE stream.
 
 ## Transport: AG-UI
 
@@ -222,11 +245,22 @@ What a deployment can change without forking the canvas:
 
 Agents decide when to surface things. The system prompt nudges them: "when you produce visual artifacts, call `canvas.show`." Users can also ask explicitly ("put that on the canvas") — the agent translates to a tool call. One pathway, two ways to invoke it.
 
-What appears when the user first casts: persist the **last canvas state** per `(agentId, userId)`. If nothing has been shown yet, render a branded splash ("Waiting for <agent name>"). Avoid blank screens — also a Cast review requirement.
+What appears when an agent is first bound to a session: server hydrates from the **last canvas state** for `(agentId, userId)`. If that agent has never produced canvas content, render a branded splash ("Waiting for <agent name>"). Before any agent is bound, the canvas shows the **"Pick an agent"** splash. Never a blank screen — also a Cast review requirement.
 
 ## Persistence
 
-Canvas state lives in DynamoDB alongside the existing agent data, keyed by `(agentId, userId)`:
+Two distinct rows. Sessions are short-lived; canvas state is long-lived per agent.
+
+**Active sessions** (one row per live cast session, TTL ≈ token expiry):
+
+| Key | Value |
+|-----|-------|
+| PK | `CANVAS_SESSION` |
+| SK | `SESSION#<sessionId>` |
+| body | `userId`, `currentAgentId | null`, `tokenHash`, `createdAt` |
+| TTL | session token expiry + grace |
+
+**Last canvas state** (one row per agent, TTL 30 days from last update — survives sessions):
 
 | Key | Value |
 |-----|-------|
@@ -235,7 +269,7 @@ Canvas state lives in DynamoDB alongside the existing agent data, keyed by `(age
 | body | latest A2UI tree, revision number, `updatedAt` |
 | TTL | 30 days from last update |
 
-A new cast session always starts from this row, then is overwritten by the next `canvas.show` call. TTL keeps the table from accumulating dead state for abandoned agents.
+When a session binds an agent, the canvas hydrates from the matching `CANVAS_STATE` row, then renders live updates over AG-UI. Each `canvas.show` call updates `CANVAS_STATE`, not `CANVAS_SESSION`.
 
 ## Lifecycle states
 
@@ -252,11 +286,12 @@ The canvas moves through a small state machine:
 | State | Trigger | UI |
 |---|---|---|
 | `boot` | Page load before Cast / browser handoff completes | Splash with logo |
-| `connecting` | Have backend URL + token, AG-UI stream not yet open | "Connecting to <agent>…" |
-| `live` | AG-UI stream open, latest A2UI tree rendering | Agent content |
+| `connecting` | Have backend URL + token, AG-UI stream not yet open | "Connecting…" |
+| `live-no-agent` | AG-UI stream open, no agent bound | "Pick an agent on your phone" + session ID |
+| `live` | AG-UI stream open + agent bound + tree rendering | Agent content |
 | `idle` | No `canvas.show` call for > 5 min | Last tree dimmed; subtle "idle" indicator |
 | `reconnecting` | Stream dropped; retry budget not exhausted | Last tree visible; "Reconnecting…" toast |
-| `error` | Token refresh failed, retry budget exhausted, or backend rejects | Branded error screen with "Recast from your phone" |
+| `error` | Token refresh failed, retry budget exhausted, session ended, or backend rejects | Branded error screen with "Restart from your phone" |
 
 Cast review requires every one of these to be a styled, branded screen — never a blank page or a raw error string.
 
@@ -278,15 +313,41 @@ Most agent UIs are read-only "look what I made" content. Resist building a remot
 
 ### Mobile cast experience
 
-The mobile **Canvas** tab sits between Jobs and Files in the bottom tab bar (lucide `Cast` icon). The screen has three states:
+The mobile **Canvas** tab sits between Jobs and Files in the bottom tab bar (lucide `Cast` icon). Two screens:
 
-1. **Searching** — when no devices are visible. Spinner + "Searching for devices."
-2. **Device list** — discovered Cast/AirPlay devices. Tapping one starts a session and the row shows a connecting indicator.
-3. **Connected** — shows the live cast target, which agent is bound, and controls: switch agent, blank screen, disconnect.
+**Picker** (default state of the tab)
 
-Discovery uses `react-native-google-cast` (Chromecast) and `AVRoutePickerView` (AirPlay on iOS). Both require an Expo prebuild + dev-client rebuild — they are native modules that can't run in Expo Go.
+```
+Cast to
 
-The mobile app also surfaces a **cast indicator** in the global header when a session is active, so the user can disconnect from anywhere in the app, not only the Canvas tab.
+  ◯ Living Room TV       Chromecast
+  ◯ Kitchen              Chromecast
+  ◯ (scanning…)
+
+  ─────────────────────
+
+  🌐 Open on a browser
+```
+
+Discovery starts immediately on tab open (matching native AirPlay/Cast picker conventions). The "Open on a browser" row is permanent — no discovery dependency, works on any screen, primary path for laptops/desktops/share-to-Slack.
+
+Tapping a Chromecast launches the receiver via Cast SDK. Tapping "Open on a browser" generates the session URL and opens the system share sheet (copy link, AirDrop, iMessage, email). Either way, mobile creates the session before the picker dismisses.
+
+**Device detail screen** (after a session starts)
+
+```
+Casting to: Living Room TV
+
+Currently showing: [No agent selected ▾]
+
+[End cast]
+```
+
+The device detail screen owns the agent binding. Picker writes to `/canvas/sessions/:id/bind`. "End cast" invalidates the session token; all viewers (Cast device + any browsers) get booted.
+
+Discovery uses `react-native-google-cast` (Chromecast) and `AVRoutePickerView` (AirPlay on iOS, later). Both require an Expo prebuild + dev-client rebuild — native modules that can't run in Expo Go. iOS prompts for local network access on first scan; pre-prompt with an explainer sheet on first tab visit.
+
+The mobile app also surfaces a **cast indicator** in the global header when a session is active, so the user can jump back to the device detail screen from anywhere.
 
 ## Canvas app structure
 
@@ -312,39 +373,43 @@ The bundle is intentionally small. No GraphQL client, no Apollo, no router — t
 
 The Gremlin backend logs canvas events the same way it logs other agent activity:
 
-- `canvas.session.started` — `{ agentId, userId, deviceModel }`
-- `canvas.session.ended` — `{ agentId, userId, durationSeconds, reason }`
+- `canvas.session.created` — `{ sessionId, userId, target: "chromecast" | "browser", deviceModel? }`
+- `canvas.session.bound` — `{ sessionId, userId, agentId, previousAgentId }`
+- `canvas.session.ended` — `{ sessionId, userId, durationSeconds, reason, viewerCount }`
+- `canvas.viewer.joined` — `{ sessionId, ip, userAgent }`
+- `canvas.viewer.left` — `{ sessionId, durationSeconds }`
 - `canvas.show.invoked` — `{ agentId, intentLength, contextSizeBytes }`
 - `canvas.subagent.latencyMs` — distribution per call
 - `canvas.subagent.error` — `{ reason, agentId }`
 - `canvas.stream.disconnects` — how often canvases lose the SSE stream
 
-The canvas itself sends a one-shot `canvas.heartbeat` every 30 s while live, so the backend can detect zombie sessions where the SSE write succeeded but the canvas is gone.
+Each connected viewer sends a one-shot `canvas.heartbeat` every 30 s while live, so the backend can detect zombie viewers where the SSE write succeeded but the browser is gone.
 
 ## v1 minimum-cut
 
-- Canvas app deployed at `ogcaster.com` via `gremlin-web`'s `CanvasStack`
+- Canvas app deployed at `ogcaster.com` via `gremlin-web`'s `CanvasStack` (done)
 - Registered with Google as a Cast Custom Receiver; whitelisted dev device for testing; publication review deferred
-- A2UI vocabulary as the canvas UI schema
-- AG-UI endpoint on the Gremlin backend (`/canvas/sse` + companion POST endpoints)
+- Backend session endpoints: `POST /canvas/sessions`, `POST /canvas/sessions/:id/bind`, `POST /canvas/sessions/:id/end`, `GET /canvas/sse?t=<token>`
+- DynamoDB rows: `CANVAS_SESSION` (active, short TTL) + `CANVAS_STATE` (last A2UI tree per agent, 30-day TTL)
+- Session-scoped tokens (sessionId-only, not agent-scoped)
+- A2UI vocabulary as the canvas UI schema; AG-UI as transport
 - AG-UI client + A2UI React renderer in the canvas app
-- Scoped canvas session tokens issued by the backend
 - `canvas.show(intent, context)` and `canvas.clear()` tools available to all agents
 - UI subagent (Haiku) with A2UI system prompt + few-shot examples
-- Last-state persistence per `(agentId, userId)` for splash continuity
-- Mobile cast tab with real device discovery (`react-native-google-cast`)
+- Mobile Canvas tab — scan-immediately picker + always-visible "Open on a browser" + device detail screen with agent picker and "End cast"
+- Mobile real device discovery (`react-native-google-cast`)
+- Browser-mode share-sheet delivery (copy link + system share)
 - Telemetry events listed above
-- Browser-mode signed link for non-cast viewers
-- All five lifecycle states styled — required for Cast review
+- All six lifecycle states styled (`boot`, `connecting`, `live-no-agent`, `live`, `reconnecting`, `error`) — required for Cast review
 
 ## Open questions
 
-- **Token refresh handoff** — if the mobile sender disconnects mid-session, does the canvas shut down gracefully or attempt to keep going on the last token until expiry? Current lean: shut down on sender disconnect to keep the lifecycle simple.
-- **SSE auth header** — browser `EventSource` can't set custom headers. Options: token in query string (`?t=`), token in cookie, or use `fetch()` streaming instead of EventSource. Lean: `?t=` for simplicity plus short TTL, but keep tokens out of access logs.
-- **Multi-viewer.** Should two phones be able to control one canvas? Defer.
+- **Token refresh when sender is gone** — browser-mode viewers have no sender to ask. Options: shorter-lived self-refresh via a `/canvas/sessions/:id/refresh` endpoint signed by the original token, or just expire and require restart from the phone. Lean: expire and restart.
+- **Multiple controllers.** v1 supports multiple viewers but only the original mobile sender can bind/end. Should a second authenticated phone in the same account be able to take control? Probably yes — same `userId` should work — but defer until needed.
 - **A2UI spec churn.** A2UI is brand new (Google launched 2026). Pin a version; expect API changes through the year.
 - **Component coverage.** The A2UI vocabulary may not cover every artifact agents want to surface. Strategy: prefer the standard vocabulary; extend via Tier-2 composites if A2UI itself doesn't add the missing piece.
-- **When do we enable Tier-3?** The current design defers customer-run forked canvases. Revisit when a real customer has an irreducible need for a custom component type.
+- **When do we enable Tier-3?** Customer-run forked canvases are deferred. Revisit when a real customer has an irreducible need for a custom component type.
+- **When do we enable browser-initiated pairing?** "Open ogcaster cold, scan QR with phone to pair" requires a control-plane pairing service. Defer until telemetry shows a real demand.
 - **Idle timeout duration.** 5 min is a guess. Tune based on real session telemetry.
-- **CDN region.** CloudFront is global, but a canvas-fetched in low-bandwidth regions may take seconds to boot. Worth measuring before publication.
+- **CDN region.** CloudFront is global, but the canvas in low-bandwidth regions may take seconds to boot. Worth measuring before publication.
 - **Cost ceiling on UI subagent.** Haiku is cheap but `canvas.show` could be called frequently by chatty agents. Consider a per-agent rate limit and/or a "no-LLM" deterministic path for simple structured data.
