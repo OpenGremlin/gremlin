@@ -65,7 +65,6 @@ export function resolvePromptFlags(
   opts: {
     modelSupportsImages: boolean;
     hasSkills: boolean;
-    hasPlan?: boolean;
   },
 ) {
   return {
@@ -76,7 +75,6 @@ export function resolvePromptFlags(
     speech: !!config?.speech?.enabled,
     manager: !!config?.manager?.enabled,
     hasSkills: opts.hasSkills,
-    hasPlan: opts.hasPlan ?? false,
   };
 }
 

@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  formatAttachments,
-  mapEntry,
-  TOOL_RESULT_COMPACT_THRESHOLD,
-} from "./index.js";
+import { formatAttachments, mapEntry } from "./index.js";
 
 describe("formatAttachments", () => {
   it("returns empty string for undefined", () => {
@@ -98,105 +94,14 @@ describe("mapEntry", () => {
     expect(result).toEqual({ role: "assistant", content: "Done" });
   });
 
-  it("maps TOOL entries with result", () => {
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: viewImage",
-      toolName: "viewImage",
-      toolInput: '{"path":"photo.png"}',
-      toolResult: '{"type":"image"}',
-    });
-    expect(result?.role).toBe("user");
-    expect(result?.content).toContain("viewImage");
-    expect(result?.content).toContain('{"type":"image"}');
-  });
-
-  it("skips TOOL entries without result", () => {
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: viewImage",
-      toolName: "viewImage",
-      toolInput: '{"path":"photo.png"}',
-      toolResult: null,
-    });
-    expect(result).toBeNull();
-  });
-
-  it("skips internal TOOL entries", () => {
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: writeFile",
-      toolName: "writeFile",
-      toolInput: "{}",
-      toolResult: "{}",
-      internal: true,
-    });
-    expect(result).toBeNull();
+  it("returns null for TOOL entries (grouped in buildContextMessages)", () => {
+    // TOOL entries are handled in flushToolBuffer, not mapEntry — see
+    // buildContextMessages.test.ts for coverage of the grouping + compaction.
+    expect(mapEntry({ role: "TOOL", content: "Tool call: foo" })).toBeNull();
   });
 
   it("returns null for unknown roles", () => {
     const result = mapEntry({ role: "UNKNOWN", content: "?" });
     expect(result).toBeNull();
-  });
-
-  it("compacts large runCommand results into a summary", () => {
-    const largeOutput = "x".repeat(TOOL_RESULT_COMPACT_THRESHOLD + 1);
-    const toolResult = JSON.stringify({
-      output: largeOutput,
-      exitCode: 0,
-      timedOut: false,
-      commandId: "cmd-abc",
-    });
-
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: runCommand",
-      toolName: "runCommand",
-      toolInput: '{"command":"find . -name *.ts"}',
-      toolResult,
-    });
-
-    expect(result?.role).toBe("user");
-    const content = result?.content as string;
-    // Should NOT contain the full large output
-    expect(content.length).toBeLessThan(toolResult.length);
-    // Should contain compact metadata
-    expect(content).toContain("exitCode");
-    expect(content).toContain("readCommandOutput");
-    expect(content).toContain("cmd-abc");
-    // Should contain a preview
-    expect(content).toContain("Preview:");
-  });
-
-  it("does not compact small runCommand results", () => {
-    const toolResult = JSON.stringify({
-      output: "hello",
-      exitCode: 0,
-      timedOut: false,
-    });
-
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: runCommand",
-      toolName: "runCommand",
-      toolInput: '{"command":"echo hello"}',
-      toolResult,
-    });
-
-    expect(result?.content).toContain(toolResult);
-  });
-
-  it("does not compact non-runCommand tools even if large", () => {
-    const largeResult = "y".repeat(TOOL_RESULT_COMPACT_THRESHOLD + 1);
-
-    const result = mapEntry({
-      role: "TOOL",
-      content: "Tool call: readFile",
-      toolName: "readFile",
-      toolInput: '{"path":"big.txt"}',
-      toolResult: largeResult,
-    });
-
-    expect(result?.content).toContain(largeResult);
   });
 });

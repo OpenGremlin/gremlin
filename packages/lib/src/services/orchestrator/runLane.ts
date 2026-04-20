@@ -85,7 +85,7 @@ export async function runLane(
   const fullSystemPrompt = [systemPrompt, memoryContext]
     .filter(Boolean)
     .join("\n\n");
-  let contextTokens = estimateContextTokens(messages, fullSystemPrompt);
+  let contextTokens = estimateContextTokens(messages, fullSystemPrompt, tools);
 
   // Pre-prompt overflow guard: if context is approaching the model's input
   // limit, compact synchronously before sending to avoid a context overflow

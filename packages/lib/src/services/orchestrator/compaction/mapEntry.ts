@@ -1,14 +1,16 @@
 import type { ModelMessage } from "ai";
-import { compactToolResult } from "./compactToolResult.js";
 import { formatAttachments } from "./formatAttachments.js";
 
-/** @internal Exported for testing. */
+/**
+ * Map a non-TOOL agent log entry to a ModelMessage. TOOL entries are handled
+ * separately in `buildContextMessages` so consecutive calls can be grouped
+ * into proper AI SDK tool-call / tool-result content parts.
+ *
+ * @internal Exported for testing.
+ */
 export function mapEntry(node: {
   role: string;
   content: string;
-  toolName?: string | null;
-  toolInput?: string | null;
-  toolResult?: string | null;
   attachments?: Array<{
     type: string;
     path?: string;
@@ -27,27 +29,13 @@ export function mapEntry(node: {
     };
   }
   if (node.role === "SYSTEM") {
+    // Historical SYSTEM entries (errors, related-task context, compaction
+    // summaries) render as user turns so the model sees them as part of the
+    // conversation rather than competing with its real system prompt.
     return {
       role: "user",
       content: node.content + formatAttachments(node.attachments),
     };
-  }
-  if (node.role === "TOOL" && !node.internal) {
-    // Include tool calls as system context so the model knows what it already did.
-    // Using "user" role to avoid the model mimicking the format in its own output.
-    const name = node.toolName ?? "unknown";
-    const input = node.toolInput ?? "";
-    const result =
-      node.toolResult && node.toolResult !== "null" ? node.toolResult : null;
-    if (result) {
-      const compacted = compactToolResult(name, result);
-      return {
-        role: "user",
-        content: `[System: you called ${name} with ${input} and got: ${compacted ?? result}]`,
-      };
-    }
-    // Call-only entry (no result yet) — skip
-    return null;
   }
   return null;
 }

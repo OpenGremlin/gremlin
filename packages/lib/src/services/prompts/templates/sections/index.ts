@@ -9,7 +9,6 @@ export { jobsSection } from "./jobs.js";
 export { managerSection } from "./managerSection.js";
 export { memorySection } from "./memory.js";
 export { taskFileEditorSection } from "./taskFileEditor.js";
-export { taskPlanSection } from "./taskPlan.js";
 export { taskPreambleSection } from "./taskPreamble.js";
 export { taskSandboxSection } from "./taskSandbox.js";
 export { taskWorkflowSection } from "./taskWorkflow.js";

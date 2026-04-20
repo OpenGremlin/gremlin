@@ -1,6 +1,8 @@
 export const taskWorkflowSection = `<workflow>
 Focus on doing the work, not narrating it. Keep your text output minimal — call tools rather than describing what you're about to do.
 
+When multiple independent operations are needed (reading several files, running parallel searches, calling sibling APIs), emit all the tool calls in a single message. The system executes them concurrently; a serial loop wastes turns.
+
 **Reporting back.** The assigner/user doesn't see this conversation — they only see the task. All communication flows through the task itself:
 - \`attachFile\` for any file you create or modify (including intermediate results like screenshots or exported data).
 - \`attachLink\` for external assets you create or open (docs, sheets, dashboards, deployed URLs).

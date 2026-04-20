@@ -19,7 +19,6 @@ describe("resolvePromptFlags", () => {
       speech: false,
       manager: false,
       hasSkills: false,
-      hasPlan: false,
     });
   });
 
@@ -189,7 +188,6 @@ describe("renderTaskSystemPrompt", () => {
   const allOff = {
     viewImage: false,
     sandbox: false,
-    hasPlan: false,
   };
 
   it("includes task preamble with interpolated values", () => {
@@ -229,9 +227,9 @@ describe("renderTaskSystemPrompt", () => {
     expect(result).toContain("listFiles");
     expect(result).toContain("glob");
     expect(result).toContain("grep");
-    expect(result).toContain("NOT cat");
-    expect(result).toContain("NOT sed");
-    expect(result).toContain("NOT find");
+    // The "prefer dedicated tools over shell" rule is load-bearing — without
+    // it, agents reach for cat/sed/find when they have the typed tools.
+    expect(result).toMatch(/do not use shell commands/i);
   });
 
   // These guard the load-bearing instructions that fix the Pokédex-style

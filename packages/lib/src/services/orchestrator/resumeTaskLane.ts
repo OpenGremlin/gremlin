@@ -28,7 +28,6 @@ export async function resumeTaskLane(
   const flags = resolvePromptFlags(agent.config, {
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
-    hasPlan: true,
   });
 
   let systemPrompt = renderTaskSystemPrompt(

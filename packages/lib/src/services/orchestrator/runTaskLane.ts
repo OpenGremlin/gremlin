@@ -8,7 +8,6 @@ import {
   type AgentLaneContext,
   buildTaskTools,
 } from "./agentLaneContext/index.js";
-import { formatPlan, generatePlan } from "./generatePlan.js";
 import { runLane } from "./runLane.js";
 import { writeAgentLog } from "./writeAgentLog.js";
 
@@ -117,31 +116,9 @@ export async function runTaskLane(
 
   const taskTitle = task?.title ?? prompt.slice(0, 80);
 
-  // Generate an execution plan for new task runs (not for user follow-ups)
-  let planText: string | undefined;
-  if (isSystemTrigger) {
-    try {
-      const plan = await generatePlan(ctx, agentId, taskTitle, prompt);
-      planText = formatPlan(plan);
-
-      await writeAgentLog(ctx, {
-        agentId,
-        taskId,
-        role: "SYSTEM",
-        content: `[Execution plan]\n\n${planText}`,
-      });
-    } catch (err) {
-      ctx.log.warn(
-        { err, agentId, taskId },
-        "Plan generation failed, proceeding without plan",
-      );
-    }
-  }
-
   const flags = resolvePromptFlags(agent.config, {
     modelSupportsImages: agentLaneCtx.modelSupportsImages,
     hasSkills: !!agentLaneCtx.skillSummary.promptSection,
-    hasPlan: !!planText,
   });
 
   let systemPrompt = renderTaskSystemPrompt(

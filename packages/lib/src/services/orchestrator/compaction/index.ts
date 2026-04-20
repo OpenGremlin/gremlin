@@ -5,7 +5,6 @@ export {
   effectiveInputLimit,
   HARD_COMPACTION_CAP,
   PRE_PROMPT_COMPACTION_RATIO,
-  TOOL_RESULT_COMPACT_THRESHOLD,
 } from "./constants.js";
 export { estimateContextTokens } from "./estimateContextTokens.js";
 export { formatAttachments } from "./formatAttachments.js";

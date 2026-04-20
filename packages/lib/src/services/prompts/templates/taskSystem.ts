@@ -3,7 +3,6 @@ import {
   jobsSection,
   memorySection,
   taskFileEditorSection,
-  taskPlanSection,
   taskPreambleSection,
   taskSandboxSection,
   taskWorkflowSection,
@@ -12,7 +11,6 @@ import {
 export interface TaskSystemPromptFlags {
   viewImage: boolean;
   sandbox: boolean;
-  hasPlan: boolean;
 }
 
 /**
@@ -20,7 +18,7 @@ export interface TaskSystemPromptFlags {
  * Returns a Handlebars template string — the caller renders it with data.
  *
  * Order: who (identity) → what (task context) → how (workflow) →
- * with-what-tools (file editor, sandbox, plan) → auxiliary (jobs, memory).
+ * with-what-tools (file editor, sandbox) → auxiliary (jobs, memory).
  */
 export function assembleTaskSystemTemplate(
   flags: TaskSystemPromptFlags,
@@ -33,7 +31,6 @@ export function assembleTaskSystemTemplate(
   ];
 
   if (flags.sandbox) sections.push(taskSandboxSection);
-  if (flags.hasPlan) sections.push(taskPlanSection);
   sections.push(jobsSection);
   sections.push(memorySection);
 
