@@ -8,71 +8,79 @@ Agents produce visual artifacts (charts, images, code, data tables, walkthroughs
 
 Cast support is the headline delivery channel, but the canvas is also just a webpage — anyone can open it in a browser tab and get the same view.
 
-### Non-goals
+### Non-goals for v1
 
-- **Not a remote control surface.** The canvas displays agent output. Touch/gesture interaction passthrough is explicitly out of scope for v1.
-- **Not a screen mirror.** The canvas is not a video stream of the mobile app. It is its own page rendering its own React tree from server-pushed state.
-- **Not multi-viewer.** v1 assumes one phone driving one canvas. Cast technically supports multiple senders; that's deferred.
-- **No audio.** Cast supports audio streams; the canvas does not use them.
+- **No remote control surface.** The canvas displays agent output. Touch/gesture interaction passthrough is out of scope.
+- **No screen mirror.** The canvas is its own page rendering its own React tree from server-pushed state, not a video stream of the mobile app.
+- **No multi-viewer.** One phone driving one canvas. Cast technically supports multiple senders; deferred.
+- **No audio.** Cast supports audio streams; the canvas doesn't use them.
 - **No offline mode.** Receiver requires a live AG-UI stream. If the connection drops past the reconnect budget, it shows an error state.
+- **No per-deployment UX bundles.** All deployments share one canvas app (hosted at `ogcaster.com`). If the canvas doesn't support a component, agents can't emit it. Theming and server-side composition templates cover the real customization needs; true code-level customization is a Tier-3 escape hatch (deferred).
 
 ## Architecture
 
 ```
- Mobile (sender)              Cast device                Gremlin backend
- ───────────────              ───────────                ───────────────
+ Mobile               Cast device                  Gremlin backend
+ (sender)             ogcaster.com                 (per deployment)
+ ──────               ────────────                 ──────────────
 
- user taps "cast"
+ user taps cast
        ↓
  Cast SDK discovers
        ↓
- launches Receiver App ID  →  loads opengremlincanvas.com
-                                    ↓
- sends { backendUrl,        →  receiver gets session info
-         token, agentId }        opens AG-UI stream  →  /canvas/sse
-                                    ↑                          ↑
-                                    │                  agent calls canvas.show()
-                                    │                          ↓
-                                    │                  UI subagent (Haiku)
-                                    │                  emits A2UI tree
-                                    └──── A2UI events ─┘
+ launches App ID  →  loads ogcaster.com
+                     (self-contained canvas app)
+                          ↓
+ sends {           →   canvas boots with session
+   backendUrl,
+   token,
+   agentId,
+   sessionId
+ }
+                        opens AG-UI SSE stream  ──────→  /canvas/sse
+                             ↑                               ↑
+                             │                     agent calls canvas.show()
+                             │                               ↓
+                             │                     UI subagent (Haiku)
+                             │                     emits A2UI tree
+                             └──── A2UI events ──────────────┘
 ```
 
-Three layers in motion:
+Three things in motion:
 
-- **Cast** wires the mobile app to a TV-class browser running our receiver page.
-- **AG-UI** is the bi-directional event stream between receiver and Gremlin backend.
-- **A2UI** is the declarative UI schema agents emit; the receiver renders it as React components.
+- **Cast** wires the mobile app to a TV-class browser running the canvas page.
+- **AG-UI** is the bi-directional event stream between the canvas and the deployment's Gremlin backend.
+- **A2UI** is the declarative UI schema agents emit, which AG-UI carries and the canvas renders.
 
 ## Hosting
 
-The canvas page lives on a **separate eTLD+1** from `opengremlin.com` — e.g. `opengremlincanvas.com`. Two reasons:
+The canvas is a single app deployed once to **`ogcaster.com`** — a domain the opengremlin control plane owns. Every deployment (managed or self-hosted) uses the same canvas; the only per-deployment inputs are the `backendUrl`, `token`, and `agentId` passed in the Cast launch message.
 
-- **Cookie isolation.** Anything set on `.opengremlin.com` is automatically scoped away. An XSS or supply-chain compromise in the canvas can't grab opengremlin.com session cookies or hit opengremlin.com APIs as the user. Industry pattern: GitHub → `githubusercontent.com`, Google → `googleusercontent.com`, Dropbox → `dropboxusercontent.com`.
-- **Permanence.** The Cast Receiver App ID is bound to the URL forever. Moving domains later means a new App ID and a sender update.
+### Why a separate eTLD+1
 
-The infra (S3 + CloudFront + OAC) is in `packages/infra/lib/canvas-stack.ts`. The bundle is built from `apps/canvas` (Vite + React).
+`ogcaster.com` is a different eTLD+1 from `opengremlin.com` and from any customer domain:
 
-### Why Vite + React
+- **Cookie isolation.** No auth cookies exist on the canvas origin. An XSS in the canvas can't reach cookies set on opengremlin or customer domains. Industry pattern — GitHub → `githubusercontent.com`, Google → `googleusercontent.com`.
+- **Cast App ID permanence.** The registered URL is bound to the App ID forever. Putting it under a different TLD decouples it from opengremlin.com's DNS story.
 
-- **Vite** because the receiver is a single static SPA — no server, no SSR, no routing complexity. Vite's tiny dev server and zero-config build are a clean fit. The bundle is a few hundred KB and ships to CloudFront.
-- **React** because the A2UI React renderer (Q1 2026) is the official path. The canvas is a thin wrapper around `<A2UIRenderer tree={current} />` plus state from the AG-UI client.
+### Why one app, not a bootloader + per-deployment bundle
 
-### Why a single hosted shim, not per-deployment receivers
+An earlier design had the canvas as a thin bootloader at ogcaster.com that dynamically imported a per-deployment bundle. That was dropped because:
 
-Gremlin is self-hostable; every customer has their own backend URL. But the Cast Receiver App ID is bound to one HTTPS URL and requires a $5 + multi-week Google review per registration. Asking each self-hosted user to register their own receiver is untenable.
+- **Google Cast policy §3.4.1** requires "appropriate steps to ensure that your application cannot be invoked to launch content for which you are not responsible." A sender-supplied `bundleUrl` is exactly what the policy prohibits.
+- **Complexity tax.** Signed URLs, origin allowlists, CORS on every customer CloudFront, bundle-contract versioning — all needed to make the bootloader safe.
+- **Customization demand is modest.** Theming + server-provided component compositions cover the common cases. True code-level customization is rare enough to justify the Tier-3 escape hatch instead of a default path.
 
-So opengremlincanvas.com is a **single static shim** that knows how to point at any Gremlin backend. The customer's backend URL is passed in as a runtime parameter (see [Auth and session bootstrap](#auth-and-session-bootstrap)). The opengremlin domain hosts a CDN-served HTML+JS bundle; it's never in the data path. Plex, Jellyfin, and Home Assistant all use exactly this pattern.
+### Infra
 
-For paranoid self-hosters who don't want to depend on opengremlincanvas.com, the same bundle can be hosted under their own domain and registered as their own Receiver — same code, different App ID.
+The canvas lives in the closed-source control plane repo (`gremlin-web/packages/canvas`) and is deployed by `gremlin-web/packages/infra/lib/canvas-stack.ts`:
 
-### Build and deploy pipeline
+- Dedicated Route 53 hosted zone for `ogcaster.com`
+- ACM cert (DNS-validated via Route 53)
+- S3 bucket (BLOCK_ALL + OAC)
+- CloudFront distribution with SPA fallbacks (403/404 → `/index.html`), short 5-min TTL so urgent fixes propagate quickly
 
-The receiver build mirrors the existing `apps/mobile` web build pattern:
-
-- `apps/canvas/scripts/build-web.sh` runs `turbo prune @opengremlin/canvas`, installs into a slim node container, runs `pnpm build`, and copies `dist/` to the CDK asset output.
-- CDK invokes the script during synth via `s3deploy.BucketDeployment`'s Docker bundling, then ships the result to S3 and invalidates CloudFront.
-- The CloudFront URL is published to SSM at `/gremlin/canvas-url` so other stacks (and the mobile app) can resolve it without hardcoding.
+The CloudFormation stack ID is `GremlinCanvasBootloaderStack` (historical — the stack was initially created when the design was still a bootloader). The name stays because renaming would tear down the hosted zone and invalidate the registrar's NS record configuration.
 
 ## Cast registration
 
@@ -80,35 +88,38 @@ Steps to register the canvas as a Custom Receiver in the Google Cast SDK Develop
 
 1. Sign up for the Cast SDK Developer Console (one-time $5 fee).
 2. Register the dev/test Chromecast device by serial number — unpublished receivers only run on whitelisted devices.
-3. Create a Custom Receiver app pointing at `https://opengremlincanvas.com`. The console returns a permanent **Application ID** (e.g. `ABCD1234`) that mobile senders use to launch the receiver.
+3. Create a Custom Receiver app pointing at `https://ogcaster.com`. The console returns a permanent **Application ID** (e.g. `ABCD1234`) that mobile senders use to launch the receiver.
 4. Reboot the registered device so it picks up the whitelist (~15-min propagation).
 5. For public release, submit for publication review (weeks-long, manual). Until then the receiver works on whitelisted devices only — fine for dev, beta, or self-hosters.
 
 ## Auth and session bootstrap
 
-The receiver loads with no auth context — it's just a static page on `opengremlincanvas.com`. The mobile app, which is already authenticated to the Gremlin backend, brokers the session.
+The canvas loads with no auth context. The mobile app, which is already authenticated to its deployment's Gremlin backend, brokers the session.
 
 Sequence on cast start:
 
-1. Mobile asks the Gremlin backend for a **scoped canvas session token** — short-lived (~5 min), refreshable, scoped to one `(agentId, sessionId)` pair. Not full account access.
-2. Mobile launches the receiver via Cast App ID.
-3. Mobile sends `{ backendUrl, token, agentId, sessionId }` to the receiver as the first custom message on namespace `urn:x-cast:com.opengremlin.canvas`.
-4. Receiver opens an AG-UI stream to `${backendUrl}/canvas/sse` with the token in the `Authorization` header.
-5. On token expiry, receiver requests a refresh from the sender over the same custom-message channel.
+1. Mobile asks its backend for a **scoped canvas session token** — short-lived (~5 min), refreshable, scoped to one `(agentId, sessionId)` pair. Not full account access.
+2. Mobile launches the receiver via Cast App ID. The canvas loads from `ogcaster.com`.
+3. Mobile sends `{ version, backendUrl, token, agentId, sessionId }` to the canvas as the first custom message on namespace `urn:x-cast:com.opengremlin.canvas`.
+4. Canvas opens an AG-UI stream to `${backendUrl}/canvas/sse` with the token in the `Authorization` header (or `?t=` query param, since SSE can't send custom headers from the browser — see Streaming semantics).
+5. On token expiry, canvas requests a refresh from the sender over the same custom-message channel.
 
-Why scoped tokens: the Cast device is in someone's home but it's still arbitrary hardware running an arbitrary CAF runtime. A leaked token can only do canvas operations against one session, not impersonate the user.
+Why scoped tokens: the Cast device is in someone's home but it's still arbitrary hardware. A leaked token can only do canvas operations against one session, not impersonate the user.
 
 ### Browser-only mode
 
-The same canvas page works in a regular browser tab — no Cast involved. This is the dev path and a fallback for users without a cast device.
+The same canvas page works in a regular browser tab — no Cast involved. This is the dev path and a fallback for users without a Cast device.
 
-In browser mode, the page reads `backendUrl`, `token`, and `agentId` from URL query params instead of a Cast custom message. The mobile app generates a signed link the user can open on a laptop:
+In browser mode, the canvas reads `backend`, `t`, `agent`, and optional `session` from URL query params instead of a Cast custom message:
 
 ```
-https://opengremlincanvas.com/?backend=https%3A%2F%2Fgremlin.acme.com&agent=AGT_42&t=<scoped-token>
+https://ogcaster.com/?
+  backend=https%3A%2F%2Fgremlin.acme.com&
+  agent=AGT_42&
+  t=<scoped-token>
 ```
 
-Same auth model, same AG-UI stream, same renderer. The CAF bootstrap (`apps/canvas/src/cast.ts`) no-ops outside a Cast device, so the browser path falls through cleanly.
+Same auth model, same AG-UI stream, same renderer.
 
 ## Transport: AG-UI
 
@@ -116,35 +127,35 @@ Same auth model, same AG-UI stream, same renderer. The CAF bootstrap (`apps/canv
 
 Why AG-UI rather than rolling our own over `graphql-ws`:
 
-- **Purpose-built.** AG-UI defines lifecycle, state-patch, tool-call, and message events. Re-implementing all of this on top of GraphQL subscriptions is a meaningful rebuild.
+- **Purpose-built.** AG-UI defines lifecycle, state-patch, tool-call, and message events. Re-implementing on top of GraphQL subscriptions would be a meaningful rebuild.
 - **SSE-friendly through CDNs and proxies.** CloudFront passes SSE through cleanly; corporate networks rarely block it the way they block WebSockets.
-- **Survives sender sleep.** SSE is a server → client push, so the receiver doesn't depend on mobile staying foregrounded. The Cast session can outlive the phone going to sleep.
+- **Survives sender sleep.** SSE is server → client push, so the canvas doesn't depend on mobile staying foregrounded. The Cast session can outlive the phone going to sleep.
 
-AG-UI runs **alongside** the existing GraphQL stack, not as a replacement. A new endpoint (e.g., `/canvas/sse`) is added to the Gremlin backend. Everything else continues to use GraphQL.
+AG-UI runs **alongside** the existing GraphQL stack on the backend, not as a replacement. A new endpoint (`/canvas/sse` + companion POST endpoints) is added to the Gremlin backend. Everything else continues to use GraphQL.
 
 ## UI schema: A2UI
 
-[A2UI](https://a2ui.org/) is Google's declarative UI protocol for agent-driven interfaces. Agents emit a flat list of components with ID references; the client maps each component to a native widget. A2UI explicitly does not support arbitrary code execution — agents can only emit declarative trees, not JS.
+[A2UI](https://a2ui.org/) is Google's declarative UI protocol for agent-driven interfaces. Agents emit a flat list of components with ID references; the canvas maps each component to a native widget. A2UI explicitly does not support arbitrary code execution — agents emit declarative trees, not JS.
 
 Why A2UI rather than rolling a custom component schema:
 
 - **LLM-friendly.** Designed to be incrementally generated, self-corrected mid-stream, and partially rendered.
-- **Standard vocabulary.** Avoids reinventing component types like `text`, `image`, `code`, `chart`, `stack`, `card`.
-- **Safety property.** No code execution is the exact property that makes hosting on a separate domain safe — even an A2UI tree compromised in transit can't run JS in the canvas page.
-- **React renderer.** A native A2UI React renderer is shipping in 2026, which slots directly into the Vite + React canvas app.
+- **Standard vocabulary.** Avoids reinventing `text`, `image`, `code`, `chart`, `stack`, `card`.
+- **Safety.** The no-code-execution property is the exact property that keeps the canvas safe to host on a shared origin across all deployments.
+- **React renderer.** The A2UI React renderer lands directly into our Vite + React app.
 
-A2UI rides on top of AG-UI: agents emit A2UI trees, AG-UI streams them as state-patch events.
+A2UI rides on top of AG-UI — agents emit A2UI trees, AG-UI streams them as state-patch events.
 
 ### Streaming semantics
 
 Each canvas update carries a monotonic `revision` number. The wire protocol leans on AG-UI's standard event types:
 
-- `RUN_STARTED` — UI subagent began producing a new tree.
-- `STATE_DELTA` — partial A2UI tree fragment; receiver merges by component ID.
-- `RUN_FINISHED` — tree complete; receiver may transition out of any "rendering" state.
-- `STATE_SNAPSHOT` — full A2UI tree, used on initial connect and reconnects.
+- `RUN_STARTED` — UI subagent began producing a new tree
+- `STATE_DELTA` — partial A2UI tree fragment; canvas merges by component ID
+- `RUN_FINISHED` — tree complete; canvas may transition out of any "rendering" state
+- `STATE_SNAPSHOT` — full A2UI tree, used on initial connect and reconnects
 
-Because A2UI components are addressed by ID, the receiver can apply deltas mid-stream and the partial state is always renderable.
+Because A2UI components are addressed by ID, the canvas can apply deltas mid-stream and the partial state is always renderable.
 
 ## Tool surface
 
@@ -155,17 +166,17 @@ canvas.show(intent: string, context?: Json)
 canvas.clear()
 ```
 
-The agent describes *what* it wants to surface ("show the chart I generated comparing Q1 vs Q2 revenue") and hands over whatever raw data it has (the chart numbers, an image URL, a code snippet). It does not lay out components, pick fonts, or reason about hierarchy.
+The agent describes *what* it wants to surface ("show the chart I generated comparing Q1 vs Q2 revenue") and hands over whatever raw data it has. It doesn't lay out components, pick fonts, or reason about hierarchy.
 
 ### Tool semantics
 
 | Aspect | Behavior |
 |---|---|
-| Return value to task agent | `{ rendered: true, revision }` on success; `{ rendered: false, reason }` on failure. Agent gets a confirmation it can reference in subsequent reasoning. |
-| Idempotency | Each call replaces the canvas root by default. Append/merge semantics are not v1. |
-| Error path | UI subagent failure surfaces as a tool error to the task agent, not as a broken canvas. The receiver keeps showing whatever it had. |
-| No active session | Tool succeeds and writes to persisted last-state, but no live receiver is updated. Next cast session picks up the persisted state. |
-| Tool is always available | Every agent gets `canvas.show` and `canvas.clear`. No opt-in flag. The system prompt nudges sparing use. |
+| Return value | `{ rendered: true, revision }` on success; `{ rendered: false, reason }` on failure. Agent gets a confirmation it can reference. |
+| Idempotency | Each call replaces the canvas root. Append/merge semantics are not v1. |
+| Error path | UI subagent failure surfaces as a tool error to the task agent, not as a broken canvas. The canvas keeps showing whatever it had. |
+| No active session | Tool succeeds and writes to persisted last-state; no live receiver is updated. Next cast session picks up the persisted state. |
+| Always available | Every agent gets `canvas.show` and `canvas.clear`. No opt-in flag. The system prompt nudges sparing use. |
 
 ## UI subagent
 
@@ -183,25 +194,35 @@ Translation from intent to A2UI tree happens in a dedicated **UI subagent** — 
             ↓
  Orchestrator forwards each AG-UI event to the canvas channel
             ↓
- Receiver renders incrementally
+ Canvas renders incrementally
 ```
 
 Why a subagent rather than letting the task agent emit A2UI directly:
 
 - **Focus.** Task agents reason about tasks. Bloating their system prompt with A2UI vocabulary is dead weight on every reasoning step.
-- **Single source of UI judgment.** Layout, hierarchy, and what to emphasize live in one prompt. You can iterate on visual style without touching task agents.
-- **Cheap model fits the job.** Translation problems suit Haiku; reasoning problems suit Sonnet/Opus. This keeps the expensive model on the work that justifies it.
+- **Single source of UI judgment.** Layout, hierarchy, and emphasis live in one prompt. Iterate on visual style without touching task agents.
+- **Cheap model fits the job.** Translation suits Haiku; reasoning suits Sonnet/Opus.
 - **Stateless per invocation.** Avoids canvas-state drift across the task agent's multi-turn reasoning.
 
 ### Fast path for the obvious cases
 
 Trivial intents — "show this image", "show this code block" — short-circuit through a deterministic intent → A2UI mapper. No LLM call. The UI subagent only fires for ambiguous "compose something nice from this data" cases.
 
+## Customization tiers
+
+What a deployment can change without forking the canvas:
+
+**Tier 1: Theme config.** Send a theme event at session start over AG-UI — colors, fonts, logo, accent, copy strings. The canvas honors it. Covers brand matching.
+
+**Tier 2: Composition templates.** A deployment registers A2UI composites in its backend (built from primitives, referenced by ID). The agent calls `canvas.show` with a template ID; the backend expands it against the primitive set before streaming. A2UI macros, essentially — no JS execution, still safe.
+
+**Tier 3 (deferred): Fork your own.** A deployment that genuinely needs novel component types or custom renderers forks the canvas app, customizes it, hosts it themselves, and registers their own Cast Receiver App ID with Google ($5 + review). Not supported in v1; revisit if a real customer asks.
+
 ## Initial trigger
 
 Agents decide when to surface things. The system prompt nudges them: "when you produce visual artifacts, call `canvas.show`." Users can also ask explicitly ("put that on the canvas") — the agent translates to a tool call. One pathway, two ways to invoke it.
 
-What appears when the user first casts: persist the **last canvas state** per `(agentId, userId)`. If nothing has been shown yet, render a branded splash with "Waiting for &lt;agent name&gt;." Avoid blank screens — also a Cast review requirement.
+What appears when the user first casts: persist the **last canvas state** per `(agentId, userId)`. If nothing has been shown yet, render a branded splash ("Waiting for <agent name>"). Avoid blank screens — also a Cast review requirement.
 
 ## Persistence
 
@@ -218,7 +239,7 @@ A new cast session always starts from this row, then is overwritten by the next 
 
 ## Lifecycle states
 
-The receiver moves through a small state machine:
+The canvas moves through a small state machine:
 
 ```
  boot → connecting → live → idle → live → ...
@@ -231,27 +252,27 @@ The receiver moves through a small state machine:
 | State | Trigger | UI |
 |---|---|---|
 | `boot` | Page load before Cast / browser handoff completes | Splash with logo |
-| `connecting` | Have backend URL + token, AG-UI stream not yet open | "Connecting to &lt;agent&gt;…" |
+| `connecting` | Have backend URL + token, AG-UI stream not yet open | "Connecting to <agent>…" |
 | `live` | AG-UI stream open, latest A2UI tree rendering | Agent content |
-| `idle` | No `canvas.show` call for &gt; 5 min | Last tree dimmed; subtle "idle" indicator |
+| `idle` | No `canvas.show` call for > 5 min | Last tree dimmed; subtle "idle" indicator |
 | `reconnecting` | Stream dropped; retry budget not exhausted | Last tree visible; "Reconnecting…" toast |
-| `error` | Token refresh failed, retry budget exhausted, or backend rejects | Branded error screen with "Recast from your phone" instruction |
+| `error` | Token refresh failed, retry budget exhausted, or backend rejects | Branded error screen with "Recast from your phone" |
 
 Cast review requires every one of these to be a styled, branded screen — never a blank page or a raw error string.
 
 ## Reconnection and recovery
 
-- **SSE reconnect** — exponential backoff up to 30 s, capped at 5 attempts before surfacing `error`. The AG-UI client handles this; the receiver only renders status.
-- **State recovery on reconnect** — receiver requests a `STATE_SNAPSHOT` (current persisted A2UI tree) so it doesn't have to wait for the next `canvas.show` to repopulate.
-- **Token expiry** — receiver detects a 401, asks the sender for a refresh via Cast custom message. If the sender is unreachable (phone gone), receiver transitions to `error` after one attempt.
-- **Sender disconnect** — Cast session ends, receiver page is destroyed by the Cast device. No graceful shutdown needed; the persisted state remains for the next session.
+- **SSE reconnect** — exponential backoff up to 30 s, capped at 5 attempts before surfacing `error`.
+- **State recovery on reconnect** — canvas requests a `STATE_SNAPSHOT` (current persisted A2UI tree) so it doesn't have to wait for the next `canvas.show` to repopulate.
+- **Token expiry** — canvas detects a 401, asks the sender for a refresh via Cast custom message. If the sender is unreachable, canvas transitions to `error` after one attempt.
+- **Sender disconnect** — Cast session ends, the canvas page is destroyed by the Cast device. No graceful shutdown needed; the persisted state remains for the next session.
 
 ## Phone controls
 
 Two layers, only the first is in scope for v1:
 
 - **Session control** — start/stop cast, switch which agent the canvas is bound to, blank the screen.
-- **UI interaction** (later) — scroll, zoom, select, sent as commands over the same Cast custom-message channel back to the receiver, which forwards to the backend as mutations.
+- **UI interaction** (later) — scroll, zoom, select, sent as commands over the same Cast custom-message channel back to the canvas, which forwards to the backend as mutations.
 
 Most agent UIs are read-only "look what I made" content. Resist building a remote-control surface on day one.
 
@@ -267,25 +288,25 @@ Discovery uses `react-native-google-cast` (Chromecast) and `AVRoutePickerView` (
 
 The mobile app also surfaces a **cast indicator** in the global header when a session is active, so the user can disconnect from anywhere in the app, not only the Canvas tab.
 
-## Receiver app structure
+## Canvas app structure
 
-`apps/canvas` (Vite + React):
+`gremlin-web/packages/canvas` (Vite + React):
 
 ```
-apps/canvas/
+packages/canvas/
 ├── index.html              # loads the CAF SDK from gstatic in <head>
 ├── src/
-│   ├── main.tsx            # bootstrapCast() then mount React
-│   ├── cast.ts             # CAF receiver bootstrap (no-op in browser)
+│   ├── main.tsx            # mounts React
 │   ├── App.tsx             # state machine + A2UI renderer
-│   ├── session.ts          # parses sender custom message OR URL params
+│   ├── cast.ts             # CAF receiver listener (no-op in browser)
+│   ├── session.ts          # parses sender message OR URL params
 │   ├── agui.ts             # AG-UI SSE client + reconnect logic
+│   ├── types.ts            # CanvasSession shape
 │   └── index.css           # base styles, dark stage, splash
-├── scripts/build-web.sh    # turbo-prune + Docker build for CDK
 └── vite.config.ts
 ```
 
-The bundle is intentionally small (a few hundred KB). No GraphQL client, no Apollo, no router — the canvas does one thing.
+The bundle is intentionally small. No GraphQL client, no Apollo, no router — the canvas does one thing.
 
 ## Telemetry and observability
 
@@ -296,19 +317,17 @@ The Gremlin backend logs canvas events the same way it logs other agent activity
 - `canvas.show.invoked` — `{ agentId, intentLength, contextSizeBytes }`
 - `canvas.subagent.latencyMs` — distribution per call
 - `canvas.subagent.error` — `{ reason, agentId }`
-- `canvas.stream.disconnects` — how often receivers lose the SSE stream
+- `canvas.stream.disconnects` — how often canvases lose the SSE stream
 
-The receiver itself sends a one-shot `canvas.heartbeat` every 30 s while live, so the backend can detect zombie sessions where the SSE write succeeded but the receiver is gone.
-
-## Migration from prior agent-canvas overlay
-
-A stub canvas overlay previously lived at `apps/mobile/app/(app)/agents/[id]/canvas.tsx` — a full-screen black surface with placeholder cast/airplay/fullscreen buttons attached to the agent chat screen. It was removed when the canvas was promoted to a top-level tab and a separate receiver app. No data or routes need migration; nothing depended on the old overlay.
+The canvas itself sends a one-shot `canvas.heartbeat` every 30 s while live, so the backend can detect zombie sessions where the SSE write succeeded but the canvas is gone.
 
 ## v1 minimum-cut
 
-- A2UI schema as the canvas UI vocabulary
+- Canvas app deployed at `ogcaster.com` via `gremlin-web`'s `CanvasStack`
+- Registered with Google as a Cast Custom Receiver; whitelisted dev device for testing; publication review deferred
+- A2UI vocabulary as the canvas UI schema
 - AG-UI endpoint on the Gremlin backend (`/canvas/sse` + companion POST endpoints)
-- AG-UI client + A2UI React renderer in `apps/canvas`
+- AG-UI client + A2UI React renderer in the canvas app
 - Scoped canvas session tokens issued by the backend
 - `canvas.show(intent, context)` and `canvas.clear()` tools available to all agents
 - UI subagent (Haiku) with A2UI system prompt + few-shot examples
@@ -316,15 +335,16 @@ A stub canvas overlay previously lived at `apps/mobile/app/(app)/agents/[id]/can
 - Mobile cast tab with real device discovery (`react-native-google-cast`)
 - Telemetry events listed above
 - Browser-mode signed link for non-cast viewers
-- All five lifecycle states styled (boot / connecting / live / reconnecting / error) — required for Cast review
+- All five lifecycle states styled — required for Cast review
 
 ## Open questions
 
-- **Token refresh handoff** — if the mobile sender disconnects mid-session, does the receiver shut down gracefully or attempt to keep going on the last token until expiry? Current lean: shut down on sender disconnect to keep the lifecycle simple.
-- **Multi-viewer.** Should two phones be able to control one canvas? Cast supports it natively; A2UI doesn't have an opinion. Defer.
+- **Token refresh handoff** — if the mobile sender disconnects mid-session, does the canvas shut down gracefully or attempt to keep going on the last token until expiry? Current lean: shut down on sender disconnect to keep the lifecycle simple.
+- **SSE auth header** — browser `EventSource` can't set custom headers. Options: token in query string (`?t=`), token in cookie, or use `fetch()` streaming instead of EventSource. Lean: `?t=` for simplicity plus short TTL, but keep tokens out of access logs.
+- **Multi-viewer.** Should two phones be able to control one canvas? Defer.
 - **A2UI spec churn.** A2UI is brand new (Google launched 2026). Pin a version; expect API changes through the year.
-- **Component coverage.** The A2UI vocabulary may not cover every artifact agents want to surface. Strategy: prefer the standard vocabulary; only extend if A2UI itself doesn't add the missing piece in a reasonable timeframe.
-- **Skill-contributed components.** Should skills be able to register custom A2UI components (e.g., a github skill ships a PR-card component)? Powerful but breaks the no-code-execution safety property. Probably no.
+- **Component coverage.** The A2UI vocabulary may not cover every artifact agents want to surface. Strategy: prefer the standard vocabulary; extend via Tier-2 composites if A2UI itself doesn't add the missing piece.
+- **When do we enable Tier-3?** The current design defers customer-run forked canvases. Revisit when a real customer has an irreducible need for a custom component type.
 - **Idle timeout duration.** 5 min is a guess. Tune based on real session telemetry.
-- **CDN region.** CloudFront is global, but a receiver-fetched bundle in low-bandwidth regions may take seconds to boot. Worth measuring before publication.
+- **CDN region.** CloudFront is global, but a canvas-fetched in low-bandwidth regions may take seconds to boot. Worth measuring before publication.
 - **Cost ceiling on UI subagent.** Haiku is cheap but `canvas.show` could be called frequently by chatty agents. Consider a per-agent rate limit and/or a "no-LLM" deterministic path for simple structured data.

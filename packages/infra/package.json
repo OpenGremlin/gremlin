@@ -10,7 +10,7 @@
     "deploy": "cdk deploy --all",
     "diff": "cdk diff --all",
     "clean": "rm -rf dist cdk.out",
-    "test": "vitest run"
+    "test": "echo 'No tests'"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1003.0",
@@ -22,7 +22,6 @@
     "aws-cdk": "^2",
     "esbuild": "^0.25",
     "tsx": "^4",
-    "typescript": "^5",
-    "vitest": "^4.0.18"
+    "typescript": "^5"
   }
 }

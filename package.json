@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "pnpm --filter @opengremlin/server dev",
     "mobile": "pnpm --filter @opengremlin/mobile dev",
-    "canvas": "pnpm --filter @opengremlin/canvas dev",
     "gremlin": "pnpm --filter @opengremlin/cli gremlin",
     "build": "turbo build",
     "clean": "turbo clean",

@@ -2,7 +2,6 @@
 import * as cdk from "aws-cdk-lib";
 import { AdminStack } from "../lib/admin-stack.js";
 import { AuthStack } from "../lib/auth-stack.js";
-import { CanvasStack } from "../lib/canvas-stack.js";
 import { DatabaseStack } from "../lib/database-stack.js";
 import { MediaStack } from "../lib/media-stack.js";
 import { MessagingStack } from "../lib/messaging-stack.js";
@@ -98,7 +97,3 @@ new AdminStack(app, "GremlinAdminStack", {
   cognitoDomain: auth.cognitoDomain,
   serverDns: server.serverDns,
 });
-
-// 7. Canvas — agent-driven UI surface, served as its own CloudFront
-//    distribution so it can be loaded by Chromecast receivers in the future.
-new CanvasStack(app, "GremlinCanvasStack", { env });
