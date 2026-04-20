@@ -1,7 +1,8 @@
 import { useQuery, useSubscription } from "@apollo/client";
+import { useScrollToTop } from "@react-navigation/native";
 import { router, useFocusEffect } from "expo-router";
 import { Home } from "lucide-react-native";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -131,6 +132,8 @@ const PAGE_SIZE = 20;
 export default function HomeScreen() {
   const colors = useNavigationTheme();
   const tabBarHeight = useTabBarHeight();
+  const listRef = useRef<FlatList<PostItem>>(null);
+  useScrollToTop(listRef);
   const contentContainerStyle = useMemo(
     () => ({ paddingBottom: tabBarHeight }),
     [tabBarHeight],
@@ -219,6 +222,7 @@ export default function HomeScreen() {
 
   return (
     <FlatList
+      ref={listRef}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={contentContainerStyle}
       data={nodes}
