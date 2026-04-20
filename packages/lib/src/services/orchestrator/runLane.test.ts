@@ -6,8 +6,10 @@ vi.mock("./compaction/index.js", () => ({
   buildContextMessages: vi.fn(),
   estimateContextTokens: vi.fn().mockReturnValue(1000),
   maybeCompact: vi.fn().mockResolvedValue(undefined),
-  DEFAULT_MAX_TOKENS: 200_000,
+  HARD_COMPACTION_CAP: 120_000,
   PRE_PROMPT_COMPACTION_RATIO: 0.9,
+  effectiveInputLimit: (max?: number) =>
+    max == null ? 120_000 : Math.min(max, 120_000),
 }));
 
 vi.mock("./model/index.js", () => ({

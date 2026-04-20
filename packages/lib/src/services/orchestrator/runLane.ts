@@ -4,7 +4,7 @@ import { publishAgentTurnMetric } from "../metrics/publishAgentTurn.js";
 import { buildMemoryContext } from "./buildMemoryContext.js";
 import {
   buildContextMessages,
-  DEFAULT_MAX_TOKENS,
+  effectiveInputLimit,
   estimateContextTokens,
   maybeCompact,
   PRE_PROMPT_COMPACTION_RATIO,
@@ -42,7 +42,6 @@ export async function runLane(
     systemPrompt,
     tools,
     recallHint,
-    timezone,
     reasoningEnabled,
     initialPrompt,
   } = config;
@@ -91,7 +90,7 @@ export async function runLane(
   // Pre-prompt overflow guard: if context is approaching the model's input
   // limit, compact synchronously before sending to avoid a context overflow
   // during the agent turn.
-  const inputLimit = maxInputTokens ?? DEFAULT_MAX_TOKENS;
+  const inputLimit = effectiveInputLimit(maxInputTokens);
   if (contextTokens >= inputLimit * PRE_PROMPT_COMPACTION_RATIO) {
     ctx.log.warn(
       { contextTokens, inputLimit, agentId, taskId },
@@ -138,7 +137,6 @@ export async function runLane(
       agentId,
       taskId,
       systemPrompt,
-      timezone,
       memoryContext,
       messages,
       tools,
@@ -170,7 +168,6 @@ export async function runLane(
         agentId,
         taskId,
         systemPrompt,
-        timezone,
         memoryContext,
         messages: recoveryMessages,
         tools,

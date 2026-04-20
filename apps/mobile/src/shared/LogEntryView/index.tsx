@@ -6,6 +6,7 @@ import {
   Calendar,
   CheckCircle,
   CircleAlert,
+  Clock,
   Eye,
   File,
   Flag,
@@ -176,6 +177,7 @@ const TOOL_ICON: Record<ToolName, LucideIcon> = {
   [ToolName.ListJobs]: List,
   [ToolName.ScheduleJob]: Calendar,
   [ToolName.UpdateJob]: Calendar,
+  [ToolName.GetCurrentTime]: Clock,
 };
 
 /**

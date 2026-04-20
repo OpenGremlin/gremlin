@@ -7,7 +7,7 @@ import type { CompactionEntry } from "./CompactionEntry.js";
 import {
   COMPACTION_RATIO,
   COMPACTION_TIMEOUT_MS,
-  DEFAULT_MAX_TOKENS,
+  effectiveInputLimit,
 } from "./constants.js";
 
 /**
@@ -24,7 +24,7 @@ export async function maybeCompact(
     maxInputTokens?: number;
   },
 ): Promise<void> {
-  const limit = opts.maxInputTokens ?? DEFAULT_MAX_TOKENS;
+  const limit = effectiveInputLimit(opts.maxInputTokens);
   if (opts.contextTokens < limit * COMPACTION_RATIO) return;
 
   const toSummarize = opts.messages;

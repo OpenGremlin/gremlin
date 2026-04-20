@@ -22,7 +22,7 @@ export interface ServiceContext {
    * getModelForAgent, getModelResult) returns this, bypassing Bedrock/
    * provider-API lookups. Never set in production code paths.
    * `maxInputTokens` is optional; when absent, callers fall through to their
-   * default limit (e.g. runLane's DEFAULT_MAX_TOKENS).
+   * default limit (e.g. runLane's HARD_COMPACTION_CAP).
    */
   modelOverride?: {
     model: LanguageModel;

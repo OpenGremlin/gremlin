@@ -1,9 +1,11 @@
 import { hasToolCall, type ModelMessage, streamText, type Tool } from "ai";
 import type { ServiceContext } from "../../context.js";
 import { requestUserInputTool } from "../../tools/index.js";
+import { asCacheCapableProvider, cacheMarker } from "../model/cacheMarkers.js";
 import { getModelForAgent } from "../model/index.js";
 import { writeAgentLog } from "../writeAgentLog.js";
 import { buildReasoningProviderOptions } from "./buildReasoningProviderOptions.js";
+import { buildTurnMessages } from "./buildTurnMessages.js";
 import { createOnStepFinish, type TurnFlags } from "./onStepFinish.js";
 import { createSpeechPipeline, type SpeechConfig } from "./streamSpeech.js";
 import { withEagerLogging } from "./withEagerLogging.js";
@@ -16,7 +18,6 @@ export async function runAgentTurn(
     agentId: string;
     taskId: string | null;
     systemPrompt: string;
-    timezone?: string;
     memoryContext?: string;
     messages: ModelMessage[];
     tools?: Record<string, Tool>;
@@ -38,9 +39,6 @@ export async function runAgentTurn(
     opts.agentId,
     opts.taskId,
   );
-
-  const tz = opts.timezone ?? "UTC";
-  const currentTime = new Date().toLocaleDateString("en-US", { timeZone: tz });
 
   const { model, warning: modelWarning } = await getModelForAgent(
     ctx,
@@ -71,11 +69,35 @@ export async function runAgentTurn(
     flags,
   });
 
-  const systemParts = [
-    opts.systemPrompt,
-    `Current time: ${currentTime} (${tz})`,
-    ...(opts.memoryContext ? [opts.memoryContext] : []),
-  ];
+  const modelProviderId = typeof model === "string" ? model : model.provider;
+  const cacheProvider = asCacheCapableProvider(modelProviderId);
+
+  // Structure the prompt to maximize prompt-cache reuse:
+  //   1. A stable system message (agent identity, tools usage, skills) marked
+  //      with a cache breakpoint — identical across all turns for this agent,
+  //      so subsequent turns hit the cache.
+  //   2. A short dynamic preamble (recalled memories) as a regular user
+  //      message, *outside* the cached region.
+  //   3. The conversation history, with a rolling breakpoint on the last
+  //      assistant message to extend the cache through prior turns.
+  // TTL is 5m on both. Traffic is bursty (focused sessions, then idle), so a
+  // 1h TTL at 2× write premium rarely amortizes — the cache would expire
+  // before reuse on most session boundaries. Revisit if usage logs show
+  // frequent in-window re-entries beyond 5m.
+  // For providers without explicit cache breakpoints (OpenAI, Gemini, etc.),
+  // `cacheProvider` is null — the prefix is still stable enough for whatever
+  // implicit caching those providers offer.
+  const { messages: builtMessages } = buildTurnMessages({
+    systemPrompt: opts.systemPrompt,
+    memoryContext: opts.memoryContext,
+    history: opts.messages,
+    systemCache: cacheProvider
+      ? cacheMarker(cacheProvider, { ttl: "5m" })
+      : undefined,
+    rollingCache: cacheProvider
+      ? cacheMarker(cacheProvider, { ttl: "5m" })
+      : undefined,
+  });
 
   // Pre-generate ID so the client can correlate stream deltas → final log entry
   const streamLogId = crypto.randomUUID();
@@ -101,15 +123,13 @@ export async function runAgentTurn(
     speech: opts.speech,
   });
 
-  const modelProvider = typeof model === "string" ? model : model.provider;
   const providerOptions = opts.reasoningEnabled
-    ? buildReasoningProviderOptions(modelProvider)
+    ? buildReasoningProviderOptions(modelProviderId)
     : undefined;
 
   const result = streamText({
     model,
-    system: systemParts.join("\n\n"),
-    messages: opts.messages,
+    messages: builtMessages,
     tools: allTools,
     stopWhen: [hasToolCall("requestUserInput"), () => flags.pendingApproval],
     // biome-ignore lint/suspicious/noExplicitAny: provider options type is too strict for dynamic construction

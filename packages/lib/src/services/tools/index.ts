@@ -15,6 +15,7 @@ export {
 } from "./fileEditor/index.js";
 export { generateImageTool } from "./generateImage.js";
 export { generateSpeechTool } from "./generateSpeech.js";
+export { getCurrentTimeTool } from "./getCurrentTime.js";
 export {
   listJobsTool,
   scheduleJobTool,

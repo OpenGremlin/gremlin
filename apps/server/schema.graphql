@@ -291,6 +291,7 @@ enum ToolName {
   listJobs
   scheduleJob
   updateJob
+  getCurrentTime
 }
 
 "Structured error returned by a tool when GremlinToolResult.ok === false."

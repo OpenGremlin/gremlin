@@ -12,6 +12,24 @@ export type StepEvent = {
     input?: unknown;
   }>;
   toolResults: Array<{ output?: unknown } | undefined>;
+  /**
+   * Per-step token accounting from the AI SDK. For Anthropic/Bedrock,
+   * `cachedInputTokens` is the count read from the prompt cache (billed at
+   * 0.1× base input).
+   */
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+    reasoningTokens?: number;
+    cachedInputTokens?: number;
+  };
+  /**
+   * Provider-specific metadata. For Bedrock, the cache *write* count surfaces
+   * under `providerMetadata.bedrock.usage.cacheWriteInputTokens` (billed at
+   * 1.25× for 5m TTL). Cache reads come through `usage.cachedInputTokens`.
+   */
+  providerMetadata?: Record<string, Record<string, unknown> | undefined>;
 };
 
 /**
@@ -42,6 +60,28 @@ export function createOnStepFinish(
 ) {
   const { agentId, taskId, callLogIds, flags } = opts;
   return async (step: StepEvent) => {
+    // Log token usage with cache breakdown. Bedrock only surfaces cache
+    // *writes* in `providerMetadata.bedrock.usage.cacheWriteInputTokens`;
+    // cache *reads* come through as `step.usage.cachedInputTokens` (the
+    // provider-agnostic field the binding populates from Bedrock's response).
+    if (step.usage || step.providerMetadata) {
+      const bedrockUsage = step.providerMetadata?.bedrock?.usage as
+        | { cacheWriteInputTokens?: number }
+        | undefined;
+      ctx.log.info(
+        {
+          agentId,
+          taskId,
+          component: "model",
+          inputTokens: step.usage?.inputTokens,
+          outputTokens: step.usage?.outputTokens,
+          cachedInputTokens: step.usage?.cachedInputTokens,
+          cacheWriteTokens: bedrockUsage?.cacheWriteInputTokens,
+        },
+        "Model step usage",
+      );
+    }
+
     for (let i = 0; i < step.toolCalls.length; i++) {
       const toolCall = step.toolCalls[i];
       const toolResult = step.toolResults[i];

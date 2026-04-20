@@ -33,14 +33,17 @@ export type ScriptTurn = ScriptStep[];
  *     [{ kind: "text", text: "All done." }],                             // turn 2
  *   ]);
  */
-export function scriptedModel(turns: ScriptTurn[]): LanguageModel {
+export function scriptedModel(
+  turns: ScriptTurn[],
+  opts?: { provider?: string },
+): LanguageModel {
   // MockLanguageModelV3's array form indexes off `calls.length` *after* pushing
   // the current call, so array[0] is never returned. Whether that's intentional
   // or not, it doesn't match our zero-indexed usage — drive it via callback form.
   let streamIdx = 0;
   let generateIdx = 0;
   return new MockLanguageModelV3({
-    provider: "scripted",
+    provider: opts?.provider ?? "scripted",
     modelId: "scripted-test-model",
     doStream: async () => {
       const turn = turns[streamIdx++];

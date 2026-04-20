@@ -3,6 +3,7 @@ import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
   createPostTool,
   FileStateTracker,
+  getCurrentTimeTool,
   listFilesTool,
   listJobsTool,
   readFileTool,
@@ -78,6 +79,7 @@ export async function runMainLane(
       scheduleJob: scheduleJobTool(ctx, agentId),
       updateJob: updateJobTool(ctx, agentId),
       createPost: createPostTool(ctx, agentId),
+      getCurrentTime: getCurrentTimeTool(timezone),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
     },
     recallHint,

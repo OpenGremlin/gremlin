@@ -7,6 +7,7 @@ import {
   createTavilySearchTool,
   generateImageTool,
   generateSpeechTool,
+  getCurrentTimeTool,
   listJobsTool,
   recallMemoryTool,
   saveMemoryTool,
@@ -57,6 +58,7 @@ export function buildTaskTools(
     [ToolName.ListJobs]: listJobsTool(ctx, agentId),
     [ToolName.ScheduleJob]: scheduleJobTool(ctx, agentId),
     [ToolName.UpdateJob]: updateJobTool(ctx, agentId),
+    [ToolName.GetCurrentTime]: getCurrentTimeTool(agentLaneCtx.timezone),
     ...(agent.config?.viewImage?.enabled && agentLaneCtx.modelSupportsImages
       ? { [ToolName.ViewImage]: viewImageTool(ctx) }
       : {}),

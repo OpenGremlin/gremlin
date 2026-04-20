@@ -1371,6 +1371,7 @@ export enum ToolName {
   EnsureSandbox = 'ensureSandbox',
   GenerateImage = 'generateImage',
   GenerateSpeech = 'generateSpeech',
+  GetCurrentTime = 'getCurrentTime',
   Glob = 'glob',
   Grep = 'grep',
   ListFiles = 'listFiles',

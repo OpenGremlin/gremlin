@@ -70,4 +70,7 @@ export enum ToolName {
   ListJobs = "listJobs",
   ScheduleJob = "scheduleJob",
   UpdateJob = "updateJob",
+
+  // Time
+  GetCurrentTime = "getCurrentTime",
 }

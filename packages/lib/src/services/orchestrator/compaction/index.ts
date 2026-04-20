@@ -2,7 +2,8 @@ export { buildContextMessages } from "./buildContextMessages.js";
 export { buildMainLaneContext } from "./buildMainLaneContext.js";
 export { compactToolResult } from "./compactToolResult.js";
 export {
-  DEFAULT_MAX_TOKENS,
+  effectiveInputLimit,
+  HARD_COMPACTION_CAP,
   PRE_PROMPT_COMPACTION_RATIO,
   TOOL_RESULT_COMPACT_THRESHOLD,
 } from "./constants.js";
