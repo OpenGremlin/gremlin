@@ -8,6 +8,10 @@ export default function CanvasLayout() {
   return (
     <Stack screenOptions={getStackScreenOptions(colors)}>
       <Stack.Screen name="index" options={{ title: "Canvas" }} />
+      <Stack.Screen
+        name="[sessionId]"
+        options={{ title: "Device", headerBackTitle: "Cast" }}
+      />
     </Stack>
   );
 }
