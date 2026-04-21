@@ -1,6 +1,5 @@
 import { useEvent } from "expo";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
-import { File, Paths } from "expo-file-system";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Pause, Play } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -20,6 +19,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useAuth } from "../lib/AuthContext";
+import { acquireMedia } from "../lib/mediaCache";
 import { useNavigationTheme } from "../lib/useNavigationTheme";
 import { DelayedSpinner } from "./DelayedSpinner";
 
@@ -136,6 +136,11 @@ function ProgressBar({
  * On native, AVFoundation doesn't reliably forward custom HTTP headers
  * (like Authorization) on audio/video sub-requests. We download the file
  * first and play from a local URI. On web, we pass headers directly.
+ *
+ * Downloads are cached by URL hash and ref-counted: the file is only deleted
+ * when no consumer holds it and the cache is over budget. This prevents a
+ * race where unmount-time deletion clobbers an AVFoundation read, which
+ * manifests as Hermes heap corruption crashes.
  */
 function useLocalMediaUri(
   url: string,
@@ -155,15 +160,16 @@ function useLocalMediaUri(
     setError(false);
 
     const ext = new URL(url).pathname.split(".").pop() ?? fallbackExt;
-    const dest = new File(Paths.cache, `media_${Date.now()}.${ext}`);
+    let release: (() => void) | undefined;
 
-    File.downloadFileAsync(url, dest, {
-      headers: tokenRef.current
-        ? { Authorization: `Bearer ${tokenRef.current}` }
-        : undefined,
-    })
-      .then((file) => {
-        if (!cancelled) setLocalUri(file.uri);
+    acquireMedia(url, { token: tokenRef.current, ext })
+      .then((handle) => {
+        if (cancelled) {
+          handle.release();
+          return;
+        }
+        release = handle.release;
+        setLocalUri(handle.uri);
       })
       .catch(() => {
         if (!cancelled) setError(true);
@@ -171,7 +177,7 @@ function useLocalMediaUri(
 
     return () => {
       cancelled = true;
-      dest.delete();
+      release?.();
     };
   }, [url, fallbackExt]);
 
