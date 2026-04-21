@@ -1,14 +1,13 @@
 import { getToken } from "./auth";
 import { getApiUrl } from "./config";
 
-// The fixed canvas page URL. Cast App ID is permanently bound to this
-// URL; never changes per deployment.
-const CANVAS_BASE_URL = "https://ogcaster.com";
-
 export interface CanvasSessionInfo {
   sessionId: string;
   token: string;
   expiresAt: string; // ISO 8601
+  /** URL the user opens in a browser to view this session. Built by
+   *  the server so the canvas origin is configurable server-side. */
+  browserUrl: string;
   /** Where this session is being shown — "Living Room TV" (Cast),
    *  "Browser", etc. Set by the caller, not the backend. */
   targetLabel: string;
@@ -53,6 +52,7 @@ export async function createCanvasSession(
     sessionId: string;
     token: string;
     expiresAt: string;
+    browserUrl: string;
   };
   const info: CanvasSessionInfo = {
     ...body,
@@ -90,14 +90,4 @@ export async function endCanvasSession(sessionId: string): Promise<void> {
     throw new Error(`endCanvasSession failed: ${res.status}`);
   }
   dropActiveSession(sessionId);
-}
-
-/** Build the URL the user opens in a browser to view this session. */
-export function buildCanvasUrl(s: CanvasSessionInfo): string {
-  const params = new URLSearchParams({
-    backend: getApiUrl(),
-    s: s.sessionId,
-    t: s.token,
-  });
-  return `${CANVAS_BASE_URL}/?${params.toString()}`;
 }

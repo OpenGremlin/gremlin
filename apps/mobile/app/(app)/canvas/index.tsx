@@ -2,10 +2,7 @@ import { router } from "expo-router";
 import { Cast, Globe } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Share, Text, View } from "react-native";
-import {
-  buildCanvasUrl,
-  createCanvasSession,
-} from "../../../src/lib/canvasApi";
+import { createCanvasSession } from "../../../src/lib/canvasApi";
 import {
   castToDevice,
   isCastAvailable,
@@ -44,13 +41,12 @@ export default function CanvasPickerScreen() {
     setPendingTarget("Browser");
     try {
       const session = await createCanvasSession("Browser");
-      const url = buildCanvasUrl(session);
       // Fire and forget the share sheet — user picks Copy / Messages /
       // AirDrop. Whether they share or cancel, we still navigate to
       // the device detail screen so they can pick an agent.
       Share.share({
-        url,
-        message: url,
+        url: session.browserUrl,
+        message: session.browserUrl,
         title: "Open canvas",
       }).catch(() => {});
       router.push({

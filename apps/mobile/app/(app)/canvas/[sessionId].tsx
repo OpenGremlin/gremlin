@@ -1,8 +1,8 @@
 import { useQuery } from "@apollo/client";
 import { router, useLocalSearchParams } from "expo-router";
-import { Bot, Check, X } from "lucide-react-native";
+import { Bot, Check, Share2, X } from "lucide-react-native";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Share, Text, View } from "react-native";
 import { AgentsQuery } from "../../../src/graphql/queries";
 import {
   bindCanvasAgent,
@@ -70,6 +70,33 @@ export default function DeviceDetailScreen() {
           {session.targetLabel}
         </Text>
       </View>
+
+      {session.targetLabel === "Browser" && (
+        <Pressable
+          onPress={() => {
+            Share.share({
+              url: session.browserUrl,
+              message: session.browserUrl,
+              title: "Open canvas",
+            }).catch(() => {});
+          }}
+          className="flex-row items-center gap-3 p-4 rounded-xl bg-surface-raised active:opacity-70"
+        >
+          <Share2 size={20} color={colors.iconMuted} />
+          <View className="flex-1">
+            <Text className="text-text-primary text-base font-medium">
+              Share link
+            </Text>
+            <Text
+              className="text-text-muted text-xs mt-0.5"
+              numberOfLines={1}
+              ellipsizeMode="middle"
+            >
+              {session.browserUrl}
+            </Text>
+          </View>
+        </Pressable>
+      )}
 
       <View className="gap-2">
         <Text className="text-text-secondary text-sm px-1">

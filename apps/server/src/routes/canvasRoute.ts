@@ -3,13 +3,24 @@ import type { Resources } from "@opengremlin/lib/resources/index.js";
 import type { CanvasEvent } from "@opengremlin/lib/services/canvas/index.js";
 import type { Services } from "@opengremlin/lib/services/index.js";
 import type { Request, Response } from "express";
+import { getServerBaseUrl } from "../config.js";
 import { verifyToken } from "../gql/auth.js";
 
 const log = createLogger("canvas-route");
 
+const DEFAULT_CANVAS_BASE_URL = "https://ogcaster.com";
+
+function getCanvasBaseUrl(): string {
+  return (process.env.CANVAS_BASE_URL ?? DEFAULT_CANVAS_BASE_URL).replace(
+    /\/$/,
+    "",
+  );
+}
+
 const ALLOWED_ORIGINS = new Set(
   [
     process.env.ADMIN_ORIGIN,
+    getCanvasBaseUrl(),
     "https://ogcaster.com",
     "http://localhost:5173",
     "http://localhost:5174",
@@ -32,10 +43,13 @@ export function canvasCorsPreflight(req: Request, res: Response): void {
   res.status(204).end();
 }
 
+const SKIP_AUTH = process.env.SKIP_AUTH === "true";
+
 async function authedUser(
   req: Request,
   res: Response,
 ): Promise<{ sub: string } | null> {
+  if (SKIP_AUTH) return { sub: "local" };
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {
     res.status(401).json({ error: "missing bearer token" });
@@ -60,7 +74,14 @@ export function createCanvasSessionRoute(
     const user = await authedUser(req, res);
     if (!user) return;
     const session = await services.canvas.createSession(resources, user.sub);
-    res.status(201).json(session);
+    const backend = await getServerBaseUrl();
+    const params = new URLSearchParams({
+      backend,
+      s: session.sessionId,
+      t: session.token,
+    });
+    const browserUrl = `${getCanvasBaseUrl()}/?${params.toString()}`;
+    res.status(201).json({ ...session, browserUrl });
   };
 }
 
