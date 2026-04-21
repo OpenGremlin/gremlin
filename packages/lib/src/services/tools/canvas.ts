@@ -5,6 +5,27 @@ import type { ServiceContext } from "../context.js";
 import { toolErr, toolOk, wrapExecute } from "./toolResult.js";
 
 /**
+ * Cap on the string we persist per canvas.show call. DynamoDB items top
+ * out at 400 KB total; we're well under that but chatty agents can
+ * still stuff megabytes of tool output into `context`, which bloats
+ * the table and the SSE payload. Truncate with a note.
+ */
+export const MAX_CANVAS_CONTENT_BYTES = 16 * 1024;
+
+function truncateToBytes(s: string, limit: number): string {
+  if (Buffer.byteLength(s, "utf8") <= limit) return s;
+  // Trim by chars conservatively (1 char ≤ 4 bytes in UTF-8), then
+  // walk back until we fit with a " …(truncated)" suffix.
+  const suffix = "\n\n…(truncated)";
+  const suffixBytes = Buffer.byteLength(suffix, "utf8");
+  let out = s.slice(0, Math.floor((limit - suffixBytes) / 4));
+  while (Buffer.byteLength(out, "utf8") > limit - suffixBytes) {
+    out = out.slice(0, -64);
+  }
+  return out + suffix;
+}
+
+/**
  * Translate a free-form intent + raw context into a CanvasNode. v1 is
  * a deterministic fast-path: if the context is clearly an image or a
  * code block, emit the matching node; otherwise fall back to a text
@@ -12,8 +33,10 @@ import { toolErr, toolOk, wrapExecute } from "./toolResult.js";
  *
  * The real UI subagent (Haiku-class, A2UI-aware) is deferred; when it
  * lands it replaces this function.
+ *
+ * Exported for testing.
  */
-function intentToNode(intent: string, context: unknown): CanvasNode {
+export function intentToNode(intent: string, context: unknown): CanvasNode {
   if (context && typeof context === "object") {
     const c = context as Record<string, unknown>;
     if (typeof c.imageUrl === "string") {
@@ -27,7 +50,7 @@ function intentToNode(intent: string, context: unknown): CanvasNode {
       return {
         type: "code",
         lang: typeof c.lang === "string" ? c.lang : undefined,
-        content: c.code,
+        content: truncateToBytes(c.code, MAX_CANVAS_CONTENT_BYTES),
       };
     }
   }
@@ -37,8 +60,11 @@ function intentToNode(intent: string, context: unknown): CanvasNode {
       : typeof context === "string"
         ? context
         : JSON.stringify(context, null, 2);
-  const content = contextStr ? `${intent}\n\n${contextStr}` : intent;
-  return { type: "text", content };
+  const raw = contextStr ? `${intent}\n\n${contextStr}` : intent;
+  return {
+    type: "text",
+    content: truncateToBytes(raw, MAX_CANVAS_CONTENT_BYTES),
+  };
 }
 
 export function canvasShowTool(ctx: ServiceContext, agentId: string) {
