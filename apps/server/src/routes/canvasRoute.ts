@@ -143,6 +143,15 @@ export function canvasSseRoute(resources: Resources, services: Services) {
       res.status(404).end("session not found");
       return;
     }
+    // Defense-in-depth: token's session can only be opened by its
+    // original owner. The token's signature already binds it to a
+    // sessionId, but cross-checking against the row guards against a
+    // future bug that would let one user's token resolve someone
+    // else's session.
+    if (session.userId !== payload.sub) {
+      res.status(403).end("forbidden");
+      return;
+    }
 
     res.set("Content-Type", "text/event-stream");
     res.set("Cache-Control", "no-cache, no-transform");

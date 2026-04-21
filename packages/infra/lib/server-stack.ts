@@ -9,6 +9,7 @@ import type * as efs from "aws-cdk-lib/aws-efs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import type * as s3 from "aws-cdk-lib/aws-s3";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import type { Construct } from "constructs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -202,6 +203,19 @@ export class ServerStack extends cdk.Stack {
       "CloudFront to server",
     );
 
+    // ── Canvas JWT secret ────────────────────────────────────
+    // HS256 signing secret for canvas session tokens (the ones the
+    // canvas presents back via /canvas/sse?t=). Auto-generated on
+    // first deploy; rotate by replacing the secret value in Secrets
+    // Manager and redeploying.
+    const canvasJwtSecret = new secretsmanager.Secret(this, "CanvasJwtSecret", {
+      description: "HS256 signing secret for canvas session tokens",
+      generateSecretString: {
+        excludePunctuation: true,
+        passwordLength: 64,
+      },
+    });
+
     // ── EC2 instance ─────────────────────────────────────────
     const userData = ec2.UserData.forLinux();
     userData.addCommands(
@@ -245,6 +259,7 @@ export class ServerStack extends cdk.Stack {
         `-e WORKSPACE_PATH=/workspace`,
         `-e ECS_CLUSTER_NAME=${cluster.clusterName}`,
         `-e SUBNET_IDS=${vpc.publicSubnets.map((s) => s.subnetId).join(",")}`,
+        `-e CANVAS_JWT_SECRET=${canvasJwtSecret.secretValue.unsafeUnwrap()}`,
         ...(props.tenantId ? [`-e TENANT_ID=${props.tenantId}`] : []),
         ...(props.controlPlaneApiUrl
           ? [`-e CONTROL_PLANE_API_URL=${props.controlPlaneApiUrl}`]

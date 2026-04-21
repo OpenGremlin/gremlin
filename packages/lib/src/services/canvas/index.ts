@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { DeleteItemCommand } from "dynamodb-toolbox/entity/actions/delete";
 import { GetItemCommand } from "dynamodb-toolbox/entity/actions/get";
 import { PutItemCommand } from "dynamodb-toolbox/entity/actions/put";
@@ -46,12 +45,12 @@ export interface CanvasTokenPayload {
 async function mintToken(
   userId: string,
   sessionId: string,
-  expiresAtEpoch: number,
+  ttl: number,
 ): Promise<string> {
   return new jose.SignJWT({ sub: userId, sid: sessionId })
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
-    .setExpirationTime(expiresAtEpoch)
+    .setExpirationTime(ttl)
     .setIssuer(ISSUER)
     .sign(getSecret());
 }
@@ -64,10 +63,6 @@ export async function verifyCanvasToken(
     algorithms: [ALG],
   });
   return payload as unknown as CanvasTokenPayload;
-}
-
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
 }
 
 // ── In-memory subscribers ──────────────────────────────────────
@@ -105,13 +100,19 @@ export function subscribe(sessionId: string, sub: Subscriber): () => void {
 function publish(sessionId: string, event: CanvasEvent): void {
   const set = subscribersBySession.get(sessionId);
   if (!set) return;
+  // Drop subscribers whose write fails — the underlying socket is gone
+  // and req.on("close") may not have fired yet. Without this, dead
+  // entries pile up in long-running processes.
+  const dead: Subscriber[] = [];
   for (const sub of set) {
     try {
       sub.send(event);
     } catch {
-      // Subscriber will tear itself down on its own write error
+      dead.push(sub);
     }
   }
+  for (const sub of dead) set.delete(sub);
+  if (set.size === 0) subscribersBySession.delete(sessionId);
 }
 
 function closeAll(sessionId: string): void {
@@ -141,23 +142,22 @@ export async function createSession(
 ): Promise<CreatedSession> {
   const sessionId = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
-  const expiresAtEpoch = now + TOKEN_TTL_SECONDS;
-  const token = await mintToken(userId, sessionId, expiresAtEpoch);
+  const ttl = now + TOKEN_TTL_SECONDS;
+  const token = await mintToken(userId, sessionId, ttl);
 
   await resources.ddb.entities.CanvasSession.build(PutItemCommand)
     .item({
       sessionId,
       userId,
-      tokenHash: hashToken(token),
       createdAt: new Date().toISOString(),
-      expiresAtEpoch,
+      ttl,
     })
     .send();
 
   return {
     sessionId,
     token,
-    expiresAt: new Date(expiresAtEpoch * 1000).toISOString(),
+    expiresAt: new Date(ttl * 1000).toISOString(),
   };
 }
 
