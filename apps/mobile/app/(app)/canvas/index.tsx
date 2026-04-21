@@ -6,18 +6,38 @@ import {
   buildCanvasUrl,
   createCanvasSession,
 } from "../../../src/lib/canvasApi";
+import {
+  castToDevice,
+  isCastAvailable,
+  useDiscoveredDevices,
+} from "../../../src/lib/castSession";
+import { getApiUrl } from "../../../src/lib/config";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { TabScrollView } from "../../../src/shared/TabScrollView";
 
 export default function CanvasPickerScreen() {
   const colors = useNavigationTheme();
   const [pendingTarget, setPendingTarget] = useState<string | null>(null);
+  const castEnabled = isCastAvailable();
+  const devices = useDiscoveredDevices();
 
-  // TODO: real Chromecast / AirPlay discovery (step 5 — needs the
-  // react-native-google-cast native module + Expo prebuild). For now
-  // the device list is empty and the picker just exposes the
-  // always-available "Open on a browser" option.
-  const devices: Array<{ id: string; name: string; kind: string }> = [];
+  const handleCastDevice = async (device: {
+    deviceId: string;
+    friendlyName: string;
+  }) => {
+    if (pendingTarget) return;
+    setPendingTarget(device.deviceId);
+    try {
+      const session = await createCanvasSession(device.friendlyName);
+      await castToDevice(device.deviceId, session, getApiUrl());
+      router.push({
+        pathname: "/canvas/[sessionId]",
+        params: { sessionId: session.sessionId },
+      });
+    } finally {
+      setPendingTarget(null);
+    }
+  };
 
   const handleOpenInBrowser = async () => {
     if (pendingTarget) return;
@@ -44,35 +64,47 @@ export default function CanvasPickerScreen() {
 
   return (
     <TabScrollView contentContainerClassName="px-4 pt-3 gap-4 grow">
-      <Text className="text-text-secondary text-sm px-1">Cast to</Text>
-
-      {devices.length === 0 ? (
-        <View className="flex-row items-center gap-3 px-4 py-4 rounded-xl bg-surface-raised">
-          <ActivityIndicator color={colors.iconMuted} />
-          <Text className="text-text-secondary text-sm">
-            Searching for devices…
-          </Text>
-        </View>
-      ) : (
-        <View className="gap-2">
-          {devices.map((d) => (
-            <View
-              key={d.id}
-              className="flex-row items-center gap-3 p-4 rounded-xl bg-surface-raised"
-            >
-              <Cast size={20} color={colors.iconMuted} />
-              <View className="flex-1">
-                <Text className="text-text-primary text-base font-medium">
-                  {d.name}
-                </Text>
-                <Text className="text-text-muted text-xs mt-0.5">{d.kind}</Text>
-              </View>
+      {castEnabled && (
+        <>
+          <Text className="text-text-secondary text-sm px-1">Cast to</Text>
+          {devices.length === 0 ? (
+            <View className="flex-row items-center gap-3 px-4 py-4 rounded-xl bg-surface-raised">
+              <ActivityIndicator color={colors.iconMuted} />
+              <Text className="text-text-secondary text-sm">
+                Searching for devices…
+              </Text>
             </View>
-          ))}
-        </View>
-      )}
+          ) : (
+            <View className="gap-2">
+              {devices.map((d) => (
+                <Pressable
+                  key={d.deviceId}
+                  onPress={() => handleCastDevice(d)}
+                  disabled={pendingTarget !== null}
+                  className="flex-row items-center gap-3 p-4 rounded-xl bg-surface-raised active:opacity-70"
+                >
+                  <Cast size={20} color={colors.iconMuted} />
+                  <View className="flex-1">
+                    <Text className="text-text-primary text-base font-medium">
+                      {d.friendlyName}
+                    </Text>
+                    {d.modelName && (
+                      <Text className="text-text-muted text-xs mt-0.5">
+                        {d.modelName}
+                      </Text>
+                    )}
+                  </View>
+                  {pendingTarget === d.deviceId && (
+                    <ActivityIndicator color={colors.iconMuted} />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          )}
 
-      <View className="h-px bg-border my-2" />
+          <View className="h-px bg-border my-2" />
+        </>
+      )}
 
       <Pressable
         onPress={handleOpenInBrowser}

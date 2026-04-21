@@ -108,6 +108,17 @@ Steps to register the canvas as a Custom Receiver in the Google Cast SDK Develop
 4. Reboot the registered device so it picks up the whitelist (~15-min propagation).
 5. For public release, submit for publication review (weeks-long, manual). Until then the receiver works on whitelisted devices only — fine for dev, beta, or self-hosters.
 
+### Wiring the App ID into mobile
+
+After getting the Application ID:
+
+1. Edit `apps/mobile/app.json` — replace `"PLACEHOLDER_OGCASTER_APP_ID"` in the `react-native-google-cast` plugin block with the real ID.
+2. `npx expo prebuild --clean` (in `apps/mobile/`) regenerates `ios/` and `android/` with the Cast SDK wired in. The plugin adds `NSBonjourServices`, `GoogleCastVersion`, and the iOS receiver-application setting to `Info.plist`, plus the Android meta-data tag.
+3. Rebuild the dev client: `npx expo run:ios` or `npx expo run:android`. The Cast button + discovery only works after this rebuild — the existing dev client doesn't have the native module.
+4. iOS will prompt for "local network access" the first time discovery starts. That's the Bonjour permission for finding Chromecasts on the LAN.
+
+Until the rebuild lands, `isCastAvailable()` returns false in `castSession.ts` and the picker hides the Cast section, leaving only "Open on a browser." All the JS plumbing is in place — flipping the App ID + rebuilding is what activates it.
+
 ## Auth and session bootstrap
 
 The canvas loads with no auth context. The mobile app, which is already authenticated to its deployment's Gremlin backend, creates a session and hands the result to the target device.

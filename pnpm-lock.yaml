@@ -164,6 +164,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.30.0
         version: 2.30.0(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      react-native-google-cast:
+        specifier: ^4.9.1
+        version: 4.9.1(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       react-native-marked:
         specifier: ^8.0.1
         version: 8.0.1(react-native-svg@15.15.3(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -7799,6 +7802,12 @@ packages:
       react: '*'
       react-native: '*'
 
+  react-native-google-cast@4.9.1:
+    resolution: {integrity: sha512-/HvIKAaWHtG6aTNCxrNrqA2ftWGkfH0M/2iN+28pdGUXpKmueb33mgL1m8D4zzwEODQMcmpfoCsym1IwDvugBQ==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+
   react-native-is-edge-to-edge@1.2.1:
     resolution: {integrity: sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==}
     peerDependencies:
@@ -14757,9 +14766,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.74.89': {}
@@ -19413,6 +19420,11 @@ snapshots:
       '@egjs/hammerjs': 2.0.17
       hoist-non-react-statics: 3.3.2
       invariant: 2.2.4
+      react: 19.2.0
+      react-native: 0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)
+
+  react-native-google-cast@4.9.1(react-native@0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0):
+    dependencies:
       react: 19.2.0
       react-native: 0.83.4(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0)
 

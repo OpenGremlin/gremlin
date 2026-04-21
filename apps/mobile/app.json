@@ -85,7 +85,14 @@
       ["expo-audio", { "supportsBackgroundPlayback": true }],
       "expo-image",
       "expo-asset",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "react-native-google-cast",
+        {
+          "iosReceiverAppId": "PLACEHOLDER_OGCASTER_APP_ID",
+          "androidReceiverCompatible": true
+        }
+      ]
     ],
     "extra": {
       "router": {},
