@@ -60,10 +60,11 @@ describe("runAgentTurn prefix stability and cache markers", () => {
 
     expect(model.doStreamCalls).toHaveLength(1);
     const prompt = model.doStreamCalls[0].prompt;
-    // System is always the first message and carries the 5m cache marker.
+    // System is the first message and carries the 1h cache marker. 1h must
+    // appear before any 5m marker (Anthropic TTL-ordering constraint).
     expect(prompt[0].role).toBe("system");
     expect(prompt[0].providerOptions).toEqual({
-      bedrock: { cachePoint: { type: "default", ttl: "5m" } },
+      bedrock: { cachePoint: { type: "default", ttl: "1h" } },
     });
   });
 

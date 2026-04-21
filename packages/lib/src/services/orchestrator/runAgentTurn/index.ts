@@ -73,17 +73,16 @@ export async function runAgentTurn(
   const cacheProvider = asCacheCapableProvider(modelProviderId);
 
   // Structure the prompt to maximize prompt-cache reuse:
-  //   1. A stable system message (agent identity, tools usage, skills) marked
-  //      with a cache breakpoint — identical across all turns for this agent,
-  //      so subsequent turns hit the cache.
+  //   1. A stable system message (agent identity, tools usage, skills) with
+  //      a 1h breakpoint — identical across turns for this agent; one write
+  //      covers a whole hour of scheduled jobs, task dispatches, and
+  //      conversational replies.
   //   2. A short dynamic preamble (recalled memories) as a regular user
   //      message, *outside* the cached region.
-  //   3. The conversation history, with a rolling breakpoint on the last
-  //      assistant message to extend the cache through prior turns.
-  // TTL is 5m on both. Traffic is bursty (focused sessions, then idle), so a
-  // 1h TTL at 2× write premium rarely amortizes — the cache would expire
-  // before reuse on most session boundaries. Revisit if usage logs show
-  // frequent in-window re-entries beyond 5m.
+  //   3. The conversation history, with a 5m rolling breakpoint on the last
+  //      assistant message. Rolling content changes fast, so a longer TTL
+  //      would pay the 2× write premium for little reuse.
+  // TTL ordering (1h must precede 5m) is satisfied by the layout above.
   // For providers without explicit cache breakpoints (OpenAI, Gemini, etc.),
   // `cacheProvider` is null — the prefix is still stable enough for whatever
   // implicit caching those providers offer.
@@ -92,7 +91,7 @@ export async function runAgentTurn(
     memoryContext: opts.memoryContext,
     history: opts.messages,
     systemCache: cacheProvider
-      ? cacheMarker(cacheProvider, { ttl: "5m" })
+      ? cacheMarker(cacheProvider, { ttl: "1h" })
       : undefined,
     rollingCache: cacheProvider
       ? cacheMarker(cacheProvider, { ttl: "5m" })
