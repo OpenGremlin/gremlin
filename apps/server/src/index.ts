@@ -19,6 +19,13 @@ import { createWsContext } from "./gql/wsContext.js";
 import { pubsub } from "./pubsub.js";
 import { createAuthConfigRoute } from "./routes/authConfigRoute.js";
 import {
+  bindCanvasSessionRoute,
+  canvasCorsPreflight,
+  canvasSseRoute,
+  createCanvasSessionRoute,
+  endCanvasSessionRoute,
+} from "./routes/canvasRoute.js";
+import {
   clientLogsPreflight,
   clientLogsRoute,
 } from "./routes/clientLogsRoute.js";
@@ -116,6 +123,27 @@ app.post(
   express.json({ limit: "1mb" }),
   createWebhookEventsRoute(resources, services),
 );
+
+// Canvas session endpoints. ogcaster.com (the canvas page) opens the
+// SSE stream cross-origin; mobile creates / binds / ends sessions.
+app.options("/canvas/sessions", canvasCorsPreflight);
+app.post(
+  "/canvas/sessions",
+  express.json({ limit: "8kb" }),
+  createCanvasSessionRoute(resources, services),
+);
+app.options("/canvas/sessions/:id/bind", canvasCorsPreflight);
+app.post(
+  "/canvas/sessions/:id/bind",
+  express.json({ limit: "8kb" }),
+  bindCanvasSessionRoute(resources, services),
+);
+app.options("/canvas/sessions/:id/end", canvasCorsPreflight);
+app.post(
+  "/canvas/sessions/:id/end",
+  endCanvasSessionRoute(resources, services),
+);
+app.get("/canvas/sse", canvasSseRoute(resources, services));
 
 // --- Startup ---
 
