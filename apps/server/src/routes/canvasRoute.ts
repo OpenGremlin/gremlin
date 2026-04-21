@@ -166,8 +166,18 @@ export function canvasSseRoute(resources: Resources, services: Services) {
 
     // Replay current bind state on connect so the canvas hydrates
     // immediately without waiting for the next mobile-driven bind.
+    // Also repopulate the in-memory sessionsByAgent index, which
+    // restart-clears but needs to exist for state publishes to find
+    // this session.
     if (session.currentAgentId) {
+      services.canvas.rememberBinding(session.currentAgentId, payload.sid);
       send({ type: "agentBound", agentId: session.currentAgentId });
+      const state = await services.canvas.getCanvasState(
+        resources,
+        session.currentAgentId,
+        session.userId,
+      );
+      if (state) send({ type: "stateSnapshot", tree: state });
     }
 
     const unsubscribe = services.canvas.subscribe(payload.sid, {

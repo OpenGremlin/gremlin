@@ -1,6 +1,8 @@
 import type { ServiceContext } from "../context.js";
 import { renderSystemPrompt, resolvePromptFlags } from "../prompts/index.js";
 import {
+  canvasClearTool,
+  canvasShowTool,
   createPostTool,
   FileStateTracker,
   getCurrentTimeTool,
@@ -80,6 +82,8 @@ export async function runMainLane(
       updateJob: updateJobTool(ctx, agentId),
       createPost: createPostTool(ctx, agentId),
       getCurrentTime: getCurrentTimeTool(timezone),
+      "canvas.show": canvasShowTool(ctx, agentId),
+      "canvas.clear": canvasClearTool(ctx, agentId),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
     },
     recallHint,

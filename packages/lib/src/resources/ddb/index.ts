@@ -4,6 +4,7 @@ import { AgentJobEntity } from "./schema/agentJob.js";
 import { AgentLogEntity } from "./schema/agentLog.js";
 import { AgentSkillEntity } from "./schema/agentSkill.js";
 import { CanvasSessionEntity } from "./schema/canvasSession.js";
+import { CanvasStateEntity } from "./schema/canvasState.js";
 import { ChatLaneEntity } from "./schema/chatLane.js";
 import { CommandApprovalEntity } from "./schema/commandApproval.js";
 import { CronJobTriggerEntity } from "./schema/cronJobTrigger.js";
@@ -45,6 +46,7 @@ export const ddb = {
     AgentLog: AgentLogEntity,
     AgentSkill: AgentSkillEntity,
     CanvasSession: CanvasSessionEntity,
+    CanvasState: CanvasStateEntity,
     ChatLane: ChatLaneEntity,
 
     CommandApproval: CommandApprovalEntity,

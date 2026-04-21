@@ -7,11 +7,29 @@ import {
 } from "dynamodb-toolbox/entity/actions/update";
 import * as jose from "jose";
 import type { CanvasSessionItem } from "../../resources/ddb/schema/canvasSession.js";
+import type { CanvasStateItem } from "../../resources/ddb/schema/canvasState.js";
 import type { Resources } from "../../resources/index.js";
 
 const TOKEN_TTL_SECONDS = 5 * 60;
+const CANVAS_STATE_TTL_DAYS = 30;
 const ISSUER = "canvas";
 const ALG = "HS256";
+
+// ── A2UI-ish tree shape (v1 placeholder) ──────────────────────
+// Real A2UI comes with the renderer work in step 7; this minimal
+// schema lets canvas.show/clear round-trip through the backend and
+// render plausibly in the meantime.
+
+export type CanvasNode =
+  | { type: "text"; content: string }
+  | { type: "image"; url: string; alt?: string }
+  | { type: "code"; lang?: string; content: string }
+  | { type: "stack"; direction: "v" | "h"; children: CanvasNode[] };
+
+export interface CanvasTree {
+  revision: number;
+  root: CanvasNode;
+}
 
 let cachedSecret: Uint8Array | null = null;
 
@@ -72,6 +90,8 @@ export async function verifyCanvasToken(
 export type CanvasEvent =
   | { type: "agentBound"; agentId: string }
   | { type: "agentUnbound" }
+  | { type: "stateSnapshot"; tree: CanvasTree }
+  | { type: "stateCleared" }
   | { type: "sessionEnded" }
   | { type: "heartbeat" };
 
@@ -81,6 +101,32 @@ export interface Subscriber {
 }
 
 const subscribersBySession = new Map<string, Set<Subscriber>>();
+
+// Mirrors CanvasSession.currentAgentId in-memory so we can fan state
+// updates out to every session bound to a given agent without touching
+// DDB on the hot path. Populated by bindAgent / endSession; on server
+// restart the first SSE connect per session repopulates it (see route).
+const sessionsByAgent = new Map<string, Set<string>>();
+
+function trackBind(agentId: string, sessionId: string): void {
+  let set = sessionsByAgent.get(agentId);
+  if (!set) {
+    set = new Set();
+    sessionsByAgent.set(agentId, set);
+  }
+  set.add(sessionId);
+}
+
+function untrackBind(agentId: string, sessionId: string): void {
+  const set = sessionsByAgent.get(agentId);
+  if (!set) return;
+  set.delete(sessionId);
+  if (set.size === 0) sessionsByAgent.delete(agentId);
+}
+
+export function rememberBinding(agentId: string, sessionId: string): void {
+  trackBind(agentId, sessionId);
+}
 
 export function subscribe(sessionId: string, sub: Subscriber): () => void {
   let set = subscribersBySession.get(sessionId);
@@ -113,6 +159,12 @@ function publish(sessionId: string, event: CanvasEvent): void {
   }
   for (const sub of dead) set.delete(sub);
   if (set.size === 0) subscribersBySession.delete(sessionId);
+}
+
+function publishToAgent(agentId: string, event: CanvasEvent): void {
+  const sessions = sessionsByAgent.get(agentId);
+  if (!sessions) return;
+  for (const sid of sessions) publish(sid, event);
 }
 
 function closeAll(sessionId: string): void {
@@ -183,16 +235,31 @@ export async function bindAgent(
   if (!session) throw new Error("Session not found");
   if (session.userId !== userId) throw new Error("Forbidden");
 
+  const previousAgentId = session.currentAgentId ?? null;
+
   if (agentId === null) {
     await resources.ddb.entities.CanvasSession.build(UpdateItemCommand)
       .item({ sessionId, currentAgentId: $remove() })
       .send();
+    if (previousAgentId) untrackBind(previousAgentId, sessionId);
     publish(sessionId, { type: "agentUnbound" });
-  } else {
-    await resources.ddb.entities.CanvasSession.build(UpdateItemCommand)
-      .item({ sessionId, currentAgentId: agentId })
-      .send();
-    publish(sessionId, { type: "agentBound", agentId });
+    return;
+  }
+
+  await resources.ddb.entities.CanvasSession.build(UpdateItemCommand)
+    .item({ sessionId, currentAgentId: agentId })
+    .send();
+
+  if (previousAgentId && previousAgentId !== agentId) {
+    untrackBind(previousAgentId, sessionId);
+  }
+  trackBind(agentId, sessionId);
+
+  publish(sessionId, { type: "agentBound", agentId });
+  // Hydrate the canvas from the last persisted tree for this agent.
+  const state = await getCanvasState(resources, agentId, userId);
+  if (state) {
+    publish(sessionId, { type: "stateSnapshot", tree: state });
   }
 }
 
@@ -205,12 +272,77 @@ export async function endSession(
   if (!session) return;
   if (session.userId !== userId) throw new Error("Forbidden");
 
+  if (session.currentAgentId) {
+    untrackBind(session.currentAgentId, sessionId);
+  }
+
   publish(sessionId, { type: "sessionEnded" });
   closeAll(sessionId);
 
   await resources.ddb.entities.CanvasSession.build(DeleteItemCommand)
     .key({ sessionId })
     .send();
+}
+
+// ── Canvas state (last A2UI tree per agent) ────────────────────
+
+export async function getCanvasState(
+  resources: Resources,
+  agentId: string,
+  userId: string,
+): Promise<CanvasTree | null> {
+  const { Item } = await resources.ddb.entities.CanvasState.build(
+    GetItemCommand,
+  )
+    .key({ agentId, userId })
+    .send();
+  const row = (Item ?? null) as CanvasStateItem | null;
+  if (!row) return null;
+  try {
+    return JSON.parse(row.tree) as CanvasTree;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveCanvasState(
+  resources: Resources,
+  agentId: string,
+  userId: string,
+  root: CanvasNode,
+): Promise<CanvasTree> {
+  const prev = await getCanvasState(resources, agentId, userId);
+  const tree: CanvasTree = {
+    revision: (prev?.revision ?? 0) + 1,
+    root,
+  };
+  const ttl =
+    Math.floor(Date.now() / 1000) + CANVAS_STATE_TTL_DAYS * 24 * 60 * 60;
+
+  await resources.ddb.entities.CanvasState.build(PutItemCommand)
+    .item({
+      agentId,
+      userId,
+      revision: tree.revision,
+      tree: JSON.stringify(tree),
+      updatedAt: new Date().toISOString(),
+      ttl,
+    })
+    .send();
+
+  publishToAgent(agentId, { type: "stateSnapshot", tree });
+  return tree;
+}
+
+export async function clearCanvasState(
+  resources: Resources,
+  agentId: string,
+  userId: string,
+): Promise<void> {
+  await resources.ddb.entities.CanvasState.build(DeleteItemCommand)
+    .key({ agentId, userId })
+    .send();
+  publishToAgent(agentId, { type: "stateCleared" });
 }
 
 export const canvasService = {
@@ -220,6 +352,10 @@ export const canvasService = {
   endSession,
   verifyCanvasToken,
   subscribe,
+  rememberBinding,
+  getCanvasState,
+  saveCanvasState,
+  clearCanvasState,
   TOKEN_TTL_SECONDS,
 };
 

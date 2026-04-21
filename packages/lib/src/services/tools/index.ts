@@ -1,6 +1,7 @@
 export { attachFileTool } from "./attachFile.js";
 export { attachLinkTool } from "./attachLink.js";
 export { createBraveSearchTool } from "./braveSearch.js";
+export { canvasClearTool, canvasShowTool } from "./canvas.js";
 export { createPostTool } from "./createPost.js";
 export {
   editFileTool,
