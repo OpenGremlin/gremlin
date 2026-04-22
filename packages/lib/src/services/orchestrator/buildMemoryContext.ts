@@ -7,17 +7,12 @@ interface MemoryEntry {
 
 interface Memories {
   recent: MemoryEntry[];
-  relevant: MemoryEntry[];
   core?: CoreMemory[];
 }
 
 export function buildMemoryContext(memories: Memories): string | undefined {
   const hasCore = memories.core && memories.core.length > 0;
-  if (
-    memories.recent.length === 0 &&
-    memories.relevant.length === 0 &&
-    !hasCore
-  ) {
+  if (memories.recent.length === 0 && !hasCore) {
     return undefined;
   }
 
@@ -45,16 +40,9 @@ export function buildMemoryContext(memories: Memories): string | undefined {
       lines.push(`[${m.date}]:\n${m.content}`);
     }
   }
-  if (memories.relevant.length > 0) {
-    lines.push("");
-    lines.push("### Relevant past memories");
-    for (const m of memories.relevant) {
-      lines.push(`[${m.date}]:\n${m.content}`);
-    }
-  }
   lines.push(
     "",
-    "You can save new memories using the saveMemory tool. Entries are appended to today's journal.",
+    "You can save new memories using the saveMemory tool. Entries are appended to today's journal. Use the recallMemory tool to search older memories by query.",
   );
   return lines.join("\n");
 }

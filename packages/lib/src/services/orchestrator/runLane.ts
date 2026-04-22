@@ -1,7 +1,6 @@
 import type { Tool } from "ai";
 import type { ServiceContext } from "../context.js";
 import { publishAgentTurnMetric } from "../metrics/publishAgentTurn.js";
-import { buildMemoryContext } from "./buildMemoryContext.js";
 import {
   buildContextMessages,
   effectiveInputLimit,
@@ -9,6 +8,7 @@ import {
   maybeCompact,
   PRE_PROMPT_COMPACTION_RATIO,
 } from "./compaction/index.js";
+import { loadMemorySnapshot } from "./loadMemorySnapshot.js";
 import { getModelForAgent } from "./model/index.js";
 import { runAgentTurn, type SpeechConfig } from "./runAgentTurn/index.js";
 import { writeAgentLog } from "./writeAgentLog.js";
@@ -18,7 +18,6 @@ export interface LaneConfig {
   taskId: string | null;
   systemPrompt: string;
   tools: Record<string, Tool>;
-  recallHint?: string;
   timezone?: string;
   /** Enable extended thinking / reasoning for this lane. */
   reasoningEnabled?: boolean;
@@ -30,7 +29,7 @@ export interface LaneConfig {
 
 /**
  * Shared orchestration logic for both main and task lanes.
- * Builds context, recalls memories, runs one agent turn, and compacts.
+ * Builds context, loads the cached memory snapshot, runs one agent turn, and compacts.
  */
 export async function runLane(
   ctx: ServiceContext,
@@ -41,7 +40,6 @@ export async function runLane(
     taskId,
     systemPrompt,
     tools,
-    recallHint,
     reasoningEnabled,
     initialPrompt,
   } = config;
@@ -62,24 +60,11 @@ export async function runLane(
     messages.push({ role: "user", content: initialPrompt });
   }
 
-  // Recall memories
-  const [memories, coreMemories] = await Promise.all([
-    ctx.services.memory
-      .recallMemories(ctx, agentId, recallHint ?? "")
-      .catch((err) => {
-        ctx.log.error({ err, component: "memory" }, "Memory recall failed");
-        return { recent: [], relevant: [] };
-      }),
-    ctx.services.memory.getCoreMemories(ctx, agentId).catch((err) => {
-      ctx.log.error({ err, component: "memory" }, "Core memory fetch failed");
-      return [];
-    }),
-  ]);
-
-  const memoryContext = buildMemoryContext({
-    ...memories,
-    core: coreMemories,
-  });
+  // Load the memory snapshot for this lane. Reused across turns within a
+  // session so the prompt prefix stays byte-stable for Anthropic's rolling
+  // cache. The model can still semantic-search older memories via the
+  // recallMemory tool on demand.
+  const memoryContext = await loadMemorySnapshot(ctx, agentId, taskId);
 
   // Estimate token usage before the agent turn for compaction decision
   const fullSystemPrompt = [systemPrompt, memoryContext]

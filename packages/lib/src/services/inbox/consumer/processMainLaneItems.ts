@@ -10,7 +10,6 @@ export async function processMainLaneItems(
   agentId: string,
   items: InboxItemItem[],
 ): Promise<void> {
-  let recallHint: string | undefined;
   // Only run inference for items that need an agent response (user messages,
   // tasks needing assignment, epic completions). Informational items skip it.
   let shouldRunInference = false;
@@ -25,7 +24,6 @@ export async function processMainLaneItems(
           role: "USER",
           content: payload.content,
         });
-        recallHint = payload.content;
         shouldRunInference = true;
         break;
       case "user_input_request_reply":
@@ -84,11 +82,6 @@ export async function processMainLaneItems(
   }
 
   if (shouldRunInference) {
-    await ctx.services.orchestrator.runMainLane(
-      ctx,
-      agentLaneCtx,
-      agentId,
-      recallHint,
-    );
+    await ctx.services.orchestrator.runMainLane(ctx, agentLaneCtx, agentId);
   }
 }

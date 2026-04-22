@@ -19,6 +19,12 @@ export const ChatLaneEntity = new Entity({
     agentId: string(),
     lane: string(),
     clearedAt: string().optional(),
+    // Rendered memory context string (core + recent journals). Reused across
+    // turns within a session so the prompt prefix stays byte-stable, which
+    // keeps Anthropic's rolling 5m cache warm. Refreshed when the snapshot
+    // is older than SNAPSHOT_TTL_MS — see loadMemorySnapshot.
+    memorySnapshot: string().optional(),
+    memorySnapshotAt: string().optional(),
   }),
   computeKey: ({ id }) => ({
     pk: "CHAT_LANE",

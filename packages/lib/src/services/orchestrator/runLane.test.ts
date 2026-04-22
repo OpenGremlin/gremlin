@@ -28,8 +28,9 @@ vi.mock("./writeAgentLog.js", () => ({
   updateAgentLogResult: vi.fn(),
 }));
 
-vi.mock("./buildMemoryContext.js", () => ({
-  buildMemoryContext: vi.fn().mockReturnValue(undefined),
+vi.mock("./loadMemorySnapshot.js", () => ({
+  loadMemorySnapshot: vi.fn().mockResolvedValue(undefined),
+  SNAPSHOT_TTL_MS: 5 * 60 * 1000,
 }));
 
 // Import mocked modules so we can configure them per-test
@@ -54,11 +55,6 @@ describe("runLane", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     ctx = createMockContext();
-    ctx.services.memory.recallMemories.mockResolvedValue({
-      recent: [],
-      relevant: [],
-    });
-    ctx.services.memory.getCoreMemories.mockResolvedValue([]);
 
     (buildContextMessages as Mock).mockResolvedValue({
       messages: [{ role: "user", content: "hello" }],
@@ -171,11 +167,6 @@ describe("runLane pre-prompt compaction guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     ctx = createMockContext();
-    ctx.services.memory.recallMemories.mockResolvedValue({
-      recent: [],
-      relevant: [],
-    });
-    ctx.services.memory.getCoreMemories.mockResolvedValue([]);
     (runAgentTurn as Mock).mockResolvedValue("response");
     // Default: estimate well below the 90% threshold (200_000 * 0.9 = 180_000).
     (estimateContextTokens as Mock).mockReturnValue(1000);

@@ -155,7 +155,6 @@ export async function runTaskLane(
     taskId,
     systemPrompt,
     tools: buildTaskTools(ctx, agentLaneCtx, agentId, taskId),
-    recallHint: prompt,
     timezone,
     reasoningEnabled:
       (agent.config?.reasoning?.enabled ?? false) &&

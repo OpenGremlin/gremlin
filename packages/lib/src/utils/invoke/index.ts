@@ -69,12 +69,10 @@ const taskId = "invoke-test";
 
 const [agentCtx, memories, coreMemories] = await Promise.all([
   buildAgentLaneContext(ctx, agentId),
-  ctx.services.memory
-    .recallMemories(ctx, agentId, "(test task)")
-    .catch((err) => {
-      console.error("Memory recall failed:", err);
-      return { recent: [], relevant: [] };
-    }),
+  ctx.services.memory.recallMemories(ctx, agentId, "").catch((err) => {
+    console.error("Memory recall failed:", err);
+    return { recent: [], relevant: [] };
+  }),
   ctx.services.memory.getCoreMemories(ctx, agentId).catch((err) => {
     console.error("Core memory fetch failed:", err);
     return [];
@@ -104,7 +102,7 @@ if (agentCtx.skillSummary.promptSection) {
 }
 
 const memoryContext = buildMemoryContext({
-  ...memories,
+  recent: memories.recent,
   core: coreMemories,
 });
 

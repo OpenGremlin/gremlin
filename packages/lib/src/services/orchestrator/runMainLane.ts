@@ -28,7 +28,6 @@ export async function runMainLane(
   ctx: ServiceContext,
   agentLaneCtx: AgentLaneContext,
   agentId: string,
-  recallHint?: string,
 ): Promise<string> {
   const { agent, profile, displayName, timezone } = agentLaneCtx;
 
@@ -86,7 +85,6 @@ export async function runMainLane(
       canvasClear: canvasClearTool(ctx, agentId),
       ...(flags.viewImage ? { viewImage: viewImageTool(ctx) } : {}),
     },
-    recallHint,
     timezone,
     reasoningEnabled:
       (agent.config?.reasoning?.enabled ?? false) &&
