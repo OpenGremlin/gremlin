@@ -610,6 +610,7 @@ export type Mutation = {
   /** Create a new folder at the given path */
   createWorkspaceFolder: Scalars['String']['output'];
   deleteAgentJob?: Maybe<AgentJob>;
+  deletePost?: Maybe<Post>;
   /** Delete one or more workspace files or directories */
   deleteWorkspaceEntries: WorkspaceMutationResult;
   disableModel: Array<EnabledModelEntry>;
@@ -720,6 +721,11 @@ export type MutationCreateWorkspaceFolderArgs = {
 
 
 export type MutationDeleteAgentJobArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletePostArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2180,6 +2186,7 @@ export type MutationResolvers<ContextType = GremlinContext, ParentType extends R
   createWebhook?: Resolver<ResolversTypes['CreateWebhookResult'], ParentType, ContextType, RequireFields<MutationCreateWebhookArgs, 'name' | 'scopes'>>;
   createWorkspaceFolder?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateWorkspaceFolderArgs, 'path'>>;
   deleteAgentJob?: Resolver<Maybe<ResolversTypes['AgentJob']>, ParentType, ContextType, RequireFields<MutationDeleteAgentJobArgs, 'id'>>;
+  deletePost?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<MutationDeletePostArgs, 'id'>>;
   deleteWorkspaceEntries?: Resolver<ResolversTypes['WorkspaceMutationResult'], ParentType, ContextType, RequireFields<MutationDeleteWorkspaceEntriesArgs, 'paths'>>;
   disableModel?: Resolver<Array<ResolversTypes['EnabledModelEntry']>, ParentType, ContextType, RequireFields<MutationDisableModelArgs, 'modelId' | 'providerId'>>;
   dismissUserInputRequest?: Resolver<Maybe<ResolversTypes['UserInputRequest']>, ParentType, ContextType, RequireFields<MutationDismissUserInputRequestArgs, 'id'>>;

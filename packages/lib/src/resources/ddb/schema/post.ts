@@ -18,6 +18,7 @@ export const PostEntity = new Entity({
     /** TaskAttachment IDs collected from the task tree. */
     attachmentIds: list(string()),
     createdAt: string(),
+    deletedAt: string().optional(),
   }),
   // NOTE: GSI keys (gsi1pk/gsi1sk, gsi2pk/gsi2sk) are written directly via
   // AWS SDK PutCommand because dynamodb-toolbox v2 computeKey ignores them.

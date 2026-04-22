@@ -10,5 +10,6 @@ export async function getPost(
     .key({ id })
     .send();
 
-  return Item ?? null;
+  if (!Item || Item.deletedAt) return null;
+  return Item;
 }

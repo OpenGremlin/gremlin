@@ -31,6 +31,10 @@ export const postTypeDefs = /* GraphQL */ `
     posts(first: Int, after: String, last: Int, before: String): PostConnection!
   }
 
+  extend type Mutation {
+    deletePost(id: ID!): Post
+  }
+
   extend type Subscription {
     postCreated: Post!
   }

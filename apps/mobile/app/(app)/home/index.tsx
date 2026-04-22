@@ -1,10 +1,11 @@
-import { useQuery, useSubscription } from "@apollo/client";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import { useScrollToTop } from "@react-navigation/native";
 import { router, useFocusEffect } from "expo-router";
 import { Home } from "lucide-react-native";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -13,12 +14,14 @@ import {
 } from "react-native";
 import type { AttachmentFieldsFragment } from "../../../src/graphql/generated/graphql";
 import {
+  DeletePostMutation,
   PostCreatedSubscription,
   PostsQuery,
 } from "../../../src/graphql/queries/posts";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
 import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
 import { agentNameColor } from "../../../src/lib/color";
+import { haptics } from "../../../src/lib/haptics";
 import { usePendingCount } from "../../../src/lib/PendingCountContext";
 import { useNavigationTheme } from "../../../src/lib/useNavigationTheme";
 import { AgentAvatar } from "../../../src/shared/AgentAvatar";
@@ -42,7 +45,13 @@ type PostItem = {
   attachments?: readonly AttachmentFieldsFragment[];
 };
 
-const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
+const PostCard = memo(function PostCard({
+  item,
+  onDelete,
+}: {
+  item: PostItem;
+  onDelete: (id: string) => void;
+}) {
   const { agent } = item;
   const openPager = (initialIndex: number) => {
     const file = files[initialIndex];
@@ -59,9 +68,23 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
   );
   const groups = useMemo(() => groupFiles(files), [files]);
 
+  const handleLongPress = useCallback(() => {
+    haptics.medium();
+    Alert.alert("Delete post?", "This post will be removed from your feed.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => onDelete(item.id),
+      },
+    ]);
+  }, [item.id, onDelete]);
+
   return (
     <Pressable
       onPress={() => router.push(`/tasks/${item.taskId}`)}
+      onLongPress={handleLongPress}
+      delayLongPress={350}
       className="px-4 py-4 active:bg-surface/50"
     >
       <View className="flex-row items-start gap-3">
@@ -122,9 +145,6 @@ const PostCard = memo(function PostCard({ item }: { item: PostItem }) {
   );
 });
 
-const renderPostItem = ({ item }: { item: PostItem }) => (
-  <PostCard item={item} />
-);
 const keyExtractor = (item: PostItem) => item.id;
 
 const PAGE_SIZE = 20;
@@ -145,6 +165,36 @@ export default function HomeScreen() {
     },
   );
   const [loadingMore, setLoadingMore] = useState(false);
+  const [deletePost] = useMutation(DeletePostMutation);
+
+  const handleDeletePost = useCallback(
+    (id: string) => {
+      updateQuery((prev) => {
+        if (!prev?.posts) return prev;
+        return {
+          ...prev,
+          posts: {
+            ...prev.posts,
+            edges: prev.posts.edges.filter((e) => e.node.id !== id),
+          },
+        };
+      });
+      deletePost({ variables: { id } }).catch(() => {
+        Alert.alert(
+          "Delete failed",
+          "The post could not be deleted. Pull to refresh.",
+        );
+      });
+    },
+    [deletePost, updateQuery],
+  );
+
+  const renderPostItem = useCallback(
+    ({ item }: { item: PostItem }) => (
+      <PostCard item={item} onDelete={handleDeletePost} />
+    ),
+    [handleDeletePost],
+  );
 
   // Listen for new posts and prepend them to the feed
   useSubscription(PostCreatedSubscription, {

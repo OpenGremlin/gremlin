@@ -32,10 +32,14 @@ export async function getPosts(
       partition: "POST_ALL",
       ...(rangeCondition && { range: rangeCondition }),
     })
-    .options({ limit: fetchLimit, reverse: isBackward });
+    .options({
+      limit: fetchLimit,
+      reverse: isBackward,
+      filters: { Post: { attr: "deletedAt", exists: false } },
+    });
 
   const { Items } = await query.send();
-  const items = [...(Items ?? [])];
+  const items = [...(Items ?? [])].filter((i) => !i.deletedAt);
 
   const hasMore = items.length > limit;
   if (hasMore) {

@@ -19,6 +19,12 @@ const posts = (
   ctx: GremlinContext,
 ) => ctx.services.posts.getPosts(ctx, { first, after, last, before });
 
+const deletePost = (
+  _parent: unknown,
+  { id }: { id: string },
+  ctx: GremlinContext,
+) => ctx.services.posts.deletePost(ctx, id);
+
 // ---------------------------------------------------------------------------
 // Field resolvers
 // ---------------------------------------------------------------------------
@@ -45,6 +51,7 @@ const postCreated = {
 
 export const postResolvers = {
   Query: { post, posts },
+  Mutation: { deletePost },
   Post: { agent, attachments },
   PostEdge: { node },
   Subscription: { postCreated },

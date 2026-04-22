@@ -76,6 +76,7 @@ type Mutation {
   disableModel(providerId: String!, modelId: String!): [EnabledModelEntry!]!
   connectAwsIamRole(roleArn: String!, displayName: String, region: String): IntegrationConnection!
   submitOAuthConnection(providerId: String!, accessToken: String!, refreshToken: String, expiresAt: String, scopes: [String!]!, accountId: String, clientId: String): IntegrationConnection!
+  deletePost(id: ID!): Post
   resolveUserInputRequest(id: ID!, action: String!): UserInputRequest
   dismissUserInputRequest(id: ID!): UserInputRequest
   updateProfile(input: ProfileInput!): Profile!

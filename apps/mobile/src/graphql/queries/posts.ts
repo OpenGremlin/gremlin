@@ -34,3 +34,11 @@ export const PostCreatedSubscription = graphql(`
     }
   }
 `);
+
+export const DeletePostMutation = graphql(`
+  mutation DeletePost($id: ID!) {
+    deletePost(id: $id) {
+      id
+    }
+  }
+`);

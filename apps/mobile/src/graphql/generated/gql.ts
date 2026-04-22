@@ -83,6 +83,7 @@ type Documents = {
     "\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n": typeof types.PostDocument,
     "\n  query Posts($first: Int, $after: String, $last: Int, $before: String) {\n    posts(first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          ...PostSummary\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": typeof types.PostsDocument,
     "\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n": typeof types.PostCreatedDocument,
+    "\n  mutation DeletePost($id: ID!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n": typeof types.DeletePostDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.ProfileDocument,
     "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": typeof types.UpdateProfileDocument,
     "\n  query Avatars {\n    avatars {\n      id\n      name\n      url(width: 200)\n    }\n  }\n": typeof types.AvatarsDocument,
@@ -190,6 +191,7 @@ const documents: Documents = {
     "\n  query Post($id: ID!) {\n    post(id: $id) {\n      ...PostSummary\n    }\n  }\n": types.PostDocument,
     "\n  query Posts($first: Int, $after: String, $last: Int, $before: String) {\n    posts(first: $first, after: $after, last: $last, before: $before) {\n      edges {\n        cursor\n        node {\n          ...PostSummary\n        }\n      }\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n    }\n  }\n": types.PostsDocument,
     "\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n": types.PostCreatedDocument,
+    "\n  mutation DeletePost($id: ID!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n": types.DeletePostDocument,
     "\n  query Profile {\n    profile {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.ProfileDocument,
     "\n  mutation UpdateProfile($input: ProfileInput!) {\n    updateProfile(input: $input) {\n      displayName\n      about\n      website\n      timezone\n    }\n  }\n": types.UpdateProfileDocument,
     "\n  query Avatars {\n    avatars {\n      id\n      name\n      url(width: 200)\n    }\n  }\n": types.AvatarsDocument,
@@ -518,6 +520,10 @@ export function graphql(source: "\n  query Posts($first: Int, $after: String, $l
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n"): (typeof documents)["\n  subscription PostCreated {\n    postCreated {\n      ...PostSummary\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeletePost($id: ID!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeletePost($id: ID!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
