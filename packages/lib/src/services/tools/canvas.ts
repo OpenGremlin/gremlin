@@ -85,7 +85,7 @@ Call sparingly. Most agent output belongs in the chat; the canvas is for things 
         .optional()
         .describe("Raw data — image URL, code, structured JSON"),
     }),
-    execute: wrapExecute("canvas.show", async ({ intent, context }) => {
+    execute: wrapExecute("canvasShow", async ({ intent, context }) => {
       const userId = ctx.user?.sub;
       if (!userId) {
         return toolErr("INTERNAL_ERROR", "No authenticated user");
@@ -107,7 +107,7 @@ export function canvasClearTool(ctx: ServiceContext, agentId: string) {
     description:
       "Clear whatever is currently on the user's canvas. Use when the thing you showed is no longer relevant.",
     inputSchema: z.object({}),
-    execute: wrapExecute("canvas.clear", async () => {
+    execute: wrapExecute("canvasClear", async () => {
       const userId = ctx.user?.sub;
       if (!userId) {
         return toolErr("INTERNAL_ERROR", "No authenticated user");

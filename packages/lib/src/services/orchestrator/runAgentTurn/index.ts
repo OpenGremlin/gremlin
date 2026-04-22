@@ -8,6 +8,7 @@ import { buildReasoningProviderOptions } from "./buildReasoningProviderOptions.j
 import { buildTurnMessages } from "./buildTurnMessages.js";
 import { createOnStepFinish, type TurnFlags } from "./onStepFinish.js";
 import { createSpeechPipeline, type SpeechConfig } from "./streamSpeech.js";
+import { validateToolNames } from "./validateToolNames.js";
 import { withEagerLogging } from "./withEagerLogging.js";
 
 export type { SpeechConfig } from "./streamSpeech.js";
@@ -31,6 +32,8 @@ export async function runAgentTurn(
     ...opts.tools,
     requestUserInput: requestUserInputTool(ctx, opts.agentId, lane),
   };
+
+  validateToolNames(baseTools);
 
   // Wrap tools to emit a call log immediately when execution starts
   const { tools: allTools, callLogIds } = withEagerLogging(
@@ -126,6 +129,8 @@ export async function runAgentTurn(
     ? buildReasoningProviderOptions(modelProviderId)
     : undefined;
 
+  const chunkTypeCounts: Record<string, number> = {};
+
   const result = streamText({
     model,
     messages: builtMessages,
@@ -134,7 +139,21 @@ export async function runAgentTurn(
     // biome-ignore lint/suspicious/noExplicitAny: provider options type is too strict for dynamic construction
     providerOptions: providerOptions as any,
     onStepFinish,
+    onError: ({ error }) => {
+      ctx.log.error(
+        {
+          err: error,
+          agentId: opts.agentId,
+          taskId: opts.taskId,
+          provider: modelProviderId,
+          modelId: typeof model === "string" ? model : model.modelId,
+          chunkTypeCounts,
+        },
+        "streamText provider error",
+      );
+    },
     onChunk: ({ chunk }) => {
+      chunkTypeCounts[chunk.type] = (chunkTypeCounts[chunk.type] ?? 0) + 1;
       if (chunk.type === "reasoning-delta" && chunk.text) {
         publishDelta(chunk.text, false, "reasoning");
       } else if (chunk.type === "text-delta" && chunk.text) {
@@ -144,8 +163,52 @@ export async function runAgentTurn(
     },
   });
 
-  // Wait for completion
-  const finalText = await result.text;
+  // Wait for completion. On failure, surface the provider's view
+  // (finishReason, usage, providerMetadata) before rethrowing — these
+  // promises resolve even when `result.text` throws, and carry info
+  // Bedrock/Anthropic don't put on the thrown error (e.g. safety blocks,
+  // empty-response finish reasons).
+  let finalText: string;
+  try {
+    finalText = await result.text;
+  } catch (err) {
+    // AI SDK exposes PromiseLike (no .catch), so swallow via .then
+    const safe = <T>(p: PromiseLike<T>): Promise<T | undefined> =>
+      Promise.resolve(p).then(
+        (v) => v,
+        () => undefined,
+      );
+    const [finishReason, usage, providerMetadata, response, request] =
+      await Promise.all([
+        safe(result.finishReason),
+        safe(result.usage),
+        safe(result.providerMetadata),
+        safe(result.response),
+        safe(result.request),
+      ]);
+    ctx.log.error(
+      {
+        err,
+        agentId: opts.agentId,
+        taskId: opts.taskId,
+        provider: modelProviderId,
+        modelId: typeof model === "string" ? model : model.modelId,
+        finishReason,
+        usage,
+        providerMetadata,
+        responseId: response?.id,
+        // requestBody contains the full prompt (user messages, memory,
+        // tool results) — gated to avoid leaking PII into logs by default.
+        requestBody:
+          process.env.LOG_REQUEST_BODY_ON_ERROR === "true"
+            ? request?.body
+            : undefined,
+        chunkTypeCounts,
+      },
+      "Agent turn inference failed",
+    );
+    throw err;
+  }
 
   // Signal stream complete
   publishDelta("", true);
