@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
-import { useScrollToTop } from "@react-navigation/native";
 import { router, useFocusEffect } from "expo-router";
 import { Home } from "lucide-react-native";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
@@ -19,6 +18,7 @@ import {
   PostsQuery,
 } from "../../../src/graphql/queries/posts";
 import { useListRefresh } from "../../../src/hooks/useListRefresh";
+import { useScrollToTabTop } from "../../../src/hooks/useScrollToTabTop";
 import { useTabBarHeight } from "../../../src/hooks/useTabBarHeight";
 import { agentNameColor } from "../../../src/lib/color";
 import { haptics } from "../../../src/lib/haptics";
@@ -153,7 +153,7 @@ export default function HomeScreen() {
   const colors = useNavigationTheme();
   const tabBarHeight = useTabBarHeight();
   const listRef = useRef<FlatList<PostItem>>(null);
-  useScrollToTop(listRef);
+  useScrollToTabTop(listRef);
   const contentContainerStyle = useMemo(
     () => ({ paddingBottom: tabBarHeight }),
     [tabBarHeight],
